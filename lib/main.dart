@@ -255,34 +255,77 @@ class MessageContent extends StatelessWidget {
         return Text.rich(_errorUnimplemented(element));
     }
   }
+}
 
-  List<InlineSpan> _buildInlineList(dom.NodeList nodes) =>
-      List.of(nodes.map(_buildInlineNode));
+List<InlineSpan> _buildInlineList(dom.NodeList nodes) =>
+    List.of(nodes.map(_buildInlineNode));
 
-  InlineSpan _buildInlineNode(dom.Node node) {
-    if (node is dom.Text) return TextSpan(text: node.text);
-    if (node is! dom.Element) {
-      return TextSpan(
-          text: "(unimplemented dom.Node type: ${node.nodeType})",
-          style: errorStyle);
-    }
-    switch (node.localName) {
-      default:
-        return _errorUnimplemented(node);
-    }
+InlineSpan _buildInlineNode(dom.Node node) {
+  if (node is dom.Text) return TextSpan(text: node.text);
+  if (node is! dom.Element) {
+    return TextSpan(
+        text: "(unimplemented dom.Node type: ${node.nodeType})",
+        style: errorStyle);
+  }
+  if (node.localName == "span" && node.classes.contains("user-mention")) {
+    return WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: UserMention(element: node));
+  }
+  return _errorUnimplemented(node);
+}
+
+class UserMention extends StatelessWidget {
+  const UserMention({super.key, required this.element});
+
+  final dom.Element element;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        decoration: _kDecoration,
+        padding: const EdgeInsets.all(2),
+        child: Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
   }
 
-  Widget _errorText(String text) => Text(text, style: errorStyle);
+  static get _kDecoration => BoxDecoration(
+      gradient: const LinearGradient(
+          colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter),
+      border: Border.all(
+          color: const Color.fromRGBO(0xcc, 0xcc, 0xcc, 1), width: 1.1),
+      borderRadius: const BorderRadius.all(Radius.circular(3)));
 
-  InlineSpan _errorUnimplemented(dom.Element element) => TextSpan(children: [
-        const TextSpan(text: "(unimplemented:", style: errorStyle),
-        TextSpan(text: element.outerHtml, style: errorCodeStyle),
-        const TextSpan(text: ")", style: errorStyle),
-      ]);
-
-  static const errorStyle =
-      TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
-
-  static const errorCodeStyle =
-      TextStyle(color: Colors.red, fontFamily: 'monospace');
+// This is a more literal translation of Zulip web's CSS.
+// But it turns out CSS `box-shadow` has a quirk we rely on there:
+// it doesn't apply under the element itself, even if the element's
+// own background is transparent.  Flutter's BoxShadow does apply,
+// which is after all more logical from the "shadow" metaphor.
+//
+// static const _kDecoration = ShapeDecoration(
+//     gradient: LinearGradient(
+//         colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
+//         begin: Alignment.topCenter,
+//         end: Alignment.bottomCenter),
+//     shadows: [
+//       BoxShadow(
+//           spreadRadius: 1,
+//           blurStyle: BlurStyle.outer,
+//           color: Color.fromRGBO(0xcc, 0xcc, 0xcc, 1))
+//     ],
+//     shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.all(Radius.circular(3))));
 }
+
+Widget _errorText(String text) => Text(text, style: errorStyle);
+
+InlineSpan _errorUnimplemented(dom.Element element) => TextSpan(children: [
+      const TextSpan(text: "(unimplemented:", style: errorStyle),
+      TextSpan(text: element.outerHtml, style: errorCodeStyle),
+      const TextSpan(text: ")", style: errorStyle),
+    ]);
+
+const errorStyle = TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
+
+const errorCodeStyle = TextStyle(color: Colors.red, fontFamily: 'monospace');
