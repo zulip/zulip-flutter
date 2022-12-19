@@ -272,20 +272,22 @@ InlineSpan _buildInlineNode(dom.Node node) {
   InlineSpan styled(TextStyle style) =>
       TextSpan(children: _buildInlineList(node.nodes), style: style);
 
-  if (node.localName == "br") {
+  if (node.localName == "br" && node.classes.isEmpty) {
     // Each `<br/>` is followed by a newline, which browsers apparently ignore
     // and our parser doesn't.  So don't do anything here.
     return const TextSpan(text: "");
   }
-  if (node.localName == "strong") {
+  if (node.localName == "strong" && node.classes.isEmpty) {
     return styled(const TextStyle(fontWeight: FontWeight.w600));
   }
-  if (node.localName == "a") {
+  if (node.localName == "a" && node.classes.isEmpty) {
     // TODO make link touchable
     return styled(
         TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
-  if (node.localName == "span" && node.classes.contains("user-mention")) {
+  if (node.localName == "span" &&
+      node.classes.length == 1 &&
+      node.classes.contains("user-mention")) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: UserMention(element: node));
