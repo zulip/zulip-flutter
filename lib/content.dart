@@ -127,9 +127,10 @@ InlineSpan _buildInlineNode(dom.Node node) {
         TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
   if (node.localName == "span" &&
-      ((node.classes.length == 1 && node.classes.contains("user-mention")) ||
-          (node.classes.length == 2 &&
-              node.classes.containsAll(["user-mention", "silent"])))) {
+      (node.classes.contains("user-mention") ||
+          node.classes.contains("user-group-mention")) &&
+      (node.classes.length == 1 ||
+          (node.classes.length == 2 && node.classes.contains("silent")))) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: UserMention(element: node));
