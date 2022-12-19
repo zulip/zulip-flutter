@@ -152,7 +152,7 @@ class _MessageListState extends State<MessageList> {
   Future<void> _fetch() async {
     final store = PerAccountStoreWidget.of(context);
     final result =
-        await getMessages(store.connection, num_before: 10, num_after: 10);
+        await getMessages(store.connection, num_before: 100, num_after: 10);
     setState(() {
       messages.addAll(result.messages);
       fetched = true;
