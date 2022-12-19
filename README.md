@@ -18,6 +18,10 @@ samples, guidance on mobile development, and a full API reference.
 
 ### Editing API types
 
+We support Zulip Server 4.0 and later.  For API features added in
+newer versions, use `TODO(server-N)` comments (like those you see
+in the existing code.)
+
 When editing the files in `lib/api/model/`, use the following command
 to keep the generated files up to date:
 ```
