@@ -8,7 +8,13 @@ class PerAccountStore extends ChangeNotifier {
   // Load the user's data from storage.  (Once we have such a thing.)
   static Future<PerAccountStore> load() async {
     const account = _fixtureAccount;
+
+    final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(account); // TODO retry
+    final t = (stopwatch..stop()).elapsed;
+    // TODO log the time better
+    if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
+
     return PerAccountStore(account: account, initialSnapshot: initialSnapshot);
   }
 
