@@ -1,8 +1,13 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:json_annotation/json_annotation.dart';
+
 import 'model.dart';
 
+part 'initial_snapshot.g.dart';
+
 // https://zulip.com/api/register-queue#response
+@JsonSerializable()
 class InitialSnapshot {
   final String? queue_id;
   final int last_event_id;

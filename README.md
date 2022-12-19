@@ -1,10 +1,10 @@
-# zulip
+# Zulip Flutter
 
-A Zulip client for Android and iOS
+A Zulip client for Android and iOS, using Flutter.
 
-## Getting Started
+## Developing
 
-This project is a starting point for a Flutter application.
+### Flutter help
 
 A few resources to get you started if this is your first Flutter project:
 
@@ -14,3 +14,12 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+
+### Editing API types
+
+When editing the files in `lib/api/model/`, use the following command
+to keep the generated files up to date:
+```
+$ flutter pub run build_runner watch --delete-conflicting-outputs
+```
