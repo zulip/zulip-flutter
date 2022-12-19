@@ -19,6 +19,9 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       custom_profile_fields: (json['custom_profile_fields'] as List<dynamic>)
           .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
           .toList(),
+      subscriptions: (json['subscriptions'] as List<dynamic>)
+          .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
@@ -30,4 +33,5 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_merge_base': instance.zulip_merge_base,
       'alert_words': instance.alert_words,
       'custom_profile_fields': instance.custom_profile_fields,
+      'subscriptions': instance.subscriptions,
     };

@@ -93,6 +93,8 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 8),
           Text('Connected to: ${store.account.realmUrl}'),
           Text('Zulip server version: ${store.initialSnapshot.zulip_version}'),
+          Text(
+              'Subscribed to ${store.initialSnapshot.subscriptions.length} streams'),
         ])));
   }
 }

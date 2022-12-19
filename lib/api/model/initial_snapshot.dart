@@ -19,7 +19,11 @@ class InitialSnapshot {
 
   final List<CustomProfileField> custom_profile_fields;
 
-  // TODO many more
+  // TODO etc., etc.
+
+  final List<Subscription> subscriptions;
+
+  // TODO etc., etc.
 
   InitialSnapshot({
     this.queue_id,
@@ -29,6 +33,7 @@ class InitialSnapshot {
     this.zulip_merge_base,
     required this.alert_words,
     required this.custom_profile_fields,
+    required this.subscriptions,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
