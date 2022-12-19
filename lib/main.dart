@@ -280,6 +280,13 @@ InlineSpan _buildInlineNode(dom.Node node) {
   if (node.localName == "strong" && node.classes.isEmpty) {
     return styled(const TextStyle(fontWeight: FontWeight.w600));
   }
+  if (node.localName == "code" && node.classes.isEmpty) {
+    // TODO `code` elements: border, padding; shrink font size; set bidi
+    return styled(const TextStyle(
+        backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+        fontFamily: "Source Code Pro", // TODO supply font
+        fontFamilyFallback: ["monospace"]));
+  }
   if (node.localName == "a" && node.classes.isEmpty) {
     // TODO make link touchable
     return styled(
