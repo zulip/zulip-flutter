@@ -61,6 +61,20 @@ class BlockContent extends StatelessWidget {
               Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
     }
 
+    if (element.localName == 'blockquote' && element.classes.isEmpty) {
+      return Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Container(
+              padding: const EdgeInsets.only(left: 5),
+              decoration: BoxDecoration(
+                  border: Border(
+                      left: BorderSide(
+                          width: 5,
+                          color: const HSLColor.fromAHSL(1, 0, 0, 0.87)
+                              .toColor()))),
+              child: BlockContent(nodes: element.nodes)));
+    }
+
     // TODO handle more types of elements
     return Text.rich(_errorUnimplemented(element));
   }
