@@ -102,6 +102,9 @@ InlineSpan _buildInlineNode(dom.Node node) {
   if (node.localName == "strong" && node.classes.isEmpty) {
     return styled(const TextStyle(fontWeight: FontWeight.w600));
   }
+  if (node.localName == "em" && node.classes.isEmpty) {
+    return styled(const TextStyle(fontStyle: FontStyle.italic));
+  }
   if (node.localName == "code" && node.classes.isEmpty) {
     // TODO `code` elements: border, padding; shrink font size; set bidi
     return styled(const TextStyle(
