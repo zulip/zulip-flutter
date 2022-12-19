@@ -12,11 +12,22 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fragment =
-    HtmlParser(message.content, parseMeta: false).parseFragment();
-    final nodes = fragment.nodes.where(_acceptNode);
+        HtmlParser(message.content, parseMeta: false).parseFragment();
+    return BlockContent(nodes: fragment.nodes);
+    // Text(message.content),
+  }
+}
+
+class BlockContent extends StatelessWidget {
+  const BlockContent({super.key, required this.nodes});
+
+  final dom.NodeList nodes;
+
+  @override
+  Widget build(BuildContext context) {
+    final nodes = this.nodes.where(_acceptNode);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       ...nodes.map(_buildDirectChildNode),
-      // Text(message.content),
     ]);
   }
 
