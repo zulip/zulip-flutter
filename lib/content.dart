@@ -54,16 +54,15 @@ class BlockContent extends StatelessWidget {
   }
 
   Widget _buildDirectChildElement(dom.Element element) {
-    switch (element.localName) {
-      case 'p':
-        return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child:
-                Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
-      default:
-        // TODO handle more types of elements
-        return Text.rich(_errorUnimplemented(element));
+    if (element.localName == 'p' && element.classes.isEmpty) {
+      return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child:
+              Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
     }
+
+    // TODO handle more types of elements
+    return Text.rich(_errorUnimplemented(element));
   }
 }
 
