@@ -121,7 +121,11 @@ InlineSpan _buildInlineNode(dom.Node node) {
         fontFamily: "Source Code Pro", // TODO supply font
         fontFamilyFallback: ["monospace"]));
   }
-  if (node.localName == "a" && node.classes.isEmpty) {
+  if (node.localName == "a" &&
+      (node.classes.isEmpty ||
+          (node.classes.length == 1 &&
+              (node.classes.contains("stream-topic") ||
+                  node.classes.contains("stream"))))) {
     // TODO make link touchable
     return styled(
         TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
