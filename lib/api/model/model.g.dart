@@ -81,3 +81,106 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'can_remove_subscribers_group_id':
           instance.can_remove_subscribers_group_id,
     };
+
+StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
+    StreamMessage(
+      avatar_url: json['avatar_url'] as String?,
+      client: json['client'] as String,
+      content: json['content'] as String,
+      content_type: json['content_type'] as String,
+      id: json['id'] as int,
+      is_me_message: json['is_me_message'] as bool,
+      last_edit_timestamp: json['last_edit_timestamp'] as int?,
+      recipient_id: json['recipient_id'] as int,
+      sender_email: json['sender_email'] as String,
+      sender_full_name: json['sender_full_name'] as String,
+      sender_id: json['sender_id'] as int,
+      sender_realm_str: json['sender_realm_str'] as String,
+      subject: json['subject'] as String,
+      timestamp: json['timestamp'] as int,
+      flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      match_content: json['match_content'] as String?,
+      match_subject: json['match_subject'] as String?,
+      display_recipient: json['display_recipient'] as String,
+      stream_id: json['stream_id'] as int,
+    );
+
+Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
+    <String, dynamic>{
+      'avatar_url': instance.avatar_url,
+      'client': instance.client,
+      'content': instance.content,
+      'content_type': instance.content_type,
+      'id': instance.id,
+      'is_me_message': instance.is_me_message,
+      'last_edit_timestamp': instance.last_edit_timestamp,
+      'recipient_id': instance.recipient_id,
+      'sender_email': instance.sender_email,
+      'sender_full_name': instance.sender_full_name,
+      'sender_id': instance.sender_id,
+      'sender_realm_str': instance.sender_realm_str,
+      'subject': instance.subject,
+      'timestamp': instance.timestamp,
+      'flags': instance.flags,
+      'match_content': instance.match_content,
+      'match_subject': instance.match_subject,
+      'display_recipient': instance.display_recipient,
+      'stream_id': instance.stream_id,
+    };
+
+PmRecipient _$PmRecipientFromJson(Map<String, dynamic> json) => PmRecipient(
+      id: json['id'] as int,
+      email: json['email'] as String,
+      full_name: json['full_name'] as String,
+    );
+
+Map<String, dynamic> _$PmRecipientToJson(PmRecipient instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'email': instance.email,
+      'full_name': instance.full_name,
+    };
+
+PmMessage _$PmMessageFromJson(Map<String, dynamic> json) => PmMessage(
+      avatar_url: json['avatar_url'] as String?,
+      client: json['client'] as String,
+      content: json['content'] as String,
+      content_type: json['content_type'] as String,
+      id: json['id'] as int,
+      is_me_message: json['is_me_message'] as bool,
+      last_edit_timestamp: json['last_edit_timestamp'] as int?,
+      recipient_id: json['recipient_id'] as int,
+      sender_email: json['sender_email'] as String,
+      sender_full_name: json['sender_full_name'] as String,
+      sender_id: json['sender_id'] as int,
+      sender_realm_str: json['sender_realm_str'] as String,
+      subject: json['subject'] as String,
+      timestamp: json['timestamp'] as int,
+      flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      match_content: json['match_content'] as String?,
+      match_subject: json['match_subject'] as String?,
+      display_recipient: (json['display_recipient'] as List<dynamic>)
+          .map((e) => PmRecipient.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$PmMessageToJson(PmMessage instance) => <String, dynamic>{
+      'avatar_url': instance.avatar_url,
+      'client': instance.client,
+      'content': instance.content,
+      'content_type': instance.content_type,
+      'id': instance.id,
+      'is_me_message': instance.is_me_message,
+      'last_edit_timestamp': instance.last_edit_timestamp,
+      'recipient_id': instance.recipient_id,
+      'sender_email': instance.sender_email,
+      'sender_full_name': instance.sender_full_name,
+      'sender_id': instance.sender_id,
+      'sender_realm_str': instance.sender_realm_str,
+      'subject': instance.subject,
+      'timestamp': instance.timestamp,
+      'flags': instance.flags,
+      'match_content': instance.match_content,
+      'match_subject': instance.match_subject,
+      'display_recipient': instance.display_recipient,
+    };

@@ -99,3 +99,136 @@ class Subscription {
   factory Subscription.fromJson(Map<String, dynamic> json) =>
       _$SubscriptionFromJson(json);
 }
+
+/// As in the get-messages response.
+///
+/// https://zulip.com/api/get-messages#response
+abstract class Message {
+  final String? avatar_url;
+  final String client;
+  final String content;
+  final String content_type;
+
+  // final List<MessageEditHistory> edit_history; // TODO handle
+  final int id;
+  final bool is_me_message;
+  final int? last_edit_timestamp;
+
+  // final List<Reaction> reactions; // TODO handle
+  final int recipient_id;
+  final String sender_email;
+  final String sender_full_name;
+  final int sender_id;
+  final String sender_realm_str;
+  final String subject; // TODO call it "topic" internally; also similar others
+  // final List<string> submessages; // TODO handle
+  final int timestamp;
+
+  // final List<TopicLink> topic_links; // TODO handle
+  // final string type; // handled by runtime type of object
+  final List<String> flags; // TODO enum
+  final String? match_content;
+  final String? match_subject;
+
+  Message({
+    this.avatar_url,
+    required this.client,
+    required this.content,
+    required this.content_type,
+    required this.id,
+    required this.is_me_message,
+    this.last_edit_timestamp,
+    required this.recipient_id,
+    required this.sender_email,
+    required this.sender_full_name,
+    required this.sender_id,
+    required this.sender_realm_str,
+    required this.subject,
+    required this.timestamp,
+    required this.flags,
+    this.match_content,
+    this.match_subject,
+  });
+
+  factory Message.fromJson(Map<String, dynamic> json) {
+    final type = json['type'] as String;
+    if (type == 'stream') return StreamMessage.fromJson(json);
+    if (type == 'private') return PmMessage.fromJson(json);
+    throw Exception("Message.fromJson: unexpected message type $type");
+  }
+}
+
+@JsonSerializable()
+class StreamMessage extends Message {
+  final String display_recipient;
+  final int stream_id;
+
+  StreamMessage({
+    super.avatar_url,
+    required super.client,
+    required super.content,
+    required super.content_type,
+    required super.id,
+    required super.is_me_message,
+    super.last_edit_timestamp,
+    required super.recipient_id,
+    required super.sender_email,
+    required super.sender_full_name,
+    required super.sender_id,
+    required super.sender_realm_str,
+    required super.subject,
+    required super.timestamp,
+    required super.flags,
+    super.match_content,
+    super.match_subject,
+    required this.display_recipient,
+    required this.stream_id,
+  });
+
+  factory StreamMessage.fromJson(Map<String, dynamic> json) =>
+      _$StreamMessageFromJson(json);
+}
+
+@JsonSerializable()
+class PmRecipient {
+  final int id;
+  final String email;
+  final String full_name;
+
+  // final String? short_name; // obsolete, ignore
+  // final bool? is_mirror_dummy; // obsolete, ignore
+
+  PmRecipient({required this.id, required this.email, required this.full_name});
+
+  factory PmRecipient.fromJson(Map<String, dynamic> json) =>
+      _$PmRecipientFromJson(json);
+}
+
+@JsonSerializable()
+class PmMessage extends Message {
+  final List<PmRecipient> display_recipient;
+
+  PmMessage({
+    super.avatar_url,
+    required super.client,
+    required super.content,
+    required super.content_type,
+    required super.id,
+    required super.is_me_message,
+    super.last_edit_timestamp,
+    required super.recipient_id,
+    required super.sender_email,
+    required super.sender_full_name,
+    required super.sender_id,
+    required super.sender_realm_str,
+    required super.subject,
+    required super.timestamp,
+    required super.flags,
+    super.match_content,
+    super.match_subject,
+    required this.display_recipient,
+  });
+
+  factory PmMessage.fromJson(Map<String, dynamic> json) =>
+      _$PmMessageFromJson(json);
+}
