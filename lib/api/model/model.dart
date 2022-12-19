@@ -156,6 +156,8 @@ abstract class Message {
     if (type == 'private') return PmMessage.fromJson(json);
     throw Exception("Message.fromJson: unexpected message type $type");
   }
+
+  Map<String, dynamic> toJson();
 }
 
 @JsonSerializable()
@@ -187,6 +189,9 @@ class StreamMessage extends Message {
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
       _$StreamMessageFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$StreamMessageToJson(this);
 }
 
 @JsonSerializable()
@@ -231,4 +236,7 @@ class PmMessage extends Message {
 
   factory PmMessage.fromJson(Map<String, dynamic> json) =>
       _$PmMessageFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$PmMessageToJson(this);
 }
