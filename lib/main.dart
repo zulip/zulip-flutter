@@ -139,7 +139,7 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> {
   final List<Message> messages = []; // TODO move state up to store
-  bool fetched = false;
+  bool fetched = false; // TODO this will get more complex
 
   @override
   void didChangeDependencies() {
@@ -160,6 +160,58 @@ class _MessageListState extends State<MessageList> {
   @override
   Widget build(BuildContext context) {
     if (!fetched) return const Center(child: CircularProgressIndicator());
-    return Center(child: Text("Got ${messages.length} messages"));
+    return ListView.separated(
+        itemCount: messages.length,
+        separatorBuilder: (context, i) => const SizedBox(height: 16),
+        itemBuilder: (context, i) => MessageItem(message: messages[i]));
+  }
+}
+
+class MessageItem extends StatelessWidget {
+  const MessageItem({super.key, required this.message});
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        child: Column(children: [
+          // TODO recipient headings
+          SenderHeading(message: message),
+          MessageContent(message: message),
+        ]));
+  }
+}
+
+class SenderHeading extends StatelessWidget {
+  const SenderHeading({super.key, required this.message});
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+        height: 48,
+        child: Row(children: [
+          // TODO avatar
+          Expanded(
+              child: Text(message.sender_full_name,
+                  style: const TextStyle(fontWeight: FontWeight.bold))),
+          Text("${message.timestamp}"), // TODO better format time
+        ]));
+  }
+}
+
+class MessageContent extends StatelessWidget {
+  const MessageContent({super.key, required this.message});
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(message.content),
+    ]);
   }
 }
