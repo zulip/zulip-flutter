@@ -37,6 +37,7 @@ dependencies:
 
   json_annotation: ^4.7.0
   http: ^0.13.5
+  html: ^0.15.1
 
 dev_dependencies:
   flutter_test:
