@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'api/model/model.dart';
+import 'api/route/messages.dart';
 import 'store.dart';
 
 void main() {
@@ -95,6 +97,69 @@ class HomePage extends StatelessWidget {
           Text('Zulip server version: ${store.initialSnapshot.zulip_version}'),
           Text(
               'Subscribed to ${store.initialSnapshot.subscriptions.length} streams'),
+          const SizedBox(height: 16),
+          ElevatedButton(
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const MessageListPage())),
+              child: const Text("All messages"))
         ])));
+  }
+}
+
+class MessageListPage extends StatefulWidget {
+  const MessageListPage({Key? key}) : super(key: key);
+
+  @override
+  State<MessageListPage> createState() => _MessageListPageState();
+}
+
+class _MessageListPageState extends State<MessageListPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: const Text("Some messages")),
+        body: Center(
+            child: Column(children: const [
+          Expanded(child: MessageList()),
+          SizedBox(
+              height: 80,
+              child: Center(child: Text("(Compose box goes here.)"))),
+        ])));
+  }
+}
+
+class MessageList extends StatefulWidget {
+  const MessageList({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _MessageListState();
+}
+
+class _MessageListState extends State<MessageList> {
+  final List<Message> messages = []; // TODO move state up to store
+  bool fetched = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    final store = PerAccountStoreWidget.of(context);
+    final result =
+        await getMessages(store.connection, num_before: 10, num_after: 10);
+    setState(() {
+      messages.addAll(result.messages);
+      fetched = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!fetched) return const Center(child: CircularProgressIndicator());
+    return Center(child: Text("Got ${messages.length} messages"));
   }
 }

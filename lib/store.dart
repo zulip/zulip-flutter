@@ -17,13 +17,22 @@ class PerAccountStore extends ChangeNotifier {
     // TODO log the time better
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
 
-    return PerAccountStore(account: account, initialSnapshot: initialSnapshot);
+    return PerAccountStore(
+      account: account,
+      connection: connection,
+      initialSnapshot: initialSnapshot,
+    );
   }
 
   final Account account;
+  final ApiConnection connection;
   final InitialSnapshot initialSnapshot; // TODO translate to a real model
 
-  PerAccountStore({required this.account, required this.initialSnapshot});
+  PerAccountStore({
+    required this.account,
+    required this.connection,
+    required this.initialSnapshot,
+  });
 }
 
 /// A scaffolding hack for while prototyping.
