@@ -218,6 +218,7 @@ class MessageContent extends StatelessWidget {
     final nodes = fragment.nodes.where(_acceptNode);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       ...nodes.map(_buildDirectChildNode),
+      // Text(message.content),
     ]);
   }
 
@@ -266,6 +267,23 @@ InlineSpan _buildInlineNode(dom.Node node) {
     return TextSpan(
         text: "(unimplemented dom.Node type: ${node.nodeType})",
         style: errorStyle);
+  }
+
+  InlineSpan styled(TextStyle style) =>
+      TextSpan(children: _buildInlineList(node.nodes), style: style);
+
+  if (node.localName == "br") {
+    // Each `<br/>` is followed by a newline, which browsers apparently ignore
+    // and our parser doesn't.  So don't do anything here.
+    return const TextSpan(text: "");
+  }
+  if (node.localName == "strong") {
+    return styled(const TextStyle(fontWeight: FontWeight.w600));
+  }
+  if (node.localName == "a") {
+    // TODO make link touchable
+    return styled(
+        TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
   if (node.localName == "span" && node.classes.contains("user-mention")) {
     return WidgetSpan(
