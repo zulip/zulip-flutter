@@ -24,18 +24,24 @@ class PerAccountRoot extends StatefulWidget {
 }
 
 class _PerAccountRootState extends State<PerAccountRoot> {
-  late final PerAccountStore store;
+  PerAccountStore? store;
 
   @override
   void initState() {
     super.initState();
-    store = PerAccountStore.load();
+    (() async {
+      final store = await PerAccountStore.load();
+      setState(() {
+        this.store = store;
+      });
+    })();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (store == null) return const LoadingPage();
     return PerAccountStoreWidget(
-        store: store,
+        store: store!,
         child: MaterialApp(
           title: 'Zulip',
           theme: ThemeData(primarySwatch: Colors.blue), // TODO Zulip purple
@@ -44,8 +50,20 @@ class _PerAccountRootState extends State<PerAccountRoot> {
   }
 }
 
+class LoadingPage extends StatelessWidget {
+  const LoadingPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator());
+  }
+}
+
+
+
 class PerAccountStoreWidget extends InheritedNotifier<PerAccountStore> {
-  const PerAccountStoreWidget({super.key, required store, required super.child})
+  const PerAccountStoreWidget(
+      {super.key, required PerAccountStore store, required super.child})
       : super(notifier: store);
 
   PerAccountStore get store => notifier!;

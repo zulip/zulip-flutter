@@ -4,7 +4,10 @@ import 'credential_fixture.dart' as credentials; // prototyping hack; not in Git
 
 class PerAccountStore extends ChangeNotifier {
   // Load the user's data from storage.  (Once we have such a thing.)
-  PerAccountStore.load() : this.fromFixtureCredentials();
+  static Future<PerAccountStore> load() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return PerAccountStore.fromFixtureCredentials();
+  }
 
   /// A scaffolding hack for while prototyping.
   ///
