@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'api/core.dart';
 import 'api/model/initial_snapshot.dart';
 import 'api/route/register_queue.dart';
 import 'credential_fixture.dart' as credentials; // prototyping hack; not in Git
@@ -8,9 +9,10 @@ class PerAccountStore extends ChangeNotifier {
   // Load the user's data from storage.  (Once we have such a thing.)
   static Future<PerAccountStore> load() async {
     const account = _fixtureAccount;
+    final connection = ApiConnection(auth: account);
 
     final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await registerQueue(account); // TODO retry
+    final initialSnapshot = await registerQueue(connection); // TODO retry
     final t = (stopwatch..stop()).elapsed;
     // TODO log the time better
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
@@ -36,11 +38,14 @@ const Account _fixtureAccount = Account(
   apiKey: credentials.api_key,
 );
 
-class Account {
+class Account implements Auth {
   const Account(
       {required this.realmUrl, required this.email, required this.apiKey});
 
+  @override
   final String realmUrl;
+  @override
   final String email;
+  @override
   final String apiKey;
 }
