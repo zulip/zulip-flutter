@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'api/core.dart';
 import 'api/model/initial_snapshot.dart';
-import 'api/route/register_queue.dart';
+import 'api/route/events.dart';
 import 'credential_fixture.dart' as credentials; // prototyping hack; not in Git
 
 class PerAccountStore extends ChangeNotifier {
