@@ -59,8 +59,6 @@ class LoadingPage extends StatelessWidget {
   }
 }
 
-
-
 class PerAccountStoreWidget extends InheritedNotifier<PerAccountStore> {
   const PerAccountStoreWidget(
       {super.key, required PerAccountStore store, required super.child})
@@ -85,8 +83,16 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     return Scaffold(
         appBar: AppBar(title: const Text("Home")),
-        body: const Center(child: Text('Under construction 🚧')));
+        body: Center(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Text('🚧 Under construction 🚧'),
+          const SizedBox(height: 8),
+          Text('Connected to: ${store.account.realmUrl}'),
+          Text('Zulip server version: ${store.initialSnapshot.zulip_version}'),
+        ])));
   }
 }

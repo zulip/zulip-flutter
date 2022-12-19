@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'api/model/initial_snapshot.dart';
 import 'api/route/register_queue.dart';
 import 'credential_fixture.dart' as credentials; // prototyping hack; not in Git
 
@@ -7,17 +8,14 @@ class PerAccountStore extends ChangeNotifier {
   // Load the user's data from storage.  (Once we have such a thing.)
   static Future<PerAccountStore> load() async {
     const account = _fixtureAccount;
-    try {
-      await registerQueue();
-    } catch (err) {
-      // TODO retry
-    }
-    return PerAccountStore(account: account);
+    final initialSnapshot = await registerQueue(account); // TODO retry
+    return PerAccountStore(account: account, initialSnapshot: initialSnapshot);
   }
 
   final Account account;
+  final InitialSnapshot initialSnapshot; // TODO translate to a real model
 
-  PerAccountStore({required this.account});
+  PerAccountStore({required this.account, required this.initialSnapshot});
 }
 
 /// A scaffolding hack for while prototyping.

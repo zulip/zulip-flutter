@@ -30,4 +30,7 @@ class InitialSnapshot {
     required this.alert_words,
     required this.custom_profile_fields,
   });
+
+  factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
+      _$InitialSnapshotFromJson(json);
 }
