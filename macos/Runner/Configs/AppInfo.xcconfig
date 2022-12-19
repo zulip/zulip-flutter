@@ -8,7 +8,7 @@
 PRODUCT_NAME = zulip
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.zulip.zulip
+PRODUCT_BUNDLE_IDENTIFIER = com.zulip.flutter
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2022 com.zulip. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2022 Kandra Labs, Inc. All rights reserved.

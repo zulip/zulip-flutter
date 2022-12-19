@@ -1,4 +1,4 @@
-package com.zulip.zulip
+package com.zulip.flutter
 
 import io.flutter.embedding.android.FlutterActivity
 
