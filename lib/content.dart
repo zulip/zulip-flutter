@@ -31,6 +31,10 @@ class MessageContent extends StatelessWidget {
   }
 }
 
+//
+// Block layout.
+//
+
 /// A list of DOM nodes to display in block layout.
 class BlockContentList extends StatelessWidget {
   const BlockContentList({super.key, required this.nodes});
@@ -110,6 +114,73 @@ class BlockContentNode extends StatelessWidget {
     return Text.rich(_errorUnimplemented(element));
   }
 }
+
+class CodeBlock extends StatelessWidget {
+  const CodeBlock({super.key, required this.divElement});
+
+  final dom.Element divElement;
+
+  @override
+  Widget build(BuildContext context) {
+    final element = _mainElement();
+    if (element == null) return _error();
+
+    final buffer = StringBuffer();
+    for (final child in element.nodes) {
+      if (child is dom.Text) {
+        buffer.write(child.text);
+      } else if (child is dom.Element && child.localName == 'span') {
+        // TODO style the code-highlighting spans
+        buffer.write(child.text);
+      } else {
+        return _error();
+      }
+    }
+    final text = buffer.toString();
+
+    return Container(
+        padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(
+                width: 1,
+                color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
+        child: Text(text,
+            style: const TextStyle(
+                fontFamily: 'Source Code Pro',
+                fontFamilyFallback: ['monospace'])));
+  }
+
+  dom.Element? _mainElement() {
+    assert(divElement.localName == 'div' &&
+        divElement.classes.length == 1 &&
+        divElement.classes.contains("codehilite"));
+
+    if (divElement.nodes.length != 1) return null;
+    final child = divElement.nodes[0];
+    if (child is! dom.Element) return null;
+    if (child.localName != 'pre') return null;
+
+    if (child.nodes.length > 2) return null;
+    if (child.nodes.length == 2) {
+      final first = child.nodes[0];
+      if (first is! dom.Element ||
+          first.localName != 'span' ||
+          first.nodes.isNotEmpty) return null;
+    }
+    final grandchild = child.nodes[child.nodes.length - 1];
+    if (grandchild is! dom.Element) return null;
+    if (grandchild.localName != 'code') return null;
+
+    return grandchild;
+  }
+
+  Widget _error() => Text.rich(_errorUnimplemented(divElement));
+}
+
+//
+// Inline layout.
+//
 
 List<InlineSpan> _buildInlineList(dom.NodeList nodes) =>
     List.of(nodes.map(_buildInlineNode));
@@ -211,68 +282,9 @@ class UserMention extends StatelessWidget {
 //         borderRadius: BorderRadius.all(Radius.circular(3))));
 }
 
-class CodeBlock extends StatelessWidget {
-  const CodeBlock({super.key, required this.divElement});
-
-  final dom.Element divElement;
-
-  @override
-  Widget build(BuildContext context) {
-    final element = _mainElement();
-    if (element == null) return _error();
-
-    final buffer = StringBuffer();
-    for (final child in element.nodes) {
-      if (child is dom.Text) {
-        buffer.write(child.text);
-      } else if (child is dom.Element && child.localName == 'span') {
-        // TODO style the code-highlighting spans
-        buffer.write(child.text);
-      } else {
-        return _error();
-      }
-    }
-    final text = buffer.toString();
-
-    return Container(
-        padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-                width: 1,
-                color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
-        child: Text(text,
-            style: const TextStyle(
-                fontFamily: 'Source Code Pro',
-                fontFamilyFallback: ['monospace'])));
-  }
-
-  dom.Element? _mainElement() {
-    assert(divElement.localName == 'div' &&
-        divElement.classes.length == 1 &&
-        divElement.classes.contains("codehilite"));
-
-    if (divElement.nodes.length != 1) return null;
-    final child = divElement.nodes[0];
-    if (child is! dom.Element) return null;
-    if (child.localName != 'pre') return null;
-
-    if (child.nodes.length > 2) return null;
-    if (child.nodes.length == 2) {
-      final first = child.nodes[0];
-      if (first is! dom.Element ||
-          first.localName != 'span' ||
-          first.nodes.isNotEmpty) return null;
-    }
-    final grandchild = child.nodes[child.nodes.length - 1];
-    if (grandchild is! dom.Element) return null;
-    if (grandchild.localName != 'code') return null;
-
-    return grandchild;
-  }
-
-  Widget _error() => Text.rich(_errorUnimplemented(divElement));
-}
+//
+// Small helpers.
+//
 
 Widget _errorText(String text) => Text(text, style: errorStyle);
 
