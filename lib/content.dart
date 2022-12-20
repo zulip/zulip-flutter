@@ -99,6 +99,10 @@ class BlockContentNode extends StatelessWidget {
               children: _buildInlineList(element.nodes))));
     }
 
+    // TODO ul and ol
+    // TODO p+ul and p+ol interactions
+    // TODO different item indicators at different levels of nesting
+
     if (localName == 'blockquote' && classes.isEmpty) {
       return Padding(
           padding: const EdgeInsets.only(left: 10),
@@ -183,6 +187,7 @@ class CodeBlock extends StatelessWidget {
             border: Border.all(
                 width: 1,
                 color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
+        // TODO overflow-x: scroll; white-space: pre
         child: Text(text,
             style: const TextStyle(
                 fontFamily: 'Source Code Pro',
