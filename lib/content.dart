@@ -99,48 +99,52 @@ List<InlineSpan> _buildInlineList(dom.NodeList nodes) =>
     List.of(nodes.map(_buildInlineNode));
 
 InlineSpan _buildInlineNode(dom.Node node) {
-  if (node is dom.Text) return TextSpan(text: node.text);
+  if (node is dom.Text) {
+    return TextSpan(text: node.text);
+  }
   if (node is! dom.Element) {
     return TextSpan(
         text: "(unimplemented dom.Node type: ${node.nodeType})",
         style: errorStyle);
   }
 
+  final localName = node.localName;
+  final classes = node.classes;
   InlineSpan styled(TextStyle style) =>
       TextSpan(children: _buildInlineList(node.nodes), style: style);
 
-  if (node.localName == "br" && node.classes.isEmpty) {
+  if (localName == "br" && classes.isEmpty) {
     // Each `<br/>` is followed by a newline, which browsers apparently ignore
     // and our parser doesn't.  So don't do anything here.
     return const TextSpan(text: "");
   }
-  if (node.localName == "strong" && node.classes.isEmpty) {
+  if (localName == "strong" && classes.isEmpty) {
     return styled(const TextStyle(fontWeight: FontWeight.w600));
   }
-  if (node.localName == "em" && node.classes.isEmpty) {
+  if (localName == "em" && classes.isEmpty) {
     return styled(const TextStyle(fontStyle: FontStyle.italic));
   }
-  if (node.localName == "code" && node.classes.isEmpty) {
+  if (localName == "code" && classes.isEmpty) {
     // TODO `code` elements: border, padding; shrink font size; set bidi
     return styled(const TextStyle(
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         fontFamily: "Source Code Pro", // TODO supply font
         fontFamilyFallback: ["monospace"]));
   }
-  if (node.localName == "a" &&
-      (node.classes.isEmpty ||
-          (node.classes.length == 1 &&
-              (node.classes.contains("stream-topic") ||
-                  node.classes.contains("stream"))))) {
+  if (localName == "a" &&
+      (classes.isEmpty ||
+          (classes.length == 1 &&
+              (classes.contains("stream-topic") ||
+                  classes.contains("stream"))))) {
     // TODO make link touchable
     return styled(
         TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
-  if (node.localName == "span" &&
-      (node.classes.contains("user-mention") ||
-          node.classes.contains("user-group-mention")) &&
-      (node.classes.length == 1 ||
-          (node.classes.length == 2 && node.classes.contains("silent")))) {
+  if (localName == "span" &&
+      (classes.contains("user-mention") ||
+          classes.contains("user-group-mention")) &&
+      (classes.length == 1 ||
+          (classes.length == 2 && classes.contains("silent")))) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: UserMention(element: node));
