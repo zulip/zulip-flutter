@@ -38,7 +38,7 @@ class ApiConnection {
     if (response.statusCode != 200) {
       throw Exception("error on GET $route: status ${response.statusCode}");
     }
-    return response.body;
+    return utf8.decode(response.bodyBytes);
   }
 
   Future<String> post(String route, Map<String, dynamic>? params) async {
@@ -49,6 +49,6 @@ class ApiConnection {
     if (response.statusCode != 200) {
       throw Exception("error on POST $route: status ${response.statusCode}");
     }
-    return response.body;
+    return utf8.decode(response.bodyBytes);
   }
 }

@@ -15,19 +15,9 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // if (kDebugMode && message.content.contains("Git smudge")) {
-    //   // TODO debug mojibake: we get UTF-8 code units interpreted as code points.
-    //   //   E.g., U+2019 has UTF-8 encoding b'\xe2\x80\x99', and it becomes
-    //   //   U+00E2, U+0080, U+0099.  Example message:
-    //   //     https://chat.zulip.org/#narrow/near/1481289
-    //   //   It's already wrong at this point, though -- it's not the parser's fault.
-    //   print(message.content);
-    //   print(message.content.codeUnits);
-    // }
     final fragment =
         HtmlParser(message.content, parseMeta: false).parseFragment();
     return BlockContentList(nodes: fragment.nodes);
-    // Text(message.content),
   }
 }
 
