@@ -161,12 +161,15 @@ class _MessageListState extends State<MessageList> {
   @override
   Widget build(BuildContext context) {
     if (!fetched) return const Center(child: CircularProgressIndicator());
-    return ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 760),
-        child: ListView.separated(
-            itemCount: messages.length,
-            separatorBuilder: (context, i) => const SizedBox(height: 16),
-            itemBuilder: (context, i) => MessageItem(message: messages[i])));
+    return ColoredBox(
+        color: Colors.white,
+        child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: ListView.separated(
+                itemCount: messages.length,
+                separatorBuilder: (context, i) => const SizedBox(height: 16),
+                itemBuilder: (context, i) =>
+                    MessageItem(message: messages[i]))));
   }
 }
 
