@@ -90,6 +90,15 @@ class BlockContentNode extends StatelessWidget {
               Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
     }
 
+    if (localName == 'h6' && classes.isEmpty) {
+      // TODO h1, h2, h3, h4, h5 -- same except font size
+      return Padding(
+          padding: const EdgeInsets.only(top: 15, bottom: 5),
+          child: Text.rich(TextSpan(
+              style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
+              children: _buildInlineList(element.nodes))));
+    }
+
     if (localName == 'blockquote' && classes.isEmpty) {
       return Padding(
           padding: const EdgeInsets.only(left: 10),
