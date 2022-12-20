@@ -63,14 +63,17 @@ class BlockContent extends StatelessWidget {
   }
 
   Widget _buildDirectChildElement(dom.Element element) {
-    if (element.localName == 'p' && element.classes.isEmpty) {
+    final localName = element.localName;
+    final classes = element.classes;
+
+    if (localName == 'p' && classes.isEmpty) {
       return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child:
               Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
     }
 
-    if (element.localName == 'blockquote' && element.classes.isEmpty) {
+    if (localName == 'blockquote' && classes.isEmpty) {
       return Padding(
           padding: const EdgeInsets.only(left: 10),
           child: Container(
@@ -84,9 +87,9 @@ class BlockContent extends StatelessWidget {
               child: BlockContent(nodes: element.nodes)));
     }
 
-    if (element.localName == 'div' &&
-        element.classes.length == 1 &&
-        element.classes.contains('codehilite')) {
+    if (localName == 'div' &&
+        classes.length == 1 &&
+        classes.contains('codehilite')) {
       return CodeBlock(divElement: element);
     }
 
