@@ -168,8 +168,14 @@ class _MessageListState extends State<MessageList> {
             child: ListView.separated(
                 itemCount: messages.length,
                 separatorBuilder: (context, i) => const SizedBox(height: 16),
+                // Setting reverse: true means the scroll starts at the bottom.
+                // Flipping the indexes (in itemBuilder) means the start/bottom
+                // has the latest messages.
+                // This works great when we want to start from the latest.
+                // TODO handle scroll starting at first unread, or link anchor
+                reverse: true,
                 itemBuilder: (context, i) =>
-                    MessageItem(message: messages[i]))));
+                    MessageItem(message: messages[messages.length - 1 - i]))));
   }
 }
 
