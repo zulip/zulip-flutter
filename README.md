@@ -2,8 +2,10 @@
 
 A Zulip client for Android and iOS, using Flutter.
 
+This is an early prototype for development.
 
-## Developing
+
+## Getting started
 
 ### Flutter help
 
@@ -44,6 +46,8 @@ from any mobile devices you ran it on) when done.
 [download-zuliprc]: https://zulip.com/api/api-keys
 
 
+## Notes
+
 ### Editing API types
 
 We support Zulip Server 4.0 and later.  For API features added in
@@ -55,3 +59,76 @@ to keep the generated files up to date:
 ```
 $ flutter pub run build_runner watch --delete-conflicting-outputs
 ```
+
+
+## TODO
+
+### Server API
+
+Much more to write.
+
+
+### State and storage
+
+Much more to design and write.
+
+
+### Message content
+
+If necessary we could put the message list in a webview, like we do
+in React Native.  But the current plan is to handle it with Flutter
+widgets.
+
+- Lots of specific types of elements; see TODO comments
+
+- Specific types of elements that may inform architecture:
+  - Lists, with item indicators according to nesting level
+  - Layout interactions like `p+ul`
+  - Lightbox for image attachments
+  - TeX
+
+- Font
+
+- Polls
+
+- Separate processing HTML from building widgets (for testability,
+  and ultimately for performance by memoizing the former)
+
+- Survey lots of messages to find unhandled types of elements
+- Survey all public messages on chat.zulip.org
+- Survey all public messages on [listed open communities][]
+
+[listed open communities]: https://zulip.com/communities/
+
+
+### Message list, other than content
+
+- Show more/better message metadata:
+  - Sender avatars
+  - Formatted times
+  - Recipient headers
+  - Starred
+  - Edited/moved
+
+- Handle layout/UI interactions between messages:
+  - Sender names/avatars
+  - Recipient headers
+  - Date separators
+
+- UI to interact with messages
+
+- Scroll position at first unread, or via link (vs. latest)
+
+
+### Other UI
+
+- Compose box
+
+- Attach to message: take photo, pick image, pick file
+
+- Navigation
+
+
+### Notifications
+
+Not started.
