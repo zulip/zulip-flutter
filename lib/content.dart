@@ -234,6 +234,7 @@ InlineSpan _buildInlineNode(dom.Node node) {
     // and our parser doesn't.  So don't do anything here.
     return const TextSpan(text: "");
   }
+
   if (localName == "strong" && classes.isEmpty) {
     return styled(const TextStyle(fontWeight: FontWeight.w600));
   }
@@ -247,6 +248,7 @@ InlineSpan _buildInlineNode(dom.Node node) {
         fontFamily: "Source Code Pro", // TODO supply font
         fontFamilyFallback: ["monospace"]));
   }
+
   if (localName == "a" &&
       (classes.isEmpty ||
           (classes.length == 1 &&
@@ -256,6 +258,7 @@ InlineSpan _buildInlineNode(dom.Node node) {
     return styled(
         TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
+
   if (localName == "span" &&
       (classes.contains("user-mention") ||
           classes.contains("user-group-mention")) &&
@@ -265,6 +268,13 @@ InlineSpan _buildInlineNode(dom.Node node) {
         alignment: PlaceholderAlignment.middle,
         child: UserMention(element: node));
   }
+
+  if (localName == "img" && classes.length == 1 && classes.contains("emoji")) {
+    return WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: MessageRealmEmoji(element: node));
+  }
+
   return _errorUnimplemented(node);
 }
 
@@ -309,6 +319,27 @@ class UserMention extends StatelessWidget {
 //     ],
 //     shape: RoundedRectangleBorder(
 //         borderRadius: BorderRadius.all(Radius.circular(3))));
+}
+
+class MessageRealmEmoji extends StatelessWidget {
+  MessageRealmEmoji({super.key, required this.element})
+      : assert(element.localName == 'img' &&
+            element.classes.length == 1 &&
+            element.classes.contains('emoji'));
+
+  final dom.Element element;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO show actual emoji image
+    final alt = element.attributes['alt'];
+    if (alt == null) return Text.rich(_errorUnimplemented(element));
+    return Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+            color: Colors.white, border: Border.all(color: Colors.purple)),
+        child: Text(alt));
+  }
 }
 
 //
