@@ -4,6 +4,10 @@ import 'package:html/parser.dart';
 
 import 'api/model/model.dart';
 
+/// The entire content of a message, aka its body.
+///
+/// This does not include metadata like the sender's name and avatar, the time,
+/// or the message's status as starred or edited.
 class MessageContent extends StatelessWidget {
   const MessageContent({super.key, required this.message});
 
@@ -22,13 +26,14 @@ class MessageContent extends StatelessWidget {
     // }
     final fragment =
         HtmlParser(message.content, parseMeta: false).parseFragment();
-    return BlockContent(nodes: fragment.nodes);
+    return BlockContentList(nodes: fragment.nodes);
     // Text(message.content),
   }
 }
 
-class BlockContent extends StatelessWidget {
-  const BlockContent({super.key, required this.nodes});
+/// A list of DOM nodes to display in block layout.
+class BlockContentList extends StatelessWidget {
+  const BlockContentList({super.key, required this.nodes});
 
   final dom.NodeList nodes;
 
@@ -36,7 +41,7 @@ class BlockContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final nodes = this.nodes.where(_acceptNode);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ...nodes.map(_buildDirectChildNode),
+      ...nodes.map((node) => BlockContentNode(node: node)),
     ]);
   }
 
@@ -48,11 +53,19 @@ class BlockContent extends StatelessWidget {
     // Does any other kind of node occur?  Well, we'd see it below.
     return true;
   }
+}
 
-  Widget _buildDirectChildNode(dom.Node node) {
+/// A single DOM node to display in block layout.
+class BlockContentNode extends StatelessWidget {
+  const BlockContentNode({super.key, required this.node});
+
+  final dom.Node node;
+
+  @override
+  Widget build(BuildContext context) {
     switch (node.nodeType) {
       case dom.Node.ELEMENT_NODE:
-        return _buildDirectChildElement(node as dom.Element);
+        return _buildElement(node as dom.Element);
       case dom.Node.TEXT_NODE:
         final text = (node as dom.Text).text;
         return _errorText("text: «$text»"); // TODO can this happen?
@@ -62,7 +75,7 @@ class BlockContent extends StatelessWidget {
     }
   }
 
-  Widget _buildDirectChildElement(dom.Element element) {
+  Widget _buildElement(dom.Element element) {
     final localName = element.localName;
     final classes = element.classes;
 
@@ -84,7 +97,7 @@ class BlockContent extends StatelessWidget {
                           width: 5,
                           color: const HSLColor.fromAHSL(1, 0, 0, 0.87)
                               .toColor()))),
-              child: BlockContent(nodes: element.nodes)));
+              child: BlockContentList(nodes: element.nodes)));
     }
 
     if (localName == 'div' &&
