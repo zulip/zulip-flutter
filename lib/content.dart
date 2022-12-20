@@ -269,7 +269,16 @@ InlineSpan _buildInlineNode(dom.Node node) {
         child: UserMention(element: node));
   }
 
-  if (localName == "img" && classes.length == 1 && classes.contains("emoji")) {
+  if (localName == "span" &&
+      classes.length == 2 &&
+      classes.contains("emoji") &&
+      classes.every(_emojiClassRegexp.hasMatch)) {
+    return WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: MessageUnicodeEmoji(element: node));
+  }
+
+  if (localName == "img" && classes.contains("emoji") && classes.length == 1) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: MessageRealmEmoji(element: node));
@@ -277,6 +286,8 @@ InlineSpan _buildInlineNode(dom.Node node) {
 
   return _errorUnimplemented(node);
 }
+
+final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 
 class UserMention extends StatelessWidget {
   const UserMention({super.key, required this.element});
@@ -319,6 +330,26 @@ class UserMention extends StatelessWidget {
 //     ],
 //     shape: RoundedRectangleBorder(
 //         borderRadius: BorderRadius.all(Radius.circular(3))));
+}
+
+class MessageUnicodeEmoji extends StatelessWidget {
+  MessageUnicodeEmoji({super.key, required this.element})
+      : assert(element.localName == 'span' &&
+            element.classes.length == 2 &&
+            element.classes.contains('emoji'));
+
+  final dom.Element element;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO get spritesheet and show actual emoji glyph
+    final text = element.text;
+    return Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+            color: Colors.white, border: Border.all(color: Colors.purple)),
+        child: Text(text));
+  }
 }
 
 class MessageRealmEmoji extends StatelessWidget {
