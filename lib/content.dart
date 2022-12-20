@@ -110,8 +110,37 @@ class BlockContentNode extends StatelessWidget {
       return CodeBlock(divElement: element);
     }
 
+    if (localName == 'div' &&
+        classes.length == 1 &&
+        classes.contains('message_inline_image')) {
+      return MessageImage(divElement: element);
+    }
+
     // TODO handle more types of elements
     return Text.rich(_errorUnimplemented(element));
+  }
+}
+
+class MessageImage extends StatelessWidget {
+  MessageImage({super.key, required this.divElement})
+      : assert(divElement.localName == 'div' &&
+            divElement.classes.length == 1 &&
+            divElement.classes.contains('message_inline_image'));
+
+  final dom.Element divElement;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO multiple images in a row
+    // TODO image hover animation
+    return Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+            height: 100,
+            width: 150,
+            alignment: Alignment.center,
+            color: const Color.fromRGBO(0, 0, 0, 0.03),
+            child: const Text("(image here)"))); // TODO
   }
 }
 
