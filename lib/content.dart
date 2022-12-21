@@ -394,7 +394,7 @@ class UserMention extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         decoration: _kDecoration,
-        padding: const EdgeInsets.all(2),
+        padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
         child: Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
   }
 
@@ -404,7 +404,7 @@ class UserMention extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter),
       border: Border.all(
-          color: const Color.fromRGBO(0xcc, 0xcc, 0xcc, 1), width: 1.1),
+          color: const Color.fromRGBO(0xcc, 0xcc, 0xcc, 1), width: 1),
       borderRadius: const BorderRadius.all(Radius.circular(3)));
 
 // This is a more literal translation of Zulip web's CSS.
