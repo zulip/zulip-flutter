@@ -236,11 +236,11 @@ class MessageWithSender extends StatelessWidget {
 
     // TODO clean up this layout, by less precisely imitating web
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (avatarUrl != null)
             Padding(
-                padding: const EdgeInsets.fromLTRB(0, 6, 11, 0),
+                padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
                 child: Container(
                     clipBehavior: Clip.antiAlias,
                     decoration: const BoxDecoration(
@@ -255,6 +255,7 @@ class MessageWithSender extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(message.sender_full_name, // TODO get from user data
                     style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
                 MessageContent(message: message),
               ])),
           Container(
