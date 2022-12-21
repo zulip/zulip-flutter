@@ -139,7 +139,10 @@ class StreamTopicRecipientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final streamName = message.display_recipient; // TODO get from stream data
     final topic = message.subject;
-    const contrastingColor = Colors.white; // TODO base on recipientColor
+    final contrastingColor =
+        ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
     return ColoredBox(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor(),
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -147,7 +150,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
               color: streamColor,
               // TODO globe/lock icons for web-public and private streams
               child: Text(streamName,
-                  style: const TextStyle(color: contrastingColor))),
+                  style: TextStyle(color: contrastingColor))),
           Padding(
               // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
               padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
