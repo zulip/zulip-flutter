@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'api/model/model.dart';
 import 'api/route/messages.dart';
@@ -217,6 +218,9 @@ class MessageItem extends StatelessWidget {
         ? null // TODO handle computing gravatars
         : rewriteImageUrl(message.avatar_url!, store.account);
 
+    final time = _kMessageTimestampFormat
+        .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -239,7 +243,16 @@ class MessageItem extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 MessageContent(message: message),
               ])),
-          Text("${message.timestamp}"), // TODO better format time
+          Text(time, style: _kMessageTimestampStyle),
         ]));
   }
 }
+
+// TODO web seems to ignore locale in formatting time, but we could do better
+final _kMessageTimestampFormat = DateFormat('h:m a', 'en_US');
+
+// TODO this seems to come out lighter than on web
+final _kMessageTimestampStyle = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: const HSLColor.fromAHSL(0.4, 0, 0, 0.2).toColor());
