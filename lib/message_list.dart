@@ -259,7 +259,7 @@ class MessageWithSender extends StatelessWidget {
               ])),
           Container(
               width: 80,
-              padding: const EdgeInsets.only(top: 8, right: 10),
+              padding: const EdgeInsets.only(top: 4, right: 2),
               alignment: Alignment.topRight,
               child: Text(time, style: _kMessageTimestampStyle))
         ]));
