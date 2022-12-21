@@ -152,15 +152,21 @@ class MessageImage extends StatelessWidget {
 
     return Align(
         alignment: Alignment.centerLeft,
-        child: Container(
-            height: 100,
-            width: 150,
-            alignment: Alignment.center,
-            color: const Color.fromRGBO(0, 0, 0, 0.03),
-            child: Image.network(
-              adjustedSrc,
-              filterQuality: FilterQuality.medium,
-            )));
+        child: Padding(
+            // TODO clean up this padding by imitating web less precisely;
+            //   in particular, avoid adding loose whitespace at end of message.
+            // The corresponding element on web has a 5px two-sided margin…
+            // and then a 1px transparent border all around.
+            padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
+            child: Container(
+                height: 100,
+                width: 150,
+                alignment: Alignment.center,
+                color: const Color.fromRGBO(0, 0, 0, 0.03),
+                child: Image.network(
+                  adjustedSrc,
+                  filterQuality: FilterQuality.medium,
+                ))));
   }
 
   dom.Element? _imgElement() {
