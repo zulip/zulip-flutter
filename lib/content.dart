@@ -308,11 +308,7 @@ InlineSpan _buildInlineNode(dom.Node node) {
     return styled(const TextStyle(fontStyle: FontStyle.italic));
   }
   if (localName == "code" && classes.isEmpty) {
-    // TODO `code` elements: border, padding; shrink font size; set bidi
-    return styled(const TextStyle(
-        backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-        fontFamily: "Source Code Pro", // TODO supply font
-        fontFamilyFallback: ["monospace"]));
+    return inlineCode(node);
   }
 
   if (localName == "a" &&
@@ -354,6 +350,16 @@ InlineSpan _buildInlineNode(dom.Node node) {
 }
 
 final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
+
+InlineSpan inlineCode(dom.Element element) {
+  assert(element.localName == 'code' && element.classes.isEmpty);
+  // TODO `code` elements: border, padding; shrink font size; set bidi
+  return TextSpan(
+      children: _buildInlineList(element.nodes), style: const TextStyle(
+          backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+          fontFamily: "Source Code Pro", // TODO supply font
+          fontFamilyFallback: ["monospace"]));
+}
 
 class UserMention extends StatelessWidget {
   const UserMention({super.key, required this.element});
