@@ -369,9 +369,11 @@ const _kCodeStyle = TextStyle(
   fontFamilyFallback: ["monospace"],
 );
 
-const _kInlineCodeLeftBracket = '⸢';
-const _kInlineCodeRightBracket = '⸥';
+const _kInlineCodeLeftBracket = '⸤';
+const _kInlineCodeRightBracket = '⸣';
 // Some alternatives:
+// const _kInlineCodeLeftBracket = '⸢'; // end-bracket looks a lot like comma
+// const _kInlineCodeRightBracket = '⸥';
 // const _kInlineCodeLeftBracket = '｢'; // a bit bigger
 // const _kInlineCodeRightBracket = '｣';
 // const _kInlineCodeLeftBracket = '「'; // too much space
