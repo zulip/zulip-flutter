@@ -223,9 +223,16 @@ class CodeBlock extends StatelessWidget {
     if (element == null) return _error();
 
     final buffer = StringBuffer();
-    for (final child in element.nodes) {
+    for (int i = 0; i < element.nodes.length; i++) {
+      final child = element.nodes[i];
       if (child is dom.Text) {
-        buffer.write(child.text);
+        String text = child.text;
+        if (i == element.nodes.length - 1) {
+          // The HTML tends to have a final newline here.  If included in the
+          // [Text], that would make a trailing blank line.  So cut it out.
+          text = text.replaceFirst(RegExp(r'\n$'), '');
+        }
+        buffer.write(text);
       } else if (child is dom.Element && child.localName == 'span') {
         // TODO style the code-highlighting spans
         buffer.write(child.text);
