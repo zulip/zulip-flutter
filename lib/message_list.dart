@@ -72,40 +72,19 @@ class MessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO recipient headings
+    // TODO recipient headings depend on narrow
 
     Color recipientColor;
     Widget recipientHeader;
     if (message is StreamMessage) {
       final msg = (message as StreamMessage);
-      final streamName = msg.display_recipient; // TODO get from stream data
-      final topic = msg.subject;
       recipientColor = Colors.black; // TODO get color
-      const contrastingColor = Colors.white; // TODO base on recipientColor
-      const recipientBorderShape = BeveledRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topRight: Radius.elliptical(5, double.infinity),
-              bottomRight: Radius.elliptical(5, double.infinity)));
-      recipientHeader = Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-              decoration: ShapeDecoration(
-                  color: recipientColor, shape: recipientBorderShape),
-              padding: const EdgeInsets.only(right: 5), // compensates for bevel
-              child: Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
-                  child: Text(
-                      "$streamName > $topic", // TODO stream recipient header
-                      style: const TextStyle(color: contrastingColor)))));
+      recipientHeader =
+          StreamTopicRecipientHeader(message: msg, streamColor: recipientColor);
     } else if (message is PmMessage) {
+      final msg = (message as PmMessage);
       recipientColor = Colors.black;
-      recipientHeader = Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-              color: recipientColor,
-              padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
-              child: const Text("Private message", // TODO PM recipient headers
-                  style: TextStyle(color: Colors.white))));
+      recipientHeader = PmRecipientHeader(message: msg);
     } else {
       throw Exception("impossible message type: ${message.runtimeType}");
     }
@@ -136,6 +115,53 @@ class MessageItem extends StatelessWidget {
     //
     // But CSS `box-shadow` seems to not apply under the item itself, while
     // Flutter's BoxShadow does.
+  }
+}
+
+class StreamTopicRecipientHeader extends StatelessWidget {
+  const StreamTopicRecipientHeader(
+      {super.key, required this.message, required this.streamColor});
+
+  final StreamMessage message;
+  final Color streamColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final streamName = message.display_recipient; // TODO get from stream data
+    final topic = message.subject;
+    const contrastingColor = Colors.white; // TODO base on recipientColor
+    const recipientBorderShape = BeveledRectangleBorder(
+        borderRadius: BorderRadius.only(
+            topRight: Radius.elliptical(5, double.infinity),
+            bottomRight: Radius.elliptical(5, double.infinity)));
+    return Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+            decoration: ShapeDecoration(
+                color: streamColor, shape: recipientBorderShape),
+            padding: const EdgeInsets.only(right: 5), // compensates for bevel
+            child: Padding(
+                padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
+                child:
+                    Text("$streamName > $topic", // TODO stream recipient header
+                        style: const TextStyle(color: contrastingColor)))));
+  }
+}
+
+class PmRecipientHeader extends StatelessWidget {
+  const PmRecipientHeader({super.key, required this.message});
+
+  final PmMessage message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+            color: Colors.black,
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
+            child: const Text("Private message", // TODO PM recipient headers
+                style: TextStyle(color: Colors.white))));
   }
 }
 
