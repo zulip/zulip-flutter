@@ -83,7 +83,7 @@ class MessageItem extends StatelessWidget {
           StreamTopicRecipientHeader(message: msg, streamColor: recipientColor);
     } else if (message is PmMessage) {
       final msg = (message as PmMessage);
-      recipientColor = Colors.black;
+      recipientColor = _kPmRecipientHeaderColor;
       recipientHeader = PmRecipientHeader(message: msg);
     } else {
       throw Exception("impossible message type: ${message.runtimeType}");
@@ -146,14 +146,17 @@ class PmRecipientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Align(
+    return Align(
         alignment: Alignment.centerLeft,
         child: RecipientHeaderChevronContainer(
-            color: Colors.black,
-            child: Text("Private message", // TODO PM recipient headers
+            color: _kPmRecipientHeaderColor,
+            child: const Text("Private message", // TODO PM recipient headers
                 style: TextStyle(color: Colors.white))));
   }
 }
+
+final _kPmRecipientHeaderColor =
+    const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor();
 
 /// A widget with the distinctive chevron-tailed shape in Zulip recipient headers.
 class RecipientHeaderChevronContainer extends StatelessWidget {
