@@ -130,21 +130,12 @@ class StreamTopicRecipientHeader extends StatelessWidget {
     final streamName = message.display_recipient; // TODO get from stream data
     final topic = message.subject;
     const contrastingColor = Colors.white; // TODO base on recipientColor
-    const recipientBorderShape = BeveledRectangleBorder(
-        borderRadius: BorderRadius.only(
-            topRight: Radius.elliptical(5, double.infinity),
-            bottomRight: Radius.elliptical(5, double.infinity)));
     return Align(
         alignment: Alignment.centerLeft,
-        child: Container(
-            decoration: ShapeDecoration(
-                color: streamColor, shape: recipientBorderShape),
-            padding: const EdgeInsets.only(right: 5), // compensates for bevel
-            child: Padding(
-                padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
-                child:
-                    Text("$streamName > $topic", // TODO stream recipient header
-                        style: const TextStyle(color: contrastingColor)))));
+        child: RecipientHeaderChevronContainer(
+            color: streamColor,
+            child: Text("$streamName > $topic", // TODO stream recipient header
+                style: const TextStyle(color: contrastingColor))));
   }
 }
 
@@ -162,6 +153,29 @@ class PmRecipientHeader extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
             child: const Text("Private message", // TODO PM recipient headers
                 style: TextStyle(color: Colors.white))));
+  }
+}
+
+/// A widget with the distinctive chevron-tailed shape in Zulip recipient headers.
+class RecipientHeaderChevronContainer extends StatelessWidget {
+  const RecipientHeaderChevronContainer(
+      {super.key, required this.color, required this.child});
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    const chevronLength = 5.0;
+    const recipientBorderShape = BeveledRectangleBorder(
+        borderRadius: BorderRadius.only(
+            topRight: Radius.elliptical(chevronLength, double.infinity),
+            bottomRight: Radius.elliptical(chevronLength, double.infinity)));
+    return Container(
+        decoration: ShapeDecoration(color: color, shape: recipientBorderShape),
+        padding: const EdgeInsets.only(right: chevronLength),
+        child: Padding(
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 3), child: child));
   }
 }
 
