@@ -184,9 +184,11 @@ class _MessageListState extends State<MessageList> {
         style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
         child: ColoredBox(
             color: Colors.white,
-            child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 760),
-                child: _buildListView(context))));
+            child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: _buildListView(context)))));
   }
 
   Widget _buildListView(context) {
@@ -213,7 +215,61 @@ class MessageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO recipient headings
 
-    return MessageWithSender(message: message);
+    Color recipientColor;
+    Widget recipientHeader;
+    if (message is StreamMessage) {
+      final msg = (message as StreamMessage);
+      final streamName = msg.display_recipient; // TODO get from stream data
+      final topic = msg.subject;
+      recipientColor = Colors.black; // TODO get color
+      const contrastingColor = Colors.white; // TODO base on recipientColor
+      recipientHeader = Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+              color: recipientColor,
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
+              child:
+                  Text("$streamName > $topic", // TODO stream recipient header
+                      style: const TextStyle(color: contrastingColor))));
+    } else if (message is PmMessage) {
+      recipientColor = Colors.black;
+      recipientHeader = Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+              color: recipientColor,
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
+              child: const Text("Private message", // TODO PM recipient headers
+                  style: TextStyle(color: Colors.white))));
+    } else {
+      throw Exception("impossible message type: ${message.runtimeType}");
+    }
+
+    // TODO fine-tune width of recipient border
+    final recipientBorder = BorderSide(color: recipientColor, width: 4);
+
+    return Column(children: [
+      recipientHeader,
+      DecoratedBox(
+          decoration: ShapeDecoration(shape: Border(left: recipientBorder)),
+          child: MessageWithSender(message: message)),
+    ]);
+
+    // Web handles the left-side recipient marker in a funky way:
+    //   box-shadow: inset 3px 0px 0px -1px #c2726a, -1px 0px 0px 0px #c2726a;
+    // (where the color is the stream color.)  That is, it's a pair of
+    // box shadows.  One of them is inset.
+    //
+    // At attempt at a literal translation might look like this:
+    //
+    // DecoratedBox(
+    //     decoration: ShapeDecoration(shadows: [
+    //       BoxShadow(offset: Offset(3, 0), spreadRadius: -1, color: recipientColor),
+    //       BoxShadow(offset: Offset(-1, 0), color: recipientColor),
+    //     ], shape: Border.fromBorderSide(BorderSide.none)),
+    //     child: MessageWithSender(message: message)),
+    //
+    // But CSS `box-shadow` seems to not apply under the item itself, while
+    // Flutter's BoxShadow does.
   }
 }
 
