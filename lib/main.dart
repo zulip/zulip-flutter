@@ -213,6 +213,18 @@ class MessageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO recipient headings
 
+    return MessageWithSender(message: message);
+  }
+}
+
+/// A Zulip message, showing the sender's name and avatar.
+class MessageWithSender extends StatelessWidget {
+  const MessageWithSender({super.key, required this.message});
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final avatarUrl = message.avatar_url == null // TODO get from user data
         ? null // TODO handle computing gravatars
