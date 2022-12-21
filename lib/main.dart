@@ -47,11 +47,26 @@ class _PerAccountRootState extends State<PerAccountRoot> {
         store: store!,
         child: MaterialApp(
           title: 'Zulip',
-          theme: ThemeData(primarySwatch: Colors.blue), // TODO Zulip purple
+          theme: ThemeData(
+              // This applies Material 3's color system to produce a palette of
+              // appropriately matching and contrasting colors for use in a UI.
+              // The Zulip brand color is a starting point, but doesn't end up as
+              // one that's directly used.  (After all, we didn't design it for that
+              // purpose; we designed a logo.)  See docs:
+              //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
+              // Or try this tool to see the whole palette:
+              //   https://m3.material.io/theme-builder#/custom
+              colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor)),
           home: const HomePage(),
         ));
   }
 }
+
+/// The Zulip "brand color", a purplish blue.
+///
+/// This is chosen as the sRGB midpoint of the Zulip logo's gradient.
+// As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
+const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 
 class LoadingPage extends StatelessWidget {
   const LoadingPage({super.key});

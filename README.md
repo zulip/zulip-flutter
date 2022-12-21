@@ -119,6 +119,8 @@ widgets.
 
 - Scroll position at first unread, or via link (vs. latest)
 
+- Dark theme (and in content too)
+
 
 ### Other UI
 
