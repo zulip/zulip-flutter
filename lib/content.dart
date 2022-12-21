@@ -3,6 +3,7 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
 import 'api/model/model.dart';
+import 'main.dart';
 
 /// The entire content of a message, aka its body.
 ///
@@ -136,6 +137,17 @@ class MessageImage extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO multiple images in a row
     // TODO image hover animation
+    final imgElement = _imgElement();
+    if (imgElement == null) return Text.rich(_errorUnimplemented(divElement));
+
+    final src = imgElement.attributes['src'];
+    if (src == null) return Text.rich(_errorUnimplemented(divElement));
+    final store = PerAccountStoreWidget.of(context);
+    final realmUrl = Uri.parse(store.account.realmUrl); // TODO clean this up
+    final resolved = realmUrl.resolve(src);
+    // TODO authentication to load images
+    final imageWidget = Image.network(resolved.toString());
+
     return Align(
         alignment: Alignment.centerLeft,
         child: Container(
@@ -143,7 +155,22 @@ class MessageImage extends StatelessWidget {
             width: 150,
             alignment: Alignment.center,
             color: const Color.fromRGBO(0, 0, 0, 0.03),
-            child: const Text("(image here)"))); // TODO
+            child: imageWidget));
+  }
+
+  dom.Element? _imgElement() {
+    if (divElement.nodes.length != 1) return null;
+    final child = divElement.nodes[0];
+    if (child is! dom.Element) return null;
+    if (child.localName != 'a') return null;
+    if (child.classes.isNotEmpty) return null;
+
+    if (child.nodes.length != 1) return null;
+    final grandchild = child.nodes[0];
+    if (grandchild is! dom.Element) return null;
+    if (grandchild.localName != 'img') return null;
+    if (grandchild.classes.isNotEmpty) return null;
+    return grandchild;
   }
 }
 
