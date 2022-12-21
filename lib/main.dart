@@ -223,14 +223,21 @@ class MessageItem extends StatelessWidget {
       final topic = msg.subject;
       recipientColor = Colors.black; // TODO get color
       const contrastingColor = Colors.white; // TODO base on recipientColor
+      const recipientBorderShape = BeveledRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topRight: Radius.elliptical(5, double.infinity),
+              bottomRight: Radius.elliptical(5, double.infinity)));
       recipientHeader = Align(
           alignment: Alignment.centerLeft,
           child: Container(
-              color: recipientColor,
-              padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
-              child:
-                  Text("$streamName > $topic", // TODO stream recipient header
-                      style: const TextStyle(color: contrastingColor))));
+              decoration: ShapeDecoration(
+                  color: recipientColor, shape: recipientBorderShape),
+              padding: const EdgeInsets.only(right: 5), // compensates for bevel
+              child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
+                  child: Text(
+                      "$streamName > $topic", // TODO stream recipient header
+                      style: const TextStyle(color: contrastingColor)))));
     } else if (message is PmMessage) {
       recipientColor = Colors.black;
       recipientHeader = Align(
