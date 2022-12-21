@@ -29,6 +29,8 @@ class CustomProfileField {
 
   factory CustomProfileField.fromJson(Map<String, dynamic> json) =>
       _$CustomProfileFieldFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CustomProfileFieldToJson(this);
 }
 
 /// As in `subscriptions` in the initial snapshot.
@@ -98,6 +100,8 @@ class Subscription {
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
       _$SubscriptionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
 }
 
 /// As in the get-messages response.
@@ -207,6 +211,8 @@ class PmRecipient {
 
   factory PmRecipient.fromJson(Map<String, dynamic> json) =>
       _$PmRecipientFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PmRecipientToJson(this);
 }
 
 @JsonSerializable()

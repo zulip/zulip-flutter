@@ -43,4 +43,6 @@ class GetMessagesResult {
 
   factory GetMessagesResult.fromJson(Map<String, dynamic> json) =>
       _$GetMessagesResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GetMessagesResultToJson(this);
 }
