@@ -104,9 +104,7 @@ widgets.
 ### Message list, other than content
 
 - Show more/better message metadata:
-  - Sender avatars
-  - Formatted times
-  - Recipient headers
+  - Sticky recipient header at top of viewport
   - Starred
   - Edited/moved
 
