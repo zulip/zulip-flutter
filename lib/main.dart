@@ -176,21 +176,30 @@ class _MessageListState extends State<MessageList> {
   @override
   Widget build(BuildContext context) {
     if (!fetched) return const Center(child: CircularProgressIndicator());
-    return ColoredBox(
-        color: Colors.white,
-        child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: ListView.separated(
-                itemCount: messages.length,
-                separatorBuilder: (context, i) => const SizedBox(height: 16),
-                // Setting reverse: true means the scroll starts at the bottom.
-                // Flipping the indexes (in itemBuilder) means the start/bottom
-                // has the latest messages.
-                // This works great when we want to start from the latest.
-                // TODO handle scroll starting at first unread, or link anchor
-                reverse: true,
-                itemBuilder: (context, i) =>
-                    MessageItem(message: messages[messages.length - 1 - i]))));
+
+    return DefaultTextStyle(
+        // TODO figure out text color -- web is supposedly hsl(0deg 0% 20%),
+        //   but seems much darker than that
+        style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+        child: ColoredBox(
+            color: Colors.white,
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: _buildListView(context))));
+  }
+
+  Widget _buildListView(context) {
+    return ListView.separated(
+        itemCount: messages.length,
+        separatorBuilder: (context, i) => const SizedBox(height: 16),
+        // Setting reverse: true means the scroll starts at the bottom.
+        // Flipping the indexes (in itemBuilder) means the start/bottom
+        // has the latest messages.
+        // This works great when we want to start from the latest.
+        // TODO handle scroll starting at first unread, or link anchor
+        reverse: true,
+        itemBuilder: (context, i) =>
+            MessageItem(message: messages[messages.length - 1 - i]));
   }
 }
 
