@@ -76,28 +76,28 @@ class MessageItem extends StatelessWidget {
 
     final store = PerAccountStoreWidget.of(context);
 
-    Color recipientColor;
-    Color borderColor;
+    Color highlightBorderColor;
+    Color restBorderColor;
     Widget recipientHeader;
     if (message is StreamMessage) {
       final msg = (message as StreamMessage);
       final subscription = store.subscriptions[msg.stream_id];
-      recipientColor = colorForStream(subscription);
-      borderColor = _kStreamMessageBorderColor;
-      recipientHeader =
-          StreamTopicRecipientHeader(message: msg, streamColor: recipientColor);
+      highlightBorderColor = colorForStream(subscription);
+      restBorderColor = _kStreamMessageBorderColor;
+      recipientHeader = StreamTopicRecipientHeader(
+          message: msg, streamColor: highlightBorderColor);
     } else if (message is PmMessage) {
       final msg = (message as PmMessage);
-      recipientColor = _kPmRecipientHeaderColor;
-      borderColor = _kPmRecipientHeaderColor;
+      highlightBorderColor = _kPmRecipientHeaderColor;
+      restBorderColor = _kPmRecipientHeaderColor;
       recipientHeader = PmRecipientHeader(message: msg);
     } else {
       throw Exception("impossible message type: ${message.runtimeType}");
     }
 
     // TODO fine-tune width of recipient border
-    final recipientBorder = BorderSide(color: recipientColor, width: 4);
-    final restBorder = BorderSide(color: borderColor, width: 1);
+    final recipientBorder = BorderSide(color: highlightBorderColor, width: 4);
+    final restBorder = BorderSide(color: restBorderColor, width: 1);
     var borderDecoration = ShapeDecoration(
         // Web actually uses, for stream messages, a slightly lighter border at
         // right than at bottom and in the recipient header: black 10% alpha,
@@ -121,8 +121,8 @@ class MessageItem extends StatelessWidget {
     //
     // DecoratedBox(
     //     decoration: ShapeDecoration(shadows: [
-    //       BoxShadow(offset: Offset(3, 0), spreadRadius: -1, color: recipientColor),
-    //       BoxShadow(offset: Offset(-1, 0), color: recipientColor),
+    //       BoxShadow(offset: Offset(3, 0), spreadRadius: -1, color: highlightBorderColor),
+    //       BoxShadow(offset: Offset(-1, 0), color: highlightBorderColor),
     //     ], shape: Border.fromBorderSide(BorderSide.none)),
     //     child: MessageWithSender(message: message)),
     //
