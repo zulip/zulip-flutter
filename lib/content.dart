@@ -6,6 +6,9 @@ import 'api/model/model.dart';
 import 'main.dart';
 import 'store.dart';
 
+/// The font size for message content in a plain unstyled paragraph.
+const kBaseFontSize = 14;
+
 /// The entire content of a message, aka its body.
 ///
 /// This does not include metadata like the sender's name and avatar, the time,
@@ -353,21 +356,27 @@ final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 
 InlineSpan inlineCode(dom.Element element) {
   assert(element.localName == 'code' && element.classes.isEmpty);
-  // TODO `code` elements: border, padding; shrink font size; set bidi
 
-  return TextSpan(
-      children: _buildInlineList(element.nodes), style: const TextStyle(
-          backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-          fontFamily: "Source Code Pro", // TODO supply font
-          fontFamilyFallback: ["monospace"]));
-
+  // TODO `code` elements: border, padding
   // One attempt at the border was to use TextDecoration for the top and bottom,
   // passing this to the TextStyle constructor:
   //   decoration: TextDecoration.combine([TextDecoration.overline, TextDecoration.underline]),
   // (Then we could handle the left and right borders with 1px-wide WidgetSpans.)
   // The overline comes out OK, but sadly the underline is, well, where a normal
   // text underline should go: it cuts right through descenders.
+
+  // TODO `code` elements: set bidi
+
+  return TextSpan(
+      style: _kInlineCodeStyle, children: _buildInlineList(element.nodes));
 }
+
+const _kInlineCodeStyle = TextStyle(
+  backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+  fontSize: 0.825 * kBaseFontSize,
+  fontFamily: "Source Code Pro", // TODO supply font
+  fontFamilyFallback: ["monospace"],
+);
 
 class UserMention extends StatelessWidget {
   const UserMention({super.key, required this.element});
