@@ -154,7 +154,10 @@ class MessageImage extends StatelessWidget {
             width: 150,
             alignment: Alignment.center,
             color: const Color.fromRGBO(0, 0, 0, 0.03),
-            child: Image.network(adjustedSrc)));
+            child: Image.network(
+              adjustedSrc,
+              filterQuality: FilterQuality.medium,
+            )));
   }
 
   dom.Element? _imgElement() {
