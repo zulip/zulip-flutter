@@ -202,10 +202,26 @@ class MessageItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO recipient headings
+
+    final store = PerAccountStoreWidget.of(context);
+    final avatarUrl = message.avatar_url == null // TODO get from user data
+        ? null // TODO handle computing gravatars
+        : rewriteImageUrl(message.avatar_url!, store.account);
+
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // TODO avatar
+          if (avatarUrl != null)
+            Padding(
+                // TODO avatar's vertical alignment seems off
+                padding: const EdgeInsets.fromLTRB(0, 6, 11, 0),
+                child: Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(4))),
+                    width: 35,
+                    height: 35,
+                    child: Image.network(avatarUrl))),
           Expanded(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
