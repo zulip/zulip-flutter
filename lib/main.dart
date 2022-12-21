@@ -133,7 +133,7 @@ class _MessageListPageState extends State<MessageListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text("Some messages")),
+        appBar: AppBar(title: const Text("All messages")),
         body: Center(
             child: Column(children: const [
           Expanded(child: MessageList()),
