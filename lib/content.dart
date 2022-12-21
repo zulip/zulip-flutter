@@ -242,11 +242,14 @@ class CodeBlock extends StatelessWidget {
             border: Border.all(
                 width: 1,
                 color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
-        // TODO overflow-x: scroll; white-space: pre
-        child: Text(text,
-            style: const TextStyle(
-                fontFamily: 'Source Code Pro',
-                fontFamilyFallback: ['monospace'])));
+        child: Scrollbar(
+            child: SingleChildScrollView(
+                primary: true,
+                scrollDirection: Axis.horizontal,
+                child: Text(text,
+                    style: const TextStyle(
+                        fontFamily: 'Source Code Pro',
+                        fontFamilyFallback: ['monospace'])))));
   }
 
   dom.Element? _mainElement() {
