@@ -246,10 +246,7 @@ class CodeBlock extends StatelessWidget {
             child: SingleChildScrollView(
                 primary: true,
                 scrollDirection: Axis.horizontal,
-                child: Text(text,
-                    style: const TextStyle(
-                        fontFamily: 'Source Code Pro',
-                        fontFamilyFallback: ['monospace'])))));
+                child: Text(text, style: _kCodeStyle))));
   }
 
   dom.Element? _mainElement() {
@@ -386,13 +383,12 @@ InlineSpan inlineCode(dom.Element element) {
   return TextSpan(children: [
     // TODO(selection): exclude these brackets from text selection
     const TextSpan(text: _kInlineCodeLeftBracket),
-    TextSpan(
-        style: _kInlineCodeStyle, children: _buildInlineList(element.nodes)),
+    TextSpan(style: _kCodeStyle, children: _buildInlineList(element.nodes)),
     const TextSpan(text: _kInlineCodeRightBracket),
   ]);
 }
 
-const _kInlineCodeStyle = TextStyle(
+const _kCodeStyle = TextStyle(
   backgroundColor: Color.fromRGBO(255, 255, 255, 1),
   fontSize: 0.825 * kBaseFontSize,
   fontFamily: "Source Code Pro", // TODO supply font
