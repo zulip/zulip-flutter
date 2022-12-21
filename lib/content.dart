@@ -357,18 +357,36 @@ final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 InlineSpan inlineCode(dom.Element element) {
   assert(element.localName == 'code' && element.classes.isEmpty);
 
-  // TODO `code` elements: border, padding
-  // One attempt at the border was to use TextDecoration for the top and bottom,
-  // passing this to the TextStyle constructor:
+  // TODO `code` elements: border, padding -- seems hard
+  //
+  // Hard because this is an inline span, which we want to be able to break
+  // between lines when wrapping paragraphs.  That means we can't just make it a
+  // widget; it needs to be a [TextSpan].  And in that inline setting, Flutter
+  // does not appear to have an equivalent for CSS's `border` or `padding`:
+  //   https://api.flutter.dev/flutter/painting/TextStyle-class.html
+  //
+  // One attempt was to use [TextDecoration] for the top and bottom,
+  // passing this to the [TextStyle] constructor:
   //   decoration: TextDecoration.combine([TextDecoration.overline, TextDecoration.underline]),
-  // (Then we could handle the left and right borders with 1px-wide WidgetSpans.)
+  // (Then we could handle the left and right borders with 1px-wide [WidgetSpan]s.)
   // The overline comes out OK, but sadly the underline is, well, where a normal
   // text underline should go: it cuts right through descenders.
+  //
+  // Another option would be to break the text up on whitespace ourselves, and
+  // make a [WidgetSpan] for each word and space.
+  //
+  // Or we could find a different design for displaying inline code.
+  // One such alternative is implemented below.
 
   // TODO `code` elements: set bidi
 
-  return TextSpan(
-      style: _kInlineCodeStyle, children: _buildInlineList(element.nodes));
+  return TextSpan(children: [
+    // TODO(selection): exclude these brackets from text selection
+    const TextSpan(text: _kInlineCodeLeftBracket),
+    TextSpan(
+        style: _kInlineCodeStyle, children: _buildInlineList(element.nodes)),
+    const TextSpan(text: _kInlineCodeRightBracket),
+  ]);
 }
 
 const _kInlineCodeStyle = TextStyle(
@@ -377,6 +395,20 @@ const _kInlineCodeStyle = TextStyle(
   fontFamily: "Source Code Pro", // TODO supply font
   fontFamilyFallback: ["monospace"],
 );
+
+const _kInlineCodeLeftBracket = '⸢';
+const _kInlineCodeRightBracket = '⸥';
+// Some alternatives:
+// const _kInlineCodeLeftBracket = '｢'; // a bit bigger
+// const _kInlineCodeRightBracket = '｣';
+// const _kInlineCodeLeftBracket = '「'; // too much space
+// const _kInlineCodeRightBracket = '」';
+// const _kInlineCodeLeftBracket = '﹝'; // neat but too much space
+// const _kInlineCodeRightBracket = '﹞';
+// const _kInlineCodeLeftBracket = '❲'; // different shape, could work
+// const _kInlineCodeRightBracket = '❳';
+// const _kInlineCodeLeftBracket = '⟨'; // probably too visually similar to paren
+// const _kInlineCodeRightBracket = '⟩';
 
 class UserMention extends StatelessWidget {
   const UserMention({super.key, required this.element});
