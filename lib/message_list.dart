@@ -95,8 +95,9 @@ class MessageItem extends StatelessWidget {
       throw Exception("impossible message type: ${message.runtimeType}");
     }
 
-    // TODO fine-tune width of recipient border
-    final recipientBorder = BorderSide(color: highlightBorderColor, width: 4);
+    // This 3px border seems to accurately reproduce something much more
+    // complicated on web, involving CSS box-shadow; see comment below.
+    final recipientBorder = BorderSide(color: highlightBorderColor, width: 3);
     final restBorder = BorderSide(color: restBorderColor, width: 1);
     var borderDecoration = ShapeDecoration(
         // Web actually uses, for stream messages, a slightly lighter border at
