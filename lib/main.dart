@@ -100,17 +100,31 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+
+    InlineSpan bold(String text) => TextSpan(
+        text: text, style: const TextStyle(fontWeight: FontWeight.bold));
+
     return Scaffold(
         appBar: AppBar(title: const Text("Home")),
         body: Center(
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Text('🚧 Under construction 🚧'),
-          const SizedBox(height: 8),
-          Text('Connected to: ${store.account.realmUrl}'),
-          Text('Zulip server version: ${store.zulip_version}'),
-          Text(
-              'Subscribed to ${store.subscriptions.length} streams'),
+          DefaultTextStyle.merge(
+              style: const TextStyle(fontSize: 18),
+              child: Column(children: [
+                const Text('🚧 Under construction 🚧'),
+                const SizedBox(height: 12),
+                Text.rich(TextSpan(
+                    text: 'Connected to: ',
+                    children: [bold(store.account.realmUrl)])),
+                Text.rich(TextSpan(
+                    text: 'Zulip server version: ',
+                    children: [bold(store.zulip_version)])),
+                Text.rich(TextSpan(text: 'Subscribed to ', children: [
+                  bold(store.subscriptions.length.toString()),
+                  const TextSpan(text: ' streams'),
+                ])),
+              ])),
           const SizedBox(height: 16),
           ElevatedButton(
               onPressed: () => Navigator.push(
@@ -143,4 +157,3 @@ class _MessageListPageState extends State<MessageListPage> {
         ])));
   }
 }
-
