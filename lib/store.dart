@@ -1,7 +1,10 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/foundation.dart';
 
 import 'api/core.dart';
 import 'api/model/initial_snapshot.dart';
+import 'api/model/model.dart';
 import 'api/route/events.dart';
 import 'credential_fixture.dart' as credentials; // prototyping hack; not in Git
 
@@ -17,21 +20,22 @@ class PerAccountStore extends ChangeNotifier {
     // TODO log the time better
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
 
-    return PerAccountStore(
-      account: account,
-      connection: connection,
-      initialSnapshot: initialSnapshot,
-    );
+    return processInitialSnapshot(account, connection, initialSnapshot);
   }
 
   final Account account;
   final ApiConnection connection;
-  final InitialSnapshot initialSnapshot; // TODO translate to a real model
+
+  final String zulip_version;
+  final Map<int, Subscription> subscriptions;
+
+  // TODO lots more data
 
   PerAccountStore({
     required this.account,
     required this.connection,
-    required this.initialSnapshot,
+    required this.zulip_version,
+    required this.subscriptions,
   });
 }
 
@@ -55,4 +59,17 @@ class Account implements Auth {
   final String email;
   @override
   final String apiKey;
+}
+
+PerAccountStore processInitialSnapshot(Account account,
+    ApiConnection connection, InitialSnapshot initialSnapshot) {
+  final subscriptions = Map.fromEntries(initialSnapshot.subscriptions
+      .map((subscription) => MapEntry(subscription.stream_id, subscription)));
+
+  return PerAccountStore(
+    account: account,
+    connection: connection,
+    zulip_version: initialSnapshot.zulip_version,
+    subscriptions: subscriptions,
+  );
 }

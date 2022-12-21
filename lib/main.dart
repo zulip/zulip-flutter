@@ -108,9 +108,9 @@ class HomePage extends StatelessWidget {
           const Text('🚧 Under construction 🚧'),
           const SizedBox(height: 8),
           Text('Connected to: ${store.account.realmUrl}'),
-          Text('Zulip server version: ${store.initialSnapshot.zulip_version}'),
+          Text('Zulip server version: ${store.zulip_version}'),
           Text(
-              'Subscribed to ${store.initialSnapshot.subscriptions.length} streams'),
+              'Subscribed to ${store.subscriptions.length} streams'),
           const SizedBox(height: 16),
           ElevatedButton(
               onPressed: () => Navigator.push(
