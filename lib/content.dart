@@ -378,7 +378,7 @@ InlineSpan inlineCode(dom.Element element) {
   // Or we could find a different design for displaying inline code.
   // One such alternative is implemented below.
 
-  // TODO `code` elements: set bidi
+  // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
   return TextSpan(children: [
     // TODO(selection): exclude these brackets from text selection
