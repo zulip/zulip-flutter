@@ -221,12 +221,12 @@ class MessageItem extends StatelessWidget {
     final time = _kMessageTimestampFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
 
+    // TODO clean up this layout, by less precisely imitating web
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (avatarUrl != null)
             Padding(
-                // TODO avatar's vertical alignment seems off
                 padding: const EdgeInsets.fromLTRB(0, 6, 11, 0),
                 child: Container(
                     clipBehavior: Clip.antiAlias,
@@ -239,11 +239,16 @@ class MessageItem extends StatelessWidget {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                const SizedBox(height: 3),
                 Text(message.sender_full_name, // TODO get from user data
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 MessageContent(message: message),
               ])),
-          Text(time, style: _kMessageTimestampStyle),
+          Container(
+              width: 80,
+              padding: const EdgeInsets.only(top: 8, right: 10),
+              alignment: Alignment.topRight,
+              child: Text(time, style: _kMessageTimestampStyle))
         ]));
   }
 }
