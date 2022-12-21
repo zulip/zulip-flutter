@@ -146,12 +146,11 @@ class PmRecipientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
+    return const Align(
         alignment: Alignment.centerLeft,
-        child: Container(
+        child: RecipientHeaderChevronContainer(
             color: Colors.black,
-            padding: const EdgeInsets.fromLTRB(6, 4, 6, 3),
-            child: const Text("Private message", // TODO PM recipient headers
+            child: Text("Private message", // TODO PM recipient headers
                 style: TextStyle(color: Colors.white))));
   }
 }
