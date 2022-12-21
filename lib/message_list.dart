@@ -130,12 +130,21 @@ class StreamTopicRecipientHeader extends StatelessWidget {
     final streamName = message.display_recipient; // TODO get from stream data
     final topic = message.subject;
     const contrastingColor = Colors.white; // TODO base on recipientColor
-    return Align(
-        alignment: Alignment.centerLeft,
-        child: RecipientHeaderChevronContainer(
-            color: streamColor,
-            child: Text("$streamName > $topic", // TODO stream recipient header
-                style: const TextStyle(color: contrastingColor))));
+    return ColoredBox(
+        color: const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor(),
+        child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          RecipientHeaderChevronContainer(
+              color: streamColor,
+              child: Text(streamName,
+                  style: const TextStyle(color: contrastingColor))),
+          Padding(
+              // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
+              padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
+              child: Text(topic,
+                  style: const TextStyle(fontWeight: FontWeight.w600))),
+          // TODO topic links?
+          // Then web also has edit/resolve/mute buttons. Skip those for mobile.
+        ]));
   }
 }
 
