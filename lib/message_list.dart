@@ -74,11 +74,14 @@ class MessageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO recipient headings depend on narrow
 
+    final store = PerAccountStoreWidget.of(context);
+
     Color recipientColor;
     Widget recipientHeader;
     if (message is StreamMessage) {
       final msg = (message as StreamMessage);
-      recipientColor = Colors.black; // TODO get color
+      final subscription = store.subscriptions[msg.stream_id];
+      recipientColor = colorForStream(subscription);
       recipientHeader =
           StreamTopicRecipientHeader(message: msg, streamColor: recipientColor);
     } else if (message is PmMessage) {
@@ -118,6 +121,13 @@ class MessageItem extends StatelessWidget {
   }
 }
 
+Color colorForStream(Subscription? subscription) {
+  final color = subscription?.color;
+  if (color == null) return const Color(0x00c2c2c2);
+  assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(color));
+  return Color(0xff000000 | int.parse(color.substring(1), radix: 16));
+}
+
 class StreamTopicRecipientHeader extends StatelessWidget {
   const StreamTopicRecipientHeader(
       {super.key, required this.message, required this.streamColor});
@@ -135,6 +145,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           RecipientHeaderChevronContainer(
               color: streamColor,
+              // TODO globe/lock icons for web-public and private streams
               child: Text(streamName,
                   style: const TextStyle(color: contrastingColor))),
           Padding(
