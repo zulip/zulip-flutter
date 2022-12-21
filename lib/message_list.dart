@@ -53,7 +53,7 @@ class _MessageListState extends State<MessageList> {
   Widget _buildListView(context) {
     return ListView.separated(
         itemCount: messages.length,
-        separatorBuilder: (context, i) => const SizedBox(height: 16),
+        separatorBuilder: (context, i) => const SizedBox(height: 11),
         // Setting reverse: true means the scroll starts at the bottom.
         // Flipping the indexes (in itemBuilder) means the start/bottom
         // has the latest messages.
