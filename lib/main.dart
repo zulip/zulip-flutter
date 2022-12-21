@@ -201,31 +201,19 @@ class MessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TODO recipient headings
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          // TODO recipient headings
-          SenderHeading(message: message),
-          MessageContent(message: message),
-        ]));
-  }
-}
-
-class SenderHeading extends StatelessWidget {
-  const SenderHeading({super.key, required this.message});
-
-  final Message message;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        height: 48,
-        child: Row(children: [
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // TODO avatar
           Expanded(
-              child: Text(message.sender_full_name,
-                  style: const TextStyle(fontWeight: FontWeight.bold))),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                Text(message.sender_full_name, // TODO get from user data
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                MessageContent(message: message),
+              ])),
           Text("${message.timestamp}"), // TODO better format time
         ]));
   }
