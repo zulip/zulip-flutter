@@ -148,7 +148,7 @@ class MessageImage extends StatelessWidget {
     if (src == null) return Text.rich(_errorUnimplemented(divElement));
 
     final store = PerAccountStoreWidget.of(context);
-    final adjustedSrc = _adjustSrc(src, store.account);
+    final adjustedSrc = rewriteImageUrl(src, store.account);
 
     return Align(
         alignment: Alignment.centerLeft,
@@ -177,39 +177,6 @@ class MessageImage extends StatelessWidget {
     if (grandchild.classes.isNotEmpty) return null;
     return grandchild;
   }
-
-  /// Resolve URL if relative; add the user's API key if appropriate.
-  ///
-  /// The API key is added if the URL is on the realm, and is an endpoint
-  /// known to require authentication (and to accept it in this form.)
-  static String _adjustSrc(String src, Account account) {
-    final realmUrl = Uri.parse(account.realmUrl); // TODO clean this up
-    final resolved = realmUrl.resolve(src); // TODO handle if fails to parse
-
-    Uri adjustedSrc = resolved;
-    if (_sameOrigin(resolved, realmUrl)) {
-      if (_kInlineApiRoutes.any((regexp) => regexp.hasMatch(resolved.path))) {
-        final delimiter = resolved.query.isNotEmpty ? '&' : '';
-        adjustedSrc = resolved
-            .resolve('?${resolved.query}${delimiter}api_key=${account.apiKey}');
-      }
-    }
-
-    return adjustedSrc.toString();
-  }
-
-  /// List of routes which accept the API key appended as a GET parameter.
-  static final List<RegExp> _kInlineApiRoutes = [
-    RegExp(r'^/user_uploads/'),
-    RegExp(r'^/thumbnail$'),
-    RegExp(r'^/avatar/')
-  ];
-
-  static bool _sameOrigin(Uri x, Uri y) => // TODO factor better; fact-check
-      x.scheme == y.scheme &&
-      x.userInfo == y.userInfo &&
-      x.host == y.host &&
-      x.port == y.port;
 }
 
 class CodeBlock extends StatelessWidget {
@@ -503,6 +470,39 @@ class MessageRealmEmoji extends StatelessWidget {
 //
 // Small helpers.
 //
+
+/// Resolve URL if relative; add the user's API key if appropriate.
+///
+/// The API key is added if the URL is on the realm, and is an endpoint
+/// known to require authentication (and to accept it in this form.)
+String rewriteImageUrl(String src, Account account) {
+  final realmUrl = Uri.parse(account.realmUrl); // TODO clean this up
+  final resolved = realmUrl.resolve(src); // TODO handle if fails to parse
+
+  Uri adjustedSrc = resolved;
+  if (_sameOrigin(resolved, realmUrl)) {
+    if (_kInlineApiRoutes.any((regexp) => regexp.hasMatch(resolved.path))) {
+      final delimiter = resolved.query.isNotEmpty ? '&' : '';
+      adjustedSrc = resolved
+          .resolve('?${resolved.query}${delimiter}api_key=${account.apiKey}');
+    }
+  }
+
+  return adjustedSrc.toString();
+}
+
+/// List of routes which accept the API key appended as a GET parameter.
+final List<RegExp> _kInlineApiRoutes = [
+  RegExp(r'^/user_uploads/'),
+  RegExp(r'^/thumbnail$'),
+  RegExp(r'^/avatar/')
+];
+
+bool _sameOrigin(Uri x, Uri y) => // TODO factor better; fact-check
+    x.scheme == y.scheme &&
+    x.userInfo == y.userInfo &&
+    x.host == y.host &&
+    x.port == y.port;
 
 Widget _errorText(String text) => Text(text, style: errorStyle);
 
