@@ -77,16 +77,19 @@ class MessageItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
 
     Color recipientColor;
+    Color borderColor;
     Widget recipientHeader;
     if (message is StreamMessage) {
       final msg = (message as StreamMessage);
       final subscription = store.subscriptions[msg.stream_id];
       recipientColor = colorForStream(subscription);
+      borderColor = _kStreamMessageBorderColor;
       recipientHeader =
           StreamTopicRecipientHeader(message: msg, streamColor: recipientColor);
     } else if (message is PmMessage) {
       final msg = (message as PmMessage);
       recipientColor = _kPmRecipientHeaderColor;
+      borderColor = _kPmRecipientHeaderColor;
       recipientHeader = PmRecipientHeader(message: msg);
     } else {
       throw Exception("impossible message type: ${message.runtimeType}");
@@ -94,11 +97,18 @@ class MessageItem extends StatelessWidget {
 
     // TODO fine-tune width of recipient border
     final recipientBorder = BorderSide(color: recipientColor, width: 4);
+    final restBorder = BorderSide(color: borderColor, width: 1);
+    var borderDecoration = ShapeDecoration(
+        // Web actually uses, for stream messages, a slightly lighter border at
+        // right than at bottom and in the recipient header: black 10% alpha,
+        // vs. 88% lightness.  Assume that's an accident.
+        shape: Border(
+            left: recipientBorder, bottom: restBorder, right: restBorder));
 
     return Column(children: [
       recipientHeader,
       DecoratedBox(
-          decoration: ShapeDecoration(shape: Border(left: recipientBorder)),
+          decoration: borderDecoration,
           child: MessageWithSender(message: message)),
     ]);
 
@@ -144,13 +154,13 @@ class StreamTopicRecipientHeader extends StatelessWidget {
             ? Colors.white
             : Colors.black;
     return ColoredBox(
-        color: const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor(),
+        color: _kStreamMessageBorderColor,
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           RecipientHeaderChevronContainer(
               color: streamColor,
               // TODO globe/lock icons for web-public and private streams
-              child: Text(streamName,
-                  style: TextStyle(color: contrastingColor))),
+              child:
+                  Text(streamName, style: TextStyle(color: contrastingColor))),
           Padding(
               // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
               padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
@@ -161,6 +171,9 @@ class StreamTopicRecipientHeader extends StatelessWidget {
         ]));
   }
 }
+
+final _kStreamMessageBorderColor =
+    const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor();
 
 class PmRecipientHeader extends StatelessWidget {
   const PmRecipientHeader({super.key, required this.message});
