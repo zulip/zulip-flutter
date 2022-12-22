@@ -41,6 +41,7 @@ class BlockContentList extends StatelessWidget {
     final nodes = this.nodes.where(_acceptNode);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       ...nodes.map((node) => BlockContentNode(node: node)),
+      // Text(nodes.map((e) => e is dom.Element ? e.outerHtml : "").join())
     ]);
   }
 
@@ -78,7 +79,18 @@ class BlockContentNode extends StatelessWidget {
     final localName = element.localName;
     final classes = element.classes;
 
+    if (localName == 'br' && classes.isEmpty) {
+      // In block context, the widget we return is going into a Column.
+      // So to get the effect of a newline, just use an empty Text.
+      return const Text('');
+    }
+
     if (localName == 'p' && classes.isEmpty) {
+      // Empty paragraph winds up with zero height.
+      // The paragraph has vertical CSS margins, but those have no effect.
+      if (element.nodes.isEmpty) return const SizedBox();
+
+      // For a non-empty paragraph, though, the margins are real.
       return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child:
