@@ -370,6 +370,14 @@ InlineSpan inlineCode(dom.Element element) {
       ),
       children: _buildInlineList(element.nodes));
 
+  // Another fun solution -- we can in fact have a border!  Like so:
+  //   TextStyle(
+  //     background: Paint()..color = Color(0xff000000)
+  //                        ..style = PaintingStyle.stroke,
+  //     // … fontSize, fontFamily, …
+  // The trouble is that this border hugs the text tightly -- no padding.
+  // That doesn't come out looking good.
+
   // Here's a more different solution: add delimiters.
   // return TextSpan(children: [
   //   // TO.DO(selection): exclude these brackets from text selection
