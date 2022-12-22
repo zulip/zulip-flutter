@@ -360,12 +360,23 @@ InlineSpan inlineCode(dom.Element element) {
 
   // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
-  return TextSpan(children: [
-    // TODO(selection): exclude these brackets from text selection
-    const TextSpan(text: _kInlineCodeLeftBracket),
-    TextSpan(style: _kCodeStyle, children: _buildInlineList(element.nodes)),
-    const TextSpan(text: _kInlineCodeRightBracket),
-  ]);
+  // Use a light gray background, instead of a border.
+  return TextSpan(
+      style: const TextStyle(
+        backgroundColor: Color(0xffeeeeee),
+        fontSize: 0.825 * kBaseFontSize,
+        fontFamily: "Source Code Pro", // TODO supply font
+        fontFamilyFallback: ["monospace"],
+      ),
+      children: _buildInlineList(element.nodes));
+
+  // Here's a more different solution: add delimiters.
+  // return TextSpan(children: [
+  //   // TO.DO(selection): exclude these brackets from text selection
+  //   const TextSpan(text: _kInlineCodeLeftBracket),
+  //   TextSpan(style: _kCodeStyle, children: _buildInlineList(element.nodes)),
+  //   const TextSpan(text: _kInlineCodeRightBracket),
+  // ]);
 }
 
 const _kCodeStyle = TextStyle(
@@ -375,8 +386,8 @@ const _kCodeStyle = TextStyle(
   fontFamilyFallback: ["monospace"],
 );
 
-const _kInlineCodeLeftBracket = '⸤';
-const _kInlineCodeRightBracket = '⸣';
+// const _kInlineCodeLeftBracket = '⸤';
+// const _kInlineCodeRightBracket = '⸣';
 // Some alternatives:
 // const _kInlineCodeLeftBracket = '⸢'; // end-bracket looks a lot like comma
 // const _kInlineCodeRightBracket = '⸥';
