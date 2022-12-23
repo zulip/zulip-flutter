@@ -234,11 +234,9 @@ class CodeBlock extends StatelessWidget {
             border: Border.all(
                 width: 1,
                 color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
-        child: Scrollbar(
-            child: SingleChildScrollView(
-                primary: true,
-                scrollDirection: Axis.horizontal,
-                child: Text(text, style: _kCodeStyle))));
+        child: SingleChildScrollViewWithScrollbar(
+            scrollDirection: Axis.horizontal,
+            child: Text(text, style: _kCodeStyle)));
   }
 
   dom.Element? _mainElement() {
@@ -266,6 +264,32 @@ class CodeBlock extends StatelessWidget {
   }
 
   Widget _error() => Text.rich(_errorUnimplemented(divElement));
+}
+
+class SingleChildScrollViewWithScrollbar extends StatefulWidget {
+  const SingleChildScrollViewWithScrollbar(
+      {super.key, required this.scrollDirection, required this.child});
+
+  final Axis scrollDirection;
+  final Widget child;
+
+  @override
+  State<SingleChildScrollViewWithScrollbar> createState() =>
+      _SingleChildScrollViewWithScrollbarState();
+}
+
+class _SingleChildScrollViewWithScrollbarState
+    extends State<SingleChildScrollViewWithScrollbar> {
+  final ScrollController controller = ScrollController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scrollbar(
+      controller: controller,
+        child: SingleChildScrollView(
+          controller: controller,
+            scrollDirection: widget.scrollDirection, child: widget.child));
+  }
 }
 
 //
