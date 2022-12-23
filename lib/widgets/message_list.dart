@@ -5,6 +5,7 @@ import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import 'app.dart';
 import 'content.dart';
+import 'sticky_header.dart';
 
 class MessageList extends StatefulWidget {
   const MessageList({Key? key}) : super(key: key);
@@ -51,7 +52,7 @@ class _MessageListState extends State<MessageList> {
   }
 
   Widget _buildListView(context) {
-    return ListView.separated(
+    return StickyHeaderListView.separated(
         itemCount: messages.length,
         separatorBuilder: (context, i) => const SizedBox(height: 11),
         // Setting reverse: true means the scroll starts at the bottom.
@@ -106,12 +107,11 @@ class MessageItem extends StatelessWidget {
         shape: Border(
             left: recipientBorder, bottom: restBorder, right: restBorder));
 
-    return Column(children: [
-      recipientHeader,
-      DecoratedBox(
-          decoration: borderDecoration,
-          child: MessageWithSender(message: message)),
-    ]);
+    return StickyHeader(
+        header: recipientHeader,
+        content: DecoratedBox(
+            decoration: borderDecoration,
+            child: MessageWithSender(message: message)));
 
     // Web handles the left-side recipient marker in a funky way:
     //   box-shadow: inset 3px 0px 0px -1px #c2726a, -1px 0px 0px 0px #c2726a;
