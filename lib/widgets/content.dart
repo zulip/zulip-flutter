@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
-import 'api/model/model.dart';
-import 'main.dart';
-import 'store.dart';
+import '../api/model/model.dart';
+import 'app.dart';
+import '../store.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
 const kBaseFontSize = 14;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'api/model/model.dart';
-import 'api/route/messages.dart';
+import '../api/model/model.dart';
+import '../api/route/messages.dart';
+import 'app.dart';
 import 'content.dart';
-import 'main.dart';
 
 class MessageList extends StatefulWidget {
   const MessageList({Key? key}) : super(key: key);
