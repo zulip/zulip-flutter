@@ -27,8 +27,6 @@ class StickyHeaderListView extends BoxScrollView {
     super.restorationId,
     super.clipBehavior,
   })  : assert(itemCount >= 0),
-        // TODO axis
-        assert(scrollDirection == Axis.vertical),
         childrenDelegate = SliverChildBuilderDelegate(
           (BuildContext context, int index) {
             final int itemIndex = index ~/ 2;
@@ -89,7 +87,6 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
     super.performLayout();
 
     assert(constraints.growthDirection == GrowthDirection.forward); // TODO dir
-    assert(constraints.axis == Axis.vertical); // TODO axis
 
     // debugPrint("our constraints: $constraints");
     // debugPrint("our geometry: $geometry");
@@ -108,14 +105,15 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
       if (innerChild is! RenderStickyHeader) {
         continue;
       }
+      assert(axisDirectionToAxis(innerChild.direction) == constraints.axis);
 
       double childScrollOffset;
       if (innerChild.direction == constraints.axisDirection) {
         childScrollOffset =
             math.max(0.0, scrollOffset - parentData.layoutOffset!);
       } else {
-        // TODO axis
-        final childEndOffset = parentData.layoutOffset! + child.size.height;
+        final childEndOffset =
+            parentData.layoutOffset! + child.size.onAxis(constraints.axis);
         // TODO should this be our layoutExtent or paintExtent, or what?
         childScrollOffset = math.max(
             0.0, childEndOffset - (scrollOffset + geometry!.layoutExtent));
@@ -129,8 +127,13 @@ enum StickyHeaderSlot { header, content }
 
 class StickyHeader extends RenderObjectWidget
     with SlottedMultiChildRenderObjectWidgetMixin<StickyHeaderSlot> {
-  StickyHeader({super.key, this.header, this.content});
+  StickyHeader(
+      {super.key,
+      this.direction = AxisDirection.down,
+      this.header,
+      this.content});
 
+  final AxisDirection direction;
   final Widget? header;
   final Widget? content;
 
@@ -150,19 +153,27 @@ class StickyHeader extends RenderObjectWidget
   @override
   SlottedContainerRenderObjectMixin<StickyHeaderSlot> createRenderObject(
       BuildContext context) {
-    return RenderStickyHeader();
+    return RenderStickyHeader(direction: direction);
   }
 }
 
 class RenderStickyHeader extends RenderBox
     with SlottedContainerRenderObjectMixin<StickyHeaderSlot> {
-  RenderStickyHeader();
-
-  AxisDirection get direction => AxisDirection.down; // TODO dir, TODO axis
+  RenderStickyHeader({required AxisDirection direction})
+      : _direction = direction;
 
   RenderBox? get _header => childForSlot(StickyHeaderSlot.header);
 
   RenderBox? get _content => childForSlot(StickyHeaderSlot.content);
+
+  AxisDirection get direction => _direction;
+  AxisDirection _direction;
+
+  set direction(AxisDirection value) {
+    if (value == _direction) return;
+    _direction = value;
+    markNeedsLayout();
+  }
 
   @override
   Iterable<RenderBox> get children =>
@@ -180,39 +191,51 @@ class RenderStickyHeader extends RenderBox
     assert(0.0 <= scrollPosition);
     final position = math.min(scrollPosition, _slackSize!);
 
-    if (position == _parentData(header).offset.dy) {
-      // TODO axis
+    Offset offset;
+    if (!axisDirectionIsReversed(direction)) {
+      offset = offsetInDirection(direction, position);
+    } else {
+      // TODO simplify this one
+      offset = offsetInDirection(direction, position - _slackSize!);
+    }
+    if (offset == _parentData(header).offset) {
       return;
     }
-    _parentData(header).offset = Offset(0.0, position); // TODO axis
+    _parentData(header).offset = offset;
     markNeedsPaint();
   }
 
   @override
   void performLayout() {
-    final constraints = this.constraints;
-    assert(!constraints.hasBoundedHeight); // TODO axis
-    assert(constraints.hasTightWidth); // TODO axis
+    Axis axis = axisDirectionToAxis(direction);
 
-    double totalSize = 0;
+    final constraints = this.constraints;
+    assert(!constraints.hasBoundedAxis(axis));
+    assert(constraints.hasTightAxis(flipAxis(axis)));
 
     final header = _header;
-    if (header != null) {
-      header.layout(constraints, parentUsesSize: true);
-      _parentData(header).offset = Offset.zero;
-      totalSize += header.size.height; // TODO axis
-    }
-    final headerSize = totalSize;
+    if (header != null) header.layout(constraints, parentUsesSize: true);
+    final headerSize = header?.size.onAxis(axis) ?? 0;
 
     final content = _content;
-    if (content != null) {
-      content.layout(constraints, parentUsesSize: true);
-      _parentData(content).offset = Offset(0, totalSize); // TODO axis
-      totalSize += content.size.height; // TODO axis
+    if (content != null) content.layout(constraints, parentUsesSize: true);
+    final contentSize = content?.size.onAxis(axis) ?? 0;
+
+    if (!axisDirectionIsReversed(direction)) {
+      if (header != null) _parentData(header).offset = Offset.zero;
+      if (content != null) {
+        _parentData(content).offset = offsetInDirection(direction, headerSize);
+      }
+    } else {
+      if (header != null) {
+        _parentData(header).offset = offsetInDirection(direction, -contentSize);
+      }
+      if (content != null) _parentData(content).offset = Offset.zero;
     }
 
-    size = constraints.constrain(Size(0, totalSize)); // TODO axis
-    _slackSize = totalSize - headerSize;
+    final totalSize = headerSize + contentSize;
+    size = constraints.constrain(sizeOn(axis, main: totalSize));
+    _slackSize = contentSize;
   }
 
   @override
@@ -246,4 +269,57 @@ class RenderStickyHeader extends RenderBox
 
   BoxParentData _parentData(RenderBox child) =>
       child.parentData! as BoxParentData;
+}
+
+Size sizeOn(Axis axis, {double main = 0, double cross = 0}) {
+  switch (axis) {
+    case Axis.horizontal:
+      return Size(main, cross);
+    case Axis.vertical:
+      return Size(cross, main);
+  }
+}
+
+Offset offsetInDirection(AxisDirection direction, double extent) {
+  switch (direction) {
+    case AxisDirection.right:
+      return Offset(extent, 0);
+    case AxisDirection.left:
+      return Offset(-extent, 0);
+    case AxisDirection.down:
+      return Offset(0, extent);
+    case AxisDirection.up:
+      return Offset(0, -extent);
+  }
+}
+
+extension SizeOnAxis on Size {
+  double onAxis(Axis axis) {
+    switch (axis) {
+      case Axis.horizontal:
+        return width;
+      case Axis.vertical:
+        return height;
+    }
+  }
+}
+
+extension BoxConstraintsOnAxis on BoxConstraints {
+  bool hasBoundedAxis(Axis axis) {
+    switch (axis) {
+      case Axis.horizontal:
+        return hasBoundedWidth;
+      case Axis.vertical:
+        return hasBoundedHeight;
+    }
+  }
+
+  bool hasTightAxis(Axis axis) {
+    switch (axis) {
+      case Axis.horizontal:
+        return hasTightWidth;
+      case Axis.vertical:
+        return hasTightHeight;
+    }
+  }
 }
