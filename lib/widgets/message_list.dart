@@ -70,9 +70,8 @@ class _MessageListState extends State<MessageList> {
   }
 
   Widget _buildListView(context) {
-    return StickyHeaderListView.separated(
+    return StickyHeaderListView.builder(
         itemCount: messages.length,
-        separatorBuilder: (context, i) => const SizedBox(height: 11),
         // Setting reverse: true means the scroll starts at the bottom.
         // Flipping the indexes (in itemBuilder) means the start/bottom
         // has the latest messages.
@@ -80,16 +79,23 @@ class _MessageListState extends State<MessageList> {
         // TODO handle scroll starting at first unread, or link anchor
         reverse: true,
         itemBuilder: (context, i) => MessageItem(
+            trailing: i == 0 ? null : const SizedBox(height: 11),
             message: messages[messages.length - 1 - i],
             content: contents[messages.length - 1 - i]));
   }
 }
 
 class MessageItem extends StatelessWidget {
-  const MessageItem({super.key, required this.message, required this.content});
+  const MessageItem({
+    super.key,
+    required this.message,
+    required this.content,
+    this.trailing,
+  });
 
   final Message message;
   final ZulipContent content;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -129,9 +135,12 @@ class MessageItem extends StatelessWidget {
 
     return StickyHeader(
         header: recipientHeader,
-        content: DecoratedBox(
-            decoration: borderDecoration,
-            child: MessageWithSender(message: message, content: content)));
+        content: Column(children: [
+          DecoratedBox(
+              decoration: borderDecoration,
+              child: MessageWithSender(message: message, content: content)),
+          if (trailing != null) trailing!,
+        ]));
 
     // Web handles the left-side recipient marker in a funky way:
     //   box-shadow: inset 3px 0px 0px -1px #c2726a, -1px 0px 0px 0px #c2726a;
