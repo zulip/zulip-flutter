@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html/dom.dart' as dom;
 
 import '../model/content.dart';
 import '../model/store.dart';
@@ -90,9 +91,11 @@ class BlockContentNodeWidget extends StatelessWidget {
       return CodeBlock(node: node);
     } else if (node is ImageNode) {
       return MessageImage(node: node);
-    } else {
-      assert(node is UnimplementedBlockContentNode);
+    } else if (node is UnimplementedBlockContentNode) {
       return Text.rich(_errorUnimplemented(node));
+    } else {
+      // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
+      throw Exception("impossible BlockContentNode: ${node.debugHtmlText}");
     }
   }
 }
@@ -217,9 +220,11 @@ InlineSpan _buildInlineNode(InlineContentNode node) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: MessageRealmEmoji(node: node));
-  } else {
-    assert(node is UnimplementedInlineContentNode);
+  } else if (node is UnimplementedInlineContentNode) {
     return _errorUnimplemented(node);
+  } else {
+    // TODO(dart-3): Use a sealed class / pattern matching to eliminate this case.
+    throw Exception("impossible InlineContentNode: ${node.debugHtmlText}");
   }
 }
 
@@ -411,13 +416,30 @@ bool _sameOrigin(Uri x, Uri y) => // TODO factor better; fact-check
     x.host == y.host &&
     x.port == y.port;
 
-InlineSpan _errorUnimplemented(ContentNode node) => TextSpan(children: [
+InlineSpan _errorUnimplemented(UnimplementedNode node) {
+  // For now this shows error-styled HTML code even in release mode,
+  // because release mode isn't yet about general users but developer demos,
+  // and we want to keep the demos honest.
+  // TODO think through UX for general release
+  final htmlNode = node.htmlNode;
+  if (htmlNode is dom.Element) {
+    return TextSpan(children: [
       const TextSpan(text: "(unimplemented:", style: errorStyle),
-      // TODO better handle non-Element nodes here
-      // TODO think through UX for release mode
-      TextSpan(text: node.debugHtmlText, style: errorCodeStyle),
+      TextSpan(text: htmlNode.outerHtml, style: errorCodeStyle),
       const TextSpan(text: ")", style: errorStyle),
     ]);
+  } else if (htmlNode is dom.Text) {
+    return TextSpan(children: [
+      const TextSpan(text: "(unimplemented: text «", style: errorStyle),
+      TextSpan(text: htmlNode.text, style: errorCodeStyle),
+      const TextSpan(text: "»)", style: errorStyle),
+    ]);
+  } else {
+    return TextSpan(
+        text: "(unimplemented: DOM node type ${htmlNode.nodeType})",
+        style: errorStyle);
+  }
+}
 
 const errorStyle = TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
 

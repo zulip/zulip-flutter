@@ -8,13 +8,20 @@ class ContentNode {
 
   final dom.Node? debugHtmlNode;
 
-  String? get debugHtmlText {
+  String get debugHtmlText {
     final node = debugHtmlNode;
-    if (node == null) return null;
+    if (node == null) return "(elided)";
     if (node is dom.Element) return node.outerHtml;
     if (node is dom.Text) return "(text «${node.text}»)";
     return "(node of type ${node.nodeType})";
   }
+}
+
+mixin UnimplementedNode on ContentNode {
+  dom.Node get htmlNode;
+
+  @override
+  dom.Node get debugHtmlNode => htmlNode;
 }
 
 class ZulipContent extends ContentNode {
@@ -27,8 +34,12 @@ abstract class BlockContentNode extends ContentNode {
   const BlockContentNode({super.debugHtmlNode});
 }
 
-class UnimplementedBlockContentNode extends BlockContentNode {
-  const UnimplementedBlockContentNode({super.debugHtmlNode});
+class UnimplementedBlockContentNode extends BlockContentNode
+    with UnimplementedNode {
+  const UnimplementedBlockContentNode({required this.htmlNode});
+
+  @override
+  final dom.Node htmlNode;
 }
 
 // A `br` element.
@@ -79,8 +90,12 @@ abstract class InlineContentNode extends ContentNode {
   const InlineContentNode({super.debugHtmlNode});
 }
 
-class UnimplementedInlineContentNode extends InlineContentNode {
-  const UnimplementedInlineContentNode({super.debugHtmlNode});
+class UnimplementedInlineContentNode extends InlineContentNode
+    with UnimplementedNode {
+  const UnimplementedInlineContentNode({required this.htmlNode});
+
+  @override
+  final dom.Node htmlNode;
 }
 
 class TextNode extends InlineContentNode {
@@ -154,7 +169,7 @@ final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 InlineContentNode parseInlineContent(dom.Node node) {
   final debugHtmlNode = kDebugMode ? node : null;
   InlineContentNode unimplemented() =>
-      UnimplementedInlineContentNode(debugHtmlNode: debugHtmlNode);
+      UnimplementedInlineContentNode(htmlNode: node);
 
   if (node is dom.Text) {
     return TextNode(node.text, debugHtmlNode: debugHtmlNode);
@@ -245,7 +260,7 @@ BlockContentNode parseCodeBlock(dom.Element divElement) {
 
   final debugHtmlNode = kDebugMode ? divElement : null;
   if (mainElement == null) {
-    return UnimplementedBlockContentNode(debugHtmlNode: debugHtmlNode);
+    return UnimplementedBlockContentNode(htmlNode: divElement);
   }
 
   final buffer = StringBuffer();
@@ -263,7 +278,7 @@ BlockContentNode parseCodeBlock(dom.Element divElement) {
       // TODO parse the code-highlighting spans, to style them
       buffer.write(child.text);
     } else {
-      return UnimplementedBlockContentNode(debugHtmlNode: debugHtmlNode);
+      return UnimplementedBlockContentNode(htmlNode: divElement);
     }
   }
   final text = buffer.toString();
@@ -293,12 +308,12 @@ BlockContentNode parseImageNode(dom.Element divElement) {
 
   final debugHtmlNode = kDebugMode ? divElement : null;
   if (imgElement == null) {
-    return UnimplementedBlockContentNode(debugHtmlNode: debugHtmlNode);
+    return UnimplementedBlockContentNode(htmlNode: divElement);
   }
 
   final src = imgElement.attributes['src'];
   if (src == null) {
-    return UnimplementedBlockContentNode(debugHtmlNode: debugHtmlNode);
+    return UnimplementedBlockContentNode(htmlNode: divElement);
   }
 
   return ImageNode(srcUrl: src, debugHtmlNode: debugHtmlNode);
@@ -307,7 +322,7 @@ BlockContentNode parseImageNode(dom.Element divElement) {
 BlockContentNode parseBlockContent(dom.Node node) {
   final debugHtmlNode = kDebugMode ? node : null;
   if (node is! dom.Element) {
-    return UnimplementedBlockContentNode(debugHtmlNode: debugHtmlNode);
+    return UnimplementedBlockContentNode(htmlNode: node);
   }
   final element = node;
   final localName = element.localName;
@@ -353,7 +368,7 @@ BlockContentNode parseBlockContent(dom.Node node) {
   }
 
   // TODO more types of node
-  return UnimplementedBlockContentNode(debugHtmlNode: debugHtmlNode);
+  return UnimplementedBlockContentNode(htmlNode: node);
 }
 
 List<BlockContentNode> parseBlockContentList(dom.NodeList nodes) {
