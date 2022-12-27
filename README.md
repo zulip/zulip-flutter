@@ -19,6 +19,12 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
+### Dependencies
+
+While in the prototype phase, we use the latest beta version of Flutter.
+Use `flutter channel beta` and `flutter upgrade` to get the right version.
+
+
 ### Server credentials
 
 In this early prototype, we don't yet have a UI for logging into
@@ -59,6 +65,18 @@ to keep the generated files up to date:
 ```
 $ flutter pub run build_runner watch --delete-conflicting-outputs
 ```
+
+
+### Upgrading Flutter
+
+When there's a new Flutter beta, we'll take the upgrade promptly:
+* Use `flutter upgrade` to upgrade your local Flutter and Dart.
+* Update the lower bounds at `environment` in `pubspec.yaml`
+  to the new versions, as seen in `flutter --version`.
+* Run `flutter pub get`, which will update `pubspec.lock`.
+* Make a quick check that things work: `flutter analyze`,
+  and do a quick smoke-test of the app.
+* Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
 
 
 ## TODO
