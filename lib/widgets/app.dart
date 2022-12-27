@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'message_list.dart';
-import '../store.dart';
+import '../model/store.dart';
 
 class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key});

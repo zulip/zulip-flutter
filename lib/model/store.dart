@@ -2,11 +2,11 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'api/core.dart';
-import 'api/model/initial_snapshot.dart';
-import 'api/model/model.dart';
-import 'api/route/events.dart';
-import 'credential_fixture.dart' as credentials; // prototyping hack; not in Git
+import '../api/core.dart';
+import '../api/model/initial_snapshot.dart';
+import '../api/model/model.dart';
+import '../api/route/events.dart';
+import '../credential_fixture.dart' as credentials; // prototyping hack; not in Git
 
 class PerAccountStore extends ChangeNotifier {
   // Load the user's data from storage.  (Once we have such a thing.)
