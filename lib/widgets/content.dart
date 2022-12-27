@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
+import '../model/content.dart';
 import '../model/store.dart';
 import 'app.dart';
 
@@ -20,9 +19,8 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fragment =
-        HtmlParser(message.content, parseMeta: false).parseFragment();
-    return BlockContentList(nodes: fragment.nodes);
+    final content = parseContent(message.content); // TODO do before build time
+    return BlockContentList(nodes: content.nodes);
   }
 }
 
@@ -34,83 +32,51 @@ class MessageContent extends StatelessWidget {
 class BlockContentList extends StatelessWidget {
   const BlockContentList({super.key, required this.nodes});
 
-  final dom.NodeList nodes;
+  final List<BlockContentNode> nodes;
 
   @override
   Widget build(BuildContext context) {
-    final nodes = this.nodes.where(_acceptNode);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ...nodes.map((node) => BlockContentNode(node: node)),
-      // Text(nodes.map((e) => e is dom.Element ? e.outerHtml : "").join())
+      ...nodes.map((node) => BlockContentNodeWidget(node: node)),
+      // Text(nodes.map((n) => n.debugHtmlText ?? "").join())
     ]);
-  }
-
-  static bool _acceptNode(dom.Node node) {
-    if (node is dom.Element) return true;
-    // We get a bunch of newline Text nodes between paragraphs.
-    // A browser seems to ignore these; let's do the same.
-    if (node is dom.Text && (node.text == "\n")) return false;
-    // Does any other kind of node occur?  Well, we'd see it below.
-    return true;
   }
 }
 
 /// A single DOM node to display in block layout.
-class BlockContentNode extends StatelessWidget {
-  const BlockContentNode({super.key, required this.node});
+class BlockContentNodeWidget extends StatelessWidget {
+  const BlockContentNodeWidget({super.key, required this.node});
 
-  final dom.Node node;
+  final BlockContentNode node;
 
   @override
   Widget build(BuildContext context) {
-    switch (node.nodeType) {
-      case dom.Node.ELEMENT_NODE:
-        return _buildElement(node as dom.Element);
-      case dom.Node.TEXT_NODE:
-        final text = (node as dom.Text).text;
-        return _errorText("text: «$text»"); // TODO can this happen?
-      default:
-        return _errorText(
-            "(node of type ${node.nodeType})"); // TODO can this happen?
-    }
-  }
-
-  Widget _buildElement(dom.Element element) {
-    final localName = element.localName;
-    final classes = element.classes;
-
-    if (localName == 'br' && classes.isEmpty) {
+    final node = this.node;
+    if (node is LineBreakNode) {
       // In block context, the widget we return is going into a Column.
       // So to get the effect of a newline, just use an empty Text.
       return const Text('');
-    }
-
-    if (localName == 'p' && classes.isEmpty) {
+    } else if (node is ParagraphNode) {
       // Empty paragraph winds up with zero height.
       // The paragraph has vertical CSS margins, but those have no effect.
-      if (element.nodes.isEmpty) return const SizedBox();
+      if (node.nodes.isEmpty) return const SizedBox();
 
       // For a non-empty paragraph, though, the margins are real.
       return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child:
-              Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
-    }
-
-    if (localName == 'h6' && classes.isEmpty) {
+          child: Text.rich(TextSpan(children: _buildInlineList(node.nodes))));
+    } else if (node is HeadingNode && node.level == HeadingLevel.h6) {
       // TODO h1, h2, h3, h4, h5 -- same except font size
       return Padding(
           padding: const EdgeInsets.only(top: 15, bottom: 5),
           child: Text.rich(TextSpan(
               style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
-              children: _buildInlineList(element.nodes))));
+              children: _buildInlineList(node.nodes))));
     }
-
     // TODO ul and ol
     // TODO p+ul and p+ol interactions
     // TODO different item indicators at different levels of nesting
-
-    if (localName == 'blockquote' && classes.isEmpty) {
+    else if (node is QuotationNode) {
       return Padding(
           padding: const EdgeInsets.only(left: 10),
           child: Container(
@@ -121,43 +87,28 @@ class BlockContentNode extends StatelessWidget {
                           width: 5,
                           color: const HSLColor.fromAHSL(1, 0, 0, 0.87)
                               .toColor()))),
-              child: BlockContentList(nodes: element.nodes)));
+              child: BlockContentList(nodes: node.nodes)));
+    } else if (node is CodeBlockNode) {
+      return CodeBlock(node: node);
+    } else if (node is ImageNode) {
+      return MessageImage(node: node);
+    } else {
+      assert(node is UnimplementedBlockContentNode);
+      return Text.rich(_errorUnimplemented(node));
     }
-
-    if (localName == 'div' &&
-        classes.length == 1 &&
-        classes.contains('codehilite')) {
-      return CodeBlock(divElement: element);
-    }
-
-    if (localName == 'div' &&
-        classes.length == 1 &&
-        classes.contains('message_inline_image')) {
-      return MessageImage(divElement: element);
-    }
-
-    // TODO handle more types of elements
-    return Text.rich(_errorUnimplemented(element));
   }
 }
 
 class MessageImage extends StatelessWidget {
-  MessageImage({super.key, required this.divElement})
-      : assert(divElement.localName == 'div' &&
-            divElement.classes.length == 1 &&
-            divElement.classes.contains('message_inline_image'));
+  const MessageImage({super.key, required this.node});
 
-  final dom.Element divElement;
+  final ImageNode node;
 
   @override
   Widget build(BuildContext context) {
     // TODO multiple images in a row
     // TODO image hover animation
-    final imgElement = _imgElement();
-    if (imgElement == null) return Text.rich(_errorUnimplemented(divElement));
-
-    final src = imgElement.attributes['src'];
-    if (src == null) return Text.rich(_errorUnimplemented(divElement));
+    final src = node.srcUrl;
 
     final store = PerAccountStoreWidget.of(context);
     final adjustedSrc = rewriteImageUrl(src, store.account);
@@ -180,52 +131,16 @@ class MessageImage extends StatelessWidget {
                   filterQuality: FilterQuality.medium,
                 ))));
   }
-
-  dom.Element? _imgElement() {
-    if (divElement.nodes.length != 1) return null;
-    final child = divElement.nodes[0];
-    if (child is! dom.Element) return null;
-    if (child.localName != 'a') return null;
-    if (child.classes.isNotEmpty) return null;
-
-    if (child.nodes.length != 1) return null;
-    final grandchild = child.nodes[0];
-    if (grandchild is! dom.Element) return null;
-    if (grandchild.localName != 'img') return null;
-    if (grandchild.classes.isNotEmpty) return null;
-    return grandchild;
-  }
 }
 
 class CodeBlock extends StatelessWidget {
-  const CodeBlock({super.key, required this.divElement});
+  const CodeBlock({super.key, required this.node});
 
-  final dom.Element divElement;
+  final CodeBlockNode node;
 
   @override
   Widget build(BuildContext context) {
-    final element = _mainElement();
-    if (element == null) return _error();
-
-    final buffer = StringBuffer();
-    for (int i = 0; i < element.nodes.length; i++) {
-      final child = element.nodes[i];
-      if (child is dom.Text) {
-        String text = child.text;
-        if (i == element.nodes.length - 1) {
-          // The HTML tends to have a final newline here.  If included in the
-          // [Text], that would make a trailing blank line.  So cut it out.
-          text = text.replaceFirst(RegExp(r'\n$'), '');
-        }
-        buffer.write(text);
-      } else if (child is dom.Element && child.localName == 'span') {
-        // TODO style the code-highlighting spans
-        buffer.write(child.text);
-      } else {
-        return _error();
-      }
-    }
-    final text = buffer.toString();
+    final text = node.text;
 
     return Container(
         padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
@@ -238,32 +153,6 @@ class CodeBlock extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Text(text, style: _kCodeStyle)));
   }
-
-  dom.Element? _mainElement() {
-    assert(divElement.localName == 'div' &&
-        divElement.classes.length == 1 &&
-        divElement.classes.contains("codehilite"));
-
-    if (divElement.nodes.length != 1) return null;
-    final child = divElement.nodes[0];
-    if (child is! dom.Element) return null;
-    if (child.localName != 'pre') return null;
-
-    if (child.nodes.length > 2) return null;
-    if (child.nodes.length == 2) {
-      final first = child.nodes[0];
-      if (first is! dom.Element ||
-          first.localName != 'span' ||
-          first.nodes.isNotEmpty) return null;
-    }
-    final grandchild = child.nodes[child.nodes.length - 1];
-    if (grandchild is! dom.Element) return null;
-    if (grandchild.localName != 'code') return null;
-
-    return grandchild;
-  }
-
-  Widget _error() => Text.rich(_errorUnimplemented(divElement));
 }
 
 class SingleChildScrollViewWithScrollbar extends StatefulWidget {
@@ -296,83 +185,47 @@ class _SingleChildScrollViewWithScrollbarState
 // Inline layout.
 //
 
-List<InlineSpan> _buildInlineList(dom.NodeList nodes) =>
+List<InlineSpan> _buildInlineList(List<InlineContentNode> nodes) =>
     List.of(nodes.map(_buildInlineNode));
 
-InlineSpan _buildInlineNode(dom.Node node) {
-  if (node is dom.Text) {
+InlineSpan _buildInlineNode(InlineContentNode node) {
+  InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
+      TextSpan(children: _buildInlineList(nodes), style: style);
+
+  if (node is TextNode) {
     return TextSpan(text: node.text);
-  }
-  if (node is! dom.Element) {
-    return TextSpan(
-        text: "(unimplemented dom.Node type: ${node.nodeType})",
-        style: errorStyle);
-  }
-
-  final localName = node.localName;
-  final classes = node.classes;
-  InlineSpan styled(TextStyle style) =>
-      TextSpan(children: _buildInlineList(node.nodes), style: style);
-
-  if (localName == "br" && classes.isEmpty) {
+  } else if (node is LineBreakInlineNode) {
     // Each `<br/>` is followed by a newline, which browsers apparently ignore
     // and our parser doesn't.  So don't do anything here.
     return const TextSpan(text: "");
-  }
-
-  if (localName == "strong" && classes.isEmpty) {
-    return styled(const TextStyle(fontWeight: FontWeight.w600));
-  }
-  if (localName == "em" && classes.isEmpty) {
-    return styled(const TextStyle(fontStyle: FontStyle.italic));
-  }
-  if (localName == "code" && classes.isEmpty) {
+  } else if (node is StrongNode) {
+    return styled(node.nodes, const TextStyle(fontWeight: FontWeight.w600));
+  } else if (node is EmphasisNode) {
+    return styled(node.nodes, const TextStyle(fontStyle: FontStyle.italic));
+  } else if (node is InlineCodeNode) {
     return inlineCode(node);
-  }
-
-  if (localName == "a" &&
-      (classes.isEmpty ||
-          (classes.length == 1 &&
-              (classes.contains("stream-topic") ||
-                  classes.contains("stream"))))) {
+  } else if (node is LinkNode) {
     // TODO make link touchable
-    return styled(
+    return styled(node.nodes,
         TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
-  }
-
-  if (localName == "span" &&
-      (classes.contains("user-mention") ||
-          classes.contains("user-group-mention")) &&
-      (classes.length == 1 ||
-          (classes.length == 2 && classes.contains("silent")))) {
+  } else if (node is UserMentionNode) {
+    return WidgetSpan(
+        alignment: PlaceholderAlignment.middle, child: UserMention(node: node));
+  } else if (node is UnicodeEmojiNode) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
-        child: UserMention(element: node));
-  }
-
-  if (localName == "span" &&
-      classes.length == 2 &&
-      classes.contains("emoji") &&
-      classes.every(_emojiClassRegexp.hasMatch)) {
+        child: MessageUnicodeEmoji(node: node));
+  } else if (node is RealmEmojiNode) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
-        child: MessageUnicodeEmoji(element: node));
+        child: MessageRealmEmoji(node: node));
+  } else {
+    assert(node is UnimplementedInlineContentNode);
+    return _errorUnimplemented(node);
   }
-
-  if (localName == "img" && classes.contains("emoji") && classes.length == 1) {
-    return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: MessageRealmEmoji(element: node));
-  }
-
-  return _errorUnimplemented(node);
 }
 
-final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
-
-InlineSpan inlineCode(dom.Element element) {
-  assert(element.localName == 'code' && element.classes.isEmpty);
-
+InlineSpan inlineCode(InlineCodeNode node) {
   // TODO `code` elements: border, padding -- seems hard
   //
   // Hard because this is an inline span, which we want to be able to break
@@ -404,7 +257,7 @@ InlineSpan inlineCode(dom.Element element) {
         fontFamily: "Source Code Pro", // TODO supply font
         fontFamilyFallback: ["monospace"],
       ),
-      children: _buildInlineList(element.nodes));
+      children: _buildInlineList(node.nodes));
 
   // Another fun solution -- we can in fact have a border!  Like so:
   //   TextStyle(
@@ -447,16 +300,16 @@ const _kCodeStyle = TextStyle(
 // const _kInlineCodeRightBracket = '⟩';
 
 class UserMention extends StatelessWidget {
-  const UserMention({super.key, required this.element});
+  const UserMention({super.key, required this.node});
 
-  final dom.Element element;
+  final UserMentionNode node;
 
   @override
   Widget build(BuildContext context) {
     return Container(
         decoration: _kDecoration,
         padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-        child: Text.rich(TextSpan(children: _buildInlineList(element.nodes))));
+        child: Text.rich(TextSpan(children: _buildInlineList(node.nodes))));
   }
 
   static get _kDecoration => BoxDecoration(
@@ -490,17 +343,14 @@ class UserMention extends StatelessWidget {
 }
 
 class MessageUnicodeEmoji extends StatelessWidget {
-  MessageUnicodeEmoji({super.key, required this.element})
-      : assert(element.localName == 'span' &&
-            element.classes.length == 2 &&
-            element.classes.contains('emoji'));
+  const MessageUnicodeEmoji({super.key, required this.node});
 
-  final dom.Element element;
+  final UnicodeEmojiNode node;
 
   @override
   Widget build(BuildContext context) {
     // TODO get spritesheet and show actual emoji glyph
-    final text = element.text;
+    final text = node.text;
     return Container(
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
@@ -510,18 +360,14 @@ class MessageUnicodeEmoji extends StatelessWidget {
 }
 
 class MessageRealmEmoji extends StatelessWidget {
-  MessageRealmEmoji({super.key, required this.element})
-      : assert(element.localName == 'img' &&
-            element.classes.length == 1 &&
-            element.classes.contains('emoji'));
+  const MessageRealmEmoji({super.key, required this.node});
 
-  final dom.Element element;
+  final RealmEmojiNode node;
 
   @override
   Widget build(BuildContext context) {
     // TODO show actual emoji image
-    final alt = element.attributes['alt'];
-    if (alt == null) return Text.rich(_errorUnimplemented(element));
+    final alt = node.alt;
     return Container(
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
@@ -567,11 +413,11 @@ bool _sameOrigin(Uri x, Uri y) => // TODO factor better; fact-check
     x.host == y.host &&
     x.port == y.port;
 
-Widget _errorText(String text) => Text(text, style: errorStyle);
-
-InlineSpan _errorUnimplemented(dom.Element element) => TextSpan(children: [
+InlineSpan _errorUnimplemented(ContentNode node) => TextSpan(children: [
       const TextSpan(text: "(unimplemented:", style: errorStyle),
-      TextSpan(text: element.outerHtml, style: errorCodeStyle),
+      // TODO better handle non-Element nodes here
+      // TODO think through UX for release mode
+      TextSpan(text: node.debugHtmlText, style: errorCodeStyle),
       const TextSpan(text: ")", style: errorStyle),
     ]);
 
