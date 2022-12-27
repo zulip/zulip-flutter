@@ -109,9 +109,6 @@ widgets.
 
 - Polls
 
-- Separate processing HTML from building widgets (for testability,
-  and ultimately for performance by memoizing the former)
-
 - Survey lots of messages to find unhandled types of elements
 - Survey all public messages on chat.zulip.org
 - Survey all public messages on [listed open communities][]
@@ -122,7 +119,6 @@ widgets.
 ### Message list, other than content
 
 - Show more/better message metadata:
-  - Sticky recipient header at top of viewport
   - Starred
   - Edited/moved
 
