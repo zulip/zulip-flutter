@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../model/content.dart';
 import 'app.dart';
 import 'content.dart';
 import 'sticky_header.dart';
@@ -16,6 +17,7 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> {
   final List<Message> messages = []; // TODO move state up to store
+  final List<ZulipContent> contents = []; // parallel to [messages]
   bool fetched = false; // TODO this will get more complex
 
   @override
@@ -26,12 +28,28 @@ class _MessageListState extends State<MessageList> {
 
   Future<void> _fetch() async {
     final store = PerAccountStoreWidget.of(context);
+    // TODO schedule all this in another isolate
     final result =
         await getMessages(store.connection, num_before: 100, num_after: 10);
+    final contents = result.messages
+        .map((message) => parseContent(message.content))
+        .toList(growable: false);
     setState(() {
       messages.addAll(result.messages);
+      this.contents.addAll(contents);
       fetched = true;
     });
+  }
+
+  @override
+  void reassemble() {
+    // The [reassemble] method runs upon hot reload, in development.
+    // Here, we rerun parsing the messages.  This gives us the same
+    // highly productive workflow of Flutter hot reload when developing
+    // changes there as we have on changes to widgets.
+    contents.clear();
+    contents.addAll(messages.map((message) => parseContent(message.content)));
+    super.reassemble();
   }
 
   @override
@@ -61,15 +79,17 @@ class _MessageListState extends State<MessageList> {
         // This works great when we want to start from the latest.
         // TODO handle scroll starting at first unread, or link anchor
         reverse: true,
-        itemBuilder: (context, i) =>
-            MessageItem(message: messages[messages.length - 1 - i]));
+        itemBuilder: (context, i) => MessageItem(
+            message: messages[messages.length - 1 - i],
+            content: contents[messages.length - 1 - i]));
   }
 }
 
 class MessageItem extends StatelessWidget {
-  const MessageItem({super.key, required this.message});
+  const MessageItem({super.key, required this.message, required this.content});
 
   final Message message;
+  final ZulipContent content;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +131,7 @@ class MessageItem extends StatelessWidget {
         header: recipientHeader,
         content: DecoratedBox(
             decoration: borderDecoration,
-            child: MessageWithSender(message: message)));
+            child: MessageWithSender(message: message, content: content)));
 
     // Web handles the left-side recipient marker in a funky way:
     //   box-shadow: inset 3px 0px 0px -1px #c2726a, -1px 0px 0px 0px #c2726a;
@@ -220,9 +240,11 @@ class RecipientHeaderChevronContainer extends StatelessWidget {
 
 /// A Zulip message, showing the sender's name and avatar.
 class MessageWithSender extends StatelessWidget {
-  const MessageWithSender({super.key, required this.message});
+  const MessageWithSender(
+      {super.key, required this.message, required this.content});
 
   final Message message;
+  final ZulipContent content;
 
   @override
   Widget build(BuildContext context) {
@@ -256,7 +278,7 @@ class MessageWithSender extends StatelessWidget {
                 Text(message.sender_full_name, // TODO get from user data
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                MessageContent(message: message),
+                MessageContent(content: content),
               ])),
           Container(
               width: 80,
