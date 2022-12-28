@@ -56,14 +56,9 @@ class BlockContentNodeWidget extends StatelessWidget {
       // So to get the effect of a newline, just use an empty Text.
       return const Text('');
     } else if (node is ParagraphNode) {
-      // Empty paragraph winds up with zero height.
-      // The paragraph has vertical CSS margins, but those have no effect.
-      if (node.nodes.isEmpty) return const SizedBox();
-
-      // For a non-empty paragraph, though, the margins are real.
-      return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text.rich(TextSpan(children: _buildInlineList(node.nodes))));
+      return Paragraph(node: node);
+    } else if (node is ListNode) {
+      return ListNodeWidget(node: node);
     } else if (node is HeadingNode && node.level == HeadingLevel.h6) {
       // TODO h1, h2, h3, h4, h5 -- same except font size
       return Padding(
@@ -71,11 +66,7 @@ class BlockContentNodeWidget extends StatelessWidget {
           child: Text.rich(TextSpan(
               style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
               children: _buildInlineList(node.nodes))));
-    }
-    // TODO ul and ol
-    // TODO p+ul and p+ol interactions
-    // TODO different item indicators at different levels of nesting
-    else if (node is QuotationNode) {
+    } else if (node is QuotationNode) {
       return Padding(
           padding: const EdgeInsets.only(left: 10),
           child: Container(
@@ -97,6 +88,83 @@ class BlockContentNodeWidget extends StatelessWidget {
       // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
       throw Exception("impossible BlockContentNode: ${node.debugHtmlText}");
     }
+  }
+}
+
+class Paragraph extends StatelessWidget {
+  const Paragraph({super.key, required this.node});
+
+  final ParagraphNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    // Empty paragraph winds up with zero height.
+    // The paragraph has vertical CSS margins, but those have no effect.
+    if (node.nodes.isEmpty) return const SizedBox();
+
+    final text = Text.rich(TextSpan(children: _buildInlineList(node.nodes)));
+
+    // If the paragraph didn't actually have a `p` element in the HTML,
+    // then apply no margins.  (For example, these are seen in list items.)
+    if (node.wasImplicit) return text;
+
+    // For a non-empty paragraph, though — and where there was a `p` element
+    // for the Zulip CSS to apply to — the margins are real.
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: text);
+  }
+}
+
+class ListNodeWidget extends StatelessWidget {
+  const ListNodeWidget({super.key, required this.node});
+
+  final ListNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO p+ul and p+ol interactions
+    final items = List.generate(node.items.length, (index) {
+      final item = node.items[index];
+      String marker;
+      switch (node.style) {
+        // TODO different unordered marker styles at different levels of nesting
+        //   see:
+        //     https://html.spec.whatwg.org/multipage/rendering.html#lists
+        //     https://www.w3.org/TR/css-counter-styles-3/#simple-symbolic
+        // TODO proper alignment of unordered marker; should be "• ", one space,
+        //   but that comes out too close to item; not sure what's fixing that
+        //   in a browser
+        case ListStyle.unordered: marker = "•   "; break;
+        case ListStyle.ordered: marker = "${index+1}. "; break;
+      }
+      return ListItemWidget(marker: marker, nodes: item);
+    });
+    return Padding(
+        padding: const EdgeInsets.only(top: 2, bottom: 5),
+        child: Column(children: items));
+  }
+}
+
+class ListItemWidget extends StatelessWidget {
+  const ListItemWidget({super.key, required this.marker, required this.nodes});
+
+  final String marker;
+  final List<BlockContentNode> nodes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          SizedBox(
+              width: 20,
+              child: Align(
+                  alignment: AlignmentDirectional.topEnd, child: Text(marker))),
+          Expanded(child: BlockContentList(nodes: nodes)),
+        ]);
   }
 }
 

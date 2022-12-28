@@ -100,7 +100,7 @@ widgets.
 - Lots of specific types of elements; see TODO comments
 
 - Specific types of elements that may inform architecture:
-  - Lists, with item indicators according to nesting level
+  - List item indicators according to nesting level
   - Layout interactions like `p+ul`
   - Lightbox for image attachments
   - TeX

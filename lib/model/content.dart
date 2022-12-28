@@ -47,11 +47,31 @@ class LineBreakNode extends BlockContentNode {
   const LineBreakNode({super.debugHtmlNode});
 }
 
-// A `p` element.
+// A `p` element, or a place where the DOM tree logically wanted one.
+//
+// We synthesize these in the absence of an actual `p` element in cases where
+// there's inline content (like [dom.Text] nodes, links, or spans) in a context
+// where block content can also appear (like inside a `li`.)  These are marked
+// with [wasImplicit].
+//
+// See also [parseImplicitParagraphBlockContentList].
 class ParagraphNode extends BlockContentNode {
-  const ParagraphNode({super.debugHtmlNode, required this.nodes});
+  const ParagraphNode(
+      {super.debugHtmlNode, this.wasImplicit = false, required this.nodes});
+
+  /// True when there was no corresponding `p` element in the original HTML.
+  final bool wasImplicit;
 
   final List<InlineContentNode> nodes;
+}
+
+enum ListStyle { ordered, unordered }
+
+class ListNode extends BlockContentNode {
+  const ListNode(this.style, this.items, {super.debugHtmlNode});
+
+  final ListStyle style;
+  final List<List<BlockContentNode>> items;
 }
 
 enum HeadingLevel { h1, h2, h3, h4, h5, h6 }
@@ -233,6 +253,28 @@ InlineContentNode parseInlineContent(dom.Node node) {
   return unimplemented();
 }
 
+BlockContentNode parseListNode(dom.Element element) {
+  ListStyle? listStyle;
+  switch (element.localName) {
+    case 'ol': listStyle = ListStyle.ordered; break;
+    case 'ul': listStyle = ListStyle.unordered; break;
+  }
+  assert(listStyle != null);
+  assert(element.classes.isEmpty);
+
+  final debugHtmlNode = kDebugMode ? element : null;
+  final List<List<BlockContentNode>> items = [];
+  for (final item in element.nodes) {
+    if (item is dom.Text && item.text == '\n') continue;
+    if (item is! dom.Element || item.localName != 'li' || item.classes.isNotEmpty) {
+      items.add([UnimplementedBlockContentNode(htmlNode: item)]);
+    }
+    items.add(parseImplicitParagraphBlockContentList(item.nodes));
+  }
+
+  return ListNode(listStyle!, items, debugHtmlNode: debugHtmlNode);
+}
+
 BlockContentNode parseCodeBlock(dom.Element divElement) {
   final mainElement = () {
     assert(divElement.localName == 'div' &&
@@ -339,6 +381,10 @@ BlockContentNode parseBlockContent(dom.Node node) {
     return ParagraphNode(nodes: inlineNodes(), debugHtmlNode: debugHtmlNode);
   }
 
+  if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
+    return parseListNode(element);
+  }
+
   HeadingLevel? headingLevel;
   switch (localName) {
     case 'h1': headingLevel = HeadingLevel.h1; break;
@@ -369,6 +415,57 @@ BlockContentNode parseBlockContent(dom.Node node) {
 
   // TODO more types of node
   return UnimplementedBlockContentNode(htmlNode: node);
+}
+
+bool _isPossibleInlineNode(dom.Node node) {
+  // TODO: find a way to assert that this matches parsing, or refactor away
+  if (node is dom.Text) return true;
+  if (node is! dom.Element) return false;
+  switch (node.localName) {
+    case 'p':
+    case 'ol':
+    case 'ul':
+    case 'h1':
+    case 'h2':
+    case 'h3':
+    case 'h4':
+    case 'h5':
+    case 'h6':
+    case 'blockquote':
+    case 'div':
+      return false;
+    default:
+      return true;
+  }
+}
+
+/// Parse where block content is expected, but paragraphs may be implicit.
+///
+/// See [ParagraphNode].
+List<BlockContentNode> parseImplicitParagraphBlockContentList(dom.NodeList nodes) {
+  final List<BlockContentNode> result = [];
+  final List<dom.Node> currentParagraph = [];
+  void consumeParagraph() {
+    result.add(ParagraphNode(
+        wasImplicit: true,
+        nodes:
+            currentParagraph.map(parseInlineContent).toList(growable: false)));
+    currentParagraph.clear();
+  }
+
+  for (final node in nodes) {
+    if (node is dom.Text && (node.text == '\n')) continue;
+
+    if (_isPossibleInlineNode(node)) {
+      currentParagraph.add(node);
+      continue;
+    }
+    if (currentParagraph.isNotEmpty) consumeParagraph();
+    result.add(parseBlockContent(node));
+  }
+  if (currentParagraph.isNotEmpty) consumeParagraph();
+
+  return result;
 }
 
 List<BlockContentNode> parseBlockContentList(dom.NodeList nodes) {
