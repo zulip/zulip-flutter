@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
-import '../api/route/messages.dart';
 import '../model/content.dart';
+import '../model/message_list.dart';
+import '../model/narrow.dart';
+import '../model/store.dart';
 import 'app.dart';
 import 'content.dart';
 import 'sticky_header.dart';
@@ -16,28 +18,39 @@ class MessageList extends StatefulWidget {
 }
 
 class _MessageListState extends State<MessageList> {
-  final List<Message> messages = []; // TODO move state up to store
-  final List<ZulipContent> contents = []; // parallel to [messages]
-  bool fetched = false; // TODO this will get more complex
+  Narrow get narrow => const AllMessagesNarrow(); // TODO specify in widget
+
+  MessageListView? model;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _fetch();
+    final store = PerAccountStoreWidget.of(context);
+    if (model != null && model!.store == store) {
+      // We already have a model, and it's for the right store.
+      return;
+    }
+    // Otherwise, set up the model.  Dispose of any old model.
+    model?.dispose();
+    _initModel(store);
   }
 
-  Future<void> _fetch() async {
-    final store = PerAccountStoreWidget.of(context);
-    // TODO schedule all this in another isolate
-    final result =
-        await getMessages(store.connection, num_before: 100, num_after: 10);
-    final contents = result.messages
-        .map((message) => parseContent(message.content))
-        .toList(growable: false);
+  @override
+  void dispose() {
+    model?.dispose();
+    super.dispose();
+  }
+
+  void _initModel(PerAccountStore store) {
+    model = MessageListView(store: store, narrow: narrow);
+    model!.addListener(_modelChanged);
+    model!.fetch();
+  }
+
+  void _modelChanged() {
     setState(() {
-      messages.addAll(result.messages);
-      this.contents.addAll(contents);
-      fetched = true;
+      // The actual state lives in the [MessageListView] model.
+      // This method was called because that just changed.
     });
   }
 
@@ -47,14 +60,14 @@ class _MessageListState extends State<MessageList> {
     // Here, we rerun parsing the messages.  This gives us the same
     // highly productive workflow of Flutter hot reload when developing
     // changes there as we have on changes to widgets.
-    contents.clear();
-    contents.addAll(messages.map((message) => parseContent(message.content)));
+    model?.reassemble();
     super.reassemble();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!fetched) return const Center(child: CircularProgressIndicator());
+    assert(model != null);
+    if (!model!.fetched) return const Center(child: CircularProgressIndicator());
 
     return DefaultTextStyle(
         // TODO figure out text color -- web is supposedly hsl(0deg 0% 20%),
@@ -70,8 +83,10 @@ class _MessageListState extends State<MessageList> {
   }
 
   Widget _buildListView(context) {
+    final length = model!.messages.length;
+    assert(model!.contents.length == length);
     return StickyHeaderListView.builder(
-        itemCount: messages.length,
+        itemCount: length,
         // Setting reverse: true means the scroll starts at the bottom.
         // Flipping the indexes (in itemBuilder) means the start/bottom
         // has the latest messages.
@@ -80,8 +95,8 @@ class _MessageListState extends State<MessageList> {
         reverse: true,
         itemBuilder: (context, i) => MessageItem(
             trailing: i == 0 ? null : const SizedBox(height: 11),
-            message: messages[messages.length - 1 - i],
-            content: contents[messages.length - 1 - i]));
+            message: model!.messages[length - 1 - i],
+            content: model!.contents[length - 1 - i]));
   }
 }
 
