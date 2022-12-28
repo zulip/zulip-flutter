@@ -132,14 +132,9 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class MessageListPage extends StatefulWidget {
-  const MessageListPage({Key? key}) : super(key: key);
+class MessageListPage extends StatelessWidget {
+  const MessageListPage({super.key});
 
-  @override
-  State<MessageListPage> createState() => _MessageListPageState();
-}
-
-class _MessageListPageState extends State<MessageListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
