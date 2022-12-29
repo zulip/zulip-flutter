@@ -35,6 +35,16 @@ class _PerAccountRootState extends State<PerAccountRoot> {
   }
 
   @override
+  void reassemble() {
+    // The [reassemble] method runs upon hot reload, in development.
+    // Here, we rerun parsing the messages.  This gives us the same
+    // highly productive workflow of Flutter hot reload when developing
+    // changes there as we have on changes to widgets.
+    store?.reassemble();
+    super.reassemble();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (store == null) return const LoadingPage();
     return PerAccountStoreWidget(

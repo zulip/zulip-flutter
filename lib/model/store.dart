@@ -51,6 +51,16 @@ class PerAccountStore extends ChangeNotifier {
     assert(removed);
   }
 
+  /// Called when the app is reassembled during debugging, e.g. for hot reload.
+  ///
+  /// This will redo from scratch any computations we can, such as parsing
+  /// message contents.  It won't repeat network requests.
+  void reassemble() {
+    for (final view in _messageListViews) {
+      view.reassemble();
+    }
+  }
+
   // TODO handle server events.  Update data here and also on _messageListViews.
 }
 

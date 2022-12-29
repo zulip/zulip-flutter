@@ -55,16 +55,6 @@ class _MessageListState extends State<MessageList> {
   }
 
   @override
-  void reassemble() {
-    // The [reassemble] method runs upon hot reload, in development.
-    // Here, we rerun parsing the messages.  This gives us the same
-    // highly productive workflow of Flutter hot reload when developing
-    // changes there as we have on changes to widgets.
-    model?.reassemble();
-    super.reassemble();
-  }
-
-  @override
   Widget build(BuildContext context) {
     assert(model != null);
     if (!model!.fetched) return const Center(child: CircularProgressIndicator());
