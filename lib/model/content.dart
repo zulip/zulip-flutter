@@ -394,9 +394,10 @@ BlockContentNode parseBlockContent(dom.Node node) {
     case 'h5': headingLevel = HeadingLevel.h5; break;
     case 'h6': headingLevel = HeadingLevel.h6; break;
   }
-  if (headingLevel != null && classes.isEmpty) {
+  if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
+    // TODO handle h1, h2, h3, h4, h5
     return HeadingNode(
-        headingLevel, inlineNodes(), debugHtmlNode: debugHtmlNode);
+        headingLevel!, inlineNodes(), debugHtmlNode: debugHtmlNode);
   }
 
   if (localName == 'blockquote' && classes.isEmpty) {

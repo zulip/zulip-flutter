@@ -60,11 +60,8 @@ class BlockContentNodeWidget extends StatelessWidget {
     } else if (node is ListNode) {
       return ListNodeWidget(node: node);
     } else if (node is HeadingNode) {
-      if (node.level != HeadingLevel.h6) {
-        // TODO h1, h2, h3, h4, h5 -- same as h6 except font size
-        return Text.rich(TextSpan(
-            text: "(unimplemented: ${node.level.name})", style: errorStyle));
-      }
+      // TODO h1, h2, h3, h4, h5 -- same as h6 except font size
+      assert(node.level == HeadingLevel.h6);
       return Padding(
           padding: const EdgeInsets.only(top: 15, bottom: 5),
           child: Text.rich(TextSpan(
