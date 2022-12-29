@@ -286,10 +286,10 @@ InlineSpan _buildInlineNode(InlineContentNode node) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: MessageUnicodeEmoji(node: node));
-  } else if (node is RealmEmojiNode) {
+  } else if (node is ImageEmojiNode) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
-        child: MessageRealmEmoji(node: node));
+        child: MessageImageEmoji(node: node));
   } else if (node is UnimplementedInlineContentNode) {
     return _errorUnimplemented(node);
   } else {
@@ -432,10 +432,10 @@ class MessageUnicodeEmoji extends StatelessWidget {
   }
 }
 
-class MessageRealmEmoji extends StatelessWidget {
-  const MessageRealmEmoji({super.key, required this.node});
+class MessageImageEmoji extends StatelessWidget {
+  const MessageImageEmoji({super.key, required this.node});
 
-  final RealmEmojiNode node;
+  final ImageEmojiNode node;
 
   @override
   Widget build(BuildContext context) {
