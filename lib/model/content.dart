@@ -176,8 +176,8 @@ class UnicodeEmojiNode extends EmojiNode {
   final String text;
 }
 
-class RealmEmojiNode extends EmojiNode {
-  const RealmEmojiNode({super.debugHtmlNode, required this.alt});
+class ImageEmojiNode extends EmojiNode {
+  const ImageEmojiNode({super.debugHtmlNode, required this.alt});
 
   final String alt; // TODO parse actual emoji image URL
 }
@@ -246,7 +246,7 @@ InlineContentNode parseInlineContent(dom.Node node) {
       && classes.length == 1) {
     final alt = element.attributes['alt'];
     if (alt == null) return unimplemented();
-    return RealmEmojiNode(alt: alt, debugHtmlNode: debugHtmlNode);
+    return ImageEmojiNode(alt: alt, debugHtmlNode: debugHtmlNode);
   }
 
   // TODO more types of node
