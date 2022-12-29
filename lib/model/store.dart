@@ -10,7 +10,7 @@ import '../credential_fixture.dart' as credentials;
 import 'message_list.dart';
 
 class PerAccountStore extends ChangeNotifier {
-  PerAccountStore({
+  PerAccountStore._({
     required this.account,
     required this.connection,
     required this.zulip_version,
@@ -81,7 +81,7 @@ PerAccountStore processInitialSnapshot(Account account,
   final subscriptions = Map.fromEntries(initialSnapshot.subscriptions
       .map((subscription) => MapEntry(subscription.stream_id, subscription)));
 
-  return PerAccountStore(
+  return PerAccountStore._(
     account: account,
     connection: connection,
     zulip_version: initialSnapshot.zulip_version,
