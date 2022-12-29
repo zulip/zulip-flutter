@@ -7,8 +7,36 @@ import 'narrow.dart';
 import 'store.dart';
 
 /// A view-model for a message list.
+///
+/// The owner of one of these objects must call [dispose] when the object
+/// will no longer be used, in order to free resources on the [PerAccountStore].
+///
+/// Lifecycle:
+///  * Create with [init].
+///  * Add listeners with [addListener].
+///  * Fetch messages with [fetch].  When the fetch completes, this object
+///    will notify its listeners (as it will any other time the data changes.)
+///  * On reassemble, call [reassemble].
+///  * When the object will no longer be used, call [dispose] to free
+///    resources on the [PerAccountStore].
+///
+/// TODO: richer fetch method: use narrow, take anchor, support fetching another batch
+/// TODO: update on server events
 class MessageListView extends ChangeNotifier {
-  MessageListView({required this.store, required this.narrow});
+  MessageListView._({required this.store, required this.narrow});
+
+  factory MessageListView.init(
+      {required PerAccountStore store, required Narrow narrow}) {
+    final view = MessageListView._(store: store, narrow: narrow);
+    store.registerMessageList(view);
+    return view;
+  }
+
+  @override
+  void dispose() {
+    store.unregisterMessageList(this);
+    super.dispose();
+  }
 
   final PerAccountStore store;
   final Narrow narrow;

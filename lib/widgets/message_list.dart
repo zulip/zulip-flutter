@@ -42,7 +42,7 @@ class _MessageListState extends State<MessageList> {
   }
 
   void _initModel(PerAccountStore store) {
-    model = MessageListView(store: store, narrow: narrow);
+    model = MessageListView.init(store: store, narrow: narrow);
     model!.addListener(_modelChanged);
     model!.fetch();
   }

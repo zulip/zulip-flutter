@@ -6,9 +6,17 @@ import '../api/core.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
-import '../credential_fixture.dart' as credentials; // prototyping hack; not in Git
+import '../credential_fixture.dart' as credentials;
+import 'message_list.dart';
 
 class PerAccountStore extends ChangeNotifier {
+  PerAccountStore({
+    required this.account,
+    required this.connection,
+    required this.zulip_version,
+    required this.subscriptions,
+  });
+
   // Load the user's data from storage.  (Once we have such a thing.)
   static Future<PerAccountStore> load() async {
     const account = _fixtureAccount;
@@ -31,12 +39,19 @@ class PerAccountStore extends ChangeNotifier {
 
   // TODO lots more data
 
-  PerAccountStore({
-    required this.account,
-    required this.connection,
-    required this.zulip_version,
-    required this.subscriptions,
-  });
+  final Set<MessageListView> _messageListViews = {};
+
+  void registerMessageList(MessageListView view) {
+    final added = _messageListViews.add(view);
+    assert(added);
+  }
+
+  void unregisterMessageList(MessageListView view) {
+    final removed = _messageListViews.remove(view);
+    assert(removed);
+  }
+
+  // TODO handle server events.  Update data here and also on _messageListViews.
 }
 
 /// A scaffolding hack for while prototyping.
