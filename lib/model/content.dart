@@ -177,9 +177,10 @@ class UnicodeEmojiNode extends EmojiNode {
 }
 
 class ImageEmojiNode extends EmojiNode {
-  const ImageEmojiNode({super.debugHtmlNode, required this.alt});
+  const ImageEmojiNode({super.debugHtmlNode, required this.src, required this.alt });
 
-  final String alt; // TODO parse actual emoji image URL
+  final String src;
+  final String alt;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -246,7 +247,9 @@ InlineContentNode parseInlineContent(dom.Node node) {
       && classes.length == 1) {
     final alt = element.attributes['alt'];
     if (alt == null) return unimplemented();
-    return ImageEmojiNode(alt: alt, debugHtmlNode: debugHtmlNode);
+    final src = element.attributes['src'];
+    if (src == null) return unimplemented();
+    return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
   }
 
   // TODO more types of node
