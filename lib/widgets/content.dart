@@ -140,6 +140,7 @@ class ListNodeWidget extends StatelessWidget {
         //   but that comes out too close to item; not sure what's fixing that
         //   in a browser
         case ListStyle.unordered: marker = "•   "; break;
+        // TODO ordered lists starting not at 1
         case ListStyle.ordered: marker = "${index+1}. "; break;
       }
       return ListItemWidget(marker: marker, nodes: item);
