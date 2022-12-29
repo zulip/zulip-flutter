@@ -6,7 +6,7 @@ import '../model/store.dart';
 import 'app.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
-const kBaseFontSize = 14;
+const double kBaseFontSize = 14;
 
 /// The entire content of a message, aka its body.
 ///
