@@ -439,13 +439,27 @@ class MessageImageEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO show actual emoji image
-    final alt = node.alt;
-    return Container(
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-            color: Colors.white, border: Border.all(color: Colors.purple)),
-        child: Text(alt));
+    final store = PerAccountStoreWidget.of(context);
+    final adjustedSrc = rewriteImageUrl(node.src, store.account);
+
+    const size = 20.0;
+
+    return Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          const SizedBox(width: size, height: kBaseFontSize),
+          Positioned(
+              // Web's css makes this seem like it should be -0.5, but that looks
+              // too low.
+              top: -1.5,
+              child: Image.network(
+                adjustedSrc.toString(),
+                filterQuality: FilterQuality.medium,
+                width: size,
+                height: size,
+              )),
+        ]);
   }
 }
 
