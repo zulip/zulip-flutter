@@ -273,9 +273,16 @@ class MessageWithSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+
     final avatarUrl = message.avatar_url == null // TODO get from user data
         ? null // TODO handle computing gravatars
         : rewriteImageUrl(message.avatar_url!, store.account);
+    final avatar = (avatarUrl == null)
+        ? const SizedBox.shrink()
+        : Image.network(
+            avatarUrl,
+            filterQuality: FilterQuality.medium,
+          );
 
     final time = _kMessageTimestampFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
@@ -284,19 +291,15 @@ class MessageWithSender extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (avatarUrl != null)
-            Padding(
-                padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
-                child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(4))),
-                    width: 35,
-                    height: 35,
-                    child: Image.network(
-                      avatarUrl,
-                      filterQuality: FilterQuality.medium,
-                    ))),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
+              child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(4))),
+                  width: 35,
+                  height: 35,
+                  child: avatar)),
           Expanded(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
