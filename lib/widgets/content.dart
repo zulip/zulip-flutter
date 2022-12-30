@@ -6,7 +6,7 @@ import '../model/store.dart';
 import 'app.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
-const kBaseFontSize = 14;
+const double kBaseFontSize = 14;
 
 /// The entire content of a message, aka its body.
 ///
@@ -286,10 +286,10 @@ InlineSpan _buildInlineNode(InlineContentNode node) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: MessageUnicodeEmoji(node: node));
-  } else if (node is RealmEmojiNode) {
+  } else if (node is ImageEmojiNode) {
     return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
-        child: MessageRealmEmoji(node: node));
+        child: MessageImageEmoji(node: node));
   } else if (node is UnimplementedInlineContentNode) {
     return _errorUnimplemented(node);
   } else {
@@ -432,20 +432,34 @@ class MessageUnicodeEmoji extends StatelessWidget {
   }
 }
 
-class MessageRealmEmoji extends StatelessWidget {
-  const MessageRealmEmoji({super.key, required this.node});
+class MessageImageEmoji extends StatelessWidget {
+  const MessageImageEmoji({super.key, required this.node});
 
-  final RealmEmojiNode node;
+  final ImageEmojiNode node;
 
   @override
   Widget build(BuildContext context) {
-    // TODO show actual emoji image
-    final alt = node.alt;
-    return Container(
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-            color: Colors.white, border: Border.all(color: Colors.purple)),
-        child: Text(alt));
+    final store = PerAccountStoreWidget.of(context);
+    final adjustedSrc = rewriteImageUrl(node.src, store.account);
+
+    const size = 20.0;
+
+    return Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          const SizedBox(width: size, height: kBaseFontSize),
+          Positioned(
+              // Web's css makes this seem like it should be -0.5, but that looks
+              // too low.
+              top: -1.5,
+              child: Image.network(
+                adjustedSrc.toString(),
+                filterQuality: FilterQuality.low,
+                width: size,
+                height: size,
+              )),
+        ]);
   }
 }
 
