@@ -1,11 +1,18 @@
-# Zulip Flutter
+# Zulip Flutter (prototype)
 
 A Zulip client for Android and iOS, using Flutter.
 
 This is an early prototype for development.
 
 
-## Getting started
+## Using Zulip
+
+To use Zulip on iOS or Android, install the [official mobile Zulip client][].
+
+[official mobile Zulip client]: https://github.com/zulip/zulip-mobile#readme
+
+
+## Getting started in developing this prototype
 
 ### Flutter help
 
