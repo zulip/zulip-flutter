@@ -65,11 +65,12 @@ class _MessageListState extends State<MessageList> {
         style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
         child: ColoredBox(
             color: Colors.white,
-            child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 760),
-                    child: _buildListView(context)))));
+            child: Center(
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 760),
+                        child: _buildListView(context))))));
   }
 
   Widget _buildListView(context) {
