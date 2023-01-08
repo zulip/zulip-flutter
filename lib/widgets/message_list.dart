@@ -65,9 +65,23 @@ class _MessageListState extends State<MessageList> {
         style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
         child: ColoredBox(
             color: Colors.white,
-            child: Center(
-                child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+
+            // Pad the left and right insets, for small devices in landscape.
+            child: SafeArea(
+                // A non-ancestor (the compose box) pads the bottom inset;
+                // prevent extra padding here.
+                bottom: false,
+
+                // A non-ancestor (the app bar) pads the top inset. But no
+                // need to prevent extra padding with `top: false`, because
+                // Scaffold, which knows about the app bar, sets `body`'s
+                // ambient `MediaQueryData.padding` to have `top: 0`:
+                //   https://github.com/flutter/flutter/blob/3.7.0-1.2.pre/packages/flutter/lib/src/material/scaffold.dart#L2778
+
+                // Keep some padding when there are no horizontal insets,
+                // which is usual in portrait mode.
+                minimum: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
                     child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 760),
                         child: _buildListView(context))))));
