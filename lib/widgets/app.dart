@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'compose_box.dart';
 import 'message_list.dart';
 import '../model/store.dart';
 
@@ -163,9 +164,6 @@ class MessageListPage extends StatelessWidget {
 
                       child: const Expanded(
                           child: MessageList())),
-                  const SizedBox(
-                      height: 80,
-                      child: Center(
-                          child: Text("(Compose box goes here.)")))]))));
+                  const StreamComposeBox()]))));
   }
 }

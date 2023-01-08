@@ -9,6 +9,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
+import '../api/route/messages.dart';
 import '../credential_fixture.dart' as credentials;
 import 'message_list.dart';
 
@@ -106,6 +107,11 @@ class PerAccountStore extends ChangeNotifier {
     }
   }
 
+  Future<void> sendStreamMessage({required String topic, required String content}) {
+    // TODO implement outbox; see design at
+    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
+    return sendMessage(connection, topic: topic, content: content);
+  }
 }
 
 /// A scaffolding hack for while prototyping.
