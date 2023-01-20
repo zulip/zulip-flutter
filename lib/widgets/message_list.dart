@@ -192,16 +192,22 @@ class StreamTopicRecipientHeader extends StatelessWidget {
     return ColoredBox(
         color: _kStreamMessageBorderColor,
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          // TODO: Long stream name will break layout; find a fix.
           RecipientHeaderChevronContainer(
               color: streamColor,
               // TODO globe/lock icons for web-public and private streams
               child:
                   Text(streamName, style: TextStyle(color: contrastingColor))),
-          Padding(
-              // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
-              padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
-              child: Text(topic,
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
+          Expanded(
+            child: Padding(
+                // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
+                padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
+                child: Text(topic,
+                    // TODO: Give a way to see the whole topic (maybe a
+                    //   long-press interaction?)
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600))),
+          ),
           // TODO topic links?
           // Then web also has edit/resolve/mute buttons. Skip those for mobile.
         ]));
