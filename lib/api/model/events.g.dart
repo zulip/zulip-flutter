@@ -20,3 +20,14 @@ Map<String, dynamic> _$AlertWordsEventToJson(AlertWordsEvent instance) =>
       'type': instance.type,
       'alert_words': instance.alert_words,
     };
+
+HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
+    HeartbeatEvent(
+      id: json['id'] as int,
+    );
+
+Map<String, dynamic> _$HeartbeatEventToJson(HeartbeatEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+    };

@@ -17,6 +17,7 @@ abstract class Event {
     final type = json['type'] as String;
     switch (type) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
       default: return UnexpectedEvent.fromJson(json);
     }
@@ -57,4 +58,19 @@ class AlertWordsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
+}
+
+@JsonSerializable()
+class HeartbeatEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'heartbeat';
+
+  HeartbeatEvent({required super.id});
+
+  factory HeartbeatEvent.fromJson(Map<String, dynamic> json) =>
+      _$HeartbeatEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$HeartbeatEventToJson(this);
 }
