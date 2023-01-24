@@ -2,6 +2,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
+import 'model.dart';
+
 part 'events.g.dart';
 
 /// A Zulip event.
@@ -17,6 +19,7 @@ abstract class Event {
     final type = json['type'] as String;
     switch (type) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'message': return MessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
       default: return UnexpectedEvent.fromJson(json);
@@ -58,6 +61,43 @@ class AlertWordsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
+}
+
+/// A Zulip event of type `message`.
+// TODO use [JsonSerializable] here too, using its customization features,
+//   in order to skip the boilerplate in [fromJson] and [toJson].
+class MessageEvent extends Event {
+  @override
+  String get type => 'message';
+
+  // In the server API, the `flags` field appears directly on the event rather
+  // than on the message object.  To avoid proliferating message types, we
+  // normalize that away in deserialization.
+  //
+  // The other difference in the server API between message objects in these
+  // events and in the get-messages results is that `match_content` and
+  // `match_subject` are absent here.  Already [Message.match_content] and
+  // [Message.match_subject] are optional, so no action is needed on that.
+  final Message message;
+
+  MessageEvent({required super.id, required this.message});
+
+  factory MessageEvent.fromJson(Map<String, dynamic> json) => MessageEvent(
+      id: json['id'] as int,
+      message: Message.fromJson({
+        ...json['message'] as Map<String, dynamic>,
+        'flags':
+            (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      }),
+  );
+
+  @override
+  Map<String, dynamic> toJson() {
+    final messageJson = message.toJson();
+    final flags = messageJson['flags'];
+    messageJson.remove('flags');
+    return {'id': id, 'type': type, 'message': messageJson, 'flags': flags};
+  }
 }
 
 @JsonSerializable()
