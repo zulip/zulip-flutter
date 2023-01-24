@@ -13,6 +13,8 @@ class PerAccountStore extends ChangeNotifier {
   PerAccountStore._({
     required this.account,
     required this.connection,
+    required this.queue_id,
+    required this.last_event_id,
     required this.zulip_version,
     required this.subscriptions,
   });
@@ -33,6 +35,9 @@ class PerAccountStore extends ChangeNotifier {
 
   final Account account;
   final ApiConnection connection;
+
+  final String queue_id;
+  int last_event_id;
 
   final String zulip_version;
   final Map<int, Subscription> subscriptions;
@@ -88,12 +93,21 @@ class Account implements Auth {
 
 PerAccountStore processInitialSnapshot(Account account,
     ApiConnection connection, InitialSnapshot initialSnapshot) {
+  final queue_id = initialSnapshot.queue_id;
+  if (queue_id == null) {
+    // The queue_id is optional in the type, but should only be missing in the
+    // case of unauthenticated access to a web-public realm.  We authenticated.
+    throw Exception("bad initial snapshot: missing queue_id");
+  }
+
   final subscriptions = Map.fromEntries(initialSnapshot.subscriptions
       .map((subscription) => MapEntry(subscription.stream_id, subscription)));
 
   return PerAccountStore._(
     account: account,
     connection: connection,
+    queue_id: queue_id,
+    last_event_id: initialSnapshot.last_event_id,
     zulip_version: initialSnapshot.zulip_version,
     subscriptions: subscriptions,
   );
