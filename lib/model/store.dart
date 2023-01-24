@@ -1,8 +1,11 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import '../api/core.dart';
+import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
@@ -30,7 +33,9 @@ class PerAccountStore extends ChangeNotifier {
     // TODO log the time better
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
 
-    return processInitialSnapshot(account, connection, initialSnapshot);
+    final store = processInitialSnapshot(account, connection, initialSnapshot);
+    store.poll();
+    return store;
   }
 
   final Account account;
@@ -42,7 +47,7 @@ class PerAccountStore extends ChangeNotifier {
   final String zulip_version;
   final Map<int, Subscription> subscriptions;
 
-  // TODO lots more data
+  // TODO lots more data.  When adding, be sure to update handleEvent too.
 
   final Set<MessageListView> _messageListViews = {};
 
@@ -66,7 +71,39 @@ class PerAccountStore extends ChangeNotifier {
     }
   }
 
-  // TODO handle server events.  Update data here and also on _messageListViews.
+  void poll() async {
+    while (true) {
+      final result = await getEvents(connection,
+          queue_id: queue_id, last_event_id: last_event_id);
+      // TODO handle errors on get-events; retry with backoff
+      // TODO abort long-poll on [dispose]
+      final events = result.events;
+      for (final event in events) {
+        handleEvent(event);
+      }
+      if (events.isNotEmpty) {
+        last_event_id = events.last.id;
+      }
+    }
+  }
+
+  void handleEvent(Event event) {
+    if (event is HeartbeatEvent) {
+      debugPrint("server event: heartbeat");
+    } else if (event is AlertWordsEvent) {
+      debugPrint("server event: alert_words");
+      // We don't yet store this data, so there's nothing to update.
+    } else if (event is MessageEvent) {
+      debugPrint("server event: message ${jsonEncode(event.message.toJson())}");
+      // TODO handle message event, updating _messageListViews
+    } else if (event is UnexpectedEvent) {
+      debugPrint("server event: ${jsonEncode(event.toJson())}"); // TODO log better
+    } else {
+      // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
+      throw Exception("Event object of impossible type: ${event.toString()}");
+    }
+  }
+
 }
 
 /// A scaffolding hack for while prototyping.
