@@ -11,6 +11,13 @@ abstract class Auth {
   String get apiKey;
 }
 
+/// A value for an API request parameter, to use directly without JSON encoding.
+class RawParameter {
+  RawParameter(this.value);
+
+  final String value;
+}
+
 class ApiConnection {
   ApiConnection({required this.auth});
 
@@ -32,7 +39,7 @@ class ApiConnection {
         host: baseUrl.host,
         port: baseUrl.port,
         path: "/api/v1/$route",
-        queryParameters: params?.map((k, v) => MapEntry(k, jsonEncode(v))));
+        queryParameters: encodeParameters(params));
     if (kDebugMode) print("GET $url");
     final response = await http.get(url, headers: _headers());
     if (response.statusCode != 200) {
@@ -45,10 +52,15 @@ class ApiConnection {
     final response = await http.post(
         Uri.parse("${auth.realmUrl}/api/v1/$route"),
         headers: _headers(),
-        body: params?.map((k, v) => MapEntry(k, jsonEncode(v))));
+        body: encodeParameters(params));
     if (response.statusCode != 200) {
       throw Exception("error on POST $route: status ${response.statusCode}");
     }
     return utf8.decode(response.bodyBytes);
   }
+}
+
+Map<String, dynamic>? encodeParameters(Map<String, dynamic>? params) {
+  return params?.map((k, v) =>
+      MapEntry(k, v is RawParameter ? v.value : jsonEncode(v)));
 }

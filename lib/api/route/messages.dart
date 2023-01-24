@@ -16,7 +16,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
 }) async {
   final data = await connection.get('messages', {
     // 'narrow': [], // TODO parametrize
-    'anchor': 999999999, // TODO parametrize; needs raw for strings
+    'anchor': 999999999, // TODO parametrize; use RawParameter for strings
     'num_before': num_before,
     'num_after': num_after,
   });
