@@ -95,7 +95,9 @@ class PerAccountStore extends ChangeNotifier {
       // We don't yet store this data, so there's nothing to update.
     } else if (event is MessageEvent) {
       debugPrint("server event: message ${jsonEncode(event.message.toJson())}");
-      // TODO handle message event, updating _messageListViews
+      for (final view in _messageListViews) {
+        view.maybeAddMessage(event.message);
+      }
     } else if (event is UnexpectedEvent) {
       debugPrint("server event: ${jsonEncode(event.toJson())}"); // TODO log better
     } else {

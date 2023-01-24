@@ -65,6 +65,23 @@ class MessageListView extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Add [message] to this view, if it belongs here.
+  ///
+  /// Called in particular when we get a [MessageEvent].
+  void maybeAddMessage(Message message) {
+    if (!narrow.containsMessage(message)) {
+      return;
+    }
+    if (!_fetched) {
+      // TODO mitigate this fetch/event race: save message to add to list later
+      return;
+    }
+    // TODO insert in middle instead, when appropriate
+    messages.add(message);
+    contents.add(parseContent(message.content));
+    notifyListeners();
+  }
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// This will redo from scratch any computations we can, such as parsing
@@ -80,6 +97,7 @@ class MessageListView extends ChangeNotifier {
     // This will get more complicated to handle the ways that messages interact
     // with the display of neighboring messages: sender headings,
     // recipient headings, and date separators.
+    // TODO factor [messages] and [contents] into own class to encapsulate that
     return messages.map((message) => parseContent(message.content));
   }
 }

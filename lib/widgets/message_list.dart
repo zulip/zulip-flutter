@@ -82,6 +82,7 @@ class _MessageListState extends State<MessageList> {
         // has the latest messages.
         // This works great when we want to start from the latest.
         // TODO handle scroll starting at first unread, or link anchor
+        // TODO on new message when scrolled up, anchor scroll to what's in view
         reverse: true,
         itemBuilder: (context, i) => MessageItem(
             trailing: i == 0 ? null : const SizedBox(height: 11),
