@@ -1,8 +1,12 @@
 
-// A Zulip narrow.
+import '../api/model/model.dart';
+
+/// A Zulip narrow.
 abstract class Narrow {
   /// This const constructor allows subclasses to have const constructors.
   const Narrow();
+
+  bool containsMessage(Message message);
 }
 
 /// The narrow called "All messages" in the UI.
@@ -12,6 +16,12 @@ abstract class Narrow {
 /// and topics.
 class AllMessagesNarrow extends Narrow {
   const AllMessagesNarrow();
+
+  @override
+  bool containsMessage(Message message) {
+    // TODO implement muting; will need containsMessage to take more params
+    return true;
+  }
 
   @override
   bool operator ==(Object other) {
