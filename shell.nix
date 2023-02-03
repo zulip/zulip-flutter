@@ -20,6 +20,8 @@ mkShell {
     #   Package mount was not found in the pkg-config search path.
     #   Perhaps you should add the directory containing `mount.pc'
     #   to the PKG_CONFIG_PATH environment variable
+    # To add to this list on NixOS upgrades, the Nix package
+    # `nix-index` is handy: then `nix-locate mount.pc`.
     libuuid  # for mount.pc
     xorg.libXdmcp.dev
     python310Packages.libselinux.dev # for libselinux.pc
@@ -30,6 +32,7 @@ mkShell {
     dbus.dev
     at-spi2-core.dev
     xorg.libXtst.out
+    pcre2.dev
 
     jdk11
     android-studio
