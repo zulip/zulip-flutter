@@ -70,6 +70,8 @@ class _MessageListState extends State<MessageList> {
             child: SafeArea(
                 // A non-ancestor (the compose box) pads the bottom inset;
                 // prevent extra padding here.
+                // TODO have MessageListPage adjust the MediaQuery so we don't
+                //   have to worry about this here
                 bottom: false,
 
                 // A non-ancestor (the app bar) pads the top inset. But no
