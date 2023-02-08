@@ -93,6 +93,24 @@ class _MessageListState extends State<MessageList> {
     final length = model!.messages.length;
     assert(model!.contents.length == length);
     return StickyHeaderListView.builder(
+        // If the `padding` param is omitted or null, StickyHeaderListView pads
+        // the content area (the part that moves when you scroll) with
+        // `MediaQueryData.padding`. It inherits this behavior from
+        // BoxScrollView:
+        //   https://github.com/flutter/flutter/blob/3.7.0-1.2.pre/packages/flutter/lib/src/widgets/scroll_view.dart#L665-L687
+        //
+        // A non-ancestor (the compose box) pads the bottom inset, so the
+        // ambient `MediaQueryData.padding` might be nonzero. So, prevent double
+        // padding at the bottom by supplying a `padding` param.
+        //
+        // (A non-ancestor, the app bar, pads the top inset, but we don't
+        // need the remedy of a non-null `padding` for the top because the
+        // ambient `MediaQueryData.padding` has `top: 0` thanks to Scaffold
+        // setting that on its `body`, since it knows about the app bar:
+        //   https://github.com/flutter/flutter/blob/3.7.0-1.2.pre/packages/flutter/lib/src/material/scaffold.dart#L2778
+        // )
+        padding: const EdgeInsets.all(0),
+
         itemCount: length,
         // Setting reverse: true means the scroll starts at the bottom.
         // Flipping the indexes (in itemBuilder) means the start/bottom
