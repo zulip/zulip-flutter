@@ -151,10 +151,9 @@ class MessageListPage extends StatelessWidget {
         appBar: AppBar(title: const Text("All messages")),
         body: Center(
             child: Column(children: const [
-          Expanded(child: MessageList()),
-          SizedBox(
-              height: 80,
-              child: Center(child: Text("(Compose box goes here.)"))),
-        ])));
+              Expanded(child: MessageList()),
+              SizedBox(
+                  height: 80,
+                  child: Center(child: Text("(Compose box goes here.)")))])));
   }
 }
