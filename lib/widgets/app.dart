@@ -149,25 +149,23 @@ class MessageListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: const Text("All messages")),
-        body: Center(
-            child: Column(children: [
-              MediaQuery.removePadding(
-                  context: context,
+        body: Builder(
+            builder: (BuildContext context) => Center(
+                child: Column(children: [
+                  MediaQuery.removePadding(
+                      // Scaffold knows about the app bar, and so has run this
+                      // BuildContext, which is under `body`, through
+                      // MediaQuery.removePadding with `removeTop: true`.
+                      context: context,
 
-                  // The app bar pads the top inset. (If `context` were for a
-                  // location under Scaffold's `body`, we wouldn't have to
-                  // `removeTop`. Scaffold, which knows about the app bar,
-                  // already applies `removeTop` on `body`:
-                  //   https://github.com/flutter/flutter/blob/3.7.0-1.2.pre/packages/flutter/lib/src/material/scaffold.dart#L2778
-                  // )
-                  removeTop: true,
+                      // The compose box pads the bottom inset.
+                      removeBottom: true,
 
-                  // The compose box pads the bottom inset.
-                  removeBottom: true,
-
-                  child: const Expanded(child: MessageList())),
-              const SizedBox(
-                  height: 80,
-                  child: Center(child: Text("(Compose box goes here.)")))])));
+                      child: const Expanded(
+                          child: MessageList())),
+                  const SizedBox(
+                      height: 80,
+                      child: Center(
+                          child: Text("(Compose box goes here.)")))]))));
   }
 }
