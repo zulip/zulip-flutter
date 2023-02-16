@@ -27,3 +27,15 @@ Map<String, dynamic> _$GetMessagesResultToJson(GetMessagesResult instance) =>
       'history_limited': instance.history_limited,
       'messages': instance.messages,
     };
+
+SendMessageResult _$SendMessageResultFromJson(Map<String, dynamic> json) =>
+    SendMessageResult(
+      id: json['id'] as int,
+      deliver_at: json['deliver_at'] as String?,
+    );
+
+Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'deliver_at': instance.deliver_at,
+    };
