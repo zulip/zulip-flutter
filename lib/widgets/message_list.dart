@@ -7,6 +7,7 @@ import '../model/content.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
+import 'action_sheet.dart';
 import 'content.dart';
 import 'sticky_header.dart';
 import 'store.dart';
@@ -300,35 +301,39 @@ class MessageWithSender extends StatelessWidget {
     final time = _kMessageTimestampFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
 
-    // TODO clean up this layout, by less precisely imitating web
-    return Padding(
-        padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-              padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
-              child: Container(
-                  clipBehavior: Clip.antiAlias,
-                  decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(4))),
-                  width: 35,
-                  height: 35,
-                  child: avatar)),
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                const SizedBox(height: 3),
-                Text(message.sender_full_name, // TODO get from user data
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                MessageContent(message: message, content: content),
-              ])),
-          Container(
-              width: 80,
-              padding: const EdgeInsets.only(top: 4, right: 2),
-              alignment: Alignment.topRight,
-              child: Text(time, style: _kMessageTimestampStyle))
-        ]));
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onLongPress: () => showMessageActionSheet(context: context, message: message),
+      // TODO clean up this layout, by less precisely imitating web
+      child: Padding(
+          padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Padding(
+                padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
+                child: Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(4))),
+                    width: 35,
+                    height: 35,
+                    child: avatar)),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                  const SizedBox(height: 3),
+                  Text(message.sender_full_name, // TODO get from user data
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  MessageContent(message: message, content: content),
+                ])),
+            Container(
+                width: 80,
+                padding: const EdgeInsets.only(top: 4, right: 2),
+                alignment: Alignment.topRight,
+                child: Text(time, style: _kMessageTimestampStyle))
+          ])),
+    );
   }
 }
 
