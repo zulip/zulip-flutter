@@ -21,6 +21,13 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def keystoreProperties = new Properties()
+try {
+    keystoreProperties.load(new FileInputStream(rootProject.file('release-keystore.properties')))
+} catch (FileNotFoundException ignored) {
+    keystoreProperties = null
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
@@ -53,11 +60,29 @@ android {
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        release {
+            if (project.hasProperty('signed')) {
+                if (keystoreProperties == null) {
+                    throw new GradleException(
+                            "Missing signing config, but signing requested (-Psigned).  Did you want an unsigned build?")
+                }
+                storeFile rootProject.file(keystoreProperties.storeFile)
+                if (!storeFile.exists()) {
+                    throw new GradleException(
+                            "Keystore file missing, but signing requested (-Psigned).  Did you want an unsigned build?")
+                }
+                storePassword keystoreProperties.storePassword
+                keyAlias keystoreProperties.keyAlias
+                keyPassword keystoreProperties.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig project.hasProperty('signed') ?
+                    signingConfigs.release : signingConfigs.debug
         }
     }
 }
