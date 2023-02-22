@@ -101,7 +101,7 @@ class _MessageListState extends State<MessageList> {
         // TODO on new message when scrolled up, anchor scroll to what's in view
         reverse: true,
         itemBuilder: (context, i) => MessageItem(
-            trailing: i == 0 ? null : const SizedBox(height: 11),
+            trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
             message: model!.messages[length - 1 - i],
             content: model!.contents[length - 1 - i]));
   }
