@@ -23,8 +23,8 @@ environment:
   # and the corresponding beta version of the Dart SDK.  The hope is
   # that by the time we want to release, these will have become stable.
   # TODO: Switch to stable Flutter and Dart versions before general release.
-  sdk: '>=2.19.0-444.6.beta <4.0.0'
-  flutter: '>=3.7.0-1.5.pre <4.0.0'
+  sdk: '>=3.0.0-218.1.beta <4.0.0'
+  flutter: '>=3.8.0-10.1.pre <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
