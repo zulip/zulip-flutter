@@ -19,24 +19,25 @@ void copyWithPopup({
   await Clipboard.setData(data);
   final deviceInfo = await DeviceInfoPlugin().deviceInfo;
 
-  // Early return on !mounted would be better, but:
-  //   https://github.com/dart-lang/linter/issues/4007
-  if (context.mounted) {
-    final bool shouldShowSnackbar;
-    switch (deviceInfo) {
-      case AndroidDeviceInfo(:var version):
-        // Android 13+ shows its own popup on copying to the clipboard,
-        // so we suppress ours, following the advice at:
-        //   https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
-        // TODO(android-sdk-33): Simplify this and dartdoc
-        shouldShowSnackbar = version.sdkInt <= 32;
-      default:
-        shouldShowSnackbar = true;
-    }
+  if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
+  else {
+    return;
+  }
 
-    if (shouldShowSnackbar) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: successContent));
-    }
+  final bool shouldShowSnackbar;
+  switch (deviceInfo) {
+    case AndroidDeviceInfo(:var version):
+      // Android 13+ shows its own popup on copying to the clipboard,
+      // so we suppress ours, following the advice at:
+      //   https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
+      // TODO(android-sdk-33): Simplify this and dartdoc
+      shouldShowSnackbar = version.sdkInt <= 32;
+    default:
+      shouldShowSnackbar = true;
+  }
+
+  if (shouldShowSnackbar) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(behavior: SnackBarBehavior.floating, content: successContent));
   }
 }

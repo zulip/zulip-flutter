@@ -6,6 +6,7 @@ import '../api/model/model.dart';
 import '../model/content.dart';
 import '../model/store.dart';
 import 'store.dart';
+import 'lightbox.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
 const double kBaseFontSize = 14;
@@ -22,11 +23,11 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InheritedMessage(message: message, child: BlockContentList(nodes: content.nodes));
+    return InheritedMessage(message: message,
+      child: BlockContentList(nodes: content.nodes));
   }
 }
 
-/// Provides access to [message].
 class InheritedMessage extends InheritedWidget {
   const InheritedMessage({super.key, required this.message, required super.child});
 
@@ -36,10 +37,10 @@ class InheritedMessage extends InheritedWidget {
   bool updateShouldNotify(covariant InheritedMessage oldWidget) =>
     !identical(oldWidget.message, message);
 
-  static InheritedMessage of(BuildContext context) {
+  static Message of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
     assert(widget != null, 'No InheritedMessage ancestor');
-    return widget!;
+    return widget!.message;
   }
 }
 
@@ -197,6 +198,8 @@ class MessageImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final message = InheritedMessage.of(context);
+
     // TODO multiple images in a row
     // TODO image hover animation
     final src = node.srcUrl;
@@ -204,23 +207,30 @@ class MessageImage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = resolveUrl(src, store.account);
 
-    return Align(
-        alignment: Alignment.centerLeft,
-        child: Padding(
-            // TODO clean up this padding by imitating web less precisely;
-            //   in particular, avoid adding loose whitespace at end of message.
-            // The corresponding element on web has a 5px two-sided margin…
-            // and then a 1px transparent border all around.
-            padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
-            child: Container(
-                height: 100,
-                width: 150,
-                alignment: Alignment.center,
-                color: const Color.fromRGBO(0, 0, 0, 0.03),
-                child: RealmContentNetworkImage(
-                  resolvedSrc,
-                  filterQuality: FilterQuality.medium,
-                ))));
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(getLightboxRoute(
+          context: context, message: message, src: resolvedSrc));
+      },
+      child: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+              // TODO clean up this padding by imitating web less precisely;
+              //   in particular, avoid adding loose whitespace at end of message.
+              // The corresponding element on web has a 5px two-sided margin…
+              // and then a 1px transparent border all around.
+              padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
+              child: Container(
+                  height: 100,
+                  width: 150,
+                  alignment: Alignment.center,
+                  color: const Color.fromRGBO(0, 0, 0, 0.03),
+                  child: LightboxHero(
+                    message: message,
+                    src: resolvedSrc,
+                    child: RealmContentNetworkImage(
+                      resolvedSrc,
+                      filterQuality: FilterQuality.medium))))));
   }
 }
 
