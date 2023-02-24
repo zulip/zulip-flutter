@@ -321,7 +321,7 @@ class MessageWithSender extends StatelessWidget {
                 Text(message.sender_full_name, // TODO get from user data
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                MessageContent(content: content),
+                MessageContent(message: message, content: content),
               ])),
           Container(
               width: 80,

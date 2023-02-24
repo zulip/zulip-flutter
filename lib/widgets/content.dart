@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 
+import '../api/model/model.dart';
 import '../model/content.dart';
 import '../model/store.dart';
 import 'app.dart';
@@ -13,8 +14,9 @@ const double kBaseFontSize = 14;
 /// This does not include metadata like the sender's name and avatar, the time,
 /// or the message's status as starred or edited.
 class MessageContent extends StatelessWidget {
-  const MessageContent({super.key, required this.content});
+  const MessageContent({super.key, required this.message, required this.content});
 
+  final Message message;
   final ZulipContent content;
 
   @override
