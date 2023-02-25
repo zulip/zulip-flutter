@@ -45,6 +45,7 @@ dependencies:
   http: ^0.13.5
   html: ^0.15.1
   intl: ^0.18.0
+  share_plus: ^6.3.1
 
 dev_dependencies:
   flutter_test:
