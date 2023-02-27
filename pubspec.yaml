@@ -48,6 +48,10 @@ dependencies:
   share_plus: ^6.3.1
   device_info_plus: ^8.1.0
   file_picker: ^5.2.7
+  drift: ^2.5.0
+  path_provider: ^2.0.13
+  path: ^1.8.3
+  sqlite3_flutter_libs: ^0.5.13
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +74,7 @@ dev_dependencies:
     git:
       url: git@github.com:dart-lang/test.git
       path: pkgs/checks
+  drift_dev: ^2.5.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

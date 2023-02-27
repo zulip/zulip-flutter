@@ -44,6 +44,21 @@ PODS:
   - SDWebImage/Core (5.15.5)
   - share_plus (0.0.1):
     - Flutter
+  - sqlite3 (3.41.0):
+    - sqlite3/common (= 3.41.0)
+  - sqlite3/common (3.41.0)
+  - sqlite3/fts5 (3.41.0):
+    - sqlite3/common
+  - sqlite3/perf-threadsafe (3.41.0):
+    - sqlite3/common
+  - sqlite3/rtree (3.41.0):
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - Flutter
+    - sqlite3 (~> 3.41.0)
+    - sqlite3/fts5
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
   - SwiftyGif (5.4.4)
 
 DEPENDENCIES:
@@ -52,12 +67,14 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
+  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/ios`)
 
 SPEC REPOS:
   trunk:
     - DKImagePickerController
     - DKPhotoGallery
     - SDWebImage
+    - sqlite3
     - SwiftyGif
 
 EXTERNAL SOURCES:
@@ -71,6 +88,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
+  sqlite3_flutter_libs:
+    :path: ".symlinks/plugins/sqlite3_flutter_libs/ios"
 
 SPEC CHECKSUMS:
   device_info_plus: e5c5da33f982a436e103237c0c85f9031142abed
@@ -81,6 +100,8 @@ SPEC CHECKSUMS:
   path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
   SDWebImage: fd7e1a22f00303e058058278639bf6196ee431fe
   share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
+  sqlite3: d31b2b69d59bd1b4ab30e5c92eb18fd8e82fa392
+  sqlite3_flutter_libs: 78f93cb854d4680595bc2c63c57209a104b2efb1
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
 
 PODFILE CHECKSUM: 985e5b058f26709dc81f9ae74ea2b2775bdbcefe
