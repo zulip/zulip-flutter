@@ -1,0 +1,9 @@
+# Suppress noisy generated files in diffs.
+
+# Dart files generated from the files next to them:
+*.g.dart -diff
+
+# On the other hand, keep diffs for pubspec.lock.  It contains
+# information independent of any non-generated file in the tree.
+# And thankfully it's much less verbose than, say, a yarn.lock.
+#pubspec.lock -diff
