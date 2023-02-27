@@ -45,6 +45,9 @@ dependencies:
   http: ^0.13.5
   html: ^0.15.1
   intl: ^0.18.0
+  drift: ^2.5.0
+  path_provider: ^2.0.13
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +64,7 @@ dev_dependencies:
   build_runner: ^2.3.3
   test: ^1.23.1
   checks: ^0.2.1
+  drift_dev: ^2.5.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
