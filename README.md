@@ -28,8 +28,15 @@ samples, guidance on mobile development, and a full API reference.
 
 ### Dependencies
 
-While in the prototype phase, we use the latest beta version of Flutter.
-Use `flutter channel beta` and `flutter upgrade` to get the right version.
+While in the prototype phase, we use the latest Flutter from Flutter's
+main branch.  Use `flutter channel main` and `flutter upgrade`.
+
+We don't pin a specific version, because Flutter itself doesn't offer
+a way to do so.  So far that hasn't been a problem.  When it becomes one,
+we'll figure it out; there are several tools for this in the Flutter
+community.  See [issue #15][].
+
+[issue #15]: https://github.com/zulip/zulip-flutter/issues/15
 
 
 ### Server credentials
@@ -76,7 +83,15 @@ $ flutter pub run build_runner watch --delete-conflicting-outputs
 
 ### Upgrading Flutter
 
-When there's a new Flutter beta, we'll take the upgrade promptly:
+We regularly increment our lower bounds on Flutter and Dart versions,
+to make sure there's not too much divergence in the versions people
+are using.
+
+When there's a new beta (which happens a couple of times per month),
+that's a good prompt to do this.  We also do this when there's a
+new PR merged that we particularly want to take.
+
+To update the version bounds:
 * Use `flutter upgrade` to upgrade your local Flutter and Dart.
 * Update the lower bounds at `environment` in `pubspec.yaml`
   to the new versions, as seen in `flutter --version`.

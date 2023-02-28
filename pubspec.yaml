@@ -19,12 +19,13 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.0.1+1
 
 environment:
-  # We use a beta version of Flutter while developing a prototype,
-  # and the corresponding beta version of the Dart SDK.  The hope is
+  # We use a development version of Flutter while developing a prototype,
+  # and the corresponding dev version of the Dart SDK.  The hope is
   # that by the time we want to release, these will have become stable.
-  # TODO: Switch to stable Flutter and Dart versions before general release.
-  sdk: '>=3.0.0-218.1.beta <4.0.0'
-  flutter: '>=3.8.0-10.1.pre <4.0.0'
+  # TODO: Before general release, switch to stable Flutter and Dart versions,
+  #   or pin exact versions: https://github.com/zulip/zulip-flutter/issues/15
+  sdk: '>=3.0.0-277.0.dev <4.0.0'
+  flutter: '>=3.8.0-17.0.pre.49'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
