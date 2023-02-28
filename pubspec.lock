@@ -121,6 +121,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  checks:
+    dependency: "direct dev"
+    description:
+      name: checks
+      sha256: "028fb54c181e68edc3c891d7d45813937311e29c77609f513bb5025620637ffd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   clock:
     dependency: transitive
     description:
