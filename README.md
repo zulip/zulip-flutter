@@ -66,6 +66,32 @@ from any mobile devices you ran it on) when done.
 [download-zuliprc]: https://zulip.com/api/api-keys
 
 
+### Tests
+
+You can run all our forms of tests with two commands:
+
+```
+$ flutter analyze
+$ flutter test
+```
+
+Both should always pass, with no errors or warnings of any kind.
+
+The `flutter analyze` command runs the Dart analyzer, which performs
+type-checking and linting.  The `flutter test` command runs our
+unit tests, located in the `test/` directory.
+
+Both commands accept a list of file or directory paths to operate
+only on those files, and other options.
+
+When editing in an IDE, the IDE should give you the exact same feedback
+as `flutter analyze` would.  When editing a test file, the IDE can also
+run individual tests for you.
+See [upstream docs on `flutter test`][flutter-cookbook-unit-tests].
+
+[flutter-cookbook-unit-tests]: https://docs.flutter.dev/cookbook/testing/unit/introduction
+
+
 ## Notes
 
 ### Editing API types
@@ -96,7 +122,7 @@ To update the version bounds:
 * Update the lower bounds at `environment` in `pubspec.yaml`
   to the new versions, as seen in `flutter --version`.
 * Run `flutter pub get`, which will update `pubspec.lock`.
-* Make a quick check that things work: `flutter analyze`,
+* Make a quick check that things work: `flutter analyze && flutter test`,
   and do a quick smoke-test of the app.
 * Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
 
