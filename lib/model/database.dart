@@ -19,6 +19,8 @@ class Accounts extends Table {
   Column<String> get zulipVersion => text()();
   Column<int>    get zulipFeatureLevel => integer()();
 
+  Column<String> get ackedPushToken => text().nullable()();
+
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
@@ -41,8 +43,30 @@ class AppDatabase extends _$AppDatabase {
 
   AppDatabase.live() : this(_openConnection());
 
+  // When updating the schema:
+  //  * Make the change in the table classes, and bump schemaVersion.
+  //  * Export the new schema:
+  //    $ dart run drift_dev schema dump lib/model/database.dart test/model/schemas/
+  //  * Generate test migrations from the schemas:
+  //    $ dart run drift_dev schema generate --data-classes --companions test/model/schemas/ test/model/generated_migrations/
+  //  * Write a migration in `onUpgrade` below.
+  //  * Write tests.
   @override
-  int get schemaVersion => 1; // TODO migrations
+  int get schemaVersion => 2; // See note.
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2 && 2 <= to) {
+          await m.addColumn(accounts, accounts.ackedPushToken);
+        }
+      }
+    );
+  }
 
   Future<int> createAccount(AccountsCompanion values) {
     return into(accounts).insert(values);

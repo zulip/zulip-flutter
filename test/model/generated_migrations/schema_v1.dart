@@ -1,15 +1,12 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+// GENERATED CODE, DO NOT EDIT BY HAND.
+//@dart=2.12
+import 'package:drift/drift.dart';
 
-part of 'database.dart';
-
-// ignore_for_file: type=lint
-class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
+class Accounts extends Table with TableInfo<Accounts, AccountsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $AccountsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
+  Accounts(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, false,
       hasAutoIncrement: true,
@@ -17,117 +14,31 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _realmUrlMeta =
-      const VerificationMeta('realmUrl');
-  @override
   late final GeneratedColumn<String> realmUrl = GeneratedColumn<String>(
       'realm_url', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  @override
   late final GeneratedColumn<int> userId = GeneratedColumn<int>(
       'user_id', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _emailMeta = const VerificationMeta('email');
-  @override
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
       'email', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _apiKeyMeta = const VerificationMeta('apiKey');
-  @override
   late final GeneratedColumn<String> apiKey = GeneratedColumn<String>(
       'api_key', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _zulipVersionMeta =
-      const VerificationMeta('zulipVersion');
-  @override
   late final GeneratedColumn<String> zulipVersion = GeneratedColumn<String>(
       'zulip_version', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _zulipFeatureLevelMeta =
-      const VerificationMeta('zulipFeatureLevel');
-  @override
   late final GeneratedColumn<int> zulipFeatureLevel = GeneratedColumn<int>(
       'zulip_feature_level', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _ackedPushTokenMeta =
-      const VerificationMeta('ackedPushToken');
   @override
-  late final GeneratedColumn<String> ackedPushToken = GeneratedColumn<String>(
-      'acked_push_token', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        realmUrl,
-        userId,
-        email,
-        apiKey,
-        zulipVersion,
-        zulipFeatureLevel,
-        ackedPushToken
-      ];
+  List<GeneratedColumn> get $columns =>
+      [id, realmUrl, userId, email, apiKey, zulipVersion, zulipFeatureLevel];
   @override
   String get aliasedName => _alias ?? 'accounts';
   @override
   String get actualTableName => 'accounts';
-  @override
-  VerificationContext validateIntegrity(Insertable<Account> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('realm_url')) {
-      context.handle(_realmUrlMeta,
-          realmUrl.isAcceptableOrUnknown(data['realm_url']!, _realmUrlMeta));
-    } else if (isInserting) {
-      context.missing(_realmUrlMeta);
-    }
-    if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('email')) {
-      context.handle(
-          _emailMeta, email.isAcceptableOrUnknown(data['email']!, _emailMeta));
-    } else if (isInserting) {
-      context.missing(_emailMeta);
-    }
-    if (data.containsKey('api_key')) {
-      context.handle(_apiKeyMeta,
-          apiKey.isAcceptableOrUnknown(data['api_key']!, _apiKeyMeta));
-    } else if (isInserting) {
-      context.missing(_apiKeyMeta);
-    }
-    if (data.containsKey('zulip_version')) {
-      context.handle(
-          _zulipVersionMeta,
-          zulipVersion.isAcceptableOrUnknown(
-              data['zulip_version']!, _zulipVersionMeta));
-    } else if (isInserting) {
-      context.missing(_zulipVersionMeta);
-    }
-    if (data.containsKey('zulip_feature_level')) {
-      context.handle(
-          _zulipFeatureLevelMeta,
-          zulipFeatureLevel.isAcceptableOrUnknown(
-              data['zulip_feature_level']!, _zulipFeatureLevelMeta));
-    } else if (isInserting) {
-      context.missing(_zulipFeatureLevelMeta);
-    }
-    if (data.containsKey('acked_push_token')) {
-      context.handle(
-          _ackedPushTokenMeta,
-          ackedPushToken.isAcceptableOrUnknown(
-              data['acked_push_token']!, _ackedPushTokenMeta));
-    }
-    return context;
-  }
-
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
@@ -136,9 +47,9 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         {realmUrl, email},
       ];
   @override
-  Account map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AccountsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Account(
+    return AccountsData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       realmUrl: attachedDatabase.typeMapping
@@ -153,18 +64,16 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
           .read(DriftSqlType.string, data['${effectivePrefix}zulip_version'])!,
       zulipFeatureLevel: attachedDatabase.typeMapping.read(
           DriftSqlType.int, data['${effectivePrefix}zulip_feature_level'])!,
-      ackedPushToken: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}acked_push_token']),
     );
   }
 
   @override
-  $AccountsTable createAlias(String alias) {
-    return $AccountsTable(attachedDatabase, alias);
+  Accounts createAlias(String alias) {
+    return Accounts(attachedDatabase, alias);
   }
 }
 
-class Account extends DataClass implements Insertable<Account> {
+class AccountsData extends DataClass implements Insertable<AccountsData> {
   final int id;
   final String realmUrl;
   final int userId;
@@ -172,16 +81,14 @@ class Account extends DataClass implements Insertable<Account> {
   final String apiKey;
   final String zulipVersion;
   final int zulipFeatureLevel;
-  final String? ackedPushToken;
-  const Account(
+  const AccountsData(
       {required this.id,
       required this.realmUrl,
       required this.userId,
       required this.email,
       required this.apiKey,
       required this.zulipVersion,
-      required this.zulipFeatureLevel,
-      this.ackedPushToken});
+      required this.zulipFeatureLevel});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -192,9 +99,6 @@ class Account extends DataClass implements Insertable<Account> {
     map['api_key'] = Variable<String>(apiKey);
     map['zulip_version'] = Variable<String>(zulipVersion);
     map['zulip_feature_level'] = Variable<int>(zulipFeatureLevel);
-    if (!nullToAbsent || ackedPushToken != null) {
-      map['acked_push_token'] = Variable<String>(ackedPushToken);
-    }
     return map;
   }
 
@@ -207,16 +111,13 @@ class Account extends DataClass implements Insertable<Account> {
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
       zulipFeatureLevel: Value(zulipFeatureLevel),
-      ackedPushToken: ackedPushToken == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ackedPushToken),
     );
   }
 
-  factory Account.fromJson(Map<String, dynamic> json,
+  factory AccountsData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Account(
+    return AccountsData(
       id: serializer.fromJson<int>(json['id']),
       realmUrl: serializer.fromJson<String>(json['realmUrl']),
       userId: serializer.fromJson<int>(json['userId']),
@@ -224,7 +125,6 @@ class Account extends DataClass implements Insertable<Account> {
       apiKey: serializer.fromJson<String>(json['apiKey']),
       zulipVersion: serializer.fromJson<String>(json['zulipVersion']),
       zulipFeatureLevel: serializer.fromJson<int>(json['zulipFeatureLevel']),
-      ackedPushToken: serializer.fromJson<String?>(json['ackedPushToken']),
     );
   }
   @override
@@ -238,20 +138,18 @@ class Account extends DataClass implements Insertable<Account> {
       'apiKey': serializer.toJson<String>(apiKey),
       'zulipVersion': serializer.toJson<String>(zulipVersion),
       'zulipFeatureLevel': serializer.toJson<int>(zulipFeatureLevel),
-      'ackedPushToken': serializer.toJson<String?>(ackedPushToken),
     };
   }
 
-  Account copyWith(
+  AccountsData copyWith(
           {int? id,
           String? realmUrl,
           int? userId,
           String? email,
           String? apiKey,
           String? zulipVersion,
-          int? zulipFeatureLevel,
-          Value<String?> ackedPushToken = const Value.absent()}) =>
-      Account(
+          int? zulipFeatureLevel}) =>
+      AccountsData(
         id: id ?? this.id,
         realmUrl: realmUrl ?? this.realmUrl,
         userId: userId ?? this.userId,
@@ -259,42 +157,38 @@ class Account extends DataClass implements Insertable<Account> {
         apiKey: apiKey ?? this.apiKey,
         zulipVersion: zulipVersion ?? this.zulipVersion,
         zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-        ackedPushToken:
-            ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
       );
   @override
   String toString() {
-    return (StringBuffer('Account(')
+    return (StringBuffer('AccountsData(')
           ..write('id: $id, ')
           ..write('realmUrl: $realmUrl, ')
           ..write('userId: $userId, ')
           ..write('email: $email, ')
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
-          ..write('zulipFeatureLevel: $zulipFeatureLevel, ')
-          ..write('ackedPushToken: $ackedPushToken')
+          ..write('zulipFeatureLevel: $zulipFeatureLevel')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, realmUrl, userId, email, apiKey,
-      zulipVersion, zulipFeatureLevel, ackedPushToken);
+  int get hashCode => Object.hash(
+      id, realmUrl, userId, email, apiKey, zulipVersion, zulipFeatureLevel);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Account &&
+      (other is AccountsData &&
           other.id == this.id &&
           other.realmUrl == this.realmUrl &&
           other.userId == this.userId &&
           other.email == this.email &&
           other.apiKey == this.apiKey &&
           other.zulipVersion == this.zulipVersion &&
-          other.zulipFeatureLevel == this.zulipFeatureLevel &&
-          other.ackedPushToken == this.ackedPushToken);
+          other.zulipFeatureLevel == this.zulipFeatureLevel);
 }
 
-class AccountsCompanion extends UpdateCompanion<Account> {
+class AccountsCompanion extends UpdateCompanion<AccountsData> {
   final Value<int> id;
   final Value<String> realmUrl;
   final Value<int> userId;
@@ -302,7 +196,6 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<String> apiKey;
   final Value<String> zulipVersion;
   final Value<int> zulipFeatureLevel;
-  final Value<String?> ackedPushToken;
   const AccountsCompanion({
     this.id = const Value.absent(),
     this.realmUrl = const Value.absent(),
@@ -311,7 +204,6 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     this.apiKey = const Value.absent(),
     this.zulipVersion = const Value.absent(),
     this.zulipFeatureLevel = const Value.absent(),
-    this.ackedPushToken = const Value.absent(),
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
@@ -321,14 +213,13 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     required String apiKey,
     required String zulipVersion,
     required int zulipFeatureLevel,
-    this.ackedPushToken = const Value.absent(),
   })  : realmUrl = Value(realmUrl),
         userId = Value(userId),
         email = Value(email),
         apiKey = Value(apiKey),
         zulipVersion = Value(zulipVersion),
         zulipFeatureLevel = Value(zulipFeatureLevel);
-  static Insertable<Account> custom({
+  static Insertable<AccountsData> custom({
     Expression<int>? id,
     Expression<String>? realmUrl,
     Expression<int>? userId,
@@ -336,7 +227,6 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Expression<String>? apiKey,
     Expression<String>? zulipVersion,
     Expression<int>? zulipFeatureLevel,
-    Expression<String>? ackedPushToken,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -346,7 +236,6 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       if (apiKey != null) 'api_key': apiKey,
       if (zulipVersion != null) 'zulip_version': zulipVersion,
       if (zulipFeatureLevel != null) 'zulip_feature_level': zulipFeatureLevel,
-      if (ackedPushToken != null) 'acked_push_token': ackedPushToken,
     });
   }
 
@@ -357,8 +246,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       Value<String>? email,
       Value<String>? apiKey,
       Value<String>? zulipVersion,
-      Value<int>? zulipFeatureLevel,
-      Value<String?>? ackedPushToken}) {
+      Value<int>? zulipFeatureLevel}) {
     return AccountsCompanion(
       id: id ?? this.id,
       realmUrl: realmUrl ?? this.realmUrl,
@@ -367,7 +255,6 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       apiKey: apiKey ?? this.apiKey,
       zulipVersion: zulipVersion ?? this.zulipVersion,
       zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-      ackedPushToken: ackedPushToken ?? this.ackedPushToken,
     );
   }
 
@@ -395,9 +282,6 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     if (zulipFeatureLevel.present) {
       map['zulip_feature_level'] = Variable<int>(zulipFeatureLevel.value);
     }
-    if (ackedPushToken.present) {
-      map['acked_push_token'] = Variable<String>(ackedPushToken.value);
-    }
     return map;
   }
 
@@ -410,19 +294,20 @@ class AccountsCompanion extends UpdateCompanion<Account> {
           ..write('email: $email, ')
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
-          ..write('zulipFeatureLevel: $zulipFeatureLevel, ')
-          ..write('ackedPushToken: $ackedPushToken')
+          ..write('zulipFeatureLevel: $zulipFeatureLevel')
           ..write(')'))
         .toString();
   }
 }
 
-abstract class _$AppDatabase extends GeneratedDatabase {
-  _$AppDatabase(QueryExecutor e) : super(e);
-  late final $AccountsTable accounts = $AccountsTable(this);
+class DatabaseAtV1 extends GeneratedDatabase {
+  DatabaseAtV1(QueryExecutor e) : super(e);
+  late final Accounts accounts = Accounts(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [accounts];
+  @override
+  int get schemaVersion => 1;
 }
