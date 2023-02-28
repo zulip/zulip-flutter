@@ -2,8 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
+// TODO: Implement ==/hashCode for all these classes where O(1), for testing/debugging
+//   (Skip them for classes containing lists.)
+// TODO: Implement toString for all these classes, for testing/debugging; or
+//   perhaps Diagnosticable instead?
+
 @immutable
-class ContentNode {
+abstract class ContentNode {
   const ContentNode({this.debugHtmlNode});
 
   final dom.Node? debugHtmlNode;
@@ -28,6 +33,9 @@ class ZulipContent extends ContentNode {
   const ZulipContent({super.debugHtmlNode, required this.nodes});
 
   final List<BlockContentNode> nodes;
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'ZulipContent')}($nodes)';
 }
 
 abstract class BlockContentNode extends ContentNode {
@@ -45,6 +53,14 @@ class UnimplementedBlockContentNode extends BlockContentNode
 // A `br` element.
 class LineBreakNode extends BlockContentNode {
   const LineBreakNode({super.debugHtmlNode});
+
+  @override
+  bool operator ==(Object other) {
+    return other is LineBreakNode;
+  }
+
+  @override
+  int get hashCode => 'LineBreakNode'.hashCode;
 }
 
 // A `p` element, or a place where the DOM tree logically wanted one.
@@ -63,6 +79,12 @@ class ParagraphNode extends BlockContentNode {
   final bool wasImplicit;
 
   final List<InlineContentNode> nodes;
+
+  // No == or hashCode overrides; don't want to walk through [nodes] in
+  // an operation that looks cheap.
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'ParagraphNode')}(wasImplicit: $wasImplicit, $nodes)';
 }
 
 enum ListStyle { ordered, unordered }
@@ -122,6 +144,19 @@ class TextNode extends InlineContentNode {
   const TextNode(this.text, {super.debugHtmlNode});
 
   final String text;
+
+  @override
+  bool operator ==(Object other) {
+    return other is TextNode
+        && other.text == text;
+  }
+
+  @override
+  int get hashCode => Object.hash('TextNode', text);
+
+  // TODO encode unambiguously regardless of text contents
+  @override
+  String toString() => '${objectRuntimeType(this, 'TextNode')}(text: $text)';
 }
 
 class LineBreakInlineNode extends InlineContentNode {
