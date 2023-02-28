@@ -1,15 +1,13 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
-part of 'database.dart';
-
+// GENERATED CODE, DO NOT EDIT BY HAND.
 // ignore_for_file: type=lint
-class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
+//@dart=2.12
+import 'package:drift/drift.dart';
+
+class Accounts extends Table with TableInfo<Accounts, AccountsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $AccountsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
+  Accounts(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, false,
       hasAutoIncrement: true,
@@ -17,49 +15,27 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _realmUrlMeta =
-      const VerificationMeta('realmUrl');
-  @override
-  late final GeneratedColumnWithTypeConverter<Uri, String> realmUrl =
-      GeneratedColumn<String>('realm_url', aliasedName, false,
-              type: DriftSqlType.string, requiredDuringInsert: true)
-          .withConverter<Uri>($AccountsTable.$converterrealmUrl);
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  @override
+  late final GeneratedColumn<String> realmUrl = GeneratedColumn<String>(
+      'realm_url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   late final GeneratedColumn<int> userId = GeneratedColumn<int>(
       'user_id', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _emailMeta = const VerificationMeta('email');
-  @override
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
       'email', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _apiKeyMeta = const VerificationMeta('apiKey');
-  @override
   late final GeneratedColumn<String> apiKey = GeneratedColumn<String>(
       'api_key', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _zulipVersionMeta =
-      const VerificationMeta('zulipVersion');
-  @override
   late final GeneratedColumn<String> zulipVersion = GeneratedColumn<String>(
       'zulip_version', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _zulipMergeBaseMeta =
-      const VerificationMeta('zulipMergeBase');
-  @override
   late final GeneratedColumn<String> zulipMergeBase = GeneratedColumn<String>(
       'zulip_merge_base', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _zulipFeatureLevelMeta =
-      const VerificationMeta('zulipFeatureLevel');
-  @override
   late final GeneratedColumn<int> zulipFeatureLevel = GeneratedColumn<int>(
       'zulip_feature_level', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _ackedPushTokenMeta =
-      const VerificationMeta('ackedPushToken');
-  @override
   late final GeneratedColumn<String> ackedPushToken = GeneratedColumn<String>(
       'acked_push_token', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
@@ -80,64 +56,6 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   @override
   String get actualTableName => 'accounts';
   @override
-  VerificationContext validateIntegrity(Insertable<Account> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    context.handle(_realmUrlMeta, const VerificationResult.success());
-    if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('email')) {
-      context.handle(
-          _emailMeta, email.isAcceptableOrUnknown(data['email']!, _emailMeta));
-    } else if (isInserting) {
-      context.missing(_emailMeta);
-    }
-    if (data.containsKey('api_key')) {
-      context.handle(_apiKeyMeta,
-          apiKey.isAcceptableOrUnknown(data['api_key']!, _apiKeyMeta));
-    } else if (isInserting) {
-      context.missing(_apiKeyMeta);
-    }
-    if (data.containsKey('zulip_version')) {
-      context.handle(
-          _zulipVersionMeta,
-          zulipVersion.isAcceptableOrUnknown(
-              data['zulip_version']!, _zulipVersionMeta));
-    } else if (isInserting) {
-      context.missing(_zulipVersionMeta);
-    }
-    if (data.containsKey('zulip_merge_base')) {
-      context.handle(
-          _zulipMergeBaseMeta,
-          zulipMergeBase.isAcceptableOrUnknown(
-              data['zulip_merge_base']!, _zulipMergeBaseMeta));
-    }
-    if (data.containsKey('zulip_feature_level')) {
-      context.handle(
-          _zulipFeatureLevelMeta,
-          zulipFeatureLevel.isAcceptableOrUnknown(
-              data['zulip_feature_level']!, _zulipFeatureLevelMeta));
-    } else if (isInserting) {
-      context.missing(_zulipFeatureLevelMeta);
-    }
-    if (data.containsKey('acked_push_token')) {
-      context.handle(
-          _ackedPushTokenMeta,
-          ackedPushToken.isAcceptableOrUnknown(
-              data['acked_push_token']!, _ackedPushTokenMeta));
-    }
-    return context;
-  }
-
-  @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
@@ -145,14 +63,13 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         {realmUrl, email},
       ];
   @override
-  Account map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AccountsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Account(
+    return AccountsData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      realmUrl: $AccountsTable.$converterrealmUrl.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}realm_url'])!),
+      realmUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}realm_url'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}user_id'])!,
       email: attachedDatabase.typeMapping
@@ -171,16 +88,14 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   }
 
   @override
-  $AccountsTable createAlias(String alias) {
-    return $AccountsTable(attachedDatabase, alias);
+  Accounts createAlias(String alias) {
+    return Accounts(attachedDatabase, alias);
   }
-
-  static TypeConverter<Uri, String> $converterrealmUrl = const UriConverter();
 }
 
-class Account extends DataClass implements Insertable<Account> {
+class AccountsData extends DataClass implements Insertable<AccountsData> {
   final int id;
-  final Uri realmUrl;
+  final String realmUrl;
   final int userId;
   final String email;
   final String apiKey;
@@ -188,7 +103,7 @@ class Account extends DataClass implements Insertable<Account> {
   final String? zulipMergeBase;
   final int zulipFeatureLevel;
   final String? ackedPushToken;
-  const Account(
+  const AccountsData(
       {required this.id,
       required this.realmUrl,
       required this.userId,
@@ -202,10 +117,7 @@ class Account extends DataClass implements Insertable<Account> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    {
-      final converter = $AccountsTable.$converterrealmUrl;
-      map['realm_url'] = Variable<String>(converter.toSql(realmUrl));
-    }
+    map['realm_url'] = Variable<String>(realmUrl);
     map['user_id'] = Variable<int>(userId);
     map['email'] = Variable<String>(email);
     map['api_key'] = Variable<String>(apiKey);
@@ -238,12 +150,12 @@ class Account extends DataClass implements Insertable<Account> {
     );
   }
 
-  factory Account.fromJson(Map<String, dynamic> json,
+  factory AccountsData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Account(
+    return AccountsData(
       id: serializer.fromJson<int>(json['id']),
-      realmUrl: serializer.fromJson<Uri>(json['realmUrl']),
+      realmUrl: serializer.fromJson<String>(json['realmUrl']),
       userId: serializer.fromJson<int>(json['userId']),
       email: serializer.fromJson<String>(json['email']),
       apiKey: serializer.fromJson<String>(json['apiKey']),
@@ -258,7 +170,7 @@ class Account extends DataClass implements Insertable<Account> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'realmUrl': serializer.toJson<Uri>(realmUrl),
+      'realmUrl': serializer.toJson<String>(realmUrl),
       'userId': serializer.toJson<int>(userId),
       'email': serializer.toJson<String>(email),
       'apiKey': serializer.toJson<String>(apiKey),
@@ -269,9 +181,9 @@ class Account extends DataClass implements Insertable<Account> {
     };
   }
 
-  Account copyWith(
+  AccountsData copyWith(
           {int? id,
-          Uri? realmUrl,
+          String? realmUrl,
           int? userId,
           String? email,
           String? apiKey,
@@ -279,7 +191,7 @@ class Account extends DataClass implements Insertable<Account> {
           Value<String?> zulipMergeBase = const Value.absent(),
           int? zulipFeatureLevel,
           Value<String?> ackedPushToken = const Value.absent()}) =>
-      Account(
+      AccountsData(
         id: id ?? this.id,
         realmUrl: realmUrl ?? this.realmUrl,
         userId: userId ?? this.userId,
@@ -294,7 +206,7 @@ class Account extends DataClass implements Insertable<Account> {
       );
   @override
   String toString() {
-    return (StringBuffer('Account(')
+    return (StringBuffer('AccountsData(')
           ..write('id: $id, ')
           ..write('realmUrl: $realmUrl, ')
           ..write('userId: $userId, ')
@@ -314,7 +226,7 @@ class Account extends DataClass implements Insertable<Account> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Account &&
+      (other is AccountsData &&
           other.id == this.id &&
           other.realmUrl == this.realmUrl &&
           other.userId == this.userId &&
@@ -326,9 +238,9 @@ class Account extends DataClass implements Insertable<Account> {
           other.ackedPushToken == this.ackedPushToken);
 }
 
-class AccountsCompanion extends UpdateCompanion<Account> {
+class AccountsCompanion extends UpdateCompanion<AccountsData> {
   final Value<int> id;
-  final Value<Uri> realmUrl;
+  final Value<String> realmUrl;
   final Value<int> userId;
   final Value<String> email;
   final Value<String> apiKey;
@@ -349,7 +261,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
-    required Uri realmUrl,
+    required String realmUrl,
     required int userId,
     required String email,
     required String apiKey,
@@ -363,7 +275,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
         apiKey = Value(apiKey),
         zulipVersion = Value(zulipVersion),
         zulipFeatureLevel = Value(zulipFeatureLevel);
-  static Insertable<Account> custom({
+  static Insertable<AccountsData> custom({
     Expression<int>? id,
     Expression<String>? realmUrl,
     Expression<int>? userId,
@@ -389,7 +301,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
 
   AccountsCompanion copyWith(
       {Value<int>? id,
-      Value<Uri>? realmUrl,
+      Value<String>? realmUrl,
       Value<int>? userId,
       Value<String>? email,
       Value<String>? apiKey,
@@ -417,8 +329,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       map['id'] = Variable<int>(id.value);
     }
     if (realmUrl.present) {
-      final converter = $AccountsTable.$converterrealmUrl;
-      map['realm_url'] = Variable<String>(converter.toSql(realmUrl.value));
+      map['realm_url'] = Variable<String>(realmUrl.value);
     }
     if (userId.present) {
       map['user_id'] = Variable<int>(userId.value);
@@ -461,12 +372,14 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   }
 }
 
-abstract class _$AppDatabase extends GeneratedDatabase {
-  _$AppDatabase(QueryExecutor e) : super(e);
-  late final $AccountsTable accounts = $AccountsTable(this);
+class DatabaseAtV2 extends GeneratedDatabase {
+  DatabaseAtV2(QueryExecutor e) : super(e);
+  late final Accounts accounts = Accounts(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [accounts];
+  @override
+  int get schemaVersion => 2;
 }

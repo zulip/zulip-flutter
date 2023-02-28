@@ -20,6 +20,8 @@ class Accounts extends Table {
   Column<String> get zulipMergeBase => text().nullable()();
   Column<int>    get zulipFeatureLevel => integer()();
 
+  Column<String> get ackedPushToken => text().nullable()();
+
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
@@ -58,7 +60,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Write tests.
   // TODO run those `drift_dev schema` commands in CI: https://github.com/zulip/zulip-flutter/issues/60
   @override
-  int get schemaVersion => 1; // See note.
+  int get schemaVersion => 2; // See note.
 
   @override
   MigrationStrategy get migration {
@@ -80,6 +82,11 @@ class AppDatabase extends _$AppDatabase {
           return;
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
+
+        if (from < 2 && 2 <= to) {
+          await m.addColumn(accounts, accounts.ackedPushToken);
+        }
+        // New migrations go here.
       }
     );
   }

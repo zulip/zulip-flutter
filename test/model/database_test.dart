@@ -1,38 +1,87 @@
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:drift_dev/api/migrations.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
 
+import 'schemas/schema.dart';
+import 'schemas/schema_v1.dart' as v1;
+import 'schemas/schema_v2.dart' as v2;
+
 void main() {
-  late AppDatabase database;
+  group('non-migration tests', () {
+    late AppDatabase database;
 
-  setUp(() {
-    database = AppDatabase(NativeDatabase.memory());
-  });
-  tearDown(() async {
-    await database.close();
+    setUp(() {
+      database = AppDatabase(NativeDatabase.memory());
+    });
+    tearDown(() async {
+      await database.close();
+    });
+
+    test('create account', () async {
+      final accountData = AccountsCompanion.insert(
+        realmUrl: Uri.parse('https://chat.example/'),
+        userId: 1,
+        email: 'asdf@example.org',
+        apiKey: '1234',
+        zulipVersion: '6.0',
+        zulipMergeBase: const Value('6.0'),
+        zulipFeatureLevel: 42,
+      );
+      final accountId = await database.createAccount(accountData);
+      final account = await (database.select(database.accounts)
+            ..where((a) => a.id.equals(accountId)))
+          .watchSingle()
+          .first;
+      check(account.toCompanion(false).toJson()).deepEquals({
+        ...accountData.toJson(),
+        'id': it(),
+        'acked_push_token': null,
+      });
+    });
   });
 
-  test('create account', () async {
-    // TODO use example_data
-    final accountData = AccountsCompanion.insert(
-      realmUrl: Uri.parse('https://chat.example/'),
-      userId: 1,
-      email: 'asdf@example.org',
-      apiKey: '1234',
-      zulipVersion: '6.0',
-      zulipMergeBase: const Value('6.0'),
-      zulipFeatureLevel: 42,
-    );
-    final accountId = await database.createAccount(accountData);
-    final account = await (database.select(database.accounts)
-          ..where((a) => a.id.equals(accountId)))
-        .watchSingle()
-        .first;
-    check(account.toCompanion(false).toJson()).deepEquals({
-      ...accountData.toJson(),
-      'id': it(),
+  group('migrations', () {
+    late SchemaVerifier verifier;
+
+    setUpAll(() {
+      verifier = SchemaVerifier(GeneratedHelper());
+    });
+
+    test('upgrade to v2, empty', () async {
+      final connection = await verifier.startAt(1);
+      final db = AppDatabase(connection);
+      await verifier.migrateAndValidate(db, 2);
+      await db.close();
+    });
+
+    test('upgrade to v2, with data', () async {
+      final schema = await verifier.schemaAt(1);
+      final before = v1.DatabaseAtV1(schema.newConnection());
+      await before.into(before.accounts).insert(v1.AccountsCompanion.insert(
+        realmUrl: 'https://chat.example/',
+        userId: 1,
+        email: 'asdf@example.org',
+        apiKey: '1234',
+        zulipVersion: '6.0',
+        zulipMergeBase: const Value('6.0'),
+        zulipFeatureLevel: 42,
+      ));
+      final accountV1 = await before.select(before.accounts).watchSingle().first;
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 2);
+      await db.close();
+
+      final after = v2.DatabaseAtV2(schema.newConnection());
+      final account = await after.select(after.accounts).getSingle();
+      check(account.toJson()).deepEquals({
+        ...accountV1.toJson(),
+        'ackedPushToken': null,
+      });
     });
   });
 }
