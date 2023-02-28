@@ -59,6 +59,7 @@ dev_dependencies:
 
   json_serializable: ^6.5.4
   build_runner: ^2.3.3
+  test: ^1.23.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
