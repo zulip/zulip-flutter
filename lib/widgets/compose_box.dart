@@ -4,6 +4,9 @@ import 'dialog.dart';
 import 'app.dart';
 import '../api/route/messages.dart';
 
+const double _inputVerticalPadding = 8;
+const double _sendButtonSize = 35;
+
 enum TopicValidationError {
   mandatoryButEmpty,
   tooLong;
@@ -112,17 +115,23 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    return ConstrainedBox(
-      // TODO constrain height adaptively (i.e. not hard-coded 200)
-      constraints: const BoxConstraints(maxHeight: 200),
+    return InputDecorator(
+      decoration: const InputDecoration(),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
 
-      child: TextField(
-        controller: widget.controller,
-        style: TextStyle(color: colorScheme.onSurface),
-        decoration: InputDecoration(
-          hintText: "Message #test here > $_topicTextNormalized",
+          // TODO constrain this adaptively (i.e. not hard-coded 200)
+          maxHeight: 200
         ),
-        maxLines: null,
+        child: TextField(
+          controller: widget.controller,
+          style: TextStyle(color: colorScheme.onSurface),
+          decoration: InputDecoration.collapsed(
+            hintText: "Message #test here > $_topicTextNormalized",
+          ),
+          maxLines: null,
+        ),
       ),
     );
   }
@@ -235,10 +244,9 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
         color: backgroundColor,
       ),
       child: IconButton(
-        // Empirically, match the height of the content input. Ideally, this
-        // would be dynamic and respond to the actual height of the content
-        // input. Zeroing the padding lets the constraints take over.
-        constraints: const BoxConstraints(minWidth: 35, minHeight: 35),
+        // Match the height of the content input. Zeroing the padding lets the
+        // constraints take over.
+        constraints: const BoxConstraints(minWidth: _sendButtonSize, minHeight: _sendButtonSize),
         padding: const EdgeInsets.all(0),
 
         color: foregroundColor,
@@ -278,7 +286,7 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
         // Both [contentPadding] and [isDense] combine to make the layout compact.
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12.0, vertical: 8.0),
+            horizontal: 12.0, vertical: _inputVerticalPadding),
 
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),
