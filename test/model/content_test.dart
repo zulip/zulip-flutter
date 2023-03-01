@@ -1,17 +1,22 @@
-import 'package:test/test.dart';
+import 'package:checks/checks.dart';
+import 'package:test/scaffolding.dart';
 import 'package:zulip/model/content.dart';
 
-import 'content_matchers.dart';
+import 'content_checks.dart';
 
 void main() {
   test('parse a plain-text paragraph', () {
-    // TODO try to compact this further
-    expect(
-      parseContent('<p>hello world</p>'),
-      ZulipContentMatcher([
-        ParagraphNodeMatcher(
-          wasImplicit: equals(false),
-          nodes: [equals(const TextNode('hello world'))])
+    check(parseContent('<p>hello world</p>'))
+      .equalsNode(const ZulipContent(nodes: [
+        ParagraphNode(nodes: [TextNode('hello world')]),
+      ]));
+  });
+
+  test('parse two plain-text paragraphs', () {
+    check(parseContent('<p>hello</p><p>world</p>'))
+      .equalsNode(const ZulipContent(nodes: [
+        ParagraphNode(nodes: [TextNode('hello')]),
+        ParagraphNode(nodes: [TextNode('world')]),
       ]));
   });
 

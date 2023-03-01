@@ -94,6 +94,30 @@ See [upstream docs on `flutter test`][flutter-cookbook-unit-tests].
 
 ## Notes
 
+### Writing tests
+
+For unit tests, we use [the `checks` package][package-checks].
+This is a new package from the Dart team, currently in preview,
+which is [intended to replace][package-checks-migration] the
+old `matcher` package.
+
+This means that if you see example test code elsewhere that
+uses the `expect` function, we'd prefer to translate it into
+something in terms of `check`.  For help with that,
+see the [`package:checks` migration guide][package-checks-migration]
+and the package's [API docs][package-checks-api].
+
+Because `package:checks` is still in preview, the Dart team is
+open to feedback on the API to a degree that they won't be
+after it reaches 1.0.  So where we find rough edges, now is a
+good time to [report them as issues][dart-test-tracker].
+
+[package-checks]: https://pub.dev/packages/checks
+[package-checks-api]: https://pub.dev/documentation/checks/latest/checks/checks-library.html
+[package-checks-migration]: https://github.com/dart-lang/test/blob/master/pkgs/checks/doc/migrating_from_matcher.md
+[dart-test-tracker]: https://github.com/dart-lang/test/issues
+
+
 ### Editing API types
 
 We support Zulip Server 4.0 and later.  For API features added in
