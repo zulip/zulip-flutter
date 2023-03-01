@@ -7,6 +7,8 @@ import 'package:html/parser.dart';
 // TODO: Implement toString for all these classes, for testing/debugging; or
 //   perhaps Diagnosticable instead?
 
+// This should have no subclasses except the ones defined in this file.
+// TODO mark as sealed: https://github.com/dart-lang/language/blob/a374667bc/accepted/future-releases/sealed-types/feature-specification.md
 @immutable
 abstract class ContentNode {
   const ContentNode({this.debugHtmlNode});
