@@ -13,6 +13,50 @@ import '../api/route/messages.dart';
 import '../credential_fixture.dart' as credentials;
 import 'message_list.dart';
 
+/// Store for the user's cross-account data.
+///
+/// This includes data that is independent of the account, like some settings.
+/// It also includes a small amount of data for each account: enough to
+/// authenticate as the active account, if there is one.
+class GlobalStore extends ChangeNotifier {
+  GlobalStore._({required Map<int, Account> accounts})
+      : _accounts = accounts;
+
+  // For convenience, a number we won't use as an ID in the database table.
+  static const fixtureAccountId = -1;
+
+  // We keep the API simple and synchronous for the bulk of the app's code
+  // by doing this loading up front before constructing a [GlobalStore].
+  static Future<GlobalStore> load() async {
+    const accounts = {fixtureAccountId: _fixtureAccount};
+    return GlobalStore._(accounts: accounts);
+  }
+
+  final Map<int, Account> _accounts;
+
+  // TODO settings (those that are per-device rather than per-account)
+  // TODO push token, and other data corresponding to GlobalSessionState
+
+  // Just an Iterable, not the actual Map, to avoid clients mutating the map.
+  // Mutations should go through the setters/mutators below.
+  Iterable<Account> get accounts => _accounts.values;
+
+  Account? getAccount(int id) => _accounts[id];
+
+  // TODO add setters/mutators; will want to write to database
+  // Future<void> insertAccount...
+  // Future<void> updateAccount...
+
+  // TODO add a registry of [PerAccountStore]s, like the latter's of [MessageListView]
+  //   That will allow us to have many [PerAccountRoot] widgets for a given
+  //   account, e.g. at the top of each page; and to access server data from
+  //   outside any [PerAccountRoot], e.g. for handling a notification.
+}
+
+/// Store for the user's data for a given Zulip account.
+///
+/// This should always have a consistent snapshot of the state on the server,
+/// as maintained by the Zulip event system.
 class PerAccountStore extends ChangeNotifier {
   PerAccountStore._({
     required this.account,
@@ -23,9 +67,10 @@ class PerAccountStore extends ChangeNotifier {
     required this.subscriptions,
   });
 
-  // Load the user's data from storage.  (Once we have such a thing.)
-  static Future<PerAccountStore> load() async {
-    const account = _fixtureAccount;
+  /// Load the user's data from the server, and start an event queue going.
+  ///
+  /// In the future this might load an old snapshot from local storage first.
+  static Future<PerAccountStore> load(Account account) async {
     final connection = ApiConnection(auth: account);
 
     final stopwatch = Stopwatch()..start();
@@ -124,6 +169,7 @@ const Account _fixtureAccount = Account(
   apiKey: credentials.api_key,
 );
 
+@immutable
 class Account implements Auth {
   const Account(
       {required this.realmUrl, required this.email, required this.apiKey});

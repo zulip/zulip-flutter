@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../model/store.dart';
 import 'compose_box.dart';
 import 'message_list.dart';
 import 'store.dart';
@@ -19,12 +20,14 @@ class ZulipApp extends StatelessWidget {
         // Or try this tool to see the whole palette:
         //   https://m3.material.io/theme-builder#/custom
         colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor));
-    // Just one account for now.
-    return PerAccountRoot(
-      child: MaterialApp(
-        title: 'Zulip',
-        theme: theme,
-        home: const HomePage()));
+    return DataRoot(
+      child: PerAccountRoot(
+        // Just one account for now.
+        accountId: GlobalStore.fixtureAccountId,
+        child: MaterialApp(
+          title: 'Zulip',
+          theme: theme,
+          home: const HomePage())));
   }
 }
 
