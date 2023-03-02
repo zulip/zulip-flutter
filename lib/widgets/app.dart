@@ -9,13 +9,29 @@ class ZulipApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ThemeData(
+        // This applies Material 3's color system to produce a palette of
+        // appropriately matching and contrasting colors for use in a UI.
+        // The Zulip brand color is a starting point, but doesn't end up as
+        // one that's directly used.  (After all, we didn't design it for that
+        // purpose; we designed a logo.)  See docs:
+        //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
+        // Or try this tool to see the whole palette:
+        //   https://m3.material.io/theme-builder#/custom
+        colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor));
     // Just one account for now.
-    return const PerAccountRoot();
+    return PerAccountRoot(
+      child: MaterialApp(
+        title: 'Zulip',
+        theme: theme,
+        home: const HomePage()));
   }
 }
 
 class PerAccountRoot extends StatefulWidget {
-  const PerAccountRoot({super.key});
+  const PerAccountRoot({super.key, required this.child});
+
+  final Widget child;
 
   @override
   State<PerAccountRoot> createState() => _PerAccountRootState();
@@ -47,23 +63,9 @@ class _PerAccountRootState extends State<PerAccountRoot> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
     if (store == null) return const LoadingPage();
-    return PerAccountStoreWidget(
-        store: store!,
-        child: MaterialApp(
-          title: 'Zulip',
-          theme: ThemeData(
-              // This applies Material 3's color system to produce a palette of
-              // appropriately matching and contrasting colors for use in a UI.
-              // The Zulip brand color is a starting point, but doesn't end up as
-              // one that's directly used.  (After all, we didn't design it for that
-              // purpose; we designed a logo.)  See docs:
-              //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
-              // Or try this tool to see the whole palette:
-              //   https://m3.material.io/theme-builder#/custom
-              colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor)),
-          home: const HomePage(),
-        ));
+    return PerAccountStoreWidget(store: store!, child: widget.child);
   }
 }
 
