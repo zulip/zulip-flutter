@@ -7,9 +7,9 @@ import '../model/content.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
-import 'app.dart';
 import 'content.dart';
 import 'sticky_header.dart';
+import 'store.dart';
 
 class MessageList extends StatefulWidget {
   const MessageList({Key? key}) : super(key: key);

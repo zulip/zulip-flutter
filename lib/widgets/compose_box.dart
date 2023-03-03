@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dialog.dart';
 
-import 'app.dart';
 import '../api/route/messages.dart';
+import 'store.dart';
 
 const double _inputVerticalPadding = 8;
 const double _sendButtonSize = 36;
