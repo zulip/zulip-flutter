@@ -20,7 +20,7 @@ class ZulipApp extends StatelessWidget {
         // Or try this tool to see the whole palette:
         //   https://m3.material.io/theme-builder#/custom
         colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor));
-    return DataRoot(
+    return GlobalStoreWidget(
       child: PerAccountStoreWidget(
         // Just one account for now.
         accountId: GlobalStore.fixtureAccountId,
