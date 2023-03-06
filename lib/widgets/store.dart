@@ -116,8 +116,8 @@ class PerAccountStoreWidget extends InheritedNotifier<PerAccountStore> {
   PerAccountStore get store => notifier!;
 
   static PerAccountStore of(BuildContext context) {
-    final widget =
-    context.dependOnInheritedWidgetOfExactType<PerAccountStoreWidget>();
+    final widget = context
+        .dependOnInheritedWidgetOfExactType<PerAccountStoreWidget>();
     assert(widget != null, 'No PerAccountStoreWidget ancestor');
     return widget!.store;
   }
