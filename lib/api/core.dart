@@ -18,10 +18,28 @@ class RawParameter {
   final String value;
 }
 
-class ApiConnection {
+/// All the information to talk to a Zulip server, real or fake.
+///
+/// See also:
+///  * [LiveApiConnection], which implements this for talking to a
+///    real Zulip server.
+///  * `FakeApiConnection` in the test suite, which implements this
+///    for use in tests.
+abstract class ApiConnection {
   ApiConnection({required this.auth});
 
+  // TODO move auth field to subclass, have just a realmUrl getter;
+  //   that ensures nothing assumes base class has a real API key
   final Auth auth;
+
+  Future<String> get(String route, Map<String, dynamic>? params);
+
+  Future<String> post(String route, Map<String, dynamic>? params);
+}
+
+/// An [ApiConnection] that makes real network requests to a real server.
+class LiveApiConnection extends ApiConnection {
+  LiveApiConnection({required super.auth});
 
   Map<String, String> _headers() {
     // TODO memoize
@@ -31,6 +49,7 @@ class ApiConnection {
     };
   }
 
+  @override
   Future<String> get(String route, Map<String, dynamic>? params) async {
     final baseUrl = Uri.parse(auth.realmUrl);
     final url = Uri(
@@ -48,6 +67,7 @@ class ApiConnection {
     return utf8.decode(response.bodyBytes);
   }
 
+  @override
   Future<String> post(String route, Map<String, dynamic>? params) async {
     final response = await http.post(
         Uri.parse("${auth.realmUrl}/api/v1/$route"),

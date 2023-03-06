@@ -71,7 +71,7 @@ class PerAccountStore extends ChangeNotifier {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<PerAccountStore> load(Account account) async {
-    final connection = ApiConnection(auth: account);
+    final connection = LiveApiConnection(auth: account);
 
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(connection); // TODO retry
