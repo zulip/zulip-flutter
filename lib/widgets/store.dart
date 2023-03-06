@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 
 import '../model/store.dart';
 
-class DataRoot extends StatefulWidget {
-  const DataRoot({super.key, required this.child});
+class GlobalStoreWidget extends StatefulWidget {
+  const GlobalStoreWidget({super.key, required this.child});
 
   final Widget child;
 
+  static GlobalStore of(BuildContext context) {
+    final widget = context
+        .dependOnInheritedWidgetOfExactType<_GlobalStoreInheritedWidget>();
+    assert(widget != null, 'No GlobalStoreWidget ancestor');
+    return widget!.store;
+  }
+
   @override
-  State<DataRoot> createState() => _DataRootState();
+  State<GlobalStoreWidget> createState() => _GlobalStoreWidgetState();
 }
 
-class _DataRootState extends State<DataRoot> {
+class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   GlobalStore? store;
 
   @override
@@ -30,26 +37,22 @@ class _DataRootState extends State<DataRoot> {
     final store = this.store;
     // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
     if (store == null) return const LoadingPage();
-    return GlobalStoreWidget(store: store, child: widget.child);
+    return _GlobalStoreInheritedWidget(store: store, child: widget.child);
   }
 }
 
-class GlobalStoreWidget extends InheritedNotifier<GlobalStore> {
-  const GlobalStoreWidget(
-      {super.key, required GlobalStore store, required super.child})
+// This is separate from [GlobalStoreWidget] only because we need
+// a [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
+// provide it to descendants, and one widget can't be both of those.
+class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
+  const _GlobalStoreInheritedWidget(
+      {required GlobalStore store, required super.child})
       : super(notifier: store);
 
   GlobalStore get store => notifier!;
 
-  static GlobalStore of(BuildContext context) {
-    final widget =
-        context.dependOnInheritedWidgetOfExactType<GlobalStoreWidget>();
-    assert(widget != null, 'No GlobalStoreWidget ancestor');
-    return widget!.store;
-  }
-
   @override
-  bool updateShouldNotify(covariant GlobalStoreWidget oldWidget) =>
+  bool updateShouldNotify(covariant _GlobalStoreInheritedWidget oldWidget) =>
       store != oldWidget.store;
 }
 
