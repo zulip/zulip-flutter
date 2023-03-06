@@ -127,6 +127,7 @@ abstract class Message {
   final String subject; // TODO call it "topic" internally; also similar others
   // final List<string> submessages; // TODO handle
   final int timestamp;
+  String get type;
 
   // final List<TopicLink> topic_links; // TODO handle
   // final string type; // handled by runtime type of object
@@ -166,6 +167,10 @@ abstract class Message {
 
 @JsonSerializable()
 class StreamMessage extends Message {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'stream';
+
   final String display_recipient;
   final int stream_id;
 
@@ -217,6 +222,10 @@ class PmRecipient {
 
 @JsonSerializable()
 class PmMessage extends Message {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'private';
+
   final List<PmRecipient> display_recipient;
 
   PmMessage({

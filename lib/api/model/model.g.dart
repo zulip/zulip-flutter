@@ -124,6 +124,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'flags': instance.flags,
       'match_content': instance.match_content,
       'match_subject': instance.match_subject,
+      'type': instance.type,
       'display_recipient': instance.display_recipient,
       'stream_id': instance.stream_id,
     };
@@ -182,5 +183,6 @@ Map<String, dynamic> _$PmMessageToJson(PmMessage instance) => <String, dynamic>{
       'flags': instance.flags,
       'match_content': instance.match_content,
       'match_subject': instance.match_subject,
+      'type': instance.type,
       'display_recipient': instance.display_recipient,
     };
