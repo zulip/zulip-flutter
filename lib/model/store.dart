@@ -31,6 +31,33 @@ abstract class GlobalStore extends ChangeNotifier {
   // TODO settings (those that are per-device rather than per-account)
   // TODO push token, and other data corresponding to GlobalSessionState
 
+  final Map<int, PerAccountStore> _perAccountStores = {};
+  final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
+
+  Future<PerAccountStore> perAccount(int accountId) async {
+    // First, see if we have the store already.
+    PerAccountStore? store = _perAccountStores[accountId];
+    if (store != null) {
+      return store;
+    }
+
+    // Next, see if another call has already started loading one.
+    Future<PerAccountStore>? future = _perAccountStoresLoading[accountId];
+    if (future != null) {
+      return future;
+    }
+
+    // It's up to us.  Start loading.
+    final account = getAccount(accountId);
+    assert(account != null, 'Account not found on global store');
+    future = loadPerAccount(account!);
+    _perAccountStoresLoading[accountId] = future;
+    store = await future;
+    _perAccountStores[accountId] = store;
+    _perAccountStoresLoading.remove(accountId);
+    return store;
+  }
+
   Future<PerAccountStore> loadPerAccount(Account account);
 
   // Just an Iterable, not the actual Map, to avoid clients mutating the map.
@@ -42,11 +69,6 @@ abstract class GlobalStore extends ChangeNotifier {
   // TODO add setters/mutators; will want to write to database
   // Future<void> insertAccount...
   // Future<void> updateAccount...
-
-  // TODO add a registry of [PerAccountStore]s, like the latter's of [MessageListView]
-  //   That will allow us to have many [PerAccountStoreWidget]s for a given
-  //   account, e.g. at the top of each page; and to access server data from
-  //   outside any [PerAccountStoreWidget], e.g. for handling a notification.
 }
 
 /// Store for the user's data for a given Zulip account.

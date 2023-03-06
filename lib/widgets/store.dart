@@ -153,22 +153,13 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final globalStore = GlobalStoreWidget.of(context);
-    final account = globalStore.getAccount(widget.accountId);
-    assert(account != null, 'Account not found on global store');
-    if (store != null) {
-      // The data we use to auth to the server should be unchanged;
-      // changing those should mean a new account ID in our database.
-      assert(account!.realmUrl == store!.account.realmUrl);
-      assert(account!.email == store!.account.email);
-      assert(account!.apiKey == store!.account.apiKey);
-      // TODO if Account has anything else change, update the PerAccountStore for that
-      return;
-    }
     (() async {
-      final store = await globalStore.loadPerAccount(account!);
-      setState(() {
-        this.store = store;
-      });
+      final store = await globalStore.perAccount(widget.accountId);
+      if (store != this.store) {
+        setState(() {
+          this.store = store;
+        });
+      }
     })();
   }
 

@@ -7,6 +7,9 @@ class FakeApiConnection extends ApiConnection {
       : super(auth: Account(
                 realmUrl: realmUrl, email: email, apiKey: _fakeApiKey));
 
+  FakeApiConnection.fromAccount(Account account)
+      : this(realmUrl: account.realmUrl, email: account.email);
+
   String? _nextResponse;
 
   // TODO: This mocking API will need to get richer to support all the tests we need.
