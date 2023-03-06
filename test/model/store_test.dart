@@ -73,6 +73,29 @@ void main() {
     check(completers(1)).length.equals(1);
     check(completers(2)).length.equals(1);
   });
+
+  test('GlobalStore.perAccountSync', () async {
+    final accounts = {1: eg.selfAccount, 2: eg.otherAccount};
+    final globalStore = TestGlobalStore(accounts: accounts);
+    List<Completer<PerAccountStore>> completers(int accountId) =>
+        globalStore.completers[accounts[accountId]]!;
+
+    check(globalStore.perAccountSync(1)).isNull();
+    final future1 = globalStore.perAccount(1);
+    check(globalStore.perAccountSync(1)).isNull();
+    final store1 = PerAccountStore.fromInitialSnapshot(
+      account: eg.selfAccount,
+      connection: FakeApiConnection.fromAccount(eg.selfAccount),
+      initialSnapshot: eg.initialSnapshot,
+    );
+    completers(1).single.complete(store1);
+    await pumpEventQueue();
+    check(globalStore.perAccountSync(1)).identicalTo(store1);
+    check(await future1).identicalTo(store1);
+    check(globalStore.perAccountSync(1)).identicalTo(store1);
+    check(await globalStore.perAccount(1)).identicalTo(store1);
+    check(completers(1)).length.equals(1);
+  });
 }
 
 class TestGlobalStore extends GlobalStore {

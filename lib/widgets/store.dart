@@ -153,14 +153,25 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final globalStore = GlobalStoreWidget.of(context);
-    (() async {
-      final store = await globalStore.perAccount(widget.accountId);
-      if (store != this.store) {
-        setState(() {
-          this.store = store;
-        });
-      }
-    })();
+    // If we already have data, get it immediately. This avoids showing one
+    // frame of loading indicator each time we have a new PerAccountStoreWidget.
+    final store = globalStore.perAccountSync(widget.accountId);
+    if (store != null) {
+      _setStore(store);
+    } else {
+      // If we don't already have data, wait for it.
+      (() async {
+        _setStore(await globalStore.perAccount(widget.accountId));
+      })();
+    }
+  }
+
+  void _setStore(PerAccountStore store) {
+    if (store != this.store) {
+      setState(() {
+        this.store = store;
+      });
+    }
   }
 
   @override

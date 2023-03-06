@@ -34,6 +34,8 @@ abstract class GlobalStore extends ChangeNotifier {
   final Map<int, PerAccountStore> _perAccountStores = {};
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
+  PerAccountStore? perAccountSync(int accountId) => _perAccountStores[accountId];
+
   Future<PerAccountStore> perAccount(int accountId) async {
     // First, see if we have the store already.
     PerAccountStore? store = _perAccountStores[accountId];
