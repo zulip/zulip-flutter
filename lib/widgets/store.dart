@@ -53,18 +53,25 @@ class GlobalStoreWidget extends InheritedNotifier<GlobalStore> {
       store != oldWidget.store;
 }
 
-class PerAccountRoot extends StatefulWidget {
-  const PerAccountRoot(
+class PerAccountStoreWidget extends StatefulWidget {
+  const PerAccountStoreWidget(
       {super.key, required this.accountId, required this.child});
 
   final int accountId;
   final Widget child;
 
+  static PerAccountStore of(BuildContext context) {
+    final widget = context
+        .dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
+    assert(widget != null, 'No PerAccountStoreWidget ancestor');
+    return widget!.store;
+  }
+
   @override
-  State<PerAccountRoot> createState() => _PerAccountRootState();
+  State<PerAccountStoreWidget> createState() => _PerAccountStoreWidgetState();
 }
 
-class _PerAccountRootState extends State<PerAccountRoot> {
+class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
   PerAccountStore? store;
 
   @override
@@ -104,26 +111,22 @@ class _PerAccountRootState extends State<PerAccountRoot> {
   Widget build(BuildContext context) {
     // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
     if (store == null) return const LoadingPage();
-    return PerAccountStoreWidget(store: store!, child: widget.child);
+    return _PerAccountStoreInheritedWidget(store: store!, child: widget.child);
   }
 }
 
-class PerAccountStoreWidget extends InheritedNotifier<PerAccountStore> {
-  const PerAccountStoreWidget(
-      {super.key, required PerAccountStore store, required super.child})
+// This is separate from [PerAccountStoreWidget] only because we need a
+// [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
+// provide it to descendants, and one widget can't be both of those.
+class _PerAccountStoreInheritedWidget extends InheritedNotifier<PerAccountStore> {
+  const _PerAccountStoreInheritedWidget(
+      {required PerAccountStore store, required super.child})
       : super(notifier: store);
 
   PerAccountStore get store => notifier!;
 
-  static PerAccountStore of(BuildContext context) {
-    final widget = context
-        .dependOnInheritedWidgetOfExactType<PerAccountStoreWidget>();
-    assert(widget != null, 'No PerAccountStoreWidget ancestor');
-    return widget!.store;
-  }
-
   @override
-  bool updateShouldNotify(covariant PerAccountStoreWidget oldWidget) =>
+  bool updateShouldNotify(covariant _PerAccountStoreInheritedWidget oldWidget) =>
       store != oldWidget.store;
 }
 
