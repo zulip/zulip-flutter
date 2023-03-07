@@ -52,48 +52,22 @@ abstract class GlobalStore extends ChangeNotifier {
 /// Store for the user's data for a given Zulip account.
 ///
 /// This should always have a consistent snapshot of the state on the server,
-/// as maintained by the Zulip event system.
+/// as provided by the Zulip event system.
+///
+/// An instance directly of this class will not attempt to poll an event queue
+/// to keep the data up to date.  For that behavior, see the subclass
+/// [LivePerAccountStore].
 class PerAccountStore extends ChangeNotifier {
   PerAccountStore.fromInitialSnapshot({
     required this.account,
     required this.connection,
     required InitialSnapshot initialSnapshot,
-  })  : queue_id = initialSnapshot.queue_id ?? (() {
-            // The queue_id is optional in the type, but should only be missing in the
-            // case of unauthenticated access to a web-public realm.  We authenticated.
-            throw Exception("bad initial snapshot: missing queue_id");
-          })(),
-        last_event_id = initialSnapshot.last_event_id,
-        zulip_version = initialSnapshot.zulip_version,
+  })  : zulip_version = initialSnapshot.zulip_version,
         subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
                 (subscription) => MapEntry(subscription.stream_id, subscription)));
 
-  /// Load the user's data from the server, and start an event queue going.
-  ///
-  /// In the future this might load an old snapshot from local storage first.
-  static Future<PerAccountStore> load(Account account) async {
-    final connection = LiveApiConnection(auth: account);
-
-    final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await registerQueue(connection); // TODO retry
-    final t = (stopwatch..stop()).elapsed;
-    // TODO log the time better
-    if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
-
-    final store = PerAccountStore.fromInitialSnapshot(
-      account: account,
-      connection: connection,
-      initialSnapshot: initialSnapshot,
-    );
-    store.poll();
-    return store;
-  }
-
   final Account account;
   final ApiConnection connection;
-
-  final String queue_id;
-  int last_event_id;
 
   final String zulip_version;
   final Map<int, Subscription> subscriptions;
@@ -119,22 +93,6 @@ class PerAccountStore extends ChangeNotifier {
   void reassemble() {
     for (final view in _messageListViews) {
       view.reassemble();
-    }
-  }
-
-  void poll() async {
-    while (true) {
-      final result = await getEvents(connection,
-          queue_id: queue_id, last_event_id: last_event_id);
-      // TODO handle errors on get-events; retry with backoff
-      // TODO abort long-poll on [dispose]
-      final events = result.events;
-      for (final event in events) {
-        handleEvent(event);
-      }
-      if (events.isNotEmpty) {
-        last_event_id = events.last.id;
-      }
     }
   }
 
@@ -192,7 +150,7 @@ class LiveGlobalStore extends GlobalStore {
 
   @override
   Future<PerAccountStore> loadPerAccount(Account account) {
-    return PerAccountStore.load(account);
+    return LivePerAccountStore.load(account);
   }
 }
 
@@ -205,3 +163,58 @@ const Account _fixtureAccount = Account(
   email: credentials.email,
   apiKey: credentials.api_key,
 );
+
+/// A [PerAccountStore] which polls an event queue to stay up to date.
+class LivePerAccountStore extends PerAccountStore {
+  LivePerAccountStore.fromInitialSnapshot({
+    required super.account,
+    required super.connection,
+    required super.initialSnapshot,
+  })  : queue_id = initialSnapshot.queue_id ?? (() {
+            // The queue_id is optional in the type, but should only be missing in the
+            // case of unauthenticated access to a web-public realm.  We authenticated.
+            throw Exception("bad initial snapshot: missing queue_id");
+          })(),
+        last_event_id = initialSnapshot.last_event_id,
+        super.fromInitialSnapshot();
+
+  /// Load the user's data from the server, and start an event queue going.
+  ///
+  /// In the future this might load an old snapshot from local storage first.
+  static Future<PerAccountStore> load(Account account) async {
+    final connection = LiveApiConnection(auth: account);
+
+    final stopwatch = Stopwatch()..start();
+    final initialSnapshot = await registerQueue(connection); // TODO retry
+    final t = (stopwatch..stop()).elapsed;
+    // TODO log the time better
+    if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
+
+    final store = LivePerAccountStore.fromInitialSnapshot(
+      account: account,
+      connection: connection,
+      initialSnapshot: initialSnapshot,
+    );
+    store.poll();
+    return store;
+  }
+
+  final String queue_id;
+  int last_event_id;
+
+  void poll() async {
+    while (true) {
+      final result = await getEvents(connection,
+          queue_id: queue_id, last_event_id: last_event_id);
+      // TODO handle errors on get-events; retry with backoff
+      // TODO abort long-poll on [dispose]
+      final events = result.events;
+      for (final event in events) {
+        handleEvent(event);
+      }
+      if (events.isNotEmpty) {
+        last_event_id = events.last.id;
+      }
+    }
+  }
+}
