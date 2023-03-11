@@ -66,6 +66,7 @@ class PerAccountStore extends ChangeNotifier {
     required this.zulip_version,
     required this.subscriptions,
     required this.user_id,
+    required this.full_name,
   });
 
   /// Load the user's data from the server, and start an event queue going.
@@ -95,6 +96,7 @@ class PerAccountStore extends ChangeNotifier {
   final Map<int, Subscription> subscriptions;
 
   final int user_id;
+  String full_name;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 
@@ -205,5 +207,6 @@ PerAccountStore processInitialSnapshot(Account account,
     zulip_version: initialSnapshot.zulip_version,
     subscriptions: subscriptions,
     user_id: initialSnapshot.user_id,
+    full_name: initialSnapshot.full_name,
   );
 }
