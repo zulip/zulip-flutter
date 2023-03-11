@@ -19,6 +19,7 @@ abstract class Event {
     final type = json['type'] as String;
     switch (type) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'realm_user': return RealmUserEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -61,6 +62,24 @@ class AlertWordsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
+}
+
+/// A Zulip event of type `realm_user`.
+@JsonSerializable()
+class RealmUserEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'realm_user';
+
+  final RealmUserUpdateEventPerson person;
+
+  RealmUserEvent({required super.id, required this.person});
+
+  factory RealmUserEvent.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmUserEventToJson(this);
 }
 
 @JsonSerializable()

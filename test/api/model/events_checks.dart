@@ -17,6 +17,10 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
   Subject<List<String>> get alert_words => has((e) => e.alert_words, 'alert_words');
 }
 
+extension RealmUserEventChecks on Subject<RealmUserEvent> {
+  Subject<RealmUserEventPerson> get person => has((e) => e.person, 'realm_user');
+}
+
 extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
 }

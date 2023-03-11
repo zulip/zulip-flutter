@@ -21,6 +21,20 @@ Map<String, dynamic> _$AlertWordsEventToJson(AlertWordsEvent instance) =>
       'alert_words': instance.alert_words,
     };
 
+RealmUserEvent _$RealmUserEventFromJson(Map<String, dynamic> json) =>
+    RealmUserEvent(
+      id: json['id'] as int,
+      person: RealmUserUpdateEventPerson.fromJson(
+          json['person'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$RealmUserEventToJson(RealmUserEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'person': instance.person,
+    };
+
 RealmUserUpdateEventPerson _$RealmUserUpdateEventPersonFromJson(
         Map<String, dynamic> json) =>
     RealmUserUpdateEventPerson(

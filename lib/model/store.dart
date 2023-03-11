@@ -149,6 +149,8 @@ class PerAccountStore extends ChangeNotifier {
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
       }
+    } else if (event is RealmUserEvent) {
+      debugPrint("server event: realm_user"); // TODO Update our data, and others
     } else if (event is UnexpectedEvent) {
       debugPrint("server event: ${jsonEncode(event.toJson())}"); // TODO log better
     } else {
