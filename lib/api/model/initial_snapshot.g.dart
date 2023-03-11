@@ -13,6 +13,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       zulip_feature_level: json['zulip_feature_level'] as int,
       zulip_version: json['zulip_version'] as String,
       zulip_merge_base: json['zulip_merge_base'] as String?,
+      user_id: json['user_id'] as int,
       alert_words: (json['alert_words'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -31,6 +32,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_feature_level': instance.zulip_feature_level,
       'zulip_version': instance.zulip_version,
       'zulip_merge_base': instance.zulip_merge_base,
+      'user_id': instance.user_id,
       'alert_words': instance.alert_words,
       'custom_profile_fields': instance.custom_profile_fields,
       'subscriptions': instance.subscriptions,
