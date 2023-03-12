@@ -255,3 +255,50 @@ class PmMessage extends Message {
   @override
   Map<String, dynamic> toJson() => _$PmMessageToJson(this);
 }
+
+@JsonSerializable()
+class RealmUserEventPerson {
+  final int user_id;
+
+  final String? full_name;
+
+  final String? avatar_url;
+  final String? avatar_url_medium;
+  final String? avatar_source;
+  final String? avatar_version;
+
+  final String? timezone;
+  // final String? email;  // Deprecated as redundant with user_id
+
+  final int? bot_owner_id;
+
+  final int? role;
+
+  final bool? is_billing_admin; // Can also be null? // TODO(server-5)
+
+  final String? delivery_email; // TODO(server-7j
+
+  // custom_profile_field has sub-parts to affect which id/value/rendered_value is updated
+
+  final String? new_email;
+
+  RealmUserEventPerson({
+    required this.user_id,
+    this.full_name,
+    this.avatar_url,
+    this.avatar_url_medium,
+    this.avatar_source,
+    this.avatar_version,
+    this.timezone,
+    this.bot_owner_id,
+    this.role,
+    this.is_billing_admin, // Can also be null?
+    this.delivery_email,
+    this.new_email,
+  });
+
+  factory RealmUserEventPerson.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserEventPersonFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmUserEventPersonToJson(this);
+}
