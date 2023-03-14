@@ -152,7 +152,7 @@ class PerAccountStore extends ChangeNotifier {
     } else if (event is RealmUserUpdateEvent) {
       debugPrint("server event: realm_user op:update");
       if (event.person.user_id == user_id) {
-        String? new_full_name = event.person.full_name;
+        final String? new_full_name = event.person.full_name;
         if (new_full_name != null) {
           full_name = new_full_name;
           notifyListeners();
