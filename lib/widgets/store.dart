@@ -2,11 +2,41 @@ import 'package:flutter/material.dart';
 
 import '../model/store.dart';
 
+/// Provides access to the app's data.
+///
+/// There should be one of this widget, near the root of the tree.
+///
+/// See also:
+///  * [GlobalStoreWidget.of], to get access to the data.
+///  * [PerAccountStoreWidget], for the user's data associated with a
+///    particular Zulip account.
 class GlobalStoreWidget extends StatefulWidget {
   const GlobalStoreWidget({super.key, required this.child});
 
   final Widget child;
 
+  /// The app's global data store.
+  ///
+  /// The given build context will be registered as a dependency of the
+  /// store.  This means that when the data in the store changes,
+  /// the element at that build context will be rebuilt.
+  ///
+  /// This method is typically called near the top of a build method or a
+  /// [State.didChangeDependencies] method, like so:
+  /// ```
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final globalStore = GlobalStoreWidget.of(context);
+  /// ```
+  ///
+  /// This method should not be called from a [State.initState] method;
+  /// use [State.didChangeDependencies] instead.  For discussion, see
+  /// [BuildContext.dependOnInheritedWidgetOfExactType].
+  ///
+  /// See also:
+  ///  * [InheritedNotifier], which provides the "dependency" mechanism.
+  ///  * [PerAccountStoreWidget.of], for the user's data associated with a
+  ///    particular Zulip account.
   static GlobalStore of(BuildContext context) {
     final widget = context
         .dependOnInheritedWidgetOfExactType<_GlobalStoreInheritedWidget>();
@@ -56,6 +86,22 @@ class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
       store != oldWidget.store;
 }
 
+/// Provides access to the user's data for a particular Zulip account.
+///
+/// Widgets that need information that comes from the Zulip server, or need to
+/// interact with the Zulip server, should use [PerAccountStoreWidget.of] to get
+/// the [PerAccountStore] for the relevant account.
+///
+/// A page that is all about a single Zulip account (which includes most of
+/// the pages in the app) should have one of this widget, near the root of
+/// the page's tree.  Where the UI shows information from several accounts,
+/// this widget can be used to specify the account that each subtree should
+/// interact with.
+///
+/// See also:
+///  * [PerAccountStoreWidget.of], to get access to the data.
+///  * [GlobalStoreWidget], for the app's data beyond that of a
+///    particular account.
 class PerAccountStoreWidget extends StatefulWidget {
   const PerAccountStoreWidget(
       {super.key, required this.accountId, required this.child});
@@ -63,6 +109,32 @@ class PerAccountStoreWidget extends StatefulWidget {
   final int accountId;
   final Widget child;
 
+  /// The user's data for the relevant Zulip account for this widget.
+  ///
+  /// The data is taken from the closest [PerAccountStoreWidget] that encloses
+  /// the given context.  Throws an error if there is no enclosing
+  /// [PerAccountStoreWidget].
+  ///
+  /// The given build context will be registered as a dependency of the
+  /// returned store.  This means that when the data in the store changes,
+  /// the element at that build context will be rebuilt.
+  ///
+  /// This method is typically called near the top of a build method or a
+  /// [State.didChangeDependencies] method, like so:
+  /// ```
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final store = PerAccountStoreWidget.of(context);
+  /// ```
+  ///
+  /// This method should not be called from a [State.initState] method;
+  /// use [State.didChangeDependencies] instead.  For discussion, see
+  /// [BuildContext.dependOnInheritedWidgetOfExactType].
+  ///
+  /// See also:
+  ///  * [InheritedNotifier], which provides the "dependency" mechanism.
+  ///  * [GlobalStoreWidget.of], for the app's data beyond that of a
+  ///    particular account.
   static PerAccountStore of(BuildContext context) {
     final widget = context
         .dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
