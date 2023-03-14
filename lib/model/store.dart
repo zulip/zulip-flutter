@@ -94,7 +94,6 @@ class PerAccountStore extends ChangeNotifier {
   final String zulip_version;
   final Map<int, Subscription> subscriptions;
 
-  // The user's personal data
   final int user_id;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
