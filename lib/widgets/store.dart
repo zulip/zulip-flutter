@@ -55,7 +55,7 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   void initState() {
     super.initState();
     (() async {
-      final store = await GlobalStore.load();
+      final store = await LiveGlobalStore.load();
       setState(() {
         this.store = store;
       });

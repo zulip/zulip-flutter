@@ -23,7 +23,7 @@ class ZulipApp extends StatelessWidget {
     return GlobalStoreWidget(
       child: PerAccountStoreWidget(
         // Just one account for now.
-        accountId: GlobalStore.fixtureAccountId,
+        accountId: LiveGlobalStore.fixtureAccountId,
         child: MaterialApp(
           title: 'Zulip',
           theme: theme,

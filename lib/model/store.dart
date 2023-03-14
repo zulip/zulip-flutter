@@ -18,28 +18,20 @@ import 'message_list.dart';
 /// This includes data that is independent of the account, like some settings.
 /// It also includes a small amount of data for each account: enough to
 /// authenticate as the active account, if there is one.
-class GlobalStore extends ChangeNotifier {
-  GlobalStore._({required Map<int, Account> accounts})
+///
+/// See also:
+///  * [LiveGlobalStore], the implementation of this class that
+///    we use outside of tests.
+abstract class GlobalStore extends ChangeNotifier {
+  GlobalStore({required Map<int, Account> accounts})
       : _accounts = accounts;
-
-  // For convenience, a number we won't use as an ID in the database table.
-  static const fixtureAccountId = -1;
-
-  // We keep the API simple and synchronous for the bulk of the app's code
-  // by doing this loading up front before constructing a [GlobalStore].
-  static Future<GlobalStore> load() async {
-    const accounts = {fixtureAccountId: _fixtureAccount};
-    return GlobalStore._(accounts: accounts);
-  }
 
   final Map<int, Account> _accounts;
 
   // TODO settings (those that are per-device rather than per-account)
   // TODO push token, and other data corresponding to GlobalSessionState
 
-  Future<PerAccountStore> loadPerAccount(Account account) {
-    return PerAccountStore.load(account);
-  }
+  Future<PerAccountStore> loadPerAccount(Account account);
 
   // Just an Iterable, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -172,16 +164,6 @@ class PerAccountStore extends ChangeNotifier {
   }
 }
 
-/// A scaffolding hack for while prototyping.
-///
-/// See "Server credentials" in the project README for how to fill in the
-/// `credential_fixture.dart` file this requires.
-const Account _fixtureAccount = Account(
-  realmUrl: credentials.realm_url,
-  email: credentials.email,
-  apiKey: credentials.api_key,
-);
-
 @immutable
 class Account implements Auth {
   const Account(
@@ -194,3 +176,32 @@ class Account implements Auth {
   @override
   final String apiKey;
 }
+
+class LiveGlobalStore extends GlobalStore {
+  LiveGlobalStore._({required super.accounts}) : super();
+
+  // For convenience, a number we won't use as an ID in the database table.
+  static const fixtureAccountId = -1;
+
+  // We keep the API simple and synchronous for the bulk of the app's code
+  // by doing this loading up front before constructing a [GlobalStore].
+  static Future<GlobalStore> load() async {
+    const accounts = {fixtureAccountId: _fixtureAccount};
+    return LiveGlobalStore._(accounts: accounts);
+  }
+
+  @override
+  Future<PerAccountStore> loadPerAccount(Account account) {
+    return PerAccountStore.load(account);
+  }
+}
+
+/// A scaffolding hack for while prototyping.
+///
+/// See "Server credentials" in the project README for how to fill in the
+/// `credential_fixture.dart` file this requires.
+const Account _fixtureAccount = Account(
+  realmUrl: credentials.realm_url,
+  email: credentials.email,
+  apiKey: credentials.api_key,
+);
