@@ -21,9 +21,9 @@ Map<String, dynamic> _$AlertWordsEventToJson(AlertWordsEvent instance) =>
       'alert_words': instance.alert_words,
     };
 
-RealmUserEventPerson _$RealmUserEventPersonFromJson(
+RealmUserUpdateEventPerson _$RealmUserUpdateEventPersonFromJson(
         Map<String, dynamic> json) =>
-    RealmUserEventPerson(
+    RealmUserUpdateEventPerson(
       user_id: json['user_id'] as int,
       full_name: json['full_name'] as String?,
       avatar_url: json['avatar_url'] as String?,
@@ -38,8 +38,8 @@ RealmUserEventPerson _$RealmUserEventPersonFromJson(
       new_email: json['new_email'] as String?,
     );
 
-Map<String, dynamic> _$RealmUserEventPersonToJson(
-        RealmUserEventPerson instance) =>
+Map<String, dynamic> _$RealmUserUpdateEventPersonToJson(
+        RealmUserUpdateEventPerson instance) =>
     <String, dynamic>{
       'user_id': instance.user_id,
       'full_name': instance.full_name,

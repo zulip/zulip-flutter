@@ -64,7 +64,7 @@ class AlertWordsEvent extends Event {
 }
 
 @JsonSerializable()
-class RealmUserEventPerson {
+class RealmUserUpdateEventPerson {
   final int user_id;
 
   final String? full_name;
@@ -90,7 +90,7 @@ class RealmUserEventPerson {
 
   final String? new_email;
 
-  RealmUserEventPerson({
+  RealmUserUpdateEventPerson({
     required this.user_id,
     this.full_name,
     this.avatar_url,
@@ -105,10 +105,10 @@ class RealmUserEventPerson {
     this.new_email,
   });
 
-  factory RealmUserEventPerson.fromJson(Map<String, dynamic> json) =>
-      _$RealmUserEventPersonFromJson(json);
+  factory RealmUserUpdateEventPerson.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserUpdateEventPersonFromJson(json);
 
-  Map<String, dynamic> toJson() => _$RealmUserEventPersonToJson(this);
+  Map<String, dynamic> toJson() => _$RealmUserUpdateEventPersonToJson(this);
 }
 
 /// A Zulip event of type `message`.
