@@ -262,6 +262,7 @@ class RealmUserEventPerson {
 
   final String? full_name;
 
+  // TODO express that all four avatar-related properties will be present if any of them is
   final String? avatar_url;
   final String? avatar_url_medium;
   final String? avatar_source;
@@ -274,11 +275,11 @@ class RealmUserEventPerson {
 
   final int? role;
 
-  final bool? is_billing_admin; // Can also be null? // TODO(server-5)
+  final bool? is_billing_admin;
 
-  final String? delivery_email; // TODO(server-7j
+  final String? delivery_email; // TODO Can also be 'None', distinct from null
 
-  // custom_profile_field has sub-parts to affect which id/value/rendered_value is updated
+  // final CustomProfileFieldValueUpdate? custom_profile_field; // TODO handle
 
   final String? new_email;
 
