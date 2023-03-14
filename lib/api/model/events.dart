@@ -63,6 +63,54 @@ class AlertWordsEvent extends Event {
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
 }
 
+@JsonSerializable()
+class RealmUserEventPerson {
+  final int user_id;
+
+  final String? full_name;
+
+  // TODO express that all four avatar-related properties will be present if any of them is
+  final String? avatar_url;
+  final String? avatar_url_medium;
+  final String? avatar_source;
+  final String? avatar_version;
+
+  final String? timezone;
+  // final String? email;  // Deprecated as redundant with user_id
+
+  final int? bot_owner_id;
+
+  final int? role;
+
+  final bool? is_billing_admin;
+
+  final String? delivery_email; // TODO Can also be 'None', distinct from null
+
+  // final CustomProfileFieldValueUpdate? custom_profile_field; // TODO handle
+
+  final String? new_email;
+
+  RealmUserEventPerson({
+    required this.user_id,
+    this.full_name,
+    this.avatar_url,
+    this.avatar_url_medium,
+    this.avatar_source,
+    this.avatar_version,
+    this.timezone,
+    this.bot_owner_id,
+    this.role,
+    this.is_billing_admin, // Can also be null?
+    this.delivery_email,
+    this.new_email,
+  });
+
+  factory RealmUserEventPerson.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserEventPersonFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmUserEventPersonToJson(this);
+}
+
 /// A Zulip event of type `message`.
 // TODO use [JsonSerializable] here too, using its customization features,
 //   in order to skip the boilerplate in [fromJson] and [toJson].
