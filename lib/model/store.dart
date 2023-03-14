@@ -37,6 +37,10 @@ class GlobalStore extends ChangeNotifier {
   // TODO settings (those that are per-device rather than per-account)
   // TODO push token, and other data corresponding to GlobalSessionState
 
+  Future<PerAccountStore> loadPerAccount(Account account) {
+    return PerAccountStore.load(account);
+  }
+
   // Just an Iterable, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
   Iterable<Account> get accounts => _accounts.values;

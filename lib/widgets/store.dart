@@ -165,7 +165,7 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
       return;
     }
     (() async {
-      final store = await PerAccountStore.load(account!);
+      final store = await globalStore.loadPerAccount(account!);
       setState(() {
         this.store = store;
       });
