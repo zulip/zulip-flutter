@@ -158,7 +158,6 @@ class PerAccountStore extends ChangeNotifier {
           notifyListeners();
         }
       }
-      // TODO Update our other data, and that of other users
     } else if (event is UnexpectedEvent) {
       debugPrint("server event: ${jsonEncode(event.toJson())}"); // TODO log better
     } else {
