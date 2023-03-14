@@ -2,16 +2,53 @@ import 'package:flutter/material.dart';
 
 import '../model/store.dart';
 
-class DataRoot extends StatefulWidget {
-  const DataRoot({super.key, required this.child});
+/// Provides access to the app's data.
+///
+/// There should be one of this widget, near the root of the tree.
+///
+/// See also:
+///  * [GlobalStoreWidget.of], to get access to the data.
+///  * [PerAccountStoreWidget], for the user's data associated with a
+///    particular Zulip account.
+class GlobalStoreWidget extends StatefulWidget {
+  const GlobalStoreWidget({super.key, required this.child});
 
   final Widget child;
 
+  /// The app's global data store.
+  ///
+  /// The given build context will be registered as a dependency of the
+  /// store.  This means that when the data in the store changes,
+  /// the element at that build context will be rebuilt.
+  ///
+  /// This method is typically called near the top of a build method or a
+  /// [State.didChangeDependencies] method, like so:
+  /// ```
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final globalStore = GlobalStoreWidget.of(context);
+  /// ```
+  ///
+  /// This method should not be called from a [State.initState] method;
+  /// use [State.didChangeDependencies] instead.  For discussion, see
+  /// [BuildContext.dependOnInheritedWidgetOfExactType].
+  ///
+  /// See also:
+  ///  * [InheritedNotifier], which provides the "dependency" mechanism.
+  ///  * [PerAccountStoreWidget.of], for the user's data associated with a
+  ///    particular Zulip account.
+  static GlobalStore of(BuildContext context) {
+    final widget = context
+        .dependOnInheritedWidgetOfExactType<_GlobalStoreInheritedWidget>();
+    assert(widget != null, 'No GlobalStoreWidget ancestor');
+    return widget!.store;
+  }
+
   @override
-  State<DataRoot> createState() => _DataRootState();
+  State<GlobalStoreWidget> createState() => _GlobalStoreWidgetState();
 }
 
-class _DataRootState extends State<DataRoot> {
+class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   GlobalStore? store;
 
   @override
@@ -30,41 +67,86 @@ class _DataRootState extends State<DataRoot> {
     final store = this.store;
     // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
     if (store == null) return const LoadingPage();
-    return GlobalStoreWidget(store: store, child: widget.child);
+    return _GlobalStoreInheritedWidget(store: store, child: widget.child);
   }
 }
 
-class GlobalStoreWidget extends InheritedNotifier<GlobalStore> {
-  const GlobalStoreWidget(
-      {super.key, required GlobalStore store, required super.child})
+// This is separate from [GlobalStoreWidget] only because we need
+// a [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
+// provide it to descendants, and one widget can't be both of those.
+class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
+  const _GlobalStoreInheritedWidget(
+      {required GlobalStore store, required super.child})
       : super(notifier: store);
 
   GlobalStore get store => notifier!;
 
-  static GlobalStore of(BuildContext context) {
-    final widget =
-        context.dependOnInheritedWidgetOfExactType<GlobalStoreWidget>();
-    assert(widget != null, 'No GlobalStoreWidget ancestor');
-    return widget!.store;
-  }
-
   @override
-  bool updateShouldNotify(covariant GlobalStoreWidget oldWidget) =>
+  bool updateShouldNotify(covariant _GlobalStoreInheritedWidget oldWidget) =>
       store != oldWidget.store;
 }
 
-class PerAccountRoot extends StatefulWidget {
-  const PerAccountRoot(
+/// Provides access to the user's data for a particular Zulip account.
+///
+/// Widgets that need information that comes from the Zulip server, or need to
+/// interact with the Zulip server, should use [PerAccountStoreWidget.of] to get
+/// the [PerAccountStore] for the relevant account.
+///
+/// A page that is all about a single Zulip account (which includes most of
+/// the pages in the app) should have one of this widget, near the root of
+/// the page's tree.  Where the UI shows information from several accounts,
+/// this widget can be used to specify the account that each subtree should
+/// interact with.
+///
+/// See also:
+///  * [PerAccountStoreWidget.of], to get access to the data.
+///  * [GlobalStoreWidget], for the app's data beyond that of a
+///    particular account.
+class PerAccountStoreWidget extends StatefulWidget {
+  const PerAccountStoreWidget(
       {super.key, required this.accountId, required this.child});
 
   final int accountId;
   final Widget child;
 
+  /// The user's data for the relevant Zulip account for this widget.
+  ///
+  /// The data is taken from the closest [PerAccountStoreWidget] that encloses
+  /// the given context.  Throws an error if there is no enclosing
+  /// [PerAccountStoreWidget].
+  ///
+  /// The given build context will be registered as a dependency of the
+  /// returned store.  This means that when the data in the store changes,
+  /// the element at that build context will be rebuilt.
+  ///
+  /// This method is typically called near the top of a build method or a
+  /// [State.didChangeDependencies] method, like so:
+  /// ```
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final store = PerAccountStoreWidget.of(context);
+  /// ```
+  ///
+  /// This method should not be called from a [State.initState] method;
+  /// use [State.didChangeDependencies] instead.  For discussion, see
+  /// [BuildContext.dependOnInheritedWidgetOfExactType].
+  ///
+  /// See also:
+  ///  * [InheritedNotifier], which provides the "dependency" mechanism.
+  ///  * [GlobalStoreWidget.of], for the app's data beyond that of a
+  ///    particular account.
+  static PerAccountStore of(BuildContext context) {
+    final widget = context
+        .dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
+    assert(widget != null, 'No PerAccountStoreWidget ancestor');
+    return widget!.store;
+  }
+
   @override
-  State<PerAccountRoot> createState() => _PerAccountRootState();
+  State<PerAccountStoreWidget> createState() => _PerAccountStoreWidgetState();
 }
 
-class _PerAccountRootState extends State<PerAccountRoot> {
+class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
   PerAccountStore? store;
 
   @override
@@ -104,26 +186,22 @@ class _PerAccountRootState extends State<PerAccountRoot> {
   Widget build(BuildContext context) {
     // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
     if (store == null) return const LoadingPage();
-    return PerAccountStoreWidget(store: store!, child: widget.child);
+    return _PerAccountStoreInheritedWidget(store: store!, child: widget.child);
   }
 }
 
-class PerAccountStoreWidget extends InheritedNotifier<PerAccountStore> {
-  const PerAccountStoreWidget(
-      {super.key, required PerAccountStore store, required super.child})
+// This is separate from [PerAccountStoreWidget] only because we need a
+// [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
+// provide it to descendants, and one widget can't be both of those.
+class _PerAccountStoreInheritedWidget extends InheritedNotifier<PerAccountStore> {
+  const _PerAccountStoreInheritedWidget(
+      {required PerAccountStore store, required super.child})
       : super(notifier: store);
 
   PerAccountStore get store => notifier!;
 
-  static PerAccountStore of(BuildContext context) {
-    final widget =
-    context.dependOnInheritedWidgetOfExactType<PerAccountStoreWidget>();
-    assert(widget != null, 'No PerAccountStoreWidget ancestor');
-    return widget!.store;
-  }
-
   @override
-  bool updateShouldNotify(covariant PerAccountStoreWidget oldWidget) =>
+  bool updateShouldNotify(covariant _PerAccountStoreInheritedWidget oldWidget) =>
       store != oldWidget.store;
 }
 

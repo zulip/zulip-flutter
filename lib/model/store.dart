@@ -48,9 +48,9 @@ class GlobalStore extends ChangeNotifier {
   // Future<void> updateAccount...
 
   // TODO add a registry of [PerAccountStore]s, like the latter's of [MessageListView]
-  //   That will allow us to have many [PerAccountRoot] widgets for a given
+  //   That will allow us to have many [PerAccountStoreWidget]s for a given
   //   account, e.g. at the top of each page; and to access server data from
-  //   outside any [PerAccountRoot], e.g. for handling a notification.
+  //   outside any [PerAccountStoreWidget], e.g. for handling a notification.
 }
 
 /// Store for the user's data for a given Zulip account.
