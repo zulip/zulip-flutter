@@ -1,4 +1,16 @@
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/store.dart';
+
+const String realmUrl = 'https://chat.example/';
+
+const String recentZulipVersion = '6.1';
+const int recentZulipFeatureLevel = 164;
+
+const Account selfAccount =
+    Account(realmUrl: realmUrl, email: 'self@example', apiKey: 'asdfqwer');
+const Account otherAccount =
+    Account(realmUrl: realmUrl, email: 'other@example', apiKey: 'sdfgwert');
 
 final _messagePropertiesBase = {
   'is_me_message': false,
@@ -43,3 +55,14 @@ StreamMessage streamMessage(
 }
 
 // TODO example data for many more types
+
+final InitialSnapshot initialSnapshot = InitialSnapshot(
+  queue_id: '1:2345',
+  last_event_id: 1,
+  zulip_feature_level: recentZulipFeatureLevel,
+  zulip_version: recentZulipVersion,
+  zulip_merge_base: recentZulipVersion,
+  alert_words: ['klaxon'],
+  custom_profile_fields: [],
+  subscriptions: [], // TODO add subscriptions to example initial snapshot
+);
