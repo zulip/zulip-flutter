@@ -13,11 +13,18 @@ import '../api/route/messages.dart';
 import '../credential_fixture.dart' as credentials;
 import 'message_list.dart';
 
-/// Store for the user's cross-account data.
+/// Store for all the user's data.
 ///
-/// This includes data that is independent of the account, like some settings.
-/// It also includes a small amount of data for each account: enough to
-/// authenticate as the active account, if there is one.
+/// From UI code, use [GlobalStoreWidget.of] to get hold of an appropriate
+/// instance of this class.
+///
+/// This object carries data that is independent of the account, like some
+/// settings. It also includes a small amount of data for each account: enough
+/// to authenticate as the active account, if there is one.
+///
+/// For other data associated with a particular account, a [GlobalStore]
+/// provides a [PerAccountStore] for each account, which can be reached with
+/// [GlobalStore.perAccount] or [GlobalStore.perAccountSync].
 ///
 /// See also:
 ///  * [LiveGlobalStore], the implementation of this class that
@@ -34,8 +41,29 @@ abstract class GlobalStore extends ChangeNotifier {
   final Map<int, PerAccountStore> _perAccountStores = {};
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
+  /// The store's per-account data for the given account, if already loaded.
+  ///
+  /// When not null, this is the same [PerAccountStore] that would be returned
+  /// by the asynchronous [perAccount].
   PerAccountStore? perAccountSync(int accountId) => _perAccountStores[accountId];
 
+  /// The store's per-account data for the given account.
+  ///
+  /// If the data for this account is not already loaded, this will ensure a
+  /// request is made to load it, and the returned future will complete when
+  /// the data is ready.
+  ///
+  /// The [GlobalStore] will avoid making redundant requests for the same data,
+  /// even if this method is called many times.  The futures returned from each
+  /// call for the same account will all complete once the data is ready.
+  ///
+  /// Consider checking [perAccountSync] before calling this function, so that if
+  /// the data is already available it can be used immediately (e.g., in the
+  /// current frame.)
+  ///
+  /// See also:
+  ///  * [PerAccountStoreWidget.of], for getting the relevant [PerAccountStore]
+  ///    from UI code.
   Future<PerAccountStore> perAccount(int accountId) async {
     // First, see if we have the store already.
     PerAccountStore? store = _perAccountStores[accountId];
@@ -60,6 +88,11 @@ abstract class GlobalStore extends ChangeNotifier {
     return store;
   }
 
+  /// Load per-account data for the given account, unconditionally.
+  ///
+  /// This method should be called only by the implementation of [perAccount].
+  /// Other callers interested in per-account data should use [perAccount]
+  /// and/or [perAccountSync].
   Future<PerAccountStore> loadPerAccount(Account account);
 
   // Just an Iterable, not the actual Map, to avoid clients mutating the map.
@@ -82,6 +115,10 @@ abstract class GlobalStore extends ChangeNotifier {
 /// to keep the data up to date.  For that behavior, see the subclass
 /// [LivePerAccountStore].
 class PerAccountStore extends ChangeNotifier {
+  /// Create a per-account data store that does not automatically stay up to date.
+  ///
+  /// For a [PerAccountStore] that polls an event queue to keep itself up to
+  /// date, use [LivePerAccountStore.fromInitialSnapshot].
   PerAccountStore.fromInitialSnapshot({
     required this.account,
     required this.connection,
