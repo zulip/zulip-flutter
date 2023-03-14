@@ -15,8 +15,6 @@ class InitialSnapshot {
   final String zulip_version;
   final String? zulip_merge_base; // TODO(server-5)
 
-  final int user_id;
-
   final List<String> alert_words;
 
   final List<CustomProfileField> custom_profile_fields;
@@ -27,16 +25,18 @@ class InitialSnapshot {
 
   // TODO etc., etc.
 
+  final int user_id;
+
   InitialSnapshot({
     this.queue_id,
     required this.last_event_id,
     required this.zulip_feature_level,
     required this.zulip_version,
     this.zulip_merge_base,
-    required this.user_id,
     required this.alert_words,
     required this.custom_profile_fields,
     required this.subscriptions,
+    required this.user_id,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
