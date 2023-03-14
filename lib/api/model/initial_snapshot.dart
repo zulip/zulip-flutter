@@ -25,6 +25,9 @@ class InitialSnapshot {
 
   // TODO etc., etc.
 
+  final int user_id;
+  final String full_name;
+
   InitialSnapshot({
     this.queue_id,
     required this.last_event_id,
@@ -34,6 +37,8 @@ class InitialSnapshot {
     required this.alert_words,
     required this.custom_profile_fields,
     required this.subscriptions,
+    required this.user_id,
+    required this.full_name,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>

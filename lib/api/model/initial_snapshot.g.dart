@@ -22,6 +22,8 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       subscriptions: (json['subscriptions'] as List<dynamic>)
           .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
           .toList(),
+      user_id: json['user_id'] as int,
+      full_name: json['full_name'] as String,
     );
 
 Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
@@ -34,4 +36,6 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'alert_words': instance.alert_words,
       'custom_profile_fields': instance.custom_profile_fields,
       'subscriptions': instance.subscriptions,
+      'user_id': instance.user_id,
+      'full_name': instance.full_name,
     };

@@ -65,6 +65,8 @@ class PerAccountStore extends ChangeNotifier {
     required this.last_event_id,
     required this.zulip_version,
     required this.subscriptions,
+    required this.user_id,
+    required this.full_name,
   });
 
   /// Load the user's data from the server, and start an event queue going.
@@ -92,6 +94,9 @@ class PerAccountStore extends ChangeNotifier {
 
   final String zulip_version;
   final Map<int, Subscription> subscriptions;
+
+  final int user_id;
+  String full_name;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 
@@ -143,6 +148,15 @@ class PerAccountStore extends ChangeNotifier {
       debugPrint("server event: message ${jsonEncode(event.message.toJson())}");
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
+      }
+    } else if (event is RealmUserUpdateEvent) {
+      debugPrint("server event: realm_user op:update");
+      if (event.person.user_id == user_id) {
+        final String? new_full_name = event.person.full_name;
+        if (new_full_name != null) {
+          full_name = new_full_name;
+          notifyListeners();
+        }
       }
     } else if (event is UnexpectedEvent) {
       debugPrint("server event: ${jsonEncode(event.toJson())}"); // TODO log better
@@ -201,5 +215,7 @@ PerAccountStore processInitialSnapshot(Account account,
     last_event_id: initialSnapshot.last_event_id,
     zulip_version: initialSnapshot.zulip_version,
     subscriptions: subscriptions,
+    user_id: initialSnapshot.user_id,
+    full_name: initialSnapshot.full_name,
   );
 }

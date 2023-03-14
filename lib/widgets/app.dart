@@ -58,6 +58,9 @@ class HomePage extends StatelessWidget {
                 const Text('🚧 Under construction 🚧'),
                 const SizedBox(height: 12),
                 Text.rich(TextSpan(
+                    text: 'You are: ',
+                    children: [bold(store.full_name)])),
+                Text.rich(TextSpan(
                     text: 'Connected to: ',
                     children: [bold(store.account.realmUrl)])),
                 Text.rich(TextSpan(

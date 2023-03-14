@@ -19,6 +19,12 @@ abstract class Event {
     final type = json['type'] as String;
     switch (type) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'realm_user':
+        switch(json['op'] as String) {
+          case 'update': return RealmUserUpdateEvent.fromJson(json);
+            // TODO add realm_user/add and realm_user/remove events
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'message': return MessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -61,6 +67,76 @@ class AlertWordsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
+}
+
+/// A Zulip event of type `realm_user` (only for op:update).
+@JsonSerializable()
+class RealmUserUpdateEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'realm_user';
+
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  final RealmUserUpdateEventPerson person;
+
+  RealmUserUpdateEvent({required super.id, required this.person});
+
+  factory RealmUserUpdateEvent.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmUserUpdateEventToJson(this);
+}
+
+@JsonSerializable()
+class RealmUserUpdateEventPerson {
+  final int user_id;
+
+  final String? full_name;
+
+  // TODO express that all four avatar-related properties will be present if any of them is
+  final String? avatar_url;
+  final String? avatar_url_medium;
+  final String? avatar_source;
+  final String? avatar_version;
+
+  final String? timezone;
+  // final String? email;  // Deprecated as redundant with user_id
+
+  final int? bot_owner_id;
+
+  final int? role;
+
+  final bool? is_billing_admin;
+
+  final String? delivery_email; // TODO Can also be 'None', distinct from null
+
+  // final CustomProfileFieldValueUpdate? custom_profile_field; // TODO handle
+
+  final String? new_email;
+
+  RealmUserUpdateEventPerson({
+    required this.user_id,
+    this.full_name,
+    this.avatar_url,
+    this.avatar_url_medium,
+    this.avatar_source,
+    this.avatar_version,
+    this.timezone,
+    this.bot_owner_id,
+    this.role,
+    this.is_billing_admin, // Can also be null?
+    this.delivery_email,
+    this.new_email,
+  });
+
+  factory RealmUserUpdateEventPerson.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserUpdateEventPersonFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmUserUpdateEventPersonToJson(this);
 }
 
 /// A Zulip event of type `message`.
