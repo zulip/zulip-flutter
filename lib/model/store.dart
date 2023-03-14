@@ -58,14 +58,19 @@ class GlobalStore extends ChangeNotifier {
 /// This should always have a consistent snapshot of the state on the server,
 /// as maintained by the Zulip event system.
 class PerAccountStore extends ChangeNotifier {
-  PerAccountStore._({
+  PerAccountStore.fromInitialSnapshot({
     required this.account,
     required this.connection,
-    required this.queue_id,
-    required this.last_event_id,
-    required this.zulip_version,
-    required this.subscriptions,
-  });
+    required InitialSnapshot initialSnapshot,
+  })  : queue_id = initialSnapshot.queue_id ?? (() {
+            // The queue_id is optional in the type, but should only be missing in the
+            // case of unauthenticated access to a web-public realm.  We authenticated.
+            throw Exception("bad initial snapshot: missing queue_id");
+          })(),
+        last_event_id = initialSnapshot.last_event_id,
+        zulip_version = initialSnapshot.zulip_version,
+        subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
+                (subscription) => MapEntry(subscription.stream_id, subscription)));
 
   /// Load the user's data from the server, and start an event queue going.
   ///
@@ -79,7 +84,11 @@ class PerAccountStore extends ChangeNotifier {
     // TODO log the time better
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
 
-    final store = processInitialSnapshot(account, connection, initialSnapshot);
+    final store = PerAccountStore.fromInitialSnapshot(
+      account: account,
+      connection: connection,
+      initialSnapshot: initialSnapshot,
+    );
     store.poll();
     return store;
   }
@@ -180,26 +189,4 @@ class Account implements Auth {
   final String email;
   @override
   final String apiKey;
-}
-
-PerAccountStore processInitialSnapshot(Account account,
-    ApiConnection connection, InitialSnapshot initialSnapshot) {
-  final queue_id = initialSnapshot.queue_id;
-  if (queue_id == null) {
-    // The queue_id is optional in the type, but should only be missing in the
-    // case of unauthenticated access to a web-public realm.  We authenticated.
-    throw Exception("bad initial snapshot: missing queue_id");
-  }
-
-  final subscriptions = Map.fromEntries(initialSnapshot.subscriptions
-      .map((subscription) => MapEntry(subscription.stream_id, subscription)));
-
-  return PerAccountStore._(
-    account: account,
-    connection: connection,
-    queue_id: queue_id,
-    last_event_id: initialSnapshot.last_event_id,
-    zulip_version: initialSnapshot.zulip_version,
-    subscriptions: subscriptions,
-  );
 }
