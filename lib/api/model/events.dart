@@ -19,7 +19,12 @@ abstract class Event {
     final type = json['type'] as String;
     switch (type) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
-      case 'realm_user': return RealmUserEvent.fromJson(json);
+      case 'realm_user':
+        switch(json['op'] as String) {
+          case 'update': return RealmUserUpdateEvent.fromJson(json);
+            // TODO add realm_user/add and realm_user/remove events
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'message': return MessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -64,22 +69,26 @@ class AlertWordsEvent extends Event {
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
 }
 
-/// A Zulip event of type `realm_user`.
+/// A Zulip event of type `realm_user` (only for op:update).
 @JsonSerializable()
-class RealmUserEvent extends Event {
+class RealmUserUpdateEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'realm_user';
 
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
   final RealmUserUpdateEventPerson person;
 
-  RealmUserEvent({required super.id, required this.person});
+  RealmUserUpdateEvent({required super.id, required this.person});
 
-  factory RealmUserEvent.fromJson(Map<String, dynamic> json) =>
-      _$RealmUserEventFromJson(json);
+  factory RealmUserUpdateEvent.fromJson(Map<String, dynamic> json) =>
+      _$RealmUserUpdateEventFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$RealmUserEventToJson(this);
+  Map<String, dynamic> toJson() => _$RealmUserUpdateEventToJson(this);
 }
 
 @JsonSerializable()
