@@ -496,10 +496,7 @@ final List<RegExp> _kInlineApiRoutes = [
   RegExp(r'^/avatar/')
 ];
 
-bool _sameOrigin(Uri x, Uri y) => // TODO factor better
-    x.scheme == y.scheme &&
-    x.host == y.host &&
-    x.port == y.port;
+bool _sameOrigin(Uri x, Uri y) => x.origin == y.origin;
 
 InlineSpan _errorUnimplemented(UnimplementedNode node) {
   // For now this shows error-styled HTML code even in release mode,
