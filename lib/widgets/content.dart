@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 
+import '../api/core.dart';
 import '../api/model/model.dart';
 import '../model/content.dart';
 import '../model/store.dart';
@@ -184,7 +185,7 @@ class MessageImage extends StatelessWidget {
     final src = node.srcUrl;
 
     final store = PerAccountStoreWidget.of(context);
-    final adjustedSrc = rewriteImageUrl(src, store.account);
+    final resolvedSrc = resolveUrl(src, store.account);
 
     return Align(
         alignment: Alignment.centerLeft,
@@ -199,8 +200,8 @@ class MessageImage extends StatelessWidget {
                 width: 150,
                 alignment: Alignment.center,
                 color: const Color.fromRGBO(0, 0, 0, 0.03),
-                child: Image.network(
-                  adjustedSrc,
+                child: RealmContentNetworkImage(
+                  resolvedSrc,
                   filterQuality: FilterQuality.medium,
                 ))));
   }
@@ -442,7 +443,7 @@ class MessageImageEmoji extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final adjustedSrc = rewriteImageUrl(node.src, store.account);
+    final resolvedSrc = resolveUrl(node.src, store.account);
 
     const size = 20.0;
 
@@ -455,8 +456,8 @@ class MessageImageEmoji extends StatelessWidget {
               // Web's css makes this seem like it should be -0.5, but that looks
               // too low.
               top: -1.5,
-              child: Image.network(
-                adjustedSrc.toString(),
+              child: RealmContentNetworkImage(
+                resolvedSrc.toString(),
                 filterQuality: FilterQuality.medium,
                 width: size,
                 height: size,
@@ -465,45 +466,126 @@ class MessageImageEmoji extends StatelessWidget {
   }
 }
 
+/// Like [Image.network], but includes [authHeader] if [src] is on-realm.
+///
+/// Use this to present image content in the ambient realm: avatars, images in
+/// messages, etc. Must have a [PerAccountStoreWidget] ancestor.
+///
+/// If [src] is an on-realm URL (it has the same origin as the ambient
+/// [Auth.realmUrl]), then an HTTP request to fetch the image will include the
+/// user's [authHeader].
+///
+/// If [src] is off-realm (e.g., a Gravatar URL), no auth header will be sent.
+///
+/// The image will be cached according to the cache behavior of [Image.network],
+/// which may mean the cache is shared between realms.
+class RealmContentNetworkImage extends StatelessWidget {
+  const RealmContentNetworkImage(
+    this.src, {
+    super.key,
+    this.scale = 1.0,
+    this.frameBuilder,
+    this.loadingBuilder,
+    this.errorBuilder,
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
+    this.width,
+    this.height,
+    this.color,
+    this.opacity,
+    this.colorBlendMode,
+    this.fit,
+    this.alignment = Alignment.center,
+    this.repeat = ImageRepeat.noRepeat,
+    this.centerSlice,
+    this.matchTextDirection = false,
+    this.gaplessPlayback = false,
+    this.filterQuality = FilterQuality.low,
+    this.isAntiAlias = false,
+    // `headers` skipped
+    this.cacheWidth,
+    this.cacheHeight,
+  });
+
+  /// An absolute URL string for the image.
+  // TODO: Take a [Uri] object, not a String
+  final String src;
+
+  final double scale;
+  final ImageFrameBuilder? frameBuilder;
+  final ImageLoadingBuilder? loadingBuilder;
+  final ImageErrorWidgetBuilder? errorBuilder;
+  final String? semanticLabel;
+  final bool excludeFromSemantics;
+  final double? width;
+  final double? height;
+  final Color? color;
+  final Animation<double>? opacity;
+  final BlendMode? colorBlendMode;
+  final BoxFit? fit;
+  final AlignmentGeometry alignment;
+  final ImageRepeat repeat;
+  final Rect? centerSlice;
+  final bool matchTextDirection;
+  final bool gaplessPlayback;
+  final FilterQuality filterQuality;
+  final bool isAntiAlias;
+  // `headers` skipped
+  final int? cacheWidth;
+  final int? cacheHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final Auth auth = PerAccountStoreWidget.of(context).account;
+
+    final Uri parsedSrc = Uri.parse(src);
+
+    return Image.network(
+      parsedSrc.toString(),
+
+      scale: scale,
+      frameBuilder: frameBuilder,
+      loadingBuilder: loadingBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      filterQuality: filterQuality,
+      isAntiAlias: isAntiAlias,
+
+      // Only send the auth header to the server `auth` belongs to.
+      headers: parsedSrc.origin == Uri.parse(auth.realmUrl).origin
+        ? authHeader(auth)
+        : null,
+
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+}
+
 //
 // Small helpers.
 //
 
-/// Resolve `src` to `account`'s realm, if relative
-// This may dissolve when we start passing around URLs as `Uri` objects instead
+/// Resolve `url` to `account`'s realm, if relative
+// This may dissolve when we start passing around URLs as [Uri] objects instead
 // of strings.
 String resolveUrl(String url, Account account) {
   final realmUrl = Uri.parse(account.realmUrl); // TODO clean this up
   final resolved = realmUrl.resolve(url); // TODO handle if fails to parse
   return resolved.toString();
 }
-
-/// Resolve URL if relative; add the user's API key if appropriate.
-///
-/// The API key is added if the URL is on the realm, and is an endpoint
-/// known to require authentication (and to accept it in this form.)
-String rewriteImageUrl(String src, Account account) {
-  final realmUrl = Uri.parse(account.realmUrl); // TODO clean this up
-  final resolved = realmUrl.resolve(src); // TODO handle if fails to parse
-
-  Uri adjustedSrc = resolved;
-  if (resolved.origin == realmUrl.origin) {
-    if (_kInlineApiRoutes.any((regexp) => regexp.hasMatch(resolved.path))) {
-      final delimiter = resolved.query.isNotEmpty ? '&' : '';
-      adjustedSrc = resolved
-          .resolve('?${resolved.query}${delimiter}api_key=${account.apiKey}');
-    }
-  }
-
-  return adjustedSrc.toString();
-}
-
-/// List of routes which accept the API key appended as a GET parameter.
-final List<RegExp> _kInlineApiRoutes = [
-  RegExp(r'^/user_uploads/'),
-  RegExp(r'^/thumbnail$'),
-  RegExp(r'^/avatar/')
-];
 
 InlineSpan _errorUnimplemented(UnimplementedNode node) {
   // For now this shows error-styled HTML code even in release mode,

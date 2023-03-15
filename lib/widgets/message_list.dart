@@ -290,10 +290,10 @@ class MessageWithSender extends StatelessWidget {
 
     final avatarUrl = message.avatar_url == null // TODO get from user data
         ? null // TODO handle computing gravatars
-        : rewriteImageUrl(message.avatar_url!, store.account);
+        : resolveUrl(message.avatar_url!, store.account);
     final avatar = (avatarUrl == null)
         ? const SizedBox.shrink()
-        : Image.network(
+        : RealmContentNetworkImage(
             avatarUrl,
             filterQuality: FilterQuality.medium,
           );
