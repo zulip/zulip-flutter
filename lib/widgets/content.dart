@@ -478,7 +478,7 @@ String rewriteImageUrl(String src, Account account) {
   final resolved = realmUrl.resolve(src); // TODO handle if fails to parse
 
   Uri adjustedSrc = resolved;
-  if (_sameOrigin(resolved, realmUrl)) {
+  if (resolved.origin == realmUrl.origin) {
     if (_kInlineApiRoutes.any((regexp) => regexp.hasMatch(resolved.path))) {
       final delimiter = resolved.query.isNotEmpty ? '&' : '';
       adjustedSrc = resolved
@@ -495,8 +495,6 @@ final List<RegExp> _kInlineApiRoutes = [
   RegExp(r'^/thumbnail$'),
   RegExp(r'^/avatar/')
 ];
-
-bool _sameOrigin(Uri x, Uri y) => x.origin == y.origin;
 
 InlineSpan _errorUnimplemented(UnimplementedNode node) {
   // For now this shows error-styled HTML code even in release mode,
