@@ -37,17 +37,19 @@ abstract class ApiConnection {
   Future<String> post(String route, Map<String, dynamic>? params);
 }
 
+// TODO memoize
+Map<String, String> authHeader(Auth auth) {
+  final authBytes = utf8.encode("${auth.email}:${auth.apiKey}");
+  return {
+    'Authorization': 'Basic ${base64.encode(authBytes)}',
+  };
+}
+
 /// An [ApiConnection] that makes real network requests to a real server.
 class LiveApiConnection extends ApiConnection {
   LiveApiConnection({required super.auth});
 
-  Map<String, String> _headers() {
-    // TODO memoize
-    final authBytes = utf8.encode("${auth.email}:${auth.apiKey}");
-    return {
-      'Authorization': 'Basic ${base64.encode(authBytes)}',
-    };
-  }
+  Map<String, String> _headers() => authHeader(auth);
 
   @override
   Future<String> get(String route, Map<String, dynamic>? params) async {
