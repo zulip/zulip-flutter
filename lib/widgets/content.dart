@@ -496,9 +496,8 @@ final List<RegExp> _kInlineApiRoutes = [
   RegExp(r'^/avatar/')
 ];
 
-bool _sameOrigin(Uri x, Uri y) => // TODO factor better; fact-check
+bool _sameOrigin(Uri x, Uri y) => // TODO factor better
     x.scheme == y.scheme &&
-    x.userInfo == y.userInfo &&
     x.host == y.host &&
     x.port == y.port;
 
