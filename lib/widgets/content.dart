@@ -469,6 +469,15 @@ class MessageImageEmoji extends StatelessWidget {
 // Small helpers.
 //
 
+/// Resolve `src` to `account`'s realm, if relative
+// This may dissolve when we start passing around URLs as `Uri` objects instead
+// of strings.
+String resolveUrl(String url, Account account) {
+  final realmUrl = Uri.parse(account.realmUrl); // TODO clean this up
+  final resolved = realmUrl.resolve(url); // TODO handle if fails to parse
+  return resolved.toString();
+}
+
 /// Resolve URL if relative; add the user's API key if appropriate.
 ///
 /// The API key is added if the URL is on the realm, and is an endpoint
