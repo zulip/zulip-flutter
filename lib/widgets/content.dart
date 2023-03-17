@@ -457,7 +457,7 @@ class MessageImageEmoji extends StatelessWidget {
               // too low.
               top: -1.5,
               child: RealmContentNetworkImage(
-                resolvedSrc.toString(),
+                resolvedSrc,
                 filterQuality: FilterQuality.medium,
                 width: size,
                 height: size,
