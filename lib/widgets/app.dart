@@ -50,32 +50,30 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Home")),
       body: Center(
-        child:
-          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            DefaultTextStyle.merge(
-              style: const TextStyle(fontSize: 18),
-              child: Column(children: [
-                const Text('🚧 Under construction 🚧'),
-                const SizedBox(height: 12),
-                Text.rich(TextSpan(
-                  text: 'Connected to: ',
-                  children: [bold(store.account.realmUrl)])),
-                Text.rich(TextSpan(
-                  text: 'Zulip server version: ',
-                  children: [bold(store.zulip_version)])),
-                Text.rich(TextSpan(text: 'Subscribed to ', children: [
-                  bold(store.subscriptions.length.toString()),
-                  const TextSpan(text: ' streams'),
-                ])),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          DefaultTextStyle.merge(
+            style: const TextStyle(fontSize: 18),
+            child: Column(children: [
+              const Text('🚧 Under construction 🚧'),
+              const SizedBox(height: 12),
+              Text.rich(TextSpan(
+                text: 'Connected to: ',
+                children: [bold(store.account.realmUrl)])),
+              Text.rich(TextSpan(
+                text: 'Zulip server version: ',
+                children: [bold(store.zulip_version)])),
+              Text.rich(TextSpan(text: 'Subscribed to ', children: [
+                bold(store.subscriptions.length.toString()),
+                const TextSpan(text: ' streams'),
               ])),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MessageListPage())),
-              child: const Text("All messages"))
-          ])));
+            ])),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (context) =>
+                const MessageListPage())),
+            child: const Text("All messages")),
+        ])));
   }
 }
 
@@ -100,6 +98,7 @@ class MessageListPage extends StatelessWidget {
 
               child: const Expanded(
                 child: MessageList())),
-            const StreamComposeBox()]))));
+            const StreamComposeBox(),
+          ]))));
   }
 }
