@@ -132,14 +132,36 @@ class PerAccountStoreWidget extends StatefulWidget {
   /// [BuildContext.dependOnInheritedWidgetOfExactType].
   ///
   /// See also:
-  ///  * [InheritedNotifier], which provides the "dependency" mechanism.
+  ///  * [accountIdOf], for the account ID corresponding to the same data.
   ///  * [GlobalStoreWidget.of], for the app's data beyond that of a
   ///    particular account.
+  ///  * [InheritedNotifier], which provides the "dependency" mechanism.
   static PerAccountStore of(BuildContext context) {
     final widget = context
         .dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
     assert(widget != null, 'No PerAccountStoreWidget ancestor');
     return widget!.store;
+  }
+
+  /// Our account ID for the relevant account for this widget.
+  ///
+  /// As with [of], the data is taken from the closest [PerAccountStoreWidget]
+  /// that encloses the given context.  Throws an error if there is no enclosing
+  /// [PerAccountStoreWidget].
+  ///
+  /// Unlike [of], this method does not create a dependency relationship, and
+  /// updates to the [PerAccountStoreWidget] will not cause the calling widget
+  /// to be rebuilt.  As a result, this should not be called from build methods,
+  /// but is appropriate to use in interaction event handlers.  For more, see
+  /// [BuildContext.findAncestorWidgetOfExactType].
+  ///
+  /// Like [of], the cost of this method is O(1) with a small constant factor.
+  static int accountIdOf(BuildContext context) {
+    final element = context.getElementForInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
+    assert(element != null, 'No PerAccountStoreWidget ancestor');
+    final widget = element!.findAncestorWidgetOfExactType<PerAccountStoreWidget>();
+    assert(widget != null);
+    return widget!.accountId;
   }
 
   @override

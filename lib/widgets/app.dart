@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/store.dart';
 import 'compose_box.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'store.dart';
 
 class ZulipApp extends StatelessWidget {
@@ -21,13 +22,13 @@ class ZulipApp extends StatelessWidget {
       //   https://m3.material.io/theme-builder#/custom
       colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor));
     return GlobalStoreWidget(
-      child: PerAccountStoreWidget(
-        // Just one account for now.
-        accountId: LiveGlobalStore.fixtureAccountId,
-        child: MaterialApp(
-          title: 'Zulip',
-          theme: theme,
-          home: const HomePage())));
+      child: MaterialApp(
+        title: 'Zulip',
+        theme: theme,
+        home: const PerAccountStoreWidget(
+          // Just one account for now.
+          accountId: LiveGlobalStore.fixtureAccountId,
+          child: HomePage())));
   }
 }
 
@@ -70,7 +71,7 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
-              MaterialPageRoute(builder: (context) =>
+              MaterialAccountPageRoute(context: context, builder: (context) =>
                 const MessageListPage())),
             child: const Text("All messages")),
         ])));
