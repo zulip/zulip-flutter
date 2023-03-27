@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../model/store.dart';
 import 'compose_box.dart';
+import 'login.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -25,10 +25,7 @@ class ZulipApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Zulip',
         theme: theme,
-        home: const PerAccountStoreWidget(
-          // Just one account for now.
-          accountId: LiveGlobalStore.fixtureAccountId,
-          child: HomePage())));
+        home: const ChooseAccountPage()));
   }
 }
 
@@ -38,8 +35,55 @@ class ZulipApp extends StatelessWidget {
 // As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
 const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 
+class ChooseAccountPage extends StatelessWidget {
+  const ChooseAccountPage({super.key});
+
+  Widget _buildAccountItem(
+    BuildContext context, {
+    required int accountId,
+    required Widget title,
+    Widget? subtitle,
+  }) {
+    return Card(
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: () => Navigator.push(context,
+          HomePage.buildRoute(accountId: accountId)),
+        child: ListTile(title: title, subtitle: subtitle)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final globalStore = GlobalStoreWidget.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Choose account')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (final (:accountId, :account) in globalStore.accountEntries)
+              _buildAccountItem(context,
+                accountId: accountId,
+                title: Text(account.realmUrl),
+                subtitle: Text(account.email)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                AddAccountPage.buildRoute()),
+              child: const Text('Add an account')),
+          ]))));
+  }
+}
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  static Route<void> buildRoute({required int accountId}) {
+    return MaterialPageRoute(builder: (context) =>
+      PerAccountStoreWidget(accountId: accountId,
+        child: const HomePage()));
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -164,6 +164,11 @@ class PerAccountStoreWidget extends StatefulWidget {
     return widget!.accountId;
   }
 
+  /// Whether there is a relevant account specified for this widget.
+  static bool debugExistsOf(BuildContext context) {
+    return context.getElementForInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>() != null;
+  }
+
   @override
   State<PerAccountStoreWidget> createState() => _PerAccountStoreWidgetState();
 }
