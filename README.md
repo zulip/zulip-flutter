@@ -127,7 +127,7 @@ in the existing code.)
 When editing the files in `lib/api/model/`, use the following command
 to keep the generated files up to date:
 ```
-$ flutter pub run build_runner watch --delete-conflicting-outputs
+$ dart run build_runner watch --delete-conflicting-outputs
 ```
 
 
