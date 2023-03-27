@@ -95,14 +95,33 @@ abstract class GlobalStore extends ChangeNotifier {
   /// and/or [perAccountSync].
   Future<PerAccountStore> loadPerAccount(Account account);
 
-  // Just an Iterable, not the actual Map, to avoid clients mutating the map.
+  // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
   Iterable<Account> get accounts => _accounts.values;
+  Iterable<int> get accountIds => _accounts.keys;
+  Iterable<({ int accountId, Account account })> get accountEntries {
+    return _accounts.entries.map((entry) {
+      return (accountId: entry.key, account: entry.value);
+    });
+  }
 
   Account? getAccount(int id) => _accounts[id];
 
-  // TODO add setters/mutators; will want to write to database
-  // Future<void> insertAccount...
+  // TODO(#13): rewrite these setters/mutators with a database
+
+  int _nextAccountId = 1;
+
+  /// Add an account to the store, returning its assigned account ID.
+  Future<int> insertAccount(Account account) async {
+    final accountId = _nextAccountId;
+    _nextAccountId++;
+    assert(!_accounts.containsKey(accountId));
+    _accounts[accountId] = account;
+    notifyListeners();
+    return accountId;
+  }
+
+  // More mutators as needed:
   // Future<void> updateAccount...
 }
 
@@ -205,7 +224,7 @@ class LiveGlobalStore extends GlobalStore {
   // We keep the API simple and synchronous for the bulk of the app's code
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
-    const accounts = {fixtureAccountId: _fixtureAccount};
+    final accounts = {fixtureAccountId: _fixtureAccount};
     return LiveGlobalStore._(accounts: accounts);
   }
 
