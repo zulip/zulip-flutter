@@ -46,6 +46,7 @@ dependencies:
   html: ^0.15.1
   intl: ^0.18.0
   share_plus: ^6.3.1
+  device_info_plus: ^8.1.0
 
 dev_dependencies:
   flutter_test:
