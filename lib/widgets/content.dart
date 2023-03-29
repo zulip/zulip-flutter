@@ -22,7 +22,24 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlockContentList(nodes: content.nodes);
+    return InheritedMessage(message: message, child: BlockContentList(nodes: content.nodes));
+  }
+}
+
+/// Provides access to [message].
+class InheritedMessage extends InheritedWidget {
+  const InheritedMessage({super.key, required this.message, required super.child});
+
+  final Message message;
+
+  @override
+  bool updateShouldNotify(covariant InheritedMessage oldWidget) =>
+    !identical(oldWidget.message, message);
+
+  static InheritedMessage of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
+    assert(widget != null, 'No InheritedMessage ancestor');
+    return widget!;
   }
 }
 
