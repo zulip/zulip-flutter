@@ -71,8 +71,7 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
-              MaterialAccountPageRoute(context: context, builder: (context) =>
-                const MessageListPage())),
+              MessageListPage.buildRoute(context)),
             child: const Text("All messages")),
         ])));
   }
@@ -80,6 +79,11 @@ class HomePage extends StatelessWidget {
 
 class MessageListPage extends StatelessWidget {
   const MessageListPage({super.key});
+
+  static Route<void> buildRoute(BuildContext context) {
+    return MaterialAccountPageRoute(context: context,
+      builder: (context) => const MessageListPage());
+  }
 
   @override
   Widget build(BuildContext context) {
