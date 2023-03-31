@@ -8,7 +8,7 @@ import 'page.dart';
 import 'clipboard.dart';
 import 'store.dart';
 
-// TODO: Add index of the image preview in the message, to not break if
+// TODO(#44): Add index of the image preview in the message, to not break if
 //   there are multiple image previews with the same URL in the same
 //   message. Maybe keep `src`, so that on exit the lightbox image doesn't
 //   fly to an image preview with a different URL, following a message edit
@@ -98,7 +98,7 @@ class _LightboxPage extends StatefulWidget {
 }
 
 class _LightboxPageState extends State<_LightboxPage> {
-  // TODO: Animate entrance/exit of header and footer
+  // TODO(#38): Animate entrance/exit of header and footer
   bool _headerFooterVisible = false;
 
   @override
@@ -135,7 +135,7 @@ class _LightboxPageState extends State<_LightboxPage> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      // TODO: Format with e.g. "Yesterday at 4:47 PM"
+      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
       final timestampText = DateFormat
           .yMMMd(/* TODO(i18n): Pass selected language here, I think? */)
           .add_Hms()
@@ -146,7 +146,7 @@ class _LightboxPageState extends State<_LightboxPage> {
         foregroundColor: appBarForegroundColor,
         backgroundColor: appBarBackgroundColor,
 
-        // TODO: Show message author's avatar
+        // TODO(#41): Show message author's avatar
         title: RichText(
           text: TextSpan(
             children: [
@@ -170,8 +170,8 @@ class _LightboxPageState extends State<_LightboxPage> {
         child: Row(
           children: [
             _CopyLinkButton(url: widget.src),
-            // TODO: Share image
-            // TODO: Download image
+            // TODO(#43): Share image
+            // TODO(#42): Download image
           ]));
     }
 
@@ -218,7 +218,7 @@ Route getLightboxRoute({
       Animation<double> animation,
       Animation<double> secondaryAnimation,
     ) {
-      // TODO: Drag down to close?
+      // TODO(#40): Drag down to close?
       return _LightboxPage(routeEntranceAnimation: animation, message: message, src: src);
     },
     transitionsBuilder: (
