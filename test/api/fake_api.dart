@@ -4,7 +4,7 @@ import 'package:zulip/model/store.dart';
 /// An [ApiConnection] that accepts and replays canned responses, for testing.
 class FakeApiConnection extends ApiConnection {
   FakeApiConnection({required String realmUrl, required String email})
-      : super(auth: Account(
+      : super(auth: Auth(
                 realmUrl: realmUrl, email: email, apiKey: _fakeApiKey));
 
   FakeApiConnection.fromAccount(Account account)

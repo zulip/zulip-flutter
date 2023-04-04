@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-abstract class Auth {
-  String get realmUrl;
+class Auth {
+  const Auth({required this.realmUrl, required this.email, required this.apiKey});
 
-  String get email;
-
-  String get apiKey;
+  final String realmUrl;
+  final String email;
+  final String apiKey;
 }
 
 /// A value for an API request parameter, to use directly without JSON encoding.

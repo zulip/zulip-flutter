@@ -201,16 +201,11 @@ class PerAccountStore extends ChangeNotifier {
 }
 
 @immutable
-class Account implements Auth {
+class Account extends Auth {
   const Account(
-      {required this.realmUrl, required this.email, required this.apiKey});
+      {required super.realmUrl, required super.email, required super.apiKey});
 
-  @override
-  final String realmUrl;
-  @override
-  final String email;
-  @override
-  final String apiKey;
+  // Add more fields as we have more to store.
 }
 
 class LiveGlobalStore extends GlobalStore {
