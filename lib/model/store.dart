@@ -202,10 +202,18 @@ class PerAccountStore extends ChangeNotifier {
 
 @immutable
 class Account extends Auth {
-  const Account(
-      {required super.realmUrl, required super.email, required super.apiKey});
+  const Account({
+    required super.realmUrl,
+    required super.email,
+    required super.apiKey,
+    required this.zulipFeatureLevel,
+    required this.zulipVersion,
+    required this.zulipMergeBase,
+  });
 
-  // Add more fields as we have more to store.
+  final int zulipFeatureLevel;
+  final String zulipVersion;
+  final String? zulipMergeBase;
 }
 
 class LiveGlobalStore extends GlobalStore {
@@ -235,6 +243,9 @@ const Account _fixtureAccount = Account(
   realmUrl: credentials.realmUrl,
   email: credentials.email,
   apiKey: credentials.apiKey,
+  zulipFeatureLevel: 169,
+  zulipVersion: '6.0-1235-g061f1dc43b',
+  zulipMergeBase: '6.0-1235-g061f1dc43b',
 );
 
 /// A [PerAccountStore] which polls an event queue to stay up to date.

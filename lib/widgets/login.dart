@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/route/account.dart';
+import '../api/route/realm.dart';
 import '../model/store.dart';
 import 'app.dart';
 import 'store.dart';
@@ -32,17 +33,27 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.dispose();
   }
 
-  void _onSubmitted(BuildContext context, String value) {
+  Future<void> _onSubmitted(BuildContext context, String value) async {
     final Uri? url = Uri.tryParse(value);
     switch (url) {
       case Uri(scheme: 'https' || 'http'):
         // TODO(#35): validate realm URL further?
-        // TODO(#36): support login methods beyond email/password
-        Navigator.push(context,
-          EmailPasswordLoginPage.buildRoute(realmUrl: url));
+        break;
       default:
         // TODO(#35): give feedback to user on bad realm URL
+        return;
     }
+
+    // TODO(#35): show feedback that we're working, while fetching server settings
+    final serverSettings = await getServerSettings(realmUrl: url.toString());
+    if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
+    else {
+      return;
+    }
+
+    // TODO(#36): support login methods beyond email/password
+    Navigator.push(context,
+      EmailPasswordLoginPage.buildRoute(realmUrl: url, serverSettings: serverSettings));
   }
 
   @override
@@ -69,13 +80,16 @@ class _AddAccountPageState extends State<AddAccountPage> {
 }
 
 class EmailPasswordLoginPage extends StatefulWidget {
-  const EmailPasswordLoginPage({super.key, required this.realmUrl});
+  const EmailPasswordLoginPage({
+    super.key, required this.realmUrl, required this.serverSettings});
 
   final Uri realmUrl;
+  final GetServerSettingsResult serverSettings;
 
-  static Route<void> buildRoute({required Uri realmUrl}) {
+  static Route<void> buildRoute({
+      required Uri realmUrl, required GetServerSettingsResult serverSettings}) {
     return _LoginSequenceRoute(builder: (context) =>
-      EmailPasswordLoginPage(realmUrl: realmUrl));
+      EmailPasswordLoginPage(realmUrl: realmUrl, serverSettings: serverSettings));
   }
 
   @override
@@ -112,7 +126,13 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     }
 
     final account = Account(
-      realmUrl: realmUrl.toString(), email: result.email, apiKey: result.apiKey);
+      realmUrl: realmUrl.toString(),
+      email: result.email,
+      apiKey: result.apiKey,
+      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+      zulipVersion: widget.serverSettings.zulipVersion,
+      zulipMergeBase: widget.serverSettings.zulipMergeBase,
+    );
     final globalStore = GlobalStoreWidget.of(context);
     final accountId = await globalStore.insertAccount(account);
     if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007

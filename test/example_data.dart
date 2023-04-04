@@ -7,10 +7,23 @@ const String realmUrl = 'https://chat.example/';
 const String recentZulipVersion = '6.1';
 const int recentZulipFeatureLevel = 164;
 
-const Account selfAccount =
-    Account(realmUrl: realmUrl, email: 'self@example', apiKey: 'asdfqwer');
-const Account otherAccount =
-    Account(realmUrl: realmUrl, email: 'other@example', apiKey: 'sdfgwert');
+const Account selfAccount = Account(
+  realmUrl: realmUrl,
+  email: 'self@example',
+  apiKey: 'asdfqwer',
+  zulipFeatureLevel: recentZulipFeatureLevel,
+  zulipVersion: recentZulipVersion,
+  zulipMergeBase: recentZulipVersion,
+);
+
+const Account otherAccount = Account(
+  realmUrl: realmUrl,
+  email: 'other@example',
+  apiKey: 'sdfgwert',
+  zulipFeatureLevel: recentZulipFeatureLevel,
+  zulipVersion: recentZulipVersion,
+  zulipMergeBase: recentZulipVersion,
+);
 
 final _messagePropertiesBase = {
   'is_me_message': false,
