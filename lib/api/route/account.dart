@@ -33,8 +33,13 @@ Future<FetchApiKeyResult> fetchApiKey({
 class FetchApiKeyResult {
   final String apiKey;
   final String email;
+  final int? userId; // TODO(server-7)
 
-  FetchApiKeyResult({required this.apiKey, required this.email});
+  FetchApiKeyResult({
+    required this.apiKey,
+    required this.email,
+    this.userId,
+  });
 
   factory FetchApiKeyResult.fromJson(Map<String, dynamic> json) =>
     _$FetchApiKeyResultFromJson(json);
