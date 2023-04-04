@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../api/core.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
+import '../api/route/users.dart';
 import '../model/store.dart';
 import 'app.dart';
 import 'store.dart';
@@ -100,6 +102,14 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   final GlobalKey<FormFieldState<String>> _emailKey = GlobalKey();
   final GlobalKey<FormFieldState<String>> _passwordKey = GlobalKey();
 
+  Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
+    final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
+    final auth = Auth(
+      realmUrl: widget.realmUrl.toString(), email: email, apiKey: apiKey);
+    final connection = LiveApiConnection(auth: auth); // TODO make this widget testable
+    return (await getOwnUser(connection)).userId;
+  }
+
   void _submit() async {
     final context = _emailKey.currentContext!;
     final realmUrl = widget.realmUrl;
@@ -120,6 +130,9 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       debugPrint(e.toString());
       return;
     }
+
+    // TODO(server-7): Rely on user_id from fetchApiKey.
+    final int userId = result.userId ?? await _getUserId(result);
     if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
     else {
       return;
@@ -129,6 +142,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       realmUrl: realmUrl.toString(),
       email: result.email,
       apiKey: result.apiKey,
+      userId: userId,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
       zulipVersion: widget.serverSettings.zulipVersion,
       zulipMergeBase: widget.serverSettings.zulipMergeBase,

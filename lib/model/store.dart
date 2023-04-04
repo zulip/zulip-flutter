@@ -206,11 +206,13 @@ class Account extends Auth {
     required super.realmUrl,
     required super.email,
     required super.apiKey,
+    required this.userId,
     required this.zulipFeatureLevel,
     required this.zulipVersion,
     required this.zulipMergeBase,
   });
 
+  final int userId;
   final int zulipFeatureLevel;
   final String zulipVersion;
   final String? zulipMergeBase;
@@ -243,6 +245,7 @@ const Account _fixtureAccount = Account(
   realmUrl: credentials.realmUrl,
   email: credentials.email,
   apiKey: credentials.apiKey,
+  userId: credentials.userId,
   zulipFeatureLevel: 169,
   zulipVersion: '6.0-1235-g061f1dc43b',
   zulipMergeBase: '6.0-1235-g061f1dc43b',
