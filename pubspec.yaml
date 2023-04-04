@@ -62,7 +62,13 @@ dev_dependencies:
   json_serializable: ^6.5.4
   build_runner: ^2.3.3
   test: ^1.23.1
-  checks: ^0.2.1
+  checks:
+    # Get an unpublished change to fix version solving:
+    #   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20version.20solving.20failed/near/1541309
+    # TODO: Try returning to published releases with the next one after 0.2.1.
+    git:
+      url: git@github.com:dart-lang/test.git
+      path: pkgs/checks
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
