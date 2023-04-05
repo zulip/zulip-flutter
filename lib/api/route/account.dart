@@ -31,7 +31,7 @@ Future<FetchApiKeyResult> fetchApiKey({
   return FetchApiKeyResult.fromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class FetchApiKeyResult {
   final String api_key;
   final String email;

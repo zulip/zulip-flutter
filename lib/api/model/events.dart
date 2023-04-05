@@ -46,7 +46,7 @@ class UnexpectedEvent extends Event {
 }
 
 /// A Zulip event of type `alert_words`.
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class AlertWordsEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
@@ -100,7 +100,7 @@ class MessageEvent extends Event {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class HeartbeatEvent extends Event {
   @override
   @JsonKey(includeToJson: true)

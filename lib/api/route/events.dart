@@ -39,7 +39,7 @@ Future<GetEventsResult> getEvents(ApiConnection connection, {
   return GetEventsResult.fromJson(jsonDecode(data));
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class GetEventsResult {
   final List<Event> events;
   // TODO(server): Docs say queue_id required; empirically sometimes missing.

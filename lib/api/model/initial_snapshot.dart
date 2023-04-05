@@ -7,7 +7,7 @@ import 'model.dart';
 part 'initial_snapshot.g.dart';
 
 // https://zulip.com/api/register-queue#response
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class InitialSnapshot {
   final String? queue_id;
   final int last_event_id;

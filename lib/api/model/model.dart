@@ -7,7 +7,7 @@ part 'model.g.dart';
 /// As in `custom_profile_fields` in the initial snapshot.
 ///
 /// https://zulip.com/api/register-queue#response
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class CustomProfileField {
   final int id;
   final int type; // TODO enum; also TODO(server-6) a value added
@@ -34,7 +34,7 @@ class CustomProfileField {
 }
 
 /// As in `subscriptions` in the initial snapshot.
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class Subscription {
   final int stream_id;
   final String name;
@@ -165,7 +165,7 @@ abstract class Message {
   Map<String, dynamic> toJson();
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class StreamMessage extends Message {
   @override
   @JsonKey(includeToJson: true)
@@ -203,7 +203,7 @@ class StreamMessage extends Message {
   Map<String, dynamic> toJson() => _$StreamMessageToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class PmRecipient {
   final int id;
   final String email;
@@ -220,7 +220,7 @@ class PmRecipient {
   Map<String, dynamic> toJson() => _$PmRecipientToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class PmMessage extends Message {
   @override
   @JsonKey(includeToJson: true)

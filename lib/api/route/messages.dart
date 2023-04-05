@@ -23,7 +23,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   return GetMessagesResult.fromJson(jsonDecode(data));
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class GetMessagesResult {
   final int anchor;
   final bool found_newest;
@@ -84,7 +84,7 @@ Future<SendMessageResult> sendMessage(
   return SendMessageResult.fromJson(jsonDecode(data));
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class SendMessageResult {
   final int id;
   final String? deliver_at;
