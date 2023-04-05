@@ -49,10 +49,9 @@ to use, and [download a `.zuliprc` file][download-zuliprc].  Then
 create a file `lib/credential_fixture.dart` in this worktree with the
 following form:
 ```dart
-// ignore_for_file: constant_identifier_names
-const String realm_url = '…';
+const String realmUrl = '…';
 const String email = '…';
-const String api_key = '…';
+const String apiKey = '…';
 ```
 
 Now build and run the app (see "Flutter help" above), and things
