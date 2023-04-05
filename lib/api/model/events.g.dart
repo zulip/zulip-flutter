@@ -9,7 +9,7 @@ part of 'events.dart';
 AlertWordsEvent _$AlertWordsEventFromJson(Map<String, dynamic> json) =>
     AlertWordsEvent(
       id: json['id'] as int,
-      alert_words: (json['alert_words'] as List<dynamic>)
+      alertWords: (json['alert_words'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
     );
@@ -18,7 +18,7 @@ Map<String, dynamic> _$AlertWordsEventToJson(AlertWordsEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
-      'alert_words': instance.alert_words,
+      'alert_words': instance.alertWords,
     };
 
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>

@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:json_annotation/json_annotation.dart';
 
 import 'model.dart';
@@ -52,9 +50,9 @@ class AlertWordsEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'alert_words';
 
-  final List<String> alert_words;
+  final List<String> alertWords;
 
-  AlertWordsEvent({required super.id, required this.alert_words});
+  AlertWordsEvent({required super.id, required this.alertWords});
 
   factory AlertWordsEvent.fromJson(Map<String, dynamic> json) =>
       _$AlertWordsEventFromJson(json);
@@ -75,9 +73,9 @@ class MessageEvent extends Event {
   // normalize that away in deserialization.
   //
   // The other difference in the server API between message objects in these
-  // events and in the get-messages results is that `match_content` and
-  // `match_subject` are absent here.  Already [Message.match_content] and
-  // [Message.match_subject] are optional, so no action is needed on that.
+  // events and in the get-messages results is that `matchContent` and
+  // `matchSubject` are absent here.  Already [Message.matchContent] and
+  // [Message.matchSubject] are optional, so no action is needed on that.
   final Message message;
 
   MessageEvent({required super.id, required this.message});

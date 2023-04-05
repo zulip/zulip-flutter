@@ -11,11 +11,11 @@ GetEventsResult _$GetEventsResultFromJson(Map<String, dynamic> json) =>
       events: (json['events'] as List<dynamic>)
           .map((e) => Event.fromJson(e as Map<String, dynamic>))
           .toList(),
-      queue_id: json['queue_id'] as String?,
+      queueId: json['queue_id'] as String?,
     );
 
 Map<String, dynamic> _$GetEventsResultToJson(GetEventsResult instance) =>
     <String, dynamic>{
       'events': instance.events,
-      'queue_id': instance.queue_id,
+      'queue_id': instance.queueId,
     };

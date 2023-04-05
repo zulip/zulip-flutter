@@ -151,7 +151,7 @@ class _LightboxPageState extends State<_LightboxPage> {
           text: TextSpan(
             children: [
               TextSpan(
-                text: '${widget.message.sender_full_name}\n',
+                text: '${widget.message.senderFullName}\n',
 
                 // Restate default
                 style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),

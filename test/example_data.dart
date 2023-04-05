@@ -57,12 +57,12 @@ StreamMessage streamMessage(
 // TODO example data for many more types
 
 final InitialSnapshot initialSnapshot = InitialSnapshot(
-  queue_id: '1:2345',
-  last_event_id: 1,
-  zulip_feature_level: recentZulipFeatureLevel,
-  zulip_version: recentZulipVersion,
-  zulip_merge_base: recentZulipVersion,
-  alert_words: ['klaxon'],
-  custom_profile_fields: [],
+  queueId: '1:2345',
+  lastEventId: 1,
+  zulipFeatureLevel: recentZulipFeatureLevel,
+  zulipVersion: recentZulipVersion,
+  zulipMergeBase: recentZulipVersion,
+  alertWords: ['klaxon'],
+  customProfileFields: [],
   subscriptions: [], // TODO add subscriptions to example initial snapshot
 );

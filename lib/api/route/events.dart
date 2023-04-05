@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
@@ -29,12 +27,12 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) async {
 
 /// https://zulip.com/api/get-events
 Future<GetEventsResult> getEvents(ApiConnection connection, {
-  required String queue_id, int? last_event_id, bool? dont_block,
+  required String queueId, int? lastEventId, bool? dontBlock,
 }) async {
   final data = await connection.get('events', {
-    'queue_id': RawParameter(queue_id),
-    if (last_event_id != null) 'last_event_id': last_event_id,
-    if (dont_block != null) 'dont_block': dont_block,
+    'queue_id': RawParameter(queueId),
+    if (lastEventId != null) 'last_event_id': lastEventId,
+    if (dontBlock != null) 'dont_block': dontBlock,
   });
   return GetEventsResult.fromJson(jsonDecode(data));
 }
@@ -42,12 +40,12 @@ Future<GetEventsResult> getEvents(ApiConnection connection, {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetEventsResult {
   final List<Event> events;
-  // TODO(server): Docs say queue_id required; empirically sometimes missing.
-  final String? queue_id;
+  // TODO(server): Docs say queueId required; empirically sometimes missing.
+  final String? queueId;
 
   GetEventsResult({
     required this.events,
-    this.queue_id,
+    this.queueId,
   });
 
   factory GetEventsResult.fromJson(Map<String, dynamic> json) =>

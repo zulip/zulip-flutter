@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
@@ -33,10 +31,10 @@ Future<FetchApiKeyResult> fetchApiKey({
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class FetchApiKeyResult {
-  final String api_key;
+  final String apiKey;
   final String email;
 
-  FetchApiKeyResult({required this.api_key, required this.email});
+  FetchApiKeyResult({required this.apiKey, required this.email});
 
   factory FetchApiKeyResult.fromJson(Map<String, dynamic> json) =>
     _$FetchApiKeyResultFromJson(json);

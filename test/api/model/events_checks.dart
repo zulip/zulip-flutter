@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -14,7 +12,7 @@ extension UnexpectedEventChecks on Subject<UnexpectedEvent> {
 }
 
 extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
-  Subject<List<String>> get alert_words => has((e) => e.alert_words, 'alert_words');
+  Subject<List<String>> get alertWords => has((e) => e.alertWords, 'alertWords');
 }
 
 extension MessageEventChecks on Subject<MessageEvent> {

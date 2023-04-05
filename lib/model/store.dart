@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -142,14 +140,14 @@ class PerAccountStore extends ChangeNotifier {
     required this.account,
     required this.connection,
     required InitialSnapshot initialSnapshot,
-  })  : zulip_version = initialSnapshot.zulip_version,
+  })  : zulipVersion = initialSnapshot.zulipVersion,
         subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
-                (subscription) => MapEntry(subscription.stream_id, subscription)));
+                (subscription) => MapEntry(subscription.streamId, subscription)));
 
   final Account account;
   final ApiConnection connection;
 
-  final String zulip_version;
+  final String zulipVersion;
   final Map<int, Subscription> subscriptions;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
@@ -250,12 +248,12 @@ class LivePerAccountStore extends PerAccountStore {
     required super.account,
     required super.connection,
     required super.initialSnapshot,
-  })  : queue_id = initialSnapshot.queue_id ?? (() {
-            // The queue_id is optional in the type, but should only be missing in the
+  })  : queueId = initialSnapshot.queueId ?? (() {
+            // The queueId is optional in the type, but should only be missing in the
             // case of unauthenticated access to a web-public realm.  We authenticated.
-            throw Exception("bad initial snapshot: missing queue_id");
+            throw Exception("bad initial snapshot: missing queueId");
           })(),
-        last_event_id = initialSnapshot.last_event_id,
+        lastEventId = initialSnapshot.lastEventId,
         super.fromInitialSnapshot();
 
   /// Load the user's data from the server, and start an event queue going.
@@ -279,13 +277,13 @@ class LivePerAccountStore extends PerAccountStore {
     return store;
   }
 
-  final String queue_id;
-  int last_event_id;
+  final String queueId;
+  int lastEventId;
 
   void poll() async {
     while (true) {
       final result = await getEvents(connection,
-          queue_id: queue_id, last_event_id: last_event_id);
+          queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
       // TODO abort long-poll on [dispose]
       final events = result.events;
@@ -293,7 +291,7 @@ class LivePerAccountStore extends PerAccountStore {
         handleEvent(event);
       }
       if (events.isNotEmpty) {
-        last_event_id = events.last.id;
+        lastEventId = events.last.id;
       }
     }
   }

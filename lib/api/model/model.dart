@@ -1,10 +1,8 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
 
-/// As in `custom_profile_fields` in the initial snapshot.
+/// As in [InitialSnapshot.customProfileFields].
 ///
 /// https://zulip.com/api/register-queue#response
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -14,8 +12,8 @@ class CustomProfileField {
   final int order;
   final String name;
   final String hint;
-  final String field_data;
-  final bool? display_in_profile_summary; // TODO(server-6)
+  final String fieldData;
+  final bool? displayInProfileSummary; // TODO(server-6)
 
   CustomProfileField({
     required this.id,
@@ -23,8 +21,8 @@ class CustomProfileField {
     required this.order,
     required this.name,
     required this.hint,
-    required this.field_data,
-    required this.display_in_profile_summary,
+    required this.fieldData,
+    required this.displayInProfileSummary,
   });
 
   factory CustomProfileField.fromJson(Map<String, dynamic> json) =>
@@ -36,66 +34,66 @@ class CustomProfileField {
 /// As in `subscriptions` in the initial snapshot.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Subscription {
-  final int stream_id;
+  final int streamId;
   final String name;
   final String description;
-  final String rendered_description;
-  final int date_created;
-  final bool invite_only;
+  final String renderedDescription;
+  final int dateCreated;
+  final bool inviteOnly;
 
-  // final List<int> subscribers; // we register with include_subscribers false
+  // final List<int> subscribers; // we register with includeSubscribers false
 
-  final bool? desktop_notifications;
-  final bool? email_notifications;
-  final bool? wildcard_mentions_notify;
-  final bool? push_notifications;
-  final bool? audible_notifications;
+  final bool? desktopNotifications;
+  final bool? emailNotifications;
+  final bool? wildcardMentionsNotify;
+  final bool? pushNotifications;
+  final bool? audibleNotifications;
 
-  final bool pin_to_top;
+  final bool pinToTop;
 
-  final String email_address;
+  final String emailAddress;
 
-  final bool is_muted;
+  final bool isMuted;
 
-  // final bool? in_home_view; // deprecated; ignore
+  // final bool? inHomeView; // deprecated; ignore
 
-  // final bool? is_announcement_only; // deprecated; ignore
-  final bool? is_web_public; // TODO(server-??): doc doesn't say when added
+  // final bool? isAnnouncementOnly; // deprecated; ignore
+  final bool? isWebPublic; // TODO(server-??): doc doesn't say when added
 
   final String color;
 
-  final int stream_post_policy; // TODO enum
-  final int? message_retention_days;
-  final bool history_public_to_subscribers;
+  final int streamPostPolicy; // TODO enum
+  final int? messageRetentionDays;
+  final bool historyPublicToSubscribers;
 
-  final int? first_message_id;
-  final int? stream_weekly_traffic;
+  final int? firstMessageId;
+  final int? streamWeeklyTraffic;
 
-  final int? can_remove_subscribers_group_id; // TODO(server-6)
+  final int? canRemoveSubscribersGroupId; // TODO(server-6)
 
   Subscription({
-    required this.stream_id,
+    required this.streamId,
     required this.name,
     required this.description,
-    required this.rendered_description,
-    required this.date_created,
-    required this.invite_only,
-    this.desktop_notifications,
-    this.email_notifications,
-    this.wildcard_mentions_notify,
-    this.push_notifications,
-    this.audible_notifications,
-    required this.pin_to_top,
-    required this.email_address,
-    required this.is_muted,
-    this.is_web_public,
+    required this.renderedDescription,
+    required this.dateCreated,
+    required this.inviteOnly,
+    this.desktopNotifications,
+    this.emailNotifications,
+    this.wildcardMentionsNotify,
+    this.pushNotifications,
+    this.audibleNotifications,
+    required this.pinToTop,
+    required this.emailAddress,
+    required this.isMuted,
+    this.isWebPublic,
     required this.color,
-    required this.stream_post_policy,
-    this.message_retention_days,
-    required this.history_public_to_subscribers,
-    this.first_message_id,
-    this.stream_weekly_traffic,
-    this.can_remove_subscribers_group_id,
+    required this.streamPostPolicy,
+    this.messageRetentionDays,
+    required this.historyPublicToSubscribers,
+    this.firstMessageId,
+    this.streamWeeklyTraffic,
+    this.canRemoveSubscribersGroupId,
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
@@ -108,51 +106,51 @@ class Subscription {
 ///
 /// https://zulip.com/api/get-messages#response
 abstract class Message {
-  final String? avatar_url;
+  final String? avatarUrl;
   final String client;
   final String content;
-  final String content_type;
+  final String contentType;
 
-  // final List<MessageEditHistory> edit_history; // TODO handle
+  // final List<MessageEditHistory> editHistory; // TODO handle
   final int id;
-  final bool is_me_message;
-  final int? last_edit_timestamp;
+  final bool isMeMessage;
+  final int? lastEditTimestamp;
 
   // final List<Reaction> reactions; // TODO handle
-  final int recipient_id;
-  final String sender_email;
-  final String sender_full_name;
-  final int sender_id;
-  final String sender_realm_str;
+  final int recipientId;
+  final String senderEmail;
+  final String senderFullName;
+  final int senderId;
+  final String senderRealmStr;
   final String subject; // TODO call it "topic" internally; also similar others
   // final List<string> submessages; // TODO handle
   final int timestamp;
   String get type;
 
-  // final List<TopicLink> topic_links; // TODO handle
+  // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
   final List<String> flags; // TODO enum
-  final String? match_content;
-  final String? match_subject;
+  final String? matchContent;
+  final String? matchSubject;
 
   Message({
-    this.avatar_url,
+    this.avatarUrl,
     required this.client,
     required this.content,
-    required this.content_type,
+    required this.contentType,
     required this.id,
-    required this.is_me_message,
-    this.last_edit_timestamp,
-    required this.recipient_id,
-    required this.sender_email,
-    required this.sender_full_name,
-    required this.sender_id,
-    required this.sender_realm_str,
+    required this.isMeMessage,
+    this.lastEditTimestamp,
+    required this.recipientId,
+    required this.senderEmail,
+    required this.senderFullName,
+    required this.senderId,
+    required this.senderRealmStr,
     required this.subject,
     required this.timestamp,
     required this.flags,
-    this.match_content,
-    this.match_subject,
+    this.matchContent,
+    this.matchSubject,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -171,29 +169,29 @@ class StreamMessage extends Message {
   @JsonKey(includeToJson: true)
   String get type => 'stream';
 
-  final String display_recipient;
-  final int stream_id;
+  final String displayRecipient;
+  final int streamId;
 
   StreamMessage({
-    super.avatar_url,
+    super.avatarUrl,
     required super.client,
     required super.content,
-    required super.content_type,
+    required super.contentType,
     required super.id,
-    required super.is_me_message,
-    super.last_edit_timestamp,
-    required super.recipient_id,
-    required super.sender_email,
-    required super.sender_full_name,
-    required super.sender_id,
-    required super.sender_realm_str,
+    required super.isMeMessage,
+    super.lastEditTimestamp,
+    required super.recipientId,
+    required super.senderEmail,
+    required super.senderFullName,
+    required super.senderId,
+    required super.senderRealmStr,
     required super.subject,
     required super.timestamp,
     required super.flags,
-    super.match_content,
-    super.match_subject,
-    required this.display_recipient,
-    required this.stream_id,
+    super.matchContent,
+    super.matchSubject,
+    required this.displayRecipient,
+    required this.streamId,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -207,12 +205,12 @@ class StreamMessage extends Message {
 class PmRecipient {
   final int id;
   final String email;
-  final String full_name;
+  final String fullName;
 
-  // final String? short_name; // obsolete, ignore
-  // final bool? is_mirror_dummy; // obsolete, ignore
+  // final String? shortName; // obsolete, ignore
+  // final bool? isMirrorDummy; // obsolete, ignore
 
-  PmRecipient({required this.id, required this.email, required this.full_name});
+  PmRecipient({required this.id, required this.email, required this.fullName});
 
   factory PmRecipient.fromJson(Map<String, dynamic> json) =>
       _$PmRecipientFromJson(json);
@@ -226,27 +224,27 @@ class PmMessage extends Message {
   @JsonKey(includeToJson: true)
   String get type => 'private';
 
-  final List<PmRecipient> display_recipient;
+  final List<PmRecipient> displayRecipient;
 
   PmMessage({
-    super.avatar_url,
+    super.avatarUrl,
     required super.client,
     required super.content,
-    required super.content_type,
+    required super.contentType,
     required super.id,
-    required super.is_me_message,
-    super.last_edit_timestamp,
-    required super.recipient_id,
-    required super.sender_email,
-    required super.sender_full_name,
-    required super.sender_id,
-    required super.sender_realm_str,
+    required super.isMeMessage,
+    super.lastEditTimestamp,
+    required super.recipientId,
+    required super.senderEmail,
+    required super.senderFullName,
+    required super.senderId,
+    required super.senderRealmStr,
     required super.subject,
     required super.timestamp,
     required super.flags,
-    super.match_content,
-    super.match_subject,
-    required this.display_recipient,
+    super.matchContent,
+    super.matchSubject,
+    required this.displayRecipient,
   });
 
   factory PmMessage.fromJson(Map<String, dynamic> json) =>

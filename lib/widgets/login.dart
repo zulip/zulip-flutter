@@ -112,7 +112,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     }
 
     final account = Account(
-      realmUrl: realmUrl.toString(), email: result.email, apiKey: result.api_key);
+      realmUrl: realmUrl.toString(), email: result.email, apiKey: result.apiKey);
     final globalStore = GlobalStoreWidget.of(context);
     final accountId = await globalStore.insertAccount(account);
     if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007

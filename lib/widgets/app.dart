@@ -106,7 +106,7 @@ class HomePage extends StatelessWidget {
                 children: [bold(store.account.realmUrl)])),
               Text.rich(TextSpan(
                 text: 'Zulip server version: ',
-                children: [bold(store.zulip_version)])),
+                children: [bold(store.zulipVersion)])),
               Text.rich(TextSpan(text: 'Subscribed to ', children: [
                 bold(store.subscriptions.length.toString()),
                 const TextSpan(text: ' streams'),

@@ -131,7 +131,7 @@ class MessageItem extends StatelessWidget {
     Widget recipientHeader;
     if (message is StreamMessage) {
       final msg = (message as StreamMessage);
-      final subscription = store.subscriptions[msg.stream_id];
+      final subscription = store.subscriptions[msg.streamId];
       highlightBorderColor = colorForStream(subscription);
       restBorderColor = _kStreamMessageBorderColor;
       recipientHeader = StreamTopicRecipientHeader(
@@ -200,7 +200,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final streamName = message.display_recipient; // TODO get from stream data
+    final streamName = message.displayRecipient; // TODO get from stream data
     final topic = message.subject;
     final contrastingColor =
         ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
@@ -288,9 +288,9 @@ class MessageWithSender extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
 
-    final avatarUrl = message.avatar_url == null // TODO get from user data
+    final avatarUrl = message.avatarUrl == null // TODO get from user data
         ? null // TODO handle computing gravatars
-        : resolveUrl(message.avatar_url!, store.account);
+        : resolveUrl(message.avatarUrl!, store.account);
     final avatar = (avatarUrl == null)
         ? const SizedBox.shrink()
         : RealmContentNetworkImage(
@@ -322,7 +322,7 @@ class MessageWithSender extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                   const SizedBox(height: 3),
-                  Text(message.sender_full_name, // TODO get from user data
+                  Text(message.senderFullName, // TODO get from user data
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   MessageContent(message: message, content: content),
