@@ -158,7 +158,7 @@ class ListNodeWidget extends StatelessWidget {
         //   but that comes out too close to item; not sure what's fixing that
         //   in a browser
         case ListStyle.unordered: marker = "•   "; break;
-        // TODO ordered lists starting not at 1
+        // TODO ordered lists starting not at 1: https://github.com/zulip/zulip-flutter/issues/59
         case ListStyle.ordered: marker = "${index+1}. "; break;
       }
       return ListItemWidget(marker: marker, nodes: item);
@@ -183,7 +183,7 @@ class ListItemWidget extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         children: [
           SizedBox(
-              width: 20,
+              width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
               child: Align(
                   alignment: AlignmentDirectional.topEnd, child: Text(marker))),
           Expanded(child: BlockContentList(nodes: nodes)),
