@@ -51,11 +51,14 @@ Map<String, String> authHeader(Auth auth) {
 class LiveApiConnection extends ApiConnection {
   LiveApiConnection({required super.auth});
 
+  final http.Client _client = http.Client();
+
   bool _isOpen = true;
 
   @override
   void close() {
     assert(_isOpen);
+    _client.close();
     _isOpen = false;
   }
 
@@ -73,7 +76,7 @@ class LiveApiConnection extends ApiConnection {
         path: "/api/v1/$route",
         queryParameters: encodeParameters(params));
     if (kDebugMode) print("GET $url");
-    final response = await http.get(url, headers: _headers());
+    final response = await _client.get(url, headers: _headers());
     if (response.statusCode != 200) {
       throw Exception("error on GET $route: status ${response.statusCode}");
     }
@@ -83,7 +86,7 @@ class LiveApiConnection extends ApiConnection {
   @override
   Future<String> post(String route, Map<String, dynamic>? params) async {
     assert(_isOpen);
-    final response = await http.post(
+    final response = await _client.post(
         Uri.parse("${auth.realmUrl}/api/v1/$route"),
         headers: _headers(),
         body: encodeParameters(params));
