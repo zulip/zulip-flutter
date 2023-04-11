@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'dialog.dart';
 
@@ -44,9 +45,10 @@ class TopicTextEditingController extends TextEditingController {
 
 enum ContentValidationError {
   empty,
-  tooLong;
+  tooLong,
+  uploadInProgress;
 
-  // Later: upload in progress; quote-and-reply in progress
+  // Later: quote-and-reply in progress
 
   String message() {
     switch (this) {
@@ -54,11 +56,73 @@ enum ContentValidationError {
         return "Message length shouldn't be greater than 10000 characters.";
       case ContentValidationError.empty:
         return 'You have nothing to send!';
+      case ContentValidationError.uploadInProgress:
+        return 'Please wait for the upload to complete.';
     }
   }
 }
 
 class ContentTextEditingController extends TextEditingController {
+  int _nextUploadTag = 0;
+
+  final Map<int, ({String filename, String placeholder})> _uploads = {};
+
+  /// A probably-reasonable place to insert Markdown, such as for a file upload.
+  ///
+  /// Gives the cursor position,
+  /// or if text is selected, the end of the selection range.
+  ///
+  /// If there isn't a cursor position or a text selection
+  /// (e.g., when the input has never been focused),
+  /// gives the end of the whole text.
+  ///
+  /// Expressed as a collapsed `TextRange` at the index.
+  TextRange _insertionIndex() {
+    final TextRange selection = value.selection;
+    final String text = value.text;
+    return selection.isValid
+      ? (selection.isCollapsed
+        ? selection
+        : TextRange.collapsed(selection.end))
+      : TextRange.collapsed(text.length);
+  }
+
+  /// Tells the controller that a file upload has started.
+  ///
+  /// Returns an int "tag" that should be passed to registerUploadEnd on the
+  /// upload's success or failure.
+  int registerUploadStart(String filename) {
+    final tag = _nextUploadTag;
+    _nextUploadTag += 1;
+    final placeholder = '[Uploading $filename...]()'; // TODO(i18n)
+    _uploads[tag] = (filename: filename, placeholder: placeholder);
+    notifyListeners(); // _uploads change could affect validationErrors
+    value = value.replaced(_insertionIndex(), '$placeholder\n\n');
+    return tag;
+  }
+
+  /// Tells the controller that a file upload has ended, with success or error.
+  ///
+  /// To indicate success, pass the URL to be used for the Markdown link.
+  /// If `url` is null, failure is assumed.
+  void registerUploadEnd(int tag, Uri? url) {
+    final val = _uploads[tag];
+    assert(val != null, 'registerUploadEnd called twice for same tag');
+    final (:filename, :placeholder) = val!;
+    final int startIndex = text.indexOf(placeholder);
+    final replacementRange = startIndex >= 0
+      ? TextRange(start: startIndex, end: startIndex + placeholder.length)
+      : _insertionIndex();
+
+    value = value.replaced(
+      replacementRange,
+      url == null
+        ? '[Failed to upload file: $filename]()' // TODO(i18n)
+        : '[$filename](${url.toString()})');
+    _uploads.remove(tag);
+    notifyListeners(); // _uploads change could affect validationErrors
+  }
+
   String textNormalized() {
     return text.trim();
   }
@@ -74,6 +138,9 @@ class ContentTextEditingController extends TextEditingController {
       // be conservative and may cut the user off shorter than necessary.
       if (normalized.length > kMaxMessageLengthCodePoints)
         ContentValidationError.tooLong,
+
+      if (_uploads.isNotEmpty)
+        ContentValidationError.uploadInProgress,
     ];
   }
 }
@@ -143,6 +210,87 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
+class _AttachFileButton extends StatelessWidget {
+  const _AttachFileButton({required this.contentController, required this.contentFocusNode});
+
+  final ContentTextEditingController contentController;
+  final FocusNode contentFocusNode;
+
+  _handlePress(BuildContext context) async {
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.platform.pickFiles(allowMultiple: true, withReadStream: true);
+    } catch (e) {
+      // TODO(i18n)
+      showErrorDialog(context: context, title: 'Error', message: e.toString());
+      return;
+    }
+    if (result == null) {
+      return; // User cancelled; do nothing
+    }
+
+    if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
+    else {
+      return;
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+
+    final List<PlatformFile> tooLargeFiles = [];
+    final List<PlatformFile> rightSizeFiles = [];
+    for (PlatformFile file in result.files) {
+      if ((file.size / (1 << 20)) > store.maxFileUploadSizeMib) {
+        tooLargeFiles.add(file);
+      } else {
+        rightSizeFiles.add(file);
+      }
+    }
+
+    if (tooLargeFiles.isNotEmpty) {
+      final listMessage = tooLargeFiles
+        .map((file) => '${file.name}: ${(file.size / (1 << 20)).toStringAsFixed(1)} MiB')
+        .join('\n');
+      showErrorDialog( // TODO(i18n)
+        context: context,
+        title: 'File(s) too large',
+        message:
+          '${tooLargeFiles.length} file(s) are larger than the server\'s limit of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:\n\n$listMessage');
+    }
+
+    final List<(int, PlatformFile)> uploadsInProgress = [];
+    for (final file in rightSizeFiles) {
+      final tag = contentController.registerUploadStart(file.name);
+      uploadsInProgress.add((tag, file));
+    }
+    if (!contentFocusNode.hasFocus) {
+      contentFocusNode.requestFocus();
+    }
+
+    for (final (tag, file) in uploadsInProgress) {
+      final PlatformFile(:readStream, :size, :name) = file;
+      assert(readStream != null); // We passed `withReadStream: true` to pickFiles.
+      Uri? url;
+      try {
+        final result = await uploadFile(store.connection,
+          content: readStream!, length: size, filename: name);
+        url = Uri.parse(result.uri);
+      } catch (e) {
+        if (!context.mounted) return;
+        // TODO(#37): Specifically handle `413 Payload Too Large`
+        // TODO(#37): On API errors, quote `msg` from server, with "The server said:"
+        showErrorDialog(context: context,
+          title: 'Failed to upload file: $name', message: e.toString());
+      } finally {
+        contentController.registerUploadEnd(tag, url);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(icon: const Icon(Icons.attach_file), onPressed: () => _handlePress(context));
+  }
+}
 
 /// The send button for StreamComposeBox.
 class _StreamSendButton extends StatefulWidget {
@@ -318,21 +466,31 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
           minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: Padding(
             padding: const EdgeInsets.only(top: 8.0),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Expanded(
-                child: Theme(
-                    data: inputThemeData,
-                    child: Column(
-                        children: [
-                          topicInput,
-                          const SizedBox(height: 8),
-                          _StreamContentInput(
-                            topicController: _topicController,
-                            controller: _contentController,
-                            focusNode: _contentFocusNode),
-                          ]))),
-              const SizedBox(width: 8),
-              _StreamSendButton(topicController: _topicController, contentController: _contentController),
-            ]))));
+            child: Column(
+              children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Expanded(
+                    child: Theme(
+                        data: inputThemeData,
+                        child: Column(
+                            children: [
+                              topicInput,
+                              const SizedBox(height: 8),
+                              _StreamContentInput(
+                                topicController: _topicController,
+                                controller: _contentController,
+                                focusNode: _contentFocusNode),
+                            ]))),
+                  const SizedBox(width: 8),
+                  _StreamSendButton(topicController: _topicController, contentController: _contentController),
+                ]),
+                Theme(
+                  data: themeData.copyWith(
+                    iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+                  child: Row(
+                    children: [
+                      _AttachFileButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
+                    ])),
+              ]))));
   }
 }
