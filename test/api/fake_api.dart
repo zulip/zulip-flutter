@@ -21,6 +21,11 @@ class FakeApiConnection extends ApiConnection {
   }
 
   @override
+  void close() {
+    // TODO: record connection closed; assert open in methods
+  }
+
+  @override
   Future<String> get(String route, Map<String, dynamic>? params) async {
     final response = _nextResponse;
     _nextResponse = null;

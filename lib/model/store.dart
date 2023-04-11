@@ -294,7 +294,7 @@ class LivePerAccountStore extends PerAccountStore {
       final result = await getEvents(connection,
           queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
-      // TODO abort long-poll on [dispose]
+      // TODO abort long-poll and close LiveApiConnection on [dispose]
       final events = result.events;
       for (final event in events) {
         handleEvent(event);

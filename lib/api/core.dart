@@ -32,6 +32,8 @@ abstract class ApiConnection {
   //   that ensures nothing assumes base class has a real API key
   final Auth auth;
 
+  void close();
+
   Future<String> get(String route, Map<String, dynamic>? params);
 
   Future<String> post(String route, Map<String, dynamic>? params);
@@ -49,10 +51,19 @@ Map<String, String> authHeader(Auth auth) {
 class LiveApiConnection extends ApiConnection {
   LiveApiConnection({required super.auth});
 
+  bool _isOpen = true;
+
+  @override
+  void close() {
+    assert(_isOpen);
+    _isOpen = false;
+  }
+
   Map<String, String> _headers() => authHeader(auth);
 
   @override
   Future<String> get(String route, Map<String, dynamic>? params) async {
+    assert(_isOpen);
     final baseUrl = Uri.parse(auth.realmUrl);
     final url = Uri(
         scheme: baseUrl.scheme,
@@ -71,6 +82,7 @@ class LiveApiConnection extends ApiConnection {
 
   @override
   Future<String> post(String route, Map<String, dynamic>? params) async {
+    assert(_isOpen);
     final response = await http.post(
         Uri.parse("${auth.realmUrl}/api/v1/$route"),
         headers: _headers(),
