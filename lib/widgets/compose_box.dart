@@ -165,7 +165,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     }
   }
 
-  _contentValueChanged() {
+  _contentChanged() {
     final oldIsEmpty = _contentValidationErrors.isEmpty;
     final newErrors = widget.contentController.validationErrors();
     final newIsEmpty = newErrors.isEmpty;
@@ -183,13 +183,13 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     _topicValidationErrors = widget.topicController.validationErrors();
     _contentValidationErrors = widget.contentController.validationErrors();
     widget.topicController.addListener(_topicValueChanged);
-    widget.contentController.addListener(_contentValueChanged);
+    widget.contentController.addListener(_contentChanged);
   }
 
   @override
   void dispose() {
     widget.topicController.removeListener(_topicValueChanged);
-    widget.contentController.removeListener(_contentValueChanged);
+    widget.contentController.removeListener(_contentChanged);
     super.dispose();
   }
 
