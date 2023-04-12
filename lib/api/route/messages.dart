@@ -97,3 +97,28 @@ class SendMessageResult {
 
   Map<String, dynamic> toJson() => _$SendMessageResultToJson(this);
 }
+
+/// https://zulip.com/api/upload-file
+Future<UploadFileResult> uploadFile(
+  ApiConnection connection, {
+  required Stream<List<int>> content,
+  required int length,
+  required String filename,
+}) async {
+  final data = await connection.postFileFromStream('user_uploads', content, length, filename: filename);
+  return UploadFileResult.fromJson(jsonDecode(data));
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UploadFileResult {
+  final String uri;
+
+  UploadFileResult({
+    required this.uri,
+  });
+
+  factory UploadFileResult.fromJson(Map<String, dynamic> json) =>
+      _$UploadFileResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UploadFileResultToJson(this);
+}
