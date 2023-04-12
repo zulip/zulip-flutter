@@ -22,6 +22,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       subscriptions: (json['subscriptions'] as List<dynamic>)
           .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
           .toList(),
+      maxFileUploadSizeMib: json['max_file_upload_size_mib'] as int,
     );
 
 Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'alert_words': instance.alertWords,
       'custom_profile_fields': instance.customProfileFields,
       'subscriptions': instance.subscriptions,
+      'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
     };

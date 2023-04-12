@@ -21,6 +21,8 @@ class InitialSnapshot {
 
   final List<Subscription> subscriptions;
 
+  final int maxFileUploadSizeMib;
+
   // TODO etc., etc.
 
   InitialSnapshot({
@@ -32,6 +34,7 @@ class InitialSnapshot {
     required this.alertWords,
     required this.customProfileFields,
     required this.subscriptions,
+    required this.maxFileUploadSizeMib,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>

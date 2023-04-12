@@ -142,13 +142,15 @@ class PerAccountStore extends ChangeNotifier {
     required InitialSnapshot initialSnapshot,
   })  : zulipVersion = initialSnapshot.zulipVersion,
         subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
-                (subscription) => MapEntry(subscription.streamId, subscription)));
+                (subscription) => MapEntry(subscription.streamId, subscription))),
+        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
 
   final Account account;
   final ApiConnection connection;
 
   final String zulipVersion;
   final Map<int, Subscription> subscriptions;
+  final int maxFileUploadSizeMib; // No event for this.
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 

@@ -80,4 +80,5 @@ final InitialSnapshot initialSnapshot = InitialSnapshot(
   alertWords: ['klaxon'],
   customProfileFields: [],
   subscriptions: [], // TODO add subscriptions to example initial snapshot
+  maxFileUploadSizeMib: 25,
 );
