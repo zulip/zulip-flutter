@@ -38,6 +38,13 @@ class FakeApiConnection extends ApiConnection {
     _nextResponse = null;
     return response!;
   }
+
+  @override
+  Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
+    final response = _nextResponse;
+    _nextResponse = null;
+    return response!;
+  }
 }
 
 const String _fakeApiKey = 'fake-api-key';

@@ -37,6 +37,8 @@ abstract class ApiConnection {
   Future<String> get(String route, Map<String, dynamic>? params);
 
   Future<String> post(String route, Map<String, dynamic>? params);
+
+  Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename });
 }
 
 // TODO memoize
@@ -92,6 +94,19 @@ class LiveApiConnection extends ApiConnection {
         body: encodeParameters(params));
     if (response.statusCode != 200) {
       throw Exception("error on POST $route: status ${response.statusCode}");
+    }
+    return utf8.decode(response.bodyBytes);
+  }
+
+  @override
+  Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
+    assert(_isOpen);
+    http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("${auth.realmUrl}/api/v1/$route"))
+      ..files.add(http.MultipartFile('file', content, length, filename: filename))
+      ..headers.addAll(_headers());
+    final response = await http.Response.fromStream(await _client.send(request));
+    if (response.statusCode != 200) {
+      throw Exception("error on file-upload POST $route: status ${response.statusCode}");
     }
     return utf8.decode(response.bodyBytes);
   }
