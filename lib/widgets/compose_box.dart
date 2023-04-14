@@ -92,7 +92,7 @@ class _StreamContentInput extends StatefulWidget {
 class _StreamContentInputState extends State<_StreamContentInput> {
   late String _topicTextNormalized;
 
-  _topicValueChanged() {
+  _topicChanged() {
     setState(() {
       _topicTextNormalized = widget.topicController.textNormalized();
     });
@@ -102,12 +102,12 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   void initState() {
     super.initState();
     _topicTextNormalized = widget.topicController.textNormalized();
-    widget.topicController.addListener(_topicValueChanged);
+    widget.topicController.addListener(_topicChanged);
   }
 
   @override
   void dispose() {
-    widget.topicController.removeListener(_topicValueChanged);
+    widget.topicController.removeListener(_topicChanged);
     super.dispose();
   }
 
@@ -153,7 +153,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
   late List<TopicValidationError> _topicValidationErrors;
   late List<ContentValidationError> _contentValidationErrors;
 
-  _topicValueChanged() {
+  _topicChanged() {
     final oldIsEmpty = _topicValidationErrors.isEmpty;
     final newErrors = widget.topicController.validationErrors();
     final newIsEmpty = newErrors.isEmpty;
@@ -182,13 +182,13 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     super.initState();
     _topicValidationErrors = widget.topicController.validationErrors();
     _contentValidationErrors = widget.contentController.validationErrors();
-    widget.topicController.addListener(_topicValueChanged);
+    widget.topicController.addListener(_topicChanged);
     widget.contentController.addListener(_contentChanged);
   }
 
   @override
   void dispose() {
-    widget.topicController.removeListener(_topicValueChanged);
+    widget.topicController.removeListener(_topicChanged);
     widget.contentController.removeListener(_contentChanged);
     super.dispose();
   }
