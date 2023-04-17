@@ -8,6 +8,7 @@ const String recentZulipVersion = '6.1';
 const int recentZulipFeatureLevel = 164;
 
 final Account selfAccount = Account(
+  id: 1001,
   realmUrl: realmUrl,
   email: 'self@example',
   apiKey: 'asdfqwer',
@@ -18,6 +19,7 @@ final Account selfAccount = Account(
 );
 
 final Account otherAccount = Account(
+  id: 1002,
   realmUrl: realmUrl,
   email: 'other@example',
   apiKey: 'sdfgwert',

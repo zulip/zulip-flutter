@@ -113,9 +113,18 @@ class TestGlobalStore extends GlobalStore {
   int _nextAccountId = 1;
 
   @override
-  Future<int> doInsertAccount(Account account) async {
+  Future<Account> doInsertAccount(AccountsCompanion data) async {
     final accountId = _nextAccountId;
     _nextAccountId++;
-    return accountId;
+    return Account(
+      id: accountId,
+      realmUrl: data.realmUrl.value,
+      userId: data.userId.value,
+      email: data.email.value,
+      apiKey: data.apiKey.value,
+      zulipFeatureLevel: data.zulipFeatureLevel.value,
+      zulipVersion: data.zulipVersion.value,
+      zulipMergeBase: data.zulipMergeBase.value,
+    );
   }
 }

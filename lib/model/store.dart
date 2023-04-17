@@ -9,7 +9,11 @@ import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
 import '../credential_fixture.dart' as credentials;
+import 'database.dart';
 import 'message_list.dart';
+
+export 'package:drift/drift.dart' show Value;
+export 'database.dart' show Account, AccountsCompanion;
 
 /// Store for all the user's data.
 ///
@@ -109,16 +113,16 @@ abstract class GlobalStore extends ChangeNotifier {
   // TODO(#13): rewrite these setters/mutators with a database
 
   /// Add an account to the store, returning its assigned account ID.
-  Future<int> insertAccount(Account account) async {
-    final accountId = await doInsertAccount(account);
-    assert(!_accounts.containsKey(accountId));
-    _accounts[accountId] = account;
+  Future<int> insertAccount(AccountsCompanion data) async {
+    final account = await doInsertAccount(data);
+    assert(!_accounts.containsKey(account.id));
+    _accounts[account.id] = account;
     notifyListeners();
-    return accountId;
+    return account.id;
   }
 
   /// Add an account to the underlying data store.
-  Future<int> doInsertAccount(Account account);
+  Future<Account> doInsertAccount(AccountsCompanion data);
 
   // More mutators as needed:
   // Future<void> updateAccount...
@@ -203,27 +207,6 @@ class PerAccountStore extends ChangeNotifier {
   }
 }
 
-@immutable
-class Account {
-  const Account({
-    required this.realmUrl,
-    required this.userId,
-    required this.email,
-    required this.apiKey,
-    required this.zulipFeatureLevel,
-    required this.zulipVersion,
-    required this.zulipMergeBase,
-  });
-
-  final Uri realmUrl;
-  final int userId;
-  final String email;
-  final String apiKey;
-  final int zulipFeatureLevel;
-  final String zulipVersion;
-  final String? zulipMergeBase;
-}
-
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({required super.accounts}) : super();
 
@@ -245,10 +228,19 @@ class LiveGlobalStore extends GlobalStore {
   int _nextAccountId = 1;
 
   @override
-  Future<int> doInsertAccount(Account account) async {
+  Future<Account> doInsertAccount(AccountsCompanion data) async {
     final accountId = _nextAccountId;
     _nextAccountId++;
-    return accountId;
+    return Account(
+      id: accountId,
+      realmUrl: data.realmUrl.value,
+      userId: data.userId.value,
+      email: data.email.value,
+      apiKey: data.apiKey.value,
+      zulipFeatureLevel: data.zulipFeatureLevel.value,
+      zulipVersion: data.zulipVersion.value,
+      zulipMergeBase: data.zulipMergeBase.value,
+    );
   }
 }
 
@@ -257,6 +249,7 @@ class LiveGlobalStore extends GlobalStore {
 /// See "Server credentials" in the project README for how to fill in the
 /// `credential_fixture.dart` file this requires.
 final Account _fixtureAccount = Account(
+  id: LiveGlobalStore.fixtureAccountId,
   realmUrl: Uri.parse(credentials.realmUrl),
   email: credentials.email,
   apiKey: credentials.apiKey,

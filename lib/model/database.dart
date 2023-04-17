@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
-// TODO unify with Account in store.dart
 class Accounts extends Table {
   Column<int>    get id => integer().autoIncrement()();
 

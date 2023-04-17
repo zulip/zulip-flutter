@@ -135,17 +135,16 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       return;
     }
 
-    final account = Account(
+    final globalStore = GlobalStoreWidget.of(context);
+    final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
       realmUrl: realmUrl,
       email: result.email,
       apiKey: result.apiKey,
       userId: userId,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
       zulipVersion: widget.serverSettings.zulipVersion,
-      zulipMergeBase: widget.serverSettings.zulipMergeBase,
-    );
-    final globalStore = GlobalStoreWidget.of(context);
-    final accountId = await globalStore.insertAccount(account);
+      zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+    ));
     if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
     else {
       return;
