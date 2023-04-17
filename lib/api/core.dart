@@ -71,13 +71,8 @@ class LiveApiConnection extends ApiConnection {
   Future<String> get(String route, Map<String, dynamic>? params) async {
     assert(_isOpen);
     final baseUrl = Uri.parse(auth.realmUrl);
-    final url = Uri(
-        scheme: baseUrl.scheme,
-        userInfo: baseUrl.userInfo,
-        host: baseUrl.host,
-        port: baseUrl.port,
-        path: "/api/v1/$route",
-        queryParameters: encodeParameters(params));
+    final url = baseUrl.replace(
+        path: "/api/v1/$route", queryParameters: encodeParameters(params));
     if (kDebugMode) print("GET $url");
     final response = await _client.get(url, headers: _headers());
     if (response.statusCode != 200) {
@@ -90,7 +85,7 @@ class LiveApiConnection extends ApiConnection {
   Future<String> post(String route, Map<String, dynamic>? params) async {
     assert(_isOpen);
     final response = await _client.post(
-        Uri.parse("${auth.realmUrl}/api/v1/$route"),
+        Uri.parse(auth.realmUrl).replace(path: "/api/v1/$route"),
         headers: _headers(),
         body: encodeParameters(params));
     if (response.statusCode != 200) {

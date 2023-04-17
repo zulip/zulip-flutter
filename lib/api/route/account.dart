@@ -15,7 +15,7 @@ Future<FetchApiKeyResult> fetchApiKey({
 }) async {
   // TODO dedupe this part with LiveApiConnection; make this function testable
   final response = await http.post(
-    Uri.parse("$realmUrl/api/v1/fetch_api_key"),
+    Uri.parse(realmUrl).replace(path: "/api/v1/fetch_api_key"),
     body: encodeParameters({
       'username': RawParameter(username),
       'password': RawParameter(password),

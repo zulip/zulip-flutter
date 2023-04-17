@@ -21,7 +21,7 @@ Future<GetServerSettingsResult> getServerSettings({
 }) async {
   // TODO dedupe this part with LiveApiConnection; make this function testable
   final response = await http.get(
-    Uri.parse("$realmUrl/api/v1/server_settings"));
+    Uri.parse(realmUrl).replace(path: "/api/v1/server_settings"));
   if (response.statusCode != 200) {
     throw Exception('error on GET server_settings: status ${response.statusCode}');
   }
