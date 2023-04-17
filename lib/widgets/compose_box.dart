@@ -80,10 +80,15 @@ class ContentTextEditingController extends TextEditingController {
 
 /// The content input for StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
-  const _StreamContentInput({required this.controller, required this.topicController});
+  const _StreamContentInput({
+    required this.controller,
+    required this.topicController,
+    required this.focusNode,
+  });
 
   final ContentTextEditingController controller;
   final TopicTextEditingController topicController;
+  final FocusNode focusNode;
 
   @override
   State<_StreamContentInput> createState() => _StreamContentInputState();
@@ -126,6 +131,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
         ),
         child: TextField(
           controller: widget.controller,
+          focusNode: widget.focusNode,
           style: TextStyle(color: colorScheme.onSurface),
           decoration: InputDecoration.collapsed(
             hintText: "Message #test here > $_topicTextNormalized",
@@ -268,11 +274,13 @@ class StreamComposeBox extends StatefulWidget {
 class _StreamComposeBoxState extends State<StreamComposeBox> {
   final _topicController = TopicTextEditingController();
   final _contentController = ContentTextEditingController();
+  final _contentFocusNode = FocusNode();
 
   @override
   void dispose() {
     _topicController.dispose();
     _contentController.dispose();
+    _contentFocusNode.dispose();
     super.dispose();
   }
 
@@ -318,8 +326,11 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                         children: [
                           topicInput,
                           const SizedBox(height: 8),
-                          _StreamContentInput(topicController: _topicController, controller: _contentController),
-                        ]))),
+                          _StreamContentInput(
+                            topicController: _topicController,
+                            controller: _contentController,
+                            focusNode: _contentFocusNode),
+                          ]))),
               const SizedBox(width: 8),
               _StreamSendButton(topicController: _topicController, contentController: _contentController),
             ]))));
