@@ -203,18 +203,21 @@ class PerAccountStore extends ChangeNotifier {
 }
 
 @immutable
-class Account extends Auth {
-  Account({
-    required super.realmUrl,
-    required super.email,
-    required super.apiKey,
+class Account {
+  const Account({
+    required this.realmUrl,
     required this.userId,
+    required this.email,
+    required this.apiKey,
     required this.zulipFeatureLevel,
     required this.zulipVersion,
     required this.zulipMergeBase,
   });
 
+  final Uri realmUrl;
   final int userId;
+  final String email;
+  final String apiKey;
   final int zulipFeatureLevel;
   final String zulipVersion;
   final String? zulipMergeBase;
@@ -271,7 +274,8 @@ class LivePerAccountStore extends PerAccountStore {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<PerAccountStore> load(Account account) async {
-    final connection = LiveApiConnection(auth: account);
+    final connection = LiveApiConnection(
+      auth: Auth(realmUrl: account.realmUrl, email: account.email, apiKey: account.apiKey));
 
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(connection); // TODO retry
