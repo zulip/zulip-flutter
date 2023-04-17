@@ -31,6 +31,7 @@ abstract class GlobalStore extends ChangeNotifier {
   GlobalStore({required Map<int, Account> accounts})
       : _accounts = accounts;
 
+  /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
 
   // TODO settings (those that are per-device rather than per-account)
@@ -107,17 +108,17 @@ abstract class GlobalStore extends ChangeNotifier {
 
   // TODO(#13): rewrite these setters/mutators with a database
 
-  int _nextAccountId = 1;
-
   /// Add an account to the store, returning its assigned account ID.
   Future<int> insertAccount(Account account) async {
-    final accountId = _nextAccountId;
-    _nextAccountId++;
+    final accountId = await doInsertAccount(account);
     assert(!_accounts.containsKey(accountId));
     _accounts[accountId] = account;
     notifyListeners();
     return accountId;
   }
+
+  /// Add an account to the underlying data store.
+  Future<int> doInsertAccount(Account account);
 
   // More mutators as needed:
   // Future<void> updateAccount...
@@ -239,6 +240,15 @@ class LiveGlobalStore extends GlobalStore {
   @override
   Future<PerAccountStore> loadPerAccount(Account account) {
     return LivePerAccountStore.load(account);
+  }
+
+  int _nextAccountId = 1;
+
+  @override
+  Future<int> doInsertAccount(Account account) async {
+    final accountId = _nextAccountId;
+    _nextAccountId++;
+    return accountId;
   }
 }
 

@@ -109,4 +109,13 @@ class TestGlobalStore extends GlobalStore {
     (completers[account] ??= []).add(completer);
     return completer.future;
   }
+
+  int _nextAccountId = 1;
+
+  @override
+  Future<int> doInsertAccount(Account account) async {
+    final accountId = _nextAccountId;
+    _nextAccountId++;
+    return accountId;
+  }
 }
