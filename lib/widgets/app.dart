@@ -65,7 +65,7 @@ class ChooseAccountPage extends StatelessWidget {
             for (final (:accountId, :account) in globalStore.accountEntries)
               _buildAccountItem(context,
                 accountId: accountId,
-                title: Text(account.realmUrl),
+                title: Text(account.realmUrl.toString()),
                 subtitle: Text(account.email)),
             const SizedBox(height: 12),
             ElevatedButton(
@@ -103,7 +103,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 12),
               Text.rich(TextSpan(
                 text: 'Connected to: ',
-                children: [bold(store.account.realmUrl)])),
+                children: [bold(store.account.realmUrl.toString())])),
               Text.rich(TextSpan(
                 text: 'Zulip server version: ',
                 children: [bold(store.zulipVersion)])),

@@ -17,11 +17,11 @@ part 'realm.g.dart';
 //   See thread, and the zulip-mobile code and chat thread it links to:
 //     https://github.com/zulip/zulip-flutter/pull/55#discussion_r1160267577
 Future<GetServerSettingsResult> getServerSettings({
-  required String realmUrl,
+  required Uri realmUrl,
 }) async {
   // TODO dedupe this part with LiveApiConnection; make this function testable
   final response = await http.get(
-    Uri.parse(realmUrl).replace(path: "/api/v1/server_settings"));
+    realmUrl.replace(path: "/api/v1/server_settings"));
   if (response.statusCode != 200) {
     throw Exception('error on GET server_settings: status ${response.statusCode}');
   }

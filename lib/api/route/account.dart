@@ -9,13 +9,13 @@ part 'account.g.dart';
 
 /// https://zulip.com/api/fetch-api-key
 Future<FetchApiKeyResult> fetchApiKey({
-  required String realmUrl,
+  required Uri realmUrl,
   required String username,
   required String password,
 }) async {
   // TODO dedupe this part with LiveApiConnection; make this function testable
   final response = await http.post(
-    Uri.parse(realmUrl).replace(path: "/api/v1/fetch_api_key"),
+    realmUrl.replace(path: "/api/v1/fetch_api_key"),
     body: encodeParameters({
       'username': RawParameter(username),
       'password': RawParameter(password),

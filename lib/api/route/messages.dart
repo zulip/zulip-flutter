@@ -69,7 +69,7 @@ Future<SendMessageResult> sendMessage(
 }) async {
   // assert() is less verbose but would have no effect in production, I think:
   //   https://dart.dev/guides/language/language-tour#assert
-  if (Uri.parse(connection.auth.realmUrl).origin != 'https://chat.zulip.org') {
+  if (connection.auth.realmUrl.origin != 'https://chat.zulip.org') {
     throw Exception('This binding can currently only be used on https://chat.zulip.org.');
   }
 

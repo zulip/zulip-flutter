@@ -244,7 +244,7 @@ class LiveGlobalStore extends GlobalStore {
 /// See "Server credentials" in the project README for how to fill in the
 /// `credential_fixture.dart` file this requires.
 final Account _fixtureAccount = Account(
-  realmUrl: credentials.realmUrl,
+  realmUrl: Uri.parse(credentials.realmUrl),
   email: credentials.email,
   apiKey: credentials.apiKey,
   userId: credentials.userId,

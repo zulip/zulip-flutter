@@ -5,9 +5,9 @@ import 'package:http/http.dart' as http;
 
 class Auth {
   Auth({required this.realmUrl, required this.email, required this.apiKey})
-   : assert(Uri.parse(realmUrl).query.isEmpty && Uri.parse(realmUrl).fragment.isEmpty);
+   : assert(realmUrl.query.isEmpty && realmUrl.fragment.isEmpty);
 
-  final String realmUrl;
+  final Uri realmUrl;
   final String email;
   final String apiKey;
 }
@@ -70,8 +70,7 @@ class LiveApiConnection extends ApiConnection {
   @override
   Future<String> get(String route, Map<String, dynamic>? params) async {
     assert(_isOpen);
-    final baseUrl = Uri.parse(auth.realmUrl);
-    final url = baseUrl.replace(
+    final url = auth.realmUrl.replace(
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
     if (kDebugMode) print("GET $url");
     final response = await _client.get(url, headers: _headers());
@@ -85,7 +84,7 @@ class LiveApiConnection extends ApiConnection {
   Future<String> post(String route, Map<String, dynamic>? params) async {
     assert(_isOpen);
     final response = await _client.post(
-        Uri.parse(auth.realmUrl).replace(path: "/api/v1/$route"),
+        auth.realmUrl.replace(path: "/api/v1/$route"),
         headers: _headers(),
         body: encodeParameters(params));
     if (response.statusCode != 200) {

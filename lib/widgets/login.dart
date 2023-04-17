@@ -47,7 +47,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     }
 
     // TODO(#35): show feedback that we're working, while fetching server settings
-    final serverSettings = await getServerSettings(realmUrl: url.toString());
+    final serverSettings = await getServerSettings(realmUrl: url);
     if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
     else {
       return;
@@ -105,7 +105,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
     final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
     final auth = Auth(
-      realmUrl: widget.realmUrl.toString(), email: email, apiKey: apiKey);
+      realmUrl: widget.realmUrl, email: email, apiKey: apiKey);
     final connection = LiveApiConnection(auth: auth); // TODO make this widget testable
     return (await getOwnUser(connection)).userId;
   }
@@ -124,7 +124,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     final FetchApiKeyResult result;
     try {
       result = await fetchApiKey(
-        realmUrl: realmUrl.toString(), username: email, password: password);
+        realmUrl: realmUrl, username: email, password: password);
     } on Exception catch (e) { // TODO(#37): distinguish API exceptions
       // TODO(#35): give feedback to user on failed login
       debugPrint(e.toString());
@@ -139,7 +139,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     }
 
     final account = Account(
-      realmUrl: realmUrl.toString(),
+      realmUrl: realmUrl,
       email: result.email,
       apiKey: result.apiKey,
       userId: userId,

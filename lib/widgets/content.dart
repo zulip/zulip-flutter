@@ -591,7 +591,7 @@ class RealmContentNetworkImage extends StatelessWidget {
       isAntiAlias: isAntiAlias,
 
       // Only send the auth header to the server `auth` belongs to.
-      headers: parsedSrc.origin == Uri.parse(auth.realmUrl).origin
+      headers: parsedSrc.origin == auth.realmUrl.origin
         ? authHeader(auth)
         : null,
 
@@ -609,7 +609,7 @@ class RealmContentNetworkImage extends StatelessWidget {
 // This may dissolve when we start passing around URLs as [Uri] objects instead
 // of strings.
 String resolveUrl(String url, Account account) {
-  final realmUrl = Uri.parse(account.realmUrl); // TODO clean this up
+  final realmUrl = account.realmUrl;
   final resolved = realmUrl.resolve(url); // TODO handle if fails to parse
   return resolved.toString();
 }

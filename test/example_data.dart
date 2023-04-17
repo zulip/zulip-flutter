@@ -2,7 +2,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 
-const String realmUrl = 'https://chat.example/';
+final Uri realmUrl = Uri.parse('https://chat.example/');
 
 const String recentZulipVersion = '6.1';
 const int recentZulipFeatureLevel = 164;
