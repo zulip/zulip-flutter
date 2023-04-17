@@ -39,39 +39,6 @@ community.  See [issue #15][].
 [issue #15]: https://github.com/zulip/zulip-flutter/issues/15
 
 
-### Server credentials
-
-In this early prototype, we don't yet have a UI for logging into
-a Zulip server.  Instead, you supply Zulip credentials at build time.
-
-To do this, log into the Zulip web app for the test account
-you want to use, and gather two kinds of information:
-* [Download a `.zuliprc` file][download-zuliprc].
-  This will contain a realm URL, email, and API key.
-* Find the account's user ID.  You can do this by visiting your
-  DMs with yourself, and looking at the URL;
-  it's the number after `pm-with/` or `dm-with/`.
-
-Then create a file `lib/credential_fixture.dart` in this worktree
-with the following form, and fill in the gathered information:
-```dart
-const String realmUrl = '…';
-const String email = '…';
-const String apiKey = '…';
-const int userId = /* … */ -1;
-```
-
-Now build and run the app (see "Flutter help" above), and things
-should work.
-
-Note this means the account's API key gets incorporated into the
-build output.  Consider using a low-value test account, or else
-deleting the build output (`flutter clean`, and then delete the app
-from any mobile devices you ran it on) when done.
-
-[download-zuliprc]: https://zulip.com/api/api-keys
-
-
 ### Tests
 
 You can run all our forms of tests with two commands:

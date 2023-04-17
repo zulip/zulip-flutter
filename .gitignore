@@ -43,5 +43,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Scaffolding hack
+# Old scaffolding hack
 lib/credential_fixture.dart

@@ -136,6 +136,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     }
 
     final globalStore = GlobalStoreWidget.of(context);
+    // TODO(#35): give feedback to user on SQL exception, like dupe realm+user
     final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
       realmUrl: realmUrl,
       email: result.email,

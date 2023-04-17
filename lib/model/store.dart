@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../api/core.dart';
 import '../api/model/events.dart';
@@ -8,7 +12,6 @@ import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
-import '../credential_fixture.dart' as credentials;
 import 'database.dart';
 import 'message_list.dart';
 
@@ -110,8 +113,6 @@ abstract class GlobalStore extends ChangeNotifier {
 
   Account? getAccount(int id) => _accounts[id];
 
-  // TODO(#13): rewrite these setters/mutators with a database
-
   /// Add an account to the store, returning its assigned account ID.
   Future<int> insertAccount(AccountsCompanion data) async {
     final account = await doInsertAccount(data);
@@ -207,57 +208,69 @@ class PerAccountStore extends ChangeNotifier {
   }
 }
 
+/// A [GlobalStore] that uses a live server and live, persistent local database.
+///
+/// The underlying data store is an [AppDatabase] corresponding to a SQLite
+/// database file in the app's persistent storage on the device.
+///
+/// The per-account stores will be instances of [LivePerAccountStore],
+/// with data loaded through [LiveApiConnection].
 class LiveGlobalStore extends GlobalStore {
-  LiveGlobalStore._({required super.accounts}) : super();
-
-  // For convenience, a number we won't use as an ID in the database table.
-  static const fixtureAccountId = -1;
+  LiveGlobalStore._({
+    required AppDatabase db,
+    required super.accounts,
+  }) : _db = db;
 
   // We keep the API simple and synchronous for the bulk of the app's code
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
-    final accounts = {fixtureAccountId: _fixtureAccount};
-    return LiveGlobalStore._(accounts: accounts);
+    final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final accounts = await db.select(db.accounts).get();
+    return LiveGlobalStore._(
+      db: db,
+      accounts: Map.fromEntries(accounts.map((a) => MapEntry(a.id, a))),
+    );
   }
+
+  /// The file path to use for the app database.
+  static Future<File> _dbFile() async {
+    // What directory should we use?
+    //   path_provider's getApplicationSupportDirectory:
+    //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
+    //       -> empirically /data/data/com.zulip.flutter/files/
+    //     on iOS, -> "Library/Application Support" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsapplicationsupportdirectory
+    //     on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
+    //     All seem reasonable.
+    //   path_provider's getApplicationDocumentsDirectory:
+    //     on Android, -> Flutter's PathUtils.getDataDirectory -> https://developer.android.com/reference/android/content/Context#getDir(java.lang.String,%20int)
+    //       with https://developer.android.com/reference/android/content/Context#MODE_PRIVATE
+    //     on iOS, "Document directory" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsdocumentdirectory
+    //     on Linux, -> `xdg-user-dir DOCUMENTS` -> e.g. ~/Documents
+    //     That Linux answer is definitely not a fit.  Harder to tell about the rest.
+    final dir = await getApplicationSupportDirectory();
+    return File(p.join(dir.path, 'zulip.db'));
+  }
+
+  final AppDatabase _db;
 
   @override
   Future<PerAccountStore> loadPerAccount(Account account) {
     return LivePerAccountStore.load(account);
   }
 
-  int _nextAccountId = 1;
-
   @override
   Future<Account> doInsertAccount(AccountsCompanion data) async {
-    final accountId = _nextAccountId;
-    _nextAccountId++;
-    return Account(
-      id: accountId,
-      realmUrl: data.realmUrl.value,
-      userId: data.userId.value,
-      email: data.email.value,
-      apiKey: data.apiKey.value,
-      zulipFeatureLevel: data.zulipFeatureLevel.value,
-      zulipVersion: data.zulipVersion.value,
-      zulipMergeBase: data.zulipMergeBase.value,
-    );
+    final accountId = await _db.createAccount(data); // TODO(log): db errors
+    // We can *basically* predict what the Account will contain
+    // based on the AccountsCompanion and the account ID.  But
+    // if we did that and then there was some subtle case where we
+    // didn't match the database's behavior, that'd be a nasty bug.
+    // This isn't a hot path, so just make the extra query.
+    return await (_db.select(_db.accounts) // TODO perhaps put this logic in AppDatabase
+      ..where((a) => a.id.equals(accountId))
+    ).getSingle();
   }
 }
-
-/// A scaffolding hack for while prototyping.
-///
-/// See "Server credentials" in the project README for how to fill in the
-/// `credential_fixture.dart` file this requires.
-final Account _fixtureAccount = Account(
-  id: LiveGlobalStore.fixtureAccountId,
-  realmUrl: Uri.parse(credentials.realmUrl),
-  email: credentials.email,
-  apiKey: credentials.apiKey,
-  userId: credentials.userId,
-  zulipFeatureLevel: 169,
-  zulipVersion: '6.0-1235-g061f1dc43b',
-  zulipMergeBase: '6.0-1235-g061f1dc43b',
-);
 
 /// A [PerAccountStore] which polls an event queue to stay up to date.
 class LivePerAccountStore extends PerAccountStore {
