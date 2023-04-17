@@ -45,7 +45,7 @@ class GetServerSettingsResult {
 
   final bool emailAuthEnabled;
   final bool requireEmailFormatUsernames;
-  final String realmUri;
+  final Uri realmUri;
   final String realmName;
   final String realmIcon;
   final String realmDescription;
