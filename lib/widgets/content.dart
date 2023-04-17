@@ -563,7 +563,7 @@ class RealmContentNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Auth auth = PerAccountStoreWidget.of(context).account;
+    final account = PerAccountStoreWidget.of(context).account;
 
     final Uri parsedSrc = Uri.parse(src);
 
@@ -591,8 +591,8 @@ class RealmContentNetworkImage extends StatelessWidget {
       isAntiAlias: isAntiAlias,
 
       // Only send the auth header to the server `auth` belongs to.
-      headers: parsedSrc.origin == auth.realmUrl.origin
-        ? authHeader(auth)
+      headers: parsedSrc.origin == account.realmUrl.origin
+        ? authHeader(email: account.email, apiKey: account.apiKey)
         : null,
 
       cacheWidth: cacheWidth,

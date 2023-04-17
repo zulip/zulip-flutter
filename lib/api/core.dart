@@ -42,9 +42,9 @@ abstract class ApiConnection {
   Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename });
 }
 
-// TODO memoize
-Map<String, String> authHeader(Auth auth) {
-  final authBytes = utf8.encode("${auth.email}:${auth.apiKey}");
+// TODO memoize auth header on LiveApiConnection and PerAccountStore
+Map<String, String> authHeader({required String email, required String apiKey}) {
+  final authBytes = utf8.encode("$email:$apiKey");
   return {
     'Authorization': 'Basic ${base64.encode(authBytes)}',
   };
@@ -65,7 +65,9 @@ class LiveApiConnection extends ApiConnection {
     _isOpen = false;
   }
 
-  Map<String, String> _headers() => authHeader(auth);
+  Map<String, String> _headers() {
+    return authHeader(email: auth.email, apiKey: auth.apiKey);
+  }
 
   @override
   Future<String> get(String route, Map<String, dynamic>? params) async {
