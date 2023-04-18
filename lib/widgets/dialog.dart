@@ -27,3 +27,23 @@ void showErrorDialog({required BuildContext context, required String title, Stri
             child: _dialogActionText('OK')),
         ]));
 }
+
+void showSuggestedActionDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  required String? actionButtonText,
+  required VoidCallback onActionButtonPress,
+}) {
+  showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+    title: Text(title),
+    content: SingleChildScrollView(child: Text(message)),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: _dialogActionText('Cancel')),
+      TextButton(
+        onPressed: onActionButtonPress,
+        child: _dialogActionText(actionButtonText ?? 'Continue')),
+    ]));
+}
