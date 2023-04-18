@@ -210,6 +210,18 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
+/// Data on a file to be uploaded, from any source.
+///
+/// A convenience class to represent data from the generic file picker,
+/// the media library, and the camera, in a single form.
+class _File {
+  _File({required this.content, required this.length, required this.filename});
+
+  final Stream<List<int>> content;
+  final int length;
+  final String filename;
+}
+
 class _AttachFileButton extends StatelessWidget {
   const _AttachFileButton({required this.contentController, required this.contentFocusNode});
 
@@ -234,12 +246,17 @@ class _AttachFileButton extends StatelessWidget {
       return;
     }
 
+    final Iterable<_File> files = result.files.map((f) {
+      assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
+      return _File(content: f.readStream!, length: f.size, filename: f.name);
+    });
+
     final store = PerAccountStoreWidget.of(context);
 
-    final List<PlatformFile> tooLargeFiles = [];
-    final List<PlatformFile> rightSizeFiles = [];
-    for (PlatformFile file in result.files) {
-      if ((file.size / (1 << 20)) > store.maxFileUploadSizeMib) {
+    final List<_File> tooLargeFiles = [];
+    final List<_File> rightSizeFiles = [];
+    for (final file in files) {
+      if ((file.length / (1 << 20)) > store.maxFileUploadSizeMib) {
         tooLargeFiles.add(file);
       } else {
         rightSizeFiles.add(file);
@@ -248,7 +265,7 @@ class _AttachFileButton extends StatelessWidget {
 
     if (tooLargeFiles.isNotEmpty) {
       final listMessage = tooLargeFiles
-        .map((file) => '${file.name}: ${(file.size / (1 << 20)).toStringAsFixed(1)} MiB')
+        .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
         .join('\n');
       showErrorDialog( // TODO(i18n)
         context: context,
@@ -257,9 +274,9 @@ class _AttachFileButton extends StatelessWidget {
           '${tooLargeFiles.length} file(s) are larger than the server\'s limit of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:\n\n$listMessage');
     }
 
-    final List<(int, PlatformFile)> uploadsInProgress = [];
+    final List<(int, _File)> uploadsInProgress = [];
     for (final file in rightSizeFiles) {
-      final tag = contentController.registerUploadStart(file.name);
+      final tag = contentController.registerUploadStart(file.filename);
       uploadsInProgress.add((tag, file));
     }
     if (!contentFocusNode.hasFocus) {
@@ -267,19 +284,18 @@ class _AttachFileButton extends StatelessWidget {
     }
 
     for (final (tag, file) in uploadsInProgress) {
-      final PlatformFile(:readStream, :size, :name) = file;
-      assert(readStream != null); // We passed `withReadStream: true` to pickFiles.
+      final _File(:content, :length, :filename) = file;
       Uri? url;
       try {
         final result = await uploadFile(store.connection,
-          content: readStream!, length: size, filename: name);
+          content: content, length: length, filename: filename);
         url = Uri.parse(result.uri);
       } catch (e) {
         if (!context.mounted) return;
         // TODO(#37): Specifically handle `413 Payload Too Large`
         // TODO(#37): On API errors, quote `msg` from server, with "The server said:"
         showErrorDialog(context: context,
-          title: 'Failed to upload file: $name', message: e.toString());
+          title: 'Failed to upload file: $filename', message: e.toString());
       } finally {
         contentController.registerUploadEnd(tag, url);
       }
