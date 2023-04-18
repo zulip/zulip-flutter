@@ -53,6 +53,7 @@ dependencies:
   path: ^1.8.3
   sqlite3_flutter_libs: ^0.5.13
   app_settings: ^4.2.0
+  image_picker: ^0.8.7+3
 
 dev_dependencies:
   flutter_test:
