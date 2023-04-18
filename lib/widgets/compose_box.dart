@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dialog.dart';
 
 import '../api/route/messages.dart';
@@ -385,6 +386,51 @@ class _AttachMediaButton extends _AttachUploadsButton {
   }
 }
 
+class _AttachFromCameraButton extends _AttachUploadsButton {
+  const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
+
+  @override
+  IconData get icon => Icons.camera_alt;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    final picker = ImagePicker();
+    final XFile? result;
+    try {
+      // Ideally we'd open a platform interface that lets you choose between
+      // taking a photo and a video. `image_picker` doesn't yet have that
+      // option: https://github.com/flutter/flutter/issues/89159
+      // so just stick with images for now. We could add another button for
+      // videos, but we don't want too many buttons.
+      result = await picker.pickImage(source: ImageSource.camera, requestFullMetadata: false);
+    } catch (e) {
+      if (e is PlatformException && e.code == 'camera_access_denied') {
+        // iOS has a quirk where it will only request the native
+        // permission-request alert once, the first time the app wants to
+        // use a protected resource. After that, the only way the user can
+        // grant it is in Settings.
+        showSuggestedActionDialog(context: context, // TODO(i18n)
+          title: 'Permissions needed',
+          message: 'To upload an image, please grant Zulip additional permissions in Settings.',
+          actionButtonText: 'Open settings',
+          onActionButtonPress: () {
+            AppSettings.openAppSettings();
+          });
+      } else {
+        // TODO(i18n)
+        showErrorDialog(context: context, title: 'Error', message: e.toString());
+      }
+      return [];
+    }
+    if (result == null) {
+      return []; // User cancelled; do nothing
+    }
+    final length = await result.length();
+
+    return [_File(content: result.openRead(), length: length, filename: result.name)];
+  }
+}
+
 /// The send button for StreamComposeBox.
 class _StreamSendButton extends StatefulWidget {
   const _StreamSendButton({required this.topicController, required this.contentController});
@@ -584,6 +630,7 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                     children: [
                       _AttachFileButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
                       _AttachMediaButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
+                      _AttachFromCameraButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
                     ])),
               ]))));
   }

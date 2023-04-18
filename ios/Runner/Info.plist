@@ -53,6 +53,8 @@
 	<array>
 		<string>fetch</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>By allowing camera access, you can take photos and send them in Zulip messages.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos from your library and send them in Zulip messages.</string>
 </dict>
