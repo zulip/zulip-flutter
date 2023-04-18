@@ -323,6 +323,42 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   }
 }
 
+Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type) async {
+  FilePickerResult? result;
+  try {
+    result = await FilePicker.platform
+      .pickFiles(allowMultiple: true, withReadStream: true, type: type);
+  } catch (e) {
+    if (e is PlatformException && e.code == 'read_external_storage_denied') {
+      // Observed on Android. If Android's error message tells us whether the
+      // user has checked "Don't ask again", it seems the library doesn't pass
+      // that on to us. So just always prompt to check permissions in settings.
+      // If the user hasn't checked "Don't ask again", they can always dismiss
+      // our prompt and retry, and the permissions request will reappear,
+      // letting them grant permissions and complete the upload.
+      showSuggestedActionDialog(context: context, // TODO(i18n)
+        title: 'Permissions needed',
+        message: 'To upload files, please grant Zulip additional permissions in Settings.',
+        actionButtonText: 'Open settings',
+        onActionButtonPress: () {
+          AppSettings.openAppSettings();
+        });
+    } else {
+      // TODO(i18n)
+      showErrorDialog(context: context, title: 'Error', message: e.toString());
+    }
+    return [];
+  }
+  if (result == null) {
+    return []; // User cancelled; do nothing
+  }
+
+  return result.files.map((f) {
+    assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
+    return _File(content: f.readStream!, length: f.size, filename: f.name);
+  });
+}
+
 class _AttachFileButton extends _AttachUploadsButton {
   const _AttachFileButton({required super.contentController, required super.contentFocusNode});
 
@@ -331,39 +367,21 @@ class _AttachFileButton extends _AttachUploadsButton {
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
-    FilePickerResult? result;
-    try {
-      result = await FilePicker.platform.pickFiles(
-        allowMultiple: true, withReadStream: true, type: FileType.any);
-    } catch (e) {
-      if (e is PlatformException && e.code == 'read_external_storage_denied') {
-        // Observed on Android. If Android's error message tells us whether the
-        // user has checked "Don't ask again", it seems the library doesn't pass
-        // that on to us. So just always prompt to check permissions in settings.
-        // If the user hasn't checked "Don't ask again", they can always dismiss
-        // our prompt and retry, and the permissions request will reappear,
-        // letting them grant permissions and complete the upload.
-        showSuggestedActionDialog(context: context, // TODO(i18n)
-          title: 'Permissions needed',
-          message: 'To upload files, please grant Zulip additional permissions in Settings.',
-          actionButtonText: 'Open settings',
-          onActionButtonPress: () {
-            AppSettings.openAppSettings();
-          });
-      } else {
-        // TODO(i18n)
-        showErrorDialog(context: context, title: 'Error', message: e.toString());
-      }
-      return [];
-    }
-    if (result == null) {
-      return []; // User cancelled; do nothing
-    }
+    return _getFilePickerFiles(context, FileType.any);
+  }
+}
 
-    return result.files.map((f) {
-      assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-      return _File(content: f.readStream!, length: f.size, filename: f.name);
-    });
+class _AttachMediaButton extends _AttachUploadsButton {
+  const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
+
+  @override
+  IconData get icon => Icons.image;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    // TODO: This doesn't give quite the right UI on Android.
+    //   Perhaps try `image_picker`: https://github.com/zulip/zulip-flutter/issues/56#issuecomment-1514001281
+    return _getFilePickerFiles(context, FileType.media);
   }
 }
 
@@ -565,6 +583,7 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                   child: Row(
                     children: [
                       _AttachFileButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
+                      _AttachMediaButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
                     ])),
               ]))));
   }

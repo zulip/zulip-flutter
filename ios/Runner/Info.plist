@@ -53,5 +53,7 @@
 	<array>
 		<string>fetch</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose photos from your library and send them in Zulip messages.</string>
 </dict>
 </plist>
