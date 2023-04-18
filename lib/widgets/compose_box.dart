@@ -222,6 +222,64 @@ class _File {
   final String filename;
 }
 
+Future<void> _uploadFiles({
+  required BuildContext context,
+  required ContentTextEditingController contentController,
+  required FocusNode contentFocusNode,
+  required Iterable<_File> files,
+}) async {
+  assert(context.mounted);
+  final store = PerAccountStoreWidget.of(context);
+
+  final List<_File> tooLargeFiles = [];
+  final List<_File> rightSizeFiles = [];
+  for (final file in files) {
+    if ((file.length / (1 << 20)) > store.maxFileUploadSizeMib) {
+      tooLargeFiles.add(file);
+    } else {
+      rightSizeFiles.add(file);
+    }
+  }
+
+  if (tooLargeFiles.isNotEmpty) {
+    final listMessage = tooLargeFiles
+      .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
+      .join('\n');
+    showErrorDialog( // TODO(i18n)
+      context: context,
+      title: 'File(s) too large',
+      message:
+        '${tooLargeFiles.length} file(s) are larger than the server\'s limit of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:\n\n$listMessage');
+  }
+
+  final List<(int, _File)> uploadsInProgress = [];
+  for (final file in rightSizeFiles) {
+    final tag = contentController.registerUploadStart(file.filename);
+    uploadsInProgress.add((tag, file));
+  }
+  if (!contentFocusNode.hasFocus) {
+    contentFocusNode.requestFocus();
+  }
+
+  for (final (tag, file) in uploadsInProgress) {
+    final _File(:content, :length, :filename) = file;
+    Uri? url;
+    try {
+      final result = await uploadFile(store.connection,
+        content: content, length: length, filename: filename);
+      url = Uri.parse(result.uri);
+    } catch (e) {
+      if (!context.mounted) return;
+      // TODO(#37): Specifically handle `413 Payload Too Large`
+      // TODO(#37): On API errors, quote `msg` from server, with "The server said:"
+      showErrorDialog(context: context,
+        title: 'Failed to upload file: $filename', message: e.toString());
+    } finally {
+      contentController.registerUploadEnd(tag, url);
+    }
+  }
+}
+
 class _AttachFileButton extends StatelessWidget {
   const _AttachFileButton({required this.contentController, required this.contentFocusNode});
 
@@ -250,56 +308,8 @@ class _AttachFileButton extends StatelessWidget {
       assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
       return _File(content: f.readStream!, length: f.size, filename: f.name);
     });
-
-    final store = PerAccountStoreWidget.of(context);
-
-    final List<_File> tooLargeFiles = [];
-    final List<_File> rightSizeFiles = [];
-    for (final file in files) {
-      if ((file.length / (1 << 20)) > store.maxFileUploadSizeMib) {
-        tooLargeFiles.add(file);
-      } else {
-        rightSizeFiles.add(file);
-      }
-    }
-
-    if (tooLargeFiles.isNotEmpty) {
-      final listMessage = tooLargeFiles
-        .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
-        .join('\n');
-      showErrorDialog( // TODO(i18n)
-        context: context,
-        title: 'File(s) too large',
-        message:
-          '${tooLargeFiles.length} file(s) are larger than the server\'s limit of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:\n\n$listMessage');
-    }
-
-    final List<(int, _File)> uploadsInProgress = [];
-    for (final file in rightSizeFiles) {
-      final tag = contentController.registerUploadStart(file.filename);
-      uploadsInProgress.add((tag, file));
-    }
-    if (!contentFocusNode.hasFocus) {
-      contentFocusNode.requestFocus();
-    }
-
-    for (final (tag, file) in uploadsInProgress) {
-      final _File(:content, :length, :filename) = file;
-      Uri? url;
-      try {
-        final result = await uploadFile(store.connection,
-          content: content, length: length, filename: filename);
-        url = Uri.parse(result.uri);
-      } catch (e) {
-        if (!context.mounted) return;
-        // TODO(#37): Specifically handle `413 Payload Too Large`
-        // TODO(#37): On API errors, quote `msg` from server, with "The server said:"
-        showErrorDialog(context: context,
-          title: 'Failed to upload file: $filename', message: e.toString());
-      } finally {
-        contentController.registerUploadEnd(tag, url);
-      }
-    }
+    await _uploadFiles(context: context, contentController: contentController, contentFocusNode: contentFocusNode,
+      files: files);
   }
 
   @override
