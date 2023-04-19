@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class Auth {
-  const Auth({required this.realmUrl, required this.email, required this.apiKey});
+  Auth({required this.realmUrl, required this.email, required this.apiKey})
+   : assert(Uri.parse(realmUrl).query.isEmpty && Uri.parse(realmUrl).fragment.isEmpty);
 
   final String realmUrl;
   final String email;

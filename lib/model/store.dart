@@ -204,7 +204,7 @@ class PerAccountStore extends ChangeNotifier {
 
 @immutable
 class Account extends Auth {
-  const Account({
+  Account({
     required super.realmUrl,
     required super.email,
     required super.apiKey,
@@ -243,7 +243,7 @@ class LiveGlobalStore extends GlobalStore {
 ///
 /// See "Server credentials" in the project README for how to fill in the
 /// `credential_fixture.dart` file this requires.
-const Account _fixtureAccount = Account(
+final Account _fixtureAccount = Account(
   realmUrl: credentials.realmUrl,
   email: credentials.email,
   apiKey: credentials.apiKey,

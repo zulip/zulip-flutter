@@ -7,7 +7,7 @@ const String realmUrl = 'https://chat.example/';
 const String recentZulipVersion = '6.1';
 const int recentZulipFeatureLevel = 164;
 
-const Account selfAccount = Account(
+final Account selfAccount = Account(
   realmUrl: realmUrl,
   email: 'self@example',
   apiKey: 'asdfqwer',
@@ -17,7 +17,7 @@ const Account selfAccount = Account(
   zulipMergeBase: recentZulipVersion,
 );
 
-const Account otherAccount = Account(
+final Account otherAccount = Account(
   realmUrl: realmUrl,
   email: 'other@example',
   apiKey: 'sdfgwert',
