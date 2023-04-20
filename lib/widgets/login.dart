@@ -55,7 +55,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
     // TODO(#36): support login methods beyond email/password
     Navigator.push(context,
-      EmailPasswordLoginPage.buildRoute(realmUrl: url, serverSettings: serverSettings));
+      EmailPasswordLoginPage.buildRoute(serverSettings: serverSettings));
   }
 
   @override
@@ -82,16 +82,13 @@ class _AddAccountPageState extends State<AddAccountPage> {
 }
 
 class EmailPasswordLoginPage extends StatefulWidget {
-  const EmailPasswordLoginPage({
-    super.key, required this.realmUrl, required this.serverSettings});
+  const EmailPasswordLoginPage({super.key, required this.serverSettings});
 
-  final Uri realmUrl;
   final GetServerSettingsResult serverSettings;
 
-  static Route<void> buildRoute({
-      required Uri realmUrl, required GetServerSettingsResult serverSettings}) {
+  static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
     return _LoginSequenceRoute(builder: (context) =>
-      EmailPasswordLoginPage(realmUrl: realmUrl, serverSettings: serverSettings));
+      EmailPasswordLoginPage(serverSettings: serverSettings));
   }
 
   @override
@@ -105,14 +102,14 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
     final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
     final auth = Auth(
-      realmUrl: widget.realmUrl, email: email, apiKey: apiKey);
+      realmUrl: widget.serverSettings.realmUri, email: email, apiKey: apiKey);
     final connection = LiveApiConnection(auth: auth); // TODO make this widget testable
     return (await getOwnUser(connection)).userId;
   }
 
   void _submit() async {
     final context = _emailKey.currentContext!;
-    final realmUrl = widget.realmUrl;
+    final realmUrl = widget.serverSettings.realmUri;
     final String? email = _emailKey.currentState!.value;
     final String? password = _passwordKey.currentState!.value;
     if (email == null || password == null) {
