@@ -147,6 +147,10 @@ class PerAccountStore extends ChangeNotifier {
     required this.connection,
     required InitialSnapshot initialSnapshot,
   })  : zulipVersion = initialSnapshot.zulipVersion,
+        users = Map.fromEntries(initialSnapshot.realmUsers
+          .followedBy(initialSnapshot.realmNonActiveUsers)
+          .followedBy(initialSnapshot.crossRealmBots)
+          .map((user) => MapEntry(user.userId, user))),
         subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
                 (subscription) => MapEntry(subscription.streamId, subscription))),
         maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
@@ -155,6 +159,7 @@ class PerAccountStore extends ChangeNotifier {
   final ApiConnection connection;
 
   final String zulipVersion;
+  final Map<int, User> users;
   final Map<int, Subscription> subscriptions;
   final int maxFileUploadSizeMib; // No event for this.
 
@@ -188,6 +193,39 @@ class PerAccountStore extends ChangeNotifier {
     } else if (event is AlertWordsEvent) {
       debugPrint("server event: alert_words");
       // We don't yet store this data, so there's nothing to update.
+    } else if (event is RealmUserAddEvent) {
+      debugPrint("server event: realm_user/add");
+      users[event.person.userId] = event.person;
+      notifyListeners();
+    } else if (event is RealmUserRemoveEvent) {
+      debugPrint("server event: realm_user/remove");
+      users.remove(event.userId);
+      notifyListeners();
+    } else if (event is RealmUserUpdateEvent) {
+      debugPrint("server event: realm_user/update");
+      final user = users[event.userId];
+      if (user == null) {
+        return; // TODO log
+      }
+      if (event.fullName != null)       user.fullName                   = event.fullName!;
+      if (event.avatarUrl != null)      user.avatarUrl                  = event.avatarUrl!;
+      if (event.avatarVersion != null)  user.avatarVersion              = event.avatarVersion!;
+      if (event.timezone != null)       user.timezone                   = event.timezone!;
+      if (event.botOwnerId != null)     user.botOwnerId                 = event.botOwnerId!;
+      if (event.role != null)           user.role                       = event.role!;
+      if (event.isBillingAdmin != null) user.isBillingAdmin             = event.isBillingAdmin!;
+      if (event.deliveryEmail != null)  user.deliveryEmailStaleDoNotUse = event.deliveryEmail!;
+      if (event.newEmail != null)       user.email                      = event.newEmail!;
+      if (event.customProfileField != null) {
+        final profileData = (user.profileData ??= {});
+        final update = event.customProfileField!;
+        if (update.value != null) {
+          profileData[update.id] = ProfileFieldUserData(value: update.value!, renderedValue: update.renderedValue);
+        } else {
+          profileData.remove(update.id);
+        }
+      }
+      notifyListeners();
     } else if (event is MessageEvent) {
       debugPrint("server event: message ${jsonEncode(event.message.toJson())}");
       for (final view in _messageListViews) {
