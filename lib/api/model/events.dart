@@ -17,6 +17,14 @@ abstract class Event {
     final type = json['type'] as String;
     switch (type) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'realm_user':
+        final op = json['op'] as String;
+        switch (op) {
+          case 'add': return RealmUserAddEvent.fromJson(json);
+          case 'remove': return RealmUserRemoveEvent.fromJson(json);
+          case 'update': return RealmUserUpdateEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'message': return MessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -59,6 +67,116 @@ class AlertWordsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
+}
+
+/// A Zulip event of type `realm_user`.
+abstract class RealmUserEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'realm_user';
+
+  String get op;
+
+  RealmUserEvent({required super.id});
+}
+
+/// A [RealmUserEvent] with op `add`: https://zulip.com/api/get-events#realm_user-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUserAddEvent extends RealmUserEvent {
+  @override
+  String get op => 'add';
+
+  final User person;
+
+  RealmUserAddEvent({required super.id, required this.person});
+
+  factory RealmUserAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$RealmUserAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmUserAddEventToJson(this);
+}
+
+/// A [RealmUserEvent] with op `remove`: https://zulip.com/api/get-events#realm_user-remove
+class RealmUserRemoveEvent extends RealmUserEvent {
+  @override
+  String get op => 'remove';
+
+  final int userId;
+
+  RealmUserRemoveEvent({required super.id, required this.userId});
+
+  factory RealmUserRemoveEvent.fromJson(Map<String, dynamic> json) {
+    return RealmUserRemoveEvent(
+      id: json['id'] as int,
+      userId: (json['person'] as Map<String, dynamic>)['user_id'] as int);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'type': type, 'op': op, 'person': {'user_id': userId}};
+  }
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUserUpdateCustomProfileField {
+  final int id;
+  final String? value;
+  final String? renderedValue;
+
+  RealmUserUpdateCustomProfileField({required this.id, required this.value, required this.renderedValue});
+
+  factory RealmUserUpdateCustomProfileField.fromJson(Map<String, dynamic> json) =>
+    _$RealmUserUpdateCustomProfileFieldFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmUserUpdateCustomProfileFieldToJson(this);
+}
+
+/// A [RealmUserEvent] with op `update`: https://zulip.com/api/get-events#realm_user-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUserUpdateEvent extends RealmUserEvent {
+  @override
+  String get op => 'update';
+
+  @JsonKey(readValue: _readFromPerson) final int userId;
+  @JsonKey(readValue: _readFromPerson) final String? fullName;
+  @JsonKey(readValue: _readFromPerson) final String? avatarUrl;
+  // @JsonKey(readValue: _readFromPerson) final String? avatarSource; // TODO obsolete?
+  // @JsonKey(readValue: _readFromPerson) final String? avatarUrlMedium; // TODO obsolete?
+  @JsonKey(readValue: _readFromPerson) final int? avatarVersion;
+  @JsonKey(readValue: _readFromPerson) final String? timezone;
+  @JsonKey(readValue: _readFromPerson) final int? botOwnerId;
+  @JsonKey(readValue: _readFromPerson) final int? role; // TODO enum
+  @JsonKey(readValue: _readFromPerson) final bool? isBillingAdmin;
+  @JsonKey(readValue: _readFromPerson) final String? deliveryEmail; // TODO handle JSON `null`
+  @JsonKey(readValue: _readFromPerson) final RealmUserUpdateCustomProfileField? customProfileField;
+  @JsonKey(readValue: _readFromPerson) final String? newEmail;
+
+  static Object? _readFromPerson(Map json, String key) {
+    return (json['person'] as Map<String, dynamic>)[key];
+  }
+
+  RealmUserUpdateEvent({
+    required super.id,
+    required this.userId,
+    this.fullName,
+    this.avatarUrl,
+    this.avatarVersion,
+    this.timezone,
+    this.botOwnerId,
+    this.role,
+    this.isBillingAdmin,
+    this.deliveryEmail,
+    this.customProfileField,
+    this.newEmail,
+  });
+
+  factory RealmUserUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$RealmUserUpdateEventFromJson(json);
+
+  // TODO make round-trip (see _readFromPerson)
+  @override
+  Map<String, dynamic> toJson() => _$RealmUserUpdateEventToJson(this);
 }
 
 /// A Zulip event of type `message`.
