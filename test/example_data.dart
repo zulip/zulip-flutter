@@ -83,4 +83,7 @@ final InitialSnapshot initialSnapshot = InitialSnapshot(
   customProfileFields: [],
   subscriptions: [], // TODO add subscriptions to example initial snapshot
   maxFileUploadSizeMib: 25,
+  realmUsers: [],
+  realmNonActiveUsers: [],
+  crossRealmBots: [],
 );

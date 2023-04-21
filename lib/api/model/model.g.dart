@@ -30,6 +30,70 @@ Map<String, dynamic> _$CustomProfileFieldToJson(CustomProfileField instance) =>
       'display_in_profile_summary': instance.displayInProfileSummary,
     };
 
+ProfileFieldUserData _$ProfileFieldUserDataFromJson(
+        Map<String, dynamic> json) =>
+    ProfileFieldUserData(
+      value: json['value'] as String,
+      renderedValue: json['rendered_value'] as String?,
+    );
+
+Map<String, dynamic> _$ProfileFieldUserDataToJson(
+        ProfileFieldUserData instance) =>
+    <String, dynamic>{
+      'value': instance.value,
+      'rendered_value': instance.renderedValue,
+    };
+
+User _$UserFromJson(Map<String, dynamic> json) => User(
+      userId: json['user_id'] as int,
+      deliveryEmailStaleDoNotUse: json['delivery_email'] as String?,
+      email: json['email'] as String,
+      fullName: json['full_name'] as String,
+      dateJoined: json['date_joined'] as String,
+      isActive: json['is_active'] as bool,
+      isOwner: json['is_owner'] as bool,
+      isAdmin: json['is_admin'] as bool,
+      isGuest: json['is_guest'] as bool,
+      isBillingAdmin: json['is_billing_admin'] as bool?,
+      isBot: json['is_bot'] as bool,
+      botType: json['bot_type'] as int?,
+      botOwnerId: json['bot_owner_id'] as int?,
+      role: json['role'] as int,
+      timezone: json['timezone'] as String,
+      avatarUrl: json['avatar_url'] as String?,
+      avatarVersion: json['avatar_version'] as int,
+      profileData:
+          (User._readProfileData(json, 'profile_data') as Map<String, dynamic>?)
+              ?.map(
+        (k, e) => MapEntry(int.parse(k),
+            ProfileFieldUserData.fromJson(e as Map<String, dynamic>)),
+      ),
+      isSystemBot: User._readIsSystemBot(json, 'is_system_bot') as bool?,
+    );
+
+Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
+      'user_id': instance.userId,
+      'delivery_email': instance.deliveryEmailStaleDoNotUse,
+      'email': instance.email,
+      'full_name': instance.fullName,
+      'date_joined': instance.dateJoined,
+      'is_active': instance.isActive,
+      'is_owner': instance.isOwner,
+      'is_admin': instance.isAdmin,
+      'is_guest': instance.isGuest,
+      'is_billing_admin': instance.isBillingAdmin,
+      'is_bot': instance.isBot,
+      'bot_type': instance.botType,
+      'bot_owner_id': instance.botOwnerId,
+      'role': instance.role,
+      'timezone': instance.timezone,
+      'avatar_url': instance.avatarUrl,
+      'avatar_version': instance.avatarVersion,
+      'profile_data':
+          instance.profileData?.map((k, e) => MapEntry(k.toString(), e)),
+      'is_system_bot': instance.isSystemBot,
+    };
+
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       streamId: json['stream_id'] as int,
       name: json['name'] as String,

@@ -25,6 +25,19 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
           .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
           .toList(),
       maxFileUploadSizeMib: json['max_file_upload_size_mib'] as int,
+      realmUsers:
+          (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
+                  as List<dynamic>)
+              .map((e) => User.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      realmNonActiveUsers: (InitialSnapshot._readUsersIsActiveFallbackFalse(
+              json, 'realm_non_active_users') as List<dynamic>)
+          .map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      crossRealmBots: (InitialSnapshot._readUsersIsActiveFallbackTrue(
+              json, 'cross_realm_bots') as List<dynamic>)
+          .map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
@@ -38,4 +51,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'custom_profile_fields': instance.customProfileFields,
       'subscriptions': instance.subscriptions,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
+      'realm_users': instance.realmUsers,
+      'realm_non_active_users': instance.realmNonActiveUsers,
+      'cross_realm_bots': instance.crossRealmBots,
     };

@@ -31,6 +31,92 @@ class CustomProfileField {
   Map<String, dynamic> toJson() => _$CustomProfileFieldToJson(this);
 }
 
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ProfileFieldUserData {
+  final String value;
+  final String? renderedValue;
+
+  ProfileFieldUserData({required this.value, this.renderedValue});
+
+  factory ProfileFieldUserData.fromJson(Map<String, dynamic> json) =>
+    _$ProfileFieldUserDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProfileFieldUserDataToJson(this);
+}
+
+/// As in [InitialSnapshot.realmUsers], [InitialSnapshot.realmNonActiveUsers], and [InitialSnapshot.crossRealmBots].
+///
+/// In the Zulip API, the items in realm_users, realm_non_active_users, and
+/// cross_realm_bots are all extremely similar. They differ only in that
+/// cross_realm_bots has is_system_bot.
+///
+/// https://zulip.com/api/register-queue#response
+@JsonSerializable(fieldRename: FieldRename.snake)
+class User {
+  final int userId;
+  @JsonKey(name: 'delivery_email')
+  String? deliveryEmailStaleDoNotUse; // TODO see [RealmUserUpdateEvent.deliveryEmail]
+  String email;
+  String fullName;
+  String dateJoined;
+  bool isActive; // Really sometimes absent in /register, but we normalize that away; see [InitialSnapshot.realmUsers].
+  bool isOwner;
+  bool isAdmin;
+  bool isGuest;
+  bool? isBillingAdmin; // TODO(server-5)
+  bool isBot;
+  int? botType; // TODO enum
+  int? botOwnerId;
+  int role; // TODO enum
+  String timezone;
+  String? avatarUrl; // TODO distinguish null from missing https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20omitted.20vs.2E.20null.20in.20JSON/near/1551759
+  int avatarVersion;
+  // null for bots, which don't have custom profile fields.
+  // If null for a non-bot, equivalent to `{}` (null just written for efficiency.)
+  @JsonKey(readValue: _readProfileData)
+  Map<int, ProfileFieldUserData>? profileData;
+  @JsonKey(readValue: _readIsSystemBot)
+  bool? isSystemBot; // TODO(server-5)
+
+  static Map<String, dynamic>? _readProfileData(Map json, String key) {
+    final value = (json[key] as Map<String, dynamic>?);
+    // Represent `{}` as `null`, to avoid allocating a huge number
+    // of LinkedHashMap data structures that we can do without.
+    // A hash table is inevitably going to involve some overhead
+    // (several words, at minimum), even when nothing's stored in it yet.
+    return (value != null && value.isNotEmpty) ? value : null;
+  }
+
+  static bool? _readIsSystemBot(Map json, String key) =>
+      json[key] ?? json['is_cross_realm_bot'];
+
+  User({
+    required this.userId,
+    required this.deliveryEmailStaleDoNotUse,
+    required this.email,
+    required this.fullName,
+    required this.dateJoined,
+    required this.isActive,
+    required this.isOwner,
+    required this.isAdmin,
+    required this.isGuest,
+    required this.isBillingAdmin,
+    required this.isBot,
+    this.botType,
+    this.botOwnerId,
+    required this.role,
+    required this.timezone,
+    required this.avatarUrl,
+    required this.avatarVersion,
+    this.profileData,
+    this.isSystemBot,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
+}
+
 /// As in `subscriptions` in the initial snapshot.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Subscription {
