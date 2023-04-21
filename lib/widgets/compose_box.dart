@@ -216,7 +216,7 @@ class _AttachFileButton extends StatelessWidget {
   final ContentTextEditingController contentController;
   final FocusNode contentFocusNode;
 
-  _handlePress(BuildContext context) async {
+  void _handlePress(BuildContext context) async {
     FilePickerResult? result;
     try {
       result = await FilePicker.platform.pickFiles(allowMultiple: true, withReadStream: true);
