@@ -1,5 +1,7 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dialog.dart';
 
 import '../api/route/messages.dart';
@@ -333,8 +335,24 @@ class _AttachFileButton extends _AttachUploadsButton {
     try {
       result = await FilePicker.platform.pickFiles(allowMultiple: true, withReadStream: true);
     } catch (e) {
-      // TODO(i18n)
-      showErrorDialog(context: context, title: 'Error', message: e.toString());
+      if (e is PlatformException && e.code == 'read_external_storage_denied') {
+        // Observed on Android. If Android's error message tells us whether the
+        // user has checked "Don't ask again", it seems the library doesn't pass
+        // that on to us. So just always prompt to check permissions in settings.
+        // If the user hasn't checked "Don't ask again", they can always dismiss
+        // our prompt and retry, and the permissions request will reappear,
+        // letting them grant permissions and complete the upload.
+        showSuggestedActionDialog(context: context, // TODO(i18n)
+          title: 'Permissions needed',
+          message: 'To upload files, please grant Zulip additional permissions in Settings.',
+          actionButtonText: 'Open settings',
+          onActionButtonPress: () {
+            AppSettings.openAppSettings();
+          });
+      } else {
+        // TODO(i18n)
+        showErrorDialog(context: context, title: 'Error', message: e.toString());
+      }
       return [];
     }
     if (result == null) {
