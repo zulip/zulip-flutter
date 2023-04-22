@@ -280,23 +280,27 @@ Future<void> _uploadFiles({
   }
 }
 
-class _AttachFileButton extends StatelessWidget {
-  const _AttachFileButton({required this.contentController, required this.contentFocusNode});
+abstract class _AttachUploadsButton extends StatelessWidget {
+  const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
 
   final ContentTextEditingController contentController;
   final FocusNode contentFocusNode;
 
+  IconData get icon;
+
+  /// Request files from the user, in the way specific to this upload type.
+  ///
+  /// Subclasses should manage the interaction completely, e.g., by catching and
+  /// handling any permissions-related exceptions.
+  ///
+  /// To signal exiting the interaction with no files chosen,
+  /// return an empty [Iterable] after showing user feedback as appropriate.
+  Future<Iterable<_File>> getFiles(BuildContext context);
+
   void _handlePress(BuildContext context) async {
-    FilePickerResult? result;
-    try {
-      result = await FilePicker.platform.pickFiles(allowMultiple: true, withReadStream: true);
-    } catch (e) {
-      // TODO(i18n)
-      showErrorDialog(context: context, title: 'Error', message: e.toString());
-      return;
-    }
-    if (result == null) {
-      return; // User cancelled; do nothing
+    final files = await getFiles(context);
+    if (files.isEmpty) {
+      return; // Nothing to do (getFiles handles user feedback)
     }
 
     if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
@@ -304,17 +308,43 @@ class _AttachFileButton extends StatelessWidget {
       return;
     }
 
-    final Iterable<_File> files = result.files.map((f) {
-      assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-      return _File(content: f.readStream!, length: f.size, filename: f.name);
-    });
-    await _uploadFiles(context: context, contentController: contentController, contentFocusNode: contentFocusNode,
+    await _uploadFiles(
+      context: context,
+      contentController: contentController,
+      contentFocusNode: contentFocusNode,
       files: files);
   }
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(icon: const Icon(Icons.attach_file), onPressed: () => _handlePress(context));
+    return IconButton(icon: Icon(icon), onPressed: () => _handlePress(context));
+  }
+}
+
+class _AttachFileButton extends _AttachUploadsButton {
+  const _AttachFileButton({required super.contentController, required super.contentFocusNode});
+
+  @override
+  IconData get icon => Icons.attach_file;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.platform.pickFiles(allowMultiple: true, withReadStream: true);
+    } catch (e) {
+      // TODO(i18n)
+      showErrorDialog(context: context, title: 'Error', message: e.toString());
+      return [];
+    }
+    if (result == null) {
+      return []; // User cancelled; do nothing
+    }
+
+    return result.files.map((f) {
+      assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
+      return _File(content: f.readStream!, length: f.size, filename: f.name);
+    });
   }
 }
 
