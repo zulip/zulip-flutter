@@ -333,7 +333,8 @@ class _AttachFileButton extends _AttachUploadsButton {
   Future<Iterable<_File>> getFiles(BuildContext context) async {
     FilePickerResult? result;
     try {
-      result = await FilePicker.platform.pickFiles(allowMultiple: true, withReadStream: true);
+      result = await FilePicker.platform.pickFiles(
+        allowMultiple: true, withReadStream: true, type: FileType.any);
     } catch (e) {
       if (e is PlatformException && e.code == 'read_external_storage_denied') {
         // Observed on Android. If Android's error message tells us whether the
