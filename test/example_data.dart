@@ -7,6 +7,27 @@ final Uri realmUrl = Uri.parse('https://chat.example/');
 const String recentZulipVersion = '6.1';
 const int recentZulipFeatureLevel = 164;
 
+User user({int? userId, String? fullName}) {
+  return User(
+    userId: userId ?? 123, // TODO generate example IDs
+    deliveryEmailStaleDoNotUse: 'name@example.com',
+    email: 'name@example.com', // TODO generate example emails
+    fullName: fullName ?? 'A user',// TODO generate example names
+    dateJoined: '2023-04-28',
+    isActive: true,
+    isOwner: false,
+    isAdmin: false,
+    isGuest: false,
+    isBillingAdmin: false,
+    isBot: false,
+    role: 400,
+    timezone: 'UTC',
+    avatarUrl: null,
+    avatarVersion: 0,
+    profileData: null,
+  );
+}
+
 final Account selfAccount = Account(
   id: 1001,
   realmUrl: realmUrl,
