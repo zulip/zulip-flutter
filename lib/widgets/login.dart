@@ -203,6 +203,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 keyboardType: TextInputType.url,
                 autocorrect: false,
                 textInputAction: TextInputAction.go,
+                onEditingComplete: () {
+                  // Repeat default implementation by clearing IME compose session…
+                  _controller.clearComposing();
+                  // …but leave out unfocusing the input in case more editing is needed.
+                },
                 decoration: InputDecoration(
                   labelText: 'Your Zulip server URL',
                   errorText: errorText,
