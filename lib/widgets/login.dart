@@ -201,6 +201,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 controller: _controller,
                 onSubmitted: (value) => _onSubmitted(context),
                 keyboardType: TextInputType.url,
+                autocorrect: false,
                 decoration: InputDecoration(
                   labelText: 'Your Zulip server URL',
                   errorText: errorText,
