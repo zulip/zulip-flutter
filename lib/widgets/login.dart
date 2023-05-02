@@ -204,7 +204,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 decoration: InputDecoration(
                   labelText: 'Your Zulip server URL',
                   errorText: errorText,
-                  helperText: kLayoutPinningHelperText)),
+                  helperText: kLayoutPinningHelperText,
+                  hintText: 'your-org.zulipchat.com')),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: !_inProgress && errorText == null
