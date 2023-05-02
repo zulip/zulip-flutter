@@ -16,6 +16,86 @@ class _LoginSequenceRoute extends MaterialPageRoute<void> {
   });
 }
 
+enum ServerUrlValidationError {
+  empty,
+  invalidUrl,
+  noUseEmail,
+  unsupportedSchemeZulip,
+  unsupportedSchemeOther;
+
+  /// Whether to wait until the user presses "submit" to give error feedback.
+  ///
+  /// True for errors that will often happen when the user just hasn't finished
+  /// typing a good URL. False for errors that strongly signal a wrong path was
+  /// taken, like when we recognize the form of an email address.
+  bool shouldDeferFeedback() {
+    switch (this) {
+      case empty:
+      case invalidUrl:
+        return true;
+      case noUseEmail:
+      case unsupportedSchemeZulip:
+      case unsupportedSchemeOther:
+        return false;
+    }
+  }
+
+  String message() { // TODO(i18n)
+    switch (this) {
+      case empty:
+        return 'Please enter a URL.';
+      case invalidUrl:
+        return 'Please enter a valid URL.';
+      case noUseEmail:
+        return 'Please enter the server URL, not your email.';
+      case unsupportedSchemeZulip:
+      case unsupportedSchemeOther:
+        return 'The server URL must start with http:// or https://.';
+    }
+  }
+}
+
+class ServerUrlParseResult {
+  ServerUrlParseResult.ok(this.url) : error = null;
+  ServerUrlParseResult.error(this.error) : url = null;
+
+  final Uri? url;
+  final ServerUrlValidationError? error;
+}
+
+class ServerUrlTextEditingController extends TextEditingController {
+  ServerUrlParseResult tryParse() {
+    final trimmedText = text.trim();
+
+    if (trimmedText.isEmpty) {
+      return ServerUrlParseResult.error(ServerUrlValidationError.empty);
+    }
+
+    Uri? url = Uri.tryParse(trimmedText);
+    if (!RegExp(r'^https?://').hasMatch(trimmedText)) {
+      if (url != null && url.scheme == 'zulip') {
+        // Someone might get the idea to try one of the "zulip://" URLs that
+        // are discussed sometimes.
+        // TODO(log): Log to Sentry? How much does this happen, if at all? Maybe
+        //   log once when the input enters this error state, but don't spam
+        //   on every keystroke/render while it's in it.
+        return ServerUrlParseResult.error(ServerUrlValidationError.unsupportedSchemeZulip);
+      } else if (url != null && url.hasScheme && url.scheme != 'http' && url.scheme != 'https') {
+        return ServerUrlParseResult.error(ServerUrlValidationError.unsupportedSchemeOther);
+      }
+      url = Uri.tryParse('https://$trimmedText');
+    }
+
+    if (url == null || !url.isAbsolute) {
+      return ServerUrlParseResult.error(ServerUrlValidationError.invalidUrl);
+    }
+    if (url.userInfo.isNotEmpty) {
+      return ServerUrlParseResult.error(ServerUrlValidationError.noUseEmail);
+    }
+    return ServerUrlParseResult.ok(url);
+  }
+}
+
 class AddAccountPage extends StatefulWidget {
   const AddAccountPage({super.key});
 
@@ -29,7 +109,21 @@ class AddAccountPage extends StatefulWidget {
 }
 
 class _AddAccountPageState extends State<AddAccountPage> {
-  final TextEditingController _controller = TextEditingController();
+  final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
+  late ServerUrlParseResult _parseResult;
+
+  _serverUrlChanged() {
+    setState(() {
+      _parseResult = _controller.tryParse();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _parseResult = _controller.tryParse();
+    _controller.addListener(_serverUrlChanged);
+  }
 
   @override
   void dispose() {
@@ -37,19 +131,18 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.dispose();
   }
 
-  Future<void> _onSubmitted(BuildContext context, String value) async {
-    final Uri? url = Uri.tryParse(value);
-    switch (url) {
-      case Uri(scheme: 'https' || 'http'):
-        // TODO(#35): validate realm URL further?
-        break;
-      default:
-        // TODO(#35): give feedback to user on bad realm URL
-        return;
+  Future<void> _onSubmitted(BuildContext context) async {
+    final url = _parseResult.url;
+    final error = _parseResult.error;
+    if (error != null) {
+      showErrorDialog(context: context,
+        title: 'Invalid input', message: error.message());
+      return;
     }
+    assert(url != null);
 
     // TODO(#35): show feedback that we're working, while fetching server settings
-    final serverSettings = await getServerSettings(realmUrl: url);
+    final serverSettings = await getServerSettings(realmUrl: url!);
     // https://github.com/dart-lang/linter/issues/4007
     // ignore: use_build_context_synchronously
     if (!context.mounted) {
@@ -64,6 +157,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final error = _parseResult.error;
+    final errorText = error == null || error.shouldDeferFeedback()
+      ? null
+      : error.message();
+
     // TODO(#35): more help to user on entering realm URL
     return Scaffold(
       appBar: AppBar(title: const Text('Add an account')),
@@ -75,12 +173,17 @@ class _AddAccountPageState extends State<AddAccountPage> {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               TextField(
                 controller: _controller,
-                onSubmitted: (value) => _onSubmitted(context, value),
+                onSubmitted: (value) => _onSubmitted(context),
                 keyboardType: TextInputType.url,
-                decoration: const InputDecoration(labelText: 'Your Zulip server URL')),
+                decoration: InputDecoration(
+                  labelText: 'Your Zulip server URL',
+                  errorText: errorText,
+                  helperText: kLayoutPinningHelperText)),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () => _onSubmitted(context, _controller.text),
+                onPressed: errorText == null
+                  ? () => _onSubmitted(context)
+                  : null,
                 child: const Text('Continue')),
             ])))));
   }
