@@ -72,15 +72,17 @@ class _AddAccountPageState extends State<AddAccountPage> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: TextField(
-              controller: _controller,
-              onSubmitted: (value) => _onSubmitted(context, value),
-              keyboardType: TextInputType.url,
-              decoration: InputDecoration(
-                labelText: 'Your Zulip server URL',
-                suffixIcon: InkWell(
-                  onTap: () => _onSubmitted(context, _controller.text),
-                  child: const Icon(Icons.arrow_forward))))))));
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              TextField(
+                controller: _controller,
+                onSubmitted: (value) => _onSubmitted(context, value),
+                keyboardType: TextInputType.url,
+                decoration: const InputDecoration(labelText: 'Your Zulip server URL')),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () => _onSubmitted(context, _controller.text),
+                child: const Text('Continue')),
+            ])))));
   }
 }
 
