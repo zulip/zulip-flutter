@@ -147,7 +147,19 @@ class _AddAccountPageState extends State<AddAccountPage> {
       _inProgress = true;
     });
     try {
-      final serverSettings = await getServerSettings(realmUrl: url!);
+      final GetServerSettingsResult serverSettings;
+      try {
+        serverSettings = await getServerSettings(realmUrl: url!);
+      } catch (e) {
+        if (!context.mounted) {
+          return;
+        }
+        // TODO(#35) give more helpful feedback; see `fetchServerSettings`
+        //   in zulip-mobile's src/message/fetchActions.js. Needs #37.
+        showErrorDialog(context: context,
+          title: 'Could not connect', message: 'Failed to connect to server:\n$url');
+        return;
+      }
       // https://github.com/dart-lang/linter/issues/4007
       // ignore: use_build_context_synchronously
       if (!context.mounted) {
