@@ -109,6 +109,8 @@ class AddAccountPage extends StatefulWidget {
 }
 
 class _AddAccountPageState extends State<AddAccountPage> {
+  bool _inProgress = false;
+
   final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
   late ServerUrlParseResult _parseResult;
 
@@ -141,17 +143,25 @@ class _AddAccountPageState extends State<AddAccountPage> {
     }
     assert(url != null);
 
-    // TODO(#35): show feedback that we're working, while fetching server settings
-    final serverSettings = await getServerSettings(realmUrl: url!);
-    // https://github.com/dart-lang/linter/issues/4007
-    // ignore: use_build_context_synchronously
-    if (!context.mounted) {
-      return;
-    }
+    setState(() {
+      _inProgress = true;
+    });
+    try {
+      final serverSettings = await getServerSettings(realmUrl: url!);
+      // https://github.com/dart-lang/linter/issues/4007
+      // ignore: use_build_context_synchronously
+      if (!context.mounted) {
+        return;
+      }
 
-    // TODO(#36): support login methods beyond email/password
-    Navigator.push(context,
-      EmailPasswordLoginPage.buildRoute(serverSettings: serverSettings));
+      // TODO(#36): support login methods beyond email/password
+      Navigator.push(context,
+        EmailPasswordLoginPage.buildRoute(serverSettings: serverSettings));
+    } finally {
+      setState(() {
+        _inProgress = false;
+      });
+    }
   }
 
   @override
@@ -164,7 +174,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
     // TODO(#35): more help to user on entering realm URL
     return Scaffold(
-      appBar: AppBar(title: const Text('Add an account')),
+      appBar: AppBar(title: const Text('Add an account'),
+        bottom: _inProgress
+          ? const PreferredSize(preferredSize: Size.fromHeight(4),
+              child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
+          : null),
       body: SafeArea(
         minimum: const EdgeInsets.all(8),
         child: Center(
@@ -181,7 +195,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   helperText: kLayoutPinningHelperText)),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: errorText == null
+                onPressed: !_inProgress && errorText == null
                   ? () => _onSubmitted(context)
                   : null,
                 child: const Text('Continue')),
