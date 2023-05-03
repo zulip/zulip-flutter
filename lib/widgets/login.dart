@@ -198,6 +198,8 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                     key: _emailKey,
                     autofillHints: const [AutofillHints.email],
                     keyboardType: TextInputType.emailAddress,
+                    // TODO(upstream?): Apparently pressing "next" doesn't count
+                    //   as user interaction, and validation isn't done.
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -206,6 +208,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                       // TODO(#35): validate is in the shape of an email
                       return null;
                     },
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       labelText: 'Email address')),
                   const SizedBox(height: 8),
