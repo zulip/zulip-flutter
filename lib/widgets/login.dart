@@ -6,6 +6,7 @@ import '../api/route/realm.dart';
 import '../api/route/users.dart';
 import '../model/store.dart';
 import 'app.dart';
+import 'dialog.dart';
 import 'store.dart';
 
 class _LoginSequenceRoute extends MaterialPageRoute<void> {
@@ -137,9 +138,12 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       try {
         result = await fetchApiKey(
           realmUrl: realmUrl, username: email, password: password);
-      } on Exception catch (e) { // TODO(#37): distinguish API exceptions
-        // TODO(#35): give feedback to user on failed login
-        debugPrint(e.toString());
+      } on Exception { // TODO(#37): distinguish API exceptions
+        if (!context.mounted) return;
+        // TODO(#35) give more helpful feedback. Needs #37. The RN app is
+        //   unhelpful here; we should at least recognize invalid auth errors, and
+        //   errors for deactivated user or realm (see zulip-mobile#4571).
+        showErrorDialog(context: context, title: 'Login failed');
         return;
       }
 
