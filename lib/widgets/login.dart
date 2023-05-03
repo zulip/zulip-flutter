@@ -119,13 +119,15 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   void _submit() async {
     final context = _emailKey.currentContext!;
     final realmUrl = widget.serverSettings.realmUri;
-    final String? email = _emailKey.currentState!.value;
-    final String? password = _passwordKey.currentState!.value;
-    if (email == null || password == null) {
-      // TODO can these FormField values actually be null? when?
+    final emailFieldState = _emailKey.currentState!;
+    final passwordFieldState = _passwordKey.currentState!;
+    final emailValid = emailFieldState.validate(); // Side effect: on-field error text
+    final passwordValid = passwordFieldState.validate(); // Side effect: on-field error text
+    if (!emailValid || !passwordValid) {
       return;
     }
-    // TODO(#35): validate email is in the shape of an email
+    final String email = emailFieldState.value!;
+    final String password = passwordFieldState.value!;
 
     setState(() {
       _inProgress = true;
@@ -196,6 +198,14 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                     key: _emailKey,
                     autofillHints: const [AutofillHints.email],
                     keyboardType: TextInputType.emailAddress,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter your email.';
+                      }
+                      // TODO(#35): validate is in the shape of an email
+                      return null;
+                    },
                     decoration: const InputDecoration(
                       labelText: 'Email address')),
                   const SizedBox(height: 8),
@@ -204,6 +214,13 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                     autofillHints: const [AutofillHints.password],
                     obscureText: _obscurePassword,
                     keyboardType: TextInputType.visiblePassword,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your password.';
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                       labelText: 'Password',
                       suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
