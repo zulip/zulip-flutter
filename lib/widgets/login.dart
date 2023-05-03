@@ -106,6 +106,8 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     });
   }
 
+  bool _inProgress = false;
+
   Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
     final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
     final auth = Auth(
@@ -125,50 +127,63 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
     }
     // TODO(#35): validate email is in the shape of an email
 
-    final FetchApiKeyResult result;
+    setState(() {
+      _inProgress = true;
+    });
     try {
-      result = await fetchApiKey(
-        realmUrl: realmUrl, username: email, password: password);
-    } on Exception catch (e) { // TODO(#37): distinguish API exceptions
-      // TODO(#35): give feedback to user on failed login
-      debugPrint(e.toString());
-      return;
-    }
+      final FetchApiKeyResult result;
+      try {
+        result = await fetchApiKey(
+          realmUrl: realmUrl, username: email, password: password);
+      } on Exception catch (e) { // TODO(#37): distinguish API exceptions
+        // TODO(#35): give feedback to user on failed login
+        debugPrint(e.toString());
+        return;
+      }
 
-    // TODO(server-7): Rely on user_id from fetchApiKey.
-    final int userId = result.userId ?? await _getUserId(result);
-    if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
-    else {
-      return;
-    }
+      // TODO(server-7): Rely on user_id from fetchApiKey.
+      final int userId = result.userId ?? await _getUserId(result);
+      if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
+      else {
+        return;
+      }
 
-    final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#35): give feedback to user on SQL exception, like dupe realm+user
-    final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-      realmUrl: realmUrl,
-      email: result.email,
-      apiKey: result.apiKey,
-      userId: userId,
-      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-      zulipVersion: widget.serverSettings.zulipVersion,
-      zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
-    ));
-    if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
-    else {
-      return;
-    }
+      final globalStore = GlobalStoreWidget.of(context);
+      // TODO(#35): give feedback to user on SQL exception, like dupe realm+user
+      final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
+        realmUrl: realmUrl,
+        email: result.email,
+        apiKey: result.apiKey,
+        userId: userId,
+        zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+        zulipVersion: widget.serverSettings.zulipVersion,
+        zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+      ));
+      if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
+      else {
+        return;
+      }
 
-    Navigator.of(context).pushAndRemoveUntil(
-      HomePage.buildRoute(accountId: accountId),
-      (route) => (route is! _LoginSequenceRoute),
-    );
+      await Navigator.of(context).pushAndRemoveUntil(
+        HomePage.buildRoute(accountId: accountId),
+        (route) => (route is! _LoginSequenceRoute),
+      );
+    } finally {
+      setState(() {
+        _inProgress = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     return Scaffold(
-      appBar: AppBar(title: const Text('Log in')),
+      appBar: AppBar(title: const Text('Log in'),
+        bottom: _inProgress
+          ? const PreferredSize(preferredSize: Size.fromHeight(4),
+              child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
+          : null),
       body: SafeArea(
         minimum: const EdgeInsets.all(8),
         child: Center(
@@ -197,7 +212,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                           icon: _obscurePassword ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility))))),
                   const SizedBox(height: 8),
                   ElevatedButton(
-                    onPressed: _submit,
+                    onPressed: _inProgress ? null : _submit,
                     child: const Text('Log in')),
                 ])))))));
   }
