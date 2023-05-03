@@ -224,6 +224,8 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                       }
                       return null;
                     },
+                    textInputAction: TextInputAction.go,
+                    onFieldSubmitted: (value) => _submit(),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
