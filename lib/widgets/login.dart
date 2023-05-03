@@ -175,27 +175,30 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Form(
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                TextFormField(
-                  key: _emailKey,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email address')),
-                const SizedBox(height: 8),
-                TextFormField(
-                  key: _passwordKey,
-                  obscureText: _obscurePassword,
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
-                      child: IconButton(
-                        onPressed: _handlePasswordVisibilityPress,
-                        icon: _obscurePassword ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility))))),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: _submit,
-                  child: const Text('Log in')),
-              ]))))));
+              child: AutofillGroup(
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  TextFormField(
+                    key: _emailKey,
+                    autofillHints: const [AutofillHints.email],
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email address')),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    key: _passwordKey,
+                    autofillHints: const [AutofillHints.password],
+                    obscureText: _obscurePassword,
+                    keyboardType: TextInputType.visiblePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
+                        child: IconButton(
+                          onPressed: _handlePasswordVisibilityPress,
+                          icon: _obscurePassword ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility))))),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _submit,
+                    child: const Text('Log in')),
+                ])))))));
   }
 }
