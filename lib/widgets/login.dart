@@ -99,6 +99,13 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   final GlobalKey<FormFieldState<String>> _emailKey = GlobalKey();
   final GlobalKey<FormFieldState<String>> _passwordKey = GlobalKey();
 
+  bool _obscurePassword = true;
+  void _handlePasswordVisibilityPress() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  }
+
   Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
     final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
     final auth = Auth(
@@ -177,10 +184,14 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                 const SizedBox(height: 8),
                 TextFormField(
                   key: _passwordKey,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   keyboardType: TextInputType.visiblePassword,
-                  decoration: const InputDecoration(
-                    labelText: 'Password')),
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
+                      child: IconButton(
+                        onPressed: _handlePasswordVisibilityPress,
+                        icon: _obscurePassword ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility))))),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _submit,
