@@ -202,6 +202,29 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       textInputAction: TextInputAction.next,
       decoration: const InputDecoration(labelText: 'Email address'));
 
+    final passwordField = TextFormField(
+      key: _passwordKey,
+      autofillHints: const [AutofillHints.password],
+      obscureText: _obscurePassword,
+      keyboardType: TextInputType.visiblePassword,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password.';
+        }
+        return null;
+      },
+      textInputAction: TextInputAction.go,
+      onFieldSubmitted: (value) => _submit(),
+      decoration: InputDecoration(
+        labelText: 'Password',
+        suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
+          child: IconButton(
+            onPressed: _handlePasswordVisibilityPress,
+            icon: _obscurePassword
+              ? const Icon(Icons.visibility_off)
+              : const Icon(Icons.visibility)))));
+
     return Scaffold(
       appBar: AppBar(title: const Text('Log in'),
         bottom: _inProgress
@@ -218,26 +241,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   emailField,
                   const SizedBox(height: 8),
-                  TextFormField(
-                    key: _passwordKey,
-                    autofillHints: const [AutofillHints.password],
-                    obscureText: _obscurePassword,
-                    keyboardType: TextInputType.visiblePassword,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password.';
-                      }
-                      return null;
-                    },
-                    textInputAction: TextInputAction.go,
-                    onFieldSubmitted: (value) => _submit(),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
-                        child: IconButton(
-                          onPressed: _handlePasswordVisibilityPress,
-                          icon: _obscurePassword ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility))))),
+                  passwordField,
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: _inProgress ? null : _submit,
