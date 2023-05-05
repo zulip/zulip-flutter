@@ -184,6 +184,24 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+
+    final emailField = TextFormField(
+      key: _emailKey,
+      autofillHints: const [AutofillHints.email],
+      keyboardType: TextInputType.emailAddress,
+      // TODO(upstream?): Apparently pressing "next" doesn't count
+      //   as user interaction, and validation isn't done.
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter your email.';
+        }
+        // TODO(#35): validate is in the shape of an email
+        return null;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: const InputDecoration(labelText: 'Email address'));
+
     return Scaffold(
       appBar: AppBar(title: const Text('Log in'),
         bottom: _inProgress
@@ -198,23 +216,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
             child: Form(
               child: AutofillGroup(
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  TextFormField(
-                    key: _emailKey,
-                    autofillHints: const [AutofillHints.email],
-                    keyboardType: TextInputType.emailAddress,
-                    // TODO(upstream?): Apparently pressing "next" doesn't count
-                    //   as user interaction, and validation isn't done.
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email.';
-                      }
-                      // TODO(#35): validate is in the shape of an email
-                      return null;
-                    },
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Email address')),
+                  emailField,
                   const SizedBox(height: 8),
                   TextFormField(
                     key: _passwordKey,
