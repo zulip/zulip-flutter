@@ -28,15 +28,14 @@ class FakeHttpClient extends http.BaseClient {
 
 /// An [ApiConnection] that accepts and replays canned responses, for testing.
 class FakeApiConnection extends ApiConnection {
-  FakeApiConnection({required Uri realmUrl, required String email})
-    : this._(realmUrl: realmUrl, email: email, client: FakeHttpClient());
+  FakeApiConnection({required Uri realmUrl})
+    : this._(realmUrl: realmUrl, client: FakeHttpClient());
 
   FakeApiConnection.fromAccount(Account account)
-    : this(realmUrl: account.realmUrl, email: account.email);
+    : this(realmUrl: account.realmUrl);
 
-  FakeApiConnection._({required Uri realmUrl, required String email, required this.client})
-    : super(client: client, auth: Auth(
-        realmUrl: realmUrl, email: email, apiKey: _fakeApiKey));
+  FakeApiConnection._({required Uri realmUrl, required this.client})
+    : super(client: client, realmUrl: realmUrl);
 
   final FakeHttpClient client;
 
@@ -49,5 +48,3 @@ class FakeApiConnection extends ApiConnection {
     // do nothing
   }
 }
-
-const String _fakeApiKey = 'fake-api-key';

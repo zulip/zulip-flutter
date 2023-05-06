@@ -4,15 +4,6 @@ import 'package:http/http.dart' as http;
 
 import '../log.dart';
 
-class Auth {
-  Auth({required this.realmUrl, required this.email, required this.apiKey})
-   : assert(realmUrl.query.isEmpty && realmUrl.fragment.isEmpty);
-
-  final Uri realmUrl;
-  final String email;
-  final String apiKey;
-}
-
 /// A value for an API request parameter, to use directly without JSON encoding.
 class RawParameter {
   RawParameter(this.value);
@@ -28,11 +19,9 @@ class RawParameter {
 ///  * `FakeApiConnection` in the test suite, which implements this
 ///    for use in tests.
 abstract class ApiConnection {
-  ApiConnection({required http.Client client, required this.auth}) : _client = client;
+  ApiConnection({required http.Client client, required this.realmUrl}) : _client = client;
 
-  // TODO move auth field to subclass, have just a realmUrl getter;
-  //   that ensures nothing assumes base class has a real API key
-  final Auth auth;
+  final Uri realmUrl;
 
   void addAuth(http.BaseRequest request);
 
@@ -52,7 +41,7 @@ abstract class ApiConnection {
   }
 
   Future<String> get(String route, Map<String, dynamic>? params) async {
-    final url = auth.realmUrl.replace(
+    final url = realmUrl.replace(
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
     assert(debugLog("GET $url"));
     final request = http.Request('GET', url);
@@ -62,7 +51,7 @@ abstract class ApiConnection {
   }
 
   Future<String> post(String route, Map<String, dynamic>? params) async {
-    final url = auth.realmUrl.replace(path: "/api/v1/$route");
+    final url = realmUrl.replace(path: "/api/v1/$route");
     final request = http.Request('POST', url);
     if (params != null) {
       request.bodyFields = encodeParameters(params)!;
@@ -73,7 +62,7 @@ abstract class ApiConnection {
   }
 
   Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
-    http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("${auth.realmUrl}/api/v1/$route"))
+    http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("$realmUrl/api/v1/$route"))
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
     addAuth(request);
     final response = await send(request);
@@ -104,8 +93,10 @@ Map<String, String> authHeader({required String email, required String apiKey}) 
 /// An [ApiConnection] that makes real network requests to a real server.
 class LiveApiConnection extends ApiConnection {
   LiveApiConnection({
-    required super.auth,
-  }) : _authValue = _authHeaderValue(email: auth.email, apiKey: auth.apiKey),
+    required super.realmUrl,
+    required String email,
+    required String apiKey,
+  }) : _authValue = _authHeaderValue(email: email, apiKey: apiKey),
        super(client: http.Client());
 
   final String _authValue;

@@ -252,9 +252,8 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
 
   Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
     final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
-    final auth = Auth(
+    final connection = LiveApiConnection( // TODO make this widget testable
       realmUrl: widget.serverSettings.realmUri, email: email, apiKey: apiKey);
-    final connection = LiveApiConnection(auth: auth); // TODO make this widget testable
     return (await getOwnUser(connection)).userId;
   }
 

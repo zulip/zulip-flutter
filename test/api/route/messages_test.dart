@@ -10,7 +10,7 @@ import 'route_checks.dart';
 void main() {
   test('sendMessage accepts fixture realm', () async {
     final connection = FakeApiConnection(
-        realmUrl: Uri.parse('https://chat.zulip.org/'), email: 'self@mail.example');
+        realmUrl: Uri.parse('https://chat.zulip.org/'));
     connection.prepare(jsonEncode(SendMessageResult(id: 42).toJson()));
     check(sendMessage(connection, content: 'hello', topic: 'world'))
         .completes(it()..id.equals(42));
@@ -18,7 +18,7 @@ void main() {
 
   test('sendMessage rejects unexpected realm', () async {
     final connection = FakeApiConnection(
-        realmUrl: Uri.parse('https://chat.example/'), email: 'self@mail.example');
+        realmUrl: Uri.parse('https://chat.example/'));
     connection.prepare(jsonEncode(SendMessageResult(id: 42).toJson()));
     check(sendMessage(connection, content: 'hello', topic: 'world'))
         .throws();

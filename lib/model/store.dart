@@ -329,7 +329,7 @@ class LivePerAccountStore extends PerAccountStore {
   /// In the future this might load an old snapshot from local storage first.
   static Future<PerAccountStore> load(Account account) async {
     final connection = LiveApiConnection(
-      auth: Auth(realmUrl: account.realmUrl, email: account.email, apiKey: account.apiKey));
+      realmUrl: account.realmUrl, email: account.email, apiKey: account.apiKey);
 
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(connection); // TODO retry
