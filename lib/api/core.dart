@@ -19,11 +19,26 @@ class RawParameter {
 ///  * `FakeApiConnection` in the test suite, which implements this
 ///    for use in tests.
 abstract class ApiConnection {
-  ApiConnection({required http.Client client, required this.realmUrl}) : _client = client;
+  ApiConnection({
+    required this.realmUrl,
+    String? email,
+    String? apiKey,
+    required http.Client client,
+  }) : assert((email != null) == (apiKey != null)),
+       _authValue = (email != null && apiKey != null)
+         ? _authHeaderValue(email: email, apiKey: apiKey)
+         : null,
+       _client = client;
 
   final Uri realmUrl;
 
-  void addAuth(http.BaseRequest request);
+  final String? _authValue;
+
+  void addAuth(http.BaseRequest request) {
+    if (_authValue != null) {
+      request.headers['Authorization'] = _authValue!;
+    }
+  }
 
   final http.Client _client;
 
@@ -96,15 +111,7 @@ class LiveApiConnection extends ApiConnection {
     required super.realmUrl,
     required String email,
     required String apiKey,
-  }) : _authValue = _authHeaderValue(email: email, apiKey: apiKey),
-       super(client: http.Client());
-
-  final String _authValue;
-
-  @override
-  void addAuth(http.BaseRequest request) {
-    request.headers['Authorization'] = _authValue;
-  }
+  }) : super(email: email, apiKey: apiKey, client: http.Client());
 }
 
 Map<String, String>? encodeParameters(Map<String, dynamic>? params) {

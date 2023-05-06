@@ -42,9 +42,4 @@ class FakeApiConnection extends ApiConnection {
   void prepare(String response) {
     client.prepare(response);
   }
-
-  @override
-  void addAuth(http.BaseRequest request) {
-    // do nothing
-  }
 }
