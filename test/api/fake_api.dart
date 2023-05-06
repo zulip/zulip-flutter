@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/store.dart';
 
@@ -10,14 +13,14 @@ class FakeApiConnection extends ApiConnection {
   FakeApiConnection.fromAccount(Account account)
       : this(realmUrl: account.realmUrl, email: account.email);
 
-  String? _nextResponse;
+  List<int>? _nextResponseBytes;
 
   // TODO: This mocking API will need to get richer to support all the tests we need.
 
   void prepare(String response) {
-    assert(_nextResponse == null,
+    assert(_nextResponseBytes == null,
         'FakeApiConnection.prepare was called while already expecting a request');
-    _nextResponse = response;
+    _nextResponseBytes = utf8.encode(response);
   }
 
   @override
@@ -26,24 +29,10 @@ class FakeApiConnection extends ApiConnection {
   }
 
   @override
-  Future<String> get(String route, Map<String, dynamic>? params) async {
-    final response = _nextResponse;
-    _nextResponse = null;
-    return response!;
-  }
-
-  @override
-  Future<String> post(String route, Map<String, dynamic>? params) async {
-    final response = _nextResponse;
-    _nextResponse = null;
-    return response!;
-  }
-
-  @override
-  Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
-    final response = _nextResponse;
-    _nextResponse = null;
-    return response!;
+  Future<http.Response> send(http.BaseRequest request) async {
+    final responseBytes = _nextResponseBytes!;
+    _nextResponseBytes = null;
+    return http.Response.bytes(responseBytes, 200, request: request);
   }
 }
 
