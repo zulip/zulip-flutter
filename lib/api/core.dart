@@ -53,7 +53,10 @@ class ApiConnection {
     assert(_isOpen);
     addAuth(request);
     final response = await http.Response.fromStream(await _client.send(request));
-    return _decodeResponse(response);
+    if (response.statusCode != 200) {
+      throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
+    }
+    return utf8.decode(response.bodyBytes);
   }
 
   void close() {
@@ -83,14 +86,6 @@ class ApiConnection {
     http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("$realmUrl/api/v1/$route"))
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
     return send(request);
-  }
-
-  static String _decodeResponse(http.Response response) {
-    if (response.statusCode != 200) {
-      final request = response.request!;
-      throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
-    }
-    return utf8.decode(response.bodyBytes);
   }
 }
 
