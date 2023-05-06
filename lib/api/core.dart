@@ -52,11 +52,11 @@ class ApiConnection {
   Future<String> send(http.BaseRequest request) async {
     assert(_isOpen);
     addAuth(request);
-    final response = await http.Response.fromStream(await _client.send(request));
+    final response = await _client.send(request);
     if (response.statusCode != 200) {
       throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
     }
-    return utf8.decode(response.bodyBytes);
+    return utf8.decode((await http.Response.fromStream(response)).bodyBytes);
   }
 
   void close() {
