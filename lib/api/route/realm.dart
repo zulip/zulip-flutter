@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
+
+import '../core.dart';
 
 part 'realm.g.dart';
 
@@ -19,21 +20,14 @@ part 'realm.g.dart';
 Future<GetServerSettingsResult> getServerSettings({
   required Uri realmUrl,
 }) async {
-  final request = http.Request('GET', realmUrl.replace(path: "/api/v1/server_settings"));
-
-  // TODO dedupe with ApiConnection; make this function testable
-  final client = http.Client();
-  final http.Response response;
+  final String data;
+  // TODO make this function testable by taking ApiConnection from caller
+  final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
-    response = await http.Response.fromStream(await client.send(request));
+    data = await connection.get('server_settings', null);
   } finally {
-    client.close();
+    connection.close();
   }
-
-  if (response.statusCode != 200) {
-    throw Exception('error on GET server_settings: status ${response.statusCode}');
-  }
-  final data = utf8.decode(response.bodyBytes);
 
   final json = jsonDecode(data);
   return GetServerSettingsResult.fromJson(json);

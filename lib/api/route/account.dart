@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
-import 'package:http/http.dart' as http;
 
 part 'account.g.dart';
 
@@ -13,25 +12,17 @@ Future<FetchApiKeyResult> fetchApiKey({
   required String username,
   required String password,
 }) async {
-  final request = http.Request('POST', realmUrl.replace(path: "/api/v1/fetch_api_key"))
-    ..bodyFields = encodeParameters({
+  final String data;
+  // TODO make this function testable by taking ApiConnection from caller
+  final connection = ApiConnection.live(realmUrl: realmUrl);
+  try {
+    data = await connection.post('fetch_api_key', {
       'username': RawParameter(username),
       'password': RawParameter(password),
-    })!;
-
-  // TODO dedupe with ApiConnection; make this function testable
-  final client = http.Client();
-  final http.Response response;
-  try {
-    response = await http.Response.fromStream(await client.send(request));
+    });
   } finally {
-    client.close();
+    connection.close();
   }
-
-  if (response.statusCode != 200) {
-    throw Exception('error on POST fetch_api_key: status ${response.statusCode}');
-  }
-  final data = utf8.decode(response.bodyBytes);
 
   final json = jsonDecode(data);
   return FetchApiKeyResult.fromJson(json);
