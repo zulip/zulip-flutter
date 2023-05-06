@@ -28,7 +28,7 @@ class RawParameter {
 ///  * `FakeApiConnection` in the test suite, which implements this
 ///    for use in tests.
 abstract class ApiConnection {
-  ApiConnection({required this.auth});
+  ApiConnection({required http.Client client, required this.auth}) : _client = client;
 
   // TODO move auth field to subclass, have just a realmUrl getter;
   //   that ensures nothing assumes base class has a real API key
@@ -36,9 +36,20 @@ abstract class ApiConnection {
 
   void addAuth(http.BaseRequest request);
 
-  Future<http.Response> send(http.BaseRequest request);
+  final http.Client _client;
 
-  void close();
+  bool _isOpen = true;
+
+  Future<http.Response> send(http.BaseRequest request) async {
+    assert(_isOpen);
+    return http.Response.fromStream(await _client.send(request));
+  }
+
+  void close() {
+    assert(_isOpen);
+    _client.close();
+    _isOpen = false;
+  }
 
   Future<String> get(String route, Map<String, dynamic>? params) async {
     final url = auth.realmUrl.replace(
@@ -94,30 +105,14 @@ Map<String, String> authHeader({required String email, required String apiKey}) 
 class LiveApiConnection extends ApiConnection {
   LiveApiConnection({
     required super.auth,
-  }) : _authValue = _authHeaderValue(email: auth.email, apiKey: auth.apiKey);
-
-  final http.Client _client = http.Client();
-
-  bool _isOpen = true;
-
-  @override
-  void close() {
-    assert(_isOpen);
-    _client.close();
-    _isOpen = false;
-  }
+  }) : _authValue = _authHeaderValue(email: auth.email, apiKey: auth.apiKey),
+       super(client: http.Client());
 
   final String _authValue;
 
   @override
   void addAuth(http.BaseRequest request) {
     request.headers['Authorization'] = _authValue;
-  }
-
-  @override
-  Future<http.Response> send(http.BaseRequest request) async {
-    assert(_isOpen);
-    return http.Response.fromStream(await _client.send(request));
   }
 }
 
