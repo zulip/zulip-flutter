@@ -56,7 +56,7 @@ class ApiConnection {
     if (response.statusCode != 200) {
       throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
     }
-    return utf8.decode((await http.Response.fromStream(response)).bodyBytes);
+    return utf8.decode(await response.stream.toBytes());
   }
 
   void close() {
