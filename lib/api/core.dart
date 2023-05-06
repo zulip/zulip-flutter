@@ -49,9 +49,11 @@ class ApiConnection {
 
   bool _isOpen = true;
 
-  Future<http.Response> send(http.BaseRequest request) async {
+  Future<String> send(http.BaseRequest request) async {
     assert(_isOpen);
-    return http.Response.fromStream(await _client.send(request));
+    addAuth(request);
+    final response = await http.Response.fromStream(await _client.send(request));
+    return _decodeResponse(response);
   }
 
   void close() {
@@ -65,9 +67,7 @@ class ApiConnection {
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
     assert(debugLog("GET $url"));
     final request = http.Request('GET', url);
-    addAuth(request);
-    final response = await send(request);
-    return _decodeResponse(response);
+    return send(request);
   }
 
   Future<String> post(String route, Map<String, dynamic>? params) async {
@@ -76,17 +76,13 @@ class ApiConnection {
     if (params != null) {
       request.bodyFields = encodeParameters(params)!;
     }
-    addAuth(request);
-    final response = await send(request);
-    return _decodeResponse(response);
+    return send(request);
   }
 
   Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
     http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("$realmUrl/api/v1/$route"))
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
-    addAuth(request);
-    final response = await send(request);
-    return _decodeResponse(response);
+    return send(request);
   }
 
   static String _decodeResponse(http.Response response) {
