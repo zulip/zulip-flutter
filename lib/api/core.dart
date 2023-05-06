@@ -92,7 +92,9 @@ Map<String, String> authHeader({required String email, required String apiKey}) 
 
 /// An [ApiConnection] that makes real network requests to a real server.
 class LiveApiConnection extends ApiConnection {
-  LiveApiConnection({required super.auth});
+  LiveApiConnection({
+    required super.auth,
+  }) : _authValue = _authHeaderValue(email: auth.email, apiKey: auth.apiKey);
 
   final http.Client _client = http.Client();
 
@@ -105,10 +107,11 @@ class LiveApiConnection extends ApiConnection {
     _isOpen = false;
   }
 
+  final String _authValue;
+
   @override
   void addAuth(http.BaseRequest request) {
-    // TODO memoize auth header value on LiveApiConnection
-    request.headers['Authorization'] = _authHeaderValue(email: auth.email, apiKey: auth.apiKey);
+    request.headers['Authorization'] = _authValue;
   }
 
   @override
