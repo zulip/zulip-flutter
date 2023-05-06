@@ -13,13 +13,20 @@ Future<FetchApiKeyResult> fetchApiKey({
   required String username,
   required String password,
 }) async {
-  // TODO dedupe this part with LiveApiConnection; make this function testable
-  final response = await http.post(
-    realmUrl.replace(path: "/api/v1/fetch_api_key"),
-    body: encodeParameters({
-      'username': RawParameter(username),
-      'password': RawParameter(password),
-    }));
+  // TODO dedupe with LiveApiConnection; make this function testable
+  final client = http.Client();
+  final http.Response response;
+  try {
+    response = await client.post(
+      realmUrl.replace(path: "/api/v1/fetch_api_key"),
+      body: encodeParameters({
+        'username': RawParameter(username),
+        'password': RawParameter(password),
+      }));
+  } finally {
+    client.close();
+  }
+
   if (response.statusCode != 200) {
     throw Exception('error on POST fetch_api_key: status ${response.statusCode}');
   }

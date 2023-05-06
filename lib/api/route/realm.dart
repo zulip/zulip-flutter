@@ -19,9 +19,16 @@ part 'realm.g.dart';
 Future<GetServerSettingsResult> getServerSettings({
   required Uri realmUrl,
 }) async {
-  // TODO dedupe this part with LiveApiConnection; make this function testable
-  final response = await http.get(
-    realmUrl.replace(path: "/api/v1/server_settings"));
+  // TODO dedupe with LiveApiConnection; make this function testable
+  final client = http.Client();
+  final http.Response response;
+  try {
+    response = await client.get(
+      realmUrl.replace(path: "/api/v1/server_settings"));
+  } finally {
+    client.close();
+  }
+
   if (response.statusCode != 200) {
     throw Exception('error on GET server_settings: status ${response.statusCode}');
   }
