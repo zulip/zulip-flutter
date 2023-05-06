@@ -34,6 +34,8 @@ abstract class ApiConnection {
   //   that ensures nothing assumes base class has a real API key
   final Auth auth;
 
+  void addAuth(http.BaseRequest request);
+
   Future<http.Response> send(http.BaseRequest request);
 
   void close();
@@ -43,6 +45,7 @@ abstract class ApiConnection {
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
     assert(debugLog("GET $url"));
     final request = http.Request('GET', url);
+    addAuth(request);
     final response = await send(request);
     return _decodeResponse(response);
   }
@@ -53,6 +56,7 @@ abstract class ApiConnection {
     if (params != null) {
       request.bodyFields = encodeParameters(params)!;
     }
+    addAuth(request);
     final response = await send(request);
     return _decodeResponse(response);
   }
@@ -60,6 +64,7 @@ abstract class ApiConnection {
   Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
     http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("${auth.realmUrl}/api/v1/$route"))
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
+    addAuth(request);
     final response = await send(request);
     return _decodeResponse(response);
   }
@@ -73,11 +78,15 @@ abstract class ApiConnection {
   }
 }
 
-// TODO memoize auth header on LiveApiConnection and PerAccountStore
-Map<String, String> authHeader({required String email, required String apiKey}) {
+String _authHeaderValue({required String email, required String apiKey}) {
   final authBytes = utf8.encode("$email:$apiKey");
+  return 'Basic ${base64.encode(authBytes)}';
+}
+
+// TODO memoize auth header map on PerAccountStore
+Map<String, String> authHeader({required String email, required String apiKey}) {
   return {
-    'Authorization': 'Basic ${base64.encode(authBytes)}',
+    'Authorization': _authHeaderValue(email: email, apiKey: apiKey),
   };
 }
 
@@ -96,14 +105,15 @@ class LiveApiConnection extends ApiConnection {
     _isOpen = false;
   }
 
-  Map<String, String> _headers() {
-    return authHeader(email: auth.email, apiKey: auth.apiKey);
+  @override
+  void addAuth(http.BaseRequest request) {
+    // TODO memoize auth header value on LiveApiConnection
+    request.headers['Authorization'] = _authHeaderValue(email: auth.email, apiKey: auth.apiKey);
   }
 
   @override
   Future<http.Response> send(http.BaseRequest request) async {
     assert(_isOpen);
-    request.headers.addAll(_headers());
     return http.Response.fromStream(await _client.send(request));
   }
 }

@@ -29,6 +29,11 @@ class FakeApiConnection extends ApiConnection {
   }
 
   @override
+  void addAuth(http.BaseRequest request) {
+    // do nothing
+  }
+
+  @override
   Future<http.Response> send(http.BaseRequest request) async {
     final responseBytes = _nextResponseBytes!;
     _nextResponseBytes = null;
