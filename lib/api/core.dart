@@ -76,7 +76,8 @@ class LiveApiConnection extends ApiConnection {
     final url = auth.realmUrl.replace(
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
     assert(debugLog("GET $url"));
-    final response = await _client.get(url, headers: _headers());
+    final request = http.Request('GET', url)..headers.addAll(_headers());
+    final response = await http.Response.fromStream(await _client.send(request));
     if (response.statusCode != 200) {
       throw Exception("error on GET $route: status ${response.statusCode}");
     }
@@ -86,10 +87,12 @@ class LiveApiConnection extends ApiConnection {
   @override
   Future<String> post(String route, Map<String, dynamic>? params) async {
     assert(_isOpen);
-    final response = await _client.post(
-        auth.realmUrl.replace(path: "/api/v1/$route"),
-        headers: _headers(),
-        body: encodeParameters(params));
+    final url = auth.realmUrl.replace(path: "/api/v1/$route");
+    final request = http.Request('POST', url)..headers.addAll(_headers());
+    if (params != null) {
+      request.bodyFields = encodeParameters(params)!;
+    }
+    final response = await http.Response.fromStream(await _client.send(request));
     if (response.statusCode != 200) {
       throw Exception("error on POST $route: status ${response.statusCode}");
     }
@@ -110,7 +113,7 @@ class LiveApiConnection extends ApiConnection {
   }
 }
 
-Map<String, dynamic>? encodeParameters(Map<String, dynamic>? params) {
+Map<String, String>? encodeParameters(Map<String, dynamic>? params) {
   return params?.map((k, v) =>
       MapEntry(k, v is RawParameter ? v.value : jsonEncode(v)));
 }
