@@ -14,11 +14,12 @@ class RawParameter {
 /// All the information to talk to a Zulip server, real or fake.
 ///
 /// See also:
-///  * [LiveApiConnection], which implements this for talking to a
-///    real Zulip server.
 ///  * `FakeApiConnection` in the test suite, which implements this
 ///    for use in tests.
-abstract class ApiConnection {
+class ApiConnection {
+  /// Construct an API connection with an arbitrary [http.Client], real or fake.
+  ///
+  /// For talking to a live server, use [ApiConnection.live].
   ApiConnection({
     required this.realmUrl,
     String? email,
@@ -29,6 +30,10 @@ abstract class ApiConnection {
          ? _authHeaderValue(email: email, apiKey: apiKey)
          : null,
        _client = client;
+
+  /// Construct an API connection that talks to a live Zulip server over the real network.
+  ApiConnection.live({required Uri realmUrl, String? email, String? apiKey})
+    : this(realmUrl: realmUrl, email: email, apiKey: apiKey, client: http.Client());
 
   final Uri realmUrl;
 
@@ -103,15 +108,6 @@ Map<String, String> authHeader({required String email, required String apiKey}) 
   return {
     'Authorization': _authHeaderValue(email: email, apiKey: apiKey),
   };
-}
-
-/// An [ApiConnection] that makes real network requests to a real server.
-class LiveApiConnection extends ApiConnection {
-  LiveApiConnection({
-    required super.realmUrl,
-    required String email,
-    required String apiKey,
-  }) : super(email: email, apiKey: apiKey, client: http.Client());
 }
 
 Map<String, String>? encodeParameters(Map<String, dynamic>? params) {

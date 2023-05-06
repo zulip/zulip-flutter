@@ -21,7 +21,7 @@ Future<GetServerSettingsResult> getServerSettings({
 }) async {
   final request = http.Request('GET', realmUrl.replace(path: "/api/v1/server_settings"));
 
-  // TODO dedupe with LiveApiConnection; make this function testable
+  // TODO dedupe with ApiConnection; make this function testable
   final client = http.Client();
   final http.Response response;
   try {

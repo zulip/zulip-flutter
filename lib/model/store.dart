@@ -252,7 +252,7 @@ class PerAccountStore extends ChangeNotifier {
 /// database file in the app's persistent storage on the device.
 ///
 /// The per-account stores will be instances of [LivePerAccountStore],
-/// with data loaded through [LiveApiConnection].
+/// with data loaded through a live [ApiConnection].
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
     required AppDatabase db,
@@ -328,7 +328,7 @@ class LivePerAccountStore extends PerAccountStore {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<PerAccountStore> load(Account account) async {
-    final connection = LiveApiConnection(
+    final connection = ApiConnection.live(
       realmUrl: account.realmUrl, email: account.email, apiKey: account.apiKey);
 
     final stopwatch = Stopwatch()..start();
@@ -354,7 +354,7 @@ class LivePerAccountStore extends PerAccountStore {
       final result = await getEvents(connection,
           queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
-      // TODO abort long-poll and close LiveApiConnection on [dispose]
+      // TODO abort long-poll and close ApiConnection on [dispose]
       final events = result.events;
       for (final event in events) {
         handleEvent(event);

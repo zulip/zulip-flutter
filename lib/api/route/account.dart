@@ -19,7 +19,7 @@ Future<FetchApiKeyResult> fetchApiKey({
       'password': RawParameter(password),
     })!;
 
-  // TODO dedupe with LiveApiConnection; make this function testable
+  // TODO dedupe with ApiConnection; make this function testable
   final client = http.Client();
   final http.Response response;
   try {
