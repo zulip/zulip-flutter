@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
@@ -12,7 +10,7 @@ part 'users.g.dart';
 /// as a workaround on old servers.
 Future<GetOwnUserResult> getOwnUser(ApiConnection connection) async {
   final data = await connection.get('users/me', {});
-  return GetOwnUserResult.fromJson(jsonDecode(data));
+  return GetOwnUserResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

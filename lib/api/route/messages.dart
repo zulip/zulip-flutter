@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
@@ -18,7 +16,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
     'num_before': numBefore,
     'num_after': numAfter,
   });
-  return GetMessagesResult.fromJson(jsonDecode(data));
+  return GetMessagesResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -79,7 +77,7 @@ Future<SendMessageResult> sendMessage(
     'topic': RawParameter(topic),
     'content': RawParameter(content),
   });
-  return SendMessageResult.fromJson(jsonDecode(data));
+  return SendMessageResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -106,7 +104,7 @@ Future<UploadFileResult> uploadFile(
   required String filename,
 }) async {
   final data = await connection.postFileFromStream('user_uploads', content, length, filename: filename);
-  return UploadFileResult.fromJson(jsonDecode(data));
+  return UploadFileResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

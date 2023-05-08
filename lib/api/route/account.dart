@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
@@ -12,7 +10,7 @@ Future<FetchApiKeyResult> fetchApiKey({
   required String username,
   required String password,
 }) async {
-  final String data;
+  final Map<String, dynamic> data;
   // TODO make this function testable by taking ApiConnection from caller
   final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
@@ -24,8 +22,7 @@ Future<FetchApiKeyResult> fetchApiKey({
     connection.close();
   }
 
-  final json = jsonDecode(data);
-  return FetchApiKeyResult.fromJson(json);
+  return FetchApiKeyResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

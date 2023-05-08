@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
@@ -21,8 +19,7 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) async {
       'user_settings_object': true,
     },
   });
-  final json = jsonDecode(data);
-  return InitialSnapshot.fromJson(json);
+  return InitialSnapshot.fromJson(data);
 }
 
 /// https://zulip.com/api/get-events
@@ -34,7 +31,7 @@ Future<GetEventsResult> getEvents(ApiConnection connection, {
     if (lastEventId != null) 'last_event_id': lastEventId,
     if (dontBlock != null) 'dont_block': dontBlock,
   });
-  return GetEventsResult.fromJson(jsonDecode(data));
+  return GetEventsResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

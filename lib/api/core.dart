@@ -49,14 +49,16 @@ class ApiConnection {
 
   bool _isOpen = true;
 
-  Future<String> send(http.BaseRequest request) async {
+  Future<Map<String, dynamic>> send(http.BaseRequest request) async {
     assert(_isOpen);
     addAuth(request);
     final response = await _client.send(request);
     if (response.statusCode != 200) {
       throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
     }
-    return utf8.decode(await response.stream.toBytes());
+    final bytes = await response.stream.toBytes();
+    return jsonDecode(utf8.decode(bytes));
+    // TODO(#37): inspect response to throw structured errors
   }
 
   void close() {
@@ -65,7 +67,7 @@ class ApiConnection {
     _isOpen = false;
   }
 
-  Future<String> get(String route, Map<String, dynamic>? params) async {
+  Future<Map<String, dynamic>> get(String route, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
     assert(debugLog("GET $url"));
@@ -73,7 +75,7 @@ class ApiConnection {
     return send(request);
   }
 
-  Future<String> post(String route, Map<String, dynamic>? params) async {
+  Future<Map<String, dynamic>> post(String route, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(path: "/api/v1/$route");
     final request = http.Request('POST', url);
     if (params != null) {
@@ -82,7 +84,7 @@ class ApiConnection {
     return send(request);
   }
 
-  Future<String> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
+  Future<Map<String, dynamic>> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
     http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("$realmUrl/api/v1/$route"))
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
     return send(request);

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
@@ -20,7 +18,7 @@ part 'realm.g.dart';
 Future<GetServerSettingsResult> getServerSettings({
   required Uri realmUrl,
 }) async {
-  final String data;
+  final Map<String, dynamic> data;
   // TODO make this function testable by taking ApiConnection from caller
   final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
@@ -29,8 +27,7 @@ Future<GetServerSettingsResult> getServerSettings({
     connection.close();
   }
 
-  final json = jsonDecode(data);
-  return GetServerSettingsResult.fromJson(json);
+  return GetServerSettingsResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
