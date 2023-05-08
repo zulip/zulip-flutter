@@ -9,7 +9,7 @@ part 'users.g.dart';
 /// This route's return type is simplified because we use it only
 /// as a workaround on old servers.
 Future<GetOwnUserResult> getOwnUser(ApiConnection connection) async {
-  final data = await connection.get('users/me', {});
+  final data = await connection.get('getOwnUser', 'users/me', {});
   return GetOwnUserResult.fromJson(data);
 }
 

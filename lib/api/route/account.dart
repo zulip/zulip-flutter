@@ -14,7 +14,7 @@ Future<FetchApiKeyResult> fetchApiKey({
   // TODO make this function testable by taking ApiConnection from caller
   final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
-    data = await connection.post('fetch_api_key', {
+    data = await connection.post('fetchApiKey', 'fetch_api_key', {
       'username': RawParameter(username),
       'password': RawParameter(password),
     });

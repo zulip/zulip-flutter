@@ -22,7 +22,7 @@ Future<GetServerSettingsResult> getServerSettings({
   // TODO make this function testable by taking ApiConnection from caller
   final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
-    data = await connection.get('server_settings', null);
+    data = await connection.get('getServerSettings', 'server_settings', null);
   } finally {
     connection.close();
   }

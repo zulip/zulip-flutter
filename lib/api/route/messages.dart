@@ -10,7 +10,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   required int numBefore,
   required int numAfter,
 }) async {
-  final data = await connection.get('messages', {
+  final data = await connection.get('getMessages', 'messages', {
     // 'narrow': [], // TODO parametrize
     'anchor': 999999999, // TODO parametrize; use RawParameter for strings
     'num_before': numBefore,
@@ -71,7 +71,7 @@ Future<SendMessageResult> sendMessage(
     throw Exception('This binding can currently only be used on https://chat.zulip.org.');
   }
 
-  final data = await connection.post('messages', {
+  final data = await connection.post('sendMessage', 'messages', {
     'type': RawParameter('stream'), // TODO parametrize
     'to': 7, // TODO parametrize; this is `#test here`
     'topic': RawParameter(topic),
@@ -103,7 +103,8 @@ Future<UploadFileResult> uploadFile(
   required int length,
   required String filename,
 }) async {
-  final data = await connection.postFileFromStream('user_uploads', content, length, filename: filename);
+  final data = await connection.postFileFromStream('uploadFile', 'user_uploads',
+    content, length, filename: filename);
   return UploadFileResult.fromJson(data);
 }
 

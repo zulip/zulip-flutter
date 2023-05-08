@@ -14,7 +14,7 @@ void main() {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(body: jsonEncode({}));
-        await connection.get('example/route', params);
+        await connection.get(kExampleRouteName, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
           ..method.equals('GET')
           ..url.asString.equals('${eg.realmUrl.origin}$expectedRelativeUrl')
@@ -42,7 +42,7 @@ void main() {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(body: jsonEncode({}));
-        await connection.post('example/route', params);
+        await connection.post(kExampleRouteName, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
           ..method.equals('POST')
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
@@ -73,7 +73,7 @@ void main() {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(body: jsonEncode({}));
         await connection.postFileFromStream(
-          'example/route',
+          kExampleRouteName, 'example/route',
           Stream.fromIterable(content), length, filename: filename);
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -104,8 +104,10 @@ void main() {
     await FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
       connection.prepare(body: jsonEncode({'result': 'success', 'x': 3}));
       final result = await connection.get(
-        'example/route', {'y': 'z'});
+        kExampleRouteName, 'example/route', {'y': 'z'});
       check(result).deepEquals({'result': 'success', 'x': 3});
     });
   });
 }
+
+const kExampleRouteName = 'exampleRoute';

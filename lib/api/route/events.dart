@@ -8,7 +8,7 @@ part 'events.g.dart';
 
 /// https://zulip.com/api/register-queue
 Future<InitialSnapshot> registerQueue(ApiConnection connection) async {
-  final data = await connection.post('register', {
+  final data = await connection.post('registerQueue', 'register', {
     'apply_markdown': true,
     'slim_presence': true,
     'client_capabilities': {
@@ -26,7 +26,7 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) async {
 Future<GetEventsResult> getEvents(ApiConnection connection, {
   required String queueId, int? lastEventId, bool? dontBlock,
 }) async {
-  final data = await connection.get('events', {
+  final data = await connection.get('getEvents', 'events', {
     'queue_id': RawParameter(queueId),
     if (lastEventId != null) 'last_event_id': lastEventId,
     if (dontBlock != null) 'dont_block': dontBlock,
