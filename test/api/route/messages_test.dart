@@ -20,7 +20,7 @@ void main() {
     final connection = FakeApiConnection(
         realmUrl: Uri.parse('https://chat.example/'));
     connection.prepare(body: jsonEncode(SendMessageResult(id: 42).toJson()));
-    check(sendMessage(connection, content: 'hello', topic: 'world'))
+    check(() => sendMessage(connection, content: 'hello', topic: 'world'))
         .throws();
   });
 }

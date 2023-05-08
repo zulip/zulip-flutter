@@ -7,8 +7,8 @@ import '../model/initial_snapshot.dart';
 part 'events.g.dart';
 
 /// https://zulip.com/api/register-queue
-Future<InitialSnapshot> registerQueue(ApiConnection connection) async {
-  final data = await connection.post('registerQueue', 'register', {
+Future<InitialSnapshot> registerQueue(ApiConnection connection) {
+  return connection.post('registerQueue', InitialSnapshot.fromJson, 'register', {
     'apply_markdown': true,
     'slim_presence': true,
     'client_capabilities': {
@@ -19,19 +19,17 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) async {
       'user_settings_object': true,
     },
   });
-  return InitialSnapshot.fromJson(data);
 }
 
 /// https://zulip.com/api/get-events
 Future<GetEventsResult> getEvents(ApiConnection connection, {
   required String queueId, int? lastEventId, bool? dontBlock,
-}) async {
-  final data = await connection.get('getEvents', 'events', {
+}) {
+  return connection.get('getEvents', GetEventsResult.fromJson, 'events', {
     'queue_id': RawParameter(queueId),
     if (lastEventId != null) 'last_event_id': lastEventId,
     if (dontBlock != null) 'dont_block': dontBlock,
   });
-  return GetEventsResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

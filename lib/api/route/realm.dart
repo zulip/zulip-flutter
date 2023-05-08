@@ -18,16 +18,13 @@ part 'realm.g.dart';
 Future<GetServerSettingsResult> getServerSettings({
   required Uri realmUrl,
 }) async {
-  final Map<String, dynamic> data;
   // TODO make this function testable by taking ApiConnection from caller
   final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
-    data = await connection.get('getServerSettings', 'server_settings', null);
+    return await connection.get('getServerSettings', GetServerSettingsResult.fromJson, 'server_settings', null);
   } finally {
     connection.close();
   }
-
-  return GetServerSettingsResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

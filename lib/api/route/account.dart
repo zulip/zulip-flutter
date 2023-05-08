@@ -10,19 +10,16 @@ Future<FetchApiKeyResult> fetchApiKey({
   required String username,
   required String password,
 }) async {
-  final Map<String, dynamic> data;
   // TODO make this function testable by taking ApiConnection from caller
   final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
-    data = await connection.post('fetchApiKey', 'fetch_api_key', {
+    return await connection.post('fetchApiKey', FetchApiKeyResult.fromJson, 'fetch_api_key', {
       'username': RawParameter(username),
       'password': RawParameter(password),
     });
   } finally {
     connection.close();
   }
-
-  return FetchApiKeyResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

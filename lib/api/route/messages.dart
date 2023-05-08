@@ -9,14 +9,13 @@ part 'messages.g.dart';
 Future<GetMessagesResult> getMessages(ApiConnection connection, {
   required int numBefore,
   required int numAfter,
-}) async {
-  final data = await connection.get('getMessages', 'messages', {
+}) {
+  return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     // 'narrow': [], // TODO parametrize
     'anchor': 999999999, // TODO parametrize; use RawParameter for strings
     'num_before': numBefore,
     'num_after': numAfter,
   });
-  return GetMessagesResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -64,20 +63,19 @@ Future<SendMessageResult> sendMessage(
   ApiConnection connection, {
   required String content,
   required String topic,
-}) async {
+}) {
   // assert() is less verbose but would have no effect in production, I think:
   //   https://dart.dev/guides/language/language-tour#assert
   if (connection.realmUrl.origin != 'https://chat.zulip.org') {
     throw Exception('This binding can currently only be used on https://chat.zulip.org.');
   }
 
-  final data = await connection.post('sendMessage', 'messages', {
+  return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     'type': RawParameter('stream'), // TODO parametrize
     'to': 7, // TODO parametrize; this is `#test here`
     'topic': RawParameter(topic),
     'content': RawParameter(content),
   });
-  return SendMessageResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -102,10 +100,9 @@ Future<UploadFileResult> uploadFile(
   required Stream<List<int>> content,
   required int length,
   required String filename,
-}) async {
-  final data = await connection.postFileFromStream('uploadFile', 'user_uploads',
+}) {
+  return connection.postFileFromStream('uploadFile', UploadFileResult.fromJson, 'user_uploads',
     content, length, filename: filename);
-  return UploadFileResult.fromJson(data);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

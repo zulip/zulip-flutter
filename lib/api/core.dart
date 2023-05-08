@@ -49,7 +49,8 @@ class ApiConnection {
 
   bool _isOpen = true;
 
-  Future<Map<String, dynamic>> send(String routeName, http.BaseRequest request) async {
+  Future<T> send<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
+      http.BaseRequest request) async {
     assert(_isOpen);
     assert(debugLog("${request.method} ${request.url}"));
     addAuth(request);
@@ -58,7 +59,8 @@ class ApiConnection {
       throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
     }
     final bytes = await response.stream.toBytes();
-    return jsonDecode(utf8.decode(bytes));
+    final json = jsonDecode(utf8.decode(bytes));
+    return fromJson(json);
     // TODO(#37): inspect response to throw structured errors
   }
 
@@ -68,27 +70,30 @@ class ApiConnection {
     _isOpen = false;
   }
 
-  Future<Map<String, dynamic>> get(String routeName, String path, Map<String, dynamic>? params) async {
+  Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
+      String path, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(
         path: "/api/v1/$path", queryParameters: encodeParameters(params));
     final request = http.Request('GET', url);
-    return send(routeName, request);
+    return send(routeName, fromJson, request);
   }
 
-  Future<Map<String, dynamic>> post(String routeName, String path, Map<String, dynamic>? params) async {
+  Future<T> post<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
+      String path, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(path: "/api/v1/$path");
     final request = http.Request('POST', url);
     if (params != null) {
       request.bodyFields = encodeParameters(params)!;
     }
-    return send(routeName, request);
+    return send(routeName, fromJson, request);
   }
 
-  Future<Map<String, dynamic>> postFileFromStream(String routeName, String path, Stream<List<int>> content, int length, { String? filename }) async {
+  Future<T> postFileFromStream<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
+      String path, Stream<List<int>> content, int length, {String? filename}) async {
     final url = realmUrl.replace(path: "/api/v1/$path");
     final request = http.MultipartRequest('POST', url)
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
-    return send(routeName, request);
+    return send(routeName, fromJson, request);
   }
 }
 
