@@ -51,6 +51,7 @@ class ApiConnection {
 
   Future<Map<String, dynamic>> send(http.BaseRequest request) async {
     assert(_isOpen);
+    assert(debugLog("${request.method} ${request.url}"));
     addAuth(request);
     final response = await _client.send(request);
     if (response.statusCode != 200) {
@@ -70,7 +71,6 @@ class ApiConnection {
   Future<Map<String, dynamic>> get(String route, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
-    assert(debugLog("GET $url"));
     final request = http.Request('GET', url);
     return send(request);
   }
