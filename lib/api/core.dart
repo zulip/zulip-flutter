@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
 import '../log.dart';
+import 'exception.dart';
 
 /// A value for an API request parameter, to use directly without JSON encoding.
 class RawParameter {
@@ -52,16 +54,45 @@ class ApiConnection {
   Future<T> send<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
       http.BaseRequest request) async {
     assert(_isOpen);
+
     assert(debugLog("${request.method} ${request.url}"));
+
     addAuth(request);
-    final response = await _client.send(request);
-    if (response.statusCode != 200) {
-      throw Exception("error on ${request.method} ${request.url.path}: status ${response.statusCode}");
+
+    final http.StreamedResponse response;
+    try {
+      response = await _client.send(request);
+    } catch (e) {
+      final String message;
+      if (e is http.ClientException) {
+        message = e.message;
+      } else if (e is TlsException) {
+        message = e.message;
+      } else {
+        message = 'Network request failed';
+      }
+      throw NetworkException(routeName: routeName, cause: e, message: message);
     }
-    final bytes = await response.stream.toBytes();
-    final json = jsonDecode(utf8.decode(bytes));
-    return fromJson(json);
-    // TODO(#37): inspect response to throw structured errors
+
+    final int httpStatus = response.statusCode;
+    Map<String, dynamic>? json;
+    try {
+      final bytes = await response.stream.toBytes();
+      json = jsonDecode(utf8.decode(bytes));
+    } catch (e) {
+      // We'll throw something below, seeing `json` is null.
+    }
+
+    if (httpStatus != 200 || json == null) {
+      throw _makeApiException(routeName, httpStatus, json);
+    }
+
+    try {
+      return fromJson(json);
+    } catch (e) {
+      throw MalformedServerResponseException(
+        routeName: routeName, httpStatus: httpStatus, data: json);
+    }
   }
 
   void close() {
@@ -95,6 +126,33 @@ class ApiConnection {
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
     return send(routeName, fromJson, request);
   }
+}
+
+ApiRequestException _makeApiException(String routeName, int httpStatus, Map<String, dynamic>? json) {
+  assert(httpStatus != 200 || json == null);
+  if (400 <= httpStatus && httpStatus <= 499) {
+    if (json != null && json['result'] == 'error'
+        && json['code'] is String? && json['msg'] is String) {
+      json.remove('result');
+      return ZulipApiException( // TODO(log): systematically log these
+        routeName: routeName,
+        httpStatus: httpStatus,
+        // When `code` is missing, we fall back to `BAD_REQUEST`,
+        // the same value the server uses when nobody's made it more specific.
+        // TODO(server): `code` should always be present.  Get the "Invalid API key" case fixed.
+        code: json.remove('code') ?? 'BAD_REQUEST',
+        message: json.remove('msg'),
+        data: json,
+      );
+    }
+  } else if (500 <= httpStatus && httpStatus <= 599) {
+    return Server5xxException(routeName: routeName, httpStatus: httpStatus);
+  }
+  return MalformedServerResponseException( // TODO(log): systematically log these
+    routeName: routeName,
+    httpStatus: httpStatus,
+    data: json,
+  );
 }
 
 String _authHeaderValue({required String email, required String apiKey}) {

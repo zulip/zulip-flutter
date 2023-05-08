@@ -1,9 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:checks/checks.dart';
+import 'package:checks/context.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/exception.dart';
 
 import '../stdlib_checks.dart';
+import 'exception_checks.dart';
 import 'fake_api.dart';
 import '../example_data.dart' as eg;
 
@@ -105,6 +111,155 @@ void main() {
         kExampleRouteName, (json) => json['x'], 'example/route', {'y': 'z'});
       check(result).equals(3);
     });
+  });
+
+  test('API network errors', () async {
+    Future<void> checkRequest<T extends Object>(
+        T exception, Condition<NetworkException> condition) {
+      return check(tryRequest(exception: exception))
+        .throws<NetworkException>(it()
+          ..routeName.equals(kExampleRouteName)
+          ..cause.equals(exception)
+          ..which(condition));
+    }
+
+    checkRequest(http.ClientException('Oops'), it()..message.equals('Oops'));
+    checkRequest(const TlsException('Oops'), it()..message.equals('Oops'));
+    checkRequest((foo: 'bar'), it()..message.equals('Network request failed'));
+  });
+
+  test('API 4xx errors, well formed', () async {
+    Future<void> checkRequest({
+      int httpStatus = 400,
+      String? code = 'SOME_ERROR',
+      String? expectedCode,
+      String message = 'A thing failed',
+      Map<String, dynamic> data = const {},
+    }) async {
+      final json = {
+        'result': 'error',
+        if (code != null) 'code': code,
+        'msg': message,
+        ...data,
+      };
+      await check(tryRequest(httpStatus: httpStatus, json: json))
+        .throws<ZulipApiException>(it()
+          ..routeName.equals(kExampleRouteName)
+          ..httpStatus.equals(httpStatus)
+          ..code.equals(expectedCode ?? code!)
+          ..data.deepEquals(data)
+          ..message.equals(message));
+    }
+
+    await checkRequest();
+    await checkRequest(code: null, expectedCode: 'BAD_REQUEST');
+    await checkRequest(code: 'BAD_EVENT_QUEUE_ID');
+    await checkRequest(httpStatus: 456);
+    await checkRequest(httpStatus: 499);
+    await checkRequest(data: {'foo': 'a', 'bar': 1, 'baz': {'x': null, 'y': [2, 3]}});
+  });
+
+  test('API 4xx errors, malformed', () async {
+    Future<void> checkMalformed({
+        int httpStatus = 400, Map<String, dynamic>? json, String? body}) async {
+      assert((json == null) != (body == null));
+      await check(tryRequest(httpStatus: httpStatus, json: json, body: body))
+        .throws<MalformedServerResponseException>(it()
+          ..routeName.equals(kExampleRouteName)
+          ..httpStatus.equals(httpStatus)
+          ..data.deepEquals(json));
+    }
+
+    await check(
+      tryRequest(json: {  'result': 'error',    'code': 'ERR', 'msg': 'Oops'}, httpStatus: 400),
+    ).throws<ZulipApiException>();
+
+    checkMalformed(json: {'result': 'success',  'code': 'ERR', 'msg': 'Oops'});
+    checkMalformed(json: {'result': 'nonsense', 'code': 'ERR', 'msg': 'Oops'});
+    checkMalformed(json: {/* result */          'code': 'ERR', 'msg': 'Oops'});
+    checkMalformed(json: {'result': 'error',    'code': 1,     'msg': 'Oops'});
+    checkMalformed(json: {'result': 'error',    'code': 'ERR'  /* msg */    });
+    checkMalformed(json: {'result': 'error',    'code': 'ERR', 'msg': 1     });
+    checkMalformed(json: {});
+    checkMalformed(body: '');
+    checkMalformed(body: '<html><body><p>An error occurred</p></body></html>');
+    checkMalformed(json: {'result': 'nonsense'}, httpStatus: 401);
+    checkMalformed(json: {'result': 'nonsense'}, httpStatus: 499);
+  });
+
+  test('API 5xx errors', () async {
+    Future<void> check5xx({
+        required int httpStatus, Map<String, dynamic>? json, String? body}) {
+      return check(tryRequest(httpStatus: httpStatus, json: json, body: body))
+        .throws<Server5xxException>(it()
+          ..routeName.equals(kExampleRouteName)
+          ..httpStatus.equals(httpStatus));
+    }
+
+    await check5xx(httpStatus: 500, json: {'result': 'error'});
+    await check5xx(httpStatus: 503, body: '');
+    await check5xx(httpStatus: 599, body: '');
+  });
+
+  test('API errors of unexpected HTTP status codes', () async {
+    Future<void> checkMalformed({
+        required int httpStatus, Map<String, dynamic>? json, String? body}) {
+      return check(tryRequest(httpStatus: httpStatus, json: json, body: body))
+        .throws<MalformedServerResponseException>(it()
+          ..routeName.equals(kExampleRouteName)
+          ..httpStatus.equals(httpStatus)
+          ..data.deepEquals(json));
+    }
+
+    await check(tryRequest(httpStatus: 200, json: {'result': 'success'})).completes();
+    await checkMalformed(httpStatus: 201, json: {'result': 'success'});
+    await checkMalformed(httpStatus: 301, json: {'result': 'success'});
+    await checkMalformed(httpStatus: 100, json: {'result': 'success'});
+  });
+
+  test('malformed API success responses', () async {
+    Future<void> checkMalformed({
+      Map<String, dynamic>? json,
+      String? body,
+      Object? Function(Map<String, dynamic>)? fromJson,
+    }) {
+      return check(tryRequest(json: json, body: body, fromJson: fromJson))
+        .throws<MalformedServerResponseException>(it()
+          ..routeName.equals(kExampleRouteName)
+          ..httpStatus.equals(200)
+          ..data.deepEquals(json));
+    }
+
+    await check(tryRequest<Map>(json: {})).completes(it()..deepEquals({}));
+
+    await checkMalformed(body: jsonEncode([]));
+    await checkMalformed(body: jsonEncode(null));
+    await checkMalformed(body: jsonEncode(3));
+    await checkMalformed(body: jsonEncode(true));
+    await checkMalformed(body: 'not JSON');
+
+    await check(tryRequest(json: {'x': 'y'}, fromJson: (json) => json['x'] as String))
+      .completes(it()..equals('y'));
+    await checkMalformed(  json: {},         fromJson: (json) => json['x'] as String);
+    await checkMalformed(  json: {'x': 3},   fromJson: (json) => json['x'] as String);
+  });
+}
+
+Future<T> tryRequest<T>({
+  Object? exception,
+  int? httpStatus,
+  Map<String, dynamic>? json,
+  String? body,
+  T Function(Map<String, dynamic>)? fromJson,
+}) {
+  assert((exception != null && json == null && body == null)
+      || (exception == null && json != null && body == null)
+      || (exception == null && json == null && body != null));
+  fromJson ??= (((Map<String, dynamic> x) => x) as T Function(Map<String, dynamic>));
+  return FakeApiConnection.with_((connection) {
+    connection.prepare(
+      exception: exception, httpStatus: httpStatus, json: json, body: body);
+    return connection.get(kExampleRouteName, fromJson!, 'example/route', {});
   });
 }
 
