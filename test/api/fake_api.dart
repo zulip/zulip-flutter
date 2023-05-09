@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/store.dart';
 
+import '../example_data.dart' as eg;
+
 /// An [http.Client] that accepts and replays canned responses, for testing.
 class FakeHttpClient extends http.BaseClient {
 
@@ -28,14 +30,14 @@ class FakeHttpClient extends http.BaseClient {
 
 /// An [ApiConnection] that accepts and replays canned responses, for testing.
 class FakeApiConnection extends ApiConnection {
-  FakeApiConnection({required Uri realmUrl})
-    : this._(realmUrl: realmUrl, client: FakeHttpClient());
+  FakeApiConnection({Uri? realmUrl})
+    : this._(realmUrl: realmUrl ?? eg.realmUrl, client: FakeHttpClient());
 
   FakeApiConnection.fromAccount(Account account)
     : this(realmUrl: account.realmUrl);
 
-  FakeApiConnection._({required Uri realmUrl, required this.client})
-    : super(client: client, realmUrl: realmUrl);
+  FakeApiConnection._({required super.realmUrl, required this.client})
+    : super(client: client);
 
   final FakeHttpClient client;
 
