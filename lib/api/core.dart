@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
+import '../log.dart';
 
 class Auth {
   Auth({required this.realmUrl, required this.email, required this.apiKey})
@@ -74,7 +75,7 @@ class LiveApiConnection extends ApiConnection {
     assert(_isOpen);
     final url = auth.realmUrl.replace(
         path: "/api/v1/$route", queryParameters: encodeParameters(params));
-    if (kDebugMode) print("GET $url");
+    assert(debugLog("GET $url"));
     final response = await _client.get(url, headers: _headers());
     if (response.statusCode != 200) {
       throw Exception("error on GET $route: status ${response.statusCode}");
