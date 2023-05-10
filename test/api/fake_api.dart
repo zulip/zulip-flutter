@@ -6,7 +6,21 @@ import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
 
-typedef _PreparedResponse = ({int httpStatus, List<int> bytes});
+sealed class _PreparedResponse {
+}
+
+class _PreparedException extends _PreparedResponse {
+  final Object exception;
+
+  _PreparedException({required this.exception});
+}
+
+class _PreparedSuccess extends _PreparedResponse {
+  final int httpStatus;
+  final List<int> bytes;
+
+  _PreparedSuccess({required this.httpStatus, required this.bytes});
+}
 
 /// An [http.Client] that accepts and replays canned responses, for testing.
 class FakeHttpClient extends http.BaseClient {
@@ -16,13 +30,24 @@ class FakeHttpClient extends http.BaseClient {
   _PreparedResponse? _nextResponse;
 
   // Please add more features to this mocking API as needed.  For example:
-  //  * preparing an exception instead of an [http.StreamedResponse]
   //  * preparing more than one request, and logging more than one request
 
-  void prepare({int? httpStatus, String? body}) {
+  /// Prepare the response for the next request.
+  ///
+  /// If `exception` is null, the next request will produce an [http.Response]
+  /// with the given `httpStatus` and `body`, defaulting to 200 and ''
+  /// respectively.
+  ///
+  /// If `exception` is non-null, then `httpStatus` and `body` must be null,
+  /// and the next request will throw the given exception.
+  void prepare({int? httpStatus, String? body, Object? exception}) {
+    assert(exception == null || (httpStatus == null && body == null));
     assert(_nextResponse == null,
       'FakeApiConnection.prepare was called while already expecting a request');
-    _nextResponse = (httpStatus: httpStatus ?? 200, bytes: utf8.encode(body ?? ''));
+    _nextResponse = exception != null
+      ? _PreparedException(exception: exception)
+      : _PreparedSuccess(
+          httpStatus: httpStatus ?? 200, bytes: utf8.encode(body ?? ''));
   }
 
   @override
@@ -30,9 +55,14 @@ class FakeHttpClient extends http.BaseClient {
     final response = _nextResponse!;
     _nextResponse = null;
     lastRequest = request;
-    final byteStream = http.ByteStream.fromBytes(response.bytes);
-    return Future.value(http.StreamedResponse(
-      byteStream, response.httpStatus, request: request));
+    switch (response) {
+      case _PreparedException(:var exception):
+        return Future.error(exception);
+      case _PreparedSuccess(:var bytes, :var httpStatus):
+        final byteStream = http.ByteStream.fromBytes(bytes);
+        return Future.value(http.StreamedResponse(
+          byteStream, httpStatus, request: request));
+    }
   }
 }
 
@@ -77,7 +107,15 @@ class FakeApiConnection extends ApiConnection {
 
   http.BaseRequest? get lastRequest => client.lastRequest;
 
-  void prepare({int? httpStatus, String? body}) {
-    client.prepare(httpStatus: httpStatus, body: body);
+  /// Prepare the response for the next request.
+  ///
+  /// If `exception` is null, the next request will produce an [http.Response]
+  /// with the given `httpStatus` and `body`, defaulting to 200 and ''
+  /// respectively.
+  ///
+  /// If `exception` is non-null, then `httpStatus` and `body` must be null,
+  /// and the next request will throw the given exception.
+  void prepare({int? httpStatus, String? body, Object? exception}) {
+    client.prepare(httpStatus: httpStatus, body: body, exception: exception);
   }
 }
