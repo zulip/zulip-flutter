@@ -148,12 +148,11 @@ packages:
   checks:
     dependency: "direct dev"
     description:
-      path: "pkgs/checks"
-      ref: HEAD
-      resolved-ref: "0b306dd5a8f9736fb428533b3ff3146e67380204"
-      url: "git@github.com:dart-lang/test.git"
-    source: git
-    version: "0.2.3-wip"
+      name: checks
+      sha256: "03c1a2e4a4d3341ce0512f1401204ecdcdca8cc035e373820a73929cc0bf4fd3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.2"
   cli_util:
     dependency: transitive
     description:
