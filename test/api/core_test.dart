@@ -38,6 +38,36 @@ void main() {
                                    '/api/v1/example/route?x=foo&y=%22bar%22');
   });
 
+  test('ApiConnection.post', () async {
+    Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
+      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+        connection.prepare(body: jsonEncode({}));
+        await connection.post('example/route', params);
+        check(connection.lastRequest!).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
+          ..headers.deepEquals({
+            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+            if (expectContentType)
+              'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+          })
+          ..body.equals(expectedBody);
+      });
+    }
+
+    checkRequest(null,                                   '', expectContentType: false);
+    checkRequest({},                                     '');
+    checkRequest({'x': 3},                               'x=3');
+    checkRequest({'x': 3, 'y': 4},                       'x=3&y=4');
+    checkRequest({'x': null},                            'x=null');
+    checkRequest({'x': true},                            'x=true');
+    checkRequest({'x': 'foo'},                           'x=%22foo%22');
+    checkRequest({'x': [1, 2]},                          'x=%5B1%2C2%5D');
+    checkRequest({'x': {'y': 1}},                        'x=%7B%22y%22%3A1%7D');
+    checkRequest({'x': RawParameter('foo')},             'x=foo');
+    checkRequest({'x': RawParameter('foo'), 'y': 'bar'}, 'x=foo&y=%22bar%22');
+  });
+
   test('API success result', () async {
     await FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
       connection.prepare(body: jsonEncode({'result': 'success', 'x': 3}));
