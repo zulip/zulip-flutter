@@ -4,7 +4,10 @@
 /// packages published by the Dart team that function as
 /// part of the Dart standard library.
 
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
 
 extension UriChecks on Subject<Uri> {
   Subject<String> get asString => has((u) => u.toString(), 'toString'); // TODO(checks): what's a good convention for this?
@@ -23,4 +26,20 @@ extension UriChecks on Subject<Uri> {
   Subject<bool> get isAbsolute => has((u) => u.isAbsolute, 'isAbsolute');
   Subject<String> get origin => has((u) => u.origin, 'origin');
   // TODO hasScheme, other has*, data
+}
+
+extension HttpBaseRequestChecks on Subject<http.BaseRequest> {
+  Subject<String> get method => has((r) => r.method, 'method');
+  Subject<Uri> get url => has((r) => r.url, 'url');
+  Subject<int?> get contentLength => has((r) => r.contentLength, 'contentLength');
+  Subject<Map<String, String>> get headers => has((r) => r.headers, 'headers');
+  // TODO persistentConnection, followRedirects, maxRedirects, finalized
+}
+
+extension HttpRequestChecks on Subject<http.Request> {
+  Subject<int> get contentLength => has((r) => r.contentLength, 'contentLength');
+  Subject<Encoding> get encoding => has((r) => r.encoding, 'encoding');
+  Subject<List<int>> get bodyBytes => has((r) => r.bodyBytes, 'bodyBytes'); // TODO or Uint8List?
+  Subject<String> get body => has((r) => r.body, 'body');
+  Subject<Map<String, String>> get bodyFields => has((r) => r.bodyFields, 'bodyFields');
 }
