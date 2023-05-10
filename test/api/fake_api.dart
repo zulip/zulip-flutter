@@ -13,10 +13,10 @@ class FakeHttpClient extends http.BaseClient {
 
   // TODO: This mocking API will need to get richer to support all the tests we need.
 
-  void prepare(String response) {
+  void prepare({String? body}) {
     assert(_nextResponseBytes == null,
-        'FakeApiConnection.prepare was called while already expecting a request');
-    _nextResponseBytes = utf8.encode(response);
+      'FakeApiConnection.prepare was called while already expecting a request');
+    _nextResponseBytes = utf8.encode(body ?? '');
   }
 
   @override
@@ -41,7 +41,7 @@ class FakeApiConnection extends ApiConnection {
 
   final FakeHttpClient client;
 
-  void prepare(String response) {
-    client.prepare(response);
+  void prepare({String? body}) {
+    client.prepare(body: body);
   }
 }

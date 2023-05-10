@@ -11,7 +11,7 @@ void main() {
   test('sendMessage accepts fixture realm', () async {
     final connection = FakeApiConnection(
         realmUrl: Uri.parse('https://chat.zulip.org/'));
-    connection.prepare(jsonEncode(SendMessageResult(id: 42).toJson()));
+    connection.prepare(body: jsonEncode(SendMessageResult(id: 42).toJson()));
     check(sendMessage(connection, content: 'hello', topic: 'world'))
         .completes(it()..id.equals(42));
   });
@@ -19,7 +19,7 @@ void main() {
   test('sendMessage rejects unexpected realm', () async {
     final connection = FakeApiConnection(
         realmUrl: Uri.parse('https://chat.example/'));
-    connection.prepare(jsonEncode(SendMessageResult(id: 42).toJson()));
+    connection.prepare(body: jsonEncode(SendMessageResult(id: 42).toJson()));
     check(sendMessage(connection, content: 'hello', topic: 'world'))
         .throws();
   });
