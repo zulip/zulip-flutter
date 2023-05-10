@@ -2,6 +2,8 @@ import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/login.dart';
 
+import '../stdlib_checks.dart';
+
 void main() {
   group('ServerUrlTextEditingController.tryParse', () {
     final controller = ServerUrlTextEditingController();
@@ -11,9 +13,7 @@ void main() {
         controller.text = text;
         final result = controller.tryParse();
         check(result.error).isNull();
-        check(result.url)
-          .isNotNull() // catch `null` here instead of by its .toString()
-          .has((url) => url.toString(), 'toString()').equals(expectedUrl);
+        check(result.url).isNotNull().asString.equals(expectedUrl);
       });
     }
 
