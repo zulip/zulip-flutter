@@ -68,6 +68,38 @@ void main() {
     checkRequest({'x': RawParameter('foo'), 'y': 'bar'}, 'x=foo&y=%22bar%22');
   });
 
+  test('ApiConnection.postFileFromStream', () async {
+    Future<void> checkRequest(List<List<int>> content, int length, String? filename) {
+      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+        connection.prepare(body: jsonEncode({}));
+        await connection.postFileFromStream(
+          'example/route',
+          Stream.fromIterable(content), length, filename: filename);
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          ..method.equals('POST')
+          ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
+          ..headers.deepEquals(authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey))
+          ..fields.deepEquals({})
+          ..files.single.which(it()
+            ..field.equals('file')
+            ..length.equals(length)
+            ..filename.equals(filename)
+            ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+              .completes(it()..deepEquals(content.expand((l) => l)))
+          );
+      });
+    }
+
+    checkRequest([], 0, null);
+    checkRequest(['asdf'.codeUnits], 4, null);
+    checkRequest(['asd'.codeUnits, 'f'.codeUnits], 4, null);
+
+    checkRequest(['asdf'.codeUnits], 4, 'info.txt');
+
+    checkRequest(['asdf'.codeUnits], 1, null); // nothing on client side catches a wrong length
+    checkRequest(['asdf'.codeUnits], 100, null);
+  });
+
   test('API success result', () async {
     await FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
       connection.prepare(body: jsonEncode({'result': 'success', 'x': 3}));
