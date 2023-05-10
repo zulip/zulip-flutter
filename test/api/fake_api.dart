@@ -40,10 +40,18 @@ class FakeApiConnection extends ApiConnection {
     : this._(realmUrl: realmUrl ?? eg.realmUrl, client: FakeHttpClient());
 
   FakeApiConnection.fromAccount(Account account)
-    : this(realmUrl: account.realmUrl);
+    : this._(
+        realmUrl: account.realmUrl,
+        email: account.email,
+        apiKey: account.apiKey,
+        client: FakeHttpClient());
 
-  FakeApiConnection._({required super.realmUrl, required this.client})
-    : super(client: client);
+  FakeApiConnection._({
+    required super.realmUrl,
+    super.email,
+    super.apiKey,
+    required this.client,
+  }) : super(client: client);
 
   final FakeHttpClient client;
 
