@@ -1,0 +1,49 @@
+import 'dart:convert';
+
+import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/scaffolding.dart';
+import 'package:zulip/api/core.dart';
+
+import '../stdlib_checks.dart';
+import 'fake_api.dart';
+import '../example_data.dart' as eg;
+
+void main() {
+  test('ApiConnection.get', () async {
+    Future<void> checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
+      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+        connection.prepare(body: jsonEncode({}));
+        await connection.get('example/route', params);
+        check(connection.lastRequest!).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.asString.equals('${eg.realmUrl.origin}$expectedRelativeUrl')
+          ..headers.deepEquals(authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey))
+          ..body.equals('');
+      });
+    }
+
+    checkRequest(null,             '/api/v1/example/route');
+    checkRequest({},               '/api/v1/example/route?');
+    checkRequest({'x': 3},         '/api/v1/example/route?x=3');
+    checkRequest({'x': 3, 'y': 4}, '/api/v1/example/route?x=3&y=4');
+    checkRequest({'x': null},      '/api/v1/example/route?x=null');
+    checkRequest({'x': true},      '/api/v1/example/route?x=true');
+    checkRequest({'x': 'foo'},     '/api/v1/example/route?x=%22foo%22');
+    checkRequest({'x': [1, 2]},    '/api/v1/example/route?x=%5B1%2C2%5D');
+    checkRequest({'x': {'y': 1}},  '/api/v1/example/route?x=%7B%22y%22%3A1%7D');
+    checkRequest({'x': RawParameter('foo')},
+                                   '/api/v1/example/route?x=foo');
+    checkRequest({'x': RawParameter('foo'), 'y': 'bar'},
+                                   '/api/v1/example/route?x=foo&y=%22bar%22');
+  });
+
+  test('API success result', () async {
+    await FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+      connection.prepare(body: jsonEncode({'result': 'success', 'x': 3}));
+      final result = await connection.get(
+        'example/route', {'y': 'z'});
+      check(result).deepEquals({'result': 'success', 'x': 3});
+    });
+  });
+}
