@@ -9,6 +9,16 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 
+extension NullableMapChecks<K, V> on Subject<Map<K, V>?> {
+  void deepEquals(Map<Object?, Object?>? expected) {
+    if (expected == null) {
+      return isNull();
+    } else {
+      return isNotNull().deepEquals(expected);
+    }
+  }
+}
+
 extension UriChecks on Subject<Uri> {
   Subject<String> get asString => has((u) => u.toString(), 'toString'); // TODO(checks): what's a good convention for this?
 
