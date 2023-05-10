@@ -55,6 +55,24 @@ class FakeApiConnection extends ApiConnection {
 
   final FakeHttpClient client;
 
+  /// Run the given callback on a fresh [FakeApiConnection], then close it,
+  /// using try/finally.
+  static Future<T> with_<T>(
+    Future<T> Function(FakeApiConnection connection) fn, {
+    Uri? realmUrl,
+    Account? account,
+  }) async {
+    assert((account == null) || (realmUrl == null));
+    final connection = (account != null)
+      ? FakeApiConnection.fromAccount(account)
+      : FakeApiConnection(realmUrl: realmUrl);
+    try {
+      return fn(connection);
+    } finally {
+      connection.close();
+    }
+  }
+
   http.BaseRequest? get lastRequest => client.lastRequest;
 
   void prepare({String? body}) {
