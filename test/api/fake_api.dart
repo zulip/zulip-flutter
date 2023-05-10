@@ -9,9 +9,14 @@ import '../example_data.dart' as eg;
 /// An [http.Client] that accepts and replays canned responses, for testing.
 class FakeHttpClient extends http.BaseClient {
 
+  http.BaseRequest? lastRequest;
+
   List<int>? _nextResponseBytes;
 
-  // TODO: This mocking API will need to get richer to support all the tests we need.
+  // Please add more features to this mocking API as needed.  For example:
+  //  * preparing an HTTP status other than 200
+  //  * preparing an exception instead of an [http.StreamedResponse]
+  //  * preparing more than one request, and logging more than one request
 
   void prepare({String? body}) {
     assert(_nextResponseBytes == null,
@@ -23,6 +28,7 @@ class FakeHttpClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     final responseBytes = _nextResponseBytes!;
     _nextResponseBytes = null;
+    lastRequest = request;
     final byteStream = http.ByteStream.fromBytes(responseBytes);
     return Future.value(http.StreamedResponse(byteStream, 200, request: request));
   }
@@ -40,6 +46,8 @@ class FakeApiConnection extends ApiConnection {
     : super(client: client);
 
   final FakeHttpClient client;
+
+  http.BaseRequest? get lastRequest => client.lastRequest;
 
   void prepare({String? body}) {
     client.prepare(body: body);
