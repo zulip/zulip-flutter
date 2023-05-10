@@ -6,31 +6,33 @@ import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
 
+typedef _PreparedResponse = ({int httpStatus, List<int> bytes});
+
 /// An [http.Client] that accepts and replays canned responses, for testing.
 class FakeHttpClient extends http.BaseClient {
 
   http.BaseRequest? lastRequest;
 
-  List<int>? _nextResponseBytes;
+  _PreparedResponse? _nextResponse;
 
   // Please add more features to this mocking API as needed.  For example:
-  //  * preparing an HTTP status other than 200
   //  * preparing an exception instead of an [http.StreamedResponse]
   //  * preparing more than one request, and logging more than one request
 
-  void prepare({String? body}) {
-    assert(_nextResponseBytes == null,
+  void prepare({int? httpStatus, String? body}) {
+    assert(_nextResponse == null,
       'FakeApiConnection.prepare was called while already expecting a request');
-    _nextResponseBytes = utf8.encode(body ?? '');
+    _nextResponse = (httpStatus: httpStatus ?? 200, bytes: utf8.encode(body ?? ''));
   }
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    final responseBytes = _nextResponseBytes!;
-    _nextResponseBytes = null;
+    final response = _nextResponse!;
+    _nextResponse = null;
     lastRequest = request;
-    final byteStream = http.ByteStream.fromBytes(responseBytes);
-    return Future.value(http.StreamedResponse(byteStream, 200, request: request));
+    final byteStream = http.ByteStream.fromBytes(response.bytes);
+    return Future.value(http.StreamedResponse(
+      byteStream, response.httpStatus, request: request));
   }
 }
 
@@ -75,7 +77,7 @@ class FakeApiConnection extends ApiConnection {
 
   http.BaseRequest? get lastRequest => client.lastRequest;
 
-  void prepare({String? body}) {
-    client.prepare(body: body);
+  void prepare({int? httpStatus, String? body}) {
+    client.prepare(httpStatus: httpStatus, body: body);
   }
 }
