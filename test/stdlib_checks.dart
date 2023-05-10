@@ -43,3 +43,17 @@ extension HttpRequestChecks on Subject<http.Request> {
   Subject<String> get body => has((r) => r.body, 'body');
   Subject<Map<String, String>> get bodyFields => has((r) => r.bodyFields, 'bodyFields');
 }
+
+extension HttpMultipartRequestChecks on Subject<http.MultipartRequest> {
+  Subject<Map<String, String>> get fields => has((r) => r.fields, 'fields');
+  Subject<List<http.MultipartFile>> get files => has((r) => r.files, 'files');
+  Subject<int> get contentLength => has((r) => r.contentLength, 'contentLength');
+}
+
+extension HttpMultipartFileChecks on Subject<http.MultipartFile> {
+  Subject<String> get field => has((f) => f.field, 'field');
+  Subject<int> get length => has((f) => f.length, 'length');
+  Subject<String?> get filename => has((f) => f.filename, 'filename');
+  // TODO Subject<MediaType> get contentType => has((f) => f.contentType, 'contentType');
+  Subject<bool> get isFinalized => has((f) => f.isFinalized, 'isFinalized');
+}
