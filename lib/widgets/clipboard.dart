@@ -19,8 +19,9 @@ void copyWithPopup({
   await Clipboard.setData(data);
   final deviceInfo = await DeviceInfoPlugin().deviceInfo;
 
-  if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
-  else {
+  // https://github.com/dart-lang/linter/issues/4007
+  // ignore: use_build_context_synchronously
+  if (!context.mounted) {
     return;
   }
 

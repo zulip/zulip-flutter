@@ -49,8 +49,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
     // TODO(#35): show feedback that we're working, while fetching server settings
     final serverSettings = await getServerSettings(realmUrl: url);
-    if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
-    else {
+    // https://github.com/dart-lang/linter/issues/4007
+    // ignore: use_build_context_synchronously
+    if (!context.mounted) {
       return;
     }
 
@@ -149,8 +150,9 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
 
       // TODO(server-7): Rely on user_id from fetchApiKey.
       final int userId = result.userId ?? await _getUserId(result);
-      if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
-      else {
+      // https://github.com/dart-lang/linter/issues/4007
+      // ignore: use_build_context_synchronously
+      if (!context.mounted) {
         return;
       }
 
@@ -165,8 +167,9 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
         zulipVersion: widget.serverSettings.zulipVersion,
         zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
       ));
-      if (context.mounted) {} // https://github.com/dart-lang/linter/issues/4007
-      else {
+      // https://github.com/dart-lang/linter/issues/4007
+      // ignore: use_build_context_synchronously
+      if (!context.mounted) {
         return;
       }
 
