@@ -7,6 +7,7 @@ import '../api/route/users.dart';
 import '../model/store.dart';
 import 'app.dart';
 import 'dialog.dart';
+import 'input.dart';
 import 'store.dart';
 
 class _LoginSequenceRoute extends MaterialPageRoute<void> {
@@ -203,7 +204,10 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
         return null;
       },
       textInputAction: TextInputAction.next,
-      decoration: const InputDecoration(labelText: 'Email address'));
+      decoration: const InputDecoration(
+        labelText: 'Email address',
+        helperText: kLayoutPinningHelperText,
+      ));
 
     final passwordField = TextFormField(
       key: _passwordKey,
@@ -221,6 +225,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       onFieldSubmitted: (value) => _submit(),
       decoration: InputDecoration(
         labelText: 'Password',
+        helperText: kLayoutPinningHelperText,
         suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
           child: IconButton(
             onPressed: _handlePasswordVisibilityPress,
