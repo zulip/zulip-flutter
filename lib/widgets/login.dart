@@ -166,9 +166,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
         return;
       }
 
-      // TODO(#36): support login methods beyond email/password
+      // TODO(#36): support login methods beyond username/password
       Navigator.push(context,
-        EmailPasswordLoginPage.buildRoute(serverSettings: serverSettings));
+        PasswordLoginPage.buildRoute(serverSettings: serverSettings));
     } finally {
       setState(() {
         _inProgress = false;
@@ -223,22 +223,22 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 }
 
-class EmailPasswordLoginPage extends StatefulWidget {
-  const EmailPasswordLoginPage({super.key, required this.serverSettings});
+class PasswordLoginPage extends StatefulWidget {
+  const PasswordLoginPage({super.key, required this.serverSettings});
 
   final GetServerSettingsResult serverSettings;
 
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
     return _LoginSequenceRoute(builder: (context) =>
-      EmailPasswordLoginPage(serverSettings: serverSettings));
+      PasswordLoginPage(serverSettings: serverSettings));
   }
 
   @override
-  State<EmailPasswordLoginPage> createState() => _EmailPasswordLoginPageState();
+  State<PasswordLoginPage> createState() => _PasswordLoginPageState();
 }
 
-class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
-  final GlobalKey<FormFieldState<String>> _emailKey = GlobalKey();
+class _PasswordLoginPageState extends State<PasswordLoginPage> {
+  final GlobalKey<FormFieldState<String>> _usernameKey = GlobalKey();
   final GlobalKey<FormFieldState<String>> _passwordKey = GlobalKey();
 
   bool _obscurePassword = true;
@@ -259,16 +259,16 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   }
 
   void _submit() async {
-    final context = _emailKey.currentContext!;
+    final context = _usernameKey.currentContext!;
     final realmUrl = widget.serverSettings.realmUri;
-    final emailFieldState = _emailKey.currentState!;
+    final usernameFieldState = _usernameKey.currentState!;
     final passwordFieldState = _passwordKey.currentState!;
-    final emailValid = emailFieldState.validate(); // Side effect: on-field error text
+    final usernameValid = usernameFieldState.validate(); // Side effect: on-field error text
     final passwordValid = passwordFieldState.validate(); // Side effect: on-field error text
-    if (!emailValid || !passwordValid) {
+    if (!usernameValid || !passwordValid) {
       return;
     }
-    final String email = emailFieldState.value!;
+    final String username = usernameFieldState.value!;
     final String password = passwordFieldState.value!;
 
     setState(() {
@@ -278,7 +278,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
       final FetchApiKeyResult result;
       try {
         result = await fetchApiKey(
-          realmUrl: realmUrl, username: email, password: password);
+          realmUrl: realmUrl, username: username, password: password);
       } on Exception { // TODO(#37): distinguish API exceptions
         if (!context.mounted) return;
         // TODO(#35) give more helpful feedback. Needs #37. The RN app is
@@ -328,8 +328,8 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
 
-    final emailField = TextFormField(
-      key: _emailKey,
+    final usernameField = TextFormField(
+      key: _usernameKey,
       autofillHints: const [AutofillHints.email],
       keyboardType: TextInputType.emailAddress,
       // TODO(upstream?): Apparently pressing "next" doesn't count
@@ -386,7 +386,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
             child: Form(
               child: AutofillGroup(
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  emailField,
+                  usernameField,
                   const SizedBox(height: 8),
                   passwordField,
                   const SizedBox(height: 8),
