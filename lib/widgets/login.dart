@@ -279,7 +279,7 @@ class _EmailPasswordLoginPageState extends State<EmailPasswordLoginPage> {
         return;
       }
 
-      await Navigator.of(context).pushAndRemoveUntil(
+      Navigator.of(context).pushAndRemoveUntil(
         HomePage.buildRoute(accountId: accountId),
         (route) => (route is! _LoginSequenceRoute),
       );
