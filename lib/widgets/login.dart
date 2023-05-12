@@ -327,24 +327,32 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final requireEmailFormatUsernames = widget.serverSettings.requireEmailFormatUsernames;
 
     final usernameField = TextFormField(
       key: _usernameKey,
-      autofillHints: const [AutofillHints.email],
+      autofillHints: [
+        if (!requireEmailFormatUsernames) AutofillHints.username,
+        AutofillHints.email,
+      ],
       keyboardType: TextInputType.emailAddress,
       // TODO(upstream?): Apparently pressing "next" doesn't count
       //   as user interaction, and validation isn't done.
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Please enter your email.';
+          return requireEmailFormatUsernames
+            ? 'Please enter your email.'
+            : 'Please enter your username.';
         }
-        // TODO(#35): validate is in the shape of an email
+        if (requireEmailFormatUsernames) {
+          // TODO(#35): validate is in the shape of an email
+        }
         return null;
       },
       textInputAction: TextInputAction.next,
-      decoration: const InputDecoration(
-        labelText: 'Email address',
+      decoration: InputDecoration(
+        labelText: requireEmailFormatUsernames ? 'Email address' : 'Username',
         helperText: kLayoutPinningHelperText,
       ));
 
