@@ -2,6 +2,8 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 
+import 'api/fake_api.dart';
+
 final Uri realmUrl = Uri.parse('https://chat.example/');
 
 const String recentZulipVersion = '6.1';
@@ -112,3 +114,11 @@ final InitialSnapshot initialSnapshot = InitialSnapshot(
   realmNonActiveUsers: [],
   crossRealmBots: [],
 );
+
+PerAccountStore store() {
+  return PerAccountStore.fromInitialSnapshot(
+    account: selfAccount,
+    connection: FakeApiConnection.fromAccount(selfAccount),
+    initialSnapshot: initialSnapshot,
+  );
+}
