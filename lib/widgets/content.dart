@@ -7,6 +7,7 @@ import '../model/content.dart';
 import '../model/store.dart';
 import 'store.dart';
 import 'lightbox.dart';
+import 'text.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
 const double kBaseFontSize = 14;
@@ -371,18 +372,14 @@ InlineSpan inlineCode(InlineCodeNode node) {
   // ]);
 }
 
-const _kInlineCodeStyle = TextStyle(
+final _kInlineCodeStyle = kMonospaceTextStyle.merge(const TextStyle(
   backgroundColor: Color(0xffeeeeee),
-  fontSize: 0.825 * kBaseFontSize,
-  fontFamily: "Source Code Pro", // TODO supply font
-  fontFamilyFallback: ["monospace"]);
+  fontSize: 0.825 * kBaseFontSize));
 
-const _kCodeBlockStyle = TextStyle(
+final _kCodeBlockStyle = kMonospaceTextStyle.merge(const TextStyle(
   backgroundColor: Color.fromRGBO(255, 255, 255, 1),
   fontSize: 0.825 * kBaseFontSize,
-  fontFamily: "Source Code Pro", // TODO supply font
-  fontFamilyFallback: ["monospace"],
-);
+));
 
 // const _kInlineCodeLeftBracket = '⸤';
 // const _kInlineCodeRightBracket = '⸣';
@@ -639,8 +636,4 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
 
 const errorStyle = TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
 
-const errorCodeStyle = TextStyle(
-  color: Colors.red,
-  fontFamily: "Source Code Pro", // TODO supply font
-  fontFamilyFallback: ["monospace"],
-);
+final errorCodeStyle = kMonospaceTextStyle.merge(const TextStyle(color: Colors.red));
