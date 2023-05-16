@@ -7,12 +7,12 @@ final Uri realmUrl = Uri.parse('https://chat.example/');
 const String recentZulipVersion = '6.1';
 const int recentZulipFeatureLevel = 164;
 
-User user({int? userId, String? fullName}) {
+User user({int? userId, String? email, String? fullName}) {
   return User(
     userId: userId ?? 123, // TODO generate example IDs
     deliveryEmailStaleDoNotUse: 'name@example.com',
-    email: 'name@example.com', // TODO generate example emails
-    fullName: fullName ?? 'A user',// TODO generate example names
+    email: email ?? 'name@example.com', // TODO generate example emails
+    fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: '2023-04-28',
     isActive: true,
     isOwner: false,
@@ -28,27 +28,31 @@ User user({int? userId, String? fullName}) {
   );
 }
 
+final User selfUser = user(fullName: 'Self User', email: 'self@example', userId: 123);
 final Account selfAccount = Account(
   id: 1001,
   realmUrl: realmUrl,
-  email: 'self@example',
+  email: selfUser.email,
   apiKey: 'asdfqwer',
-  userId: 123,
+  userId: selfUser.userId,
   zulipFeatureLevel: recentZulipFeatureLevel,
   zulipVersion: recentZulipVersion,
   zulipMergeBase: recentZulipVersion,
 );
 
+final User otherUser = user(fullName: 'Other User', email: 'other@example', userId: 234);
 final Account otherAccount = Account(
   id: 1002,
   realmUrl: realmUrl,
-  email: 'other@example',
+  email: otherUser.email,
   apiKey: 'sdfgwert',
-  userId: 234,
+  userId: otherUser.userId,
   zulipFeatureLevel: recentZulipFeatureLevel,
   zulipVersion: recentZulipVersion,
   zulipMergeBase: recentZulipVersion,
 );
+
+final User thirdUser = user(fullName: 'Third User', email: 'third@example', userId: 345);
 
 final _messagePropertiesBase = {
   'is_me_message': false,
