@@ -639,4 +639,8 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
 
 const errorStyle = TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
 
-const errorCodeStyle = TextStyle(color: Colors.red, fontFamily: 'monospace');
+const errorCodeStyle = TextStyle(
+  color: Colors.red,
+  fontFamily: "Source Code Pro", // TODO supply font
+  fontFamilyFallback: ["monospace"],
+);
