@@ -8,7 +8,8 @@ import '../example_data.dart' as eg;
 void main() {
   test('MentionAutocompleteQuery.testUser', () {
     doCheck(String rawQuery, User user, bool expected) {
-      final result = MentionAutocompleteQuery(rawQuery).testUser(user);
+      final result = MentionAutocompleteQuery(rawQuery)
+        .testUser(user, AutocompleteDataCache());
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 

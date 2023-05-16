@@ -8,12 +8,11 @@ class MentionAutocompleteQuery {
 
   final List<String> _lowercaseWords;
 
-  bool testUser(User user) {
+  bool testUser(User user, AutocompleteDataCache cache) {
     // TODO test email too, not just name
     // TODO test with diacritics stripped, where appropriate
 
-    // TODO cache, elsewhere
-    final List<String> nameWords = user.fullName.toLowerCase().split(' ');
+    final List<String> nameWords = cache.nameWordsForUser(user);
 
     int nameWordsIndex = 0;
     int queryWordsIndex = 0;
@@ -39,4 +38,16 @@ class MentionAutocompleteQuery {
 
   @override
   int get hashCode => Object.hash('MentionAutocompleteQuery', raw);
+}
+
+class AutocompleteDataCache {
+  final Map<int, List<String>> _nameWordsByUser = {};
+
+  List<String> nameWordsForUser(User user) {
+    return _nameWordsByUser[user.userId] ??= user.fullName.toLowerCase().split(' ');
+  }
+
+  void invalidateUser(int userId) {
+    _nameWordsByUser.remove(userId);
+  }
 }
