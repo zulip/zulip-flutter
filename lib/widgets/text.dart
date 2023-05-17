@@ -4,13 +4,18 @@ import 'package:flutter/widgets.dart';
 
 /// A mergeable [TextStyle] with 'Source Code Pro' and platform-aware fallbacks.
 ///
+/// Callers should also call [weightVariableTextStyle] and merge that in too,
+/// because for this font, we use "variable font" assets with a "wght" axis.
+///
 /// Example:
 ///
 /// ```dart
-/// kMonospaceTextStyle.merge(const TextStyle(color: Colors.red))
+/// kMonospaceTextStyle
+///   .merge(const TextStyle(color: Colors.red))
+///   .merge(weightVariableTextStyle(context))
 /// ```
 final TextStyle kMonospaceTextStyle = TextStyle(
-  fontFamily: 'Source Code Pro', // TODO supply font
+  fontFamily: 'Source Code Pro',
 
   // Oddly, iOS doesn't handle 'monospace':
   //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20monospace.20font.20fallback/near/1570622

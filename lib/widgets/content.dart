@@ -372,14 +372,25 @@ InlineSpan inlineCode(InlineCodeNode node) {
   // ]);
 }
 
-final _kInlineCodeStyle = kMonospaceTextStyle.merge(const TextStyle(
-  backgroundColor: Color(0xffeeeeee),
-  fontSize: 0.825 * kBaseFontSize));
+final _kInlineCodeStyle = kMonospaceTextStyle
+  .merge(const TextStyle(
+    backgroundColor: Color(0xffeeeeee),
+    fontSize: 0.825 * kBaseFontSize))
+  .merge(
+    // TODO(a11y) pass a BuildContext, to handle platform request for bold text.
+    //   To get one, the result of this whole computation (to the TextStyle
+    //   we get at the end) could live on one [InheritedWidget], at the
+    //   MessageList or higher, so the computation doesn't get repeated
+    //   frequently. Then consumers can just look it up on the InheritedWidget.
+    weightVariableTextStyle(null));
 
-final _kCodeBlockStyle = kMonospaceTextStyle.merge(const TextStyle(
-  backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-  fontSize: 0.825 * kBaseFontSize,
-));
+final _kCodeBlockStyle = kMonospaceTextStyle
+  .merge(const TextStyle(
+    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+    fontSize: 0.825 * kBaseFontSize))
+  .merge(
+    // TODO(a11y) pass a BuildContext; see comment in _kInlineCodeStyle above.
+    weightVariableTextStyle(null));
 
 // const _kInlineCodeLeftBracket = '⸤';
 // const _kInlineCodeRightBracket = '⸣';
@@ -636,4 +647,6 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
 
 const errorStyle = TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
 
-final errorCodeStyle = kMonospaceTextStyle.merge(const TextStyle(color: Colors.red));
+final errorCodeStyle = kMonospaceTextStyle
+  .merge(const TextStyle(color: Colors.red))
+  .merge(weightVariableTextStyle(null)); // TODO(a11y) pass a BuildContext

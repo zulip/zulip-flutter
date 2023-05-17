@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// Our [LicenseEntryCollector] for licenses that aren't included by default.
 ///
@@ -9,5 +10,7 @@ import 'package:flutter/foundation.dart';
 // remember to include the file in the asset bundle by listing its path
 // under `assets` in pubspec.yaml.
 Stream<LicenseEntry> additionalLicenses() async* {
-  // TODO add some
+  yield LicenseEntryWithLineBreaks(
+    ['Source Code Pro'],
+    await rootBundle.loadString('assets/Source_Code_Pro/LICENSE.md'));
 }
