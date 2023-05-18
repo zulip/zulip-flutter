@@ -373,8 +373,15 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       decoration: InputDecoration(
         labelText: 'Password',
         helperText: kLayoutPinningHelperText,
-        suffixIcon: Semantics(label: 'Hide password', toggled: _obscurePassword,
+        // TODO(material-3): Simplify away `Semantics` by using IconButton's
+        //   M3-only params `isSelected` / `selectedIcon`, after fixing
+        //   https://github.com/flutter/flutter/issues/127145 . (Also, the
+        //   `Semantics` seen here would misbehave in M3 for reasons
+        //   involving a `Semantics` with `container: true` in an underlying
+        //   [ButtonStyleButton].)
+        suffixIcon: Semantics(toggled: _obscurePassword,
           child: IconButton(
+            tooltip: 'Hide password',
             onPressed: _handlePasswordVisibilityPress,
             icon: _obscurePassword
               ? const Icon(Icons.visibility_off)
