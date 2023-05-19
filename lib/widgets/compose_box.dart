@@ -290,6 +290,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   final FocusNode contentFocusNode;
 
   IconData get icon;
+  String get tooltip;
 
   /// Request files from the user, in the way specific to this upload type.
   ///
@@ -321,7 +322,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(icon: Icon(icon), onPressed: () => _handlePress(context));
+    return IconButton(icon: Icon(icon), tooltip: tooltip, onPressed: () => _handlePress(context));
   }
 }
 
@@ -366,6 +367,8 @@ class _AttachFileButton extends _AttachUploadsButton {
 
   @override
   IconData get icon => Icons.attach_file;
+  @override
+  String get tooltip => 'Attach files';
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
@@ -378,6 +381,8 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   IconData get icon => Icons.image;
+  @override
+  String get tooltip => 'Attach images or videos';
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
@@ -392,6 +397,8 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 
   @override
   IconData get icon => Icons.camera_alt;
+  @override
+  String get tooltip => 'Take a photo';
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
