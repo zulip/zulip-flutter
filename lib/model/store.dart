@@ -12,6 +12,7 @@ import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
+import '../log.dart';
 import 'database.dart';
 import 'message_list.dart';
 
@@ -189,20 +190,20 @@ class PerAccountStore extends ChangeNotifier {
 
   void handleEvent(Event event) {
     if (event is HeartbeatEvent) {
-      debugPrint("server event: heartbeat");
+      assert(debugLog("server event: heartbeat"));
     } else if (event is AlertWordsEvent) {
-      debugPrint("server event: alert_words");
+      assert(debugLog("server event: alert_words"));
       // We don't yet store this data, so there's nothing to update.
     } else if (event is RealmUserAddEvent) {
-      debugPrint("server event: realm_user/add");
+      assert(debugLog("server event: realm_user/add"));
       users[event.person.userId] = event.person;
       notifyListeners();
     } else if (event is RealmUserRemoveEvent) {
-      debugPrint("server event: realm_user/remove");
+      assert(debugLog("server event: realm_user/remove"));
       users.remove(event.userId);
       notifyListeners();
     } else if (event is RealmUserUpdateEvent) {
-      debugPrint("server event: realm_user/update");
+      assert(debugLog("server event: realm_user/update"));
       final user = users[event.userId];
       if (user == null) {
         return; // TODO log
@@ -227,12 +228,12 @@ class PerAccountStore extends ChangeNotifier {
       }
       notifyListeners();
     } else if (event is MessageEvent) {
-      debugPrint("server event: message ${jsonEncode(event.message.toJson())}");
+      assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
       }
     } else if (event is UnexpectedEvent) {
-      debugPrint("server event: ${jsonEncode(event.toJson())}"); // TODO log better
+      assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     } else {
       // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
       throw Exception("Event object of impossible type: ${event.toString()}");
