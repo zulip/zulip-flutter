@@ -58,21 +58,24 @@ class ChooseAccountPage extends StatelessWidget {
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Choose account')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            for (final (:accountId, :account) in globalStore.accountEntries)
-              _buildAccountItem(context,
-                accountId: accountId,
-                title: Text(account.realmUrl.toString()),
-                subtitle: Text(account.email)),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => Navigator.push(context,
-                AddAccountPage.buildRoute()),
-              child: const Text('Add an account')),
-          ]))));
+      body: SafeArea(
+        minimum: const EdgeInsets.all(8),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              for (final (:accountId, :account) in globalStore.accountEntries)
+                _buildAccountItem(context,
+                  accountId: accountId,
+                  title: Text(account.realmUrl.toString()),
+                  subtitle: Text(account.email)),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => Navigator.push(context,
+                  AddAccountPage.buildRoute()),
+                child: const Text('Add an account')),
+            ]))),
+      ));
   }
 }
 
