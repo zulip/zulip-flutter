@@ -211,7 +211,7 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
 enum StickyHeaderSlot { header, content }
 
 class StickyHeader extends RenderObjectWidget
-    with SlottedMultiChildRenderObjectWidgetMixin<StickyHeaderSlot> {
+    with SlottedMultiChildRenderObjectWidgetMixin<StickyHeaderSlot, RenderBox> {
   StickyHeader(
       {super.key,
       this.direction = AxisDirection.down,
@@ -236,14 +236,14 @@ class StickyHeader extends RenderObjectWidget
   }
 
   @override
-  SlottedContainerRenderObjectMixin<StickyHeaderSlot> createRenderObject(
+  SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> createRenderObject(
       BuildContext context) {
     return RenderStickyHeader(direction: direction);
   }
 }
 
 class RenderStickyHeader extends RenderBox
-    with SlottedContainerRenderObjectMixin<StickyHeaderSlot> {
+    with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
   RenderStickyHeader({required AxisDirection direction})
       : _direction = direction;
 
