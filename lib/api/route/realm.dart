@@ -16,15 +16,13 @@ part 'realm.g.dart';
 //   See thread, and the zulip-mobile code and chat thread it links to:
 //     https://github.com/zulip/zulip-flutter/pull/55#discussion_r1160267577
 Future<GetServerSettingsResult> getServerSettings({
-  required Uri realmUrl,
+  required ApiConnection apiConnection,
 }) async {
   final Map<String, dynamic> data;
-  // TODO make this function testable by taking ApiConnection from caller
-  final connection = ApiConnection.live(realmUrl: realmUrl);
   try {
-    data = await connection.get('server_settings', null);
+    data = await apiConnection.get('server_settings', null);
   } finally {
-    connection.close();
+    apiConnection.close();
   }
 
   return GetServerSettingsResult.fromJson(data);
@@ -67,7 +65,7 @@ class GetServerSettingsResult {
   });
 
   factory GetServerSettingsResult.fromJson(Map<String, dynamic> json) =>
-    _$GetServerSettingsResultFromJson(json);
+      _$GetServerSettingsResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetServerSettingsResultToJson(this);
 }
