@@ -85,7 +85,8 @@ class ApiConnection {
   }
 
   Future<Map<String, dynamic>> postFileFromStream(String route, Stream<List<int>> content, int length, { String? filename }) async {
-    http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse("$realmUrl/api/v1/$route"))
+    final url = realmUrl.replace(path: "/api/v1/$route");
+    final request = http.MultipartRequest('POST', url)
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
     return send(request);
   }
