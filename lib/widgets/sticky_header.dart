@@ -210,9 +210,8 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
 
 enum StickyHeaderSlot { header, content }
 
-class StickyHeader extends RenderObjectWidget
-    with SlottedMultiChildRenderObjectWidgetMixin<StickyHeaderSlot, RenderBox> {
-  StickyHeader(
+class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot, RenderBox> {
+  const StickyHeader(
       {super.key,
       this.direction = AxisDirection.down,
       this.header,
