@@ -154,7 +154,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
         if (!context.mounted) {
           return;
         }
-        // TODO(#35) give more helpful feedback; see `fetchServerSettings`
+        // TODO(#105) give more helpful feedback; see `fetchServerSettings`
         //   in zulip-mobile's src/message/fetchActions.js. Needs #37.
         showErrorDialog(context: context,
           title: 'Could not connect', message: 'Failed to connect to server:\n$url');
@@ -280,7 +280,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
           realmUrl: realmUrl, username: username, password: password);
       } on Exception { // TODO(#37): distinguish API exceptions
         if (!context.mounted) return;
-        // TODO(#35) give more helpful feedback. Needs #37. The RN app is
+        // TODO(#105) give more helpful feedback. Needs #37. The RN app is
         //   unhelpful here; we should at least recognize invalid auth errors, and
         //   errors for deactivated user or realm (see zulip-mobile#4571).
         showErrorDialog(context: context, title: 'Login failed');
@@ -296,7 +296,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       }
 
       final globalStore = GlobalStoreWidget.of(context);
-      // TODO(#35): give feedback to user on SQL exception, like dupe realm+user
+      // TODO(#108): give feedback to user on SQL exception, like dupe realm+user
       final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
         realmUrl: realmUrl,
         email: result.email,
@@ -345,7 +345,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
             : 'Please enter your username.';
         }
         if (requireEmailFormatUsernames) {
-          // TODO(#35): validate is in the shape of an email
+          // TODO(#106): validate is in the shape of an email
         }
         return null;
       },

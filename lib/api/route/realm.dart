@@ -12,7 +12,7 @@ part 'realm.g.dart';
 /// The Zulip server offers this endpoint at the root domain of a server,
 /// even when there is no Zulip realm at that domain.  This binding, however,
 /// only operates on an actual Zulip realm.
-// TODO(#35): Perhaps detect realmless root domain, for more specific onboarding feedback.
+// TODO(#107): Perhaps detect realmless root domain, for more specific onboarding feedback.
 //   See thread, and the zulip-mobile code and chat thread it links to:
 //     https://github.com/zulip/zulip-flutter/pull/55#discussion_r1160267577
 Future<GetServerSettingsResult> getServerSettings({
