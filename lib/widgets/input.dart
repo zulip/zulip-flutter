@@ -11,4 +11,7 @@ import 'package:flutter/material.dart';
 /// >  not an error is displayed, either wrap the  [TextFormField] in a fixed
 /// >  height parent like [SizedBox], or set the [InputDecoration.helperText]
 /// >  parameter to a space.
+// TODO(upstream?): This contentless `helperText` shouldn't get its own node
+//   in the semantics tree. Empirically, it does: iOS VoiceOver's focus can land
+//   on it, and when it does, nothing gets read.
 const String kLayoutPinningHelperText = '\u200b';
