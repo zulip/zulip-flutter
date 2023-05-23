@@ -197,6 +197,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              // TODO(#109) Link to doc about what a "server URL" is and how to find it
+              // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
               TextField(
                 controller: _controller,
                 onSubmitted: (value) => _onSubmitted(context),
@@ -391,6 +393,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Form(
+              // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
               child: AutofillGroup(
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   usernameField,
