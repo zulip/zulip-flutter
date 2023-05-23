@@ -184,7 +184,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
       ? null
       : error.message();
 
-    // TODO(#35): more help to user on entering realm URL
     return Scaffold(
       appBar: AppBar(title: const Text('Add an account'),
         bottom: _inProgress
