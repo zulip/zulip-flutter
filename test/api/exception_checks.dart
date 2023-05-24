@@ -18,6 +18,7 @@ extension NetworkExceptionChecks on Subject<NetworkException> {
 
 extension ServerExceptionChecks on Subject<ServerException> {
   Subject<int> get httpStatus => has((e) => e.httpStatus, 'httpStatus');
+  Subject<Map<String, dynamic>?> get data => has((e) => e.data, 'data');
 }
 
 extension Server5xxExceptionChecks on Subject<Server5xxException> {
@@ -25,5 +26,5 @@ extension Server5xxExceptionChecks on Subject<Server5xxException> {
 }
 
 extension MalformedServerResponseExceptionChecks on Subject<MalformedServerResponseException> {
-  Subject<Map<String, dynamic>?> get data => has((e) => e.data, 'data');
+  // no properties not on ServerException
 }

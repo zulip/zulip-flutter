@@ -193,11 +193,14 @@ void main() {
       return check(tryRequest(httpStatus: httpStatus, json: json, body: body))
         .throws<Server5xxException>(it()
           ..routeName.equals(kExampleRouteName)
-          ..httpStatus.equals(httpStatus));
+          ..httpStatus.equals(httpStatus)
+          ..data.deepEquals(json));
     }
 
     await check5xx(httpStatus: 500, json: {'result': 'error'});
     await check5xx(httpStatus: 503, body: '');
+    await check5xx(httpStatus: 503,
+      json: {'result': 'error', 'code': 'EXTERNAL_SERVICE_UNAVAILABLE', 'msg': 'Dang'});
     await check5xx(httpStatus: 599, body: '');
   });
 

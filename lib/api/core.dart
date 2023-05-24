@@ -146,13 +146,11 @@ ApiRequestException _makeApiException(String routeName, int httpStatus, Map<Stri
       );
     }
   } else if (500 <= httpStatus && httpStatus <= 599) {
-    return Server5xxException(routeName: routeName, httpStatus: httpStatus);
+    return Server5xxException(
+      routeName: routeName, httpStatus: httpStatus, data: json);
   }
   return MalformedServerResponseException( // TODO(log): systematically log these
-    routeName: routeName,
-    httpStatus: httpStatus,
-    data: json,
-  );
+    routeName: routeName, httpStatus: httpStatus, data: json);
 }
 
 String _authHeaderValue({required String email, required String apiKey}) {

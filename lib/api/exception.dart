@@ -69,7 +69,17 @@ class NetworkException extends ApiRequestException {
 abstract class ServerException extends ApiRequestException {
   final int httpStatus;
 
-  ServerException({required super.routeName, required this.httpStatus, required super.message});
+  /// The response body, decoded as a JSON object.
+  ///
+  /// This is null if the body could not be read, or was not a valid JSON object.
+  final Map<String, dynamic>? data;
+
+  ServerException({
+    required super.routeName,
+    required this.httpStatus,
+    required this.data,
+    required super.message,
+  });
 }
 
 /// A server error, acknowledged by the server via a 5xx HTTP status code.
@@ -77,6 +87,7 @@ class Server5xxException extends ServerException {
   Server5xxException({
     required super.routeName,
     required super.httpStatus,
+    required super.data,
   }) : assert(500 <= httpStatus && httpStatus <= 599),
        super(message: 'Network request failed: HTTP status $httpStatus'); // TODO(i18n)
 }
@@ -95,14 +106,9 @@ class Server5xxException extends ServerException {
 ///
 /// See docs: https://zulip.com/api/rest-error-handling
 class MalformedServerResponseException extends ServerException {
-  /// The response body, decoded as a JSON object.
-  ///
-  /// This is null if the body could not be read, or was not a valid JSON object.
-  final Map<String, dynamic>? data;
-
   MalformedServerResponseException({
     required super.routeName,
     required super.httpStatus,
-    required this.data,
+    required super.data,
   }) : super(message: 'Server gave malformed response; HTTP status $httpStatus'); // TODO(i18n)
 }
