@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
@@ -13,7 +11,7 @@ void main() {
   test('ApiConnection.get', () async {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(body: jsonEncode({}));
+        connection.prepare(json: {});
         await connection.get(kExampleRouteName, (json) => json, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
           ..method.equals('GET')
@@ -41,7 +39,7 @@ void main() {
   test('ApiConnection.post', () async {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(body: jsonEncode({}));
+        connection.prepare(json: {});
         await connection.post(kExampleRouteName, (json) => json, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
           ..method.equals('POST')
@@ -71,7 +69,7 @@ void main() {
   test('ApiConnection.postFileFromStream', () async {
     Future<void> checkRequest(List<List<int>> content, int length, String? filename) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(body: jsonEncode({}));
+        connection.prepare(json: {});
         await connection.postFileFromStream(
           kExampleRouteName, (json) => json, 'example/route',
           Stream.fromIterable(content), length, filename: filename);
@@ -102,7 +100,7 @@ void main() {
 
   test('API success result', () async {
     await FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-      connection.prepare(body: jsonEncode({'result': 'success', 'x': 3}));
+      connection.prepare(json: {'result': 'success', 'x': 3});
       final result = await connection.get(
         kExampleRouteName, (json) => json['x'], 'example/route', {'y': 'z'});
       check(result).equals(3);

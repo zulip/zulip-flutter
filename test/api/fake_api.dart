@@ -35,19 +35,35 @@ class FakeHttpClient extends http.BaseClient {
   /// Prepare the response for the next request.
   ///
   /// If `exception` is null, the next request will produce an [http.Response]
-  /// with the given `httpStatus` and `body`, defaulting to 200 and ''
-  /// respectively.
+  /// with the given `httpStatus`, defaulting to 200.  The body of the response
+  /// will be `body` if non-null, or `jsonEncode(json)` if `json` is non-null,
+  /// or else ''.  The `body` and `json` parameters must not both be non-null.
   ///
-  /// If `exception` is non-null, then `httpStatus` and `body` must be null,
-  /// and the next request will throw the given exception.
-  void prepare({int? httpStatus, String? body, Object? exception}) {
-    assert(exception == null || (httpStatus == null && body == null));
+  /// If `exception` is non-null, then `httpStatus`, `body`, and `json` must
+  /// all be null, and the next request will throw the given exception.
+  void prepare({
+    Object? exception,
+    int? httpStatus,
+    Map<String, dynamic>? json,
+    String? body,
+  }) {
     assert(_nextResponse == null,
       'FakeApiConnection.prepare was called while already expecting a request');
-    _nextResponse = exception != null
-      ? _PreparedException(exception: exception)
-      : _PreparedSuccess(
-          httpStatus: httpStatus ?? 200, bytes: utf8.encode(body ?? ''));
+    if (exception != null) {
+      assert(httpStatus == null && json == null && body == null);
+      _nextResponse = _PreparedException(exception: exception);
+    } else {
+      assert((json == null) || (body == null));
+      final String resolvedBody = switch ((body, json)) {
+        (var body?, _) => body,
+        (_, var json?) => jsonEncode(json),
+        _              => '',
+      };
+      _nextResponse = _PreparedSuccess(
+        httpStatus: httpStatus ?? 200,
+        bytes: utf8.encode(resolvedBody),
+      );
+    }
   }
 
   @override
@@ -110,12 +126,19 @@ class FakeApiConnection extends ApiConnection {
   /// Prepare the response for the next request.
   ///
   /// If `exception` is null, the next request will produce an [http.Response]
-  /// with the given `httpStatus` and `body`, defaulting to 200 and ''
-  /// respectively.
+  /// with the given `httpStatus`, defaulting to 200.  The body of the response
+  /// will be `body` if non-null, or `jsonEncode(json)` if `json` is non-null,
+  /// or else ''.  The `body` and `json` parameters must not both be non-null.
   ///
-  /// If `exception` is non-null, then `httpStatus` and `body` must be null,
-  /// and the next request will throw the given exception.
-  void prepare({int? httpStatus, String? body, Object? exception}) {
-    client.prepare(httpStatus: httpStatus, body: body, exception: exception);
+  /// If `exception` is non-null, then `httpStatus`, `body`, and `json` must
+  /// all be null, and the next request will throw the given exception.
+  void prepare({
+    Object? exception,
+    int? httpStatus,
+    Map<String, dynamic>? json,
+    String? body,
+  }) {
+    client.prepare(
+      exception: exception, httpStatus: httpStatus, json: json, body: body);
   }
 }
