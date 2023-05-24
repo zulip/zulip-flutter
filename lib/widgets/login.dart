@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/core.dart';
+import '../api/exception.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
 import '../api/route/users.dart';
@@ -155,7 +156,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
           return;
         }
         // TODO(#105) give more helpful feedback; see `fetchServerSettings`
-        //   in zulip-mobile's src/message/fetchActions.js. Needs #37.
+        //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
           title: 'Could not connect', message: 'Failed to connect to server:\n$url');
         return;
@@ -279,12 +280,15 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       try {
         result = await fetchApiKey(
           realmUrl: realmUrl, username: username, password: password);
-      } on Exception { // TODO(#37): distinguish API exceptions
+      } on ApiRequestException catch (e) {
         if (!context.mounted) return;
-        // TODO(#105) give more helpful feedback. Needs #37. The RN app is
+        // TODO(#105) give more helpful feedback. The RN app is
         //   unhelpful here; we should at least recognize invalid auth errors, and
         //   errors for deactivated user or realm (see zulip-mobile#4571).
-        showErrorDialog(context: context, title: 'Login failed');
+        final message = (e is ZulipApiException)
+          ? 'The server said:\n\n${e.message}'
+          : e.message;
+        showErrorDialog(context: context, title: 'Login failed', message: message);
         return;
       }
 
