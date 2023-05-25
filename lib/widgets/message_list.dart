@@ -13,15 +13,15 @@ import 'sticky_header.dart';
 import 'store.dart';
 
 class MessageList extends StatefulWidget {
-  const MessageList({super.key});
+  const MessageList({super.key, required this.narrow});
+
+  final Narrow narrow;
 
   @override
   State<StatefulWidget> createState() => _MessageListState();
 }
 
 class _MessageListState extends State<MessageList> {
-  Narrow get narrow => const AllMessagesNarrow(); // TODO specify in widget
-
   MessageListView? model;
 
   @override
@@ -44,7 +44,7 @@ class _MessageListState extends State<MessageList> {
   }
 
   void _initModel(PerAccountStore store) {
-    model = MessageListView.init(store: store, narrow: narrow);
+    model = MessageListView.init(store: store, narrow: widget.narrow);
     model!.addListener(_modelChanged);
     model!.fetch();
   }

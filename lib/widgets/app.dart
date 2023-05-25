@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'compose_box.dart';
 import 'login.dart';
@@ -143,19 +144,22 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context)),
+              MessageListPage.buildRoute(context: context,
+                narrow: const AllMessagesNarrow())),
             child: const Text("All messages")),
         ])));
   }
 }
 
 class MessageListPage extends StatelessWidget {
-  const MessageListPage({super.key});
+  const MessageListPage({super.key, required this.narrow});
 
-  static Route<void> buildRoute(BuildContext context) {
+  static Route<void> buildRoute({required BuildContext context, required Narrow narrow}) {
     return MaterialAccountPageRoute(context: context,
-      builder: (context) => const MessageListPage());
+      builder: (context) => MessageListPage(narrow: narrow));
   }
+
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -173,8 +177,8 @@ class MessageListPage extends StatelessWidget {
               // The compose box pads the bottom inset.
               removeBottom: true,
 
-              child: const Expanded(
-                child: MessageList())),
+              child: Expanded(
+                child: MessageList(narrow: narrow))),
             const StreamComposeBox(),
           ]))));
   }
