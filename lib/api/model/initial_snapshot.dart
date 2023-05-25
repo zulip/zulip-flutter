@@ -66,7 +66,7 @@ class InitialSnapshot {
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
-      _$InitialSnapshotFromJson(json);
+    _$InitialSnapshotFromJson(json);
 
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
 }

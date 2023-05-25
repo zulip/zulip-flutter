@@ -38,7 +38,7 @@ export 'database.dart' show Account, AccountsCompanion;
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
   GlobalStore({required Map<int, Account> accounts})
-      : _accounts = accounts;
+    : _accounts = accounts;
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
@@ -148,14 +148,14 @@ class PerAccountStore extends ChangeNotifier {
     required this.account,
     required this.connection,
     required InitialSnapshot initialSnapshot,
-  })  : zulipVersion = initialSnapshot.zulipVersion,
-        users = Map.fromEntries(initialSnapshot.realmUsers
-          .followedBy(initialSnapshot.realmNonActiveUsers)
-          .followedBy(initialSnapshot.crossRealmBots)
-          .map((user) => MapEntry(user.userId, user))),
-        subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
-                (subscription) => MapEntry(subscription.streamId, subscription))),
-        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
+  }) : zulipVersion = initialSnapshot.zulipVersion,
+       users = Map.fromEntries(initialSnapshot.realmUsers
+         .followedBy(initialSnapshot.realmNonActiveUsers)
+         .followedBy(initialSnapshot.crossRealmBots)
+         .map((user) => MapEntry(user.userId, user))),
+       subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
+         (subscription) => MapEntry(subscription.streamId, subscription))),
+       maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
 
   final Account account;
   final ApiConnection connection;
@@ -324,13 +324,13 @@ class LivePerAccountStore extends PerAccountStore {
     required super.account,
     required super.connection,
     required super.initialSnapshot,
-  })  : queueId = initialSnapshot.queueId ?? (() {
-            // The queueId is optional in the type, but should only be missing in the
-            // case of unauthenticated access to a web-public realm.  We authenticated.
-            throw Exception("bad initial snapshot: missing queueId");
-          })(),
-        lastEventId = initialSnapshot.lastEventId,
-        super.fromInitialSnapshot();
+  }) : queueId = initialSnapshot.queueId ?? (() {
+         // The queueId is optional in the type, but should only be missing in the
+         // case of unauthenticated access to a web-public realm.  We authenticated.
+         throw Exception("bad initial snapshot: missing queueId");
+       })(),
+       lastEventId = initialSnapshot.lastEventId,
+       super.fromInitialSnapshot();
 
   /// Load the user's data from the server, and start an event queue going.
   ///
@@ -360,7 +360,7 @@ class LivePerAccountStore extends PerAccountStore {
   void poll() async {
     while (true) {
       final result = await getEvents(connection,
-          queueId: queueId, lastEventId: lastEventId);
+        queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
       // TODO abort long-poll and close ApiConnection on [dispose]
       final events = result.events;

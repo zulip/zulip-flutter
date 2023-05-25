@@ -10,11 +10,11 @@ void main() {
   test('message: move flags into message object', () {
     final message = eg.streamMessage();
     MessageEvent mkEvent(List<String> flags) => Event.fromJson({
-        'type': 'message',
-        'id': 1,
-        'message': message.toJson()..remove('flags'),
-        'flags': flags,
-      }) as MessageEvent;
+      'type': 'message',
+      'id': 1,
+      'message': message.toJson()..remove('flags'),
+      'flags': flags,
+    }) as MessageEvent;
     check(mkEvent(message.flags)).message.jsonEquals(message);
     check(mkEvent([])).message.flags.deepEquals([]);
     check(mkEvent(['read'])).message.flags.deepEquals(['read']);

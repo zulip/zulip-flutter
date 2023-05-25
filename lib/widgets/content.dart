@@ -84,22 +84,22 @@ class BlockContentNodeWidget extends StatelessWidget {
       // TODO h1, h2, h3, h4, h5 -- same as h6 except font size
       assert(node.level == HeadingLevel.h6);
       return Padding(
-          padding: const EdgeInsets.only(top: 15, bottom: 5),
-          child: Text.rich(TextSpan(
-              style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
-              children: _buildInlineList(node.nodes))));
+        padding: const EdgeInsets.only(top: 15, bottom: 5),
+        child: Text.rich(TextSpan(
+          style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
+          children: _buildInlineList(node.nodes))));
     } else if (node is QuotationNode) {
       return Padding(
-          padding: const EdgeInsets.only(left: 10),
-          child: Container(
-              padding: const EdgeInsets.only(left: 5),
-              decoration: BoxDecoration(
-                  border: Border(
-                      left: BorderSide(
-                          width: 5,
-                          color: const HSLColor.fromAHSL(1, 0, 0, 0.87)
-                              .toColor()))),
-              child: BlockContentList(nodes: node.nodes)));
+        padding: const EdgeInsets.only(left: 10),
+        child: Container(
+          padding: const EdgeInsets.only(left: 5),
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                width: 5,
+                color: const HSLColor.fromAHSL(1, 0, 0, 0.87)
+                  .toColor()))),
+          child: BlockContentList(nodes: node.nodes)));
     } else if (node is CodeBlockNode) {
       return CodeBlock(node: node);
     } else if (node is ImageNode) {
@@ -133,8 +133,8 @@ class Paragraph extends StatelessWidget {
     // For a non-empty paragraph, though — and where there was a `p` element
     // for the Zulip CSS to apply to — the margins are real.
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: text);
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: text);
   }
 }
 
@@ -164,8 +164,8 @@ class ListNodeWidget extends StatelessWidget {
       return ListItemWidget(marker: marker, nodes: item);
     });
     return Padding(
-        padding: const EdgeInsets.only(top: 2, bottom: 5),
-        child: Column(children: items));
+      padding: const EdgeInsets.only(top: 2, bottom: 5),
+      child: Column(children: items));
   }
 }
 
@@ -178,16 +178,16 @@ class ListItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          SizedBox(
-              width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
-              child: Align(
-                  alignment: AlignmentDirectional.topEnd, child: Text(marker))),
-          Expanded(child: BlockContentList(nodes: nodes)),
-        ]);
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        SizedBox(
+          width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
+          child: Align(
+            alignment: AlignmentDirectional.topEnd, child: Text(marker))),
+        Expanded(child: BlockContentList(nodes: nodes)),
+      ]);
   }
 }
 
@@ -213,24 +213,24 @@ class MessageImage extends StatelessWidget {
           context: context, message: message, src: resolvedSrc));
       },
       child: Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-              // TODO clean up this padding by imitating web less precisely;
-              //   in particular, avoid adding loose whitespace at end of message.
-              // The corresponding element on web has a 5px two-sided margin…
-              // and then a 1px transparent border all around.
-              padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
-              child: Container(
-                  height: 100,
-                  width: 150,
-                  alignment: Alignment.center,
-                  color: const Color.fromRGBO(0, 0, 0, 0.03),
-                  child: LightboxHero(
-                    message: message,
-                    src: resolvedSrc,
-                    child: RealmContentNetworkImage(
-                      resolvedSrc,
-                      filterQuality: FilterQuality.medium))))));
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          // TODO clean up this padding by imitating web less precisely;
+          //   in particular, avoid adding loose whitespace at end of message.
+          // The corresponding element on web has a 5px two-sided margin…
+          // and then a 1px transparent border all around.
+          padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
+          child: Container(
+            height: 100,
+            width: 150,
+            alignment: Alignment.center,
+            color: const Color.fromRGBO(0, 0, 0, 0.03),
+            child: LightboxHero(
+              message: message,
+              src: resolvedSrc,
+              child: RealmContentNetworkImage(
+                resolvedSrc,
+                filterQuality: FilterQuality.medium))))));
   }
 }
 
@@ -244,28 +244,28 @@ class CodeBlock extends StatelessWidget {
     final text = node.text;
 
     return Container(
-        padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-                width: 1,
-                color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
-        child: SingleChildScrollViewWithScrollbar(
-            scrollDirection: Axis.horizontal,
-            child: Text(text, style: _kCodeStyle)));
+      padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          width: 1,
+          color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
+      child: SingleChildScrollViewWithScrollbar(
+        scrollDirection: Axis.horizontal,
+        child: Text(text, style: _kCodeStyle)));
   }
 }
 
 class SingleChildScrollViewWithScrollbar extends StatefulWidget {
   const SingleChildScrollViewWithScrollbar(
-      {super.key, required this.scrollDirection, required this.child});
+    {super.key, required this.scrollDirection, required this.child});
 
   final Axis scrollDirection;
   final Widget child;
 
   @override
   State<SingleChildScrollViewWithScrollbar> createState() =>
-      _SingleChildScrollViewWithScrollbarState();
+    _SingleChildScrollViewWithScrollbarState();
 }
 
 class _SingleChildScrollViewWithScrollbarState
@@ -276,9 +276,10 @@ class _SingleChildScrollViewWithScrollbarState
   Widget build(BuildContext context) {
     return Scrollbar(
       controller: controller,
-        child: SingleChildScrollView(
-          controller: controller,
-            scrollDirection: widget.scrollDirection, child: widget.child));
+      child: SingleChildScrollView(
+        controller: controller,
+        scrollDirection: widget.scrollDirection,
+        child: widget.child));
   }
 }
 
@@ -287,11 +288,11 @@ class _SingleChildScrollViewWithScrollbarState
 //
 
 List<InlineSpan> _buildInlineList(List<InlineContentNode> nodes) =>
-    List.of(nodes.map(_buildInlineNode));
+  List.of(nodes.map(_buildInlineNode));
 
 InlineSpan _buildInlineNode(InlineContentNode node) {
   InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
-      TextSpan(children: _buildInlineList(nodes), style: style);
+    TextSpan(children: _buildInlineList(nodes), style: style);
 
   if (node is TextNode) {
     return TextSpan(text: node.text);
@@ -308,18 +309,18 @@ InlineSpan _buildInlineNode(InlineContentNode node) {
   } else if (node is LinkNode) {
     // TODO make link touchable
     return styled(node.nodes,
-        TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+      TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   } else if (node is UserMentionNode) {
     return WidgetSpan(
-        alignment: PlaceholderAlignment.middle, child: UserMention(node: node));
+      alignment: PlaceholderAlignment.middle, child: UserMention(node: node));
   } else if (node is UnicodeEmojiNode) {
     return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: MessageUnicodeEmoji(node: node));
+      alignment: PlaceholderAlignment.middle,
+      child: MessageUnicodeEmoji(node: node));
   } else if (node is ImageEmojiNode) {
     return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: MessageImageEmoji(node: node));
+      alignment: PlaceholderAlignment.middle,
+      child: MessageImageEmoji(node: node));
   } else if (node is UnimplementedInlineContentNode) {
     return _errorUnimplemented(node);
   } else {
@@ -354,13 +355,13 @@ InlineSpan inlineCode(InlineCodeNode node) {
 
   // Use a light gray background, instead of a border.
   return TextSpan(
-      style: const TextStyle(
-        backgroundColor: Color(0xffeeeeee),
-        fontSize: 0.825 * kBaseFontSize,
-        fontFamily: "Source Code Pro", // TODO supply font
-        fontFamilyFallback: ["monospace"],
-      ),
-      children: _buildInlineList(node.nodes));
+    style: const TextStyle(
+      backgroundColor: Color(0xffeeeeee),
+      fontSize: 0.825 * kBaseFontSize,
+      fontFamily: "Source Code Pro", // TODO supply font
+      fontFamilyFallback: ["monospace"],
+    ),
+    children: _buildInlineList(node.nodes));
 
   // Another fun solution -- we can in fact have a border!  Like so:
   //   TextStyle(
@@ -410,19 +411,19 @@ class UserMention extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: _kDecoration,
-        padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-        child: Text.rich(TextSpan(children: _buildInlineList(node.nodes))));
+      decoration: _kDecoration,
+      padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
+      child: Text.rich(TextSpan(children: _buildInlineList(node.nodes))));
   }
 
   static get _kDecoration => BoxDecoration(
-      gradient: const LinearGradient(
-          colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter),
-      border: Border.all(
-          color: const Color.fromRGBO(0xcc, 0xcc, 0xcc, 1), width: 1),
-      borderRadius: const BorderRadius.all(Radius.circular(3)));
+    gradient: const LinearGradient(
+      colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter),
+    border: Border.all(
+      color: const Color.fromRGBO(0xcc, 0xcc, 0xcc, 1), width: 1),
+    borderRadius: const BorderRadius.all(Radius.circular(3)));
 
 // This is a more literal translation of Zulip web's CSS.
 // But it turns out CSS `box-shadow` has a quirk we rely on there:
@@ -431,18 +432,18 @@ class UserMention extends StatelessWidget {
 // which is after all more logical from the "shadow" metaphor.
 //
 // static const _kDecoration = ShapeDecoration(
-//     gradient: LinearGradient(
-//         colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
-//         begin: Alignment.topCenter,
-//         end: Alignment.bottomCenter),
-//     shadows: [
-//       BoxShadow(
-//           spreadRadius: 1,
-//           blurStyle: BlurStyle.outer,
-//           color: Color.fromRGBO(0xcc, 0xcc, 0xcc, 1))
-//     ],
-//     shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.all(Radius.circular(3))));
+//   gradient: LinearGradient(
+//     colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
+//     begin: Alignment.topCenter,
+//     end: Alignment.bottomCenter),
+//   shadows: [
+//     BoxShadow(
+//       spreadRadius: 1,
+//       blurStyle: BlurStyle.outer,
+//       color: Color.fromRGBO(0xcc, 0xcc, 0xcc, 1)),
+//   ],
+//   shape: RoundedRectangleBorder(
+//     borderRadius: BorderRadius.all(Radius.circular(3))));
 }
 
 class MessageUnicodeEmoji extends StatelessWidget {
@@ -455,10 +456,10 @@ class MessageUnicodeEmoji extends StatelessWidget {
     // TODO get spritesheet and show actual emoji glyph
     final text = node.text;
     return Container(
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-            color: Colors.white, border: Border.all(color: Colors.purple)),
-        child: Text(text));
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: Colors.white, border: Border.all(color: Colors.purple)),
+      child: Text(text));
   }
 }
 
@@ -475,21 +476,21 @@ class MessageImageEmoji extends StatelessWidget {
     const size = 20.0;
 
     return Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          const SizedBox(width: size, height: kBaseFontSize),
-          Positioned(
-              // Web's css makes this seem like it should be -0.5, but that looks
-              // too low.
-              top: -1.5,
-              child: RealmContentNetworkImage(
-                resolvedSrc,
-                filterQuality: FilterQuality.medium,
-                width: size,
-                height: size,
-              )),
-        ]);
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        const SizedBox(width: size, height: kBaseFontSize),
+        Positioned(
+          // Web's css makes this seem like it should be -0.5, but that looks
+          // too low.
+          top: -1.5,
+          child: RealmContentNetworkImage(
+            resolvedSrc,
+            filterQuality: FilterQuality.medium,
+            width: size,
+            height: size,
+          )),
+      ]);
   }
 }
 
@@ -634,8 +635,8 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
     ]);
   } else {
     return TextSpan(
-        text: "(unimplemented: DOM node type ${htmlNode.nodeType})",
-        style: errorStyle);
+      text: "(unimplemented: DOM node type ${htmlNode.nodeType})",
+      style: errorStyle);
   }
 }
 

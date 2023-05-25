@@ -8,42 +8,39 @@ class _DraggableScrollableLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-        // Match `initial…` to `min…` so that a slight drag downward dismisses
-        // the sheet instead of just resizing it. Making them equal gives a
-        // buggy experience for some reason
-        //   ( https://github.com/zulip/zulip-flutter/pull/12#discussion_r1116423455 )
-        // so we work around by make `initial…` a bit bigger.
-        minChildSize: 0.25,
-        initialChildSize: 0.26,
+      // Match `initial…` to `min…` so that a slight drag downward dismisses
+      // the sheet instead of just resizing it. Making them equal gives a
+      // buggy experience for some reason
+      //   ( https://github.com/zulip/zulip-flutter/pull/12#discussion_r1116423455 )
+      // so we work around by make `initial…` a bit bigger.
+      minChildSize: 0.25,
+      initialChildSize: 0.26,
 
-        // With `expand: true`, the bottom sheet would then start out occupying
-        // the whole screen, as if `initialChildSize` was 1.0. That doesn't seem
-        // like what the docs call for. Maybe a bug. Or maybe it's somehow
-        // related to the `Stack`?
-        expand: false,
+      // With `expand: true`, the bottom sheet would then start out occupying
+      // the whole screen, as if `initialChildSize` was 1.0. That doesn't seem
+      // like what the docs call for. Maybe a bug. Or maybe it's somehow
+      // related to the `Stack`?
+      expand: false,
 
-        builder: (BuildContext context, ScrollController scrollController) {
-          return SingleChildScrollView(
-            // Prevent overscroll animation on swipe down; it looks
-            // sloppy when you're swiping to dismiss the sheet.
-            physics: const ClampingScrollPhysics(),
+      builder: (BuildContext context, ScrollController scrollController) {
+        return SingleChildScrollView(
+          // Prevent overscroll animation on swipe down; it looks
+          // sloppy when you're swiping to dismiss the sheet.
+          physics: const ClampingScrollPhysics(),
 
-            controller: scrollController,
+          controller: scrollController,
 
-            child: Padding(
-              // Avoid the drag handle. See comment on
-              // _DragHandleLayer's SizedBox.height.
-              padding: const EdgeInsets.only(top: kMinInteractiveDimension),
+          child: Padding(
+            // Avoid the drag handle. See comment on
+            // _DragHandleLayer's SizedBox.height.
+            padding: const EdgeInsets.only(top: kMinInteractiveDimension),
 
-              // Extend DraggableScrollableSheet to full width so the whole
-              // sheet responds to drag/scroll uniformly.
-              child: FractionallySizedBox(
-                widthFactor: 1.0,
-                child: Builder(builder: builder),
-              ),
-            ),
-          );
-        });
+            // Extend DraggableScrollableSheet to full width so the whole
+            // sheet responds to drag/scroll uniformly.
+            child: FractionallySizedBox(
+              widthFactor: 1.0,
+              child: Builder(builder: builder))));
+      });
   }
 }
 
@@ -76,9 +73,7 @@ class _DragHandleLayer extends StatelessWidget {
             //   https://m3.material.io/components/bottom-sheets/specs#7c093473-d9e1-48f3-9659-b75519c2a29d
             height: 4,
             width: 32,
-            child: ColoredBox(color: colorScheme.onSurfaceVariant.withOpacity(0.40)),
-          ),
-        )));
+            child: ColoredBox(color: colorScheme.onSurfaceVariant.withOpacity(0.40))))));
   }
 }
 
@@ -118,7 +113,6 @@ Future<T?> showDraggableScrollableModalBottomSheet<T>({
         children: [
           _DraggableScrollableLayer(builder: builder),
           _DragHandleLayer(),
-        ],
-      );
+        ]);
     });
 }

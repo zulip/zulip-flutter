@@ -197,7 +197,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
           minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
 
           // TODO constrain this adaptively (i.e. not hard-coded 200)
-          maxHeight: 200
+          maxHeight: 200,
         ),
         child: TextField(
           controller: widget.controller,
@@ -207,9 +207,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
             hintText: "Message #test here > $_topicTextNormalized",
           ),
           maxLines: null,
-        ),
-      ),
-    );
+        )));
   }
 }
 
@@ -502,9 +500,9 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     ];
 
     return showErrorDialog(
-        context: context,
-        title: 'Message not sent',
-        message: validationErrorMessages.join('\n\n'));
+      context: context,
+      title: 'Message not sent',
+      message: validationErrorMessages.join('\n\n'));
   }
 
   void _handleSendPressed(BuildContext context) {
@@ -530,13 +528,13 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
     final backgroundColor = disabled
-        ? colorScheme.onSurface.withOpacity(0.12)
-        : colorScheme.primary;
+      ? colorScheme.onSurface.withOpacity(0.12)
+      : colorScheme.primary;
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.foregroundColor)
     final foregroundColor = disabled
-        ? colorScheme.onSurface.withOpacity(0.38)
-        : colorScheme.onPrimary;
+      ? colorScheme.onSurface.withOpacity(0.38)
+      : colorScheme.onPrimary;
 
     return Ink(
       decoration: BoxDecoration(
@@ -551,9 +549,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
         color: foregroundColor,
         icon: const Icon(Icons.send),
-        onPressed: () => _handleSendPressed(context),
-      ),
-    );
+        onPressed: () => _handleSendPressed(context)));
   }
 }
 
@@ -588,13 +584,10 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
         // Both [contentPadding] and [isDense] combine to make the layout compact.
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12.0, vertical: _inputVerticalPadding),
-
+          horizontal: 12.0, vertical: _inputVerticalPadding),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),
-          borderSide: BorderSide.none,
-        ),
-
+          borderSide: BorderSide.none),
         filled: true,
         fillColor: colorScheme.surface,
       ),
@@ -609,36 +602,33 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
     return Material(
       color: colorScheme.surfaceVariant,
       child: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Column(
-              children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Expanded(
-                    child: Theme(
-                        data: inputThemeData,
-                        child: Column(
-                            children: [
-                              topicInput,
-                              const SizedBox(height: 8),
-                              _StreamContentInput(
-                                topicController: _topicController,
-                                controller: _contentController,
-                                focusNode: _contentFocusNode),
-                            ]))),
-                  const SizedBox(width: 8),
-                  _StreamSendButton(topicController: _topicController, contentController: _contentController),
-                ]),
-                Theme(
-                  data: themeData.copyWith(
-                    iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-                  child: Row(
-                    children: [
-                      _AttachFileButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
-                      _AttachMediaButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
-                      _AttachFromCameraButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
-                    ])),
-              ]))));
+        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Column(children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                child: Theme(
+                  data: inputThemeData,
+                  child: Column(children: [
+                    topicInput,
+                    const SizedBox(height: 8),
+                    _StreamContentInput(
+                      topicController: _topicController,
+                      controller: _contentController,
+                      focusNode: _contentFocusNode),
+                  ]))),
+              const SizedBox(width: 8),
+              _StreamSendButton(topicController: _topicController, contentController: _contentController),
+            ]),
+            Theme(
+              data: themeData.copyWith(
+                iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+              child: Row(children: [
+                _AttachFileButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
+                _AttachMediaButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
+                _AttachFromCameraButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
+              ])),
+          ]))));
   }
 }

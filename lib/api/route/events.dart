@@ -44,7 +44,7 @@ class GetEventsResult {
   });
 
   factory GetEventsResult.fromJson(Map<String, dynamic> json) =>
-      _$GetEventsResultFromJson(json);
+    _$GetEventsResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetEventsResultToJson(this);
 }

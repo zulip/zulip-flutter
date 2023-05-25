@@ -45,7 +45,7 @@ class UnexpectedEvent extends Event {
   UnexpectedEvent({required super.id, required this.json});
 
   factory UnexpectedEvent.fromJson(Map<String, dynamic> json) =>
-      UnexpectedEvent(id: json['id'] as int, json: json);
+    UnexpectedEvent(id: json['id'] as int, json: json);
 
   @override
   Map<String, dynamic> toJson() => json;
@@ -63,7 +63,7 @@ class AlertWordsEvent extends Event {
   AlertWordsEvent({required super.id, required this.alertWords});
 
   factory AlertWordsEvent.fromJson(Map<String, dynamic> json) =>
-      _$AlertWordsEventFromJson(json);
+    _$AlertWordsEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
@@ -199,12 +199,12 @@ class MessageEvent extends Event {
   MessageEvent({required super.id, required this.message});
 
   factory MessageEvent.fromJson(Map<String, dynamic> json) => MessageEvent(
-      id: json['id'] as int,
-      message: Message.fromJson({
-        ...json['message'] as Map<String, dynamic>,
-        'flags':
-            (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
-      }),
+    id: json['id'] as int,
+    message: Message.fromJson({
+      ...json['message'] as Map<String, dynamic>,
+      'flags':
+        (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+    }),
   );
 
   @override
@@ -225,7 +225,7 @@ class HeartbeatEvent extends Event {
   HeartbeatEvent({required super.id});
 
   factory HeartbeatEvent.fromJson(Map<String, dynamic> json) =>
-      _$HeartbeatEventFromJson(json);
+    _$HeartbeatEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$HeartbeatEventToJson(this);

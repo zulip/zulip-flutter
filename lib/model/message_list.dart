@@ -58,7 +58,7 @@ class MessageListView extends ChangeNotifier {
     assert(contents.isEmpty);
     // TODO schedule all this in another isolate
     final result =
-        await getMessages(store.connection, numBefore: 100, numAfter: 10);
+      await getMessages(store.connection, numBefore: 100, numAfter: 10);
     messages.addAll(result.messages);
     contents.addAll(_contentsOfMessages(result.messages));
     _fetched = true;

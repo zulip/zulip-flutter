@@ -26,7 +26,7 @@ class CustomProfileField {
   });
 
   factory CustomProfileField.fromJson(Map<String, dynamic> json) =>
-      _$CustomProfileFieldFromJson(json);
+    _$CustomProfileFieldFromJson(json);
 
   Map<String, dynamic> toJson() => _$CustomProfileFieldToJson(this);
 }
@@ -88,7 +88,7 @@ class User {
   }
 
   static bool? _readIsSystemBot(Map json, String key) =>
-      json[key] ?? json['is_cross_realm_bot'];
+    json[key] ?? json['is_cross_realm_bot'];
 
   User({
     required this.userId,
@@ -183,7 +183,7 @@ class Subscription {
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
-      _$SubscriptionFromJson(json);
+    _$SubscriptionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
 }
@@ -281,7 +281,7 @@ class StreamMessage extends Message {
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
-      _$StreamMessageFromJson(json);
+    _$StreamMessageFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$StreamMessageToJson(this);
@@ -299,7 +299,7 @@ class PmRecipient {
   PmRecipient({required this.id, required this.email, required this.fullName});
 
   factory PmRecipient.fromJson(Map<String, dynamic> json) =>
-      _$PmRecipientFromJson(json);
+    _$PmRecipientFromJson(json);
 
   Map<String, dynamic> toJson() => _$PmRecipientToJson(this);
 }
@@ -334,7 +334,7 @@ class PmMessage extends Message {
   });
 
   factory PmMessage.fromJson(Map<String, dynamic> json) =>
-      _$PmMessageFromJson(json);
+    _$PmMessageFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$PmMessageToJson(this);

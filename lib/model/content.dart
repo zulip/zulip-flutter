@@ -75,7 +75,7 @@ class LineBreakNode extends BlockContentNode {
 // See also [parseImplicitParagraphBlockContentList].
 class ParagraphNode extends BlockContentNode {
   const ParagraphNode(
-      {super.debugHtmlNode, this.wasImplicit = false, required this.nodes});
+    {super.debugHtmlNode, this.wasImplicit = false, required this.nodes});
 
   /// True when there was no corresponding `p` element in the original HTML.
   final bool wasImplicit;
@@ -227,7 +227,7 @@ final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 InlineContentNode parseInlineContent(dom.Node node) {
   final debugHtmlNode = kDebugMode ? node : null;
   InlineContentNode unimplemented() =>
-      UnimplementedInlineContentNode(htmlNode: node);
+    UnimplementedInlineContentNode(htmlNode: node);
 
   if (node is dom.Text) {
     return TextNode(node.text, debugHtmlNode: debugHtmlNode);
@@ -240,7 +240,7 @@ InlineContentNode parseInlineContent(dom.Node node) {
   final localName = element.localName;
   final classes = element.classes;
   List<InlineContentNode> nodes() =>
-      element.nodes.map(parseInlineContent).toList(growable: false);
+    element.nodes.map(parseInlineContent).toList(growable: false);
 
   if (localName == 'br' && classes.isEmpty) {
     return LineBreakInlineNode(debugHtmlNode: debugHtmlNode);
@@ -317,9 +317,9 @@ BlockContentNode parseListNode(dom.Element element) {
 
 BlockContentNode parseCodeBlock(dom.Element divElement) {
   final mainElement = () {
-    assert(divElement.localName == 'div' &&
-        divElement.classes.length == 1 &&
-        divElement.classes.contains("codehilite"));
+    assert(divElement.localName == 'div'
+        && divElement.classes.length == 1
+        && divElement.classes.contains("codehilite"));
 
     if (divElement.nodes.length != 1) return null;
     final child = divElement.nodes[0];
@@ -329,9 +329,9 @@ BlockContentNode parseCodeBlock(dom.Element divElement) {
     if (child.nodes.length > 2) return null;
     if (child.nodes.length == 2) {
       final first = child.nodes[0];
-      if (first is! dom.Element ||
-          first.localName != 'span' ||
-          first.nodes.isNotEmpty) return null;
+      if (first is! dom.Element
+          || first.localName != 'span'
+          || first.nodes.isNotEmpty) return null;
     }
     final grandchild = child.nodes[child.nodes.length - 1];
     if (grandchild is! dom.Element) return null;
@@ -371,8 +371,8 @@ BlockContentNode parseCodeBlock(dom.Element divElement) {
 BlockContentNode parseImageNode(dom.Element divElement) {
   final imgElement = () {
     assert(divElement.localName == 'div'
-      && divElement.classes.length == 1
-      && divElement.classes.contains('message_inline_image'));
+        && divElement.classes.length == 1
+        && divElement.classes.contains('message_inline_image'));
 
     if (divElement.nodes.length != 1) return null;
     final child = divElement.nodes[0];
@@ -411,7 +411,7 @@ BlockContentNode parseBlockContent(dom.Node node) {
   final classes = element.classes;
   List<BlockContentNode> blockNodes() => parseBlockContentList(element.nodes);
   List<InlineContentNode> inlineNodes() =>
-      element.nodes.map(parseInlineContent).toList(growable: false);
+    element.nodes.map(parseInlineContent).toList(growable: false);
 
   if (localName == 'br' && classes.isEmpty) {
     return LineBreakNode(debugHtmlNode: debugHtmlNode);
@@ -437,7 +437,7 @@ BlockContentNode parseBlockContent(dom.Node node) {
   if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
     // TODO handle h1, h2, h3, h4, h5
     return HeadingNode(
-        headingLevel!, inlineNodes(), debugHtmlNode: debugHtmlNode);
+      headingLevel!, inlineNodes(), debugHtmlNode: debugHtmlNode);
   }
 
   if (localName == 'blockquote' && classes.isEmpty) {
@@ -488,9 +488,9 @@ List<BlockContentNode> parseImplicitParagraphBlockContentList(dom.NodeList nodes
   final List<dom.Node> currentParagraph = [];
   void consumeParagraph() {
     result.add(ParagraphNode(
-        wasImplicit: true,
-        nodes:
-            currentParagraph.map(parseInlineContent).toList(growable: false)));
+      wasImplicit: true,
+      nodes:
+        currentParagraph.map(parseInlineContent).toList(growable: false)));
     currentParagraph.clear();
   }
 

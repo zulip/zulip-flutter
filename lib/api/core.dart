@@ -104,7 +104,7 @@ class ApiConnection {
   Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
       String path, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(
-        path: "/api/v1/$path", queryParameters: encodeParameters(params));
+      path: "/api/v1/$path", queryParameters: encodeParameters(params));
     final request = http.Request('GET', url);
     return send(routeName, fromJson, request);
   }
@@ -167,5 +167,5 @@ Map<String, String> authHeader({required String email, required String apiKey}) 
 
 Map<String, String>? encodeParameters(Map<String, dynamic>? params) {
   return params?.map((k, v) =>
-      MapEntry(k, v is RawParameter ? v.value : jsonEncode(v)));
+    MapEntry(k, v is RawParameter ? v.value : jsonEncode(v)));
 }

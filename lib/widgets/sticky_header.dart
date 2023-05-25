@@ -24,15 +24,15 @@ class StickyHeaderListView extends BoxScrollView {
     super.keyboardDismissBehavior,
     super.restorationId,
     super.clipBehavior,
-  })  : childrenDelegate = SliverChildListDelegate(
-          children,
-          addAutomaticKeepAlives: addAutomaticKeepAlives,
-          addRepaintBoundaries: addRepaintBoundaries,
-          addSemanticIndexes: addSemanticIndexes,
-        ),
-        super(
-          semanticChildCount: semanticChildCount ?? children.length,
-        );
+  }) : childrenDelegate = SliverChildListDelegate(
+         children,
+         addAutomaticKeepAlives: addAutomaticKeepAlives,
+         addRepaintBoundaries: addRepaintBoundaries,
+         addSemanticIndexes: addSemanticIndexes,
+       ),
+       super(
+         semanticChildCount: semanticChildCount ?? children.length,
+       );
 
   // Like ListView.builder, but with sticky headers.
   StickyHeaderListView.builder({
@@ -56,19 +56,19 @@ class StickyHeaderListView extends BoxScrollView {
     super.keyboardDismissBehavior,
     super.restorationId,
     super.clipBehavior,
-  })  : assert(itemCount == null || itemCount >= 0),
-        assert(semanticChildCount == null || semanticChildCount <= itemCount!),
-        childrenDelegate = SliverChildBuilderDelegate(
-          itemBuilder,
-          findChildIndexCallback: findChildIndexCallback,
-          childCount: itemCount,
-          addAutomaticKeepAlives: addAutomaticKeepAlives,
-          addRepaintBoundaries: addRepaintBoundaries,
-          addSemanticIndexes: addSemanticIndexes,
-        ),
-        super(
-          semanticChildCount: semanticChildCount ?? itemCount,
-        );
+  }) : assert(itemCount == null || itemCount >= 0),
+       assert(semanticChildCount == null || semanticChildCount <= itemCount!),
+       childrenDelegate = SliverChildBuilderDelegate(
+         itemBuilder,
+         findChildIndexCallback: findChildIndexCallback,
+         childCount: itemCount,
+         addAutomaticKeepAlives: addAutomaticKeepAlives,
+         addRepaintBoundaries: addRepaintBoundaries,
+         addSemanticIndexes: addSemanticIndexes,
+       ),
+       super(
+         semanticChildCount: semanticChildCount ?? itemCount,
+       );
 
   // Like ListView.separated, but with sticky headers.
   StickyHeaderListView.separated({
@@ -92,36 +92,36 @@ class StickyHeaderListView extends BoxScrollView {
     super.keyboardDismissBehavior,
     super.restorationId,
     super.clipBehavior,
-  })  : assert(itemCount >= 0),
-        childrenDelegate = SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            final int itemIndex = index ~/ 2;
-            final Widget? widget;
-            if (index.isEven) {
-              widget = itemBuilder(context, itemIndex);
-            } else {
-              widget = separatorBuilder(context, itemIndex);
-              assert(() {
-                if (widget == null) {
-                  throw FlutterError('separatorBuilder cannot return null.');
-                }
-                return true;
-              }());
-            }
-            return widget;
-          },
-          findChildIndexCallback: findChildIndexCallback,
-          childCount: math.max(0, itemCount * 2 - 1),
-          addAutomaticKeepAlives: addAutomaticKeepAlives,
-          addRepaintBoundaries: addRepaintBoundaries,
-          addSemanticIndexes: addSemanticIndexes,
-          semanticIndexCallback: (Widget _, int index) {
-            return index.isEven ? index ~/ 2 : null;
-          },
-        ),
-        super(
-          semanticChildCount: itemCount,
-        );
+  }) : assert(itemCount >= 0),
+       childrenDelegate = SliverChildBuilderDelegate(
+         (BuildContext context, int index) {
+           final int itemIndex = index ~/ 2;
+           final Widget? widget;
+           if (index.isEven) {
+             widget = itemBuilder(context, itemIndex);
+           } else {
+             widget = separatorBuilder(context, itemIndex);
+             assert(() {
+               if (widget == null) {
+                 throw FlutterError('separatorBuilder cannot return null.');
+               }
+               return true;
+             }());
+           }
+           return widget;
+         },
+         findChildIndexCallback: findChildIndexCallback,
+         childCount: math.max(0, itemCount * 2 - 1),
+         addAutomaticKeepAlives: addAutomaticKeepAlives,
+         addRepaintBoundaries: addRepaintBoundaries,
+         addSemanticIndexes: addSemanticIndexes,
+         semanticIndexCallback: (Widget _, int index) {
+           return index.isEven ? index ~/ 2 : null;
+         },
+       ),
+       super(
+         semanticChildCount: itemCount,
+       );
 
   // Like ListView.custom, but with sticky headers.
   const StickyHeaderListView.custom({
@@ -155,7 +155,7 @@ class SliverStickyHeaderList extends SliverMultiBoxAdaptorWidget {
 
   @override
   SliverMultiBoxAdaptorElement createElement() =>
-      SliverMultiBoxAdaptorElement(this, replaceMovedChildren: true);
+    SliverMultiBoxAdaptorElement(this, replaceMovedChildren: true);
 
   @override
   RenderSliverStickyHeaderList createRenderObject(BuildContext context) {
@@ -195,13 +195,13 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
       double childScrollOffset;
       if (innerChild.direction == constraints.axisDirection) {
         childScrollOffset =
-            math.max(0.0, scrollOffset - parentData.layoutOffset!);
+          math.max(0.0, scrollOffset - parentData.layoutOffset!);
       } else {
         final childEndOffset =
-            parentData.layoutOffset! + child.size.onAxis(constraints.axis);
+          parentData.layoutOffset! + child.size.onAxis(constraints.axis);
         // TODO should this be our layoutExtent or paintExtent, or what?
         childScrollOffset = math.max(
-            0.0, childEndOffset - (scrollOffset + geometry!.layoutExtent));
+          0.0, childEndOffset - (scrollOffset + geometry!.layoutExtent));
       }
       innerChild.provideScrollPosition(childScrollOffset);
     }
@@ -212,10 +212,10 @@ enum StickyHeaderSlot { header, content }
 
 class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot, RenderBox> {
   const StickyHeader(
-      {super.key,
-      this.direction = AxisDirection.down,
-      this.header,
-      this.content});
+    {super.key,
+    this.direction = AxisDirection.down,
+    this.header,
+    this.content});
 
   final AxisDirection direction;
   final Widget? header;
@@ -244,7 +244,7 @@ class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot,
 class RenderStickyHeader extends RenderBox
     with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
   RenderStickyHeader({required AxisDirection direction})
-      : _direction = direction;
+    : _direction = direction;
 
   RenderBox? get _header => childForSlot(StickyHeaderSlot.header);
 
@@ -261,7 +261,7 @@ class RenderStickyHeader extends RenderBox
 
   @override
   Iterable<RenderBox> get children =>
-      [if (_header != null) _header!, if (_content != null) _content!];
+    [if (_header != null) _header!, if (_content != null) _content!];
 
   double? _slackSize;
 
@@ -352,7 +352,7 @@ class RenderStickyHeader extends RenderBox
   }
 
   BoxParentData _parentData(RenderBox child) =>
-      child.parentData! as BoxParentData;
+    child.parentData! as BoxParentData;
 }
 
 Size sizeOn(Axis axis, {double main = 0, double cross = 0}) {

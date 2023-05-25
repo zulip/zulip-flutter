@@ -89,7 +89,7 @@ class SendMessageResult {
   });
 
   factory SendMessageResult.fromJson(Map<String, dynamic> json) =>
-      _$SendMessageResultFromJson(json);
+    _$SendMessageResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$SendMessageResultToJson(this);
 }
@@ -114,7 +114,7 @@ class UploadFileResult {
   });
 
   factory UploadFileResult.fromJson(Map<String, dynamic> json) =>
-      _$UploadFileResultFromJson(json);
+    _$UploadFileResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$UploadFileResultToJson(this);
 }

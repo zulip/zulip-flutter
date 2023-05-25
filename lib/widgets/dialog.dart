@@ -17,15 +17,15 @@ Widget _dialogActionText(String text) {
 // TODO(i18n): title, message, and action-button text
 void showErrorDialog({required BuildContext context, required String title, String? message}) {
   showDialog(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(title),
-        content: message != null ? SingleChildScrollView(child: Text(message)) : null,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: _dialogActionText('OK')),
-        ]));
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      title: Text(title),
+      content: message != null ? SingleChildScrollView(child: Text(message)) : null,
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: _dialogActionText('OK')),
+      ]));
 }
 
 void showSuggestedActionDialog({
@@ -36,14 +36,14 @@ void showSuggestedActionDialog({
   required VoidCallback onActionButtonPress,
 }) {
   showDialog(context: context, builder: (BuildContext context) => AlertDialog(
-    title: Text(title),
-    content: SingleChildScrollView(child: Text(message)),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: _dialogActionText('Cancel')),
-      TextButton(
-        onPressed: onActionButtonPress,
-        child: _dialogActionText(actionButtonText ?? 'Continue')),
-    ]));
+      title: Text(title),
+      content: SingleChildScrollView(child: Text(message)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: _dialogActionText('Cancel')),
+        TextButton(
+          onPressed: onActionButtonPress,
+          child: _dialogActionText(actionButtonText ?? 'Continue')),
+      ]));
 }

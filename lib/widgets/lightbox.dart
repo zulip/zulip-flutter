@@ -59,8 +59,7 @@ class LightboxHero extends StatelessWidget {
         // For a RealmContentNetworkImage shown during flight.
         return PerAccountStoreWidget(accountId: accountId, child: child);
       },
-      child: child,
-    );
+      child: child);
   }
 }
 
@@ -137,9 +136,9 @@ class _LightboxPageState extends State<_LightboxPage> {
     if (_headerFooterVisible) {
       // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
       final timestampText = DateFormat
-          .yMMMd(/* TODO(i18n): Pass selected language here, I think? */)
-          .add_Hms()
-          .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+        .yMMMd(/* TODO(i18n): Pass selected language here, I think? */)
+        .add_Hms()
+        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
 
       appBar = AppBar(
         centerTitle: false,
@@ -148,31 +147,29 @@ class _LightboxPageState extends State<_LightboxPage> {
 
         // TODO(#41): Show message author's avatar
         title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '${widget.message.senderFullName}\n',
+          text: TextSpan(children: [
+            TextSpan(
+              text: '${widget.message.senderFullName}\n',
 
-                // Restate default
-                style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
-              TextSpan(
-                text: timestampText,
+              // Restate default
+              style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
+            TextSpan(
+              text: timestampText,
 
-                // Make smaller, like a subtitle
-                style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-            ])));
+              // Make smaller, like a subtitle
+              style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
+          ])));
     }
 
     Widget? bottomAppBar;
     if (_headerFooterVisible) {
       bottomAppBar = BottomAppBar(
         color: appBarBackgroundColor,
-        child: Row(
-          children: [
-            _CopyLinkButton(url: widget.src),
-            // TODO(#43): Share image
-            // TODO(#42): Download image
-          ]));
+        child: Row(children: [
+          _CopyLinkButton(url: widget.src),
+          // TODO(#43): Share image
+          // TODO(#42): Download image
+        ]));
     }
 
     return Theme(
