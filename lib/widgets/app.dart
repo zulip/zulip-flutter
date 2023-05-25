@@ -179,7 +179,7 @@ class MessageListPage extends StatelessWidget {
 
               child: Expanded(
                 child: MessageList(narrow: narrow))),
-            const StreamComposeBox(),
+            const StreamComposeBox(streamId: 7), // TODO vary by narrow; this is `#test here`
           ]))));
   }
 }

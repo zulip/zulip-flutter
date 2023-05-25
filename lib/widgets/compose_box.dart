@@ -443,8 +443,13 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 
 /// The send button for StreamComposeBox.
 class _StreamSendButton extends StatefulWidget {
-  const _StreamSendButton({required this.topicController, required this.contentController});
+  const _StreamSendButton({
+    required this.streamId,
+    required this.topicController,
+    required this.contentController,
+  });
 
+  final int streamId;
   final TopicTextEditingController topicController;
   final ContentTextEditingController contentController;
 
@@ -520,7 +525,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     if (store.connection.realmUrl.origin != 'https://chat.zulip.org') {
       throw Exception('This method can currently only be used on https://chat.zulip.org.');
     }
-    final destination = StreamDestination(7, widget.topicController.textNormalized()); // TODO parametrize; this is `#test here`
+    final destination = StreamDestination(widget.streamId, widget.topicController.textNormalized());
     final content = widget.contentController.textNormalized();
     store.sendMessage(destination: destination, content: content);
 
@@ -564,7 +569,9 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
 /// The compose box for writing a stream message.
 class StreamComposeBox extends StatefulWidget {
-  const StreamComposeBox({super.key});
+  const StreamComposeBox({super.key, required this.streamId});
+
+  final int streamId;
 
   @override
   State<StreamComposeBox> createState() => _StreamComposeBoxState();
@@ -628,7 +635,11 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                       focusNode: _contentFocusNode),
                   ]))),
               const SizedBox(width: 8),
-              _StreamSendButton(topicController: _topicController, contentController: _contentController),
+              _StreamSendButton(
+                streamId: widget.streamId,
+                topicController: _topicController,
+                contentController: _contentController,
+              ),
             ]),
             Theme(
               data: themeData.copyWith(
