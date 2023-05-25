@@ -13,7 +13,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 
 class MessageList extends StatefulWidget {
-  const MessageList({Key? key}) : super(key: key);
+  const MessageList({super.key});
 
   @override
   State<StatefulWidget> createState() => _MessageListState();
@@ -212,8 +212,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
         RecipientHeaderChevronContainer(
           color: streamColor,
           // TODO globe/lock icons for web-public and private streams
-          child:
-            Text(streamName, style: TextStyle(color: contrastingColor))),
+          child: Text(streamName, style: TextStyle(color: contrastingColor))),
         Expanded(
           child: Padding(
             // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
@@ -229,8 +228,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
   }
 }
 
-final _kStreamMessageBorderColor =
-  const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor();
+final _kStreamMessageBorderColor = const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor();
 
 class PmRecipientHeader extends StatelessWidget {
   const PmRecipientHeader({super.key, required this.message});

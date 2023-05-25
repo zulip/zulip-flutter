@@ -226,8 +226,7 @@ final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 
 InlineContentNode parseInlineContent(dom.Node node) {
   final debugHtmlNode = kDebugMode ? node : null;
-  InlineContentNode unimplemented() =>
-    UnimplementedInlineContentNode(htmlNode: node);
+  InlineContentNode unimplemented() => UnimplementedInlineContentNode(htmlNode: node);
 
   if (node is dom.Text) {
     return TextNode(node.text, debugHtmlNode: debugHtmlNode);
@@ -239,8 +238,9 @@ InlineContentNode parseInlineContent(dom.Node node) {
   final element = node;
   final localName = element.localName;
   final classes = element.classes;
-  List<InlineContentNode> nodes() =>
-    element.nodes.map(parseInlineContent).toList(growable: false);
+  List<InlineContentNode> nodes() {
+    return element.nodes.map(parseInlineContent).toList(growable: false);
+  }
 
   if (localName == 'br' && classes.isEmpty) {
     return LineBreakInlineNode(debugHtmlNode: debugHtmlNode);
@@ -410,8 +410,9 @@ BlockContentNode parseBlockContent(dom.Node node) {
   final localName = element.localName;
   final classes = element.classes;
   List<BlockContentNode> blockNodes() => parseBlockContentList(element.nodes);
-  List<InlineContentNode> inlineNodes() =>
-    element.nodes.map(parseInlineContent).toList(growable: false);
+  List<InlineContentNode> inlineNodes() {
+    return element.nodes.map(parseInlineContent).toList(growable: false);
+  }
 
   if (localName == 'br' && classes.isEmpty) {
     return LineBreakNode(debugHtmlNode: debugHtmlNode);
@@ -489,8 +490,7 @@ List<BlockContentNode> parseImplicitParagraphBlockContentList(dom.NodeList nodes
   void consumeParagraph() {
     result.add(ParagraphNode(
       wasImplicit: true,
-      nodes:
-        currentParagraph.map(parseInlineContent).toList(growable: false)));
+      nodes: currentParagraph.map(parseInlineContent).toList(growable: false)));
     currentParagraph.clear();
   }
 

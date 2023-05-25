@@ -87,8 +87,9 @@ class User {
     return (value != null && value.isNotEmpty) ? value : null;
   }
 
-  static bool? _readIsSystemBot(Map json, String key) =>
-    json[key] ?? json['is_cross_realm_bot'];
+  static bool? _readIsSystemBot(Map json, String key) {
+    return json[key] ?? json['is_cross_realm_bot'];
+  }
 
   User({
     required this.userId,

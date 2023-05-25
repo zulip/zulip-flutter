@@ -194,14 +194,14 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
 
       double childScrollOffset;
       if (innerChild.direction == constraints.axisDirection) {
-        childScrollOffset =
-          math.max(0.0, scrollOffset - parentData.layoutOffset!);
+        childScrollOffset = math.max(0.0,
+          scrollOffset - parentData.layoutOffset!);
       } else {
         final childEndOffset =
           parentData.layoutOffset! + child.size.onAxis(constraints.axis);
         // TODO should this be our layoutExtent or paintExtent, or what?
-        childScrollOffset = math.max(
-          0.0, childEndOffset - (scrollOffset + geometry!.layoutExtent));
+        childScrollOffset = math.max(0.0,
+          childEndOffset - (scrollOffset + geometry!.layoutExtent));
       }
       innerChild.provideScrollPosition(childScrollOffset);
     }
@@ -211,11 +211,12 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
 enum StickyHeaderSlot { header, content }
 
 class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot, RenderBox> {
-  const StickyHeader(
-    {super.key,
+  const StickyHeader({
+    super.key,
     this.direction = AxisDirection.down,
     this.header,
-    this.content});
+    this.content,
+  });
 
   final AxisDirection direction;
   final Widget? header;
@@ -241,8 +242,7 @@ class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot,
   }
 }
 
-class RenderStickyHeader extends RenderBox
-    with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
+class RenderStickyHeader extends RenderBox with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
   RenderStickyHeader({required AxisDirection direction})
     : _direction = direction;
 
@@ -260,8 +260,10 @@ class RenderStickyHeader extends RenderBox
   }
 
   @override
-  Iterable<RenderBox> get children =>
-    [if (_header != null) _header!, if (_content != null) _content!];
+  Iterable<RenderBox> get children => [
+    if (_header != null) _header!,
+    if (_content != null) _content!,
+  ];
 
   double? _slackSize;
 
@@ -351,8 +353,7 @@ class RenderStickyHeader extends RenderBox
     return false;
   }
 
-  BoxParentData _parentData(RenderBox child) =>
-    child.parentData! as BoxParentData;
+  BoxParentData _parentData(RenderBox child) => child.parentData! as BoxParentData;
 }
 
 Size sizeOn(Axis axis, {double main = 0, double cross = 0}) {

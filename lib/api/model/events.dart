@@ -202,8 +202,7 @@ class MessageEvent extends Event {
     id: json['id'] as int,
     message: Message.fromJson({
       ...json['message'] as Map<String, dynamic>,
-      'flags':
-        (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      'flags': (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
     }),
   );
 

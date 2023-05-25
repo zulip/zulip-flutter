@@ -250,7 +250,9 @@ Future<void> _uploadFiles({
       context: context,
       title: 'File(s) too large',
       message:
-        '${tooLargeFiles.length} file(s) are larger than the server\'s limit of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:\n\n$listMessage');
+        '${tooLargeFiles.length} file(s) are larger than the server\'s limit'
+        ' of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:'
+        '\n\n$listMessage');
   }
 
   final List<(int, _File)> uploadsInProgress = [];
@@ -320,7 +322,10 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(icon: Icon(icon), tooltip: tooltip, onPressed: () => _handlePress(context));
+    return IconButton(
+      icon: Icon(icon),
+      tooltip: tooltip,
+      onPressed: () => _handlePress(context));
   }
 }
 

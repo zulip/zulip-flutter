@@ -38,8 +38,7 @@ class GlobalStoreWidget extends StatefulWidget {
   ///  * [PerAccountStoreWidget.of], for the user's data associated with a
   ///    particular Zulip account.
   static GlobalStore of(BuildContext context) {
-    final widget = context
-      .dependOnInheritedWidgetOfExactType<_GlobalStoreInheritedWidget>();
+    final widget = context.dependOnInheritedWidgetOfExactType<_GlobalStoreInheritedWidget>();
     assert(widget != null, 'No GlobalStoreWidget ancestor');
     return widget!.store;
   }
@@ -75,9 +74,10 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
 // a [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
 // provide it to descendants, and one widget can't be both of those.
 class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
-  const _GlobalStoreInheritedWidget(
-    {required GlobalStore store, required super.child})
-    : super(notifier: store);
+  const _GlobalStoreInheritedWidget({
+    required GlobalStore store,
+    required super.child,
+  }) : super(notifier: store);
 
   GlobalStore get store => notifier!;
 
@@ -103,8 +103,11 @@ class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
 ///  * [GlobalStoreWidget], for the app's data beyond that of a
 ///    particular account.
 class PerAccountStoreWidget extends StatefulWidget {
-  const PerAccountStoreWidget(
-    {super.key, required this.accountId, required this.child});
+  const PerAccountStoreWidget({
+    super.key,
+    required this.accountId,
+    required this.child,
+  });
 
   final int accountId;
   final Widget child;
@@ -137,8 +140,7 @@ class PerAccountStoreWidget extends StatefulWidget {
   ///    particular account.
   ///  * [InheritedNotifier], which provides the "dependency" mechanism.
   static PerAccountStore of(BuildContext context) {
-    final widget = context
-      .dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
+    final widget = context.dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
     assert(widget != null, 'No PerAccountStoreWidget ancestor');
     return widget!.store;
   }
@@ -223,9 +225,10 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
 // [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
 // provide it to descendants, and one widget can't be both of those.
 class _PerAccountStoreInheritedWidget extends InheritedNotifier<PerAccountStore> {
-  const _PerAccountStoreInheritedWidget(
-    {required PerAccountStore store, required super.child})
-    : super(notifier: store);
+  const _PerAccountStoreInheritedWidget({
+    required PerAccountStore store,
+    required super.child,
+  }) : super(notifier: store);
 
   PerAccountStore get store => notifier!;
 

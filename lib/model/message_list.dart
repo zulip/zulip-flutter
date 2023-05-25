@@ -57,8 +57,10 @@ class MessageListView extends ChangeNotifier {
     assert(messages.isEmpty);
     assert(contents.isEmpty);
     // TODO schedule all this in another isolate
-    final result =
-      await getMessages(store.connection, numBefore: 100, numAfter: 10);
+    final result = await getMessages(store.connection,
+      numBefore: 100,
+      numAfter: 10,
+    );
     messages.addAll(result.messages);
     contents.addAll(_contentsOfMessages(result.messages));
     _fetched = true;
@@ -92,8 +94,7 @@ class MessageListView extends ChangeNotifier {
     notifyListeners();
   }
 
-  static Iterable<ZulipContent> _contentsOfMessages(
-      Iterable<Message> messages) {
+  static Iterable<ZulipContent> _contentsOfMessages(Iterable<Message> messages) {
     // This will get more complicated to handle the ways that messages interact
     // with the display of neighboring messages: sender headings,
     // recipient headings, and date separators.

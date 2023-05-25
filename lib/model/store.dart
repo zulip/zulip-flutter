@@ -149,7 +149,8 @@ class PerAccountStore extends ChangeNotifier {
     required this.connection,
     required InitialSnapshot initialSnapshot,
   }) : zulipVersion = initialSnapshot.zulipVersion,
-       users = Map.fromEntries(initialSnapshot.realmUsers
+       users = Map.fromEntries(
+         initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),

@@ -97,8 +97,7 @@ class BlockContentNodeWidget extends StatelessWidget {
             border: Border(
               left: BorderSide(
                 width: 5,
-                color: const HSLColor.fromAHSL(1, 0, 0, 0.87)
-                  .toColor()))),
+                color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
           child: BlockContentList(nodes: node.nodes)));
     } else if (node is CodeBlockNode) {
       return CodeBlock(node: node);
@@ -311,15 +310,13 @@ InlineSpan _buildInlineNode(InlineContentNode node) {
     return styled(node.nodes,
       TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   } else if (node is UserMentionNode) {
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.middle, child: UserMention(node: node));
+    return WidgetSpan(alignment: PlaceholderAlignment.middle,
+      child: UserMention(node: node));
   } else if (node is UnicodeEmojiNode) {
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.middle,
+    return WidgetSpan(alignment: PlaceholderAlignment.middle,
       child: MessageUnicodeEmoji(node: node));
   } else if (node is ImageEmojiNode) {
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.middle,
+    return WidgetSpan(alignment: PlaceholderAlignment.middle,
       child: MessageImageEmoji(node: node));
   } else if (node is UnimplementedInlineContentNode) {
     return _errorUnimplemented(node);

@@ -15,7 +15,11 @@ Widget _dialogActionText(String text) {
 }
 
 // TODO(i18n): title, message, and action-button text
-void showErrorDialog({required BuildContext context, required String title, String? message}) {
+void showErrorDialog({
+  required BuildContext context,
+  required String title,
+  String? message,
+}) {
   showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
@@ -35,7 +39,9 @@ void showSuggestedActionDialog({
   required String? actionButtonText,
   required VoidCallback onActionButtonPress,
 }) {
-  showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
       title: Text(title),
       content: SingleChildScrollView(child: Text(message)),
       actions: [
