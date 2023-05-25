@@ -6,6 +6,8 @@ sealed class Narrow {
   /// This const constructor allows subclasses to have const constructors.
   const Narrow();
 
+  // TODO implement muting; will need containsMessage to take more params
+  //   This means stream muting, topic un/muting, and user muting.
   bool containsMessage(Message message);
 }
 
@@ -19,7 +21,6 @@ class AllMessagesNarrow extends Narrow {
 
   @override
   bool containsMessage(Message message) {
-    // TODO implement muting; will need containsMessage to take more params
     return true;
   }
 
@@ -34,4 +35,46 @@ class AllMessagesNarrow extends Narrow {
   int get hashCode => 'AllMessagesNarrow'.hashCode;
 }
 
-// TODO other narrow types
+class StreamNarrow extends Narrow {
+  const StreamNarrow(this.streamId);
+
+  final int streamId;
+
+  @override
+  bool containsMessage(Message message) {
+    return message is StreamMessage && message.streamId == streamId;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! StreamNarrow) return false;
+    return other.streamId == streamId;
+  }
+
+  @override
+  int get hashCode => Object.hash('StreamNarrow', streamId);
+}
+
+class TopicNarrow extends Narrow {
+  const TopicNarrow(this.streamId, this.topic);
+
+  final int streamId;
+  final String topic;
+
+  @override
+  bool containsMessage(Message message) {
+    return (message is StreamMessage
+      && message.streamId == streamId && message.subject == topic);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! TopicNarrow) return false;
+    return other.streamId == streamId && other.topic == topic;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicNarrow', streamId, topic);
+}
+
+// TODO other narrow types: PMs/DMs; starred, mentioned; searches; arbitrary
