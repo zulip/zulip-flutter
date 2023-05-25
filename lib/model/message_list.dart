@@ -58,6 +58,7 @@ class MessageListView extends ChangeNotifier {
     assert(contents.isEmpty);
     // TODO schedule all this in another isolate
     final result = await getMessages(store.connection,
+      narrow: narrow.apiEncode(),
       anchor: AnchorCode.newest, // TODO(#80): switch to firstUnread
       numBefore: 100,
       numAfter: 10,

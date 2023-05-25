@@ -2,17 +2,19 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
 import '../model/model.dart';
+import '../model/narrow.dart';
 
 part 'messages.g.dart';
 
 /// https://zulip.com/api/get-messages
 Future<GetMessagesResult> getMessages(ApiConnection connection, {
+  required ApiNarrow narrow,
   required Anchor anchor,
   required int numBefore,
   required int numAfter,
 }) {
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
-    // 'narrow': [], // TODO parametrize
+    'narrow': narrow,
     'anchor': switch (anchor) {
       NumericAnchor(:var messageId) => messageId,
       AnchorCode.newest             => RawParameter('newest'),
