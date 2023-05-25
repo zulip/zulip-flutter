@@ -386,8 +386,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
-    // TODO: This doesn't give quite the right UI on Android.
-    //   Perhaps try `image_picker`: https://github.com/zulip/zulip-flutter/issues/56#issuecomment-1514001281
+    // TODO(#114): This doesn't give quite the right UI on Android.
     return _getFilePickerFiles(context, FileType.media);
   }
 }
