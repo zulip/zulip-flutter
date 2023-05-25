@@ -3,9 +3,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dialog.dart';
 
 import '../api/route/messages.dart';
+import '../model/narrow.dart';
+import 'dialog.dart';
 import 'store.dart';
 
 const double _inputVerticalPadding = 8;
@@ -656,5 +657,25 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                 _AttachFromCameraButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
               ])),
           ]))));
+  }
+}
+
+class ComposeBox extends StatelessWidget {
+  const ComposeBox({super.key, required this.narrow});
+
+  final Narrow narrow;
+
+  @override
+  Widget build(BuildContext context) {
+    final narrow = this.narrow;
+    if (narrow is StreamNarrow) {
+      return StreamComposeBox(streamId: narrow.streamId);
+    } else if (narrow is TopicNarrow) {
+      return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
+    } else if (narrow is AllMessagesNarrow) {
+      return const StreamComposeBox(streamId: 7); // TODO drop compose on all-messages; this is `#test here`
+    } else {
+      throw Exception("impossible narrow"); // TODO(dart-3): show this statically
+    }
   }
 }
