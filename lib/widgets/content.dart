@@ -351,13 +351,7 @@ InlineSpan inlineCode(InlineCodeNode node) {
   // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
   // Use a light gray background, instead of a border.
-  return TextSpan(
-    style: const TextStyle(
-      backgroundColor: Color(0xffeeeeee),
-      fontSize: 0.825 * kBaseFontSize,
-      fontFamily: "Source Code Pro", // TODO supply font
-      fontFamilyFallback: ["monospace"],
-    ),
+  return TextSpan(style: _kInlineCodeStyle,
     children: _buildInlineList(node.nodes));
 
   // Another fun solution -- we can in fact have a border!  Like so:
@@ -376,6 +370,12 @@ InlineSpan inlineCode(InlineCodeNode node) {
   //   const TextSpan(text: _kInlineCodeRightBracket),
   // ]);
 }
+
+const _kInlineCodeStyle = TextStyle(
+  backgroundColor: Color(0xffeeeeee),
+  fontSize: 0.825 * kBaseFontSize,
+  fontFamily: "Source Code Pro", // TODO supply font
+  fontFamilyFallback: ["monospace"]);
 
 const _kCodeBlockStyle = TextStyle(
   backgroundColor: Color.fromRGBO(255, 255, 255, 1),
