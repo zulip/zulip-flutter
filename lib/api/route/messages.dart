@@ -10,8 +10,12 @@ part 'messages.g.dart';
 Future<GetMessagesResult> getMessages(ApiConnection connection, {
   required ApiNarrow narrow,
   required Anchor anchor,
+  bool? includeAnchor,
   required int numBefore,
   required int numAfter,
+  bool? clientGravatar,
+  bool? applyMarkdown,
+  // bool? useFirstUnreadAnchor // omitted because deprecated
 }) {
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     'narrow': narrow,
@@ -21,8 +25,11 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
       AnchorCode.oldest             => RawParameter('oldest'),
       AnchorCode.firstUnread        => RawParameter('first_unread'),
     },
+    if (includeAnchor != null) 'include_anchor': includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
+    if (clientGravatar != null) 'client_gravatar': clientGravatar,
+    if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
   });
 }
 
