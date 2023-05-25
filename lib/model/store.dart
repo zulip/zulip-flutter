@@ -248,18 +248,14 @@ class PerAccountStore extends ChangeNotifier {
     }
   }
 
-  Future<void> sendStreamMessage({required String topic, required String content}) {
+  Future<void> sendMessage({required MessageDestination destination, required String content}) {
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
-
-    if (connection.realmUrl.origin != 'https://chat.zulip.org') {
-      throw Exception('This method can currently only be used on https://chat.zulip.org.');
-    }
-    final destination = StreamDestination(7, topic); // TODO parametrize; this is `#test here`
-
-    return sendMessage(connection, destination: destination, content: content);
+    return _apiSendMessage(connection, destination: destination, content: content);
   }
 }
+
+const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
 
 /// A [GlobalStore] that uses a live server and live, persistent local database.
 ///

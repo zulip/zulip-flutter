@@ -517,10 +517,12 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     }
 
     final store = PerAccountStoreWidget.of(context);
-    store.sendStreamMessage(
-      topic: widget.topicController.textNormalized(),
-      content: widget.contentController.textNormalized(),
-    );
+    if (store.connection.realmUrl.origin != 'https://chat.zulip.org') {
+      throw Exception('This method can currently only be used on https://chat.zulip.org.');
+    }
+    final destination = StreamDestination(7, widget.topicController.textNormalized()); // TODO parametrize; this is `#test here`
+    final content = widget.contentController.textNormalized();
+    store.sendMessage(destination: destination, content: content);
 
     widget.contentController.clear();
   }
