@@ -251,7 +251,7 @@ class CodeBlock extends StatelessWidget {
           color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
       child: SingleChildScrollViewWithScrollbar(
         scrollDirection: Axis.horizontal,
-        child: Text(text, style: _kCodeStyle)));
+        child: Text(text, style: _kCodeBlockStyle)));
   }
 }
 
@@ -377,7 +377,7 @@ InlineSpan inlineCode(InlineCodeNode node) {
   // ]);
 }
 
-const _kCodeStyle = TextStyle(
+const _kCodeBlockStyle = TextStyle(
   backgroundColor: Color.fromRGBO(255, 255, 255, 1),
   fontSize: 0.825 * kBaseFontSize,
   fontFamily: "Source Code Pro", // TODO supply font
