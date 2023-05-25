@@ -2,7 +2,7 @@
 import '../api/model/model.dart';
 
 /// A Zulip narrow.
-abstract class Narrow {
+sealed class Narrow {
   /// This const constructor allows subclasses to have const constructors.
   const Narrow();
 
@@ -25,8 +25,6 @@ class AllMessagesNarrow extends Narrow {
 
   @override
   bool operator ==(Object other) {
-    // Conceptually this is a sealed class, so equality is simplified.
-    // TODO(dart-3): Make this actually a sealed class.
     if (other is! AllMessagesNarrow) return false;
     // Conceptually there's only one value of this type.
     return true;
