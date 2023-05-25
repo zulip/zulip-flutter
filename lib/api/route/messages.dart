@@ -7,15 +7,40 @@ part 'messages.g.dart';
 
 /// https://zulip.com/api/get-messages
 Future<GetMessagesResult> getMessages(ApiConnection connection, {
+  required Anchor anchor,
   required int numBefore,
   required int numAfter,
 }) {
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     // 'narrow': [], // TODO parametrize
-    'anchor': 999999999, // TODO parametrize; use RawParameter for strings
+    'anchor': switch (anchor) {
+      NumericAnchor(:var messageId) => messageId,
+      AnchorCode.newest             => RawParameter('newest'),
+      AnchorCode.oldest             => RawParameter('oldest'),
+      AnchorCode.firstUnread        => RawParameter('first_unread'),
+    },
     'num_before': numBefore,
     'num_after': numAfter,
   });
+}
+
+/// An anchor value for [getMessages].
+///
+/// https://zulip.com/api/get-messages#parameter-anchor
+sealed class Anchor {
+  /// This const constructor allows subclasses to have const constructors.
+  const Anchor();
+}
+
+/// An anchor value for [getMessages] other than a specific message ID.
+///
+/// https://zulip.com/api/get-messages#parameter-anchor
+enum AnchorCode implements Anchor { newest, oldest, firstUnread }
+
+/// A specific message ID, used as an anchor in [getMessages].
+class NumericAnchor extends Anchor {
+  const NumericAnchor(this.messageId);
+  final int messageId;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
