@@ -266,26 +266,34 @@ class StreamTopicRecipientHeader extends StatelessWidget {
       ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
         ? Colors.white
         : Colors.black;
-    return ColoredBox(
-      color: _kStreamMessageBorderColor,
-      child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-        // TODO: Long stream name will break layout; find a fix.
-        RecipientHeaderChevronContainer(
-          color: streamColor,
-          // TODO globe/lock icons for web-public and private streams
-          child: Text(streamName, style: TextStyle(color: contrastingColor))),
-        Expanded(
-          child: Padding(
-            // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
-            padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
-            child: Text(topic,
-              // TODO: Give a way to see the whole topic (maybe a
-              //   long-press interaction?)
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600)))),
-        // TODO topic links?
-        // Then web also has edit/resolve/mute buttons. Skip those for mobile.
-      ]));
+    return GestureDetector(
+      onTap: () => Navigator.push(context,
+        MessageListPage.buildRoute(context: context,
+          narrow: TopicNarrow(message.streamId, message.subject))),
+      child: ColoredBox(
+        color: _kStreamMessageBorderColor,
+        child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          // TODO: Long stream name will break layout; find a fix.
+          GestureDetector(
+            onTap: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: StreamNarrow(message.streamId))),
+            child: RecipientHeaderChevronContainer(
+              color: streamColor,
+              // TODO globe/lock icons for web-public and private streams
+              child: Text(streamName, style: TextStyle(color: contrastingColor)))),
+          Expanded(
+            child: Padding(
+              // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
+              padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
+              child: Text(topic,
+                // TODO: Give a way to see the whole topic (maybe a
+                //   long-press interaction?)
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600)))),
+          // TODO topic links?
+          // Then web also has edit/resolve/mute buttons. Skip those for mobile.
+        ])));
   }
 }
 
