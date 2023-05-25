@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'about_zulip.dart';
 import 'compose_box.dart';
 import 'login.dart';
 import 'message_list.dart';
@@ -57,7 +58,9 @@ class ChooseAccountPage extends StatelessWidget {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose account')),
+      appBar: AppBar(
+        title: const Text('Choose account'),
+        actions: const [ChooseAccountPageOverflowButton()]),
       body: SafeArea(
         minimum: const EdgeInsets.all(8),
         child: Center(
@@ -76,6 +79,28 @@ class ChooseAccountPage extends StatelessWidget {
                 child: const Text('Add an account')),
             ]))),
       ));
+  }
+}
+
+enum ChooseAccountPageOverflowMenuItem { aboutZulip }
+
+class ChooseAccountPageOverflowButton extends StatelessWidget {
+  const ChooseAccountPageOverflowButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<ChooseAccountPageOverflowMenuItem>(
+      itemBuilder: (BuildContext context) => const [
+        PopupMenuItem(
+          value: ChooseAccountPageOverflowMenuItem.aboutZulip,
+          child: Text('About Zulip')),
+      ],
+      onSelected: (item) {
+        switch (item) {
+          case ChooseAccountPageOverflowMenuItem.aboutZulip:
+            Navigator.push(context, AboutZulipPage.buildRoute(context));
+        }
+      });
   }
 }
 
