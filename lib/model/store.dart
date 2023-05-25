@@ -251,7 +251,13 @@ class PerAccountStore extends ChangeNotifier {
   Future<void> sendStreamMessage({required String topic, required String content}) {
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
-    return sendMessage(connection, topic: topic, content: content);
+
+    if (connection.realmUrl.origin != 'https://chat.zulip.org') {
+      throw Exception('This method can currently only be used on https://chat.zulip.org.');
+    }
+    final destination = StreamDestination(7, topic); // TODO parametrize; this is `#test here`
+
+    return sendMessage(connection, destination: destination, content: content);
   }
 }
 

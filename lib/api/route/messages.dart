@@ -92,24 +92,50 @@ const int kMaxMessageLengthCodePoints = 10000;
 const String kNoTopicTopic = '(no topic)';
 
 /// https://zulip.com/api/send-message
-// TODO currently only handles stream messages; fix
 Future<SendMessageResult> sendMessage(
   ApiConnection connection, {
+  required MessageDestination destination,
   required String content,
-  required String topic,
 }) {
-  // assert() is less verbose but would have no effect in production, I think:
-  //   https://dart.dev/guides/language/language-tour#assert
-  if (connection.realmUrl.origin != 'https://chat.zulip.org') {
-    throw Exception('This binding can currently only be used on https://chat.zulip.org.');
-  }
-
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
-    'type': RawParameter('stream'), // TODO parametrize
-    'to': 7, // TODO parametrize; this is `#test here`
-    'topic': RawParameter(topic),
+    if (destination is StreamDestination) ...{
+      'type': RawParameter('stream'),
+      'to': destination.streamId,
+      'topic': RawParameter(destination.topic),
+    } else if (destination is PmDestination) ...{
+      'type': RawParameter('private'), // TODO(server-7)
+      'to': destination.userIds,
+    } else ...(
+      throw Exception('impossible destination') // TODO(dart-3) show this statically
+    ),
     'content': RawParameter(content),
   });
+}
+
+/// Which conversation to send a message to, in [sendMessage].
+///
+/// This is either a [StreamDestination] or a [PmDestination].
+sealed class MessageDestination {}
+
+/// A conversation in a stream, for specifying to [sendMessage].
+///
+/// The server accepts a stream name as an alternative to a stream ID,
+/// but this binding currently doesn't.
+class StreamDestination extends MessageDestination {
+  StreamDestination(this.streamId, this.topic);
+
+  final int streamId;
+  final String topic;
+}
+
+/// A PM conversation, for specifying to [sendMessage].
+///
+/// The server accepts a list of Zulip API emails as an alternative to
+/// a list of user IDs, but this binding currently doesn't.
+class PmDestination extends MessageDestination {
+  PmDestination({required this.userIds});
+
+  final List<int> userIds;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
