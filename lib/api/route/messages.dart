@@ -96,6 +96,8 @@ Future<SendMessageResult> sendMessage(
   ApiConnection connection, {
   required MessageDestination destination,
   required String content,
+  String? queueId,
+  String? localId,
 }) {
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     if (destination is StreamDestination) ...{
@@ -109,6 +111,8 @@ Future<SendMessageResult> sendMessage(
       throw Exception('impossible destination') // TODO(dart-3) show this statically
     ),
     'content': RawParameter(content),
+    if (queueId != null) 'queue_id': queueId,
+    if (localId != null) 'local_id': localId,
   });
 }
 
