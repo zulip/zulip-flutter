@@ -547,6 +547,8 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
         color: backgroundColor,
       ),
       child: IconButton(
+        tooltip: 'Send',
+
         // Match the height of the content input. Zeroing the padding lets the
         // constraints take over.
         constraints: const BoxConstraints(minWidth: _sendButtonSize, minHeight: _sendButtonSize),
