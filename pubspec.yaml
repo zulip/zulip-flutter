@@ -54,6 +54,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.13
   app_settings: ^4.2.0
   image_picker: ^0.8.7+3
+  package_info_plus: ^4.0.1
 
 dev_dependencies:
   flutter_test:
