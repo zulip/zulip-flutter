@@ -27,7 +27,7 @@ class MessageListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("All messages")),
+      appBar: AppBar(title: MessageListAppBarTitle(narrow: narrow)),
       body: Builder(
         builder: (BuildContext context) => Center(
           child: Column(children: [
@@ -47,6 +47,31 @@ class MessageListPage extends StatelessWidget {
           ]))));
   }
 }
+
+class MessageListAppBarTitle extends StatelessWidget {
+  const MessageListAppBarTitle({super.key, required this.narrow});
+
+  final Narrow narrow;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (narrow) {
+      case AllMessagesNarrow():
+        return const Text("All messages");
+
+      case StreamNarrow(:var streamId):
+        final store = PerAccountStoreWidget.of(context);
+        final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
+        return Text("#$streamName"); // TODO show stream privacy icon
+
+      case TopicNarrow(:var streamId, :var topic):
+        final store = PerAccountStoreWidget.of(context);
+        final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
+        return Text("#$streamName > $topic"); // TODO show stream privacy icon; format on two lines
+    }
+  }
+}
+
 
 class MessageList extends StatefulWidget {
   const MessageList({super.key, required this.narrow});
