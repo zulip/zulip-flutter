@@ -982,5 +982,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.1.0-129.0.dev <4.0.0"
-  flutter: ">=3.11.0-11.0.pre.15"
+  dart: ">=3.1.0-155.0.dev <4.0.0"
+  flutter: ">=3.11.0-16.0.pre.11"
