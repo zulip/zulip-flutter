@@ -118,6 +118,50 @@ class User {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
 
+/// As in `streams` in the initial snapshot.
+///
+/// Not called `Stream` because dart:async uses that name.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ZulipStream {
+  final int streamId;
+  final String name;
+  final String description;
+  final String renderedDescription;
+
+  final int dateCreated;
+  final int? firstMessageId;
+
+  final bool inviteOnly;
+  final bool isWebPublic; // present since 2.1, according to /api/changelog
+  final bool historyPublicToSubscribers;
+  final int? messageRetentionDays;
+
+  final int streamPostPolicy; // TODO enum
+  // final bool isAnnouncementOnly; // deprecated; ignore
+
+  final int? canRemoveSubscribersGroupId; // TODO(server-6)
+
+  ZulipStream({
+    required this.streamId,
+    required this.name,
+    required this.description,
+    required this.renderedDescription,
+    required this.dateCreated,
+    required this.firstMessageId,
+    required this.inviteOnly,
+    required this.isWebPublic,
+    required this.historyPublicToSubscribers,
+    required this.messageRetentionDays,
+    required this.streamPostPolicy,
+    required this.canRemoveSubscribersGroupId,
+  });
+
+  factory ZulipStream.fromJson(Map<String, dynamic> json) =>
+    _$ZulipStreamFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ZulipStreamToJson(this);
+}
+
 /// As in `subscriptions` in the initial snapshot.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Subscription {

@@ -7,6 +7,11 @@ part 'initial_snapshot.g.dart';
 // https://zulip.com/api/register-queue#response
 @JsonSerializable(fieldRename: FieldRename.snake)
 class InitialSnapshot {
+  // Keep these fields in the order they appear in the API docs.
+  // (For many API types we choose a more logical order than the docs.
+  // But this one is so long that that'd make it become impossible to
+  // compare the lists by hand.)
+
   final String? queueId;
   final int lastEventId;
   final int zulipFeatureLevel;
@@ -21,6 +26,8 @@ class InitialSnapshot {
 
   final List<Subscription> subscriptions;
 
+  final List<ZulipStream> streams;
+
   final int maxFileUploadSizeMib;
 
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
@@ -31,6 +38,7 @@ class InitialSnapshot {
   final List<User> crossRealmBots;
 
   // TODO etc., etc.
+  // If adding fields, keep them all in the order they appear in the API docs.
 
   // `is_active` is sometimes absent:
   //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/.60is_active.60.20in.20.60.2Fregister.60.20response/near/1371603
@@ -59,6 +67,7 @@ class InitialSnapshot {
     required this.alertWords,
     required this.customProfileFields,
     required this.subscriptions,
+    required this.streams,
     required this.maxFileUploadSizeMib,
     required this.realmUsers,
     required this.realmNonActiveUsers,

@@ -94,6 +94,38 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'is_system_bot': instance.isSystemBot,
     };
 
+ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
+      streamId: json['stream_id'] as int,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      renderedDescription: json['rendered_description'] as String,
+      dateCreated: json['date_created'] as int,
+      firstMessageId: json['first_message_id'] as int?,
+      inviteOnly: json['invite_only'] as bool,
+      isWebPublic: json['is_web_public'] as bool,
+      historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
+      messageRetentionDays: json['message_retention_days'] as int?,
+      streamPostPolicy: json['stream_post_policy'] as int,
+      canRemoveSubscribersGroupId:
+          json['can_remove_subscribers_group_id'] as int?,
+    );
+
+Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
+    <String, dynamic>{
+      'stream_id': instance.streamId,
+      'name': instance.name,
+      'description': instance.description,
+      'rendered_description': instance.renderedDescription,
+      'date_created': instance.dateCreated,
+      'first_message_id': instance.firstMessageId,
+      'invite_only': instance.inviteOnly,
+      'is_web_public': instance.isWebPublic,
+      'history_public_to_subscribers': instance.historyPublicToSubscribers,
+      'message_retention_days': instance.messageRetentionDays,
+      'stream_post_policy': instance.streamPostPolicy,
+      'can_remove_subscribers_group_id': instance.canRemoveSubscribersGroupId,
+    };
+
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       streamId: json['stream_id'] as int,
       name: json['name'] as String,
