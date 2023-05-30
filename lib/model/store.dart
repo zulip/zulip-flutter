@@ -154,6 +154,8 @@ class PerAccountStore extends ChangeNotifier {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
+       streams = Map.fromEntries(initialSnapshot.streams.map(
+         (stream) => MapEntry(stream.streamId, stream))),
        subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
          (subscription) => MapEntry(subscription.streamId, subscription))),
        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
@@ -161,8 +163,10 @@ class PerAccountStore extends ChangeNotifier {
   final Account account;
   final ApiConnection connection;
 
+  // TODO(#135): Keep all this data updated by handling Zulip events from the server.
   final String zulipVersion;
   final Map<int, User> users;
+  final Map<int, ZulipStream> streams;
   final Map<int, Subscription> subscriptions;
   final int maxFileUploadSizeMib; // No event for this.
 
