@@ -90,5 +90,22 @@ void main() {
       check(parse(withRecipients([user11, user2, user3])).displayRecipient)
         .deepEquals(asRecipients([user2, user3, user11]));
     });
+
+    test('allRecipientIds', () {
+      check(parse(withRecipients([user2])).allRecipientIds)
+        .deepEquals([2]);
+
+      check(parse(withRecipients([user2, user3])).allRecipientIds)
+        .deepEquals([2, 3]);
+      check(parse(withRecipients([user3, user2])).allRecipientIds)
+        .deepEquals([2, 3]);
+
+      check(parse(withRecipients([user2, user3, user11])).allRecipientIds)
+        .deepEquals([2, 3, 11]);
+      check(parse(withRecipients([user3, user11, user2])).allRecipientIds)
+        .deepEquals([2, 3, 11]);
+      check(parse(withRecipients([user11, user2, user3])).allRecipientIds)
+        .deepEquals([2, 3, 11]);
+    });
   });
 }

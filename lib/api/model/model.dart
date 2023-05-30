@@ -393,8 +393,28 @@ class DmMessage extends Message {
   String get type => 'private';
 
   /// The `display_recipient` from the server, sorted by user ID numerically.
+  ///
+  /// This lists the sender as well as all (other) recipients, and it
+  /// lists each user just once.  In particular the self-user is always
+  /// included.
+  ///
+  /// Note the data here is not updated on changes to the users, so everything
+  /// other than the user IDs may be stale.
+  /// Consider using [allRecipientIds] instead, and getting user details
+  /// from the store.
+  // TODO(server): Document that it's all users.  That statement is based on
+  //   reverse-engineering notes in zulip-mobile:src/api/modelTypes.js at PmMessage.
   @DmRecipientListConverter()
   final List<DmRecipient> displayRecipient;
+
+  /// The user IDs of all users in the thread, sorted numerically.
+  ///
+  /// This lists the sender as well as all (other) recipients, and it
+  /// lists each user just once.  In particular the self-user is always
+  /// included.
+  ///
+  /// This is a result of [List.map], so it has an efficient `length`.
+  Iterable<int> get allRecipientIds => displayRecipient.map((e) => e.id);
 
   DmMessage({
     super.avatarUrl,
