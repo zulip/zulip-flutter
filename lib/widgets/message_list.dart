@@ -315,12 +315,22 @@ class DmRecipientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: RecipientHeaderChevronContainer(
-        color: _kDmRecipientHeaderColor,
-        child: const Text("Direct message", // TODO DM recipient headers
-          style: TextStyle(color: Colors.white))));
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        final store = PerAccountStoreWidget.of(context);
+        final narrow = DmNarrow(
+          allRecipientIds: message.allRecipientIds.toList(growable: false),
+          selfUserId: store.account.userId);
+        Navigator.push(context,
+          MessageListPage.buildRoute(context: context, narrow: narrow));
+      },
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: RecipientHeaderChevronContainer(
+          color: _kDmRecipientHeaderColor,
+          child: const Text("Direct message", // TODO DM recipient headers
+            style: TextStyle(color: Colors.white)))));
   }
 }
 
