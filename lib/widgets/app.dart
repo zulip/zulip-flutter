@@ -119,6 +119,11 @@ class HomePage extends StatelessWidget {
     InlineSpan bold(String text) => TextSpan(
       text: text, style: const TextStyle(fontWeight: FontWeight.bold));
 
+    int? testStreamId;
+    if (store.connection.realmUrl.origin == 'https://chat.zulip.org') {
+      testStreamId = 7; // i.e. `#test here`; TODO cut this scaffolding hack
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Home")),
       body: Center(
@@ -145,6 +150,14 @@ class HomePage extends StatelessWidget {
               MessageListPage.buildRoute(context: context,
                 narrow: const AllMessagesNarrow())),
             child: const Text("All messages")),
+          if (testStreamId != null) ...[
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: StreamNarrow(testStreamId!))),
+              child: const Text("#test here")), // scaffolding hack, see above
+          ],
         ])));
   }
 }
