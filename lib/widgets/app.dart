@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../model/narrow.dart';
 import 'about_zulip.dart';
-import 'compose_box.dart';
 import 'login.dart';
 import 'message_list.dart';
-import 'page.dart';
 import 'store.dart';
 
 class ZulipApp extends StatelessWidget {
@@ -148,39 +146,5 @@ class HomePage extends StatelessWidget {
                 narrow: const AllMessagesNarrow())),
             child: const Text("All messages")),
         ])));
-  }
-}
-
-class MessageListPage extends StatelessWidget {
-  const MessageListPage({super.key, required this.narrow});
-
-  static Route<void> buildRoute({required BuildContext context, required Narrow narrow}) {
-    return MaterialAccountPageRoute(context: context,
-      builder: (context) => MessageListPage(narrow: narrow));
-  }
-
-  final Narrow narrow;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("All messages")),
-      body: Builder(
-        builder: (BuildContext context) => Center(
-          child: Column(children: [
-            MediaQuery.removePadding(
-              // Scaffold knows about the app bar, and so has run this
-              // BuildContext, which is under `body`, through
-              // MediaQuery.removePadding with `removeTop: true`.
-              context: context,
-
-              // The compose box pads the bottom inset.
-              removeBottom: true,
-
-              child: Expanded(
-                child: MessageList(narrow: narrow))),
-
-            ComposeBox(narrow: narrow),
-          ]))));
   }
 }
