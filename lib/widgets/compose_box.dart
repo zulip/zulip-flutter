@@ -528,9 +528,6 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     }
 
     final store = PerAccountStoreWidget.of(context);
-    if (store.connection.realmUrl.origin != 'https://chat.zulip.org') {
-      throw Exception('This method can currently only be used on https://chat.zulip.org.');
-    }
     final destination = StreamDestination(widget.streamId, widget.topicController.textNormalized());
     final content = widget.contentController.textNormalized();
     store.sendMessage(destination: destination, content: content);
@@ -673,7 +670,7 @@ class ComposeBox extends StatelessWidget {
     } else if (narrow is TopicNarrow) {
       return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
     } else if (narrow is AllMessagesNarrow) {
-      return const StreamComposeBox(streamId: 7); // TODO drop compose on all-messages; this is `#test here`
+      return const SizedBox.shrink();
     } else {
       throw Exception("impossible narrow"); // TODO(dart-3): show this statically
     }
