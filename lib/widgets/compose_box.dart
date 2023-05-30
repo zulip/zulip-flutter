@@ -151,11 +151,13 @@ class ContentTextEditingController extends TextEditingController {
 /// The content input for StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
   const _StreamContentInput({
+    required this.streamId,
     required this.controller,
     required this.topicController,
     required this.focusNode,
   });
 
+  final int streamId;
   final ContentTextEditingController controller;
   final TopicTextEditingController topicController;
   final FocusNode focusNode;
@@ -188,6 +190,9 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final streamName = store.streams[widget.streamId]?.name ?? '(unknown stream)';
+
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InputDecorator(
@@ -204,7 +209,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
           focusNode: widget.focusNode,
           style: TextStyle(color: colorScheme.onSurface),
           decoration: InputDecoration.collapsed(
-            hintText: "Message #test here > $_topicTextNormalized",
+            hintText: "Message #$streamName > $_topicTextNormalized",
           ),
           maxLines: null,
         )));
@@ -630,6 +635,7 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                     topicInput,
                     const SizedBox(height: 8),
                     _StreamContentInput(
+                      streamId: widget.streamId,
                       topicController: _topicController,
                       controller: _contentController,
                       focusNode: _contentFocusNode),
