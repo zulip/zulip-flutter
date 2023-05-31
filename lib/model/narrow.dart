@@ -1,5 +1,6 @@
 
 import '../api/model/model.dart';
+import '../api/model/narrow.dart';
 
 /// A Zulip narrow.
 sealed class Narrow {
@@ -9,6 +10,9 @@ sealed class Narrow {
   // TODO implement muting; will need containsMessage to take more params
   //   This means stream muting, topic un/muting, and user muting.
   bool containsMessage(Message message);
+
+  /// This narrow, expressed as an [ApiNarrow].
+  ApiNarrow apiEncode();
 }
 
 /// The narrow called "All messages" in the UI.
@@ -23,6 +27,9 @@ class AllMessagesNarrow extends Narrow {
   bool containsMessage(Message message) {
     return true;
   }
+
+  @override
+  ApiNarrow apiEncode() => [];
 
   @override
   bool operator ==(Object other) {
@@ -46,6 +53,9 @@ class StreamNarrow extends Narrow {
   }
 
   @override
+  ApiNarrow apiEncode() => [ApiNarrowStream(streamId)];
+
+  @override
   bool operator ==(Object other) {
     if (other is! StreamNarrow) return false;
     return other.streamId == streamId;
@@ -66,6 +76,9 @@ class TopicNarrow extends Narrow {
     return (message is StreamMessage
       && message.streamId == streamId && message.subject == topic);
   }
+
+  @override
+  ApiNarrow apiEncode() => [ApiNarrowStream(streamId), ApiNarrowTopic(topic)];
 
   @override
   bool operator ==(Object other) {
