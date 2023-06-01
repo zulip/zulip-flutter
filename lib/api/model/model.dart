@@ -4,7 +4,8 @@ part 'model.g.dart';
 
 /// As in [InitialSnapshot.customProfileFields].
 ///
-/// https://zulip.com/api/register-queue#response
+/// For docs, search for "custom_profile_fields:"
+/// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CustomProfileField {
   final int id;
@@ -50,7 +51,8 @@ class ProfileFieldUserData {
 /// cross_realm_bots are all extremely similar. They differ only in that
 /// cross_realm_bots has is_system_bot.
 ///
-/// https://zulip.com/api/register-queue#response
+/// For docs, search for "realm_users:"
+/// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class User {
   final int userId;
@@ -121,6 +123,9 @@ class User {
 /// As in `streams` in the initial snapshot.
 ///
 /// Not called `Stream` because dart:async uses that name.
+///
+/// For docs, search for "if stream"
+/// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ZulipStream {
   final int streamId;
@@ -163,6 +168,9 @@ class ZulipStream {
 }
 
 /// As in `subscriptions` in the initial snapshot.
+///
+/// For docs, search for "subscriptions:"
+/// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Subscription {
   final int streamId;
