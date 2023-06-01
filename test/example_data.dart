@@ -98,6 +98,29 @@ StreamMessage streamMessage(
   });
 }
 
+/// Construct an example direct message.
+///
+/// See also:
+///  * [streamMessage], to construct an example stream message.
+DmMessage dmMessage({required User from, required List<User> to}) {
+  assert(!to.any((user) => user.userId == from.userId));
+  return DmMessage.fromJson({
+    ..._messagePropertiesBase,
+    ..._messagePropertiesFromSender(from),
+    'display_recipient': [from, ...to]
+      .map((u) => {'id': u.userId, 'email': u.email, 'full_name': u.fullName})
+      .toList(growable: false),
+
+    'content': '<p>This is an example DM.</p>',
+    'content_type': 'text/html',
+    'flags': [],
+    'id': 1234567, // TODO generate example IDs
+    'subject': '',
+    'timestamp': 1678139636,
+    'type': 'private',
+  });
+}
+
 // TODO example data for many more types
 
 final InitialSnapshot initialSnapshot = InitialSnapshot(
