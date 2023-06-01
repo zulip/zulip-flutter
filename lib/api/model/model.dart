@@ -173,14 +173,32 @@ class ZulipStream {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Subscription {
+  // First, fields that are about the stream and not the user's relation to it.
+  // These are largely the same as in [ZulipStream].
+
   final int streamId;
   final String name;
   final String description;
   final String renderedDescription;
-  final int dateCreated;
-  final bool inviteOnly;
 
+  final int dateCreated;
+  final int? firstMessageId;
+  final int? streamWeeklyTraffic;
+
+  final bool inviteOnly;
+  final bool? isWebPublic; // TODO(server-??): doc doesn't say when added
+  final bool historyPublicToSubscribers;
+  final int? messageRetentionDays;
   // final List<int> subscribers; // we register with includeSubscribers false
+
+  final int streamPostPolicy; // TODO enum
+  // final bool? isAnnouncementOnly; // deprecated; ignore
+  final String emailAddress;
+
+  final int? canRemoveSubscribersGroupId; // TODO(server-6)
+
+  // Then, fields that are specific to the subscription,
+  // i.e. the user's relationship to the stream.
 
   final bool? desktopNotifications;
   final bool? emailNotifications;
@@ -190,25 +208,10 @@ class Subscription {
 
   final bool pinToTop;
 
-  final String emailAddress;
-
   final bool isMuted;
-
   // final bool? inHomeView; // deprecated; ignore
 
-  // final bool? isAnnouncementOnly; // deprecated; ignore
-  final bool? isWebPublic; // TODO(server-??): doc doesn't say when added
-
   final String color;
-
-  final int streamPostPolicy; // TODO enum
-  final int? messageRetentionDays;
-  final bool historyPublicToSubscribers;
-
-  final int? firstMessageId;
-  final int? streamWeeklyTraffic;
-
-  final int? canRemoveSubscribersGroupId; // TODO(server-6)
 
   Subscription({
     required this.streamId,
