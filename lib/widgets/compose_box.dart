@@ -154,14 +154,12 @@ class ContentTextEditingController extends TextEditingController {
 class _StreamContentInput extends StatefulWidget {
   const _StreamContentInput({
     required this.narrow,
-    required this.streamId,
     required this.controller,
     required this.topicController,
     required this.focusNode,
   });
 
-  final Narrow narrow;
-  final int streamId;
+  final StreamNarrow narrow;
   final ContentTextEditingController controller;
   final TopicTextEditingController topicController;
   final FocusNode focusNode;
@@ -214,7 +212,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final streamName = store.streams[widget.streamId]?.name ?? '(unknown stream)';
+    final streamName = store.streams[widget.narrow.streamId]?.name ?? '(unknown stream)';
 
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
@@ -472,12 +470,12 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 /// The send button for StreamComposeBox.
 class _StreamSendButton extends StatefulWidget {
   const _StreamSendButton({
-    required this.streamId,
+    required this.narrow,
     required this.topicController,
     required this.contentController,
   });
 
-  final int streamId;
+  final StreamNarrow narrow;
   final TopicTextEditingController topicController;
   final ContentTextEditingController contentController;
 
@@ -550,7 +548,8 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     }
 
     final store = PerAccountStoreWidget.of(context);
-    final destination = StreamDestination(widget.streamId, widget.topicController.textNormalized());
+    final destination = StreamDestination(
+      widget.narrow.streamId, widget.topicController.textNormalized());
     final content = widget.contentController.textNormalized();
     store.sendMessage(destination: destination, content: content);
 
@@ -592,14 +591,15 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
   }
 }
 
-/// The compose box for writing a stream message.
+/// A compose box for use in a stream narrow.
+///
+/// This offers a text input for the topic to send to,
+/// in addition to a text input for the message content.
 class StreamComposeBox extends StatefulWidget {
-  const StreamComposeBox({super.key, required this.narrow, required this.streamId});
+  const StreamComposeBox({super.key, required this.narrow});
 
   /// The narrow on view in the message list.
-  final Narrow narrow;
-
-  final int streamId;
+  final StreamNarrow narrow;
 
   @override
   State<StreamComposeBox> createState() => _StreamComposeBoxState();
@@ -659,14 +659,13 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                     const SizedBox(height: 8),
                     _StreamContentInput(
                       narrow: widget.narrow,
-                      streamId: widget.streamId,
                       topicController: _topicController,
                       controller: _contentController,
                       focusNode: _contentFocusNode),
                   ]))),
               const SizedBox(width: 8),
               _StreamSendButton(
-                streamId: widget.streamId,
+                narrow: widget.narrow,
                 topicController: _topicController,
                 contentController: _contentController,
               ),
@@ -692,7 +691,7 @@ class ComposeBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final narrow = this.narrow;
     if (narrow is StreamNarrow) {
-      return StreamComposeBox(narrow: narrow, streamId: narrow.streamId);
+      return StreamComposeBox(narrow: narrow);
     } else if (narrow is TopicNarrow) {
       return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
     } else if (narrow is DmNarrow) {
