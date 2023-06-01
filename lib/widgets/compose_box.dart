@@ -667,6 +667,70 @@ class _SendButtonState extends State<_SendButton> {
   }
 }
 
+class _ComposeBoxLayout extends StatelessWidget {
+  const _ComposeBoxLayout({
+    required this.topicInput,
+    required this.contentInput,
+    required this.sendButton,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
+
+  final Widget? topicInput;
+  final Widget contentInput;
+  final Widget sendButton;
+  final ComposeContentController contentController;
+  final FocusNode contentFocusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+    ColorScheme colorScheme = themeData.colorScheme;
+
+    final inputThemeData = themeData.copyWith(
+      inputDecorationTheme: InputDecorationTheme(
+        // Both [contentPadding] and [isDense] combine to make the layout compact.
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12.0, vertical: _inputVerticalPadding),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+          borderSide: BorderSide.none),
+        filled: true,
+        fillColor: colorScheme.surface,
+      ),
+    );
+
+    return Material(
+      color: colorScheme.surfaceVariant,
+      child: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Column(children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                child: Theme(
+                  data: inputThemeData,
+                  child: Column(children: [
+                    if (topicInput != null) topicInput!,
+                    if (topicInput != null) const SizedBox(height: 8),
+                    contentInput,
+                  ]))),
+              const SizedBox(width: 8),
+              sendButton,
+            ]),
+            Theme(
+              data: themeData.copyWith(
+                iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+              child: Row(children: [
+                _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+              ])),
+          ]))));  }
+}
+
 /// A compose box for use in a stream narrow.
 ///
 /// This offers a text input for the topic to send to,
@@ -696,66 +760,28 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    ColorScheme colorScheme = themeData.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    final inputThemeData = themeData.copyWith(
-      inputDecorationTheme: InputDecorationTheme(
-        // Both [contentPadding] and [isDense] combine to make the layout compact.
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12.0, vertical: _inputVerticalPadding),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4.0)),
-          borderSide: BorderSide.none),
-        filled: true,
-        fillColor: colorScheme.surface,
+    return _ComposeBoxLayout(
+      contentController: _contentController,
+      contentFocusNode: _contentFocusNode,
+      topicInput: TextField(
+        controller: _topicController,
+        style: TextStyle(color: colorScheme.onSurface),
+        decoration: const InputDecoration(hintText: 'Topic'),
       ),
-    );
-
-    final topicInput = TextField(
-      controller: _topicController,
-      style: TextStyle(color: colorScheme.onSurface),
-      decoration: const InputDecoration(hintText: 'Topic'),
-    );
-
-    return Material(
-      color: colorScheme.surfaceVariant,
-      child: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Column(children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Expanded(
-                child: Theme(
-                  data: inputThemeData,
-                  child: Column(children: [
-                    topicInput,
-                    const SizedBox(height: 8),
-                    _StreamContentInput(
-                      narrow: widget.narrow,
-                      topicController: _topicController,
-                      controller: _contentController,
-                      focusNode: _contentFocusNode),
-                  ]))),
-              const SizedBox(width: 8),
-              _SendButton(
-                topicController: _topicController,
-                contentController: _contentController,
-                getDestination: () => StreamDestination(
-                  widget.narrow.streamId, _topicController.textNormalized),
-              ),
-            ]),
-            Theme(
-              data: themeData.copyWith(
-                iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-              child: Row(children: [
-                _AttachFileButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
-                _AttachMediaButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
-                _AttachFromCameraButton(contentController: _contentController, contentFocusNode: _contentFocusNode),
-              ])),
-          ]))));
+      contentInput: _StreamContentInput(
+        narrow: widget.narrow,
+        topicController: _topicController,
+        controller: _contentController,
+        focusNode: _contentFocusNode,
+      ),
+      sendButton: _SendButton(
+        topicController: _topicController,
+        contentController: _contentController,
+        getDestination: () => StreamDestination(
+          widget.narrow.streamId, _topicController.textNormalized),
+      ));
   }
 }
 
