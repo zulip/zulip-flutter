@@ -63,13 +63,12 @@ final _messagePropertiesBase = {
   'recipient_id': 32, // obsolescent in API, and ignored
 };
 
-// When we have a User object, this can take that as an argument.
-Map<String, dynamic> _messagePropertiesFromSender() {
+Map<String, dynamic> _messagePropertiesFromSender(User? sender) {
   return {
     'client': 'ExampleClient',
-    'sender_email': 'a-person@example',
-    'sender_full_name': 'A Person',
-    'sender_id': 12345, // TODO generate example IDs
+    'sender_email': sender?.email ?? 'a-person@example',
+    'sender_full_name': sender?.fullName ?? 'A Person',
+    'sender_id': sender?.userId ?? 12345, // TODO generate example IDs
     'sender_realm_str': 'zulip',
   };
 }
@@ -77,7 +76,7 @@ Map<String, dynamic> _messagePropertiesFromSender() {
 // When we have a Stream object, this can take that as an argument.
 // Also it can default explicitly to an example stream.
 StreamMessage streamMessage(
-    {String? streamName, int? streamId}) {
+    {User? sender, String? streamName, int? streamId}) {
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
   // of the properties as we're constructing the data.  That's probably OK
@@ -85,7 +84,7 @@ StreamMessage streamMessage(
   // dynamically in the constructor, so any ill-typing won't propagate further.
   return StreamMessage.fromJson({
     ..._messagePropertiesBase,
-    ..._messagePropertiesFromSender(),
+    ..._messagePropertiesFromSender(sender),
     'display_recipient': streamName ?? 'a stream',
     'stream_id': streamId ?? 123, // TODO generate example IDs
 
