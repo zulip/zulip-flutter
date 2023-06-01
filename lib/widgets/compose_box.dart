@@ -327,6 +327,48 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
+class _FixedDestinationContentInput extends StatelessWidget {
+  const _FixedDestinationContentInput({
+    required this.narrow,
+    required this.controller,
+    required this.focusNode,
+  });
+
+  final SendableNarrow narrow;
+  final ComposeContentController controller;
+  final FocusNode focusNode;
+
+  String _hintText(BuildContext context) {
+    switch (narrow) {
+      case TopicNarrow(:final streamId, :final topic):
+        final store = PerAccountStoreWidget.of(context);
+        final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
+        return "Message #$streamName > $topic";
+
+      case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
+        return "Jot down something";
+
+      case DmNarrow(otherRecipientIds: [final otherUserId]):
+        final store = PerAccountStoreWidget.of(context);
+        final fullName = store.users[otherUserId]?.fullName;
+        if (fullName == null) return 'Type a message';
+        return 'Message @$fullName';
+
+      case DmNarrow(): // A group DM thread.
+        return 'Message group';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ContentInput(
+      narrow: narrow,
+      controller: controller,
+      focusNode: focusNode,
+      hintText: _hintText(context));
+  }
+}
+
 /// Data on a file to be uploaded, from any source.
 ///
 /// A convenience class to represent data from the generic file picker,
@@ -785,6 +827,45 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
   }
 }
 
+class _FixedDestinationComposeBox extends StatefulWidget {
+  const _FixedDestinationComposeBox({required this.narrow});
+
+  final SendableNarrow narrow;
+
+  @override
+  State<_FixedDestinationComposeBox> createState() => _FixedDestinationComposeBoxState();
+}
+
+class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> {
+  final _contentController = ComposeContentController();
+  final _contentFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    _contentFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ComposeBoxLayout(
+      contentController: _contentController,
+      contentFocusNode: _contentFocusNode,
+      topicInput: null,
+      contentInput: _FixedDestinationContentInput(
+        narrow: widget.narrow,
+        controller: _contentController,
+        focusNode: _contentFocusNode,
+      ),
+      sendButton: _SendButton(
+        topicController: null,
+        contentController: _contentController,
+        getDestination: () => widget.narrow.destination,
+      ));
+  }
+}
+
 class ComposeBox extends StatelessWidget {
   const ComposeBox({super.key, required this.narrow});
 
@@ -796,9 +877,9 @@ class ComposeBox extends StatelessWidget {
     if (narrow is StreamNarrow) {
       return _StreamComposeBox(narrow: narrow);
     } else if (narrow is TopicNarrow) {
-      return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
+      return _FixedDestinationComposeBox(narrow: narrow);
     } else if (narrow is DmNarrow) {
-      return const SizedBox.shrink(); // TODO(#144): add a DM compose box
+      return _FixedDestinationComposeBox(narrow: narrow);
     } else if (narrow is AllMessagesNarrow) {
       return const SizedBox.shrink();
     } else {
