@@ -150,7 +150,7 @@ class ContentTextEditingController extends TextEditingController {
   }
 }
 
-/// The content input for StreamComposeBox.
+/// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
   const _StreamContentInput({
     required this.narrow,
@@ -467,7 +467,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
-/// The send button for StreamComposeBox.
+/// The send button for _StreamComposeBox.
 class _StreamSendButton extends StatefulWidget {
   const _StreamSendButton({
     required this.narrow,
@@ -595,17 +595,17 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 ///
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
-class StreamComposeBox extends StatefulWidget {
-  const StreamComposeBox({super.key, required this.narrow});
+class _StreamComposeBox extends StatefulWidget {
+  const _StreamComposeBox({required this.narrow});
 
   /// The narrow on view in the message list.
   final StreamNarrow narrow;
 
   @override
-  State<StreamComposeBox> createState() => _StreamComposeBoxState();
+  State<_StreamComposeBox> createState() => _StreamComposeBoxState();
 }
 
-class _StreamComposeBoxState extends State<StreamComposeBox> {
+class _StreamComposeBoxState extends State<_StreamComposeBox> {
   final _topicController = TopicTextEditingController();
   final _contentController = ContentTextEditingController();
   final _contentFocusNode = FocusNode();
@@ -691,7 +691,7 @@ class ComposeBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final narrow = this.narrow;
     if (narrow is StreamNarrow) {
-      return StreamComposeBox(narrow: narrow);
+      return _StreamComposeBox(narrow: narrow);
     } else if (narrow is TopicNarrow) {
       return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
     } else if (narrow is DmNarrow) {
