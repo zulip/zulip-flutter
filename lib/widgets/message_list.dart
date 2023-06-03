@@ -196,11 +196,11 @@ class MessageItem extends StatelessWidget {
       restBorderColor = _kStreamMessageBorderColor;
       recipientHeader = StreamTopicRecipientHeader(
         message: msg, streamColor: highlightBorderColor);
-    } else if (message is PmMessage) {
-      final msg = (message as PmMessage);
-      highlightBorderColor = _kPmRecipientHeaderColor;
-      restBorderColor = _kPmRecipientHeaderColor;
-      recipientHeader = PmRecipientHeader(message: msg);
+    } else if (message is DmMessage) {
+      final msg = (message as DmMessage);
+      highlightBorderColor = _kDmRecipientHeaderColor;
+      restBorderColor = _kDmRecipientHeaderColor;
+      recipientHeader = DmRecipientHeader(message: msg);
     } else {
       throw Exception("impossible message type: ${message.runtimeType}");
     }
@@ -299,23 +299,23 @@ class StreamTopicRecipientHeader extends StatelessWidget {
 
 final _kStreamMessageBorderColor = const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor();
 
-class PmRecipientHeader extends StatelessWidget {
-  const PmRecipientHeader({super.key, required this.message});
+class DmRecipientHeader extends StatelessWidget {
+  const DmRecipientHeader({super.key, required this.message});
 
-  final PmMessage message;
+  final DmMessage message;
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
       child: RecipientHeaderChevronContainer(
-        color: _kPmRecipientHeaderColor,
-        child: const Text("Private message", // TODO PM recipient headers
+        color: _kDmRecipientHeaderColor,
+        child: const Text("Direct message", // TODO DM recipient headers
           style: TextStyle(color: Colors.white))));
   }
 }
 
-final _kPmRecipientHeaderColor =
+final _kDmRecipientHeaderColor =
     const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor();
 
 /// A widget with the distinctive chevron-tailed shape in Zulip recipient headers.

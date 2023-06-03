@@ -225,20 +225,20 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'stream_id': instance.streamId,
     };
 
-PmRecipient _$PmRecipientFromJson(Map<String, dynamic> json) => PmRecipient(
+DmRecipient _$DmRecipientFromJson(Map<String, dynamic> json) => DmRecipient(
       id: json['id'] as int,
       email: json['email'] as String,
       fullName: json['full_name'] as String,
     );
 
-Map<String, dynamic> _$PmRecipientToJson(PmRecipient instance) =>
+Map<String, dynamic> _$DmRecipientToJson(DmRecipient instance) =>
     <String, dynamic>{
       'id': instance.id,
       'email': instance.email,
       'full_name': instance.fullName,
     };
 
-PmMessage _$PmMessageFromJson(Map<String, dynamic> json) => PmMessage(
+DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       avatarUrl: json['avatar_url'] as String?,
       client: json['client'] as String,
       content: json['content'] as String,
@@ -257,11 +257,11 @@ PmMessage _$PmMessageFromJson(Map<String, dynamic> json) => PmMessage(
       matchContent: json['match_content'] as String?,
       matchSubject: json['match_subject'] as String?,
       displayRecipient: (json['display_recipient'] as List<dynamic>)
-          .map((e) => PmRecipient.fromJson(e as Map<String, dynamic>))
+          .map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$PmMessageToJson(PmMessage instance) => <String, dynamic>{
+Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'avatar_url': instance.avatarUrl,
       'client': instance.client,
       'content': instance.content,

@@ -46,14 +46,15 @@ class ApiNarrowTopic extends ApiNarrowElement {
   );
 }
 
-class ApiNarrowPmWith extends ApiNarrowElement {
-  @override String get operator => 'pm-with'; // TODO(server-7): use 'dm' where possible
+/// An [ApiNarrowElement] with the 'dm', or legacy 'pm-with', operator.
+class ApiNarrowDm extends ApiNarrowElement {
+  @override String get operator => 'pm-with'; // TODO(#146): use 'dm' where possible
 
   @override final List<int> operand;
 
-  ApiNarrowPmWith(this.operand, {super.negated});
+  ApiNarrowDm(this.operand, {super.negated});
 
-  factory ApiNarrowPmWith.fromJson(Map<String, dynamic> json) => ApiNarrowPmWith(
+  factory ApiNarrowDm.fromJson(Map<String, dynamic> json) => ApiNarrowDm(
     (json['operand'] as List<dynamic>).map((e) => e as int).toList(),
     negated: json['negated'] as bool? ?? false,
   );

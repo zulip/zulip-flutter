@@ -90,4 +90,4 @@ class TopicNarrow extends Narrow {
   int get hashCode => Object.hash('TopicNarrow', streamId, topic);
 }
 
-// TODO other narrow types: PMs/DMs; starred, mentioned; searches; arbitrary
+// TODO other narrow types: DMs; starred, mentioned; searches; arbitrary

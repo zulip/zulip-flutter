@@ -104,8 +104,8 @@ Future<SendMessageResult> sendMessage(
       'type': RawParameter('stream'),
       'to': destination.streamId,
       'topic': RawParameter(destination.topic),
-    } else if (destination is PmDestination) ...{
-      'type': RawParameter('private'), // TODO(server-7)
+    } else if (destination is DmDestination) ...{
+      'type': RawParameter('private'), // TODO(#146): use 'direct' where possible
       'to': destination.userIds,
     } else ...(
       throw Exception('impossible destination') // TODO(dart-3) show this statically
@@ -118,7 +118,7 @@ Future<SendMessageResult> sendMessage(
 
 /// Which conversation to send a message to, in [sendMessage].
 ///
-/// This is either a [StreamDestination] or a [PmDestination].
+/// This is either a [StreamDestination] or a [DmDestination].
 sealed class MessageDestination {}
 
 /// A conversation in a stream, for specifying to [sendMessage].
@@ -132,12 +132,12 @@ class StreamDestination extends MessageDestination {
   final String topic;
 }
 
-/// A PM conversation, for specifying to [sendMessage].
+/// A DM conversation, for specifying to [sendMessage].
 ///
 /// The server accepts a list of Zulip API emails as an alternative to
 /// a list of user IDs, but this binding currently doesn't.
-class PmDestination extends MessageDestination {
-  PmDestination({required this.userIds});
+class DmDestination extends MessageDestination {
+  DmDestination({required this.userIds});
 
   final List<int> userIds;
 }
