@@ -24,6 +24,7 @@ class ApiConnection {
   /// For talking to a live server, use [ApiConnection.live].
   ApiConnection({
     required this.realmUrl,
+    required this.zulipFeatureLevel, // required even though nullable; see field doc
     String? email,
     String? apiKey,
     required http.Client client,
@@ -34,10 +35,30 @@ class ApiConnection {
        _client = client;
 
   /// Construct an API connection that talks to a live Zulip server over the real network.
-  ApiConnection.live({required Uri realmUrl, String? email, String? apiKey})
-    : this(realmUrl: realmUrl, email: email, apiKey: apiKey, client: http.Client());
+  ApiConnection.live({
+    required Uri realmUrl,
+    required int? zulipFeatureLevel, // required even though nullable; see field doc
+    String? email,
+    String? apiKey,
+  }) : this(client: http.Client(),
+            realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
+            email: email, apiKey: apiKey);
 
   final Uri realmUrl;
+
+  /// The server's last known Zulip feature level, if any.
+  ///
+  /// Individual route/endpoint bindings may use this to adapt
+  /// for compatibility with older servers.
+  ///
+  /// If this is null, this [ApiConnection] may be used only for the
+  /// [getServerSettings] route.  Calls to other routes may throw an exception.
+  /// Constructors therefore require this as a parameter, so that a null value
+  /// must be passed explicitly.
+  ///
+  /// See:
+  ///  * API docs at <https://zulip.com/api/changelog>.
+  int? zulipFeatureLevel;
 
   final String? _authValue;
 

@@ -7,11 +7,12 @@ part 'account.g.dart';
 /// https://zulip.com/api/fetch-api-key
 Future<FetchApiKeyResult> fetchApiKey({
   required Uri realmUrl,
+  required int? zulipFeatureLevel,
   required String username,
   required String password,
 }) async {
   // TODO make this function testable by taking ApiConnection from caller
-  final connection = ApiConnection.live(realmUrl: realmUrl);
+  final connection = ApiConnection.live(realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel);
   try {
     return await connection.post('fetchApiKey', FetchApiKeyResult.fromJson, 'fetch_api_key', {
       'username': RawParameter(username),

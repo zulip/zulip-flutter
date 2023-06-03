@@ -84,18 +84,30 @@ class FakeHttpClient extends http.BaseClient {
 
 /// An [ApiConnection] that accepts and replays canned responses, for testing.
 class FakeApiConnection extends ApiConnection {
-  FakeApiConnection({Uri? realmUrl})
-    : this._(realmUrl: realmUrl ?? eg.realmUrl, client: FakeHttpClient());
+  /// Construct an [ApiConnection] that accepts and replays canned responses, for testing.
+  ///
+  /// If `zulipFeatureLevel` is omitted, it defaults to [eg.futureZulipFeatureLevel],
+  /// which causes route bindings to behave as they would for the
+  /// latest Zulip server versions.
+  /// To set `zulipFeatureLevel` to null, pass null explicitly.
+  FakeApiConnection({Uri? realmUrl, int? zulipFeatureLevel = eg.futureZulipFeatureLevel})
+    : this._(
+        realmUrl: realmUrl ?? eg.realmUrl,
+        zulipFeatureLevel: zulipFeatureLevel,
+        client: FakeHttpClient(),
+      );
 
   FakeApiConnection.fromAccount(Account account)
     : this._(
         realmUrl: account.realmUrl,
+        zulipFeatureLevel: account.zulipFeatureLevel,
         email: account.email,
         apiKey: account.apiKey,
         client: FakeHttpClient());
 
   FakeApiConnection._({
     required super.realmUrl,
+    required super.zulipFeatureLevel,
     super.email,
     super.apiKey,
     required this.client,
@@ -105,15 +117,22 @@ class FakeApiConnection extends ApiConnection {
 
   /// Run the given callback on a fresh [FakeApiConnection], then close it,
   /// using try/finally.
+  ///
+  /// If `zulipFeatureLevel` is omitted, it defaults to [eg.futureZulipFeatureLevel],
+  /// which causes route bindings to behave as they would for the
+  /// latest Zulip server versions.
+  /// To set `zulipFeatureLevel` to null, pass null explicitly.
   static Future<T> with_<T>(
     Future<T> Function(FakeApiConnection connection) fn, {
     Uri? realmUrl,
+    int? zulipFeatureLevel = eg.futureZulipFeatureLevel,
     Account? account,
   }) async {
-    assert((account == null) || (realmUrl == null));
+    assert((account == null)
+      || (realmUrl == null && zulipFeatureLevel == eg.futureZulipFeatureLevel));
     final connection = (account != null)
       ? FakeApiConnection.fromAccount(account)
-      : FakeApiConnection(realmUrl: realmUrl);
+      : FakeApiConnection(realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel);
     try {
       return await fn(connection);
     } finally {

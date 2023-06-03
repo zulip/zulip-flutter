@@ -17,9 +17,10 @@ part 'realm.g.dart';
 //     https://github.com/zulip/zulip-flutter/pull/55#discussion_r1160267577
 Future<GetServerSettingsResult> getServerSettings({
   required Uri realmUrl,
+  required int? zulipFeatureLevel,
 }) async {
   // TODO make this function testable by taking ApiConnection from caller
-  final connection = ApiConnection.live(realmUrl: realmUrl);
+  final connection = ApiConnection.live(realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel);
   try {
     return await connection.get('getServerSettings', GetServerSettingsResult.fromJson, 'server_settings', null);
   } finally {

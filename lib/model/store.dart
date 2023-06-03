@@ -161,7 +161,7 @@ class PerAccountStore extends ChangeNotifier {
        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
 
   final Account account;
-  final ApiConnection connection;
+  final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
   // TODO(#135): Keep all this data updated by handling Zulip events from the server.
   final String zulipVersion; // TODO get from account; update there on initial snapshot
@@ -344,7 +344,8 @@ class LivePerAccountStore extends PerAccountStore {
   /// In the future this might load an old snapshot from local storage first.
   static Future<PerAccountStore> load(Account account) async {
     final connection = ApiConnection.live(
-      realmUrl: account.realmUrl, email: account.email, apiKey: account.apiKey);
+      realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
+      email: account.email, apiKey: account.apiKey);
 
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(connection); // TODO retry
