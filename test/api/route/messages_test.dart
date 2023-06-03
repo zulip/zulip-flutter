@@ -31,13 +31,13 @@ void main() {
     });
   });
 
-  test('sendMessage to PM conversation', () {
+  test('sendMessage to DM conversation', () {
     return FakeApiConnection.with_((connection) async {
       const userIds = [23, 34];
       const content = 'hi there';
       connection.prepare(json: SendMessageResult(id: 42).toJson());
       final result = await sendMessage(connection,
-        destination: PmDestination(userIds: userIds), content: content);
+        destination: DmDestination(userIds: userIds), content: content);
       check(result).id.equals(42);
       check(connection.lastRequest).isNotNull().isA<http.Request>()
         ..method.equals('POST')

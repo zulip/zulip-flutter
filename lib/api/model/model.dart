@@ -298,7 +298,7 @@ abstract class Message {
   factory Message.fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
     if (type == 'stream') return StreamMessage.fromJson(json);
-    if (type == 'private') return PmMessage.fromJson(json);
+    if (type == 'private') return DmMessage.fromJson(json);
     throw Exception("Message.fromJson: unexpected message type $type");
   }
 
@@ -344,7 +344,7 @@ class StreamMessage extends Message {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class PmRecipient {
+class DmRecipient {
   final int id;
   final String email;
   final String fullName;
@@ -352,23 +352,23 @@ class PmRecipient {
   // final String? shortName; // obsolete, ignore
   // final bool? isMirrorDummy; // obsolete, ignore
 
-  PmRecipient({required this.id, required this.email, required this.fullName});
+  DmRecipient({required this.id, required this.email, required this.fullName});
 
-  factory PmRecipient.fromJson(Map<String, dynamic> json) =>
-    _$PmRecipientFromJson(json);
+  factory DmRecipient.fromJson(Map<String, dynamic> json) =>
+    _$DmRecipientFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PmRecipientToJson(this);
+  Map<String, dynamic> toJson() => _$DmRecipientToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class PmMessage extends Message {
+class DmMessage extends Message {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'private';
 
-  final List<PmRecipient> displayRecipient;
+  final List<DmRecipient> displayRecipient;
 
-  PmMessage({
+  DmMessage({
     super.avatarUrl,
     required super.client,
     required super.content,
@@ -389,9 +389,9 @@ class PmMessage extends Message {
     required this.displayRecipient,
   });
 
-  factory PmMessage.fromJson(Map<String, dynamic> json) =>
-    _$PmMessageFromJson(json);
+  factory DmMessage.fromJson(Map<String, dynamic> json) =>
+    _$DmMessageFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$PmMessageToJson(this);
+  Map<String, dynamic> toJson() => _$DmMessageToJson(this);
 }
