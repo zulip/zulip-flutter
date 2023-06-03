@@ -204,6 +204,11 @@ class MentionAutocompleteQuery {
   }
 
   @override
+  String toString() {
+    return '${objectRuntimeType(this, 'MentionAutocompleteQuery')}(raw: $raw})';
+  }
+
+  @override
   bool operator ==(Object other) {
     return other is MentionAutocompleteQuery && other.raw == raw;
   }
