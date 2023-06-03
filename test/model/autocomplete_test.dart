@@ -1,17 +1,169 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/widgets/compose_box.dart';
 
 import '../example_data.dart' as eg;
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
 void main() {
+  group('ContentTextEditingController.autocompleteIntent', () {
+    parseMarkedText(String markedText) {
+      final TextSelection selection;
+      int? expectedSyntaxStart;
+      final textBuffer = StringBuffer();
+      final caretPositions = [];
+      int i = 0;
+      for (final char in markedText.codeUnits) {
+        if (char == 94 /* ^ */) {
+          caretPositions.add(i);
+          continue;
+        } else if (char == 126 /* ~ */) {
+          if (expectedSyntaxStart != null) {
+            throw Exception('Test error: too many ~ in input');
+          }
+          expectedSyntaxStart = i;
+          continue;
+        }
+        textBuffer.writeCharCode(char);
+        i++;
+      }
+      switch (caretPositions.length) {
+        case 0:
+          selection = const TextSelection.collapsed(offset: -1);
+        case 1:
+          selection = TextSelection(baseOffset: caretPositions[0], extentOffset: caretPositions[0]);
+        case 2:
+          selection = TextSelection(baseOffset: caretPositions[0], extentOffset: caretPositions[1]);
+        default:
+          throw Exception('Test error: too many ^ in input');
+      }
+      return (
+        value: TextEditingValue(text: textBuffer.toString(), selection: selection),
+        expectedSyntaxStart: expectedSyntaxStart);
+    }
+
+    /// Test the given input, in a convenient format.
+    ///
+    /// Represent selection handles as "^". For convenience, a single "^" can
+    /// represent a collapsed selection (cursor position). For a null selection,
+    /// as when the input has never been focused, just omit "^" from the string.
+    ///
+    /// Represent the expected syntax start index (the index of "@" in a
+    /// mention-autocomplete attempt) as "~".
+    ///
+    /// For example, "~@chris^" means the text is "@chris", the selection is
+    /// collapsed at index 6, and we expect the syntax to start at index 0.
+    doTest(String markedText, MentionAutocompleteQuery? expectedQuery) {
+      final description = expectedQuery != null
+        ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
+        : 'no query in ${jsonEncode(markedText)}';
+      test(description, () {
+        final controller = ContentTextEditingController();
+        final parsed = parseMarkedText(markedText);
+        assert((expectedQuery == null) == (parsed.expectedSyntaxStart == null));
+        controller.value = parsed.value;
+        if (expectedQuery == null) {
+          check(controller).autocompleteIntent.isNull();
+        } else {
+          check(controller).autocompleteIntent.isNotNull()
+            ..query.equals(expectedQuery)
+            ..syntaxStart.equals(parsed.expectedSyntaxStart!);
+        }
+      });
+    }
+
+    MentionAutocompleteQuery queryOf(String raw) => MentionAutocompleteQuery(raw);
+
+    doTest('', null);
+    doTest('^', null);
+
+    doTest('!@#\$%&*()_+', null);
+
+    doTest('^@', null);                doTest('^@_', null);
+    doTest('^@abc', null);             doTest('^@_abc', null);
+    doTest('@abc', null);              doTest('@_abc', null); // (no cursor)
+
+    doTest('@ ^', null);      // doTest('@_ ^', null); // (would fail, but OK… technically "_" could start a word in full_name)
+    doTest('@*^', null);      doTest('@_*^', null);
+    doTest('@`^', null);      doTest('@_`^', null);
+    doTest('@\\^', null);     doTest('@_\\^', null);
+    doTest('@>^', null);      doTest('@_>^', null);
+    doTest('@"^', null);      doTest('@_"^', null);
+    doTest('@\n^', null);     doTest('@_\n^', null); // control character
+    doTest('@\u0000^', null); doTest('@_\u0000^', null); // control
+    doTest('@\u061C^', null); doTest('@_\u061C^', null); // format character
+    doTest('@\u0600^', null); doTest('@_\u0600^', null); // format
+    doTest('@\uD834^', null); doTest('@_\uD834^', null); // leading surrogate
+
+    doTest('email support@^', null);
+    doTest('email support@zulip^', null);
+    doTest('email support@zulip.com^', null);
+    doTest('support@zulip.com^', null);
+    doTest('email support@ with details of the issue^', null);
+    doTest('email support@^ with details of the issue', null);
+
+    doTest('Ask @**Chris Bobbe**^', null); doTest('Ask @_**Chris Bobbe**^', null);
+    doTest('Ask @**Chris Bobbe^**', null); doTest('Ask @_**Chris Bobbe^**', null);
+    doTest('Ask @**Chris^ Bobbe**', null); doTest('Ask @_**Chris^ Bobbe**', null);
+    doTest('Ask @**^Chris Bobbe**', null); doTest('Ask @_**^Chris Bobbe**', null);
+
+    doTest('`@chris^', null); doTest('`@_chris^', null);
+
+    doTest('~@^_', queryOf('')); // Odd/unlikely, but should not crash
+
+    doTest('~@__^', queryOf('_'));
+
+    doTest('~@^abc^', queryOf('abc')); doTest('~@_^abc^', queryOf('abc'));
+    doTest('~@a^bc^', queryOf('abc')); doTest('~@_a^bc^', queryOf('abc'));
+    doTest('~@ab^c^', queryOf('abc')); doTest('~@_ab^c^', queryOf('abc'));
+    doTest('~^@^', queryOf(''));       doTest('~^@_^', queryOf(''));
+    // but:
+    doTest('^hello @chris^', null);    doTest('^hello @_chris^', null);
+
+    doTest('~@me@zulip.com^', queryOf('me@zulip.com'));  doTest('~@_me@zulip.com^', queryOf('me@zulip.com'));
+    doTest('~@me@^zulip.com^', queryOf('me@zulip.com')); doTest('~@_me@^zulip.com^', queryOf('me@zulip.com'));
+    doTest('~@me^@zulip.com^', queryOf('me@zulip.com')); doTest('~@_me^@zulip.com^', queryOf('me@zulip.com'));
+    doTest('~@^me@zulip.com^', queryOf('me@zulip.com')); doTest('~@_^me@zulip.com^', queryOf('me@zulip.com'));
+
+    doTest('~@abc^', queryOf('abc'));   doTest('~@_abc^', queryOf('abc'));
+    doTest(' ~@abc^', queryOf('abc'));  doTest(' ~@_abc^', queryOf('abc'));
+    doTest('(~@abc^', queryOf('abc'));  doTest('(~@_abc^', queryOf('abc'));
+    doTest('—~@abc^', queryOf('abc'));  doTest('—~@_abc^', queryOf('abc'));
+    doTest('"~@abc^', queryOf('abc'));  doTest('"~@_abc^', queryOf('abc'));
+    doTest('“~@abc^', queryOf('abc'));  doTest('“~@_abc^', queryOf('abc'));
+    doTest('。~@abc^', queryOf('abc')); doTest('。~@_abc^', queryOf('abc'));
+    doTest('«~@abc^', queryOf('abc'));  doTest('«~@_abc^', queryOf('abc'));
+
+    doTest('~@ab^c', queryOf('ab')); doTest('~@_ab^c', queryOf('ab'));
+    doTest('~@a^bc', queryOf('a'));  doTest('~@_a^bc', queryOf('a'));
+    doTest('~@^abc', queryOf(''));   doTest('~@_^abc', queryOf(''));
+    doTest('~@^', queryOf(''));      doTest('~@_^', queryOf(''));
+
+    doTest('~@abc ^', queryOf('abc '));  doTest('~@_abc ^', queryOf('abc '));
+    doTest('~@abc^ ^', queryOf('abc ')); doTest('~@_abc^ ^', queryOf('abc '));
+    doTest('~@ab^c ^', queryOf('abc ')); doTest('~@_ab^c ^', queryOf('abc '));
+    doTest('~@^abc ^', queryOf('abc ')); doTest('~@_^abc ^', queryOf('abc '));
+
+    doTest('Please ask ~@chris^', queryOf('chris'));             doTest('Please ask ~@_chris^', queryOf('chris'));
+    doTest('Please ask ~@chris bobbe^', queryOf('chris bobbe')); doTest('Please ask ~@_chris bobbe^', queryOf('chris bobbe'));
+
+    doTest('~@Rodion Romanovich Raskolnikov^', queryOf('Rodion Romanovich Raskolnikov'));
+    doTest('~@_Rodion Romanovich Raskolniko^', queryOf('Rodion Romanovich Raskolniko'));
+    doTest('~@Родион Романович Раскольников^', queryOf('Родион Романович Раскольников'));
+    doTest('~@_Родион Романович Раскольнико^', queryOf('Родион Романович Раскольнико'));
+    doTest('If @chris is around, please ask him.^', null); // @ sign is too far away from cursor
+    doTest('If @_chris is around, please ask him.^', null); // @ sign is too far away from cursor
+  });
+
   test('MentionAutocompleteView misc', () async {
     const narrow = AllMessagesNarrow();
     final store = eg.store()

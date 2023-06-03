@@ -1,9 +1,106 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../widgets/compose_box.dart';
 import 'narrow.dart';
 import 'store.dart';
+
+extension Autocomplete on ContentTextEditingController {
+  AutocompleteIntent? autocompleteIntent() {
+    if (!selection.isValid || !selection.isNormalized) {
+      // We don't require [isCollapsed] to be true because we've seen that
+      // autocorrect and even backspace involve programmatically expanding the
+      // selection to the left. Once we know where the syntax starts, we can at
+      // least require that the selection doesn't extend leftward past that;
+      // see below.
+      return null;
+    }
+    final textUntilCursor = text.substring(0, selection.end);
+    for (
+      int position = selection.end - 1;
+      position >= 0 && (selection.end - position <= 30);
+      position--
+    ) {
+      if (textUntilCursor[position] != '@') {
+        continue;
+      }
+      final match = mentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
+      if (match == null) {
+        continue;
+      }
+      if (selection.start < position) {
+        // See comment about [TextSelection.isCollapsed] above.
+        return null;
+      }
+      return AutocompleteIntent(
+        syntaxStart: position,
+        query: MentionAutocompleteQuery(match[1]!),
+        textEditingValue: value);
+    }
+    return null;
+  }
+}
+
+final RegExp mentionAutocompleteMarkerRegex = (() {
+  // What's likely to come before an @-mention: the start of the string,
+  // whitespace, or punctuation. Letters are unlikely; in that case an email
+  // might be intended. (By punctuation, we mean *some* punctuation, like "(".
+  // We could refine this.)
+  const beforeAtSign = r'(?<=^|\s|\p{Punctuation})';
+
+  // Characters that would defeat searches in full_name and emails, since
+  // they're prohibited in both forms. These are all the characters prohibited
+  // in full_name except "@", which appears in emails. (For the form of
+  // full_name, find uses of UserProfile.NAME_INVALID_CHARS in zulip/zulip.)
+  const fullNameAndEmailCharExclusions = r'\*`\\>"\p{Other}';
+
+  return RegExp(
+    beforeAtSign
+    + r'@_?'
+    + r'(|'
+      // Reject on whitespace right after "@" or "@_". Emails can't start with
+      // it, and full_name can't either (it's run through Python's `.strip()`).
+      + r'[^\s' + fullNameAndEmailCharExclusions + r']'
+      + r'[^'   + fullNameAndEmailCharExclusions + r']*'
+    + r')$',
+    unicode: true);
+})();
+
+/// The content controller's recognition that the user might want autocomplete UI.
+class AutocompleteIntent {
+  AutocompleteIntent({
+    required this.syntaxStart,
+    required this.query,
+    required this.textEditingValue,
+  });
+
+  /// At what index the intent's syntax starts. E.g., 3, in "Hi @chris".
+  ///
+  /// May be used with [textEditingValue] to make a new [TextEditingValue] with
+  /// the autocomplete interaction's result: e.g., one that replaces "Hi @chris"
+  /// with "Hi @**Chris Bobbe** ". (Assume [textEditingValue.selection.end] is
+  /// the end of the syntax.)
+  ///
+  /// Using this to index into something other than [textEditingValue] will give
+  /// undefined behavior and might cause a RangeError; it should be avoided.
+  // If a subclassed [TextEditingValue] could itself be the source of
+  // [syntaxStart], then the safe behavior would be accomplished more
+  // naturally, I think. But [TextEditingController] doesn't support subclasses
+  // that use a custom/subclassed [TextEditingValue], so that's not convenient.
+  final int syntaxStart;
+
+  final MentionAutocompleteQuery query; // TODO other autocomplete query types
+
+  /// The [TextEditingValue] whose text [syntaxStart] refers to.
+  final TextEditingValue textEditingValue;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'AutocompleteIntent')}(syntaxStart: $syntaxStart, query: $query, textEditingValue: $textEditingValue})';
+  }
+}
 
 /// A per-account manager for the view-models of autocomplete interactions.
 ///
