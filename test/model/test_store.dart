@@ -100,6 +100,11 @@ class TestGlobalStore extends GlobalStore {
   }
 
   @override
+  Future<void> doUpdateAccount(int accountId, AccountsCompanion data) async {
+    // Nothing to do.
+  }
+
+  @override
   Future<PerAccountStore> loadPerAccount(int accountId) {
     final initialSnapshot = _initialSnapshots[accountId]!;
     final store = PerAccountStore.fromInitialSnapshot(

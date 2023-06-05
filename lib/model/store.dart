@@ -164,8 +164,27 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Add an account to the underlying data store.
   Future<Account> doInsertAccount(AccountsCompanion data);
 
-  // More mutators as needed:
-  // Future<void> updateAccount...
+  /// Update an account in the store, returning the new version.
+  ///
+  /// The account with the given account ID will be updated.
+  /// It must already exist in the store.
+  ///
+  /// Fields that are present in `data` will be updated,
+  /// and fields not present will be left unmodified.
+  ///
+  /// Some fields should never change on an account,
+  /// and must not be present in `data`: namely `id`, `realmUrl`, `userId`.
+  Future<Account> updateAccount(int accountId, AccountsCompanion data) async {
+    assert(!data.id.present && !data.realmUrl.present && !data.userId.present);
+    assert(_accounts.containsKey(accountId));
+    await doUpdateAccount(accountId, data);
+    final result = _accounts.update(accountId, (value) => value.copyWithCompanion(data));
+    notifyListeners();
+    return result;
+  }
+
+  /// Update an account in the underlying data store.
+  Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
@@ -581,6 +600,14 @@ class LiveGlobalStore extends GlobalStore {
     return await (_db.select(_db.accounts) // TODO perhaps put this logic in AppDatabase
       ..where((a) => a.id.equals(accountId))
     ).getSingle();
+  }
+
+  @override
+  Future<void> doUpdateAccount(int accountId, AccountsCompanion data) async {
+    final rowsAffected = await (_db.update(_db.accounts)
+      ..where((a) => a.id.equals(accountId))
+    ).write(data);
+    assert(rowsAffected == 1);
   }
 
   @override
