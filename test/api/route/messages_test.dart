@@ -150,6 +150,18 @@ void main() {
         await checkSendMessage(connection,
           destination: DmDestination(userIds: userIds), content: content,
           expectedBodyFields: {
+            'type': 'direct',
+            'to': jsonEncode(userIds),
+            'content': content,
+          });
+      });
+    });
+
+    test('to DM conversation, with legacy type "private"', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) async {
+        await checkSendMessage(connection,
+          destination: DmDestination(userIds: userIds), content: content,
+          expectedBodyFields: {
             'type': 'private',
             'to': jsonEncode(userIds),
             'content': content,
