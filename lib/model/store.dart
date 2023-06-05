@@ -164,7 +164,7 @@ class PerAccountStore extends ChangeNotifier {
   final ApiConnection connection;
 
   // TODO(#135): Keep all this data updated by handling Zulip events from the server.
-  final String zulipVersion;
+  final String zulipVersion; // TODO get from account; update there on initial snapshot
   final Map<int, User> users;
   final Map<int, ZulipStream> streams;
   final Map<int, Subscription> subscriptions;
