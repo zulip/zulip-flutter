@@ -39,11 +39,29 @@ class Accounts extends Table {
 
   Column<String> get ackedPushToken => text().nullable()();
 
+  // If adding a column, be sure to add it to copyWithCompanion too.
+
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
     {realmUrl, email},
   ];
+}
+
+extension AccountExtension on Account {
+  Account copyWithCompanion(AccountsCompanion data) { // TODO(drift): generate this
+    return Account(
+      id: data.id.present ? data.id.value : id,
+      realmUrl: data.realmUrl.present ? data.realmUrl.value : realmUrl,
+      userId: data.userId.present ? data.userId.value : userId,
+      email: data.email.present ? data.email.value : email,
+      apiKey: data.apiKey.present ? data.apiKey.value : apiKey,
+      zulipVersion: data.zulipVersion.present ? data.zulipVersion.value : zulipVersion,
+      zulipMergeBase: data.zulipMergeBase.present ? data.zulipMergeBase.value : zulipMergeBase,
+      zulipFeatureLevel: data.zulipFeatureLevel.present ? data.zulipFeatureLevel.value : zulipFeatureLevel,
+      ackedPushToken: data.ackedPushToken.present ? data.ackedPushToken.value : ackedPushToken,
+    );
+  }
 }
 
 class UriConverter extends TypeConverter<Uri, String> {
