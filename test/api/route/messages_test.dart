@@ -7,6 +7,7 @@ import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/narrow.dart';
 
+import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
 import '../fake_api.dart';
 import 'route_checks.dart';
@@ -80,8 +81,13 @@ void main() {
         ]));
 
         await checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+          {'operator': 'dm', 'operand': [123, 234]},
+        ]));
+        connection.zulipFeatureLevel = 176;
+        await checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
           {'operator': 'pm-with', 'operand': [123, 234]},
         ]));
+        connection.zulipFeatureLevel = eg.futureZulipFeatureLevel;
       });
     });
 

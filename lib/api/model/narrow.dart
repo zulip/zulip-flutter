@@ -47,15 +47,53 @@ class ApiNarrowTopic extends ApiNarrowElement {
 }
 
 /// An [ApiNarrowElement] with the 'dm', or legacy 'pm-with', operator.
+///
+/// An instance directly of this class must not be serialized with [jsonEncode],
+/// and more generally its [operator] getter must not be called.
+/// Instead, call [resolve] and use the object it returns.
 class ApiNarrowDm extends ApiNarrowElement {
-  @override String get operator => 'pm-with'; // TODO(#146): use 'dm' where possible
+  @override String get operator {
+    assert(false,
+      "The [operator] getter was called on a plain [ApiNarrowDm].  "
+      "Before passing to [jsonEncode] or otherwise getting [operator], "
+      "the [ApiNarrowDm] must be replaced by the result of [ApiNarrowDm.resolve]."
+    );
+    return "dm";
+  }
 
   @override final List<int> operand;
 
   ApiNarrowDm(this.operand, {super.negated});
 
-  factory ApiNarrowDm.fromJson(Map<String, dynamic> json) => ApiNarrowDm(
-    (json['operand'] as List<dynamic>).map((e) => e as int).toList(),
-    negated: json['negated'] as bool? ?? false,
-  );
+  factory ApiNarrowDm.fromJson(Map<String, dynamic> json) {
+    var operand = (json['operand'] as List<dynamic>).map((e) => e as int).toList();
+    var negated = json['negated'] as bool? ?? false;
+    return (json['operator'] == 'pm-with')
+      ? ApiNarrowPmWith._(operand, negated: negated)
+      : ApiNarrowDmModern._(operand, negated: negated);
+  }
+
+  /// This element resolved, as either an [ApiNarrowDmModern] or an [ApiNarrowPmWith].
+  ApiNarrowDm resolve({required bool legacy}) {
+    return legacy ? ApiNarrowPmWith._(operand, negated: negated)
+                  : ApiNarrowDmModern._(operand, negated: negated);
+  }
+}
+
+/// An [ApiNarrowElement] with the 'dm' operator (and not the legacy 'pm-with').
+///
+/// To construct one of these, use [ApiNarrowDm.resolve].
+class ApiNarrowDmModern extends ApiNarrowDm {
+  @override String get operator => 'dm';
+
+  ApiNarrowDmModern._(super.operand, {super.negated});
+}
+
+/// An [ApiNarrowElement] with the legacy 'pm-with' operator.
+///
+/// To construct one of these, use [ApiNarrowDm.resolve].
+class ApiNarrowPmWith extends ApiNarrowDm {
+  @override String get operator => 'pm-with';
+
+  ApiNarrowPmWith._(super.operand, {super.negated});
 }
