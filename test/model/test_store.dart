@@ -91,11 +91,10 @@ class TestGlobalStore extends GlobalStore {
 
   @override
   Future<PerAccountStore> loadPerAccount(int accountId) {
-    final account = getAccount(accountId)!;
     final initialSnapshot = _initialSnapshots[accountId]!;
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: this,
-      account: account,
+      accountId: accountId,
       initialSnapshot: initialSnapshot,
     );
     updateMachines[accountId] = UpdateMachine.fromInitialSnapshot(

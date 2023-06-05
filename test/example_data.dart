@@ -494,7 +494,7 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
   final effectiveAccount = account ?? selfAccount;
   return PerAccountStore.fromInitialSnapshot(
     globalStore: globalStore(accounts: [effectiveAccount]),
-    account: effectiveAccount,
+    accountId: effectiveAccount.id,
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }

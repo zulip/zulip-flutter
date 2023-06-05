@@ -189,15 +189,16 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   /// but it may have already been used for other requests.
   factory PerAccountStore.fromInitialSnapshot({
     required GlobalStore globalStore,
-    required Account account,
+    required int accountId,
     ApiConnection? connection,
     required InitialSnapshot initialSnapshot,
   }) {
+    final account = globalStore.getAccount(accountId)!;
     connection ??= globalStore.apiConnectionFromAccount(account);
     final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
-      account: account,
+      accountId: accountId,
       connection: connection,
       zulipVersion: initialSnapshot.zulipVersion,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
@@ -223,7 +224,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   PerAccountStore._({
     required GlobalStore globalStore,
-    required this.account,
+    required this.accountId,
     required this.connection,
     required this.zulipVersion,
     required this.maxFileUploadSizeMib,
@@ -240,7 +241,9 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   final GlobalStore _globalStore;
 
-  final Account account;
+  final int accountId;
+  Account get account => _globalStore.getAccount(accountId)!;
+
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
   // TODO(#135): Keep all this data updated by handling Zulip events from the server.
@@ -565,7 +568,7 @@ class UpdateMachine {
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
-      account: account,
+      accountId: accountId,
       connection: connection,
       initialSnapshot: initialSnapshot,
     );
