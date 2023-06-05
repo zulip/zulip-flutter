@@ -114,6 +114,53 @@ void main() {
     check(completers(1)).length.equals(1);
   });
 
+  // TODO test insertAccount
+
+  group('GlobalStore.updateAccount', () {
+    test('basic', () async {
+      // Update a nullable field, and a non-nullable one.
+      final account = eg.selfAccount.copyWith(
+        zulipFeatureLevel: 123,
+        ackedPushToken: const Value('asdf'),
+      );
+      final globalStore = eg.globalStore(accounts: [account]);
+      final updated = await globalStore.updateAccount(account.id,
+        const AccountsCompanion(
+          zulipFeatureLevel: Value(234),
+          ackedPushToken: Value(null),
+        ));
+      check(globalStore.getAccount(account.id)).identicalTo(updated);
+      check(updated).equals(account.copyWith(
+        zulipFeatureLevel: 234,
+        ackedPushToken: const Value(null),
+      ));
+    });
+
+    test('notifyListeners called', () async {
+      final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
+      int updateCount = 0;
+      globalStore.addListener(() => updateCount++);
+      check(updateCount).equals(0);
+
+      await globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+        zulipFeatureLevel: Value(234),
+      ));
+      check(updateCount).equals(1);
+    });
+
+    test('reject changing id, realmUrl, or userId', () async {
+      final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
+      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+        id: Value(1234)))).throws();
+      check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
+        realmUrl: Value(Uri.parse('https://other.example'))))).throws();
+      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+        userId: Value(1234)))).throws();
+    });
+
+    // TODO test database gets updated correctly (an integration test with sqlite?)
+  });
+
   group('PerAccountStore.sendMessage', () {
     test('smoke', () async {
       final store = eg.store();
