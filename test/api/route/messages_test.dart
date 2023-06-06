@@ -12,6 +12,104 @@ import '../fake_api.dart';
 import 'route_checks.dart';
 
 void main() {
+  group('getMessages', () {
+    Future<GetMessagesResult> checkGetMessages(
+      FakeApiConnection connection, {
+      required ApiNarrow narrow,
+      required Anchor anchor,
+      bool? includeAnchor,
+      required int numBefore,
+      required int numAfter,
+      bool? clientGravatar,
+      bool? applyMarkdown,
+      required Map<String, String> expected,
+    }) async {
+      final result = await getMessages(connection,
+        narrow: narrow, anchor: anchor, includeAnchor: includeAnchor,
+        numBefore: numBefore, numAfter: numAfter,
+        clientGravatar: clientGravatar, applyMarkdown: applyMarkdown,
+      );
+      check(connection.lastRequest).isNotNull().isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages')
+        ..url.queryParameters.deepEquals(expected);
+      return result;
+    }
+
+    final fakeResult = GetMessagesResult(
+      anchor: 12345, foundNewest: false, foundOldest: false, foundAnchor: false,
+      historyLimited: false, messages: []);
+
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessages(connection,
+          narrow: const AllMessagesNarrow().apiEncode(),
+          anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+          expected: {
+            'narrow': jsonEncode([]),
+            'anchor': 'newest',
+            'num_before': '10',
+            'num_after': '20',
+          });
+      });
+    });
+
+    test('narrow', () {
+      return FakeApiConnection.with_((connection) async {
+        Future<void> checkNarrow(ApiNarrow narrow, String expected) async {
+          connection.prepare(json: fakeResult.toJson());
+          await checkGetMessages(connection,
+            narrow: narrow,
+            anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+            expected: {
+              'narrow': expected,
+              'anchor': 'newest',
+              'num_before': '10',
+              'num_after': '20',
+            });
+        }
+
+        await checkNarrow(const AllMessagesNarrow().apiEncode(), jsonEncode([]));
+        await checkNarrow(const StreamNarrow(12).apiEncode(), jsonEncode([
+          {'operator': 'stream', 'operand': 12},
+        ]));
+        await checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+          {'operator': 'stream', 'operand': 12},
+          {'operator': 'topic', 'operand': 'stuff'},
+        ]));
+
+        await checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+          {'operator': 'pm-with', 'operand': [123, 234]},
+        ]));
+      });
+    });
+
+    test('anchor', () {
+      return FakeApiConnection.with_((connection) async {
+        Future<void> checkAnchor(Anchor anchor, String expected) async {
+          connection.prepare(json: fakeResult.toJson());
+          await checkGetMessages(connection,
+            narrow: const AllMessagesNarrow().apiEncode(),
+            anchor: anchor, numBefore: 10, numAfter: 20,
+            expected: {
+              'narrow': jsonEncode([]),
+              'anchor': expected,
+              'num_before': '10',
+              'num_after': '20',
+            });
+        }
+
+        await checkAnchor(AnchorCode.newest,      'newest');
+        await checkAnchor(AnchorCode.oldest,      'oldest');
+        await checkAnchor(AnchorCode.firstUnread, 'first_unread');
+        await checkAnchor(const NumericAnchor(1), '1');
+        await checkAnchor(const NumericAnchor(999999999), '999999999');
+        await checkAnchor(const NumericAnchor(10000000000000000), '10000000000000000');
+      });
+    });
+  });
+
   group('sendMessage', () {
     const streamId = 123;
     const content = 'hello';
