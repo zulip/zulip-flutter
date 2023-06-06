@@ -115,7 +115,7 @@ class FakeApiConnection extends ApiConnection {
       ? FakeApiConnection.fromAccount(account)
       : FakeApiConnection(realmUrl: realmUrl);
     try {
-      return fn(connection);
+      return await fn(connection);
     } finally {
       connection.close();
     }
