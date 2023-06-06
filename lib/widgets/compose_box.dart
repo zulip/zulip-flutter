@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../api/route/messages.dart';
+import '../model/autocomplete.dart';
 import '../model/narrow.dart';
 import 'dialog.dart';
 import 'store.dart';
@@ -170,6 +171,8 @@ class _StreamContentInput extends StatefulWidget {
 }
 
 class _StreamContentInputState extends State<_StreamContentInput> {
+  MentionAutocompleteView? _mentionAutocompleteView; // TODO different autocomplete view types
+
   late String _topicTextNormalized;
 
   _topicChanged() {
@@ -178,16 +181,33 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  _changed() {
+    final newAutocompleteIntent = widget.controller.autocompleteIntent();
+    if (newAutocompleteIntent != null) {
+      final store = PerAccountStoreWidget.of(context);
+      _mentionAutocompleteView ??= MentionAutocompleteView.init(
+        store: store, narrow: widget.narrow);
+      _mentionAutocompleteView!.query = newAutocompleteIntent.query;
+    } else {
+      if (_mentionAutocompleteView != null) {
+        _mentionAutocompleteView!.dispose();
+        _mentionAutocompleteView = null;
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _topicTextNormalized = widget.topicController.textNormalized();
     widget.topicController.addListener(_topicChanged);
+    widget.controller.addListener(_changed);
   }
 
   @override
   void dispose() {
     widget.topicController.removeListener(_topicChanged);
+    widget.controller.removeListener(_changed);
     super.dispose();
   }
 
