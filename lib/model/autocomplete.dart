@@ -86,7 +86,9 @@ class MentionAutocompleteView extends ChangeNotifier {
   @override
   void dispose() {
     store.autocompleteViewManager.unregisterMentionAutocomplete(this);
-    // TODO cancel in-progress computations if possible
+    // We cancel in-progress computations by checking [hasListeners] between tasks.
+    // After [super.dispose] is called, [hasListeners] returns false.
+    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
     super.dispose();
   }
 
@@ -134,7 +136,7 @@ class MentionAutocompleteView extends ChangeNotifier {
     }
 
     if (newResults == null) {
-      // Query was old; new search is in progress.
+      // Query was old; new search is in progress. Or, no listeners to notify.
       return;
     }
 
@@ -152,7 +154,7 @@ class MentionAutocompleteView extends ChangeNotifier {
       // CPU perf: End this task; enqueue a new one for resuming this work
       await Future(() {});
 
-      if (query != _currentQuery) {
+      if (query != _currentQuery || !hasListeners) { // false if [dispose] has been called.
         return null;
       }
 
