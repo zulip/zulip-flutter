@@ -152,12 +152,14 @@ class ContentTextEditingController extends TextEditingController {
 /// The content input for StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
   const _StreamContentInput({
+    required this.narrow,
     required this.streamId,
     required this.controller,
     required this.topicController,
     required this.focusNode,
   });
 
+  final Narrow narrow;
   final int streamId;
   final ContentTextEditingController controller;
   final TopicTextEditingController topicController;
@@ -572,7 +574,10 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
 /// The compose box for writing a stream message.
 class StreamComposeBox extends StatefulWidget {
-  const StreamComposeBox({super.key, required this.streamId});
+  const StreamComposeBox({super.key, required this.narrow, required this.streamId});
+
+  /// The narrow on view in the message list.
+  final Narrow narrow;
 
   final int streamId;
 
@@ -633,6 +638,7 @@ class _StreamComposeBoxState extends State<StreamComposeBox> {
                     topicInput,
                     const SizedBox(height: 8),
                     _StreamContentInput(
+                      narrow: widget.narrow,
                       streamId: widget.streamId,
                       topicController: _topicController,
                       controller: _contentController,
@@ -666,7 +672,7 @@ class ComposeBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final narrow = this.narrow;
     if (narrow is StreamNarrow) {
-      return StreamComposeBox(streamId: narrow.streamId);
+      return StreamComposeBox(narrow: narrow, streamId: narrow.streamId);
     } else if (narrow is TopicNarrow) {
       return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
     } else if (narrow is AllMessagesNarrow) {
