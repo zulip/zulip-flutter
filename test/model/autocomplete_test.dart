@@ -81,7 +81,8 @@ void main() {
       });
     }
 
-    MentionAutocompleteQuery queryOf(String raw) => MentionAutocompleteQuery(raw);
+    MentionAutocompleteQuery queryOf(String raw) => MentionAutocompleteQuery(raw, silent: false);
+    MentionAutocompleteQuery silentQueryOf(String raw) => MentionAutocompleteQuery(raw, silent: true);
 
     doTest('', null);
     doTest('^', null);
@@ -120,46 +121,46 @@ void main() {
 
     doTest('~@^_', queryOf('')); // Odd/unlikely, but should not crash
 
-    doTest('~@__^', queryOf('_'));
+    doTest('~@__^', silentQueryOf('_'));
 
-    doTest('~@^abc^', queryOf('abc')); doTest('~@_^abc^', queryOf('abc'));
-    doTest('~@a^bc^', queryOf('abc')); doTest('~@_a^bc^', queryOf('abc'));
-    doTest('~@ab^c^', queryOf('abc')); doTest('~@_ab^c^', queryOf('abc'));
-    doTest('~^@^', queryOf(''));       doTest('~^@_^', queryOf(''));
+    doTest('~@^abc^', queryOf('abc')); doTest('~@_^abc^', silentQueryOf('abc'));
+    doTest('~@a^bc^', queryOf('abc')); doTest('~@_a^bc^', silentQueryOf('abc'));
+    doTest('~@ab^c^', queryOf('abc')); doTest('~@_ab^c^', silentQueryOf('abc'));
+    doTest('~^@^', queryOf(''));       doTest('~^@_^', silentQueryOf(''));
     // but:
     doTest('^hello @chris^', null);    doTest('^hello @_chris^', null);
 
-    doTest('~@me@zulip.com^', queryOf('me@zulip.com'));  doTest('~@_me@zulip.com^', queryOf('me@zulip.com'));
-    doTest('~@me@^zulip.com^', queryOf('me@zulip.com')); doTest('~@_me@^zulip.com^', queryOf('me@zulip.com'));
-    doTest('~@me^@zulip.com^', queryOf('me@zulip.com')); doTest('~@_me^@zulip.com^', queryOf('me@zulip.com'));
-    doTest('~@^me@zulip.com^', queryOf('me@zulip.com')); doTest('~@_^me@zulip.com^', queryOf('me@zulip.com'));
+    doTest('~@me@zulip.com^', queryOf('me@zulip.com'));  doTest('~@_me@zulip.com^', silentQueryOf('me@zulip.com'));
+    doTest('~@me@^zulip.com^', queryOf('me@zulip.com')); doTest('~@_me@^zulip.com^', silentQueryOf('me@zulip.com'));
+    doTest('~@me^@zulip.com^', queryOf('me@zulip.com')); doTest('~@_me^@zulip.com^', silentQueryOf('me@zulip.com'));
+    doTest('~@^me@zulip.com^', queryOf('me@zulip.com')); doTest('~@_^me@zulip.com^', silentQueryOf('me@zulip.com'));
 
-    doTest('~@abc^', queryOf('abc'));   doTest('~@_abc^', queryOf('abc'));
-    doTest(' ~@abc^', queryOf('abc'));  doTest(' ~@_abc^', queryOf('abc'));
-    doTest('(~@abc^', queryOf('abc'));  doTest('(~@_abc^', queryOf('abc'));
-    doTest('—~@abc^', queryOf('abc'));  doTest('—~@_abc^', queryOf('abc'));
-    doTest('"~@abc^', queryOf('abc'));  doTest('"~@_abc^', queryOf('abc'));
-    doTest('“~@abc^', queryOf('abc'));  doTest('“~@_abc^', queryOf('abc'));
-    doTest('。~@abc^', queryOf('abc')); doTest('。~@_abc^', queryOf('abc'));
-    doTest('«~@abc^', queryOf('abc'));  doTest('«~@_abc^', queryOf('abc'));
+    doTest('~@abc^', queryOf('abc'));   doTest('~@_abc^', silentQueryOf('abc'));
+    doTest(' ~@abc^', queryOf('abc'));  doTest(' ~@_abc^', silentQueryOf('abc'));
+    doTest('(~@abc^', queryOf('abc'));  doTest('(~@_abc^', silentQueryOf('abc'));
+    doTest('—~@abc^', queryOf('abc'));  doTest('—~@_abc^', silentQueryOf('abc'));
+    doTest('"~@abc^', queryOf('abc'));  doTest('"~@_abc^', silentQueryOf('abc'));
+    doTest('“~@abc^', queryOf('abc'));  doTest('“~@_abc^', silentQueryOf('abc'));
+    doTest('。~@abc^', queryOf('abc')); doTest('。~@_abc^', silentQueryOf('abc'));
+    doTest('«~@abc^', queryOf('abc'));  doTest('«~@_abc^', silentQueryOf('abc'));
 
-    doTest('~@ab^c', queryOf('ab')); doTest('~@_ab^c', queryOf('ab'));
-    doTest('~@a^bc', queryOf('a'));  doTest('~@_a^bc', queryOf('a'));
-    doTest('~@^abc', queryOf(''));   doTest('~@_^abc', queryOf(''));
-    doTest('~@^', queryOf(''));      doTest('~@_^', queryOf(''));
+    doTest('~@ab^c', queryOf('ab')); doTest('~@_ab^c', silentQueryOf('ab'));
+    doTest('~@a^bc', queryOf('a'));  doTest('~@_a^bc', silentQueryOf('a'));
+    doTest('~@^abc', queryOf(''));   doTest('~@_^abc', silentQueryOf(''));
+    doTest('~@^', queryOf(''));      doTest('~@_^', silentQueryOf(''));
 
-    doTest('~@abc ^', queryOf('abc '));  doTest('~@_abc ^', queryOf('abc '));
-    doTest('~@abc^ ^', queryOf('abc ')); doTest('~@_abc^ ^', queryOf('abc '));
-    doTest('~@ab^c ^', queryOf('abc ')); doTest('~@_ab^c ^', queryOf('abc '));
-    doTest('~@^abc ^', queryOf('abc ')); doTest('~@_^abc ^', queryOf('abc '));
+    doTest('~@abc ^', queryOf('abc '));  doTest('~@_abc ^', silentQueryOf('abc '));
+    doTest('~@abc^ ^', queryOf('abc ')); doTest('~@_abc^ ^', silentQueryOf('abc '));
+    doTest('~@ab^c ^', queryOf('abc ')); doTest('~@_ab^c ^', silentQueryOf('abc '));
+    doTest('~@^abc ^', queryOf('abc ')); doTest('~@_^abc ^', silentQueryOf('abc '));
 
-    doTest('Please ask ~@chris^', queryOf('chris'));             doTest('Please ask ~@_chris^', queryOf('chris'));
-    doTest('Please ask ~@chris bobbe^', queryOf('chris bobbe')); doTest('Please ask ~@_chris bobbe^', queryOf('chris bobbe'));
+    doTest('Please ask ~@chris^', queryOf('chris'));             doTest('Please ask ~@_chris^', silentQueryOf('chris'));
+    doTest('Please ask ~@chris bobbe^', queryOf('chris bobbe')); doTest('Please ask ~@_chris bobbe^', silentQueryOf('chris bobbe'));
 
     doTest('~@Rodion Romanovich Raskolnikov^', queryOf('Rodion Romanovich Raskolnikov'));
-    doTest('~@_Rodion Romanovich Raskolniko^', queryOf('Rodion Romanovich Raskolniko'));
+    doTest('~@_Rodion Romanovich Raskolniko^', silentQueryOf('Rodion Romanovich Raskolniko'));
     doTest('~@Родион Романович Раскольников^', queryOf('Родион Романович Раскольников'));
-    doTest('~@_Родион Романович Раскольнико^', queryOf('Родион Романович Раскольнико'));
+    doTest('~@_Родион Романович Раскольнико^', silentQueryOf('Родион Романович Раскольнико'));
     doTest('If @chris is around, please ask him.^', null); // @ sign is too far away from cursor
     doTest('If @_chris is around, please ask him.^', null); // @ sign is too far away from cursor
   });

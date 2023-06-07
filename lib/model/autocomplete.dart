@@ -36,7 +36,7 @@ extension Autocomplete on ContentTextEditingController {
       }
       return AutocompleteIntent(
         syntaxStart: position,
-        query: MentionAutocompleteQuery(match[1]!),
+        query: MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
         textEditingValue: value);
     }
     return null;
@@ -58,7 +58,7 @@ final RegExp mentionAutocompleteMarkerRegex = (() {
 
   return RegExp(
     beforeAtSign
-    + r'@_?'
+    + r'@(_?)' // capture, so we can distinguish silent mentions
     + r'(|'
       // Reject on whitespace right after "@" or "@_". Emails can't start with
       // it, and full_name can't either (it's run through Python's `.strip()`).
@@ -272,10 +272,13 @@ class MentionAutocompleteView extends ChangeNotifier {
 }
 
 class MentionAutocompleteQuery {
-  MentionAutocompleteQuery(this.raw)
+  MentionAutocompleteQuery(this.raw, {this.silent = false})
     : _lowercaseWords = raw.toLowerCase().split(' ');
 
   final String raw;
+
+  /// Whether the user wants a silent mention (@_query, vs. @query).
+  final bool silent;
 
   final List<String> _lowercaseWords;
 
@@ -304,16 +307,16 @@ class MentionAutocompleteQuery {
 
   @override
   String toString() {
-    return '${objectRuntimeType(this, 'MentionAutocompleteQuery')}(raw: $raw})';
+    return '${objectRuntimeType(this, 'MentionAutocompleteQuery')}(raw: $raw, silent: $silent})';
   }
 
   @override
   bool operator ==(Object other) {
-    return other is MentionAutocompleteQuery && other.raw == raw;
+    return other is MentionAutocompleteQuery && other.raw == raw && other.silent == silent;
   }
 
   @override
-  int get hashCode => Object.hash('MentionAutocompleteQuery', raw);
+  int get hashCode => Object.hash('MentionAutocompleteQuery', raw, silent);
 }
 
 class AutocompleteDataCache {
