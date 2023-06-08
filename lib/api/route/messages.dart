@@ -6,6 +6,35 @@ import '../model/narrow.dart';
 
 part 'messages.g.dart';
 
+/// https://zulip.com/api/get-message
+///
+/// This binding only supports feature levels 120+.
+// TODO(server-5) remove FL 120+ mention in doc, and the related `assert`
+Future<GetMessageResult> getMessage(ApiConnection connection, {
+  required int messageId,
+  bool? applyMarkdown,
+}) {
+  assert(connection.zulipFeatureLevel! >= 120);
+  return connection.get('getMessage', GetMessageResult.fromJson, 'messages/$messageId', {
+    if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+  });
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class GetMessageResult {
+  // final String rawContent; // deprecated; ignore
+  final Message message;
+
+  GetMessageResult({
+    required this.message,
+  });
+
+  factory GetMessageResult.fromJson(Map<String, dynamic> json) =>
+    _$GetMessageResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GetMessageResultToJson(this);
+}
+
 /// https://zulip.com/api/get-messages
 Future<GetMessagesResult> getMessages(ApiConnection connection, {
   required ApiNarrow narrow,

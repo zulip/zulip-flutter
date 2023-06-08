@@ -13,6 +13,56 @@ import '../fake_api.dart';
 import 'route_checks.dart';
 
 void main() {
+  group('getMessage', () {
+    Future<GetMessageResult> checkGetMessage(
+      FakeApiConnection connection, {
+      required int messageId,
+      bool? applyMarkdown,
+      required Map<String, String> expected,
+    }) async {
+      final result = await getMessage(connection,
+        messageId: messageId,
+        applyMarkdown: applyMarkdown,
+      );
+      check(connection.lastRequest).isNotNull().isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..url.queryParameters.deepEquals(expected);
+      return result;
+    }
+
+    final fakeResult = GetMessageResult(message: eg.streamMessage());
+
+    test('applyMarkdown true', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessage(connection,
+          messageId: 1,
+          applyMarkdown: true,
+          expected: {'apply_markdown': 'true'});
+      });
+    });
+
+    test('applyMarkdown false', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessage(connection,
+          messageId: 1,
+          applyMarkdown: false,
+          expected: {'apply_markdown': 'false'});
+      });
+    });
+
+    test('Throws assertion error when FL <120', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        check(() => getMessage(connection,
+          messageId: 1,
+        )).throws<AssertionError>();
+      });
+    });
+  });
+
   group('getMessages', () {
     Future<GetMessagesResult> checkGetMessages(
       FakeApiConnection connection, {
