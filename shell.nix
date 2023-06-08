@@ -38,4 +38,8 @@ mkShell {
     android-studio
     android-tools
   ];
+
+  LD_LIBRARY_PATH = lib.makeLibraryPath [
+    fontconfig.lib
+  ];
 }
