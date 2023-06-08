@@ -140,12 +140,32 @@ class _LightboxPageState extends State<_LightboxPage> {
         .add_Hms()
         .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
 
+      final avatarUrl = widget.message.avatarUrl == null // TODO get from user data
+        ? null // TODO handle computing gravatars
+        : resolveUrl(widget.message.avatarUrl!, PerAccountStoreWidget.of(context).account,
+        );
+
+      final avatar = avatarUrl != null
+        ? Padding(
+            padding: const EdgeInsets.fromLTRB(8.0,4,0,0),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              width: 35,
+              height: 35,
+              decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(4))),
+              child: RealmContentNetworkImage(avatarUrl),
+            ),
+          )
+        : const SizedBox.shrink();
+
+
       appBar = AppBar(
         centerTitle: false,
         foregroundColor: appBarForegroundColor,
         backgroundColor: appBarBackgroundColor,
-
-        // TODO(#41): Show message author's avatar
+        leading: avatar,
+        actions: const [CloseButton()],
         title: RichText(
           text: TextSpan(children: [
             TextSpan(
