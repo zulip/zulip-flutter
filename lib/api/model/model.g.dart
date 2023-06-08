@@ -256,9 +256,8 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
       matchContent: json['match_content'] as String?,
       matchSubject: json['match_subject'] as String?,
-      displayRecipient: (json['display_recipient'] as List<dynamic>)
-          .map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      displayRecipient: const DmRecipientListConverter()
+          .fromJson(json['display_recipient'] as List),
     );
 
 Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
@@ -280,5 +279,6 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'match_content': instance.matchContent,
       'match_subject': instance.matchSubject,
       'type': instance.type,
-      'display_recipient': instance.displayRecipient,
+      'display_recipient':
+          const DmRecipientListConverter().toJson(instance.displayRecipient),
     };

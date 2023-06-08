@@ -372,12 +372,28 @@ class DmRecipient {
   int get hashCode => Object.hash('DmRecipient', id, email, fullName);
 }
 
+class DmRecipientListConverter extends JsonConverter<List<DmRecipient>, List<dynamic>> {
+  const DmRecipientListConverter();
+
+  @override
+  List<DmRecipient> fromJson(List json) {
+    return json.map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
+      .toList(growable: false)
+      ..sort((a, b) => a.id.compareTo(b.id));
+  }
+
+  @override
+  List toJson(List<DmRecipient> object) => object;
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake)
 class DmMessage extends Message {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'private';
 
+  /// The `display_recipient` from the server, sorted by user ID numerically.
+  @DmRecipientListConverter()
   final List<DmRecipient> displayRecipient;
 
   DmMessage({
