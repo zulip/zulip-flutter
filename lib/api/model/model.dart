@@ -358,6 +358,18 @@ class DmRecipient {
     _$DmRecipientFromJson(json);
 
   Map<String, dynamic> toJson() => _$DmRecipientToJson(this);
+
+  @override
+  String toString() => 'DmRecipient(id: $id, email: $email, fullName: $fullName)';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! DmRecipient) return false;
+    return other.id == id && other.email == email && other.fullName == fullName;
+  }
+
+  @override
+  int get hashCode => Object.hash('DmRecipient', id, email, fullName);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
