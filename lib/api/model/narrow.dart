@@ -97,3 +97,20 @@ class ApiNarrowPmWith extends ApiNarrowDm {
 
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
+
+class ApiNarrowMessageId extends ApiNarrowElement {
+  @override String get operator => 'id';
+
+  // The API requires a string, even though message IDs are ints:
+  //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/.60id.3A123.60.20narrow.20in.20.60GET.20.2Fmessages.60/near/1591465
+  // TODO(server-future) Send ints to future servers that support them. For how
+  //   to handle the migration, see [ApiNarrowDm.resolve].
+  @override final String operand;
+
+  ApiNarrowMessageId(int operand, {super.negated}) : operand = operand.toString();
+
+  factory ApiNarrowMessageId.fromJson(Map<String, dynamic> json) => ApiNarrowMessageId(
+    int.parse(json['operand'] as String),
+    negated: json['negated'] as bool? ?? false,
+  );
+}

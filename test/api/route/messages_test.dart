@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/narrow.dart';
@@ -10,9 +11,118 @@ import 'package:zulip/model/narrow.dart';
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
 import '../fake_api.dart';
+import '../model/model_checks.dart';
 import 'route_checks.dart';
 
 void main() {
+  group('getMessageCompat', () {
+    Future<Message?> checkGetMessageCompat(FakeApiConnection connection, {
+      required bool expectLegacy,
+      required int messageId,
+      bool? applyMarkdown,
+    }) async {
+      final result = await getMessageCompat(connection,
+        messageId: messageId,
+        applyMarkdown: applyMarkdown,
+      );
+      if (expectLegacy) {
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/messages')
+          ..url.queryParameters.deepEquals({
+            'narrow': jsonEncode([ApiNarrowMessageId(messageId)]),
+            'anchor': messageId.toString(),
+            'num_before': '0',
+            'num_after': '0',
+            if (applyMarkdown != null) 'apply_markdown': applyMarkdown.toString(),
+            'client_gravatar': 'true',
+          });
+      } else {
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/messages/$messageId')
+          ..url.queryParameters.deepEquals({
+            if (applyMarkdown != null) 'apply_markdown': applyMarkdown.toString(),
+          });
+      }
+      return result;
+    }
+
+    test('modern; message found', () {
+      return FakeApiConnection.with_((connection) async {
+        final message = eg.streamMessage();
+        final fakeResult = GetMessageResult(message: message);
+        connection.prepare(json: fakeResult.toJson());
+        final result = await checkGetMessageCompat(connection,
+          expectLegacy: false,
+          messageId: message.id,
+          applyMarkdown: true,
+        );
+        check(result).isNotNull().jsonEquals(message);
+      });
+    });
+
+    test('modern; message not found', () {
+      return FakeApiConnection.with_((connection) async {
+        final message = eg.streamMessage();
+        final fakeResponseJson = {
+          'code': 'BAD_REQUEST',
+          'msg': 'Invalid message(s)',
+          'result': 'error',
+        };
+        connection.prepare(httpStatus: 400, json: fakeResponseJson);
+        final result = await checkGetMessageCompat(connection,
+          expectLegacy: false,
+          messageId: message.id,
+          applyMarkdown: true,
+        );
+        check(result).isNull();
+      });
+    });
+
+    test('legacy; message found', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
+        final message = eg.streamMessage();
+        final fakeResult = GetMessagesResult(
+          anchor: message.id,
+          foundNewest: false,
+          foundOldest: false,
+          foundAnchor: true,
+          historyLimited: false,
+          messages: [message],
+        );
+        connection.prepare(json: fakeResult.toJson());
+        final result = await checkGetMessageCompat(connection,
+          expectLegacy: true,
+          messageId: message.id,
+          applyMarkdown: true,
+        );
+        check(result).isNotNull().jsonEquals(message);
+      });
+    });
+
+    test('legacy; message not found', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
+        final message = eg.streamMessage();
+        final fakeResult = GetMessagesResult(
+          anchor: message.id,
+          foundNewest: false,
+          foundOldest: false,
+          foundAnchor: false,
+          historyLimited: false,
+          messages: [],
+        );
+        connection.prepare(json: fakeResult.toJson());
+        final result = await checkGetMessageCompat(connection,
+          expectLegacy: true,
+          messageId: message.id,
+          applyMarkdown: true,
+        );
+        check(result).isNull();
+      });
+    });
+  });
+
   group('getMessage', () {
     Future<GetMessageResult> checkGetMessage(
       FakeApiConnection connection, {
