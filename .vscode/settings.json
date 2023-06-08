@@ -1,0 +1,9 @@
+{
+    "editor.tabSize": 2,
+    "editor.formatOnSave": false,
+    "dart.enableSdkFormatter": false,
+    "[dart]": {
+        "editor.formatOnSave": false,
+        "editor.tabSize": 2,
+    }
+}
