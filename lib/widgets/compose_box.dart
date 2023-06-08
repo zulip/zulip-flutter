@@ -695,6 +695,8 @@ class ComposeBox extends StatelessWidget {
       return StreamComposeBox(narrow: narrow, streamId: narrow.streamId);
     } else if (narrow is TopicNarrow) {
       return const SizedBox.shrink(); // TODO(#144): add a single-topic compose box
+    } else if (narrow is DmNarrow) {
+      return const SizedBox.shrink(); // TODO(#144): add a DM compose box
     } else if (narrow is AllMessagesNarrow) {
       return const SizedBox.shrink();
     } else {

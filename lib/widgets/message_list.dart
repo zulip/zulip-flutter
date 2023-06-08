@@ -68,6 +68,15 @@ class MessageListAppBarTitle extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
         return Text("#$streamName > $topic"); // TODO show stream privacy icon; format on two lines
+
+      case DmNarrow(:var otherRecipientIds):
+        final store = PerAccountStoreWidget.of(context);
+        if (otherRecipientIds.isEmpty) {
+          return const Text("DMs with yourself");
+        } else {
+          final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)');
+          return Text("DMs with ${names.join(", ")}"); // TODO show avatars
+        }
     }
   }
 }
