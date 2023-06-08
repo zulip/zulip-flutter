@@ -381,7 +381,8 @@ class MessageWithSender extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(4))),
               width: 35,
               height: 35,
-              child: avatar)),
+              child: avatar,
+            )),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

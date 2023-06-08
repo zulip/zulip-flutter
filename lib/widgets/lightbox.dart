@@ -205,7 +205,7 @@ class _LightboxPageState extends State<_LightboxPage> {
 Route getLightboxRoute({
   required BuildContext context,
   required Message message,
-  required String src
+  required String src,
 }) {
   return AccountPageRouteBuilder(
     context: context,
