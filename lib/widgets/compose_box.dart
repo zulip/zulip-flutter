@@ -27,7 +27,7 @@ enum TopicValidationError {
   }
 }
 
-class TopicTextEditingController extends TextEditingController {
+class ComposeTopicController extends TextEditingController {
   // TODO: subscribe to this value:
   //   https://zulip.com/help/require-topics
   final mandatory = true;
@@ -67,7 +67,7 @@ enum ContentValidationError {
   }
 }
 
-class ContentTextEditingController extends TextEditingController {
+class ComposeContentController extends TextEditingController {
   int _nextUploadTag = 0;
 
   final Map<int, ({String filename, String placeholder})> _uploads = {};
@@ -159,7 +159,7 @@ class _ContentInput extends StatefulWidget {
   });
 
   final Narrow narrow;
-  final ContentTextEditingController controller;
+  final ComposeContentController controller;
   final FocusNode focusNode;
   final String hintText;
 
@@ -239,8 +239,8 @@ class _StreamContentInput extends StatefulWidget {
   });
 
   final StreamNarrow narrow;
-  final ContentTextEditingController controller;
-  final TopicTextEditingController topicController;
+  final ComposeContentController controller;
+  final ComposeTopicController topicController;
   final FocusNode focusNode;
 
   @override
@@ -304,7 +304,7 @@ class _File {
 
 Future<void> _uploadFiles({
   required BuildContext context,
-  required ContentTextEditingController contentController,
+  required ComposeContentController contentController,
   required FocusNode contentFocusNode,
   required Iterable<_File> files,
 }) async {
@@ -365,7 +365,7 @@ Future<void> _uploadFiles({
 abstract class _AttachUploadsButton extends StatelessWidget {
   const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
 
-  final ContentTextEditingController contentController;
+  final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
   IconData get icon;
@@ -529,8 +529,8 @@ class _StreamSendButton extends StatefulWidget {
   });
 
   final StreamNarrow narrow;
-  final TopicTextEditingController topicController;
-  final ContentTextEditingController contentController;
+  final ComposeTopicController topicController;
+  final ComposeContentController contentController;
 
   @override
   State<_StreamSendButton> createState() => _StreamSendButtonState();
@@ -672,8 +672,8 @@ class _StreamComposeBox extends StatefulWidget {
 }
 
 class _StreamComposeBoxState extends State<_StreamComposeBox> {
-  final _topicController = TopicTextEditingController();
-  final _contentController = ContentTextEditingController();
+  final _topicController = ComposeTopicController();
+  final _contentController = ComposeContentController();
   final _contentFocusNode = FocusNode();
 
   @override

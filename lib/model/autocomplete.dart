@@ -7,7 +7,7 @@ import '../widgets/compose_box.dart';
 import 'narrow.dart';
 import 'store.dart';
 
-extension Autocomplete on ContentTextEditingController {
+extension Autocomplete on ComposeContentController {
   AutocompleteIntent? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that

@@ -15,7 +15,7 @@ import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
 void main() {
-  group('ContentTextEditingController.autocompleteIntent', () {
+  group('ComposeContentController.autocompleteIntent', () {
     parseMarkedText(String markedText) {
       final TextSelection selection;
       int? expectedSyntaxStart;
@@ -67,7 +67,7 @@ void main() {
         ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
         : 'no query in ${jsonEncode(markedText)}';
       test(description, () {
-        final controller = ContentTextEditingController();
+        final controller = ComposeContentController();
         final parsed = parseMarkedText(markedText);
         assert((expectedQuery == null) == (parsed.expectedSyntaxStart == null));
         controller.value = parsed.value;

@@ -2,7 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
-extension ContentTextEditingControllerChecks on Subject<ContentTextEditingController> {
+extension ComposeContentControllerChecks on Subject<ComposeContentController> {
   Subject<AutocompleteIntent?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
 }
 
