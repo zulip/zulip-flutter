@@ -126,33 +126,16 @@ To update the version bounds:
 
 ## TODO
 
-### Server API
+In general, see [the issue tracker][].
+Some items written below in an early phase of the project
+may not yet have been converted into issues.
 
-Much more to write.
-
-
-### State and storage
-
-Much more to design and write.
+[the issue tracker]: https://github.com/zulip/zulip-flutter/issues
 
 
 ### Message content
 
-If necessary we could put the message list in a webview, like we do
-in React Native.  But the current plan is to handle it with Flutter
-widgets.
-
 - Lots of specific types of elements; see TODO comments
-
-- Specific types of elements that may inform architecture:
-  - List item indicators according to nesting level
-  - Layout interactions like `p+ul`
-  - Lightbox for image attachments
-  - TeX
-
-- Font
-
-- Polls
 
 - Survey lots of messages to find unhandled types of elements
 - Survey all public messages on chat.zulip.org
@@ -162,17 +145,6 @@ widgets.
 
 
 ### Message list, other than content
-
-- Show more/better message metadata:
-  - Starred
-  - Edited/moved
-
-- Handle layout/UI interactions between messages:
-  - Sender names/avatars
-  - Recipient headers
-  - Date separators
-
-- UI to interact with messages
 
 - Scroll position at first unread, or via link (vs. latest)
 

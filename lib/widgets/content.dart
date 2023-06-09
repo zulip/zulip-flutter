@@ -145,12 +145,12 @@ class ListNodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO p+ul and p+ol interactions
+    // TODO(#162): p+ul and p+ol interactions
     final items = List.generate(node.items.length, (index) {
       final item = node.items[index];
       String marker;
       switch (node.style) {
-        // TODO different unordered marker styles at different levels of nesting
+        // TODO(#161): different unordered marker styles at different levels of nesting
         //   see:
         //     https://html.spec.whatwg.org/multipage/rendering.html#lists
         //     https://www.w3.org/TR/css-counter-styles-3/#simple-symbolic

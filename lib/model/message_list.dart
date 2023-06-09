@@ -98,8 +98,8 @@ class MessageListView extends ChangeNotifier {
 
   static Iterable<ZulipContent> _contentsOfMessages(Iterable<Message> messages) {
     // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings,
-    // recipient headings, and date separators.
+    // with the display of neighboring messages: sender headings #175,
+    // recipient headings #174, and date separators #173.
     // TODO factor [messages] and [contents] into own class to encapsulate that
     return messages.map((message) => parseContent(message.content));
   }
