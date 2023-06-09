@@ -13,6 +13,33 @@ import 'store.dart';
 const double _inputVerticalPadding = 8;
 const double _sendButtonSize = 36;
 
+/// A [TextEditingController] for use in the compose box.
+///
+/// Subclasses must ensure that [_update] is called in all exposed constructors.
+abstract class ComposeController<ErrorT> extends TextEditingController {
+  String get textNormalized => _textNormalized;
+  late String _textNormalized;
+  String _computeTextNormalized();
+
+  List<ErrorT> get validationErrors => _validationErrors;
+  late List<ErrorT> _validationErrors;
+  List<ErrorT> _computeValidationErrors();
+
+  ValueNotifier<bool> hasValidationErrors = ValueNotifier(false);
+
+  void _update() {
+    _textNormalized = _computeTextNormalized();
+    _validationErrors = _computeValidationErrors();
+    hasValidationErrors.value = _validationErrors.isNotEmpty;
+  }
+
+  @override
+  void notifyListeners() {
+    _update();
+    super.notifyListeners();
+  }
+}
+
 enum TopicValidationError {
   mandatoryButEmpty,
   tooLong;
@@ -27,22 +54,27 @@ enum TopicValidationError {
   }
 }
 
-class ComposeTopicController extends TextEditingController {
+class ComposeTopicController extends ComposeController<TopicValidationError> {
+  ComposeTopicController() {
+    _update();
+  }
+
   // TODO: subscribe to this value:
   //   https://zulip.com/help/require-topics
   final mandatory = true;
 
-  String textNormalized() {
+  @override
+  String _computeTextNormalized() {
     String trimmed = text.trim();
     return trimmed.isEmpty ? kNoTopicTopic : trimmed;
   }
 
-  List<TopicValidationError> validationErrors() {
-    final normalized = textNormalized();
+  @override
+  List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && normalized == kNoTopicTopic)
+      if (mandatory && textNormalized == kNoTopicTopic)
         TopicValidationError.mandatoryButEmpty,
-      if (normalized.length > kMaxTopicLength)
+      if (textNormalized.length > kMaxTopicLength)
         TopicValidationError.tooLong,
     ];
   }
@@ -67,7 +99,11 @@ enum ContentValidationError {
   }
 }
 
-class ComposeContentController extends TextEditingController {
+class ComposeContentController extends ComposeController<ContentValidationError> {
+  ComposeContentController() {
+    _update();
+  }
+
   int _nextUploadTag = 0;
 
   final Map<int, ({String filename, String placeholder})> _uploads = {};
@@ -128,20 +164,21 @@ class ComposeContentController extends TextEditingController {
     notifyListeners(); // _uploads change could affect validationErrors
   }
 
-  String textNormalized() {
+  @override
+  String _computeTextNormalized() {
     return text.trim();
   }
 
-  List<ContentValidationError> validationErrors() {
-    final normalized = textNormalized();
+  @override
+  List<ContentValidationError> _computeValidationErrors() {
     return [
-      if (normalized.isEmpty)
+      if (textNormalized.isEmpty)
         ContentValidationError.empty,
 
       // normalized.length is the number of UTF-16 code units, while the server
       // API expresses the max in Unicode code points. So this comparison will
       // be conservative and may cut the user off shorter than necessary.
-      if (normalized.length > kMaxMessageLengthCodePoints)
+      if (textNormalized.length > kMaxMessageLengthCodePoints)
         ContentValidationError.tooLong,
 
       if (_uploads.isNotEmpty)
@@ -252,14 +289,14 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
   _topicChanged() {
     setState(() {
-      _topicTextNormalized = widget.topicController.textNormalized();
+      _topicTextNormalized = widget.topicController.textNormalized;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _topicTextNormalized = widget.topicController.textNormalized();
+    _topicTextNormalized = widget.topicController.textNormalized;
     widget.topicController.addListener(_topicChanged);
   }
 
@@ -542,7 +579,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
   _topicChanged() {
     final oldIsEmpty = _topicValidationErrors.isEmpty;
-    final newErrors = widget.topicController.validationErrors();
+    final newErrors = widget.topicController.validationErrors;
     final newIsEmpty = newErrors.isEmpty;
     _topicValidationErrors = newErrors;
     if (oldIsEmpty != newIsEmpty) {
@@ -554,7 +591,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
   _contentChanged() {
     final oldIsEmpty = _contentValidationErrors.isEmpty;
-    final newErrors = widget.contentController.validationErrors();
+    final newErrors = widget.contentController.validationErrors;
     final newIsEmpty = newErrors.isEmpty;
     _contentValidationErrors = newErrors;
     if (oldIsEmpty != newIsEmpty) {
@@ -567,8 +604,8 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
   @override
   void initState() {
     super.initState();
-    _topicValidationErrors = widget.topicController.validationErrors();
-    _contentValidationErrors = widget.contentController.validationErrors();
+    _topicValidationErrors = widget.topicController.validationErrors;
+    _contentValidationErrors = widget.contentController.validationErrors;
     widget.topicController.addListener(_topicChanged);
     widget.contentController.addListener(_contentChanged);
   }
@@ -615,8 +652,8 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
     final store = PerAccountStoreWidget.of(context);
     final destination = StreamDestination(
-      widget.narrow.streamId, widget.topicController.textNormalized());
-    final content = widget.contentController.textNormalized();
+      widget.narrow.streamId, widget.topicController.textNormalized);
+    final content = widget.contentController.textNormalized;
     store.sendMessage(destination: destination, content: content);
 
     widget.contentController.clear();
