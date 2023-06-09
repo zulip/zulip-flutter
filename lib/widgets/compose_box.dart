@@ -150,34 +150,25 @@ class ContentTextEditingController extends TextEditingController {
   }
 }
 
-/// The content input for _StreamComposeBox.
-class _StreamContentInput extends StatefulWidget {
-  const _StreamContentInput({
+class _ContentInput extends StatefulWidget {
+  const _ContentInput({
     required this.narrow,
     required this.controller,
-    required this.topicController,
     required this.focusNode,
+    required this.hintText,
   });
 
-  final StreamNarrow narrow;
+  final Narrow narrow;
   final ContentTextEditingController controller;
-  final TopicTextEditingController topicController;
   final FocusNode focusNode;
+  final String hintText;
 
   @override
-  State<_StreamContentInput> createState() => _StreamContentInputState();
+  State<_ContentInput> createState() => _ContentInputState();
 }
 
-class _StreamContentInputState extends State<_StreamContentInput> {
+class _ContentInputState extends State<_ContentInput> {
   MentionAutocompleteView? _mentionAutocompleteView; // TODO different autocomplete view types
-
-  late String _topicTextNormalized;
-
-  _topicChanged() {
-    setState(() {
-      _topicTextNormalized = widget.topicController.textNormalized();
-    });
-  }
 
   _changed() {
     final newAutocompleteIntent = widget.controller.autocompleteIntent();
@@ -197,18 +188,12 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   @override
   void initState() {
     super.initState();
-    _topicTextNormalized = widget.topicController.textNormalized();
-    widget.topicController.addListener(_topicChanged);
     widget.controller.addListener(_changed);
   }
 
   @override
-  void didUpdateWidget(covariant _StreamContentInput oldWidget) {
+  void didUpdateWidget(covariant _ContentInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.topicController != oldWidget.topicController) {
-      oldWidget.topicController.removeListener(_topicChanged);
-      widget.topicController.addListener(_topicChanged);
-    }
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.removeListener(_changed);
       widget.controller.addListener(_changed);
@@ -217,16 +202,12 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
   @override
   void dispose() {
-    widget.topicController.removeListener(_topicChanged);
     widget.controller.removeListener(_changed);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final streamName = store.streams[widget.narrow.streamId]?.name ?? '(unknown stream)';
-
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InputDecorator(
@@ -242,11 +223,70 @@ class _StreamContentInputState extends State<_StreamContentInput> {
           controller: widget.controller,
           focusNode: widget.focusNode,
           style: TextStyle(color: colorScheme.onSurface),
-          decoration: InputDecoration.collapsed(
-            hintText: "Message #$streamName > $_topicTextNormalized",
-          ),
+          decoration: InputDecoration.collapsed(hintText: widget.hintText),
           maxLines: null,
         )));
+  }
+}
+
+/// The content input for _StreamComposeBox.
+class _StreamContentInput extends StatefulWidget {
+  const _StreamContentInput({
+    required this.narrow,
+    required this.controller,
+    required this.topicController,
+    required this.focusNode,
+  });
+
+  final StreamNarrow narrow;
+  final ContentTextEditingController controller;
+  final TopicTextEditingController topicController;
+  final FocusNode focusNode;
+
+  @override
+  State<_StreamContentInput> createState() => _StreamContentInputState();
+}
+
+class _StreamContentInputState extends State<_StreamContentInput> {
+  late String _topicTextNormalized;
+
+  _topicChanged() {
+    setState(() {
+      _topicTextNormalized = widget.topicController.textNormalized();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _topicTextNormalized = widget.topicController.textNormalized();
+    widget.topicController.addListener(_topicChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _StreamContentInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.topicController != oldWidget.topicController) {
+      oldWidget.topicController.removeListener(_topicChanged);
+      widget.topicController.addListener(_topicChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.topicController.removeListener(_topicChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final streamName = store.streams[widget.narrow.streamId]?.name ?? '(unknown stream)';
+    return _ContentInput(
+      narrow: widget.narrow,
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      hintText: "Message #$streamName > $_topicTextNormalized");
   }
 }
 
