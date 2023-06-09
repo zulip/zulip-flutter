@@ -1,6 +1,7 @@
 
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
+import '../api/route/messages.dart';
 
 /// A Zulip narrow.
 sealed class Narrow {
@@ -13,6 +14,11 @@ sealed class Narrow {
 
   /// This narrow, expressed as an [ApiNarrow].
   ApiNarrow apiEncode();
+}
+
+/// A non-interleaved narrow, completely specifying a place to send a message.
+sealed class SendableNarrow extends Narrow {
+  MessageDestination get destination;
 }
 
 /// The narrow called "All messages" in the UI.
@@ -65,7 +71,7 @@ class StreamNarrow extends Narrow {
   int get hashCode => Object.hash('StreamNarrow', streamId);
 }
 
-class TopicNarrow extends Narrow {
+class TopicNarrow extends Narrow implements SendableNarrow {
   const TopicNarrow(this.streamId, this.topic);
 
   final int streamId;
@@ -79,6 +85,9 @@ class TopicNarrow extends Narrow {
 
   @override
   ApiNarrow apiEncode() => [ApiNarrowStream(streamId), ApiNarrowTopic(topic)];
+
+  @override
+  StreamDestination get destination => StreamDestination(streamId, topic);
 
   @override
   bool operator ==(Object other) {
@@ -111,7 +120,7 @@ bool _isSortedWithoutDuplicates(List<int> items) {
 // handling many of them, see zulip-mobile:src/utils/recipient.js .
 // Please add more constructors and getters here to handle any of those
 // as we turn out to need them.
-class DmNarrow extends Narrow {
+class DmNarrow extends Narrow implements SendableNarrow {
   DmNarrow({required this.allRecipientIds, required int selfUserId})
     : assert(_isSortedWithoutDuplicates(allRecipientIds)),
       assert(allRecipientIds.contains(selfUserId)),
@@ -166,9 +175,15 @@ class DmNarrow extends Narrow {
     return true;
   }
 
+  // Not [otherRecipientIds], because for the self-1:1 thread the server rejects
+  // that as of Zulip Server 7 (2023-06), with BAD_REQUEST.
+  @override
+  DmDestination get destination => DmDestination(userIds: allRecipientIds);
+
   // Not [otherRecipientIds], because for the self-1:1 thread that triggers
   // a server bug as of Zulip Server 7 (2023-05): an empty list here
   // causes a 5xx response from the server.
+  // TODO(server): fix bug on empty operand to dm/pm-with narrow operator
   @override
   ApiNarrow apiEncode() => [ApiNarrowDm(allRecipientIds)];
 
