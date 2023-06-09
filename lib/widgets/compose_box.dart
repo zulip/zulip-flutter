@@ -203,6 +203,19 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 
   @override
+  void didUpdateWidget(covariant _StreamContentInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.topicController != oldWidget.topicController) {
+      oldWidget.topicController.removeListener(_topicChanged);
+      widget.topicController.addListener(_topicChanged);
+    }
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_changed);
+      widget.controller.addListener(_changed);
+    }
+  }
+
+  @override
   void dispose() {
     widget.topicController.removeListener(_topicChanged);
     widget.controller.removeListener(_changed);
@@ -518,6 +531,19 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     _contentValidationErrors = widget.contentController.validationErrors();
     widget.topicController.addListener(_topicChanged);
     widget.contentController.addListener(_contentChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _StreamSendButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.topicController != oldWidget.topicController) {
+      oldWidget.topicController.removeListener(_topicChanged);
+      widget.topicController.addListener(_topicChanged);
+    }
+    if (widget.contentController != oldWidget.contentController) {
+      oldWidget.contentController.removeListener(_contentChanged);
+      widget.contentController.addListener(_contentChanged);
+    }
   }
 
   @override
