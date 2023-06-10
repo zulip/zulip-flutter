@@ -36,4 +36,26 @@ void main() {
       .accountEntries.single
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
   });
+
+  testWidgets('PerAccountStoreWidget', (tester) async {
+    final globalStore = TestDataBinding.instance.globalStore;
+    addTearDown(TestDataBinding.instance.reset);
+    await globalStore.add(eg.selfAccount, eg.initialSnapshot);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: GlobalStoreWidget(
+          child: PerAccountStoreWidget(
+            accountId: eg.selfAccount.id,
+            child: Builder(
+              builder: (context) {
+                final store = PerAccountStoreWidget.of(context);
+                return Text('found store, account: ${store.account.id}');
+              })))));
+    await tester.pump();
+    await tester.pump();
+
+    tester.widget(find.text('found store, account: ${eg.selfAccount.id}'));
+  });
 }
