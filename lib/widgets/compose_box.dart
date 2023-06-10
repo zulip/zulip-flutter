@@ -612,23 +612,18 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
       || widget.contentController.hasValidationErrors.value;
   }
 
-  void _showSendFailedDialog(BuildContext context) {
-    List<String> validationErrorMessages = [
-      for (final error in widget.topicController.validationErrors)
-        error.message(),
-      for (final error in widget.contentController.validationErrors)
-        error.message(),
-    ];
-
-    return showErrorDialog(
-      context: context,
-      title: 'Message not sent',
-      message: validationErrorMessages.join('\n\n'));
-  }
-
-  void _handleSendPressed(BuildContext context) {
+  void _send() {
     if (_hasValidationErrors) {
-      _showSendFailedDialog(context);
+      List<String> validationErrorMessages = [
+        for (final error in widget.topicController.validationErrors)
+          error.message(),
+        for (final error in widget.contentController.validationErrors)
+          error.message(),
+      ];
+      showErrorDialog(
+        context: context,
+        title: 'Message not sent',
+        message: validationErrorMessages.join('\n\n'));
       return;
     }
 
@@ -643,9 +638,8 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     final disabled = _hasValidationErrors;
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
     final backgroundColor = disabled
@@ -672,7 +666,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
         color: foregroundColor,
         icon: const Icon(Icons.send),
-        onPressed: () => _handleSendPressed(context)));
+        onPressed: _send));
   }
 }
 
