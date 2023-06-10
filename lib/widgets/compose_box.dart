@@ -557,23 +557,22 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
-/// The send button for _StreamComposeBox.
-class _StreamSendButton extends StatefulWidget {
-  const _StreamSendButton({
-    required this.narrow,
+class _SendButton extends StatefulWidget {
+  const _SendButton({
     required this.topicController,
     required this.contentController,
+    required this.getDestination,
   });
 
-  final StreamNarrow narrow;
-  final ComposeTopicController topicController;
+  final ComposeTopicController? topicController;
   final ComposeContentController contentController;
+  final MessageDestination Function() getDestination;
 
   @override
-  State<_StreamSendButton> createState() => _StreamSendButtonState();
+  State<_SendButton> createState() => _SendButtonState();
 }
 
-class _StreamSendButtonState extends State<_StreamSendButton> {
+class _SendButtonState extends State<_SendButton> {
   _hasErrorsChanged() {
     setState(() {
       // Update disabled/non-disabled state
@@ -583,16 +582,16 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
   @override
   void initState() {
     super.initState();
-    widget.topicController.hasValidationErrors.addListener(_hasErrorsChanged);
+    widget.topicController?.hasValidationErrors.addListener(_hasErrorsChanged);
     widget.contentController.hasValidationErrors.addListener(_hasErrorsChanged);
   }
 
   @override
-  void didUpdateWidget(covariant _StreamSendButton oldWidget) {
+  void didUpdateWidget(covariant _SendButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.topicController != oldWidget.topicController) {
-      oldWidget.topicController.hasValidationErrors.removeListener(_hasErrorsChanged);
-      widget.topicController.hasValidationErrors.addListener(_hasErrorsChanged);
+      oldWidget.topicController?.hasValidationErrors.removeListener(_hasErrorsChanged);
+      widget.topicController?.hasValidationErrors.addListener(_hasErrorsChanged);
     }
     if (widget.contentController != oldWidget.contentController) {
       oldWidget.contentController.hasValidationErrors.removeListener(_hasErrorsChanged);
@@ -602,20 +601,20 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
 
   @override
   void dispose() {
-    widget.topicController.hasValidationErrors.removeListener(_hasErrorsChanged);
+    widget.topicController?.hasValidationErrors.removeListener(_hasErrorsChanged);
     widget.contentController.hasValidationErrors.removeListener(_hasErrorsChanged);
     super.dispose();
   }
 
   bool get _hasValidationErrors {
-    return widget.topicController.hasValidationErrors.value
+    return (widget.topicController?.hasValidationErrors.value ?? false)
       || widget.contentController.hasValidationErrors.value;
   }
 
   void _send() {
     if (_hasValidationErrors) {
       List<String> validationErrorMessages = [
-        for (final error in widget.topicController.validationErrors)
+        for (final error in widget.topicController?.validationErrors ?? const [])
           error.message(),
         for (final error in widget.contentController.validationErrors)
           error.message(),
@@ -628,10 +627,8 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
     }
 
     final store = PerAccountStoreWidget.of(context);
-    final destination = StreamDestination(
-      widget.narrow.streamId, widget.topicController.textNormalized);
     final content = widget.contentController.textNormalized;
-    store.sendMessage(destination: destination, content: content);
+    store.sendMessage(destination: widget.getDestination(), content: content);
 
     widget.contentController.clear();
   }
@@ -743,10 +740,11 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
                       focusNode: _contentFocusNode),
                   ]))),
               const SizedBox(width: 8),
-              _StreamSendButton(
-                narrow: widget.narrow,
+              _SendButton(
                 topicController: _topicController,
                 contentController: _contentController,
+                getDestination: () => StreamDestination(
+                  widget.narrow.streamId, _topicController.textNormalized),
               ),
             ]),
             Theme(
