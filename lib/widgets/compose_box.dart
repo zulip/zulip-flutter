@@ -574,67 +574,49 @@ class _StreamSendButton extends StatefulWidget {
 }
 
 class _StreamSendButtonState extends State<_StreamSendButton> {
-  late List<TopicValidationError> _topicValidationErrors;
-  late List<ContentValidationError> _contentValidationErrors;
-
-  _topicChanged() {
-    final oldIsEmpty = _topicValidationErrors.isEmpty;
-    final newErrors = widget.topicController.validationErrors;
-    final newIsEmpty = newErrors.isEmpty;
-    _topicValidationErrors = newErrors;
-    if (oldIsEmpty != newIsEmpty) {
-      setState(() {
-        // Update disabled/non-disabled state
-      });
-    }
-  }
-
-  _contentChanged() {
-    final oldIsEmpty = _contentValidationErrors.isEmpty;
-    final newErrors = widget.contentController.validationErrors;
-    final newIsEmpty = newErrors.isEmpty;
-    _contentValidationErrors = newErrors;
-    if (oldIsEmpty != newIsEmpty) {
-      setState(() {
-        // Update disabled/non-disabled state
-      });
-    }
+  _hasErrorsChanged() {
+    setState(() {
+      // Update disabled/non-disabled state
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    _topicValidationErrors = widget.topicController.validationErrors;
-    _contentValidationErrors = widget.contentController.validationErrors;
-    widget.topicController.addListener(_topicChanged);
-    widget.contentController.addListener(_contentChanged);
+    widget.topicController.hasValidationErrors.addListener(_hasErrorsChanged);
+    widget.contentController.hasValidationErrors.addListener(_hasErrorsChanged);
   }
 
   @override
   void didUpdateWidget(covariant _StreamSendButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.topicController != oldWidget.topicController) {
-      oldWidget.topicController.removeListener(_topicChanged);
-      widget.topicController.addListener(_topicChanged);
+      oldWidget.topicController.hasValidationErrors.removeListener(_hasErrorsChanged);
+      widget.topicController.hasValidationErrors.addListener(_hasErrorsChanged);
     }
     if (widget.contentController != oldWidget.contentController) {
-      oldWidget.contentController.removeListener(_contentChanged);
-      widget.contentController.addListener(_contentChanged);
+      oldWidget.contentController.hasValidationErrors.removeListener(_hasErrorsChanged);
+      widget.contentController.hasValidationErrors.addListener(_hasErrorsChanged);
     }
   }
 
   @override
   void dispose() {
-    widget.topicController.removeListener(_topicChanged);
-    widget.contentController.removeListener(_contentChanged);
+    widget.topicController.hasValidationErrors.removeListener(_hasErrorsChanged);
+    widget.contentController.hasValidationErrors.removeListener(_hasErrorsChanged);
     super.dispose();
+  }
+
+  bool get _hasValidationErrors {
+    return widget.topicController.hasValidationErrors.value
+      || widget.contentController.hasValidationErrors.value;
   }
 
   void _showSendFailedDialog(BuildContext context) {
     List<String> validationErrorMessages = [
-      for (final error in _topicValidationErrors)
+      for (final error in widget.topicController.validationErrors)
         error.message(),
-      for (final error in _contentValidationErrors)
+      for (final error in widget.contentController.validationErrors)
         error.message(),
     ];
 
@@ -645,7 +627,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
   }
 
   void _handleSendPressed(BuildContext context) {
-    if (_topicValidationErrors.isNotEmpty || _contentValidationErrors.isNotEmpty) {
+    if (_hasValidationErrors) {
       _showSendFailedDialog(context);
       return;
     }
@@ -663,7 +645,7 @@ class _StreamSendButtonState extends State<_StreamSendButton> {
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    bool disabled = _topicValidationErrors.isNotEmpty || _contentValidationErrors.isNotEmpty;
+    final disabled = _hasValidationErrors;
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
     final backgroundColor = disabled
