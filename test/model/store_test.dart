@@ -12,10 +12,10 @@ void main() {
   final account2 = eg.otherAccount.copyWith(id: 2);
 
   test('GlobalStore.perAccount sequential case', () async {
-    final accounts = {1: account1, 2: account2};
+    final accounts = [account1, account2];
     final globalStore = TestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accounts[accountId]]!;
+      globalStore.completers[accounts[accountId - 1]]!;
 
     final future1 = globalStore.perAccount(1);
     final store1 = PerAccountStore.fromInitialSnapshot(
@@ -45,10 +45,10 @@ void main() {
   });
 
   test('GlobalStore.perAccount concurrent case', () async {
-    final accounts = {1: account1, 2: account2};
+    final accounts = [account1, account2];
     final globalStore = TestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accounts[accountId]]!;
+      globalStore.completers[accounts[accountId - 1]]!;
 
     final future1a = globalStore.perAccount(1);
     final future1b = globalStore.perAccount(1);
@@ -78,10 +78,10 @@ void main() {
   });
 
   test('GlobalStore.perAccountSync', () async {
-    final accounts = {1: account1, 2: account2};
+    final accounts = [account1, account2];
     final globalStore = TestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accounts[accountId]]!;
+      globalStore.completers[accounts[accountId - 1]]!;
 
     check(globalStore.perAccountSync(1)).isNull();
     final future1 = globalStore.perAccount(1);

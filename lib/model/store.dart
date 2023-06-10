@@ -37,8 +37,8 @@ export 'database.dart' show Account, AccountsCompanion;
 ///  * [LiveGlobalStore], the implementation of this class that
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
-  GlobalStore({required Map<int, Account> accounts})
-    : _accounts = accounts;
+  GlobalStore({required Iterable<Account> accounts})
+    : _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
@@ -279,10 +279,7 @@ class LiveGlobalStore extends GlobalStore {
   static Future<GlobalStore> load() async {
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
     final accounts = await db.select(db.accounts).get();
-    return LiveGlobalStore._(
-      db: db,
-      accounts: Map.fromEntries(accounts.map((a) => MapEntry(a.id, a))),
-    );
+    return LiveGlobalStore._(db: db, accounts: accounts);
   }
 
   /// The file path to use for the app database.
