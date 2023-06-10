@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'licenses.dart';
 import 'log.dart';
+import 'model/binding.dart';
 import 'widgets/app.dart';
 
 void main() {
@@ -11,5 +12,6 @@ void main() {
     return true;
   }());
   LicenseRegistry.addLicense(additionalLicenses);
+  LiveDataBinding.ensureInitialized();
   runApp(const ZulipApp());
 }

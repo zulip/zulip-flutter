@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../model/binding.dart';
 import '../model/store.dart';
 
 /// Provides access to the app's data.
@@ -54,7 +55,7 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   void initState() {
     super.initState();
     (() async {
-      final store = await LiveGlobalStore.load();
+      final store = await DataBinding.instance.loadGlobalStore();
       setState(() {
         this.store = store;
       });
