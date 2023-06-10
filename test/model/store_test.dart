@@ -8,16 +8,19 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 
 void main() {
+  final account1 = eg.selfAccount.copyWith(id: 1);
+  final account2 = eg.otherAccount.copyWith(id: 2);
+
   test('GlobalStore.perAccount sequential case', () async {
-    final accounts = {1: eg.selfAccount, 2: eg.otherAccount};
+    final accounts = {1: account1, 2: account2};
     final globalStore = TestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
       globalStore.completers[accounts[accountId]]!;
 
     final future1 = globalStore.perAccount(1);
     final store1 = PerAccountStore.fromInitialSnapshot(
-      account: eg.selfAccount,
-      connection: FakeApiConnection.fromAccount(eg.selfAccount),
+      account: account1,
+      connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot,
     );
     completers(1).single.complete(store1);
@@ -27,8 +30,8 @@ void main() {
 
     final future2 = globalStore.perAccount(2);
     final store2 = PerAccountStore.fromInitialSnapshot(
-      account: eg.otherAccount,
-      connection: FakeApiConnection.fromAccount(eg.otherAccount),
+      account: account2,
+      connection: FakeApiConnection.fromAccount(account2),
       initialSnapshot: eg.initialSnapshot,
     );
     completers(2).single.complete(store2);
@@ -42,7 +45,7 @@ void main() {
   });
 
   test('GlobalStore.perAccount concurrent case', () async {
-    final accounts = {1: eg.selfAccount, 2: eg.otherAccount};
+    final accounts = {1: account1, 2: account2};
     final globalStore = TestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
       globalStore.completers[accounts[accountId]]!;
@@ -54,13 +57,13 @@ void main() {
 
     final future2 = globalStore.perAccount(2);
     final store1 = PerAccountStore.fromInitialSnapshot(
-      account: eg.selfAccount,
-      connection: FakeApiConnection.fromAccount(eg.selfAccount),
+      account: account1,
+      connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot,
     );
     final store2 = PerAccountStore.fromInitialSnapshot(
-      account: eg.otherAccount,
-      connection: FakeApiConnection.fromAccount(eg.otherAccount),
+      account: account2,
+      connection: FakeApiConnection.fromAccount(account2),
       initialSnapshot: eg.initialSnapshot,
     );
     completers(1).single.complete(store1);
@@ -75,7 +78,7 @@ void main() {
   });
 
   test('GlobalStore.perAccountSync', () async {
-    final accounts = {1: eg.selfAccount, 2: eg.otherAccount};
+    final accounts = {1: account1, 2: account2};
     final globalStore = TestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
       globalStore.completers[accounts[accountId]]!;
@@ -84,8 +87,8 @@ void main() {
     final future1 = globalStore.perAccount(1);
     check(globalStore.perAccountSync(1)).isNull();
     final store1 = PerAccountStore.fromInitialSnapshot(
-      account: eg.selfAccount,
-      connection: FakeApiConnection.fromAccount(eg.selfAccount),
+      account: account1,
+      connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot,
     );
     completers(1).single.complete(store1);
