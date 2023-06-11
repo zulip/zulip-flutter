@@ -6,6 +6,7 @@ import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
+import 'test_store.dart';
 
 void main() {
   final account1 = eg.selfAccount.copyWith(id: 1);
@@ -13,7 +14,7 @@ void main() {
 
   test('GlobalStore.perAccount sequential case', () async {
     final accounts = [account1, account2];
-    final globalStore = TestGlobalStore(accounts: accounts);
+    final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
       globalStore.completers[accounts[accountId - 1]]!;
 
@@ -46,7 +47,7 @@ void main() {
 
   test('GlobalStore.perAccount concurrent case', () async {
     final accounts = [account1, account2];
-    final globalStore = TestGlobalStore(accounts: accounts);
+    final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
       globalStore.completers[accounts[accountId - 1]]!;
 
@@ -79,7 +80,7 @@ void main() {
 
   test('GlobalStore.perAccountSync', () async {
     final accounts = [account1, account2];
-    final globalStore = TestGlobalStore(accounts: accounts);
+    final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
       globalStore.completers[accounts[accountId - 1]]!;
 
@@ -101,8 +102,8 @@ void main() {
   });
 }
 
-class TestGlobalStore extends GlobalStore {
-  TestGlobalStore({required super.accounts});
+class LoadingTestGlobalStore extends TestGlobalStore {
+  LoadingTestGlobalStore({required super.accounts});
 
   Map<Account, List<Completer<PerAccountStore>>> completers = {};
 
@@ -111,23 +112,5 @@ class TestGlobalStore extends GlobalStore {
     final completer = Completer<PerAccountStore>();
     (completers[account] ??= []).add(completer);
     return completer.future;
-  }
-
-  int _nextAccountId = 1;
-
-  @override
-  Future<Account> doInsertAccount(AccountsCompanion data) async {
-    final accountId = _nextAccountId;
-    _nextAccountId++;
-    return Account(
-      id: accountId,
-      realmUrl: data.realmUrl.value,
-      userId: data.userId.value,
-      email: data.email.value,
-      apiKey: data.apiKey.value,
-      zulipFeatureLevel: data.zulipFeatureLevel.value,
-      zulipVersion: data.zulipVersion.value,
-      zulipMergeBase: data.zulipMergeBase.value,
-    );
   }
 }

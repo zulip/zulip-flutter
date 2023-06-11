@@ -37,6 +37,10 @@ abstract class DataBinding {
             'In the app, this is done by the `LiveDataBinding.ensureInitialized()` call '
             'in the `void main()` method.',
           ),
+          ErrorHint(
+            'In a test, one can call `TestDataBinding.ensureInitialized()` as the '
+            'first line in the test\'s `main()` method to initialize the binding.',
+          ),
         ]);
       }
       return true;
