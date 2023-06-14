@@ -97,7 +97,7 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
-    final text = Text.rich(TextSpan(children: _buildInlineList(node.nodes)));
+    final text = Text.rich(_buildInlineSpan(node.nodes, style: null));
 
     // If the paragraph didn't actually have a `p` element in the HTML,
     // then apply no margins.  (For example, these are seen in list items.)
@@ -122,9 +122,9 @@ class Heading extends StatelessWidget {
     assert(node.level == HeadingLevel.h6);
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
-      child: Text.rich(TextSpan(
+      child: Text.rich(_buildInlineSpan(
         style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
-        children: _buildInlineList(node.nodes))));
+        node.nodes)));
   }
 }
 
@@ -297,12 +297,15 @@ class _SingleChildScrollViewWithScrollbarState
 // Inline layout.
 //
 
-List<InlineSpan> _buildInlineList(List<InlineContentNode> nodes) =>
-  nodes.map(_buildInlineNode).toList(growable: false);
+InlineSpan _buildInlineSpan(List<InlineContentNode> nodes, {required TextStyle? style}) {
+  return TextSpan(
+    style: style,
+    children: nodes.map(_buildInlineNode).toList(growable: false));
+}
 
 InlineSpan _buildInlineNode(InlineContentNode node) {
   InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
-    TextSpan(children: _buildInlineList(nodes), style: style);
+    _buildInlineSpan(nodes, style: style);
 
   if (node is TextNode) {
     return TextSpan(text: node.text);
@@ -362,8 +365,7 @@ InlineSpan inlineCode(InlineCodeNode node) {
   // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
   // Use a light gray background, instead of a border.
-  return TextSpan(style: _kInlineCodeStyle,
-    children: _buildInlineList(node.nodes));
+  return _buildInlineSpan(style: _kInlineCodeStyle, node.nodes);
 
   // Another fun solution -- we can in fact have a border!  Like so:
   //   TextStyle(
@@ -428,7 +430,7 @@ class UserMention extends StatelessWidget {
     return Container(
       decoration: _kDecoration,
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-      child: Text.rich(TextSpan(children: _buildInlineList(node.nodes))));
+      child: Text.rich(_buildInlineSpan(node.nodes, style: null)));
   }
 
   static get _kDecoration => BoxDecoration(
