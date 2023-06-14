@@ -80,13 +80,7 @@ class BlockContentNodeWidget extends StatelessWidget {
     } else if (node is ParagraphNode) {
       return Paragraph(node: node);
     } else if (node is HeadingNode) {
-      // TODO(#192) h1, h2, h3, h4, h5 -- same as h6 except font size
-      assert(node.level == HeadingLevel.h6);
-      return Padding(
-        padding: const EdgeInsets.only(top: 15, bottom: 5),
-        child: Text.rich(TextSpan(
-          style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
-          children: _buildInlineList(node.nodes))));
+      return Heading(node: node);
     } else if (node is ListNode) {
       return ListNodeWidget(node: node);
     } else if (node is QuotationNode) {
@@ -135,6 +129,23 @@ class Paragraph extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: text);
+  }
+}
+
+class Heading extends StatelessWidget {
+  const Heading({super.key, required this.node});
+
+  final HeadingNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO(#192) h1, h2, h3, h4, h5 -- same as h6 except font size
+    assert(node.level == HeadingLevel.h6);
+    return Padding(
+      padding: const EdgeInsets.only(top: 15, bottom: 5),
+      child: Text.rich(TextSpan(
+        style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
+        children: _buildInlineList(node.nodes))));
   }
 }
 
