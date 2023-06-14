@@ -298,7 +298,7 @@ class _SingleChildScrollViewWithScrollbarState
 //
 
 List<InlineSpan> _buildInlineList(List<InlineContentNode> nodes) =>
-  List.of(nodes.map(_buildInlineNode));
+  nodes.map(_buildInlineNode).toList(growable: false);
 
 InlineSpan _buildInlineNode(InlineContentNode node) {
   InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
