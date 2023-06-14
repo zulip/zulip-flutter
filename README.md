@@ -124,47 +124,6 @@ To update the version bounds:
 * Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
 
 
-## TODO
-
-In general, see [the issue tracker][].
-Some items written below in an early phase of the project
-may not yet have been converted into issues.
-
-[the issue tracker]: https://github.com/zulip/zulip-flutter/issues
-
-
-### Message content
-
-- Lots of specific types of elements; see TODO comments
-
-- Survey lots of messages to find unhandled types of elements
-- Survey all public messages on chat.zulip.org
-- Survey all public messages on [listed open communities][]
-
-[listed open communities]: https://zulip.com/communities/
-
-
-### Message list, other than content
-
-- Scroll position at first unread, or via link (vs. latest)
-
-- Dark theme (and in content too)
-
-
-### Other UI
-
-- Compose box
-
-- Attach to message: take photo, pick image, pick file
-
-- Navigation
-
-
-### Notifications
-
-Not started.
-
-
 ## License
 
 Copyright (c) 2022 Kandra Labs, Inc., and contributors.
