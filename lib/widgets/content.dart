@@ -97,7 +97,7 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
-    final text = InlineContent(nodes: node.nodes, style: null);
+    final text = _buildBlockInlineContainer(node: node, style: null);
 
     // If the paragraph didn't actually have a `p` element in the HTML,
     // then apply no margins.  (For example, these are seen in list items.)
@@ -122,9 +122,9 @@ class Heading extends StatelessWidget {
     assert(node.level == HeadingLevel.h6);
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
-      child: InlineContent(
+      child: _buildBlockInlineContainer(
         style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
-        nodes: node.nodes));
+        node: node));
   }
 }
 
@@ -296,6 +296,36 @@ class _SingleChildScrollViewWithScrollbarState
 //
 // Inline layout.
 //
+
+Widget _buildBlockInlineContainer({
+  required TextStyle? style,
+  required BlockInlineContainerNode node,
+}) {
+  if (node.links == null) {
+    return InlineContent(style: style, nodes: node.nodes);
+  }
+  return _BlockInlineContainer(
+    links: node.links!, style: style, nodes: node.nodes);
+}
+
+class _BlockInlineContainer extends StatefulWidget {
+  const _BlockInlineContainer(
+    {required this.links, required this.style, required this.nodes});
+
+  final List<LinkNode> links;
+  final TextStyle? style;
+  final List<InlineContentNode> nodes;
+
+  @override
+  State<_BlockInlineContainer> createState() => _BlockInlineContainerState();
+}
+
+class _BlockInlineContainerState extends State<_BlockInlineContainer> {
+  @override
+  Widget build(BuildContext context) {
+    return InlineContent(style: widget.style, nodes: widget.nodes);
+  }
+}
 
 class InlineContent extends StatelessWidget {
   InlineContent({
