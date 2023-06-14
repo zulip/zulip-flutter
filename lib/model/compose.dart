@@ -1,5 +1,9 @@
 import 'dart:math';
 
+import '../api/model/narrow.dart';
+import 'narrow.dart';
+import 'store.dart';
+
 //
 // Put functions for nontrivial message-content generation in this file.
 //
@@ -94,6 +98,62 @@ String wrapWithBacktickFence({required String content, String? infoString}) {
   resultBuffer.write('`' * fenceLength);
   resultBuffer.write('\n');
   return resultBuffer.toString();
+}
+
+const _hashReplacements = {
+  "%": ".",
+  "(": ".28",
+  ")": ".29",
+  ".": ".2E",
+};
+
+final _encodeHashComponentRegex = RegExp(r'[%().]');
+
+// Corresponds to encodeHashComponent in Zulip web;
+// see web/shared/src/internal_url.ts.
+String _encodeHashComponent(String str) {
+  return Uri.encodeComponent(str)
+    .replaceAllMapped(_encodeHashComponentRegex, (Match m) => _hashReplacements[m[0]!]!);
+}
+
+/// A URL to the given [Narrow], on `store`'s realm.
+Uri narrowLink(PerAccountStore store, Narrow narrow) {
+  final apiNarrow = narrow.apiEncode();
+  final fragment = StringBuffer('narrow');
+  for (ApiNarrowElement element in apiNarrow) {
+    fragment.write('/');
+    if (element.negated) {
+      fragment.write('-');
+    }
+
+    if (element is ApiNarrowDm) {
+      final supportsOperatorDm = store.connection.zulipFeatureLevel! >= 177; // TODO(server-7)
+      element = element.resolve(legacy: !supportsOperatorDm);
+    }
+
+    fragment.write('${element.operator}/');
+
+    switch (element) {
+      case ApiNarrowStream():
+        final streamId = element.operand;
+        final name = store.streams[streamId]?.name ?? 'unknown';
+        final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
+        fragment.write('$streamId-$slugifiedName');
+      case ApiNarrowTopic():
+        fragment.write(_encodeHashComponent(element.operand));
+      case ApiNarrowDmModern():
+        final suffix = element.operand.length >= 3 ? 'group' : 'dm';
+        fragment.write('${element.operand.join(',')}-$suffix');
+      case ApiNarrowPmWith():
+        final suffix = element.operand.length >= 3 ? 'group' : 'pm';
+        fragment.write('${element.operand.join(',')}-$suffix');
+      case ApiNarrowDm():
+        assert(false, 'ApiNarrowDm should have been resolved');
+      case ApiNarrowMessageId():
+        fragment.write(element.operand.toString());
+    }
+  }
+  return store.account.realmUrl.replace(fragment: fragment.toString());
 }
 
 // TODO more, like /near links to messages in conversations
