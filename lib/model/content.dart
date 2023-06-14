@@ -471,9 +471,7 @@ class _ZulipContentParser {
     final element = node;
     final localName = element.localName;
     final classes = element.classes;
-    List<InlineContentNode> nodes() {
-      return element.nodes.map(parseInlineContent).toList(growable: false);
-    }
+    List<InlineContentNode> nodes() => parseInlineContentList(element.nodes);
 
     if (localName == 'br' && classes.isEmpty) {
       return LineBreakInlineNode(debugHtmlNode: debugHtmlNode);
@@ -525,6 +523,10 @@ class _ZulipContentParser {
 
     // TODO more types of node
     return unimplemented();
+  }
+
+  List<InlineContentNode> parseInlineContentList(List<dom.Node> nodes) {
+    return nodes.map(parseInlineContent).toList(growable: false);
   }
 
   BlockContentNode parseListNode(dom.Element element) {
@@ -644,9 +646,7 @@ class _ZulipContentParser {
     final localName = element.localName;
     final classes = element.classes;
     List<BlockContentNode> blockNodes() => parseBlockContentList(element.nodes);
-    List<InlineContentNode> inlineNodes() {
-      return element.nodes.map(parseInlineContent).toList(growable: false);
-    }
+    List<InlineContentNode> inlineNodes() => parseInlineContentList(element.nodes);
 
     if (localName == 'br' && classes.isEmpty) {
       return LineBreakNode(debugHtmlNode: debugHtmlNode);
@@ -724,7 +724,7 @@ class _ZulipContentParser {
     void consumeParagraph() {
       result.add(ParagraphNode(
         wasImplicit: true,
-        nodes: currentParagraph.map(parseInlineContent).toList(growable: false)));
+        nodes: parseInlineContentList(currentParagraph)));
       currentParagraph.clear();
     }
 
