@@ -6,8 +6,8 @@ import 'api/fake_api.dart';
 
 final Uri realmUrl = Uri.parse('https://chat.example/');
 
-const String recentZulipVersion = '6.1';
-const int recentZulipFeatureLevel = 164;
+const String recentZulipVersion = '8.0';
+const int recentZulipFeatureLevel = 185;
 const int futureZulipFeatureLevel = 9999;
 
 User user({int? userId, String? email, String? fullName}) {
