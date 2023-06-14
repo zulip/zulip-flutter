@@ -81,19 +81,10 @@ class BlockContentNodeWidget extends StatelessWidget {
       return Paragraph(node: node);
     } else if (node is HeadingNode) {
       return Heading(node: node);
+    } else if (node is QuotationNode) {
+      return Quotation(node: node);
     } else if (node is ListNode) {
       return ListNodeWidget(node: node);
-    } else if (node is QuotationNode) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 10),
-        child: Container(
-          padding: const EdgeInsets.only(left: 5),
-          decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(
-                width: 5,
-                color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
-          child: BlockContentList(nodes: node.nodes)));
     } else if (node is CodeBlockNode) {
       return CodeBlock(node: node);
     } else if (node is ImageNode) {
@@ -146,6 +137,26 @@ class Heading extends StatelessWidget {
       child: Text.rich(TextSpan(
         style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
         children: _buildInlineList(node.nodes))));
+  }
+}
+
+class Quotation extends StatelessWidget {
+  const Quotation({super.key, required this.node});
+
+  final QuotationNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 10),
+      child: Container(
+        padding: const EdgeInsets.only(left: 5),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              width: 5,
+              color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
+        child: BlockContentList(nodes: node.nodes)));
   }
 }
 
