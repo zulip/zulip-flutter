@@ -646,14 +646,14 @@ class _ZulipContentParser {
     final localName = element.localName;
     final classes = element.classes;
     List<BlockContentNode> blockNodes() => parseBlockContentList(element.nodes);
-    List<InlineContentNode> inlineNodes() => parseInlineContentList(element.nodes);
 
     if (localName == 'br' && classes.isEmpty) {
       return LineBreakNode(debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'p' && classes.isEmpty) {
-      return ParagraphNode(nodes: inlineNodes(), debugHtmlNode: debugHtmlNode);
+      return ParagraphNode(debugHtmlNode: debugHtmlNode,
+        nodes: parseInlineContentList(element.nodes));
     }
 
     HeadingLevel? headingLevel;
@@ -667,8 +667,9 @@ class _ZulipContentParser {
     }
     if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
       // TODO(#192) handle h1, h2, h3, h4, h5
-      return HeadingNode(
-        level: headingLevel!, nodes: inlineNodes(), debugHtmlNode: debugHtmlNode);
+      return HeadingNode(debugHtmlNode: debugHtmlNode,
+        level: headingLevel!,
+        nodes: parseInlineContentList(element.nodes));
     }
 
     if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
