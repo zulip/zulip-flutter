@@ -84,6 +84,21 @@ class UnimplementedBlockContentNode extends BlockContentNode
   // No ==/hashCode, because htmlNode is a whole subtree.
 }
 
+/// A block content node whose children are inline content nodes.
+///
+/// A node of this type expects a block layout context from its parent,
+/// but provides an inline layout context for its children.
+///
+/// See also [InlineContainerNode].
+class BlockInlineContainerNode extends BlockContentNode {
+  const BlockInlineContainerNode({
+    super.debugHtmlNode,
+    required this.nodes,
+  });
+
+  final List<InlineContentNode> nodes;
+}
+
 // A `br` element.
 class LineBreakNode extends BlockContentNode {
   const LineBreakNode({super.debugHtmlNode});
@@ -105,14 +120,12 @@ class LineBreakNode extends BlockContentNode {
 // with [wasImplicit].
 //
 // See also [parseImplicitParagraphBlockContentList].
-class ParagraphNode extends BlockContentNode {
+class ParagraphNode extends BlockInlineContainerNode {
   const ParagraphNode(
-    {super.debugHtmlNode, this.wasImplicit = false, required this.nodes});
+    {super.debugHtmlNode, required super.nodes, this.wasImplicit = false});
 
   /// True when there was no corresponding `p` element in the original HTML.
   final bool wasImplicit;
-
-  final List<InlineContentNode> nodes;
 
   @override
   String toString() => '${objectRuntimeType(this, 'ParagraphNode')}(wasImplicit: $wasImplicit, $nodes)';
@@ -129,11 +142,14 @@ class ListNode extends BlockContentNode {
 
 enum HeadingLevel { h1, h2, h3, h4, h5, h6 }
 
-class HeadingNode extends BlockContentNode {
-  const HeadingNode(this.level, this.nodes, {super.debugHtmlNode});
+class HeadingNode extends BlockInlineContainerNode {
+  const HeadingNode({
+    super.debugHtmlNode,
+    required super.nodes,
+    required this.level,
+  });
 
   final HeadingLevel level;
-  final List<InlineContentNode> nodes;
 }
 
 class QuotationNode extends BlockContentNode {
@@ -243,6 +259,8 @@ class LineBreakInlineNode extends InlineContentNode {
 /// the [InlineSpan]s built from this node's children.  In that case,
 /// the children participate in the same paragraph layout as this node
 /// itself does.
+///
+/// See also [BlockInlineContainerNode].
 abstract class InlineContainerNode extends InlineContentNode {
   const InlineContainerNode({super.debugHtmlNode, required this.nodes});
 
@@ -538,7 +556,7 @@ BlockContentNode parseBlockContent(dom.Node node) {
   if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
     // TODO(#192) handle h1, h2, h3, h4, h5
     return HeadingNode(
-      headingLevel!, inlineNodes(), debugHtmlNode: debugHtmlNode);
+      level: headingLevel!, nodes: inlineNodes(), debugHtmlNode: debugHtmlNode);
   }
 
   if (localName == 'blockquote' && classes.isEmpty) {

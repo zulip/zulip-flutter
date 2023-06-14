@@ -69,9 +69,12 @@ extension BlockContentNodeListChecks on Subject<List<BlockContentNode>> {
   }
 }
 
+extension BlockInlineContainerNodeChecks on Subject<BlockInlineContainerNode> {
+  Subject<List<InlineContentNode>> get nodes => has((n) => n.nodes, 'nodes');
+}
+
 extension ParagraphNodeChecks on Subject<ParagraphNode> {
   Subject<bool> get wasImplicit => has((n) => n.wasImplicit, 'wasImplicit');
-  Subject<List<InlineContentNode>> get nodes => has((n) => n.nodes, 'nodes');
 }
 
 extension ListNodeChecks on Subject<ListNode> {
@@ -81,7 +84,6 @@ extension ListNodeChecks on Subject<ListNode> {
 
 extension HeadingNodeChecks on Subject<HeadingNode> {
   Subject<HeadingLevel> get level => has((n) => n.level, 'level');
-  Subject<List<InlineContentNode>> get nodes => has((n) => n.nodes, 'nodes');
 }
 
 extension QuotationNodeChecks on Subject<QuotationNode> {
