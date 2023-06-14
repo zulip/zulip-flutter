@@ -375,8 +375,16 @@ class InlineCodeNode extends InlineContainerNode {
 }
 
 class LinkNode extends InlineContainerNode {
-  const LinkNode({super.debugHtmlNode, required super.nodes});
-  // TODO: final String hrefUrl;
+  const LinkNode({super.debugHtmlNode, required super.nodes, required this.url});
+
+  // TODO(#71): Use [LinkNode.url] to open links
+  final String url; // Left as a string, to defer parsing until link actually followed.
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('url', url));
+  }
 }
 
 enum UserMentionType { user, userGroup }
@@ -484,8 +492,9 @@ InlineContentNode parseInlineContent(dom.Node node) {
           || (classes.length == 1
               && (classes.contains('stream-topic')
                   || classes.contains('stream'))))) {
-    // TODO parse link's href
-    return LinkNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
+    final href = element.attributes['href'];
+    if (href == null) return unimplemented();
+    return LinkNode(nodes: nodes(), url: href, debugHtmlNode: debugHtmlNode);
   }
 
   if (localName == 'span'

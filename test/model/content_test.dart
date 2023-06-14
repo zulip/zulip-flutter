@@ -93,27 +93,29 @@ void main() {
   testParseInline('parse link',
     // "[text](https://example/)"
     '<p><a href="https://example/">text</a></p>',
-    const LinkNode(nodes: [TextNode('text')]));
+    const LinkNode(url: 'https://example/', nodes: [TextNode('text')]));
 
   testParseInline('parse #-mention of stream',
     // "#**general**"
     '<p><a class="stream" data-stream-id="2" href="/#narrow/stream/2-general">'
         '#general</a></p>',
-    const LinkNode(nodes: [TextNode('#general')]));
+    const LinkNode(url: '/#narrow/stream/2-general',
+      nodes: [TextNode('#general')]));
 
   testParseInline('parse #-mention of topic',
     // "#**mobile-team>zulip-flutter**"
     '<p><a class="stream-topic" data-stream-id="243" '
         'href="/#narrow/stream/243-mobile-team/topic/zulip-flutter">'
         '#mobile-team &gt; zulip-flutter</a></p>',
-    const LinkNode(nodes: [TextNode('#mobile-team > zulip-flutter')]));
+    const LinkNode(url: '/#narrow/stream/243-mobile-team/topic/zulip-flutter',
+      nodes: [TextNode('#mobile-team > zulip-flutter')]));
 
   testParseInline('parse nested link, strong, em, code',
     // "[***`word`***](https://example/)"
     '<p><a href="https://example/"><strong><em><code>word'
         '</code></em></strong></a></p>',
-    const LinkNode(nodes: [StrongNode(nodes: [
-      EmphasisNode(nodes: [InlineCodeNode(nodes: [
+    const LinkNode(url: 'https://example/',
+      nodes: [StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
         TextNode('word')])])])]));
 
   group('parse @-mentions', () {
@@ -177,9 +179,9 @@ void main() {
           '</code></em></strong></a></h6>', const [
         HeadingNode(level: HeadingLevel.h6, nodes: [
           TextNode('one '),
-          LinkNode(nodes: [StrongNode(nodes: [
-            EmphasisNode(nodes: [InlineCodeNode(nodes: [
-              TextNode('two')])])])]),
+          LinkNode(url: 'https://example/',
+            nodes: [StrongNode(nodes: [EmphasisNode(nodes: [
+              InlineCodeNode(nodes: [TextNode('two')])])])]),
         ])]);
 
     testParse('amidst paragraphs',
