@@ -239,6 +239,19 @@ class PerAccountStore extends ChangeNotifier {
       }
       autocompleteViewManager.handleRealmUserUpdateEvent(event);
       notifyListeners();
+    } else if (event is StreamCreateEvent) {
+      assert(debugLog("server event: stream/create"));
+      streams.addEntries(event.streams.map((stream) => MapEntry(stream.streamId, stream)));
+      // (Don't touch `subscriptions`. If the user is subscribed to the stream,
+      // details will come in a later `subscription` event.)
+      notifyListeners();
+    } else if (event is StreamDeleteEvent) {
+      assert(debugLog("server event: stream/delete"));
+      for (final stream in event.streams) {
+        streams.remove(stream.streamId);
+        subscriptions.remove(stream.streamId);
+      }
+      notifyListeners();
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
       for (final view in _messageListViews) {
