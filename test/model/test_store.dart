@@ -68,4 +68,12 @@ extension PerAccountStoreTestExtension on PerAccountStore {
       addUser(user);
     }
   }
+
+  void addStream(ZulipStream stream) {
+    addStreams([stream]);
+  }
+
+  void addStreams(List<ZulipStream> streams) {
+    handleEvent(StreamCreateEvent(id: 1, streams: streams));
+  }
 }
