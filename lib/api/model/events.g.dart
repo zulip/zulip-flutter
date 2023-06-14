@@ -103,6 +103,36 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
       'new_email': instance.newEmail,
     };
 
+StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
+    StreamCreateEvent(
+      id: json['id'] as int,
+      streams: (json['streams'] as List<dynamic>)
+          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$StreamCreateEventToJson(StreamCreateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'streams': instance.streams,
+    };
+
+StreamDeleteEvent _$StreamDeleteEventFromJson(Map<String, dynamic> json) =>
+    StreamDeleteEvent(
+      id: json['id'] as int,
+      streams: (json['streams'] as List<dynamic>)
+          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$StreamDeleteEventToJson(StreamDeleteEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'streams': instance.streams,
+    };
+
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
     HeartbeatEvent(
       id: json['id'] as int,
