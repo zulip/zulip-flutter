@@ -57,6 +57,36 @@ final Account otherAccount = Account(
 
 final User thirdUser = user(fullName: 'Third User', email: 'third@example', userId: 345);
 
+ZulipStream stream({
+  int? streamId,
+  String? name,
+  String? description,
+  String? renderedDescription,
+  int? dateCreated,
+  int? firstMessageId,
+  bool? inviteOnly,
+  bool? isWebPublic,
+  bool? historyPublicToSubscribers,
+  int? messageRetentionDays,
+  int? streamPostPolicy,
+  int? canRemoveSubscribersGroupId,
+}) {
+  return ZulipStream(
+    streamId: streamId ?? 123, // TODO generate example IDs
+    name: name ?? 'A stream', // TODO generate example names
+    description: description ?? 'A description', // TODO generate example descriptions
+    renderedDescription: renderedDescription ?? '<p>A description</p>', // TODO generate random
+    dateCreated: dateCreated ?? 1686774898,
+    firstMessageId: firstMessageId,
+    inviteOnly: inviteOnly ?? false,
+    isWebPublic: isWebPublic ?? false,
+    historyPublicToSubscribers: historyPublicToSubscribers ?? true,
+    messageRetentionDays: messageRetentionDays,
+    streamPostPolicy: streamPostPolicy ?? 1,
+    canRemoveSubscribersGroupId: canRemoveSubscribersGroupId ?? 123,
+  );
+}
+
 final _messagePropertiesBase = {
   'is_me_message': false,
   'last_edit_timestamp': null,
