@@ -120,8 +120,25 @@ class UnimplementedBlockContentNode extends BlockContentNode
 class BlockInlineContainerNode extends BlockContentNode {
   const BlockInlineContainerNode({
     super.debugHtmlNode,
+    required this.links,
     required this.nodes,
   });
+
+  /// A list of all [LinkNode] descendants.
+  ///
+  /// An empty list is represented as null.
+  ///
+  /// Because this lists all descendants that are [LinkNode]s,
+  /// it carries no information that couldn't be computed from [nodes].
+  /// It exists as an optimization, to allow a widget interpreting this node
+  /// to obtain that list during build without having to walk the [nodes] tree.
+  //
+  // We leave [links] out of [debugFillProperties], because it should carry
+  // no information that's not already in [nodes].
+  // Our tests validate that invariant systematically
+  // (see `_checkLinks` in `test/model/content_checks.dart`),
+  // and give a specialized error message if it fails.
+  final List<LinkNode>? links; // TODO perhaps use `const []` instead of null
 
   final List<InlineContentNode> nodes;
 
@@ -153,8 +170,12 @@ class LineBreakNode extends BlockContentNode {
 ///
 /// See also [parseImplicitParagraphBlockContentList].
 class ParagraphNode extends BlockInlineContainerNode {
-  const ParagraphNode(
-    {super.debugHtmlNode, required super.nodes, this.wasImplicit = false});
+  const ParagraphNode({
+    super.debugHtmlNode,
+    this.wasImplicit = false,
+    required super.links,
+    required super.nodes,
+  });
 
   /// True when there was no corresponding `p` element in the original HTML.
   final bool wasImplicit;
@@ -171,6 +192,7 @@ enum HeadingLevel { h1, h2, h3, h4, h5, h6 }
 class HeadingNode extends BlockInlineContainerNode {
   const HeadingNode({
     super.debugHtmlNode,
+    required super.links,
     required super.nodes,
     required this.level,
   });
@@ -380,6 +402,12 @@ class LinkNode extends InlineContainerNode {
   // TODO(#71): Use [LinkNode.url] to open links
   final String url; // Left as a string, to defer parsing until link actually followed.
 
+  // Unlike other [ContentNode]s, the identity is useful to show in debugging
+  // because the identical [LinkNode]s are expected in the enclosing
+  // [BlockInlineContainerNode.links].
+  @override
+  String toStringShort() => "${objectRuntimeType(this, 'LinkNode')}#${shortHash(this)}";
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -470,6 +498,18 @@ class _ZulipContentParser {
   /// and should be read or updated only inside an assertion.
   _ParserContext _debugParserContext = _ParserContext.block;
 
+  /// The links found so far in the current block inline container.
+  ///
+  /// Empty is represented as null.
+  /// This is also null when not within a block inline container.
+  List<LinkNode>? _linkNodes;
+
+  List<LinkNode>? _takeLinkNodes() {
+    final result = _linkNodes;
+    _linkNodes = null;
+    return result;
+  }
+
   static final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 
   InlineContentNode parseInlineContent(dom.Node node) {
@@ -509,7 +549,9 @@ class _ZulipContentParser {
                     || classes.contains('stream'))))) {
       final href = element.attributes['href'];
       if (href == null) return unimplemented();
-      return LinkNode(nodes: nodes(), url: href, debugHtmlNode: debugHtmlNode);
+      final link = LinkNode(nodes: nodes(), url: href, debugHtmlNode: debugHtmlNode);
+      (_linkNodes ??= []).add(link);
+      return link;
     }
 
     if (localName == 'span'
@@ -546,7 +588,7 @@ class _ZulipContentParser {
     return nodes.map(parseInlineContent).toList(growable: false);
   }
 
-  List<InlineContentNode> parseBlockInline(List<dom.Node> nodes) {
+  ({List<InlineContentNode> nodes, List<LinkNode>? links}) parseBlockInline(List<dom.Node> nodes) {
     assert(_debugParserContext == _ParserContext.block);
     assert(() {
       _debugParserContext = _ParserContext.inline;
@@ -557,7 +599,7 @@ class _ZulipContentParser {
       _debugParserContext = _ParserContext.block;
       return true;
     }());
-    return resultNodes;
+    return (nodes: resultNodes, links: _takeLinkNodes());
   }
 
   BlockContentNode parseListNode(dom.Element element) {
@@ -687,8 +729,10 @@ class _ZulipContentParser {
     }
 
     if (localName == 'p' && classes.isEmpty) {
+      final parsed = parseBlockInline(element.nodes);
       return ParagraphNode(debugHtmlNode: debugHtmlNode,
-        nodes: parseBlockInline(element.nodes));
+        links: parsed.links,
+        nodes: parsed.nodes);
     }
 
     HeadingLevel? headingLevel;
@@ -702,9 +746,11 @@ class _ZulipContentParser {
     }
     if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
       // TODO(#192) handle h1, h2, h3, h4, h5
+      final parsed = parseBlockInline(element.nodes);
       return HeadingNode(debugHtmlNode: debugHtmlNode,
         level: headingLevel!,
-        nodes: parseBlockInline(element.nodes));
+        links: parsed.links,
+        nodes: parsed.nodes);
     }
 
     if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
@@ -759,9 +805,11 @@ class _ZulipContentParser {
     final List<BlockContentNode> result = [];
     final List<dom.Node> currentParagraph = [];
     void consumeParagraph() {
+      final parsed = parseBlockInline(currentParagraph);
       result.add(ParagraphNode(
         wasImplicit: true,
-        nodes: parseBlockInline(currentParagraph)));
+        links: parsed.links,
+        nodes: parsed.nodes));
       currentParagraph.clear();
     }
 

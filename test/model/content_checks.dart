@@ -3,6 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:zulip/model/content.dart';
 
 extension ContentNodeChecks on Subject<ContentNode> {
+  // In [expected], for the `links` field of [ParagraphNode] or
+  // any other [BlockInlineContainerNode] subclass, use `null`.
+  // This field will be ignored in [expected], and instead the
+  // field's value in [actual] will be checked for accuracy against
+  // the [BlockInlineContainerNode.nodes] field on the same node.
   void equalsNode(ContentNode expected) {
     return context.expect(() => prefixFirst('equals ', literal(expected)), (actual) {
       final which = _compareDiagnosticsNodes(
@@ -58,5 +63,55 @@ Iterable<String>? _compareDiagnosticsNodes(DiagnosticsNode actual, DiagnosticsNo
     }
   }
 
+  if (actual.value is BlockInlineContainerNode) {
+    final failure = _checkLinks(actual.value as BlockInlineContainerNode);
+    if (failure != null) {
+      return failure;
+    }
+  }
+
   return null;
+}
+
+Iterable<String>? _checkLinks(BlockInlineContainerNode node) {
+  final foundLinks = _findLinkNodes(node.nodes).toList();
+  final which = () {
+    var actualLinks = node.links;
+    if (actualLinks != null && actualLinks.isEmpty) {
+      return ['has empty non-null links'];
+    }
+    actualLinks ??= [];
+    if (actualLinks.length != foundLinks.length) {
+      return ['has ${actualLinks.length} links while nodes has ${foundLinks.length}'];
+    }
+    for (int i = 0; i < foundLinks.length; i++) {
+      if (!identical(actualLinks[i], foundLinks[i])) {
+        return ['has a mismatch in links at element $i'];
+      }
+    }
+  }();
+
+  if (which == null) return null;
+
+  return [
+    ...which,
+    'Actual links property:',
+    ...indent(literal(node.links)),
+    'Expected links, from actual nodes:',
+    ...indent(literal(foundLinks)),
+  ];
+}
+
+Iterable<LinkNode> _findLinkNodes(Iterable<InlineContentNode> nodes) {
+  return nodes.expand((node) {
+    if (node is! InlineContainerNode) return const [];
+    if (node is LinkNode) {
+      // HTML disallows `a` as a descendant of `a`:
+      //   https://html.spec.whatwg.org/#the-a-element (see "Content model")
+      // and Dart's HTML parser seems not to produce it in the DOM.
+      assert(_findLinkNodes(node.nodes).isEmpty);
+      return [node];
+    }
+    return _findLinkNodes(node.nodes);
+  });
 }

@@ -52,18 +52,18 @@ void main() {
   //
 
   void testParseInline(String name, String html, InlineContentNode node) {
-    testParse(name, html, [ParagraphNode(nodes: [node])]);
+    testParse(name, html, [ParagraphNode(links: null, nodes: [node])]);
   }
 
   testParse('parse a plain-text paragraph',
     // "hello world"
-    '<p>hello world</p>', const [ParagraphNode(nodes: [
+    '<p>hello world</p>', const [ParagraphNode(links: null, nodes: [
       TextNode('hello world'),
     ])]);
 
   testParse('parse <br> inside a paragraph',
     // "a\nb"
-    '<p>a<br>\nb</p>', const [ParagraphNode(nodes: [
+    '<p>a<br>\nb</p>', const [ParagraphNode(links: null, nodes: [
       TextNode('a'),
       LineBreakInlineNode(),
       TextNode('\nb'),
@@ -90,25 +90,27 @@ void main() {
     const StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
       TextNode('word')])])]));
 
-  testParseInline('parse link',
-    // "[text](https://example/)"
-    '<p><a href="https://example/">text</a></p>',
-    const LinkNode(url: 'https://example/', nodes: [TextNode('text')]));
+  group('LinkNode', () {
+    testParseInline('parse link',
+      // "[text](https://example/)"
+      '<p><a href="https://example/">text</a></p>',
+      const LinkNode(url: 'https://example/', nodes: [TextNode('text')]));
 
-  testParseInline('parse #-mention of stream',
-    // "#**general**"
-    '<p><a class="stream" data-stream-id="2" href="/#narrow/stream/2-general">'
-        '#general</a></p>',
-    const LinkNode(url: '/#narrow/stream/2-general',
-      nodes: [TextNode('#general')]));
+    testParseInline('parse #-mention of stream',
+      // "#**general**"
+      '<p><a class="stream" data-stream-id="2" href="/#narrow/stream/2-general">'
+          '#general</a></p>',
+      const LinkNode(url: '/#narrow/stream/2-general',
+        nodes: [TextNode('#general')]));
 
-  testParseInline('parse #-mention of topic',
-    // "#**mobile-team>zulip-flutter**"
-    '<p><a class="stream-topic" data-stream-id="243" '
-        'href="/#narrow/stream/243-mobile-team/topic/zulip-flutter">'
-        '#mobile-team &gt; zulip-flutter</a></p>',
-    const LinkNode(url: '/#narrow/stream/243-mobile-team/topic/zulip-flutter',
-      nodes: [TextNode('#mobile-team > zulip-flutter')]));
+    testParseInline('parse #-mention of topic',
+      // "#**mobile-team>zulip-flutter**"
+      '<p><a class="stream-topic" data-stream-id="243" '
+          'href="/#narrow/stream/243-mobile-team/topic/zulip-flutter">'
+          '#mobile-team &gt; zulip-flutter</a></p>',
+      const LinkNode(url: '/#narrow/stream/243-mobile-team/topic/zulip-flutter',
+        nodes: [TextNode('#mobile-team > zulip-flutter')]));
+  });
 
   testParseInline('parse nested link, strong, em, code',
     // "[***`word`***](https://example/)"
@@ -117,6 +119,12 @@ void main() {
     const LinkNode(url: 'https://example/',
       nodes: [StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
         TextNode('word')])])])]));
+
+  testParseInline('parse nested strong, em, link',
+    // "***[t](/u)***"
+    '<p><strong><em><a href="/u">t</a></em></strong></p>',
+    const StrongNode(nodes: [EmphasisNode(nodes: [LinkNode(url: '/u',
+      nodes: [TextNode('t')])])]));
 
   group('parse @-mentions', () {
     testParseInline('plain user @-mention',
@@ -156,28 +164,28 @@ void main() {
   testParse('parse <br> in block context',
     '<br><p>a</p><br>', const [ // TODO not sure how to reproduce this example
       LineBreakNode(),
-      ParagraphNode(nodes: [TextNode('a')]),
+      ParagraphNode(links: null, nodes: [TextNode('a')]),
       LineBreakNode(),
     ]);
 
   testParse('parse two plain-text paragraphs',
     // "hello\n\nworld"
     '<p>hello</p>\n<p>world</p>', const [
-      ParagraphNode(nodes: [TextNode('hello')]),
-      ParagraphNode(nodes: [TextNode('world')]),
+      ParagraphNode(links: null, nodes: [TextNode('hello')]),
+      ParagraphNode(links: null, nodes: [TextNode('world')]),
     ]);
 
   group('parse headings', () {
     testParse('plain h6',
       // "###### six"
       '<h6>six</h6>', const [
-        HeadingNode(level: HeadingLevel.h6, nodes: [TextNode('six')])]);
+        HeadingNode(level: HeadingLevel.h6, links: null, nodes: [TextNode('six')])]);
 
     testParse('containing inline markup',
       // "###### one [***`two`***](https://example/)"
       '<h6>one <a href="https://example/"><strong><em><code>two'
           '</code></em></strong></a></h6>', const [
-        HeadingNode(level: HeadingLevel.h6, nodes: [
+        HeadingNode(level: HeadingLevel.h6, links: null, nodes: [
           TextNode('one '),
           LinkNode(url: 'https://example/',
             nodes: [StrongNode(nodes: [EmphasisNode(nodes: [
@@ -187,9 +195,9 @@ void main() {
     testParse('amidst paragraphs',
       // "intro\n###### section\ntext"
       "<p>intro</p>\n<h6>section</h6>\n<p>text</p>", const [
-        ParagraphNode(nodes: [TextNode('intro')]),
-        HeadingNode(level: HeadingLevel.h6, nodes: [TextNode('section')]),
-        ParagraphNode(nodes: [TextNode('text')]),
+        ParagraphNode(links: null, nodes: [TextNode('intro')]),
+        HeadingNode(level: HeadingLevel.h6, links: null, nodes: [TextNode('section')]),
+        ParagraphNode(links: null, nodes: [TextNode('text')]),
       ]);
 
     testParse('h1, h2, h3, h4, h5 unimplemented',
@@ -208,8 +216,8 @@ void main() {
       // "1. first\n2. then"
       '<ol>\n<li>first</li>\n<li>then</li>\n</ol>', const [
         ListNode(ListStyle.ordered, [
-          [ParagraphNode(wasImplicit: true, nodes: [TextNode('first')])],
-          [ParagraphNode(wasImplicit: true, nodes: [TextNode('then')])],
+          [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('first')])],
+          [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('then')])],
         ]),
       ]);
 
@@ -217,8 +225,8 @@ void main() {
       // "* something\n* another"
       '<ul>\n<li>something</li>\n<li>another</li>\n</ul>', const [
         ListNode(ListStyle.unordered, [
-          [ParagraphNode(wasImplicit: true, nodes: [TextNode('something')])],
-          [ParagraphNode(wasImplicit: true, nodes: [TextNode('another')])],
+          [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('something')])],
+          [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('another')])],
         ]),
       ]);
 
@@ -226,7 +234,7 @@ void main() {
       // "* a\n  b"
       '<ul>\n<li>a<br>\n  b</li>\n</ul>', const [
         ListNode(ListStyle.unordered, [
-          [ParagraphNode(wasImplicit: true, nodes: [
+          [ParagraphNode(wasImplicit: true, links: null, nodes: [
             TextNode('a'),
             LineBreakInlineNode(),
             TextNode('\n  b'), // TODO: this renders misaligned
@@ -239,17 +247,49 @@ void main() {
       '<ul>\n<li>\n<p>a</p>\n<p>b</p>\n</li>\n</ul>', const [
         ListNode(ListStyle.unordered, [
           [
-            ParagraphNode(nodes: [TextNode('a')]),
-            ParagraphNode(nodes: [TextNode('b')]),
+            ParagraphNode(links: null, nodes: [TextNode('a')]),
+            ParagraphNode(links: null, nodes: [TextNode('b')]),
           ],
         ]),
       ]);
   });
 
+  group('track links inside block-inline containers', () {
+    testParse('multiple links in paragraph',
+      // "before[text](/there)mid[other](/else)after"
+      '<p>before<a href="/there">text</a>mid'
+          '<a href="/else">other</a>after</p>', const [
+        ParagraphNode(links: null, nodes: [
+          TextNode('before'),
+          LinkNode(url: '/there', nodes: [TextNode('text')]),
+          TextNode('mid'),
+          LinkNode(url: '/else', nodes: [TextNode('other')]),
+          TextNode('after'),
+        ])]);
+
+    testParse('link in heading',
+      // "###### [t](/u)\nhi"
+      '<h6><a href="/u">t</a></h6>\n<p>hi</p>', const [
+        HeadingNode(links: null, level: HeadingLevel.h6, nodes: [
+          LinkNode(url: '/u', nodes: [TextNode('t')]),
+        ]),
+        ParagraphNode(links: null, nodes: [TextNode('hi')]),
+      ]);
+
+    testParse('link in list item',
+      // "* [t](/u)"
+      '<ul>\n<li><a href="/u">t</a></li>\n</ul>', const [
+        ListNode(ListStyle.unordered, [
+          [ParagraphNode(links: null, wasImplicit: true, nodes: [
+            LinkNode(url: '/u', nodes: [TextNode('t')]),
+          ])],
+        ])]);
+  });
+
   testParse('parse quotations',
     // "```quote\nwords\n```"
     '<blockquote>\n<p>words</p>\n</blockquote>', const [
-      QuotationNode([ParagraphNode(nodes: [TextNode('words')])]),
+      QuotationNode([ParagraphNode(links: null, nodes: [TextNode('words')])]),
     ]);
 
   testParse('parse code blocks, no language',
@@ -283,13 +323,13 @@ void main() {
         '<code>four\n</code></pre></div>\n\n</li>\n</ol>', const [
       ListNode(ListStyle.ordered, [[
         QuotationNode([
-          HeadingNode(level: HeadingLevel.h6, nodes: [TextNode('two')]),
+          HeadingNode(level: HeadingLevel.h6, links: null, nodes: [TextNode('two')]),
           ListNode(ListStyle.unordered, [[
-            ParagraphNode(wasImplicit: true, nodes: [TextNode('three')]),
+            ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('three')]),
           ]]),
         ]),
         CodeBlockNode(text: 'four'),
-        ParagraphNode(wasImplicit: true, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
+        ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
       ]]),
     ]);
 }
