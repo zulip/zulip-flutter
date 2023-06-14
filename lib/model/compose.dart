@@ -117,7 +117,22 @@ String _encodeHashComponent(String str) {
 }
 
 /// A URL to the given [Narrow], on `store`'s realm.
-Uri narrowLink(PerAccountStore store, Narrow narrow) {
+///
+/// To include /near/{messageId} in the link, pass a non-null [nearMessageId].
+// Why take [nearMessageId] in a param, instead of looking for it in [narrow]?
+//
+// A reasonable question: after all, the "near" part of a near link (e.g., for
+// quote-and-reply) does take the same form as other operator/operand pairs
+// that we represent with [ApiNarrowElement]s, like "/stream/48-mobile".
+//
+// But unlike those other elements, we choose not to give the "near" element
+// an [ApiNarrowElement] representation, because it doesn't have quite that role:
+// it says where to look in a list of messages, but it doesn't filter the list down.
+// In fact, from a brief look at server code, it seems to be *ignored*
+// if you include it in the `narrow` param in get-messages requests.
+// When you want to point the server to a location in a message list, you
+// you do so by passing the `anchor` param.
+Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   final apiNarrow = narrow.apiEncode();
   final fragment = StringBuffer('narrow');
   for (ApiNarrowElement element in apiNarrow) {
@@ -153,8 +168,10 @@ Uri narrowLink(PerAccountStore store, Narrow narrow) {
         fragment.write(element.operand.toString());
     }
   }
+
+  if (nearMessageId != null) {
+    fragment.write('/near/$nearMessageId');
+  }
+
   return store.account.realmUrl.replace(fragment: fragment.toString());
 }
-
-// TODO more, like /near links to messages in conversations
-//   (also to be used in quote-and-reply)
