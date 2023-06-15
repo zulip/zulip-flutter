@@ -7,7 +7,7 @@ import 'draggable_scrollable_modal_bottom_sheet.dart';
 void showMessageActionSheet({required BuildContext context, required Message message}) {
   showDraggableScrollableModalBottomSheet(
     context: context,
-    builder: (BuildContext context) {
+    builder: (BuildContext innerContext) {
       return Column(children: [
         MenuItemButton(
           leadingIcon: Icon(Icons.adaptive.share),
@@ -20,7 +20,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
             //   reopen (if it was open at the time of this
             //   `showMessageActionSheet` call) and cover a large part of the
             //   share sheet.
-            Navigator.of(context).pop();
+            Navigator.of(innerContext).pop();
 
             // TODO: to support iPads, we're asked to give a
             //   `sharePositionOrigin` param, or risk crashing / hanging:
