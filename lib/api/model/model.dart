@@ -247,7 +247,7 @@ class Subscription {
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response
-abstract class Message {
+sealed class Message {
   final String? avatarUrl;
   final String client;
   final String content;
