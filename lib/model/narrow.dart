@@ -18,6 +18,15 @@ sealed class Narrow {
 
 /// A non-interleaved narrow, completely specifying a place to send a message.
 sealed class SendableNarrow extends Narrow {
+  factory SendableNarrow.ofMessage(Message message, {required int selfUserId}) {
+    switch (message) {
+      case StreamMessage():
+        return TopicNarrow.ofMessage(message);
+      case DmMessage():
+        return DmNarrow.ofMessage(message, selfUserId: selfUserId);
+    }
+  }
+
   MessageDestination get destination;
 }
 
@@ -74,6 +83,10 @@ class StreamNarrow extends Narrow {
 class TopicNarrow extends Narrow implements SendableNarrow {
   const TopicNarrow(this.streamId, this.topic);
 
+  factory TopicNarrow.ofMessage(StreamMessage message) {
+    return TopicNarrow(message.streamId, message.subject);
+  }
+
   final int streamId;
   final String topic;
 
@@ -125,6 +138,13 @@ class DmNarrow extends Narrow implements SendableNarrow {
     : assert(_isSortedWithoutDuplicates(allRecipientIds)),
       assert(allRecipientIds.contains(selfUserId)),
       _selfUserId = selfUserId;
+
+  factory DmNarrow.ofMessage(DmMessage message, {required int selfUserId}) {
+    return DmNarrow(
+      allRecipientIds: List.unmodifiable(message.allRecipientIds),
+      selfUserId: selfUserId,
+    );
+  }
 
   /// The user IDs of everyone in the conversation, sorted.
   ///

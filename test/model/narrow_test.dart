@@ -8,6 +8,29 @@ import '../example_data.dart' as eg;
 import 'narrow_checks.dart';
 
 void main() {
+  group('SendableNarrow', () {
+    test('ofMessage: stream message', () {
+      final message = eg.streamMessage();
+      final actual = SendableNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+      check(actual).equals(TopicNarrow.ofMessage(message));
+    });
+
+    test('ofMessage: DM message', () {
+      final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      final actual = SendableNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+      check(actual).equals(DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+    });
+  });
+
+  group('TopicNarrow', () {
+    test('ofMessage', () {
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+      final actual = TopicNarrow.ofMessage(message);
+      check(actual).equals(TopicNarrow(stream.streamId, message.subject));
+    });
+  });
+
   group('DmNarrow', () {
     test('constructor assertions', () {
       check(() => DmNarrow(allRecipientIds: [2, 12], selfUserId: 2)).returnsNormally();
@@ -17,6 +40,33 @@ void main() {
       check(() => DmNarrow(allRecipientIds: [2, 2],  selfUserId: 2)).throws();
       check(() => DmNarrow(allRecipientIds: [2, 12], selfUserId: 1)).throws();
       check(() => DmNarrow(allRecipientIds: [],      selfUserId: 2)).throws();
+    });
+
+    test('ofMessage: self-dm', () {
+      final message = eg.dmMessage(from: eg.selfUser, to: []);
+      final actual = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+      check(actual).equals(DmNarrow(
+        allRecipientIds: [eg.selfUser.userId],
+        selfUserId: eg.selfUser.userId));
+      check(() => {
+        actual.allRecipientIds[0] = eg.otherUser.userId
+      }).throws<UnsupportedError>(); // "Cannot modify an unmodifiable list"
+    });
+
+    test('ofMessage: 1:1', () {
+      final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      final actual = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+      check(actual).equals(DmNarrow(
+        allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId]..sort(),
+        selfUserId: eg.selfUser.userId));
+    });
+
+    test('ofMessage: group', () {
+      final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser, eg.thirdUser]);
+      final actual = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+      check(actual).equals(DmNarrow(
+        allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId, eg.thirdUser.userId]..sort(),
+        selfUserId: eg.selfUser.userId));
     });
 
     test('otherRecipientIds', () {

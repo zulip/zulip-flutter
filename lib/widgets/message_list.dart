@@ -278,7 +278,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
-          narrow: TopicNarrow(message.streamId, message.subject))),
+          narrow: TopicNarrow.ofMessage(message))),
       child: ColoredBox(
         color: _kStreamMessageBorderColor,
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -319,9 +319,7 @@ class DmRecipientHeader extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onTap: () {
         final store = PerAccountStoreWidget.of(context);
-        final narrow = DmNarrow(
-          allRecipientIds: message.allRecipientIds.toList(growable: false),
-          selfUserId: store.account.userId);
+        final narrow = DmNarrow.ofMessage(message, selfUserId: store.account.userId);
         Navigator.push(context,
           MessageListPage.buildRoute(context: context, narrow: narrow));
       },
