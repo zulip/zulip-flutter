@@ -82,7 +82,7 @@ class BlockContentNodeWidget extends StatelessWidget {
     } else if (node is ListNode) {
       return ListNodeWidget(node: node);
     } else if (node is HeadingNode) {
-      // TODO h1, h2, h3, h4, h5 -- same as h6 except font size
+      // TODO(#192) h1, h2, h3, h4, h5 -- same as h6 except font size
       assert(node.level == HeadingLevel.h6);
       return Padding(
         padding: const EdgeInsets.only(top: 15, bottom: 5),
@@ -158,7 +158,7 @@ class ListNodeWidget extends StatelessWidget {
         //   but that comes out too close to item; not sure what's fixing that
         //   in a browser
         case ListStyle.unordered: marker = "•   "; break;
-        // TODO ordered lists starting not at 1: https://github.com/zulip/zulip-flutter/issues/59
+        // TODO(#59) ordered lists starting not at 1
         case ListStyle.ordered: marker = "${index+1}. "; break;
       }
       return ListItemWidget(marker: marker, nodes: item);
@@ -200,7 +200,7 @@ class MessageImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = InheritedMessage.of(context);
 
-    // TODO multiple images in a row
+    // TODO(#193) multiple images in a row
     // TODO image hover animation
     final src = node.srcUrl;
 
@@ -458,7 +458,7 @@ class MessageUnicodeEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO get spritesheet and show actual emoji glyph
+    // TODO(#58) get spritesheet and show actual emoji glyph
     final text = node.text;
     return Container(
       padding: const EdgeInsets.all(2),
@@ -624,7 +624,7 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
   // For now this shows error-styled HTML code even in release mode,
   // because release mode isn't yet about general users but developer demos,
   // and we want to keep the demos honest.
-  // TODO think through UX for general release
+  // TODO(#194) think through UX for general release
   final htmlNode = node.htmlNode;
   if (htmlNode is dom.Element) {
     return TextSpan(children: [

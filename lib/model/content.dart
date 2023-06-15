@@ -114,7 +114,7 @@ class QuotationNode extends BlockContentNode {
 }
 
 class CodeBlockNode extends BlockContentNode {
-  // TODO represent the code-highlighting style spans in CodeBlockNode
+  // TODO(#191) represent the code-highlighting style spans in CodeBlockNode
   const CodeBlockNode({super.debugHtmlNode, required this.text});
 
   final String text;
@@ -357,7 +357,7 @@ BlockContentNode parseCodeBlock(dom.Element divElement) {
       }
       buffer.write(text);
     } else if (child is dom.Element && child.localName == 'span') {
-      // TODO parse the code-highlighting spans, to style them
+      // TODO(#191) parse the code-highlighting spans, to style them
       buffer.write(child.text);
     } else {
       return UnimplementedBlockContentNode(htmlNode: divElement);
@@ -436,7 +436,7 @@ BlockContentNode parseBlockContent(dom.Node node) {
     case 'h6': headingLevel = HeadingLevel.h6; break;
   }
   if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
-    // TODO handle h1, h2, h3, h4, h5
+    // TODO(#192) handle h1, h2, h3, h4, h5
     return HeadingNode(
       headingLevel!, inlineNodes(), debugHtmlNode: debugHtmlNode);
   }
