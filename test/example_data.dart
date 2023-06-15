@@ -103,10 +103,11 @@ Map<String, dynamic> _messagePropertiesFromSender(User? sender) {
   };
 }
 
-// When we have a Stream object, this can take that as an argument.
-// Also it can default explicitly to an example stream.
+const _stream = stream;
+
 StreamMessage streamMessage(
-    {User? sender, String? streamName, int? streamId}) {
+    {User? sender, ZulipStream? stream, String? topic}) {
+  final effectiveStream = stream ?? _stream();
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
   // of the properties as we're constructing the data.  That's probably OK
@@ -115,14 +116,14 @@ StreamMessage streamMessage(
   return StreamMessage.fromJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(sender),
-    'display_recipient': streamName ?? 'a stream',
-    'stream_id': streamId ?? 123, // TODO generate example IDs
+    'display_recipient': effectiveStream.name,
+    'stream_id': effectiveStream.streamId,
 
     'content': '<p>This is an example stream message.</p>',
     'content_type': 'text/html',
     'flags': [],
     'id': 1234567, // TODO generate example IDs
-    'subject': 'example topic',
+    'subject': topic ?? 'example topic',
     'timestamp': 1678139636,
     'type': 'stream',
   });
