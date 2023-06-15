@@ -399,7 +399,6 @@ class InlineCodeNode extends InlineContainerNode {
 class LinkNode extends InlineContainerNode {
   const LinkNode({super.debugHtmlNode, required super.nodes, required this.url});
 
-  // TODO(#71): Use [LinkNode.url] to open links
   final String url; // Left as a string, to defer parsing until link actually followed.
 
   // Unlike other [ContentNode]s, the identity is useful to show in debugging
@@ -559,6 +558,9 @@ class _ZulipContentParser {
             || classes.contains('user-group-mention'))
         && (classes.length == 1
             || (classes.length == 2 && classes.contains('silent')))) {
+      // TODO assert UserMentionNode can't contain LinkNode;
+      //   either a debug-mode check, or perhaps we can make expectations much
+      //   tighter on a UserMentionNode's contents overall.
       return UserMentionNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
 

@@ -1,11 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
 
 import '../api/core.dart';
 import '../api/model/model.dart';
+import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/store.dart';
+import 'dialog.dart';
 import 'store.dart';
 import 'lightbox.dart';
 import 'text.dart';
@@ -303,10 +306,11 @@ Widget _buildBlockInlineContainer({
   required BlockInlineContainerNode node,
 }) {
   if (node.links == null) {
-    return InlineContent(recognizer: null, style: style, nodes: node.nodes);
+    return InlineContent(recognizer: null, linkRecognizers: null,
+      style: style, nodes: node.nodes);
   }
-  return _BlockInlineContainer(
-    links: node.links!, style: style, nodes: node.nodes);
+  return _BlockInlineContainer(links: node.links!,
+    style: style, nodes: node.nodes);
 }
 
 class _BlockInlineContainer extends StatefulWidget {
@@ -322,9 +326,44 @@ class _BlockInlineContainer extends StatefulWidget {
 }
 
 class _BlockInlineContainerState extends State<_BlockInlineContainer> {
+  final Map<LinkNode, GestureRecognizer> _recognizers = {};
+
+  void _prepareRecognizers() {
+    _recognizers.addEntries(widget.links.map((node) => MapEntry(node,
+      TapGestureRecognizer()..onTap = () => _launchUrl(context, node.url))));
+  }
+
+  void _disposeRecognizers() {
+    for (final recognizer in _recognizers.values) {
+      recognizer.dispose();
+    }
+    _recognizers.clear();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _prepareRecognizers();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BlockInlineContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.links, oldWidget.links)) {
+      _disposeRecognizers();
+      _prepareRecognizers();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposeRecognizers();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return InlineContent(recognizer: null,
+    return InlineContent(recognizer: null, linkRecognizers: _recognizers,
       style: widget.style, nodes: widget.nodes);
   }
 }
@@ -333,6 +372,7 @@ class InlineContent extends StatelessWidget {
   InlineContent({
     super.key,
     required this.recognizer,
+    required this.linkRecognizers,
     required this.style,
     required this.nodes,
   }) {
@@ -340,6 +380,7 @@ class InlineContent extends StatelessWidget {
   }
 
   final GestureRecognizer? recognizer;
+  final Map<LinkNode, GestureRecognizer>? linkRecognizers;
   final TextStyle? style;
   final List<InlineContentNode> nodes;
 
@@ -357,7 +398,12 @@ class _InlineContentBuilder {
   final InlineContent widget;
 
   InlineSpan build() {
-    return _buildNodes(widget.nodes, style: widget.style);
+    assert(_recognizer == widget.recognizer);
+    assert(_recognizerStack == null || _recognizerStack!.isEmpty);
+    final result = _buildNodes(widget.nodes, style: widget.style);
+    assert(_recognizer == widget.recognizer);
+    assert(_recognizerStack == null || _recognizerStack!.isEmpty);
+    return result;
   }
 
   // Why do we have to track `recognizer` here, rather than apply it
@@ -365,7 +411,18 @@ class _InlineContentBuilder {
   // within a paragraph:
   //   https://github.com/flutter/flutter/issues/10623
   //   https://github.com/flutter/flutter/issues/10623#issuecomment-308030170
-  final GestureRecognizer? _recognizer;
+  GestureRecognizer? _recognizer;
+
+  List<GestureRecognizer?>? _recognizerStack;
+
+  void _pushRecognizer(GestureRecognizer? newRecognizer) {
+    (_recognizerStack ??= []).add(_recognizer);
+    _recognizer = newRecognizer;
+  }
+
+  void _popRecognizer() {
+    _recognizer = _recognizerStack!.removeLast();
+  }
 
   InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
     return TextSpan(
@@ -412,9 +469,13 @@ class _InlineContentBuilder {
     style: const TextStyle(fontStyle: FontStyle.italic));
 
   InlineSpan _buildLink(LinkNode node) {
-    // TODO make link touchable by setting _recognizer
-    return _buildNodes(node.nodes,
+    final recognizer = widget.linkRecognizers?[node];
+    assert(recognizer != null);
+    _pushRecognizer(recognizer);
+    final result = _buildNodes(node.nodes,
       style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+    _popRecognizer();
+    return result;
   }
 
   InlineSpan _buildInlineCode(InlineCodeNode node) {
@@ -511,6 +572,9 @@ class UserMention extends StatelessWidget {
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
         recognizer: null,  // TODO make @-mentions tappable, for info on user
+        // One hopes an @-mention can't contain an embedded link.
+        // (The parser on creating a UserMentionNode has a TODO to check that.)
+        linkRecognizers: null,
         style: null,
         nodes: node.nodes));
   }
@@ -590,6 +654,38 @@ class MessageImageEmoji extends StatelessWidget {
             height: size,
           )),
       ]);
+  }
+}
+
+void _launchUrl(BuildContext context, String urlString) async {
+  Future<void> showError(BuildContext context, String? message) {
+    return showErrorDialog(context: context,
+      title: 'Unable to open link',
+      message: [
+        'Link could not be opened: $urlString',
+        if (message != null) message,
+      ].join("\n\n"));
+  }
+
+  final store = PerAccountStoreWidget.of(context);
+  final Uri url;
+  try {
+    url = store.account.realmUrl.resolve(urlString);
+  } on FormatException { // TODO(log)
+    await showError(context, null);
+    return;
+  }
+
+  bool launched = false;
+  String? errorMessage;
+  try {
+    launched = await ZulipBinding.instance.launchUrl(url);
+  } on PlatformException catch (e) {
+    errorMessage = e.message;
+  }
+  if (!launched) { // TODO(log)
+    if (!context.mounted) return;
+    await showError(context, errorMessage);
   }
 }
 
