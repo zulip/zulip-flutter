@@ -673,13 +673,32 @@ void _launchUrl(BuildContext context, String urlString) async {
     url = store.account.realmUrl.resolve(urlString);
   } on FormatException { // TODO(log)
     await showError(context, null);
+    if (!context.mounted) return; // TODO(dart): redundant for sake of lint
     return;
   }
 
   bool launched = false;
   String? errorMessage;
   try {
-    launched = await ZulipBinding.instance.launchUrl(url);
+    launched = await ZulipBinding.instance.launchUrl(url,
+      mode: switch (Theme.of(context).platform) {
+        // TODO(upstream) The url_launcher default on Android is a weird UX:
+        //   opens a webview in-app, but on a blank black background.
+        //   The status bar is hidden:
+        //     https://github.com/flutter/flutter/issues/120883
+        //   but also there's no app bar, no location bar, no share button;
+        //   no browser chrome at all.
+        //   Probably what we really want is a "Chrome custom tab":
+        //     https://github.com/flutter/flutter/issues/18589
+        // TODO(upstream) With url_launcher's LaunchMode.externalApplication
+        //   on Android, we still don't get the normal Android UX for
+        //   opening a URL in a browser, where the system gives the user
+        //   a bit of UI to choose which browser to use:
+        //     https://github.com/zulip/zulip-flutter/issues/74#issuecomment-1514040730
+        TargetPlatform.android => LaunchMode.externalApplication,
+        _ => LaunchMode.platformDefault,
+      },
+    );
   } on PlatformException catch (e) {
     errorMessage = e.message;
   }

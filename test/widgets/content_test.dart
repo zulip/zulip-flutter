@@ -19,7 +19,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('LinkNode interactions', () {
-    const expectedModeAndroid = LaunchMode.platformDefault;
+    const expectedModeAndroid = LaunchMode.externalApplication;
 
     // The Flutter test font uses square glyphs, so width equals height:
     //   https://github.com/flutter/flutter/wiki/Flutter-Test-Fonts
@@ -43,7 +43,8 @@ void main() {
         '<p><a href="https://example/">hello</a></p>');
 
       await tester.tap(find.text('hello'));
-      const expectedMode = LaunchMode.platformDefault;
+      final expectedMode = defaultTargetPlatform == TargetPlatform.android ?
+        LaunchMode.externalApplication : LaunchMode.platformDefault;
       check(TestZulipBinding.instance.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://example/'), mode: expectedMode));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
