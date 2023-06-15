@@ -300,4 +300,10 @@ hello
     // TODO other Narrow subclasses as we add them:
     //   starred, mentioned; searches; arbitrary
   });
+
+  test('mention', () {
+    final user = eg.user(userId: 123, fullName: 'Full Name');
+    check(mention(user, silent: false)).equals('@**Full Name|123**');
+    check(mention(user, silent: true)).equals('@_**Full Name|123**');
+  });
 }

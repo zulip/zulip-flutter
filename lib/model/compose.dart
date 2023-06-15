@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -174,4 +175,10 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   }
 
   return store.account.realmUrl.replace(fragment: fragment.toString());
+}
+
+// TODO like web, use just the name, no ID, when that wouldn't be ambiguous.
+//   It looks nicer while the user's still composing and looking at the source.
+String mention(User user, {bool silent = false}) {
+  return '@${silent ? '_' : ''}**${user.fullName}|${user.userId}**';
 }
