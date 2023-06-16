@@ -16,20 +16,8 @@ sealed class Event {
   factory Event.fromJson(Map<String, dynamic> json) {
     switch (json['type'] as String) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
-      case 'realm_user':
-        switch (json['op'] as String) {
-          case 'add': return RealmUserAddEvent.fromJson(json);
-          case 'remove': return RealmUserRemoveEvent.fromJson(json);
-          case 'update': return RealmUserUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
-        }
-      case 'stream':
-        switch (json['op'] as String) {
-          case 'create': return StreamCreateEvent.fromJson(json);
-          case 'delete': return StreamDeleteEvent.fromJson(json);
-          // TODO(#182): case 'update': …
-          default: return UnexpectedEvent.fromJson(json);
-        }
+      case 'realm_user': return RealmUserEvent.fromJson(json);
+      case 'stream': return StreamEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -51,6 +39,12 @@ class UnexpectedEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => json;
+}
+
+class UnexpectedOpEvent extends UnexpectedEvent {
+  String get op => json['op'] as String;
+
+  UnexpectedOpEvent.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 }
 
 /// A Zulip event of type `alert_words`.
@@ -80,6 +74,21 @@ abstract class RealmUserEvent extends Event {
   String get op;
 
   RealmUserEvent({required super.id});
+
+  factory RealmUserEvent.fromJson(Map<String, dynamic> json) {
+    assert(json['type'] == 'realm_user');
+    switch (json['op'] as String) {
+      case 'add': return RealmUserAddEvent.fromJson(json);
+      case 'remove': return RealmUserRemoveEvent.fromJson(json);
+      case 'update': return RealmUserUpdateEvent.fromJson(json);
+      default: return UnexpectedRealmUserEvent.fromJson(json);
+    }
+  }
+}
+
+class UnexpectedRealmUserEvent extends UnexpectedOpEvent implements RealmUserEvent {
+  UnexpectedRealmUserEvent.fromJson(Map<String, dynamic> json)
+    : assert(json['type'] == 'realm_user'), super.fromJson(json);
 }
 
 /// A [RealmUserEvent] with op `add`: https://zulip.com/api/get-events#realm_user-add
@@ -190,6 +199,21 @@ abstract class StreamEvent extends Event {
   String get op;
 
   StreamEvent({required super.id});
+
+  factory StreamEvent.fromJson(Map<String, dynamic> json) {
+    assert(json['type'] == 'stream');
+    switch (json['op'] as String) {
+      case 'create': return StreamCreateEvent.fromJson(json);
+      case 'delete': return StreamDeleteEvent.fromJson(json);
+      // TODO(#182): case 'update': …
+      default: return UnexpectedStreamEvent.fromJson(json);
+    }
+  }
+}
+
+class UnexpectedStreamEvent extends UnexpectedOpEvent implements StreamEvent {
+  UnexpectedStreamEvent.fromJson(Map<String, dynamic> json)
+    : assert(json['type'] == 'stream'), super.fromJson(json);
 }
 
 /// A [StreamEvent] with op `create`: https://zulip.com/api/get-events#stream-create
