@@ -47,10 +47,10 @@ class UnexpectedEvent extends Event {
   @override
   String get type => json['type'] as String;
 
-  UnexpectedEvent({required super.id, required this.json});
+  UnexpectedEvent({required this.json}) : super(id: json['id'] as int);
 
   factory UnexpectedEvent.fromJson(Map<String, dynamic> json) =>
-    UnexpectedEvent(id: json['id'] as int, json: json);
+    UnexpectedEvent(json: json);
 
   @override
   Map<String, dynamic> toJson() => json;
