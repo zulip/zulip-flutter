@@ -14,7 +14,7 @@ import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 
-class MessageListPage extends StatelessWidget {
+class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
   static Route<void> buildRoute({required BuildContext context, required Narrow narrow}) {
@@ -25,9 +25,14 @@ class MessageListPage extends StatelessWidget {
   final Narrow narrow;
 
   @override
+  State<MessageListPage> createState() => _MessageListPageState();
+}
+
+class _MessageListPageState extends State<MessageListPage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: MessageListAppBarTitle(narrow: narrow)),
+      appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow)),
       body: Builder(
         builder: (BuildContext context) => Center(
           child: Column(children: [
@@ -41,9 +46,9 @@ class MessageListPage extends StatelessWidget {
               removeBottom: true,
 
               child: Expanded(
-                child: MessageList(narrow: narrow))),
+                child: MessageList(narrow: widget.narrow))),
 
-            ComposeBox(narrow: narrow),
+            ComposeBox(narrow: widget.narrow),
           ]))));
   }
 }
