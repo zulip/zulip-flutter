@@ -333,9 +333,6 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildNode(InlineContentNode node) {
-    InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
-      _buildNodes(nodes, style: style);
-
     if (node is TextNode) {
       return TextSpan(text: node.text);
     } else if (node is LineBreakInlineNode) {
@@ -343,15 +340,13 @@ class _InlineContentBuilder {
       // and our parser doesn't.  So don't do anything here.
       return const TextSpan(text: "");
     } else if (node is StrongNode) {
-      return styled(node.nodes, const TextStyle(fontWeight: FontWeight.w600));
+      return _buildStrong(node);
     } else if (node is EmphasisNode) {
-      return styled(node.nodes, const TextStyle(fontStyle: FontStyle.italic));
+      return _buildEmphasis(node);
+    } else if (node is LinkNode) {
+      return _buildLink(node);
     } else if (node is InlineCodeNode) {
       return _buildInlineCode(node);
-    } else if (node is LinkNode) {
-      // TODO make link touchable
-      return styled(node.nodes,
-        TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
     } else if (node is UserMentionNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
         child: UserMention(node: node));
@@ -367,6 +362,18 @@ class _InlineContentBuilder {
       // TODO(dart-3): Use a sealed class / pattern matching to eliminate this case.
       throw Exception("impossible InlineContentNode: ${node.debugHtmlText}");
     }
+  }
+
+  InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
+    style: const TextStyle(fontWeight: FontWeight.w600));
+
+  InlineSpan _buildEmphasis(EmphasisNode node) => _buildNodes(node.nodes,
+    style: const TextStyle(fontStyle: FontStyle.italic));
+
+  InlineSpan _buildLink(LinkNode node) {
+    // TODO make link touchable
+    return _buildNodes(node.nodes,
+      style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
 
   InlineSpan _buildInlineCode(InlineCodeNode node) {
