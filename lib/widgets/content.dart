@@ -97,7 +97,7 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
-    final text = Text.rich(_buildInlineSpan(node.nodes, style: null));
+    final text = InlineContent(nodes: node.nodes, style: null);
 
     // If the paragraph didn't actually have a `p` element in the HTML,
     // then apply no margins.  (For example, these are seen in list items.)
@@ -122,9 +122,9 @@ class Heading extends StatelessWidget {
     assert(node.level == HeadingLevel.h6);
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
-      child: Text.rich(_buildInlineSpan(
+      child: InlineContent(
         style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
-        node.nodes)));
+        nodes: node.nodes));
   }
 }
 
@@ -297,91 +297,121 @@ class _SingleChildScrollViewWithScrollbarState
 // Inline layout.
 //
 
-InlineSpan _buildInlineSpan(List<InlineContentNode> nodes, {required TextStyle? style}) {
-  return TextSpan(
-    style: style,
-    children: nodes.map(_buildInlineNode).toList(growable: false));
-}
+class InlineContent extends StatelessWidget {
+  InlineContent({
+    super.key,
+    required this.nodes,
+    required this.style,
+  }) {
+    _builder = _InlineContentBuilder(this);
+  }
 
-InlineSpan _buildInlineNode(InlineContentNode node) {
-  InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
-    _buildInlineSpan(nodes, style: style);
+  final List<InlineContentNode> nodes;
+  final TextStyle? style;
 
-  if (node is TextNode) {
-    return TextSpan(text: node.text);
-  } else if (node is LineBreakInlineNode) {
-    // Each `<br/>` is followed by a newline, which browsers apparently ignore
-    // and our parser doesn't.  So don't do anything here.
-    return const TextSpan(text: "");
-  } else if (node is StrongNode) {
-    return styled(node.nodes, const TextStyle(fontWeight: FontWeight.w600));
-  } else if (node is EmphasisNode) {
-    return styled(node.nodes, const TextStyle(fontStyle: FontStyle.italic));
-  } else if (node is InlineCodeNode) {
-    return inlineCode(node);
-  } else if (node is LinkNode) {
-    // TODO make link touchable
-    return styled(node.nodes,
-      TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
-  } else if (node is UserMentionNode) {
-    return WidgetSpan(alignment: PlaceholderAlignment.middle,
-      child: UserMention(node: node));
-  } else if (node is UnicodeEmojiNode) {
-    return WidgetSpan(alignment: PlaceholderAlignment.middle,
-      child: MessageUnicodeEmoji(node: node));
-  } else if (node is ImageEmojiNode) {
-    return WidgetSpan(alignment: PlaceholderAlignment.middle,
-      child: MessageImageEmoji(node: node));
-  } else if (node is UnimplementedInlineContentNode) {
-    return _errorUnimplemented(node);
-  } else {
-    // TODO(dart-3): Use a sealed class / pattern matching to eliminate this case.
-    throw Exception("impossible InlineContentNode: ${node.debugHtmlText}");
+  late final _InlineContentBuilder _builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(_builder.build());
   }
 }
 
-InlineSpan inlineCode(InlineCodeNode node) {
-  // TODO `code` elements: border, padding -- seems hard
-  //
-  // Hard because this is an inline span, which we want to be able to break
-  // between lines when wrapping paragraphs.  That means we can't just make it a
-  // widget; it needs to be a [TextSpan].  And in that inline setting, Flutter
-  // does not appear to have an equivalent for CSS's `border` or `padding`:
-  //   https://api.flutter.dev/flutter/painting/TextStyle-class.html
-  //
-  // One attempt was to use [TextDecoration] for the top and bottom,
-  // passing this to the [TextStyle] constructor:
-  //   decoration: TextDecoration.combine([TextDecoration.overline, TextDecoration.underline]),
-  // (Then we could handle the left and right borders with 1px-wide [WidgetSpan]s.)
-  // The overline comes out OK, but sadly the underline is, well, where a normal
-  // text underline should go: it cuts right through descenders.
-  //
-  // Another option would be to break the text up on whitespace ourselves, and
-  // make a [WidgetSpan] for each word and space.
-  //
-  // Or we could find a different design for displaying inline code.
-  // One such alternative is implemented below.
+class _InlineContentBuilder {
+  _InlineContentBuilder(this.widget);
 
-  // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
+  final InlineContent widget;
 
-  // Use a light gray background, instead of a border.
-  return _buildInlineSpan(style: _kInlineCodeStyle, node.nodes);
+  InlineSpan build() {
+    return _buildNodes(widget.nodes, style: widget.style);
+  }
 
-  // Another fun solution -- we can in fact have a border!  Like so:
-  //   TextStyle(
-  //     background: Paint()..color = Color(0xff000000)
-  //                        ..style = PaintingStyle.stroke,
-  //     // … fontSize, fontFamily, …
-  // The trouble is that this border hugs the text tightly -- no padding.
-  // That doesn't come out looking good.
+  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
+    return TextSpan(
+      style: style,
+      children: nodes.map(_buildNode).toList(growable: false));
+  }
 
-  // Here's a more different solution: add delimiters.
-  // return TextSpan(children: [
-  //   // TO.DO(selection): exclude these brackets from text selection
-  //   const TextSpan(text: _kInlineCodeLeftBracket),
-  //   TextSpan(style: _kCodeStyle, children: _buildInlineList(element.nodes)),
-  //   const TextSpan(text: _kInlineCodeRightBracket),
-  // ]);
+  InlineSpan _buildNode(InlineContentNode node) {
+    InlineSpan styled(List<InlineContentNode> nodes, TextStyle style) =>
+      _buildNodes(nodes, style: style);
+
+    if (node is TextNode) {
+      return TextSpan(text: node.text);
+    } else if (node is LineBreakInlineNode) {
+      // Each `<br/>` is followed by a newline, which browsers apparently ignore
+      // and our parser doesn't.  So don't do anything here.
+      return const TextSpan(text: "");
+    } else if (node is StrongNode) {
+      return styled(node.nodes, const TextStyle(fontWeight: FontWeight.w600));
+    } else if (node is EmphasisNode) {
+      return styled(node.nodes, const TextStyle(fontStyle: FontStyle.italic));
+    } else if (node is InlineCodeNode) {
+      return _buildInlineCode(node);
+    } else if (node is LinkNode) {
+      // TODO make link touchable
+      return styled(node.nodes,
+        TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+    } else if (node is UserMentionNode) {
+      return WidgetSpan(alignment: PlaceholderAlignment.middle,
+        child: UserMention(node: node));
+    } else if (node is UnicodeEmojiNode) {
+      return WidgetSpan(alignment: PlaceholderAlignment.middle,
+        child: MessageUnicodeEmoji(node: node));
+    } else if (node is ImageEmojiNode) {
+      return WidgetSpan(alignment: PlaceholderAlignment.middle,
+        child: MessageImageEmoji(node: node));
+    } else if (node is UnimplementedInlineContentNode) {
+      return _errorUnimplemented(node);
+    } else {
+      // TODO(dart-3): Use a sealed class / pattern matching to eliminate this case.
+      throw Exception("impossible InlineContentNode: ${node.debugHtmlText}");
+    }
+  }
+
+  InlineSpan _buildInlineCode(InlineCodeNode node) {
+    // TODO `code` elements: border, padding -- seems hard
+    //
+    // Hard because this is an inline span, which we want to be able to break
+    // between lines when wrapping paragraphs.  That means we can't just make it a
+    // widget; it needs to be a [TextSpan].  And in that inline setting, Flutter
+    // does not appear to have an equivalent for CSS's `border` or `padding`:
+    //   https://api.flutter.dev/flutter/painting/TextStyle-class.html
+    //
+    // One attempt was to use [TextDecoration] for the top and bottom,
+    // passing this to the [TextStyle] constructor:
+    //   decoration: TextDecoration.combine([TextDecoration.overline, TextDecoration.underline]),
+    // (Then we could handle the left and right borders with 1px-wide [WidgetSpan]s.)
+    // The overline comes out OK, but sadly the underline is, well, where a normal
+    // text underline should go: it cuts right through descenders.
+    //
+    // Another option would be to break the text up on whitespace ourselves, and
+    // make a [WidgetSpan] for each word and space.
+    //
+    // Or we could find a different design for displaying inline code.
+    // One such alternative is implemented below.
+
+    // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
+
+    // Use a light gray background, instead of a border.
+    return _buildNodes(style: _kInlineCodeStyle, node.nodes);
+
+    // Another fun solution -- we can in fact have a border!  Like so:
+    //   TextStyle(
+    //     background: Paint()..color = Color(0xff000000)
+    //                        ..style = PaintingStyle.stroke,
+    //     // … fontSize, fontFamily, …
+    // The trouble is that this border hugs the text tightly -- no padding.
+    // That doesn't come out looking good.
+
+    // Here's a more different solution: add delimiters.
+    // return TextSpan(children: [
+    //   // TO.DO(selection): exclude these brackets from text selection
+    //   const TextSpan(text: _kInlineCodeLeftBracket),
+    //   TextSpan(style: _kCodeStyle, children: _buildInlineList(element.nodes)),
+    //   const TextSpan(text: _kInlineCodeRightBracket),
+    // ]);
+  }
 }
 
 final _kInlineCodeStyle = kMonospaceTextStyle
@@ -430,7 +460,7 @@ class UserMention extends StatelessWidget {
     return Container(
       decoration: _kDecoration,
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-      child: Text.rich(_buildInlineSpan(node.nodes, style: null)));
+      child: InlineContent(nodes: node.nodes, style: null));
   }
 
   static get _kDecoration => BoxDecoration(
