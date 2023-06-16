@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../api/route/messages.dart';
 import '../model/autocomplete.dart';
+import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'dialog.dart';
 import 'store.dart';
@@ -135,7 +136,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   int registerUploadStart(String filename) {
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
-    final placeholder = '[Uploading $filename...]()'; // TODO(i18n)
+    final placeholder = inlineLink('Uploading $filename...', null); // TODO(i18n)
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(_insertionIndex(), '$placeholder\n\n');
@@ -157,7 +158,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
     value = value.replaced(
       replacementRange,
-      url == null ? '' : '[$filename](${url.toString()})');
+      url == null ? '' : inlineLink(filename, url));
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }

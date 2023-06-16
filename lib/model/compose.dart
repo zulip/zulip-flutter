@@ -182,3 +182,25 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 String mention(User user, {bool silent = false}) {
   return '@${silent ? '_' : ''}**${user.fullName}|${user.userId}**';
 }
+
+/// https://spec.commonmark.org/0.30/#inline-link
+///
+/// The "link text" is made by enclosing [visibleText] in square brackets.
+/// If [visibleText] has unexpected features, such as square brackets, the
+/// result may be surprising.
+///
+/// The part between "(" and ")" is just a "link destination" (no "link title").
+/// That destination is simply the stringified [destination], if provided.
+/// If that has parentheses in it, the result may be surprising.
+// TODO: Try harder to guarantee output that creates an inline link,
+//   and in particular, the intended one. We could help with this by escaping
+//   square brackets, perhaps with HTML character references:
+//     https://github.com/zulip/zulip-flutter/pull/201#discussion_r1237951626
+//   It's also tricky because nearby content can thwart the inline-link syntax.
+//   From the spec:
+//   > Backtick code spans, autolinks, and raw HTML tags bind more tightly
+//   > than the brackets in link text. Thus, for example, [foo`]` could not be
+//   > a link text, since the second ] is part of a code span.
+String inlineLink(String visibleText, Uri? destination) {
+  return '[$visibleText](${destination?.toString() ?? ''})';
+}
