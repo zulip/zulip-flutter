@@ -204,3 +204,37 @@ String mention(User user, {bool silent = false}) {
 String inlineLink(String visibleText, Uri? destination) {
   return '[$visibleText](${destination?.toString() ?? ''})';
 }
+
+/// What we show while fetching the target message's raw Markdown.
+String quoteAndReplyPlaceholder(PerAccountStore store, {
+  required Message message,
+}) {
+  final sender = store.users[message.senderId];
+  assert(sender != null);
+  final url = narrowLink(store,
+    SendableNarrow.ofMessage(message, selfUserId: store.account.userId),
+    nearMessageId: message.id);
+  return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
+    '*(loading message ${message.id})*\n'; // TODO(i18n) ?
+}
+
+/// Quote-and-reply syntax.
+///
+/// The result looks like it does in Zulip web:
+///
+///     @_**Iago|5** [said](link to message):
+///     ```quote
+///     message content
+///     ```
+String quoteAndReply(PerAccountStore store, {
+  required Message message,
+  required String rawContent,
+}) {
+  final sender = store.users[message.senderId];
+  assert(sender != null);
+  final url = narrowLink(store,
+    SendableNarrow.ofMessage(message, selfUserId: store.account.userId),
+    nearMessageId: message.id);
+    return '${mention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(i18n) ?
+      '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
+}
