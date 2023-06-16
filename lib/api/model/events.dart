@@ -7,7 +7,7 @@ part 'events.g.dart';
 /// A Zulip event.
 ///
 /// See API documentation: https://zulip.com/api/get-events
-abstract class Event {
+sealed class Event {
   final int id;
   String get type;
 
