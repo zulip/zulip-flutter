@@ -851,12 +851,18 @@ class _ComposeBoxLayout extends StatelessWidget {
           ]))));  }
 }
 
+abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
+  ComposeTopicController? get topicController;
+  ComposeContentController get contentController;
+  FocusNode get contentFocusNode;
+}
+
 /// A compose box for use in a stream narrow.
 ///
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
 class _StreamComposeBox extends StatefulWidget {
-  const _StreamComposeBox({required this.narrow});
+  const _StreamComposeBox({super.key, required this.narrow});
 
   /// The narrow on view in the message list.
   final StreamNarrow narrow;
@@ -865,9 +871,14 @@ class _StreamComposeBox extends StatefulWidget {
   State<_StreamComposeBox> createState() => _StreamComposeBoxState();
 }
 
-class _StreamComposeBoxState extends State<_StreamComposeBox> {
+class _StreamComposeBoxState extends State<_StreamComposeBox> implements ComposeBoxController<_StreamComposeBox> {
+  @override ComposeTopicController get topicController => _topicController;
   final _topicController = ComposeTopicController();
+
+  @override ComposeContentController get contentController => _contentController;
   final _contentController = ComposeContentController();
+
+  @override FocusNode get contentFocusNode => _contentFocusNode;
   final _contentFocusNode = FocusNode();
 
   @override
@@ -906,7 +917,7 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
 }
 
 class _FixedDestinationComposeBox extends StatefulWidget {
-  const _FixedDestinationComposeBox({required this.narrow});
+  const _FixedDestinationComposeBox({super.key, required this.narrow});
 
   final SendableNarrow narrow;
 
@@ -914,8 +925,13 @@ class _FixedDestinationComposeBox extends StatefulWidget {
   State<_FixedDestinationComposeBox> createState() => _FixedDestinationComposeBoxState();
 }
 
-class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> {
+class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> implements ComposeBoxController<_FixedDestinationComposeBox>  {
+  @override ComposeTopicController? get topicController => null;
+
+  @override ComposeContentController get contentController => _contentController;
   final _contentController = ComposeContentController();
+
+  @override FocusNode get contentFocusNode => _contentFocusNode;
   final _contentFocusNode = FocusNode();
 
   @override
@@ -945,19 +961,20 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
 }
 
 class ComposeBox extends StatelessWidget {
-  const ComposeBox({super.key, required this.narrow});
+  const ComposeBox({super.key, this.controllerKey, required this.narrow});
 
+  final GlobalKey<ComposeBoxController>? controllerKey;
   final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     final narrow = this.narrow;
     if (narrow is StreamNarrow) {
-      return _StreamComposeBox(narrow: narrow);
+      return _StreamComposeBox(key: controllerKey, narrow: narrow);
     } else if (narrow is TopicNarrow) {
-      return _FixedDestinationComposeBox(narrow: narrow);
+      return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
     } else if (narrow is DmNarrow) {
-      return _FixedDestinationComposeBox(narrow: narrow);
+      return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
     } else if (narrow is AllMessagesNarrow) {
       return const SizedBox.shrink();
     } else {

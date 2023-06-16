@@ -22,6 +22,16 @@ class MessageListPage extends StatefulWidget {
       builder: (context) => MessageListPage(narrow: narrow));
   }
 
+  /// A [ComposeBoxController], if this [MessageListPage] offers a compose box.
+  ///
+  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
+  /// don't call this in a build method.
+  static ComposeBoxController? composeBoxControllerOf(BuildContext context) {
+    final messageListPageState = context.findAncestorStateOfType<_MessageListPageState>();
+    assert(messageListPageState != null, 'No MessageListPage ancestor');
+    return messageListPageState!._composeBoxKey.currentState;
+  }
+
   final Narrow narrow;
 
   @override
@@ -29,6 +39,8 @@ class MessageListPage extends StatefulWidget {
 }
 
 class _MessageListPageState extends State<MessageListPage> {
+  final GlobalKey<ComposeBoxController> _composeBoxKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +60,7 @@ class _MessageListPageState extends State<MessageListPage> {
               child: Expanded(
                 child: MessageList(narrow: widget.narrow))),
 
-            ComposeBox(narrow: widget.narrow),
+            ComposeBox(controllerKey: _composeBoxKey, narrow: widget.narrow),
           ]))));
   }
 }
