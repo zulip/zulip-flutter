@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import 'dialog.dart';
 import 'store.dart';
 
@@ -84,9 +86,8 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
 enum ContentValidationError {
   empty,
   tooLong,
+  quoteAndReplyInProgress,
   uploadInProgress;
-
-  // Later: quote-and-reply in progress
 
   String message() {
     switch (this) {
@@ -94,6 +95,8 @@ enum ContentValidationError {
         return "Message length shouldn't be greater than 10000 characters.";
       case ContentValidationError.empty:
         return 'You have nothing to send!';
+      case ContentValidationError.quoteAndReplyInProgress:
+        return 'Please wait for the quotation to complete.';
       case ContentValidationError.uploadInProgress:
         return 'Please wait for the upload to complete.';
     }
@@ -105,8 +108,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     _update();
   }
 
+  int _nextQuoteAndReplyTag = 0;
   int _nextUploadTag = 0;
 
+  final Map<int, ({int messageId, String placeholder})> _quoteAndReplies = {};
   final Map<int, ({String filename, String placeholder})> _uploads = {};
 
   /// A probably-reasonable place to insert Markdown, such as for a file upload.
@@ -137,7 +142,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   /// Inserts at [_insertionIndex]. If that's zero, no empty line is added before.
   ///
   /// If there is already an empty line before or after, does not add another.
-  void insertPadded(String newText) { // ignore: unused_element
+  void insertPadded(String newText) {
     assert(newText.isNotEmpty);
     assert(newText.endsWith('\n'));
     final i = _insertionIndex();
@@ -156,6 +161,46 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     } else {
       value = value.replaced(i, '$paddingBefore$newText\n');
     }
+  }
+
+  /// Tells the controller that a quote-and-reply has started.
+  ///
+  /// Returns an int "tag" that should be passed to registerQuoteAndReplyEnd on
+  /// success or failure
+  int registerQuoteAndReplyStart(PerAccountStore store, {required Message message}) {
+    final tag = _nextQuoteAndReplyTag;
+    _nextQuoteAndReplyTag += 1;
+    final placeholder = quoteAndReplyPlaceholder(store, message: message);
+    _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
+    notifyListeners(); // _quoteAndReplies change could affect validationErrors
+    insertPadded(placeholder);
+    return tag;
+  }
+
+  /// Tells the controller that a quote-and-reply has ended, with success or error.
+  ///
+  /// To indicate success, pass [rawContent].
+  /// If that is null, failure is assumed.
+  void registerQuoteAndReplyEnd(PerAccountStore store, int tag, {
+    required Message message,
+    String? rawContent,
+  }) {
+    final val = _quoteAndReplies[tag];
+    assert(val != null, 'registerQuoteAndReplyEnd called twice for same tag');
+    final int startIndex = text.indexOf(val!.placeholder);
+    final replacementText = rawContent == null
+      ? ''
+      : quoteAndReply(store, message: message, rawContent: rawContent);
+    if (startIndex >= 0) {
+      value = value.replaced(
+        TextRange(start: startIndex, end: startIndex + val.placeholder.length),
+        replacementText,
+      );
+    } else if (replacementText != '') { // insertPadded requires non-empty string
+      insertPadded(replacementText);
+    }
+    _quoteAndReplies.remove(tag);
+    notifyListeners(); // _quoteAndReplies change could affect validationErrors
   }
 
   /// Tells the controller that a file upload has started.
@@ -208,6 +253,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       // be conservative and may cut the user off shorter than necessary.
       if (textNormalized.length > kMaxMessageLengthCodePoints)
         ContentValidationError.tooLong,
+
+      if (_quoteAndReplies.isNotEmpty)
+        ContentValidationError.quoteAndReplyInProgress,
 
       if (_uploads.isNotEmpty)
         ContentValidationError.uploadInProgress,
