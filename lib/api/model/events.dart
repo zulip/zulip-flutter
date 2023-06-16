@@ -14,20 +14,17 @@ abstract class Event {
   Event({required this.id});
 
   factory Event.fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    switch (type) {
+    switch (json['type'] as String) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
       case 'realm_user':
-        final op = json['op'] as String;
-        switch (op) {
+        switch (json['op'] as String) {
           case 'add': return RealmUserAddEvent.fromJson(json);
           case 'remove': return RealmUserRemoveEvent.fromJson(json);
           case 'update': return RealmUserUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
       case 'stream':
-        final op = json['op'] as String;
-        switch (op) {
+        switch (json['op'] as String) {
           case 'create': return StreamCreateEvent.fromJson(json);
           case 'delete': return StreamDeleteEvent.fromJson(json);
           // TODO(#182): case 'update': …
