@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'api/notifications.dart';
 import 'log.dart';
 import 'model/binding.dart';
 
@@ -69,6 +70,10 @@ class NotificationService {
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) {
     assert(debugLog("notif message: ${message.data}"));
-    // TODO(#122): parse data; show notification UI
+    final data = FcmMessage.fromJson(message.data);
+    if (data is MessageFcmMessage) {
+      assert(debugLog('notif message content: ${data.content}'));
+      // TODO(#122): show notification UI
+    }
   }
 }
