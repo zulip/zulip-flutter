@@ -15,12 +15,12 @@ Widget _dialogActionText(String text) {
 }
 
 // TODO(i18n): title, message, and action-button text
-void showErrorDialog({
+Future<void> showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
 }) {
-  showDialog(
+  return showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
