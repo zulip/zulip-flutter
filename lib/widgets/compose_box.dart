@@ -129,6 +129,35 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       : TextRange.collapsed(text.length);
   }
 
+  /// Inserts [newText] in [text], setting off with an empty line before and after.
+  ///
+  /// Assumes [newText] is not empty and consists entirely of complete lines
+  /// (each line ends with a newline).
+  ///
+  /// Inserts at [_insertionIndex]. If that's zero, no empty line is added before.
+  ///
+  /// If there is already an empty line before or after, does not add another.
+  void insertPadded(String newText) { // ignore: unused_element
+    assert(newText.isNotEmpty);
+    assert(newText.endsWith('\n'));
+    final i = _insertionIndex();
+    final textBefore = text.substring(0, i.start);
+    final String paddingBefore;
+    if (textBefore.isEmpty || textBefore == '\n' || textBefore.endsWith('\n\n')) {
+      paddingBefore = ''; // At start of input, or just after an empty line.
+    } else if (textBefore.endsWith('\n')) {
+      paddingBefore = '\n'; // After a complete but non-empty line.
+    } else {
+      paddingBefore = '\n\n'; // After an incomplete line.
+    }
+    if (text.substring(i.start).startsWith('\n')) {
+      final partial = value.replaced(i, paddingBefore + newText);
+      value = partial.copyWith(selection: TextSelection.collapsed(offset: partial.selection.start + 1));
+    } else {
+      value = value.replaced(i, '$paddingBefore$newText\n');
+    }
+  }
+
   /// Tells the controller that a file upload has started.
   ///
   /// Returns an int "tag" that should be passed to registerUploadEnd on the
