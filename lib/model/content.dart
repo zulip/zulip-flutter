@@ -20,6 +20,7 @@ import 'package:html/parser.dart';
 /// When modifying subclasses:
 ///  * Always check the following places to see if they need a matching update:
 ///    * [==] and [hashCode], if overridden.
+///    * `equalsNode` in test/model/content_checks.dart .
 @immutable
 sealed class ContentNode {
   const ContentNode({this.debugHtmlNode});
