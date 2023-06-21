@@ -493,6 +493,7 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
     result = await FilePicker.platform
       .pickFiles(allowMultiple: true, withReadStream: true, type: type);
   } catch (e) {
+    if (!context.mounted) return [];
     if (e is PlatformException && e.code == 'read_external_storage_denied') {
       // Observed on Android. If Android's error message tells us whether the
       // user has checked "Don't ask again", it seems the library doesn't pass
@@ -572,6 +573,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       // videos, but we don't want too many buttons.
       result = await picker.pickImage(source: ImageSource.camera, requestFullMetadata: false);
     } catch (e) {
+      if (!context.mounted) return [];
       if (e is PlatformException && e.code == 'camera_access_denied') {
         // iOS has a quirk where it will only request the native
         // permission-request alert once, the first time the app wants to
