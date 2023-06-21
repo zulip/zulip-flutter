@@ -2,14 +2,24 @@ import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
-// TODO: Implement ==/hashCode for all these classes where O(1), for testing/debugging
-//   (Skip them for classes containing lists.)
 // TODO: Implement toString for all these classes, for testing/debugging; or
 //   perhaps Diagnosticable instead?
 
 /// A node in a parse tree for Zulip message-style content.
 ///
 /// See [ZulipContent].
+///
+/// When implementing subclasses:
+///  * Override [==] and [hashCode] when they are cheap, i.e. when there is
+///    an O(1) quantity of data under the node.  These are for testing
+///    and debugging.
+///  * Don't override [==] or [hashCode] when the data includes a list.
+///    This avoids accidentally doing a lot of work in an operation that
+///    looks like it should be cheap.
+///
+/// When modifying subclasses:
+///  * Always check the following places to see if they need a matching update:
+///    * [==] and [hashCode], if overridden.
 @immutable
 sealed class ContentNode {
   const ContentNode({this.debugHtmlNode});
@@ -69,6 +79,8 @@ class UnimplementedBlockContentNode extends BlockContentNode
 
   @override
   final dom.Node htmlNode;
+
+  // No ==/hashCode, because htmlNode is a whole subtree.
 }
 
 // A `br` element.
@@ -100,9 +112,6 @@ class ParagraphNode extends BlockContentNode {
   final bool wasImplicit;
 
   final List<InlineContentNode> nodes;
-
-  // No == or hashCode overrides; don't want to walk through [nodes] in
-  // an operation that looks cheap.
 
   @override
   String toString() => '${objectRuntimeType(this, 'ParagraphNode')}(wasImplicit: $wasImplicit, $nodes)';
@@ -137,6 +146,14 @@ class CodeBlockNode extends BlockContentNode {
   const CodeBlockNode({super.debugHtmlNode, required this.text});
 
   final String text;
+
+  @override
+  bool operator ==(Object other) {
+    return other is CodeBlockNode && other.text == text;
+  }
+
+  @override
+  int get hashCode => Object.hash('CodeBlockNode', text);
 }
 
 class ImageNode extends BlockContentNode {
@@ -147,6 +164,14 @@ class ImageNode extends BlockContentNode {
   /// This may be a relative URL string.  It also may not work without adding
   /// authentication credentials to the request.
   final String srcUrl;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImageNode && other.srcUrl == srcUrl;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImageNode', srcUrl);
 }
 
 /// A content node that expects an inline layout context from its parent.
@@ -200,6 +225,12 @@ class TextNode extends InlineContentNode {
 
 class LineBreakInlineNode extends InlineContentNode {
   const LineBreakInlineNode({super.debugHtmlNode});
+
+  @override
+  bool operator ==(Object other) => other is LineBreakInlineNode;
+
+  @override
+  int get hashCode => 'LineBreakInlineNode'.hashCode;
 }
 
 /// An inline content node which contains other inline content nodes.
@@ -215,6 +246,8 @@ abstract class InlineContainerNode extends InlineContentNode {
   const InlineContainerNode({super.debugHtmlNode, required this.nodes});
 
   final List<InlineContentNode> nodes;
+
+  // No ==/hashCode, because contains nodes.
 }
 
 class StrongNode extends InlineContainerNode {
@@ -261,6 +294,14 @@ class UnicodeEmojiNode extends EmojiNode {
   const UnicodeEmojiNode({super.debugHtmlNode, required this.text});
 
   final String text;
+
+  @override
+  bool operator ==(Object other) {
+    return other is UnicodeEmojiNode && other.text == text;
+  }
+
+  @override
+  int get hashCode => Object.hash('UnicodeEmojiNode', text);
 }
 
 class ImageEmojiNode extends EmojiNode {
@@ -268,6 +309,14 @@ class ImageEmojiNode extends EmojiNode {
 
   final String src;
   final String alt;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImageEmojiNode && other.src == src && other.alt == alt;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImageEmojiNode', src, alt);
 }
 
 ////////////////////////////////////////////////////////////////
