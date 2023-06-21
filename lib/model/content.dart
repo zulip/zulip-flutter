@@ -454,10 +454,26 @@ class ImageEmojiNode extends EmojiNode {
 
 ////////////////////////////////////////////////////////////////
 
+/// What sort of nodes a [_ZulipContentParser] is currently expecting to find.
+enum _ParserContext {
+  /// The parser is currently looking for block nodes.
+  block,
+
+  /// The parser is currently looking for inline nodes.
+  inline,
+}
+
 class _ZulipContentParser {
+  /// The current state of what sort of nodes the parser is looking for.
+  ///
+  /// This exists for the sake of debug-mode checks,
+  /// and should be read or updated only inside an assertion.
+  _ParserContext _debugParserContext = _ParserContext.block;
+
   static final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)?$");
 
   InlineContentNode parseInlineContent(dom.Node node) {
+    assert(_debugParserContext == _ParserContext.inline);
     final debugHtmlNode = kDebugMode ? node : null;
     InlineContentNode unimplemented() => UnimplementedInlineContentNode(htmlNode: node);
 
@@ -526,10 +542,26 @@ class _ZulipContentParser {
   }
 
   List<InlineContentNode> parseInlineContentList(List<dom.Node> nodes) {
+    assert(_debugParserContext == _ParserContext.inline);
     return nodes.map(parseInlineContent).toList(growable: false);
   }
 
+  List<InlineContentNode> parseBlockInline(List<dom.Node> nodes) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(() {
+      _debugParserContext = _ParserContext.inline;
+      return true;
+    }());
+    final resultNodes = parseInlineContentList(nodes);
+    assert(() {
+      _debugParserContext = _ParserContext.block;
+      return true;
+    }());
+    return resultNodes;
+  }
+
   BlockContentNode parseListNode(dom.Element element) {
+    assert(_debugParserContext == _ParserContext.block);
     ListStyle? listStyle;
     switch (element.localName) {
       case 'ol': listStyle = ListStyle.ordered; break;
@@ -552,6 +584,7 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseCodeBlock(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
     final mainElement = () {
       assert(divElement.localName == 'div'
           && divElement.classes.length == 1
@@ -605,6 +638,7 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseImageNode(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
     final imgElement = () {
       assert(divElement.localName == 'div'
           && divElement.classes.length == 1
@@ -638,6 +672,7 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseBlockContent(dom.Node node) {
+    assert(_debugParserContext == _ParserContext.block);
     final debugHtmlNode = kDebugMode ? node : null;
     if (node is! dom.Element) {
       return UnimplementedBlockContentNode(htmlNode: node);
@@ -653,7 +688,7 @@ class _ZulipContentParser {
 
     if (localName == 'p' && classes.isEmpty) {
       return ParagraphNode(debugHtmlNode: debugHtmlNode,
-        nodes: parseInlineContentList(element.nodes));
+        nodes: parseBlockInline(element.nodes));
     }
 
     HeadingLevel? headingLevel;
@@ -669,7 +704,7 @@ class _ZulipContentParser {
       // TODO(#192) handle h1, h2, h3, h4, h5
       return HeadingNode(debugHtmlNode: debugHtmlNode,
         level: headingLevel!,
-        nodes: parseInlineContentList(element.nodes));
+        nodes: parseBlockInline(element.nodes));
     }
 
     if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
@@ -720,12 +755,13 @@ class _ZulipContentParser {
   ///
   /// See [ParagraphNode].
   List<BlockContentNode> parseImplicitParagraphBlockContentList(dom.NodeList nodes) {
+    assert(_debugParserContext == _ParserContext.block);
     final List<BlockContentNode> result = [];
     final List<dom.Node> currentParagraph = [];
     void consumeParagraph() {
       result.add(ParagraphNode(
         wasImplicit: true,
-        nodes: parseInlineContentList(currentParagraph)));
+        nodes: parseBlockInline(currentParagraph)));
       currentParagraph.clear();
     }
 
@@ -745,6 +781,7 @@ class _ZulipContentParser {
   }
 
   List<BlockContentNode> parseBlockContentList(dom.NodeList nodes) {
+    assert(_debugParserContext == _ParserContext.block);
     final acceptedNodes = nodes.where((node) {
       // We get a bunch of newline Text nodes between paragraphs.
       // A browser seems to ignore these; let's do the same.
