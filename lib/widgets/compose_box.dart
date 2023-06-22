@@ -157,9 +157,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
     value = value.replaced(
       replacementRange,
-      url == null
-        ? '[Failed to upload file: $filename]()' // TODO(i18n)
-        : '[$filename](${url.toString()})');
+      url == null ? '' : '[$filename](${url.toString()})');
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
