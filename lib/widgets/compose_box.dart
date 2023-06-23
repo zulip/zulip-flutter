@@ -316,6 +316,7 @@ class _ContentInputState extends State<_ContentInput> {
   @override
   void dispose() {
     widget.controller.removeListener(_changed);
+    _mentionAutocompleteView?.dispose();
     super.dispose();
   }
 
