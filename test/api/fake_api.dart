@@ -73,10 +73,10 @@ class FakeHttpClient extends http.BaseClient {
     lastRequest = request;
     switch (response) {
       case _PreparedException(:var exception):
-        return Future.error(exception);
+        return Future(() => throw exception);
       case _PreparedSuccess(:var bytes, :var httpStatus):
         final byteStream = http.ByteStream.fromBytes(bytes);
-        return Future.value(http.StreamedResponse(
+        return Future(() => http.StreamedResponse(
           byteStream, httpStatus, request: request));
     }
   }
