@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:html/parser.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/content.dart';
 
@@ -9,6 +10,16 @@ void testParse(String name, String html, List<BlockContentNode> nodes) {
     check(parseContent(html))
       .equalsNode(ZulipContent(nodes: nodes));
   });
+}
+
+UnimplementedBlockContentNode blockUnimplemented(String html) {
+  var fragment = HtmlParser(html, parseMeta: false).parseFragment();
+  return UnimplementedBlockContentNode(htmlNode: fragment.nodes.single);
+}
+
+UnimplementedInlineContentNode inlineUnimplemented(String html) {
+  var fragment = HtmlParser(html, parseMeta: false).parseFragment();
+  return UnimplementedInlineContentNode(htmlNode: fragment.nodes.single);
 }
 
 void main() {
@@ -146,6 +157,42 @@ void main() {
       ParagraphNode(nodes: [TextNode('hello')]),
       ParagraphNode(nodes: [TextNode('world')]),
     ]);
+
+  group('parse headings', () {
+    testParse('plain h6',
+      // "###### six"
+      '<h6>six</h6>', const [
+        HeadingNode(level: HeadingLevel.h6, nodes: [TextNode('six')])]);
+
+    testParse('containing inline markup',
+      // "###### one [***`two`***](https://example/)"
+      '<h6>one <a href="https://example/"><strong><em><code>two'
+          '</code></em></strong></a></h6>', const [
+        HeadingNode(level: HeadingLevel.h6, nodes: [
+          TextNode('one '),
+          LinkNode(nodes: [StrongNode(nodes: [
+            EmphasisNode(nodes: [InlineCodeNode(nodes: [
+              TextNode('two')])])])]),
+        ])]);
+
+    testParse('amidst paragraphs',
+      // "intro\n###### section\ntext"
+      "<p>intro</p>\n<h6>section</h6>\n<p>text</p>", const [
+        ParagraphNode(nodes: [TextNode('intro')]),
+        HeadingNode(level: HeadingLevel.h6, nodes: [TextNode('section')]),
+        ParagraphNode(nodes: [TextNode('text')]),
+      ]);
+
+    testParse('h1, h2, h3, h4, h5 unimplemented',
+      // "# one\n## two\n### three\n#### four\n##### five"
+      '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>', [
+        blockUnimplemented('<h1>one</h1>'),
+        blockUnimplemented('<h2>two</h2>'),
+        blockUnimplemented('<h3>three</h3>'),
+        blockUnimplemented('<h4>four</h4>'),
+        blockUnimplemented('<h5>five</h5>'),
+      ]);
+  });
 
   // TODO write more tests for this code
 }
