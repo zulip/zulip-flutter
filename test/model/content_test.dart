@@ -4,21 +4,24 @@ import 'package:zulip/model/content.dart';
 
 import 'content_checks.dart';
 
-void main() {
-  test('parse a plain-text paragraph', () {
-    check(parseContent('<p>hello world</p>'))
-      .equalsNode(const ZulipContent(nodes: [
-        ParagraphNode(nodes: [TextNode('hello world')]),
-      ]));
+void testParse(String name, String html, List<BlockContentNode> nodes) {
+  test(name, () {
+    check(parseContent(html))
+      .equalsNode(ZulipContent(nodes: nodes));
   });
+}
 
-  test('parse two plain-text paragraphs', () {
-    check(parseContent('<p>hello</p><p>world</p>'))
-      .equalsNode(const ZulipContent(nodes: [
-        ParagraphNode(nodes: [TextNode('hello')]),
-        ParagraphNode(nodes: [TextNode('world')]),
-      ]));
-  });
+void main() {
+  testParse('parse a plain-text paragraph',
+    '<p>hello world</p>', const [
+      ParagraphNode(nodes: [TextNode('hello world')]),
+    ]);
+
+  testParse('parse two plain-text paragraphs',
+    '<p>hello</p><p>world</p>', const [
+      ParagraphNode(nodes: [TextNode('hello')]),
+      ParagraphNode(nodes: [TextNode('world')]),
+    ]);
 
   // TODO write more tests for this code
 }
