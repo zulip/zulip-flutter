@@ -198,9 +198,13 @@ class UserMentionNode extends InlineContainerNode {
     // required this.isSilent,
   });
 
-  // We don't actually seem to need this information.
-  //  final UserMentionType mentionType;
-  //  final bool isSilent;
+  // We don't currently seem to need this information in code.  Instead,
+  // the inner text already shows how to communicate it to the user
+  // (e.g., silent mentions' text lacks a leading "@"),
+  // and we show that text in the same style for all types of @-mention.
+  // If we need this information in the future, go ahead and add it here.
+  //   final UserMentionType mentionType;
+  //   final bool isSilent;
 }
 
 abstract class EmojiNode extends InlineContentNode {
