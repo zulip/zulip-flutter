@@ -13,15 +13,15 @@ extension ContentNodeChecks on Subject<ContentNode> {
       isA<ParagraphNode>()
         ..wasImplicit.equals(expected.wasImplicit)
         ..nodes.equalsNodes(expected.nodes);
+    } else if (expected is HeadingNode) {
+      isA<HeadingNode>()
+        ..level.equals(expected.level)
+        ..nodes.equalsNodes(expected.nodes);
     } else if (expected is ListNode) {
       isA<ListNode>()
         ..style.equals(expected.style)
         ..items.deepEquals(expected.items.map(
           (item) => it()..isA<List<BlockContentNode>>().equalsNodes(item)));
-    } else if (expected is HeadingNode) {
-      isA<HeadingNode>()
-        ..level.equals(expected.level)
-        ..nodes.equalsNodes(expected.nodes);
     } else if (expected is QuotationNode) {
       isA<QuotationNode>()
         .nodes.equalsNodes(expected.nodes);
@@ -77,13 +77,13 @@ extension ParagraphNodeChecks on Subject<ParagraphNode> {
   Subject<bool> get wasImplicit => has((n) => n.wasImplicit, 'wasImplicit');
 }
 
+extension HeadingNodeChecks on Subject<HeadingNode> {
+  Subject<HeadingLevel> get level => has((n) => n.level, 'level');
+}
+
 extension ListNodeChecks on Subject<ListNode> {
   Subject<ListStyle> get style => has((n) => n.style, 'style');
   Subject<List<List<BlockContentNode>>> get items => has((n) => n.items, 'items');
-}
-
-extension HeadingNodeChecks on Subject<HeadingNode> {
-  Subject<HeadingLevel> get level => has((n) => n.level, 'level');
 }
 
 extension QuotationNodeChecks on Subject<QuotationNode> {

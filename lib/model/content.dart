@@ -131,15 +131,6 @@ class ParagraphNode extends BlockInlineContainerNode {
   String toString() => '${objectRuntimeType(this, 'ParagraphNode')}(wasImplicit: $wasImplicit, $nodes)';
 }
 
-enum ListStyle { ordered, unordered }
-
-class ListNode extends BlockContentNode {
-  const ListNode(this.style, this.items, {super.debugHtmlNode});
-
-  final ListStyle style;
-  final List<List<BlockContentNode>> items;
-}
-
 enum HeadingLevel { h1, h2, h3, h4, h5, h6 }
 
 class HeadingNode extends BlockInlineContainerNode {
@@ -150,6 +141,15 @@ class HeadingNode extends BlockInlineContainerNode {
   });
 
   final HeadingLevel level;
+}
+
+enum ListStyle { ordered, unordered }
+
+class ListNode extends BlockContentNode {
+  const ListNode(this.style, this.items, {super.debugHtmlNode});
+
+  final ListStyle style;
+  final List<List<BlockContentNode>> items;
 }
 
 class QuotationNode extends BlockContentNode {
@@ -540,10 +540,6 @@ BlockContentNode parseBlockContent(dom.Node node) {
     return ParagraphNode(nodes: inlineNodes(), debugHtmlNode: debugHtmlNode);
   }
 
-  if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
-    return parseListNode(element);
-  }
-
   HeadingLevel? headingLevel;
   switch (localName) {
     case 'h1': headingLevel = HeadingLevel.h1; break;
@@ -557,6 +553,10 @@ BlockContentNode parseBlockContent(dom.Node node) {
     // TODO(#192) handle h1, h2, h3, h4, h5
     return HeadingNode(
       level: headingLevel!, nodes: inlineNodes(), debugHtmlNode: debugHtmlNode);
+  }
+
+  if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
+    return parseListNode(element);
   }
 
   if (localName == 'blockquote' && classes.isEmpty) {

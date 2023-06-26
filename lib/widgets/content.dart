@@ -79,8 +79,6 @@ class BlockContentNodeWidget extends StatelessWidget {
       return const Text('');
     } else if (node is ParagraphNode) {
       return Paragraph(node: node);
-    } else if (node is ListNode) {
-      return ListNodeWidget(node: node);
     } else if (node is HeadingNode) {
       // TODO(#192) h1, h2, h3, h4, h5 -- same as h6 except font size
       assert(node.level == HeadingLevel.h6);
@@ -89,6 +87,8 @@ class BlockContentNodeWidget extends StatelessWidget {
         child: Text.rich(TextSpan(
           style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
           children: _buildInlineList(node.nodes))));
+    } else if (node is ListNode) {
+      return ListNodeWidget(node: node);
     } else if (node is QuotationNode) {
       return Padding(
         padding: const EdgeInsets.only(left: 10),
