@@ -151,6 +151,13 @@ void main() {
   // Block content.
   //
 
+  testParse('parse <br> in block context',
+    '<br><p>a</p><br>', const [ // TODO not sure how to reproduce this example
+      LineBreakNode(),
+      ParagraphNode(nodes: [TextNode('a')]),
+      LineBreakNode(),
+    ]);
+
   testParse('parse two plain-text paragraphs',
     // "hello\n\nworld"
     '<p>hello</p>\n<p>world</p>', const [
@@ -237,5 +244,50 @@ void main() {
       ]);
   });
 
-  // TODO write more tests for this code
+  testParse('parse quotations',
+    // "```quote\nwords\n```"
+    '<blockquote>\n<p>words</p>\n</blockquote>', const [
+      QuotationNode([ParagraphNode(nodes: [TextNode('words')])]),
+    ]);
+
+  testParse('parse code blocks, no language',
+    // "```\nverb\natim\n```"
+    '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>', const [
+      CodeBlockNode(text: 'verb\natim'),
+    ]);
+
+  testParse('parse code blocks, with highlighted language',
+    // "```dart\nclass A {}\n```"
+    '<div class="codehilite" data-code-language="Dart"><pre>'
+        '<span></span><code><span class="kd">class</span><span class="w"> </span>'
+        '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
+        '\n</code></pre></div>', const [
+      CodeBlockNode(text: 'class A {}'),
+    ]);
+
+  testParse('parse image',
+    // "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"
+    '<div class="message_inline_image">'
+        '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
+        '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
+        '</a></div>', const [
+      ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
+    ]);
+
+  testParse('parse nested lists, quotes, headings, code blocks',
+    // "1. > ###### two\n   > * three\n\n      four"
+    '<ol>\n<li>\n<blockquote>\n<h6>two</h6>\n<ul>\n<li>three</li>\n'
+        '</ul>\n</blockquote>\n<div class="codehilite"><pre><span></span>'
+        '<code>four\n</code></pre></div>\n\n</li>\n</ol>', const [
+      ListNode(ListStyle.ordered, [[
+        QuotationNode([
+          HeadingNode(level: HeadingLevel.h6, nodes: [TextNode('two')]),
+          ListNode(ListStyle.unordered, [[
+            ParagraphNode(wasImplicit: true, nodes: [TextNode('three')]),
+          ]]),
+        ]),
+        CodeBlockNode(text: 'four'),
+        ParagraphNode(wasImplicit: true, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
+      ]]),
+    ]);
 }
