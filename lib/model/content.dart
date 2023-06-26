@@ -2,9 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
-// TODO: Implement toString for all these classes, for testing/debugging; or
-//   perhaps Diagnosticable instead?
-
 /// A node in a parse tree for Zulip message-style content.
 ///
 /// See [ZulipContent].
@@ -16,13 +13,18 @@ import 'package:html/parser.dart';
 ///  * Don't override [==] or [hashCode] when the data includes a list.
 ///    This avoids accidentally doing a lot of work in an operation that
 ///    looks like it should be cheap.
+///  * Don't override [toString].
+///  * Override [debugDescribeChildren] and/or [debugFillProperties]
+///    to report all the data attached to the node, for debugging.
+///    See docs: https://api.flutter.dev/flutter/foundation/Diagnosticable/debugFillProperties.html
 ///
 /// When modifying subclasses:
 ///  * Always check the following places to see if they need a matching update:
 ///    * [==] and [hashCode], if overridden.
+///    * [debugFillProperties] and/or [debugDescribeChildren], if present.
 ///    * `equalsNode` in test/model/content_checks.dart .
 @immutable
-sealed class ContentNode {
+sealed class ContentNode extends DiagnosticableTree {
   const ContentNode({this.debugHtmlNode});
 
   final dom.Node? debugHtmlNode;
@@ -34,6 +36,22 @@ sealed class ContentNode {
     if (node is dom.Text) return "(text «${node.text}»)";
     return "(node of type ${node.nodeType})";
   }
+
+  @override
+  String toStringShort() => objectRuntimeType(this, 'ContentNode');
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    // TODO(checks): Better integrate package:checks with Diagnosticable, for
+    //   better interaction in output indentation.
+    //   (See also comment at equalsNode, with related improvements.)
+    String? result;
+    assert(() {
+      result = toStringDeep(minLevel: minLevel);
+      return true;
+    }());
+    return result ?? toStringShort();
+  }
 }
 
 /// A node corresponding to HTML that this client doesn't know how to parse.
@@ -42,6 +60,12 @@ mixin UnimplementedNode on ContentNode {
 
   @override
   dom.Node get debugHtmlNode => htmlNode;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('html', debugHtmlText));
+  }
 }
 
 /// A complete parse tree for a Zulip message's content,
@@ -56,7 +80,9 @@ class ZulipContent extends ContentNode {
   final List<BlockContentNode> nodes;
 
   @override
-  String toString() => '${objectRuntimeType(this, 'ZulipContent')}($nodes)';
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
 }
 
 /// A content node that expects a block layout context from its parent.
@@ -97,6 +123,11 @@ class BlockInlineContainerNode extends BlockContentNode {
   });
 
   final List<InlineContentNode> nodes;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
 }
 
 // A `br` element.
@@ -128,7 +159,10 @@ class ParagraphNode extends BlockInlineContainerNode {
   final bool wasImplicit;
 
   @override
-  String toString() => '${objectRuntimeType(this, 'ParagraphNode')}(wasImplicit: $wasImplicit, $nodes)';
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(FlagProperty('wasImplicit', value: wasImplicit, ifTrue: 'was implicit'));
+  }
 }
 
 enum HeadingLevel { h1, h2, h3, h4, h5, h6 }
@@ -141,6 +175,12 @@ class HeadingNode extends BlockInlineContainerNode {
   });
 
   final HeadingLevel level;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(EnumProperty('level', level));
+  }
 }
 
 enum ListStyle { ordered, unordered }
@@ -150,12 +190,45 @@ class ListNode extends BlockContentNode {
 
   final ListStyle style;
   final List<List<BlockContentNode>> items;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(FlagProperty('ordered', value: style == ListStyle.ordered,
+      ifTrue: 'ordered', ifFalse: 'unordered'));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return items
+      .map((nodes) => _ListItemDiagnosticableNode(nodes).toDiagnosticsNode())
+      .toList();
+  }
+}
+
+class _ListItemDiagnosticableNode extends DiagnosticableTree {
+  _ListItemDiagnosticableNode(this.nodes);
+
+  final List<BlockContentNode> nodes;
+
+  @override
+  String toStringShort() => 'list item';
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
 }
 
 class QuotationNode extends BlockContentNode {
   const QuotationNode(this.nodes, {super.debugHtmlNode});
 
   final List<BlockContentNode> nodes;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
 }
 
 class CodeBlockNode extends BlockContentNode {
@@ -171,6 +244,12 @@ class CodeBlockNode extends BlockContentNode {
 
   @override
   int get hashCode => Object.hash('CodeBlockNode', text);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('text', text));
+  }
 }
 
 class ImageNode extends BlockContentNode {
@@ -189,6 +268,12 @@ class ImageNode extends BlockContentNode {
 
   @override
   int get hashCode => Object.hash('ImageNode', srcUrl);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('srcUrl', srcUrl));
+  }
 }
 
 /// A content node that expects an inline layout context from its parent.
@@ -235,9 +320,11 @@ class TextNode extends InlineContentNode {
   @override
   int get hashCode => Object.hash('TextNode', text);
 
-  // TODO encode unambiguously regardless of text contents
   @override
-  String toString() => '${objectRuntimeType(this, 'TextNode')}(text: $text)';
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('text', text, showName: false));
+  }
 }
 
 class LineBreakInlineNode extends InlineContentNode {
@@ -265,6 +352,11 @@ abstract class InlineContainerNode extends InlineContentNode {
   const InlineContainerNode({super.debugHtmlNode, required this.nodes});
 
   final List<InlineContentNode> nodes;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
 
   // No ==/hashCode, because contains nodes.
 }
@@ -321,6 +413,12 @@ class UnicodeEmojiNode extends EmojiNode {
 
   @override
   int get hashCode => Object.hash('UnicodeEmojiNode', text);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('text', text));
+  }
 }
 
 class ImageEmojiNode extends EmojiNode {
@@ -336,6 +434,13 @@ class ImageEmojiNode extends EmojiNode {
 
   @override
   int get hashCode => Object.hash('ImageEmojiNode', src, alt);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('alt', alt));
+    properties.add(StringProperty('src', src));
+  }
 }
 
 ////////////////////////////////////////////////////////////////

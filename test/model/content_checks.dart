@@ -3,6 +3,12 @@ import 'package:zulip/model/content.dart';
 
 extension ContentNodeChecks on Subject<ContentNode> {
   void equalsNode(ContentNode expected) {
+    // TODO: Make equalsNode output clearer on failure, applying Diagnosticable.
+    //   In particular (a) show the top-level expected node in one piece
+    //   (as well as the actual); (a') ideally, suppress on the "expected" side
+    //   the various predicates below, which should be redundant with just
+    //   the expected node; (b) show expected for the specific `equals` leaf.
+    //   See also comment on [ContentNode.toString].
     if (expected is ZulipContent) {
       isA<ZulipContent>()
         .nodes.equalsNodes(expected.nodes);
