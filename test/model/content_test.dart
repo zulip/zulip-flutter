@@ -194,5 +194,48 @@ void main() {
       ]);
   });
 
+  group('parse lists', () {
+    testParse('<ol>',
+      // "1. first\n2. then"
+      '<ol>\n<li>first</li>\n<li>then</li>\n</ol>', const [
+        ListNode(ListStyle.ordered, [
+          [ParagraphNode(wasImplicit: true, nodes: [TextNode('first')])],
+          [ParagraphNode(wasImplicit: true, nodes: [TextNode('then')])],
+        ]),
+      ]);
+
+    testParse('<ul>',
+      // "* something\n* another"
+      '<ul>\n<li>something</li>\n<li>another</li>\n</ul>', const [
+        ListNode(ListStyle.unordered, [
+          [ParagraphNode(wasImplicit: true, nodes: [TextNode('something')])],
+          [ParagraphNode(wasImplicit: true, nodes: [TextNode('another')])],
+        ]),
+      ]);
+
+    testParse('implicit paragraph with internal <br>',
+      // "* a\n  b"
+      '<ul>\n<li>a<br>\n  b</li>\n</ul>', const [
+        ListNode(ListStyle.unordered, [
+          [ParagraphNode(wasImplicit: true, nodes: [
+            TextNode('a'),
+            LineBreakInlineNode(),
+            TextNode('\n  b'), // TODO: this renders misaligned
+          ])],
+        ])
+      ]);
+
+    testParse('explicit paragraphs',
+      // "* a\n\n  b"
+      '<ul>\n<li>\n<p>a</p>\n<p>b</p>\n</li>\n</ul>', const [
+        ListNode(ListStyle.unordered, [
+          [
+            ParagraphNode(nodes: [TextNode('a')]),
+            ParagraphNode(nodes: [TextNode('b')]),
+          ],
+        ]),
+      ]);
+  });
+
   // TODO write more tests for this code
 }
