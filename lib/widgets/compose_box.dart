@@ -124,7 +124,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   /// gives the end of the whole text.
   ///
   /// Expressed as a collapsed `TextRange` at the index.
-  TextRange _insertionIndex() {
+  TextRange insertionIndex() {
     final TextRange selection = value.selection;
     final String text = value.text;
     return selection.isValid
@@ -139,13 +139,13 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   /// Assumes [newText] is not empty and consists entirely of complete lines
   /// (each line ends with a newline).
   ///
-  /// Inserts at [_insertionIndex]. If that's zero, no empty line is added before.
+  /// Inserts at [insertionIndex]. If that's zero, no empty line is added before.
   ///
   /// If there is already an empty line before or after, does not add another.
   void insertPadded(String newText) {
     assert(newText.isNotEmpty);
     assert(newText.endsWith('\n'));
-    final i = _insertionIndex();
+    final i = insertionIndex();
     final textBefore = text.substring(0, i.start);
     final String paddingBefore;
     if (textBefore.isEmpty || textBefore == '\n' || textBefore.endsWith('\n\n')) {
@@ -213,7 +213,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final placeholder = inlineLink('Uploading $filename...', null); // TODO(i18n)
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
-    value = value.replaced(_insertionIndex(), '$placeholder\n\n');
+    value = value.replaced(insertionIndex(), '$placeholder\n\n');
     return tag;
   }
 
@@ -228,7 +228,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final int startIndex = text.indexOf(placeholder);
     final replacementRange = startIndex >= 0
       ? TextRange(start: startIndex, end: startIndex + placeholder.length)
-      : _insertionIndex();
+      : insertionIndex();
 
     value = value.replaced(
       replacementRange,
