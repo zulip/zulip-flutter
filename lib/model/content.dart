@@ -7,6 +7,9 @@ import 'package:html/parser.dart';
 // TODO: Implement toString for all these classes, for testing/debugging; or
 //   perhaps Diagnosticable instead?
 
+/// A node in a parse tree for Zulip message-style content.
+///
+/// See [ZulipContent].
 @immutable
 sealed class ContentNode {
   const ContentNode({this.debugHtmlNode});
@@ -22,6 +25,7 @@ sealed class ContentNode {
   }
 }
 
+/// A node corresponding to HTML that this client doesn't know how to parse.
 mixin UnimplementedNode on ContentNode {
   dom.Node get htmlNode;
 
@@ -29,6 +33,12 @@ mixin UnimplementedNode on ContentNode {
   dom.Node get debugHtmlNode => htmlNode;
 }
 
+/// A complete parse tree for a Zulip message's content,
+/// or other complete piece of Zulip HTML content.
+///
+/// This is a parsed representation for an entire value of [Message.content],
+/// [Stream.renderedDescription], or other text from a Zulip server that comes
+/// in the same Zulip HTML format.
 class ZulipContent extends ContentNode {
   const ZulipContent({super.debugHtmlNode, required this.nodes});
 
@@ -38,10 +48,21 @@ class ZulipContent extends ContentNode {
   String toString() => '${objectRuntimeType(this, 'ZulipContent')}($nodes)';
 }
 
+/// A content node that expects a block layout context from its parent.
+///
+/// When rendered as Flutter widgets, these become children of a [Column]
+/// created by the parent node's widget.
+///
+/// Generally these correspond to HTML elements which in the Zulip web client
+/// are laid out as block-level boxes, in a block formatting context:
+///   https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Block_and_inline_layout_in_normal_flow
+///
+/// Almost all nodes are either a [BlockContentNode] or an [InlineContentNode].
 abstract class BlockContentNode extends ContentNode {
   const BlockContentNode({super.debugHtmlNode});
 }
 
+/// A block node corresponding to HTML that this client doesn't know how to parse.
 class UnimplementedBlockContentNode extends BlockContentNode
     with UnimplementedNode {
   const UnimplementedBlockContentNode({required this.htmlNode});
@@ -128,10 +149,22 @@ class ImageNode extends BlockContentNode {
   final String srcUrl;
 }
 
+/// A content node that expects an inline layout context from its parent.
+///
+/// When rendered into a Flutter widget tree, an inline content node
+/// becomes an [InlineSpan], not a widget.  It therefore participates
+/// in paragraph layout, as a portion of the paragraph's text.
+///
+/// Generally these correspond to HTML elements which in the Zulip web client
+/// are laid out as inline boxes, in an inline formatting context:
+///   https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Block_and_inline_layout_in_normal_flow#elements_participating_in_an_inline_formatting_context
+///
+/// Almost all nodes are either an [InlineContentNode] or a [BlockContentNode].
 abstract class InlineContentNode extends ContentNode {
   const InlineContentNode({super.debugHtmlNode});
 }
 
+/// An inline node corresponding to HTML that this client doesn't know how to parse.
 class UnimplementedInlineContentNode extends InlineContentNode
     with UnimplementedNode {
   const UnimplementedInlineContentNode({required this.htmlNode});
@@ -140,6 +173,12 @@ class UnimplementedInlineContentNode extends InlineContentNode
   final dom.Node htmlNode;
 }
 
+/// A node consisting of pure text, with no markup of its own.
+///
+/// This node type is how plain text is represented.  This is also the type
+/// of the leaf nodes that ultimately provide the actual text in the
+/// parse tree for any piece of content that contains text in a link, italics,
+/// bold, a list, a blockquote, or many other constructs.
 class TextNode extends InlineContentNode {
   const TextNode(this.text, {super.debugHtmlNode});
 
@@ -163,6 +202,15 @@ class LineBreakInlineNode extends InlineContentNode {
   const LineBreakInlineNode({super.debugHtmlNode});
 }
 
+/// An inline content node which contains other inline content nodes.
+///
+/// A node of this type expects an inline layout context from its parent,
+/// and provides an inline layout context for its children.
+///
+/// Typically this is realized by building a [TextSpan] whose children are
+/// the [InlineSpan]s built from this node's children.  In that case,
+/// the children participate in the same paragraph layout as this node
+/// itself does.
 abstract class InlineContainerNode extends InlineContentNode {
   const InlineContainerNode({super.debugHtmlNode, required this.nodes});
 
