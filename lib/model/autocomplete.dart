@@ -331,7 +331,7 @@ class AutocompleteDataCache {
   }
 }
 
-abstract class MentionAutocompleteResult {}
+sealed class MentionAutocompleteResult {}
 
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   UserMentionAutocompleteResult({required this.userId});
