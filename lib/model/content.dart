@@ -92,7 +92,7 @@ class ZulipContent extends ContentNode {
 ///
 /// Generally these correspond to HTML elements which in the Zulip web client
 /// are laid out as block-level boxes, in a block formatting context:
-///   https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Block_and_inline_layout_in_normal_flow
+///   <https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Block_and_inline_layout_in_normal_flow>
 ///
 /// Almost all nodes are either a [BlockContentNode] or an [InlineContentNode].
 abstract class BlockContentNode extends ContentNode {
@@ -143,14 +143,14 @@ class LineBreakNode extends BlockContentNode {
   int get hashCode => 'LineBreakNode'.hashCode;
 }
 
-// A `p` element, or a place where the DOM tree logically wanted one.
-//
-// We synthesize these in the absence of an actual `p` element in cases where
-// there's inline content (like [dom.Text] nodes, links, or spans) in a context
-// where block content can also appear (like inside a `li`.)  These are marked
-// with [wasImplicit].
-//
-// See also [parseImplicitParagraphBlockContentList].
+/// A `p` element, or a place where the DOM tree logically wanted one.
+///
+/// We synthesize these in the absence of an actual `p` element in cases where
+/// there's inline content (like [dom.Text] nodes, links, or spans) in a context
+/// where block content can also appear (like inside a `li`.)  These are marked
+/// with [wasImplicit].
+///
+/// See also [parseImplicitParagraphBlockContentList].
 class ParagraphNode extends BlockInlineContainerNode {
   const ParagraphNode(
     {super.debugHtmlNode, required super.nodes, this.wasImplicit = false});
