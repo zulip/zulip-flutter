@@ -26,19 +26,19 @@ class ComposeAutocomplete extends StatefulWidget {
 }
 
 class _ComposeAutocompleteState extends State<ComposeAutocomplete> {
-  MentionAutocompleteView? _mentionAutocompleteView; // TODO different autocomplete view types
+  MentionAutocompleteView? _viewModel; // TODO different autocomplete view types
 
   void _composeContentChanged() {
     final newAutocompleteIntent = widget.controller.autocompleteIntent();
     if (newAutocompleteIntent != null) {
       final store = PerAccountStoreWidget.of(context);
-      _mentionAutocompleteView ??= MentionAutocompleteView.init(
+      _viewModel ??= MentionAutocompleteView.init(
         store: store, narrow: widget.narrow);
-      _mentionAutocompleteView!.query = newAutocompleteIntent.query;
+      _viewModel!.query = newAutocompleteIntent.query;
     } else {
-      if (_mentionAutocompleteView != null) {
-        _mentionAutocompleteView!.dispose();
-        _mentionAutocompleteView = null;
+      if (_viewModel != null) {
+        _viewModel!.dispose();
+        _viewModel = null;
       }
     }
   }
@@ -61,7 +61,7 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> {
   @override
   void dispose() {
     widget.controller.removeListener(_composeContentChanged);
-    _mentionAutocompleteView?.dispose();
+    _viewModel?.dispose();
     super.dispose();
   }
 
