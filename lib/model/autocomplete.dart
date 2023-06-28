@@ -267,7 +267,7 @@ class MentionAutocompleteView extends ChangeNotifier {
         }
       }
     }
-    return results;
+    return results; // TODO sort for most relevant first
   }
 }
 
