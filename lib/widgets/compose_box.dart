@@ -6,10 +6,10 @@ import 'package:image_picker/image_picker.dart';
 
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
-import '../model/autocomplete.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
+import 'autocomplete.dart';
 import 'dialog.dart';
 import 'store.dart';
 
@@ -281,45 +281,6 @@ class _ContentInput extends StatefulWidget {
 }
 
 class _ContentInputState extends State<_ContentInput> {
-  MentionAutocompleteView? _mentionAutocompleteView; // TODO different autocomplete view types
-
-  _changed() {
-    final newAutocompleteIntent = widget.controller.autocompleteIntent();
-    if (newAutocompleteIntent != null) {
-      final store = PerAccountStoreWidget.of(context);
-      _mentionAutocompleteView ??= MentionAutocompleteView.init(
-        store: store, narrow: widget.narrow);
-      _mentionAutocompleteView!.query = newAutocompleteIntent.query;
-    } else {
-      if (_mentionAutocompleteView != null) {
-        _mentionAutocompleteView!.dispose();
-        _mentionAutocompleteView = null;
-      }
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_changed);
-  }
-
-  @override
-  void didUpdateWidget(covariant _ContentInput oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      oldWidget.controller.removeListener(_changed);
-      widget.controller.addListener(_changed);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_changed);
-    _mentionAutocompleteView?.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -333,13 +294,20 @@ class _ContentInputState extends State<_ContentInput> {
           // TODO constrain this adaptively (i.e. not hard-coded 200)
           maxHeight: 200,
         ),
-        child: TextField(
+        child: ComposeAutocomplete(
+          narrow: widget.narrow,
           controller: widget.controller,
           focusNode: widget.focusNode,
-          style: TextStyle(color: colorScheme.onSurface),
-          decoration: InputDecoration.collapsed(hintText: widget.hintText),
-          maxLines: null,
-        )));
+          fieldViewBuilder: (context) {
+            return TextField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              style: TextStyle(color: colorScheme.onSurface),
+              decoration: InputDecoration.collapsed(hintText: widget.hintText),
+              maxLines: null,
+            );
+          }),
+        ));
   }
 }
 
