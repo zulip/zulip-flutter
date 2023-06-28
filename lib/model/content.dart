@@ -17,12 +17,16 @@ import 'package:html/parser.dart';
 ///  * Override [debugDescribeChildren] and/or [debugFillProperties]
 ///    to report all the data attached to the node, for debugging.
 ///    See docs: https://api.flutter.dev/flutter/foundation/Diagnosticable/debugFillProperties.html
+///    We also rely on these for comparing actual to expected in tests.
 ///
-/// When modifying subclasses:
-///  * Always check the following places to see if they need a matching update:
-///    * [==] and [hashCode], if overridden.
-///    * [debugFillProperties] and/or [debugDescribeChildren], if present.
-///    * `equalsNode` in test/model/content_checks.dart .
+/// When modifying subclasses, always check the following places
+/// to see if they need a matching update:
+///  * [==] and [hashCode], if overridden.
+///  * [debugFillProperties] and/or [debugDescribeChildren].
+///
+/// In particular, a newly-added field typically must be added in
+/// [debugFillProperties].  Otherwise tests will not examine the new field,
+/// and will not spot discrepancies there.
 @immutable
 sealed class ContentNode extends DiagnosticableTree {
   const ContentNode({this.debugHtmlNode});
@@ -42,9 +46,6 @@ sealed class ContentNode extends DiagnosticableTree {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    // TODO(checks): Better integrate package:checks with Diagnosticable, for
-    //   better interaction in output indentation.
-    //   (See also comment at equalsNode, with related improvements.)
     String? result;
     assert(() {
       result = toStringDeep(minLevel: minLevel);
