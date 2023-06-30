@@ -21,6 +21,10 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
           .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
           .toList(),
+      recentPrivateConversations: (json['recent_private_conversations']
+              as List<dynamic>)
+          .map((e) => RecentDmConversation.fromJson(e as Map<String, dynamic>))
+          .toList(),
       subscriptions: (json['subscriptions'] as List<dynamic>)
           .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -52,10 +56,26 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_merge_base': instance.zulipMergeBase,
       'alert_words': instance.alertWords,
       'custom_profile_fields': instance.customProfileFields,
+      'recent_private_conversations': instance.recentPrivateConversations,
       'subscriptions': instance.subscriptions,
       'streams': instance.streams,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'realm_users': instance.realmUsers,
       'realm_non_active_users': instance.realmNonActiveUsers,
       'cross_realm_bots': instance.crossRealmBots,
+    };
+
+RecentDmConversation _$RecentDmConversationFromJson(
+        Map<String, dynamic> json) =>
+    RecentDmConversation(
+      maxMessageId: json['max_message_id'] as int,
+      userIds:
+          (json['user_ids'] as List<dynamic>).map((e) => e as int).toList(),
+    );
+
+Map<String, dynamic> _$RecentDmConversationToJson(
+        RecentDmConversation instance) =>
+    <String, dynamic>{
+      'max_message_id': instance.maxMessageId,
+      'user_ids': instance.userIds,
     };

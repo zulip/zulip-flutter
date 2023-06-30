@@ -24,6 +24,8 @@ class InitialSnapshot {
 
   // TODO etc., etc.
 
+  final List<RecentDmConversation> recentPrivateConversations;
+
   final List<Subscription> subscriptions;
 
   final List<ZulipStream> streams;
@@ -66,6 +68,7 @@ class InitialSnapshot {
     this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.recentPrivateConversations,
     required this.subscriptions,
     required this.streams,
     required this.maxFileUploadSizeMib,
@@ -78,4 +81,24 @@ class InitialSnapshot {
     _$InitialSnapshotFromJson(json);
 
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
+}
+
+/// An item in `recent_private_conversations`.
+///
+/// For docs, search for "recent_private_conversations:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RecentDmConversation {
+  final int maxMessageId;
+  final List<int> userIds;
+
+  RecentDmConversation({
+    required this.maxMessageId,
+    required this.userIds,
+  });
+
+  factory RecentDmConversation.fromJson(Map<String, dynamic> json) =>
+    _$RecentDmConversationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RecentDmConversationToJson(this);
 }

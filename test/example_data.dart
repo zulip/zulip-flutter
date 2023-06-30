@@ -175,6 +175,7 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  List<RecentDmConversation>? recentPrivateConversations,
   List<Subscription>? subscriptions,
   List<ZulipStream>? streams,
   int? maxFileUploadSizeMib,
@@ -190,6 +191,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    recentPrivateConversations: recentPrivateConversations ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
     streams: streams ?? [], // TODO add streams to default
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
