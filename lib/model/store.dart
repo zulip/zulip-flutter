@@ -149,6 +149,7 @@ class PerAccountStore extends ChangeNotifier {
     required this.connection,
     required InitialSnapshot initialSnapshot,
   }) : zulipVersion = initialSnapshot.zulipVersion,
+       maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
        users = Map.fromEntries(
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
@@ -157,18 +158,17 @@ class PerAccountStore extends ChangeNotifier {
        streams = Map.fromEntries(initialSnapshot.streams.map(
          (stream) => MapEntry(stream.streamId, stream))),
        subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
-         (subscription) => MapEntry(subscription.streamId, subscription))),
-       maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib;
+         (subscription) => MapEntry(subscription.streamId, subscription)));
 
   final Account account;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
   // TODO(#135): Keep all this data updated by handling Zulip events from the server.
   final String zulipVersion; // TODO get from account; update there on initial snapshot
+  final int maxFileUploadSizeMib; // No event for this.
   final Map<int, User> users;
   final Map<int, ZulipStream> streams;
   final Map<int, Subscription> subscriptions;
-  final int maxFileUploadSizeMib; // No event for this.
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 
