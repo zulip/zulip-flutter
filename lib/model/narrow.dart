@@ -1,4 +1,5 @@
 
+import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
@@ -148,6 +149,14 @@ class DmNarrow extends Narrow implements SendableNarrow {
   factory DmNarrow.ofMessage(DmMessage message, {required int selfUserId}) {
     return DmNarrow(
       allRecipientIds: List.unmodifiable(message.allRecipientIds),
+      selfUserId: selfUserId,
+    );
+  }
+
+  /// A [DmNarrow] from an item in [InitialSnapshot.recentPrivateConversations].
+  factory DmNarrow.ofRecentDmConversation(RecentDmConversation conversation, {required int selfUserId}) {
+    return DmNarrow(
+      allRecipientIds: [...conversation.userIds, selfUserId]..sort(),
       selfUserId: selfUserId,
     );
   }

@@ -16,6 +16,7 @@ import '../log.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'message_list.dart';
+import 'recent_dm_conversations.dart';
 
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion;
@@ -158,7 +159,9 @@ class PerAccountStore extends ChangeNotifier {
        streams = Map.fromEntries(initialSnapshot.streams.map(
          (stream) => MapEntry(stream.streamId, stream))),
        subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
-         (subscription) => MapEntry(subscription.streamId, subscription)));
+         (subscription) => MapEntry(subscription.streamId, subscription))),
+       recentDmConversationsView = RecentDmConversationsView(
+         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId);
 
   final Account account;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
@@ -177,6 +180,9 @@ class PerAccountStore extends ChangeNotifier {
   final Map<int, Subscription> subscriptions;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
+
+  // TODO call [RecentDmConversationsView.dispose] in [dispose]
+  final RecentDmConversationsView recentDmConversationsView;
 
   final Set<MessageListView> _messageListViews = {};
 
@@ -260,6 +266,7 @@ class PerAccountStore extends ChangeNotifier {
       notifyListeners();
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
+      recentDmConversationsView.handleMessageEvent(event);
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
       }
