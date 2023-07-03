@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 
@@ -6,7 +7,8 @@ import 'test_store.dart';
 
 /// A concrete binding for use in the `flutter test` environment.
 ///
-/// Tests that will mount a [GlobalStoreWidget] should initialize this binding
+/// Tests that will mount a [GlobalStoreWidget], or invoke a Flutter plugin,
+/// should initialize this binding
 /// by calling [ensureInitialized] at the start of the `main` method.
 ///
 /// Individual test functions that mount a [GlobalStoreWidget] may then use
@@ -41,6 +43,24 @@ class TestZulipBinding extends ZulipBinding {
     _instance = this;
   }
 
+  /// Reset all test data to a clean state.
+  ///
+  /// Tests that mount a [GlobalStoreWidget], or invoke a Flutter plugin,
+  /// or access [globalStore] or other methods on this class,
+  /// should clean up by calling this method.  Typically this is done using
+  /// [addTearDown], like `addTearDown(TestZulipBinding.instance.reset);`.
+  void reset() {
+    _globalStore?.dispose();
+    _globalStore = null;
+    assert(() {
+      _debugAlreadyLoadedStore = false;
+      return true;
+    }());
+
+    launchUrlResult = true;
+    _launchUrlCalls = null;
+  }
+
   /// The current global store offered to a [GlobalStoreWidget].
   ///
   /// The store is created lazily when accessing this getter, or when mounting
@@ -52,26 +72,12 @@ class TestZulipBinding extends ZulipBinding {
   TestGlobalStore get globalStore => _globalStore ??= TestGlobalStore(accounts: []);
   TestGlobalStore? _globalStore;
 
-  bool _debugAlreadyLoaded = false;
-
-  /// Reset all test data to a clean state.
-  ///
-  /// Tests that mount a [GlobalStoreWidget], or that access [globalStore],
-  /// should clean up by calling this method.  Typically this is done using
-  /// [addTearDown], like `addTearDown(TestZulipBinding.instance.reset);`.
-  void reset() {
-    _globalStore?.dispose();
-    _globalStore = null;
-    assert(() {
-      _debugAlreadyLoaded = false;
-      return true;
-    }());
-  }
+  bool _debugAlreadyLoadedStore = false;
 
   @override
   Future<GlobalStore> loadGlobalStore() {
     assert(() {
-      if (_debugAlreadyLoaded) {
+      if (_debugAlreadyLoadedStore) {
         throw FlutterError.fromParts([
           ErrorSummary('The same test global store was loaded twice.'),
           ErrorDescription(
@@ -87,9 +93,37 @@ class TestZulipBinding extends ZulipBinding {
           ),
         ]);
       }
-      _debugAlreadyLoaded = true;
+      _debugAlreadyLoadedStore = true;
       return true;
     }());
     return Future.value(globalStore);
+  }
+
+  /// The value that `ZulipBinding.instance.launchUrl()` should return.
+  ///
+  /// See also [takeLaunchUrlCalls].
+  bool launchUrlResult = true;
+
+  /// Consume the log of calls made to `ZulipBinding.instance.launchUrl()`.
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to `ZulipBinding.instance.launchUrl()` since the last call to
+  /// either this method or [reset].
+  ///
+  /// See also [launchUrlResult].
+  List<({Uri url, url_launcher.LaunchMode mode})> takeLaunchUrlCalls() {
+    final result = _launchUrlCalls;
+    _launchUrlCalls = null;
+    return result ?? [];
+  }
+  List<({Uri url, url_launcher.LaunchMode mode})>? _launchUrlCalls;
+
+  @override
+  Future<bool> launchUrl(
+    Uri url, {
+    url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
+  }) async {
+    (_launchUrlCalls ??= []).add((url: url, mode: mode));
+    return launchUrlResult;
   }
 }
