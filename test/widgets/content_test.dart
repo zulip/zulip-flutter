@@ -20,7 +20,7 @@ void main() {
     Future<String?> actualAuthHeader(WidgetTester tester, String src) async {
       final globalStore = TestDataBinding.instance.globalStore;
       addTearDown(TestDataBinding.instance.reset);
-      await globalStore.add(eg.selfAccount, eg.initialSnapshot);
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       final httpClient = _FakeHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;

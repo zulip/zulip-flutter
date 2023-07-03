@@ -167,26 +167,42 @@ DmMessage dmMessage(
 
 // TODO example data for many more types
 
-final InitialSnapshot initialSnapshot = InitialSnapshot(
-  queueId: '1:2345',
-  lastEventId: 1,
-  zulipFeatureLevel: recentZulipFeatureLevel,
-  zulipVersion: recentZulipVersion,
-  zulipMergeBase: recentZulipVersion,
-  alertWords: ['klaxon'],
-  customProfileFields: [],
-  subscriptions: [], // TODO add subscriptions to example initial snapshot
-  streams: [], // TODO add streams to example initial snapshot
-  maxFileUploadSizeMib: 25,
-  realmUsers: [],
-  realmNonActiveUsers: [],
-  crossRealmBots: [],
-);
+InitialSnapshot initialSnapshot({
+  String? queueId,
+  int? lastEventId,
+  int? zulipFeatureLevel,
+  String? zulipVersion,
+  String? zulipMergeBase,
+  List<String>? alertWords,
+  List<CustomProfileField>? customProfileFields,
+  List<Subscription>? subscriptions,
+  List<ZulipStream>? streams,
+  int? maxFileUploadSizeMib,
+  List<User>? realmUsers,
+  List<User>? realmNonActiveUsers,
+  List<User>? crossRealmBots,
+}) {
+  return InitialSnapshot(
+    queueId: queueId ?? '1:2345',
+    lastEventId: lastEventId ?? 1,
+    zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
+    zulipVersion: zulipVersion ?? recentZulipVersion,
+    zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
+    alertWords: alertWords ?? ['klaxon'],
+    customProfileFields: customProfileFields ?? [],
+    subscriptions: subscriptions ?? [], // TODO add subscriptions to default
+    streams: streams ?? [], // TODO add streams to default
+    maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
+    realmUsers: realmUsers ?? [],
+    realmNonActiveUsers: realmNonActiveUsers ?? [],
+    crossRealmBots: crossRealmBots ?? [],
+  );
+}
 
 PerAccountStore store() {
   return PerAccountStore.fromInitialSnapshot(
     account: selfAccount,
     connection: FakeApiConnection.fromAccount(selfAccount),
-    initialSnapshot: initialSnapshot,
+    initialSnapshot: initialSnapshot(),
   );
 }

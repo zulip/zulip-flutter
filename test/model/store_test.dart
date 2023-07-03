@@ -22,7 +22,7 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       account: account1,
       connection: FakeApiConnection.fromAccount(account1),
-      initialSnapshot: eg.initialSnapshot,
+      initialSnapshot: eg.initialSnapshot(),
     );
     completers(1).single.complete(store1);
     check(await future1).identicalTo(store1);
@@ -33,7 +33,7 @@ void main() {
     final store2 = PerAccountStore.fromInitialSnapshot(
       account: account2,
       connection: FakeApiConnection.fromAccount(account2),
-      initialSnapshot: eg.initialSnapshot,
+      initialSnapshot: eg.initialSnapshot(),
     );
     completers(2).single.complete(store2);
     check(await future2).identicalTo(store2);
@@ -60,12 +60,12 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       account: account1,
       connection: FakeApiConnection.fromAccount(account1),
-      initialSnapshot: eg.initialSnapshot,
+      initialSnapshot: eg.initialSnapshot(),
     );
     final store2 = PerAccountStore.fromInitialSnapshot(
       account: account2,
       connection: FakeApiConnection.fromAccount(account2),
-      initialSnapshot: eg.initialSnapshot,
+      initialSnapshot: eg.initialSnapshot(),
     );
     completers(1).single.complete(store1);
     completers(2).single.complete(store2);
@@ -90,7 +90,7 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       account: account1,
       connection: FakeApiConnection.fromAccount(account1),
-      initialSnapshot: eg.initialSnapshot,
+      initialSnapshot: eg.initialSnapshot(),
     );
     completers(1).single.complete(store1);
     await pumpEventQueue();

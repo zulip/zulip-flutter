@@ -31,7 +31,7 @@ void main() {
     check(tester.any(find.byType(CircularProgressIndicator))).isFalse();
     check(globalStore).identicalTo(TestDataBinding.instance.globalStore);
 
-    await TestDataBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot);
+    await TestDataBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     check(globalStore).isNotNull()
       .accountEntries.single
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
@@ -40,7 +40,7 @@ void main() {
   testWidgets('PerAccountStoreWidget basic', (tester) async {
     final globalStore = TestDataBinding.instance.globalStore;
     addTearDown(TestDataBinding.instance.reset);
-    await globalStore.add(eg.selfAccount, eg.initialSnapshot);
+    await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
       Directionality(
@@ -62,7 +62,7 @@ void main() {
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {
     final globalStore = TestDataBinding.instance.globalStore;
     addTearDown(TestDataBinding.instance.reset);
-    await globalStore.add(eg.selfAccount, eg.initialSnapshot);
+    await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
       Directionality(

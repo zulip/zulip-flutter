@@ -26,7 +26,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 }) async {
   addTearDown(TestDataBinding.instance.reset);
 
-  await TestDataBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot);
+  await TestDataBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await TestDataBinding.instance.globalStore.perAccount(eg.selfAccount.id);
   store.addUser(eg.user(userId: message.senderId));
   if (message is StreamMessage) {
