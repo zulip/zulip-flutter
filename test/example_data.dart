@@ -120,8 +120,14 @@ Map<String, dynamic> _messagePropertiesFromContent(String? content, String? cont
 
 const _stream = stream;
 
-StreamMessage streamMessage(
-    {User? sender, ZulipStream? stream, String? topic, String? content, String? contentMarkdown}) {
+StreamMessage streamMessage({
+  int? id,
+  User? sender,
+  ZulipStream? stream,
+  String? topic,
+  String? content,
+  String? contentMarkdown,
+}) {
   final effectiveStream = stream ?? _stream();
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
@@ -135,7 +141,7 @@ StreamMessage streamMessage(
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
     'flags': [],
-    'id': 1234567, // TODO generate example IDs
+    'id': id ?? 1234567, // TODO generate example IDs
     'subject': topic ?? 'example topic',
     'timestamp': 1678139636,
     'type': 'stream',
@@ -146,8 +152,13 @@ StreamMessage streamMessage(
 ///
 /// See also:
 ///  * [streamMessage], to construct an example stream message.
-DmMessage dmMessage(
-    {required User from, required List<User> to, String? content, String? contentMarkdown}) {
+DmMessage dmMessage({
+  int? id,
+  required User from,
+  required List<User> to,
+  String? content,
+  String? contentMarkdown,
+}) {
   assert(!to.any((user) => user.userId == from.userId));
   return DmMessage.fromJson({
     ..._messagePropertiesBase,
@@ -158,7 +169,7 @@ DmMessage dmMessage(
       .toList(growable: false),
 
     'flags': [],
-    'id': 1234567, // TODO generate example IDs
+    'id': id ?? 1234567, // TODO generate example IDs
     'subject': '',
     'timestamp': 1678139636,
     'type': 'private',
