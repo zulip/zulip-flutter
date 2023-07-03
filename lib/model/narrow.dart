@@ -71,6 +71,9 @@ class StreamNarrow extends Narrow {
   ApiNarrow apiEncode() => [ApiNarrowStream(streamId)];
 
   @override
+  String toString() => 'StreamNarrow($streamId)';
+
+  @override
   bool operator ==(Object other) {
     if (other is! StreamNarrow) return false;
     return other.streamId == streamId;
@@ -101,6 +104,9 @@ class TopicNarrow extends Narrow implements SendableNarrow {
 
   @override
   StreamDestination get destination => StreamDestination(streamId, topic);
+
+  @override
+  String toString() => 'TopicNarrow($streamId, $topic)';
 
   @override
   bool operator ==(Object other) {
@@ -206,6 +212,9 @@ class DmNarrow extends Narrow implements SendableNarrow {
   // TODO(server): fix bug on empty operand to dm/pm-with narrow operator
   @override
   ApiNarrow apiEncode() => [ApiNarrowDm(allRecipientIds)];
+
+  @override
+  String toString() => 'DmNarrow(allRecipientIds: $allRecipientIds)';
 
   @override
   bool operator ==(Object other) {
