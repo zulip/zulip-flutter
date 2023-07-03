@@ -301,10 +301,24 @@ hello
     //   starred, mentioned; searches; arbitrary
   });
 
-  test('mention', () {
+  group('mention', () {
     final user = eg.user(userId: 123, fullName: 'Full Name');
-    check(mention(user, silent: false)).equals('@**Full Name|123**');
-    check(mention(user, silent: true)).equals('@_**Full Name|123**');
+    test('not silent', () {
+      check(mention(user, silent: false)).equals('@**Full Name|123**');
+    });
+    test('silent', () {
+      check(mention(user, silent: true)).equals('@_**Full Name|123**');
+    });
+    test('`users` passed; has two users with same fullName', () {
+      final store = eg.store();
+      store.addUsers([user, eg.user(userId: 234, fullName: user.fullName)]);
+      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
+    });
+    test('`users` passed; user has unique fullName', () {
+      final store = eg.store();
+      store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
+      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name**');
+    });
   });
 
   test('inlineLink', () {

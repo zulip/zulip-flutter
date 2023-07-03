@@ -177,10 +177,16 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   return store.account.realmUrl.replace(fragment: fragment.toString());
 }
 
-// TODO like web, use just the name, no ID, when that wouldn't be ambiguous.
-//   It looks nicer while the user's still composing and looking at the source.
-String mention(User user, {bool silent = false}) {
-  return '@${silent ? '_' : ''}**${user.fullName}|${user.userId}**';
+/// An @-mention, like @**Chris Bobbe|13313**.
+///
+/// To omit the user ID part ("|13313") whenever the name part is unambiguous,
+/// pass a Map of all users we know about. This means accepting a linear scan
+/// through all users; avoid it in performance-sensitive codepaths.
+String mention(User user, {bool silent = false, Map<int, User>? users}) {
+  bool includeUserId = users == null
+    || users.values.takeWhile((u) => u.fullName == user.fullName).take(2).length == 2;
+
+  return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
 }
 
 /// https://spec.commonmark.org/0.30/#inline-link
@@ -214,6 +220,7 @@ String quoteAndReplyPlaceholder(PerAccountStore store, {
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.account.userId),
     nearMessageId: message.id);
+  // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
   return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
     '*(loading message ${message.id})*\n'; // TODO(i18n) ?
 }
@@ -235,6 +242,9 @@ String quoteAndReply(PerAccountStore store, {
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.account.userId),
     nearMessageId: message.id);
+    // Could ask `mention` to omit the |<id> part unless the mention is ambiguous…
+    // but that would mean a linear scan through all users, and the extra noise
+    // won't much matter with the already probably-long message link in there too.
     return '${mention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(i18n) ?
       '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }
