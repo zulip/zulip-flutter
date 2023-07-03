@@ -19,6 +19,7 @@ final TextStyle kMonospaceTextStyle = TextStyle(
 
   // Oddly, iOS doesn't handle 'monospace':
   //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20monospace.20font.20fallback/near/1570622
+  // TODO use Theme.of, not Platform, so that this is testable (needs a BuildContext)
   fontFamilyFallback: Platform.isIOS ? ['Menlo', 'Courier'] : ['monospace'],
 
   inherit: true,

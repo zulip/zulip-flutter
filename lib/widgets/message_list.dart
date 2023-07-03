@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -172,12 +171,13 @@ class _MessageListState extends State<MessageList> {
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
-      keyboardDismissBehavior: Platform.isIOS
+      keyboardDismissBehavior: switch (Theme.of(context).platform) {
         // This seems to offer the only built-in way to close the keyboard
         // on iOS. It's not ideal; see TODO above.
-        ? ScrollViewKeyboardDismissBehavior.onDrag
+        TargetPlatform.iOS => ScrollViewKeyboardDismissBehavior.onDrag,
         // The Android keyboard seems to have a built-in close button.
-        : ScrollViewKeyboardDismissBehavior.manual,
+        _ => ScrollViewKeyboardDismissBehavior.manual,
+      },
 
       itemCount: length,
       // Setting reverse: true means the scroll starts at the bottom.
