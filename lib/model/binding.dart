@@ -18,27 +18,27 @@ import 'store.dart';
 /// [TestWidgetsFlutterBinding].
 /// This version is simplified because we don't (yet?) have enough complexity
 /// to put into these bindings to need to use mixins to split them up.
-abstract class DataBinding {
-  DataBinding() {
+abstract class ZulipBinding {
+  ZulipBinding() {
     assert(_instance == null);
     initInstance();
   }
 
-  /// The single instance of [DataBinding].
-  static DataBinding get instance => checkInstance(_instance);
-  static DataBinding? _instance;
+  /// The single instance of [ZulipBinding].
+  static ZulipBinding get instance => checkInstance(_instance);
+  static ZulipBinding? _instance;
 
-  static T checkInstance<T extends DataBinding>(T? instance) {
+  static T checkInstance<T extends ZulipBinding>(T? instance) {
     assert(() {
       if (instance == null) {
         throw FlutterError.fromParts([
           ErrorSummary('Zulip binding has not yet been initialized.'),
           ErrorHint(
-            'In the app, this is done by the `LiveDataBinding.ensureInitialized()` call '
+            'In the app, this is done by the `LiveZulipBinding.ensureInitialized()` call '
             'in the `void main()` method.',
           ),
           ErrorHint(
-            'In a test, one can call `TestDataBinding.ensureInitialized()` as the '
+            'In a test, one can call `TestZulipBinding.ensureInitialized()` as the '
             'first line in the test\'s `main()` method to initialize the binding.',
           ),
         ]);
@@ -69,13 +69,13 @@ abstract class DataBinding {
 /// The global store returned by [loadGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [LiveGlobalStore].
 /// It therefore uses a live server and live, persistent local database.
-class LiveDataBinding extends DataBinding {
-  /// Initialize the binding if necessary, and ensure it is a [LiveDataBinding].
-  static LiveDataBinding ensureInitialized() {
-    if (DataBinding._instance == null) {
-      LiveDataBinding();
+class LiveZulipBinding extends ZulipBinding {
+  /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
+  static LiveZulipBinding ensureInitialized() {
+    if (ZulipBinding._instance == null) {
+      LiveZulipBinding();
     }
-    return DataBinding.instance as LiveDataBinding;
+    return ZulipBinding.instance as LiveZulipBinding;
   }
 
   @override

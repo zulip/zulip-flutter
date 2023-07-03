@@ -13,7 +13,7 @@ import '../api/fake_api.dart';
 ///
 /// The per-account stores will use [FakeApiConnection].
 ///
-/// See also [TestDataBinding.globalStore], which provides one of these.
+/// See also [TestZulipBinding.globalStore], which provides one of these.
 class TestGlobalStore extends GlobalStore {
   TestGlobalStore({required super.accounts});
 

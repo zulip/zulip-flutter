@@ -9,10 +9,10 @@ import '../example_data.dart' as eg;
 import '../model/store_checks.dart';
 
 void main() {
-  TestDataBinding.ensureInitialized();
+  TestZulipBinding.ensureInitialized();
 
   testWidgets('GlobalStoreWidget', (WidgetTester tester) async {
-    addTearDown(TestDataBinding.instance.reset);
+    addTearDown(TestZulipBinding.instance.reset);
 
     GlobalStore? globalStore;
     await tester.pumpWidget(
@@ -29,17 +29,17 @@ void main() {
     await tester.pump();
     // Then after loading, mounts child instead, with provided store.
     check(tester.any(find.byType(CircularProgressIndicator))).isFalse();
-    check(globalStore).identicalTo(TestDataBinding.instance.globalStore);
+    check(globalStore).identicalTo(TestZulipBinding.instance.globalStore);
 
-    await TestDataBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     check(globalStore).isNotNull()
       .accountEntries.single
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
   });
 
   testWidgets('PerAccountStoreWidget basic', (tester) async {
-    final globalStore = TestDataBinding.instance.globalStore;
-    addTearDown(TestDataBinding.instance.reset);
+    final globalStore = TestZulipBinding.instance.globalStore;
+    addTearDown(TestZulipBinding.instance.reset);
     await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
@@ -60,8 +60,8 @@ void main() {
   });
 
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {
-    final globalStore = TestDataBinding.instance.globalStore;
-    addTearDown(TestDataBinding.instance.reset);
+    final globalStore = TestZulipBinding.instance.globalStore;
+    addTearDown(TestZulipBinding.instance.reset);
     await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(

@@ -12,6 +12,6 @@ void main() {
     return true;
   }());
   LicenseRegistry.addLicense(additionalLicenses);
-  LiveDataBinding.ensureInitialized();
+  LiveZulipBinding.ensureInitialized();
   runApp(const ZulipApp());
 }

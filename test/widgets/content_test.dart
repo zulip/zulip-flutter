@@ -12,14 +12,14 @@ import '../example_data.dart' as eg;
 import '../model/binding.dart';
 
 void main() {
-  TestDataBinding.ensureInitialized();
+  TestZulipBinding.ensureInitialized();
 
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
     Future<String?> actualAuthHeader(WidgetTester tester, String src) async {
-      final globalStore = TestDataBinding.instance.globalStore;
-      addTearDown(TestDataBinding.instance.reset);
+      final globalStore = TestZulipBinding.instance.globalStore;
+      addTearDown(TestZulipBinding.instance.reset);
       await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       final httpClient = _FakeHttpClient();

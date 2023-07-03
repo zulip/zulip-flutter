@@ -24,10 +24,10 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
 }) async {
-  addTearDown(TestDataBinding.instance.reset);
+  addTearDown(TestZulipBinding.instance.reset);
 
-  await TestDataBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await TestDataBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+  await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
   store.addUser(eg.user(userId: message.senderId));
   if (message is StreamMessage) {
     store.addStream(eg.stream(streamId: message.streamId));
@@ -61,7 +61,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 }
 
 void main() {
-  TestDataBinding.ensureInitialized();
+  TestZulipBinding.ensureInitialized();
 
   group('QuoteAndReplyButton', () {
     ComposeBoxController? findComposeBoxController(WidgetTester tester) {
@@ -133,7 +133,7 @@ void main() {
     testWidgets('in stream narrow', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: StreamNarrow(message.streamId));
-      final store = await TestDataBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -151,7 +151,7 @@ void main() {
     testWidgets('in topic narrow', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await TestDataBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -170,7 +170,7 @@ void main() {
       final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
       await setupToMessageActionSheet(tester,
         message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-      final store = await TestDataBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -188,7 +188,7 @@ void main() {
     testWidgets('request has an error', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await TestDataBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;

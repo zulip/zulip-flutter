@@ -16,24 +16,24 @@ import 'test_store.dart';
 ///
 /// The global store returned by [loadGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [TestGlobalStore].
-class TestDataBinding extends DataBinding {
-  /// Initialize the binding if necessary, and ensure it is a [TestDataBinding].
+class TestZulipBinding extends ZulipBinding {
+  /// Initialize the binding if necessary, and ensure it is a [TestZulipBinding].
   ///
   /// This method is idempotent; calling it repeatedly simply returns the
   /// existing binding.
   ///
-  /// If there is an existing binding but it is not a [TestDataBinding],
+  /// If there is an existing binding but it is not a [TestZulipBinding],
   /// this method throws an error.
-  static TestDataBinding ensureInitialized() {
+  static TestZulipBinding ensureInitialized() {
     if (_instance == null) {
-      TestDataBinding();
+      TestZulipBinding();
     }
     return instance;
   }
 
   /// The single instance of the binding.
-  static TestDataBinding get instance => DataBinding.checkInstance(_instance);
-  static TestDataBinding? _instance;
+  static TestZulipBinding get instance => ZulipBinding.checkInstance(_instance);
+  static TestZulipBinding? _instance;
 
   @override
   void initInstance() {
@@ -58,7 +58,7 @@ class TestDataBinding extends DataBinding {
   ///
   /// Tests that mount a [GlobalStoreWidget], or that access [globalStore],
   /// should clean up by calling this method.  Typically this is done using
-  /// [addTearDown], like `addTearDown(TestDataBinding.instance.reset);`.
+  /// [addTearDown], like `addTearDown(TestZulipBinding.instance.reset);`.
   void reset() {
     _globalStore?.dispose();
     _globalStore = null;
@@ -83,7 +83,7 @@ class TestDataBinding extends DataBinding {
           ),
           ErrorHint(
             'Typically this is accomplished using [addTearDown], like '
-            '`addTearDown(TestDataBinding.instance.reset);`.',
+            '`addTearDown(TestZulipBinding.instance.reset);`.',
           ),
         ]);
       }
