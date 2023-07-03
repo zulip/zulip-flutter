@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -302,7 +303,7 @@ Widget _buildBlockInlineContainer({
   required BlockInlineContainerNode node,
 }) {
   if (node.links == null) {
-    return InlineContent(style: style, nodes: node.nodes);
+    return InlineContent(recognizer: null, style: style, nodes: node.nodes);
   }
   return _BlockInlineContainer(
     links: node.links!, style: style, nodes: node.nodes);
@@ -323,21 +324,24 @@ class _BlockInlineContainer extends StatefulWidget {
 class _BlockInlineContainerState extends State<_BlockInlineContainer> {
   @override
   Widget build(BuildContext context) {
-    return InlineContent(style: widget.style, nodes: widget.nodes);
+    return InlineContent(recognizer: null,
+      style: widget.style, nodes: widget.nodes);
   }
 }
 
 class InlineContent extends StatelessWidget {
   InlineContent({
     super.key,
-    required this.nodes,
+    required this.recognizer,
     required this.style,
+    required this.nodes,
   }) {
     _builder = _InlineContentBuilder(this);
   }
 
-  final List<InlineContentNode> nodes;
+  final GestureRecognizer? recognizer;
   final TextStyle? style;
+  final List<InlineContentNode> nodes;
 
   late final _InlineContentBuilder _builder;
 
@@ -348,13 +352,20 @@ class InlineContent extends StatelessWidget {
 }
 
 class _InlineContentBuilder {
-  _InlineContentBuilder(this.widget);
+  _InlineContentBuilder(this.widget) : _recognizer = widget.recognizer;
 
   final InlineContent widget;
 
   InlineSpan build() {
     return _buildNodes(widget.nodes, style: widget.style);
   }
+
+  // Why do we have to track `recognizer` here, rather than apply it
+  // once at the top of the affected span?  Because the events don't bubble
+  // within a paragraph:
+  //   https://github.com/flutter/flutter/issues/10623
+  //   https://github.com/flutter/flutter/issues/10623#issuecomment-308030170
+  final GestureRecognizer? _recognizer;
 
   InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
     return TextSpan(
@@ -364,7 +375,7 @@ class _InlineContentBuilder {
 
   InlineSpan _buildNode(InlineContentNode node) {
     if (node is TextNode) {
-      return TextSpan(text: node.text);
+      return TextSpan(text: node.text, recognizer: _recognizer);
     } else if (node is LineBreakInlineNode) {
       // Each `<br/>` is followed by a newline, which browsers apparently ignore
       // and our parser doesn't.  So don't do anything here.
@@ -401,7 +412,7 @@ class _InlineContentBuilder {
     style: const TextStyle(fontStyle: FontStyle.italic));
 
   InlineSpan _buildLink(LinkNode node) {
-    // TODO make link touchable
+    // TODO make link touchable by setting _recognizer
     return _buildNodes(node.nodes,
       style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
   }
@@ -497,7 +508,11 @@ class UserMention extends StatelessWidget {
     return Container(
       decoration: _kDecoration,
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-      child: InlineContent(nodes: node.nodes, style: null));
+      child: InlineContent(
+        // If an @-mention is inside a link, let the @-mention override it.
+        recognizer: null,  // TODO make @-mentions tappable, for info on user
+        style: null,
+        nodes: node.nodes));
   }
 
   static get _kDecoration => BoxDecoration(
