@@ -31,6 +31,7 @@ sealed class Event {
           default: return UnexpectedEvent.fromJson(json);
         }
       case 'message': return MessageEvent.fromJson(json);
+      case 'update_message': return UpdateMessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
       default: return UnexpectedEvent.fromJson(json);
@@ -263,6 +264,68 @@ class MessageEvent extends Event {
     messageJson.remove('flags');
     return {'id': id, 'type': type, 'message': messageJson, 'flags': flags};
   }
+}
+
+/// A Zulip event of type `update_message`.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageEvent extends Event {
+  @override
+  String get type => 'update_message';
+
+  final int? userId; // TODO(server-5)
+  final bool? renderingOnly; // TODO(server-5)
+  final int messageId;
+  final List<int> messageIds;
+  final List<String> flags; // TODO enum
+  final int? editTimestamp; // TODO(server-5)
+  final String? streamName;
+  final int? streamId;
+  final int? newStreamId;
+  final PropagateMode? propagateMode;
+  final String? origSubject;
+  final String? subject;
+  // final List<TopicLink> topicLinks; // TODO handle
+  final String? origContent;
+  final String? origRenderedContent;
+  // final int? prevRenderedContentVersion; // deprecated
+  final String? content;
+  final String? renderedContent;
+  final bool? isMeMessage;
+
+  UpdateMessageEvent({
+    required super.id,
+    this.userId,
+    this.renderingOnly,
+    required this.messageId,
+    required this.messageIds,
+    required this.flags,
+    this.editTimestamp,
+    this.streamName,
+    this.streamId,
+    this.newStreamId,
+    this.propagateMode,
+    this.origSubject,
+    this.subject,
+    this.origContent,
+    this.origRenderedContent,
+    this.content,
+    this.renderedContent,
+    this.isMeMessage,
+  });
+
+  factory UpdateMessageEvent.fromJson(Map<String, dynamic> json) =>
+    _$UpdateMessageEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UpdateMessageEventToJson(this);
+}
+
+/// As in [UpdateMessageEvent.propagateMode].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum PropagateMode {
+  changeOne,
+  changeLater,
+  changeAll;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

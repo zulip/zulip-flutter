@@ -270,6 +270,9 @@ class PerAccountStore extends ChangeNotifier {
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
       }
+    } else if (event is UpdateMessageEvent) {
+      assert(debugLog("server event: update_message ${event.messageId}"));
+      // TODO handle
     } else if (event is UnexpectedEvent) {
       assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     } else {

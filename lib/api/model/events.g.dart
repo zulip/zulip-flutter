@@ -133,6 +133,58 @@ Map<String, dynamic> _$StreamDeleteEventToJson(StreamDeleteEvent instance) =>
       'streams': instance.streams,
     };
 
+UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
+    UpdateMessageEvent(
+      id: json['id'] as int,
+      userId: json['user_id'] as int?,
+      renderingOnly: json['rendering_only'] as bool?,
+      messageId: json['message_id'] as int,
+      messageIds:
+          (json['message_ids'] as List<dynamic>).map((e) => e as int).toList(),
+      flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      editTimestamp: json['edit_timestamp'] as int?,
+      streamName: json['stream_name'] as String?,
+      streamId: json['stream_id'] as int?,
+      newStreamId: json['new_stream_id'] as int?,
+      propagateMode:
+          $enumDecodeNullable(_$PropagateModeEnumMap, json['propagate_mode']),
+      origSubject: json['orig_subject'] as String?,
+      subject: json['subject'] as String?,
+      origContent: json['orig_content'] as String?,
+      origRenderedContent: json['orig_rendered_content'] as String?,
+      content: json['content'] as String?,
+      renderedContent: json['rendered_content'] as String?,
+      isMeMessage: json['is_me_message'] as bool?,
+    );
+
+Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'user_id': instance.userId,
+      'rendering_only': instance.renderingOnly,
+      'message_id': instance.messageId,
+      'message_ids': instance.messageIds,
+      'flags': instance.flags,
+      'edit_timestamp': instance.editTimestamp,
+      'stream_name': instance.streamName,
+      'stream_id': instance.streamId,
+      'new_stream_id': instance.newStreamId,
+      'propagate_mode': _$PropagateModeEnumMap[instance.propagateMode],
+      'orig_subject': instance.origSubject,
+      'subject': instance.subject,
+      'orig_content': instance.origContent,
+      'orig_rendered_content': instance.origRenderedContent,
+      'content': instance.content,
+      'rendered_content': instance.renderedContent,
+      'is_me_message': instance.isMeMessage,
+    };
+
+const _$PropagateModeEnumMap = {
+  PropagateMode.changeOne: 'change_one',
+  PropagateMode.changeLater: 'change_later',
+  PropagateMode.changeAll: 'change_all',
+};
+
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
     HeartbeatEvent(
       id: json['id'] as int,
