@@ -185,6 +185,30 @@ const _$PropagateModeEnumMap = {
   PropagateMode.changeAll: 'change_all',
 };
 
+DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
+    DeleteMessageEvent(
+      id: json['id'] as int,
+      messageIds:
+          (json['message_ids'] as List<dynamic>).map((e) => e as int).toList(),
+      messageType: $enumDecode(_$MessageTypeEnumMap, json['message_type']),
+      streamId: json['stream_id'] as int?,
+      topic: json['topic'] as String?,
+    );
+
+Map<String, dynamic> _$DeleteMessageEventToJson(DeleteMessageEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'message_ids': instance.messageIds,
+      'message_type': _$MessageTypeEnumMap[instance.messageType]!,
+      'stream_id': instance.streamId,
+      'topic': instance.topic,
+    };
+
+const _$MessageTypeEnumMap = {
+  MessageType.stream: 'stream',
+  MessageType.private: 'private',
+};
+
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
     HeartbeatEvent(
       id: json['id'] as int,

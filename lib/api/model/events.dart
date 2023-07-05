@@ -32,6 +32,7 @@ sealed class Event {
         }
       case 'message': return MessageEvent.fromJson(json);
       case 'update_message': return UpdateMessageEvent.fromJson(json);
+      case 'delete_message': return DeleteMessageEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
       default: return UnexpectedEvent.fromJson(json);
@@ -326,6 +327,40 @@ enum PropagateMode {
   changeOne,
   changeLater,
   changeAll;
+}
+
+/// A Zulip event of type `delete_message`.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class DeleteMessageEvent extends Event {
+  @override
+  String get type => 'delete_message';
+
+  final List<int> messageIds;
+  // final int messageId; // Not present; we support the bulk_message_deletion capability
+  final MessageType messageType;
+  final int? streamId;
+  final String? topic;
+
+  DeleteMessageEvent({
+    required super.id,
+    required this.messageIds,
+    required this.messageType,
+    this.streamId,
+    this.topic,
+  });
+
+  factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) =>
+    _$DeleteMessageEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
+}
+
+/// As in [DeleteMessageEvent.messageType].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum MessageType {
+  stream,
+  private;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
