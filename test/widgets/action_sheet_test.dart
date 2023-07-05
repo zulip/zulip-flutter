@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -16,6 +17,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_clipboard.dart';
 import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
 
@@ -219,6 +221,50 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: const AllMessagesNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
+    });
+  });
+
+  group('CopyButton', () {
+    setUp(() async {
+      TestZulipBinding.ensureInitialized();
+      TestWidgetsFlutterBinding.ensureInitialized();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        MockClipboard().handleMethodCall,
+      );
+    });
+
+    tearDown(() async {
+      TestZulipBinding.instance.reset();
+    });
+
+    testWidgets('success', (WidgetTester tester) async {
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+
+      await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
+      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      await tester.tap(find.byIcon(Icons.copy));
+      await tester.pump(Duration.zero);
+      check(await Clipboard.getData('text/plain')).isNotNull().text.equals('Hello world');
+    });
+
+    testWidgets('request has an error', (WidgetTester tester) async {
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+
+      await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
+      prepareRawContentResponseError(store);
+      await tester.tap(find.byIcon(Icons.copy));
+      await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Copying failed',
+        expectedMessage: 'That message does not seem to exist.',
+      )));
+      check(await Clipboard.getData('text/plain')).isNull();
     });
   });
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
 import 'draggable_scrollable_modal_bottom_sheet.dart';
@@ -28,6 +30,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
           message: message,
           messageListContext: context,
         ),
+        CopyButton(message: message, messageListContext: context),
       ]);
     });
 }
@@ -188,5 +191,38 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
     }
+  };
+}
+
+class CopyButton extends MessageActionSheetMenuItemButton {
+  CopyButton({
+    super.key,
+    required super.message,
+    required super.messageListContext,
+  });
+
+  @override get icon => Icons.copy;
+
+  @override get label => 'Copy message text';
+
+  @override get onPressed => (BuildContext context) async {
+    // Close the message action sheet. We won't be showing request progress,
+    // but hopefully it won't take long at all, and
+    // fetchRawContentWithFeedback has a TODO for giving feedback if it does.
+    Navigator.of(context).pop();
+
+    final rawContent = await fetchRawContentWithFeedback(
+      context: messageListContext,
+      messageId: message.id,
+      errorDialogTitle: 'Copying failed',
+    );
+
+    if (rawContent == null) return;
+
+    if (!messageListContext.mounted) return;
+
+    // TODO(i18n)
+    copyWithPopup(context: context, successContent: const Text('Message copied'),
+      data: ClipboardData(text: rawContent));
   };
 }
