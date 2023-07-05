@@ -63,6 +63,26 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  void prepareRawContentResponseSuccess(PerAccountStore store, {
+    required Message message,
+    required String rawContent,
+  }) {
+    // Prepare fetch-raw-Markdown response
+    // TODO: Message should really only differ from `message`
+    //   in its content / content_type, not in `id` or anything else.
+    (store.connection as FakeApiConnection).prepare(json:
+      GetMessageResult(message: eg.streamMessage(contentMarkdown: rawContent)).toJson());
+  }
+
+  void prepareRawContentResponseError(PerAccountStore store) {
+    final fakeResponseJson = {
+      'code': 'BAD_REQUEST',
+      'msg': 'Invalid message(s)',
+      'result': 'error',
+    };
+    (store.connection as FakeApiConnection).prepare(httpStatus: 400, json: fakeResponseJson);
+  }
+
   group('QuoteAndReplyButton', () {
     ComposeBoxController? findComposeBoxController(WidgetTester tester) {
       return tester.widget<ComposeBox>(find.byType(ComposeBox))
@@ -71,26 +91,6 @@ void main() {
 
     Widget? findQuoteAndReplyButton(WidgetTester tester) {
       return tester.widgetList(find.byIcon(Icons.format_quote_outlined)).singleOrNull;
-    }
-
-    void prepareRawContentResponseSuccess(PerAccountStore store, {
-      required Message message,
-      required String rawContent,
-    }) {
-      // Prepare fetch-raw-Markdown response
-      // TODO: Message should really only differ from `message`
-      //   in its content / content_type, not in `id` or anything else.
-      (store.connection as FakeApiConnection).prepare(json:
-        GetMessageResult(message: eg.streamMessage(contentMarkdown: rawContent)).toJson());
-    }
-
-    void prepareRawContentResponseError(PerAccountStore store) {
-      final fakeResponseJson = {
-        'code': 'BAD_REQUEST',
-        'msg': 'Invalid message(s)',
-        'result': 'error',
-      };
-      (store.connection as FakeApiConnection).prepare(httpStatus: 400, json: fakeResponseJson);
     }
 
     /// Simulates tapping the quote-and-reply button in the message action sheet.
