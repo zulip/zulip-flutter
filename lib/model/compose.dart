@@ -184,7 +184,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 /// through all users; avoid it in performance-sensitive codepaths.
 String mention(User user, {bool silent = false, Map<int, User>? users}) {
   bool includeUserId = users == null
-    || users.values.takeWhile((u) => u.fullName == user.fullName).take(2).length == 2;
+    || users.values.where((u) => u.fullName == user.fullName).take(2).length == 2;
 
   return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
 }

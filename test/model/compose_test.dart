@@ -311,7 +311,7 @@ hello
     });
     test('`users` passed; has two users with same fullName', () {
       final store = eg.store();
-      store.addUsers([user, eg.user(userId: 234, fullName: user.fullName)]);
+      store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
       check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
     });
     test('`users` passed; user has unique fullName', () {
