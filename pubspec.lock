@@ -29,10 +29,10 @@ packages:
     dependency: "direct main"
     description:
       name: app_settings
-      sha256: "34c6b7dbf493d486b082f9538ea11b2ee665e7125618660555d5415592e78667"
+      sha256: "67ca58aba6ec311d89597c2716d2e37da54b8c7cef28b7749e6551c57f88c1f4"
       url: "https://pub.dev"
     source: hosted
-    version: "4.3.0"
+    version: "5.0.0"
   args:
     dependency: transitive
     description:
@@ -436,10 +436,10 @@ packages:
     dependency: "direct main"
     description:
       name: image_picker
-      sha256: b6951e25b795d053a6ba03af5f710069c99349de9341af95155d52665cb4607c
+      sha256: b9603755b35253ccfad4be0762bb74d5e8bf9ff75edebf0ac3beec24fac1c5b5
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.9"
+    version: "1.0.0"
   image_picker_android:
     dependency: transitive
     description:
