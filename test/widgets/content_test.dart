@@ -26,8 +26,8 @@ void main() {
     const fontSize = 48.0;
 
     Future<void> prepareContent(WidgetTester tester, String html) async {
-      final globalStore = TestZulipBinding.instance.globalStore;
-      addTearDown(TestZulipBinding.instance.reset);
+      final globalStore = testBinding.globalStore;
+      addTearDown(testBinding.reset);
       await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
@@ -45,7 +45,7 @@ void main() {
       await tester.tap(find.text('hello'));
       final expectedMode = defaultTargetPlatform == TargetPlatform.android ?
         LaunchMode.externalApplication : LaunchMode.platformDefault;
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://example/'), mode: expectedMode));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
@@ -56,14 +56,14 @@ void main() {
         .translate(fontSize/2, fontSize/2); // middle of first letter
 
       await tester.tapAt(base.translate(5*fontSize, 0)); // "foo bXr baz"
-      check(TestZulipBinding.instance.takeLaunchUrlCalls()).isEmpty();
+      check(testBinding.takeLaunchUrlCalls()).isEmpty();
 
       await tester.tapAt(base.translate(1*fontSize, 0)); // "fXo bar baz"
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
 
       await tester.tapAt(base.translate(9*fontSize, 0)); // "foo bar bXz"
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://b/'), mode: expectedModeAndroid));
     });
 
@@ -71,7 +71,7 @@ void main() {
       await prepareContent(tester,
         '<p><strong><em><a href="https://a/">word</a></em></strong></p>');
       await tester.tap(find.text('word'));
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
     });
 
@@ -82,11 +82,11 @@ void main() {
         .translate(fontSize/2, fontSize/2); // middle of first letter
 
       await tester.tapAt(base.translate(1*fontSize, 0)); // "tXo words"
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
 
       await tester.tapAt(base.translate(6*fontSize, 0)); // "two woXds"
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
     });
 
@@ -94,7 +94,7 @@ void main() {
       await prepareContent(tester,
         '<p><a href="/a/b?c#d">word</a></p>');
       await tester.tap(find.text('word'));
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('${eg.realmUrl}a/b?c#d'), mode: expectedModeAndroid));
     });
 
@@ -102,17 +102,17 @@ void main() {
       await prepareContent(tester,
         '<h6><a href="https://a/">word</a></h6>');
       await tester.tap(find.text('word'));
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
     });
 
     testWidgets('error dialog if invalid link', (tester) async {
       await prepareContent(tester,
         '<p><a href="file:///etc/bad">word</a></p>');
-      TestZulipBinding.instance.launchUrlResult = false;
+      testBinding.launchUrlResult = false;
       await tester.tap(find.text('word'));
       await tester.pump();
-      check(TestZulipBinding.instance.takeLaunchUrlCalls())
+      check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('file:///etc/bad'), mode: expectedModeAndroid));
       checkErrorDialog(tester, expectedTitle: 'Unable to open link');
     });
@@ -122,8 +122,8 @@ void main() {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
     Future<String?> actualAuthHeader(WidgetTester tester, Uri src) async {
-      final globalStore = TestZulipBinding.instance.globalStore;
-      addTearDown(TestZulipBinding.instance.reset);
+      final globalStore = testBinding.globalStore;
+      addTearDown(testBinding.reset);
       await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       final httpClient = FakeImageHttpClient();

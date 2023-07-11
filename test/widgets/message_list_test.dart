@@ -32,13 +32,13 @@ void main() {
     int? messageCount,
     List<Message>? messages,
   }) async {
-    addTearDown(TestZulipBinding.instance.reset);
+    addTearDown(testBinding.reset);
     addTearDown(tester.view.resetPhysicalSize);
 
     tester.view.physicalSize = const Size(600, 800);
 
-    await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
     // prepare message list data
@@ -181,7 +181,7 @@ void main() {
 
   group('MessageWithSender', () {
     testWidgets('Updates avatar on RealmUserUpdateEvent', (tester) async {
-      addTearDown(TestZulipBinding.instance.reset);
+      addTearDown(testBinding.reset);
 
       // TODO recognize avatar more reliably:
       //   https://github.com/zulip/zulip-flutter/pull/246#discussion_r1282516308
@@ -202,7 +202,7 @@ void main() {
       }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
-        final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+        final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId, avatarUrl: avatarUrl));
         await tester.pump();
       }

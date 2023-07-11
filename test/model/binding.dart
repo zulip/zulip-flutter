@@ -5,6 +5,11 @@ import 'package:zulip/model/store.dart';
 
 import 'test_store.dart';
 
+/// The binding instance used in tests.
+///
+/// This is the Zulip-specific analogue of [WidgetTester.binding].
+TestZulipBinding get testBinding => TestZulipBinding.instance;
+
 /// A concrete binding for use in the `flutter test` environment.
 ///
 /// Tests that will mount a [GlobalStoreWidget], or invoke a Flutter plugin,
@@ -48,7 +53,7 @@ class TestZulipBinding extends ZulipBinding {
   /// Tests that mount a [GlobalStoreWidget], or invoke a Flutter plugin,
   /// or access [globalStore] or other methods on this class,
   /// should clean up by calling this method.  Typically this is done using
-  /// [addTearDown], like `addTearDown(TestZulipBinding.instance.reset);`.
+  /// [addTearDown], like `addTearDown(testBinding.reset);`.
   void reset() {
     _globalStore?.dispose();
     _globalStore = null;
@@ -90,7 +95,7 @@ class TestZulipBinding extends ZulipBinding {
           ),
           ErrorHint(
             'Typically this is accomplished using [addTearDown], like '
-            '`addTearDown(TestZulipBinding.instance.reset);`.',
+            '`addTearDown(testBinding.reset);`.',
           ),
         ]);
       }

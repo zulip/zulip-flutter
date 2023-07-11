@@ -26,10 +26,10 @@ Future<void> setupPage(WidgetTester tester, {
   NavigatorObserver? navigatorObserver,
   String? newNameForSelfUser,
 }) async {
-  addTearDown(TestZulipBinding.instance.reset);
+  addTearDown(testBinding.reset);
 
-  await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
   store.addUser(eg.selfUser);
   for (final user in users) {

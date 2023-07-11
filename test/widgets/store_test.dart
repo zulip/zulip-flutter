@@ -49,7 +49,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   testWidgets('GlobalStoreWidget', (WidgetTester tester) async {
-    addTearDown(TestZulipBinding.instance.reset);
+    addTearDown(testBinding.reset);
 
     GlobalStore? globalStore;
     await tester.pumpWidget(
@@ -66,17 +66,17 @@ void main() {
     await tester.pump();
     // Then after loading, mounts child instead, with provided store.
     check(tester.any(find.byType(CircularProgressIndicator))).isFalse();
-    check(globalStore).identicalTo(TestZulipBinding.instance.globalStore);
+    check(globalStore).identicalTo(testBinding.globalStore);
 
-    await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     check(globalStore).isNotNull()
       .accountEntries.single
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
   });
 
   testWidgets('PerAccountStoreWidget basic', (tester) async {
-    final globalStore = TestZulipBinding.instance.globalStore;
-    addTearDown(TestZulipBinding.instance.reset);
+    final globalStore = testBinding.globalStore;
+    addTearDown(testBinding.reset);
     await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
@@ -97,8 +97,8 @@ void main() {
   });
 
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {
-    final globalStore = TestZulipBinding.instance.globalStore;
-    addTearDown(TestZulipBinding.instance.reset);
+    final globalStore = testBinding.globalStore;
+    addTearDown(testBinding.reset);
     await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
@@ -155,7 +155,7 @@ void main() {
     final widgetWithMixinKey = GlobalKey<MyWidgetWithMixinState>();
     final accountId = eg.selfAccount.id;
 
-    await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     Future<void> pumpWithParams({required bool light, required int accountId}) async {
       await tester.pumpWidget(
@@ -190,7 +190,7 @@ void main() {
     //   production code, where we could reasonably add an assert against it.
     //   If forced, we could let this test code proceed despite such an assert…)
     // hack; the snapshot probably corresponds to selfAccount, not otherAccount.
-    await TestZulipBinding.instance.globalStore.add(eg.otherAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
     await pumpWithParams(light: false, accountId: eg.otherAccount.id);
     // Nudge PerAccountStoreWidget to send its updated store to MyWidgetWithMixin.
     //
@@ -205,7 +205,7 @@ void main() {
     // (as it will when widget.accountId has changed), and if so,
     // it will notify dependent widgets. (See its state's didChangeDependencies.)
     // So, take advantage of that.
-    TestZulipBinding.instance.globalStore.notifyListeners();
+    testBinding.globalStore.notifyListeners();
     await tester.pumpAndSettle();
     check(widgetWithMixinKey).currentState.isNotNull()
       ..anyDepChangeCounter.equals(3)
