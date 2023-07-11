@@ -75,9 +75,8 @@ void main() {
   });
 
   testWidgets('PerAccountStoreWidget basic', (tester) async {
-    final globalStore = testBinding.globalStore;
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     addTearDown(testBinding.reset);
-    await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
       Directionality(
@@ -97,9 +96,8 @@ void main() {
   });
 
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {
-    final globalStore = testBinding.globalStore;
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     addTearDown(testBinding.reset);
-    await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     await tester.pumpWidget(
       Directionality(
