@@ -26,9 +26,8 @@ void main() {
     const fontSize = 48.0;
 
     Future<void> prepareContent(WidgetTester tester, String html) async {
-      final globalStore = testBinding.globalStore;
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       addTearDown(testBinding.reset);
-      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
         home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
@@ -122,9 +121,8 @@ void main() {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
     Future<String?> actualAuthHeader(WidgetTester tester, Uri src) async {
-      final globalStore = testBinding.globalStore;
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       addTearDown(testBinding.reset);
-      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       final httpClient = FakeImageHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;
