@@ -1,10 +1,12 @@
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
-export 'package:url_launcher/url_launcher.dart' show LaunchMode;
 
 import '../widgets/store.dart';
 import 'store.dart';
+
+/// Alias for [url_launcher.LaunchMode].
+typedef UrlLaunchMode = url_launcher.LaunchMode;
 
 /// A singleton service providing the app's data and use of Flutter plugins.
 ///
