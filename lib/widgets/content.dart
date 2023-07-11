@@ -695,8 +695,8 @@ void _launchUrl(BuildContext context, String urlString) async {
         //   opening a URL in a browser, where the system gives the user
         //   a bit of UI to choose which browser to use:
         //     https://github.com/zulip/zulip-flutter/issues/74#issuecomment-1514040730
-        TargetPlatform.android => LaunchMode.externalApplication,
-        _ => LaunchMode.platformDefault,
+        TargetPlatform.android => UrlLaunchMode.externalApplication,
+        _ => UrlLaunchMode.platformDefault,
       },
     );
   } on PlatformException catch (e) {
