@@ -26,10 +26,10 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
 }) async {
-  addTearDown(TestZulipBinding.instance.reset);
+  addTearDown(testBinding.reset);
 
-  await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   store.addUser(eg.user(userId: message.senderId));
   if (message is StreamMessage) {
     store.addStream(eg.stream(streamId: message.streamId));
@@ -136,7 +136,7 @@ void main() {
     testWidgets('in stream narrow', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: StreamNarrow(message.streamId));
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -154,7 +154,7 @@ void main() {
     testWidgets('in topic narrow', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -173,7 +173,7 @@ void main() {
       final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
       await setupToMessageActionSheet(tester,
         message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -191,7 +191,7 @@ void main() {
     testWidgets('request has an error', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -235,7 +235,7 @@ void main() {
     });
 
     tearDown(() async {
-      TestZulipBinding.instance.reset();
+      testBinding.reset();
     });
 
     Future<void> tapCopyButton(WidgetTester tester) async {
@@ -247,7 +247,7 @@ void main() {
     testWidgets('success', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
       await tapCopyButton(tester);
@@ -258,7 +258,7 @@ void main() {
     testWidgets('request has an error', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseError(store);
       await tapCopyButton(tester);

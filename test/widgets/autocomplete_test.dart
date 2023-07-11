@@ -20,9 +20,9 @@ import '../model/test_store.dart';
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   required List<User> users,
 }) async {
-  addTearDown(TestZulipBinding.instance.reset);
-  await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+  addTearDown(testBinding.reset);
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   store.addUsers([eg.selfUser, eg.otherUser]);
   store.addUsers(users);
   final connection = store.connection as FakeApiConnection;
@@ -67,7 +67,7 @@ void main() {
       final user2 = eg.user(userId: 2, fullName: 'User Two');
       final user3 = eg.user(userId: 3, fullName: 'User Three');
       final composeInputFinder = await setupToComposeInput(tester, users: [user1, user2, user3]);
-      final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.

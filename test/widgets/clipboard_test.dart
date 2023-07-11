@@ -21,7 +21,7 @@ void main() {
   });
 
   tearDown(() async {
-    TestZulipBinding.instance.reset();
+    testBinding.reset();
   });
 
   group('copyWithPopup', () {
@@ -59,21 +59,21 @@ void main() {
     }
 
     testWidgets('iOS', (WidgetTester tester) async {
-      TestZulipBinding.instance.deviceInfoResult = IosDeviceInfo(systemVersion: '16.0');
+      testBinding.deviceInfoResult = IosDeviceInfo(systemVersion: '16.0');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: true);
     });
 
     testWidgets('Android', (WidgetTester tester) async {
-      TestZulipBinding.instance.deviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
+      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: false);
     });
 
     testWidgets('Android <13', (WidgetTester tester) async {
-      TestZulipBinding.instance.deviceInfoResult = AndroidDeviceInfo(sdkInt: 32);
+      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 32);
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: true);
