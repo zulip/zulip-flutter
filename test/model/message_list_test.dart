@@ -101,7 +101,7 @@ void main() async {
       narrow: narrow.apiEncode(),
       anchor: 'newest',
       numBefore: 100,
-      numAfter: 10,
+      numAfter: 0,
     );
   });
 
