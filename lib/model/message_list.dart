@@ -7,6 +7,9 @@ import 'content.dart';
 import 'narrow.dart';
 import 'store.dart';
 
+/// The number of messages to fetch in each request.
+const kMessageListFetchBatchSize = 100; // TODO tune
+
 /// A view-model for a message list.
 ///
 /// The owner of one of these objects must call [dispose] when the object
@@ -61,7 +64,7 @@ class MessageListView extends ChangeNotifier {
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
       anchor: AnchorCode.newest, // TODO(#80): switch to firstUnread
-      numBefore: 100,
+      numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
     );
     messages.addAll(result.messages);
