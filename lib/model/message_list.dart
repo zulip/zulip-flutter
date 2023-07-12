@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
@@ -26,6 +27,11 @@ class MessageListMessageItem extends MessageListItem {
   MessageListMessageItem(this.message, this.content);
 }
 
+/// Indicates we've reached the oldest message in the narrow.
+class MessageListHistoryStartItem extends MessageListItem {
+  const MessageListHistoryStartItem();
+}
+
 /// The sequence of messages in a message list, and how to display them.
 ///
 /// This comprises much of the guts of [MessageListView].
@@ -42,6 +48,13 @@ mixin _MessageSequence {
   bool get fetched => _fetched;
   bool _fetched = false;
 
+  /// Whether we know we have the oldest messages for this narrow.
+  ///
+  /// (Currently we always have the newest messages for the narrow,
+  /// once [fetched] is true, because we start from the newest.)
+  bool get haveOldest => _haveOldest;
+  bool _haveOldest = false;
+
   /// The parsed message contents, as a list parallel to [messages].
   ///
   /// The i'th element is the result of parsing the i'th element of [messages].
@@ -56,9 +69,10 @@ mixin _MessageSequence {
   /// of [messages], in order.  It may have additional items interspersed
   /// before, between, or after the messages.
   ///
-  /// This information is completely derived from [messages].
+  /// This information is completely derived from [messages] and
+  /// the flag [haveOldest].
   /// It exists as an optimization, to memoize that computation.
-  final List<MessageListItem> items = [];
+  final QueueList<MessageListItem> items = QueueList();
 
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
@@ -71,6 +85,7 @@ mixin _MessageSequence {
 
   static int _compareItemToMessageId(MessageListItem item, int messageId) {
     switch (item) {
+      case MessageListHistoryStartItem():        return -1;
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
     }
   }
@@ -120,12 +135,24 @@ mixin _MessageSequence {
     items.add(MessageListMessageItem(messages[index], contents[index]));
   }
 
-  /// Recompute [items] from scratch, based on [messages] and [contents].
+  /// Update [items] to include markers at start and end as appropriate.
+  void _updateEndMarkers() {
+    switch ((items.firstOrNull, haveOldest)) {
+      case (MessageListHistoryStartItem(), true): break;
+      case (MessageListHistoryStartItem(), _   ): items.removeFirst();
+
+      case (_,                             true): items.addFirst(const MessageListHistoryStartItem());
+      case (_,                                _): break;
+    }
+  }
+
+  /// Recompute [items] from scratch, based on [messages], [contents], and flags.
   void _reprocessAll() {
     items.clear();
     for (var i = 0; i < messages.length; i++) {
       _processMessage(i);
     }
+    _updateEndMarkers();
   }
 }
 
@@ -166,7 +193,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetch() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
-    assert(!fetched);
+    assert(!fetched && !haveOldest);
     assert(messages.isEmpty && contents.isEmpty);
     // TODO schedule all this in another isolate
     final result = await getMessages(store.connection,
@@ -179,6 +206,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       _addMessage(message);
     }
     _fetched = true;
+    _haveOldest = result.foundOldest;
+    _updateEndMarkers();
     notifyListeners();
   }
 

@@ -97,7 +97,9 @@ void main() async {
     checkNotNotified();
     await fetchFuture;
     checkNotifiedOnce();
-    check(model).messages.length.equals(kMessageListFetchBatchSize);
+    check(model)
+      ..messages.length.equals(kMessageListFetchBatchSize)
+      ..haveOldest.isFalse();
     checkLastRequest(
       narrow: narrow.apiEncode(),
       anchor: 'newest',
@@ -114,7 +116,9 @@ void main() async {
     ).toJson());
     await model.fetch();
     checkNotifiedOnce();
-    check(model).messages.length.equals(30);
+    check(model)
+      ..messages.length.equals(30)
+      ..haveOldest.isTrue();
   });
 
   test('fetch, no messages found', () async {
@@ -127,7 +131,8 @@ void main() async {
     checkNotifiedOnce();
     check(model)
       ..fetched.isTrue()
-      ..messages.isEmpty();
+      ..messages.isEmpty()
+      ..haveOldest.isTrue();
   });
 
   test('maybeAddMessage', () async {
@@ -369,7 +374,9 @@ void main() async {
 
 void checkInvariants(MessageListView model) {
   if (!model.fetched) {
-    check(model).messages.isEmpty();
+    check(model)
+      ..messages.isEmpty()
+      ..haveOldest.isFalse();
   }
 
   for (int i = 0; i < model.messages.length - 1; i++) {
@@ -382,11 +389,17 @@ void checkInvariants(MessageListView model) {
       .equalsNode(parseContent(model.messages[i].content));
   }
 
-  check(model).items.length.equals(model.messages.length);
-  for (int i = 0; i < model.items.length; i++) {
-    check(model.items[i]).isA<MessageListMessageItem>()
-      ..message.identicalTo(model.messages[i])
-      ..content.identicalTo(model.contents[i]);
+  check(model).items.length.equals(
+    (model.haveOldest ? 1 : 0)
+    + model.messages.length);
+  int i = 0;
+  if (model.haveOldest) {
+    check(model.items[i++]).isA<MessageListHistoryStartItem>();
+  }
+  for (int j = 0; j < model.messages.length; j++) {
+    check(model.items[i++]).isA<MessageListMessageItem>()
+      ..message.identicalTo(model.messages[j])
+      ..content.identicalTo(model.contents[j]);
   }
 }
 
@@ -402,6 +415,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<List<ZulipContent>> get contents => has((x) => x.contents, 'contents');
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
+  Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
 }
 
 /// A GetMessagesResult the server might return on an `anchor=newest` request.

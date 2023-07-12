@@ -246,6 +246,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       itemBuilder: (context, i) {
         final data = model!.items[length - 1 - i];
         return switch (data) {
+          MessageListHistoryStartItem() =>
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Text("No earlier messages."))), // TODO use an icon
           MessageListMessageItem(:var message, :var content) =>
             MessageItem(
               trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
