@@ -10,6 +10,79 @@ import 'store.dart';
 /// The number of messages to fetch in each request.
 const kMessageListFetchBatchSize = 100; // TODO tune
 
+/// The sequence of messages in a message list, and how to display them.
+///
+/// This comprises much of the guts of [MessageListView].
+mixin _MessageSequence {
+  /// The messages.
+  ///
+  /// See also [contents] and [items].
+  final List<Message> messages = [];
+
+  /// Whether [messages] and [items] represent the results of a fetch.
+  ///
+  /// This allows the UI to distinguish "still working on fetching messages"
+  /// from "there are in fact no messages here".
+  bool get fetched => _fetched;
+  bool _fetched = false;
+
+  /// The parsed message contents, as a list parallel to [messages].
+  ///
+  /// The i'th element is the result of parsing the i'th element of [messages].
+  ///
+  /// This information is completely derived from [messages].
+  /// It exists as an optimization, to memoize the work of parsing.
+  final List<ZulipContent> contents = [];
+
+  // Based on binarySearchBy in package:collection/src/algorithms.dart .
+  // (The package:collection version expects to be passed a whole element,
+  // not just a key -- so here, a whole [Message] rather than a message ID.)
+  @visibleForTesting
+  int findMessageWithId(int messageId) {
+    int min = 0;
+    int max = messages.length;
+    while (min < max) {
+      final mid = min + ((max - min) >> 1);
+      final message = messages[mid];
+      final comp = message.id.compareTo(messageId);
+      if (comp == 0) return mid;
+      if (comp < 0) {
+        min = mid + 1;
+      } else {
+        max = mid;
+      }
+    }
+    return -1;
+  }
+
+  /// Update data derived from the content of the index-th message.
+  void _reparseContent(int index) {
+    contents[index] = parseContent(messages[index].content);
+  }
+
+  /// Append [message] to [messages], and update derived data accordingly.
+  ///
+  /// The caller is responsible for ensuring this is an appropriate thing to do
+  /// given [narrow], our state of being caught up, and other concerns.
+  void _addMessage(Message message) {
+    assert(contents.length == messages.length);
+    messages.add(message);
+    contents.add(parseContent(message.content));
+    assert(contents.length == messages.length);
+    // This will get more complicated to handle the ways that messages interact
+    // with the display of neighboring messages: sender headings #175,
+    // recipient headings #174, and date separators #173.
+  }
+
+  /// Redo all computations from scratch, based on [messages].
+  void _recompute() {
+    assert(contents.length == messages.length);
+    contents.clear();
+    contents.addAll(messages.map((message) => parseContent(message.content)));
+    assert(contents.length == messages.length);
+  }
+}
+
 /// A view-model for a message list.
 ///
 /// The owner of one of these objects must call [dispose] when the object
@@ -25,7 +98,7 @@ const kMessageListFetchBatchSize = 100; // TODO tune
 ///    resources on the [PerAccountStore].
 ///
 /// TODO support fetching another batch
-class MessageListView extends ChangeNotifier {
+class MessageListView with ChangeNotifier, _MessageSequence {
   MessageListView._({required this.store, required this.narrow});
 
   factory MessageListView.init(
@@ -44,23 +117,11 @@ class MessageListView extends ChangeNotifier {
   final PerAccountStore store;
   final Narrow narrow;
 
-  final List<Message> messages = [];
-
-  /// The parsed message contents, as a list parallel to [messages].
-  final List<ZulipContent> contents = [];
-
-  /// Whether [messages] represents the results of a fetch.
-  ///
-  /// TODO this bit of API will get more complex
-  bool get fetched => _fetched;
-  bool _fetched = false;
-
   Future<void> fetch() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
     assert(!fetched);
-    assert(messages.isEmpty);
-    assert(contents.isEmpty);
+    assert(messages.isEmpty && contents.isEmpty);
     // TODO schedule all this in another isolate
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
@@ -68,8 +129,9 @@ class MessageListView extends ChangeNotifier {
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
     );
-    messages.addAll(result.messages);
-    contents.addAll(_contentsOfMessages(result.messages));
+    for (final message in result.messages) {
+      _addMessage(message);
+    }
     _fetched = true;
     notifyListeners();
   }
@@ -86,8 +148,7 @@ class MessageListView extends ChangeNotifier {
       return;
     }
     // TODO insert in middle instead, when appropriate
-    messages.add(message);
-    contents.add(parseContent(message.content));
+    _addMessage(message);
     notifyListeners();
   }
 
@@ -114,27 +175,6 @@ class MessageListView extends ChangeNotifier {
     }
   }
 
-  // Based on binarySearchBy in package:collection/src/algorithms.dart .
-  // (The package:collection version expects to be passed a whole element,
-  // not just a key -- so here, a whole [Message] rather than a message ID.)
-  @visibleForTesting
-  int findMessageWithId(int messageId) {
-    int min = 0;
-    int max = messages.length;
-    while (min < max) {
-      final mid = min + ((max - min) >> 1);
-      final message = messages[mid];
-      final comp = message.id.compareTo(messageId);
-      if (comp == 0) return mid;
-      if (comp < 0) {
-        min = mid + 1;
-      } else {
-        max = mid;
-      }
-    }
-    return -1;
-  }
-
   /// Update the message the given event applies to, if present in this view.
   ///
   /// This method only handles the case where the message's contents
@@ -147,10 +187,8 @@ class MessageListView extends ChangeNotifier {
       return;
     }
 
-    final message = messages[idx];
-    _applyChangesToMessage(event, message);
-
-    contents[idx] = parseContent(message.content);
+    _applyChangesToMessage(event, messages[idx]);
+    _reparseContent(idx);
     notifyListeners();
   }
 
@@ -185,16 +223,7 @@ class MessageListView extends ChangeNotifier {
   /// This will redo from scratch any computations we can, such as parsing
   /// message contents.  It won't repeat network requests.
   void reassemble() {
-    contents.clear();
-    contents.addAll(_contentsOfMessages(messages));
+    _recompute();
     notifyListeners();
-  }
-
-  static Iterable<ZulipContent> _contentsOfMessages(Iterable<Message> messages) {
-    // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175,
-    // recipient headings #174, and date separators #173.
-    // TODO factor [messages] and [contents] into own class to encapsulate that
-    return messages.map((message) => parseContent(message.content));
   }
 }
