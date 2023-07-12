@@ -24,8 +24,7 @@ const kMessageListFetchBatchSize = 100; // TODO tune
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 ///
-/// TODO: richer fetch method: use narrow, take anchor, support fetching another batch
-/// TODO: update on server events
+/// TODO support fetching another batch
 class MessageListView extends ChangeNotifier {
   MessageListView._({required this.store, required this.narrow});
 
@@ -57,13 +56,15 @@ class MessageListView extends ChangeNotifier {
   bool _fetched = false;
 
   Future<void> fetch() async {
+    // TODO(#80): fetch from anchor firstUnread, instead of newest
+    // TODO(#82): fetch from a given message ID as anchor
     assert(!fetched);
     assert(messages.isEmpty);
     assert(contents.isEmpty);
     // TODO schedule all this in another isolate
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
-      anchor: AnchorCode.newest, // TODO(#80): switch to firstUnread
+      anchor: AnchorCode.newest,
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
     );
