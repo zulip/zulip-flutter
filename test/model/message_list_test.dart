@@ -381,6 +381,18 @@ void checkInvariants(MessageListView model) {
     check(model.contents[i])
       .equalsNode(parseContent(model.messages[i].content));
   }
+
+  check(model).items.length.equals(model.messages.length);
+  for (int i = 0; i < model.items.length; i++) {
+    check(model.items[i]).isA<MessageListMessageItem>()
+      ..message.identicalTo(model.messages[i])
+      ..content.identicalTo(model.contents[i]);
+  }
+}
+
+extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
+  Subject<Message> get message => has((x) => x.message, 'message');
+  Subject<ZulipContent> get content => has((x) => x.content, 'content');
 }
 
 extension MessageListViewChecks on Subject<MessageListView> {
@@ -388,6 +400,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
   Subject<List<ZulipContent>> get contents => has((x) => x.contents, 'contents');
+  Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
 }
 

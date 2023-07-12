@@ -11,6 +11,21 @@ import 'store.dart';
 /// The number of messages to fetch in each request.
 const kMessageListFetchBatchSize = 100; // TODO tune
 
+/// A message, or one of its siblings shown in the message list.
+///
+/// See [MessageListView.items], which is a list of these.
+sealed class MessageListItem {
+  const MessageListItem();
+}
+
+/// A message to show in the message list.
+class MessageListMessageItem extends MessageListItem {
+  final Message message;
+  final ZulipContent content;
+
+  MessageListMessageItem(this.message, this.content);
+}
+
 /// The sequence of messages in a message list, and how to display them.
 ///
 /// This comprises much of the guts of [MessageListView].
@@ -35,14 +50,42 @@ mixin _MessageSequence {
   /// It exists as an optimization, to memoize the work of parsing.
   final List<ZulipContent> contents = [];
 
+  /// The messages and their siblings in the UI, in order.
+  ///
+  /// This has a [MessageListMessageItem] corresponding to each element
+  /// of [messages], in order.  It may have additional items interspersed
+  /// before, between, or after the messages.
+  ///
+  /// This information is completely derived from [messages].
+  /// It exists as an optimization, to memoize that computation.
+  final List<MessageListItem> items = [];
+
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
       (message, messageId) => message.id.compareTo(messageId));
   }
 
+  int _findItemWithMessageId(int messageId) {
+    return binarySearchByKey(items, messageId, _compareItemToMessageId);
+  }
+
+  static int _compareItemToMessageId(MessageListItem item, int messageId) {
+    switch (item) {
+      case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
+    }
+  }
+
   /// Update data derived from the content of the index-th message.
   void _reparseContent(int index) {
-    contents[index] = parseContent(messages[index].content);
+    final message = messages[index];
+    final content = parseContent(message.content);
+    contents[index] = content;
+
+    final itemIndex = _findItemWithMessageId(message.id);
+    assert(itemIndex > -1
+      && items[itemIndex] is MessageListMessageItem
+      && identical((items[itemIndex] as MessageListMessageItem).message, message));
+    items[itemIndex] = MessageListMessageItem(message, content);
   }
 
   /// Append [message] to [messages], and update derived data accordingly.
@@ -54,9 +97,7 @@ mixin _MessageSequence {
     messages.add(message);
     contents.add(parseContent(message.content));
     assert(contents.length == messages.length);
-    // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175,
-    // recipient headings #174, and date separators #173.
+    _processMessage(messages.length - 1);
   }
 
   /// Redo all computations from scratch, based on [messages].
@@ -65,6 +106,26 @@ mixin _MessageSequence {
     contents.clear();
     contents.addAll(messages.map((message) => parseContent(message.content)));
     assert(contents.length == messages.length);
+    _reprocessAll();
+  }
+
+  /// Append to [items] based on the index-th message and its content.
+  ///
+  /// The previous messages in the list must already have been processed.
+  /// This message must already have been parsed and reflected in [contents].
+  void _processMessage(int index) {
+    // This will get more complicated to handle the ways that messages interact
+    // with the display of neighboring messages: sender headings #175,
+    // recipient headings #174, and date separators #173.
+    items.add(MessageListMessageItem(messages[index], contents[index]));
+  }
+
+  /// Recompute [items] from scratch, based on [messages] and [contents].
+  void _reprocessAll() {
+    items.clear();
+    for (var i = 0; i < messages.length; i++) {
+      _processMessage(i);
+    }
   }
 }
 
