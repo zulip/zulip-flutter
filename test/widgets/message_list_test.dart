@@ -61,12 +61,61 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('ScrollToBottomButton interactions', () {
-    ScrollController? findMessageListScrollController(WidgetTester tester) {
-      final stickyHeaderListView = tester.widget<StickyHeaderListView>(find.byType(StickyHeaderListView));
-      return stickyHeaderListView.controller;
-    }
+  ScrollController? findMessageListScrollController(WidgetTester tester) {
+    final stickyHeaderListView = tester.widget<StickyHeaderListView>(find.byType(StickyHeaderListView));
+    return stickyHeaderListView.controller;
+  }
 
+  group('fetch older messages on scroll', () {
+    int? itemCount(WidgetTester tester) =>
+      tester.widget<StickyHeaderListView>(find.byType(StickyHeaderListView)).semanticChildCount;
+
+    testWidgets('basic', (tester) async {
+      await setupMessageListPage(tester, foundOldest: false,
+        messages: List.generate(30, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+      check(itemCount(tester)).equals(30);
+
+      // Fling-scroll upward...
+      await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
+      await tester.pump();
+
+      // ... and we should fetch more messages as we go.
+      connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
+      await tester.pump(const Duration(seconds: 3)); // Fast-forward to end of fling.
+      await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
+
+      // Now we have more messages.
+      check(itemCount(tester)).equals(130);
+    });
+
+    testWidgets('observe double-fetch glitch', (tester) async {
+      await setupMessageListPage(tester, foundOldest: false,
+        messages: List.generate(30, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+      check(itemCount(tester)).equals(30);
+
+      // Fling-scroll upward...
+      await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
+      await tester.pump();
+
+      // ... and we fetch more messages as we go.
+      connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(Duration.zero);
+      check(itemCount(tester)).equals(130);
+
+      // But on the next frame, we promptly fetch *another* batch.
+      // This is a glitch and it'd be nicer if we didn't.
+      connection.prepare(json: olderResult(anchor: 850, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump(Duration.zero);
+      check(itemCount(tester)).equals(230);
+    });
+  });
+
+  group('ScrollToBottomButton interactions', () {
     bool isButtonVisible(WidgetTester tester) {
       return tester.any(find.descendant(
         of: find.byType(ScrollToBottomButton),

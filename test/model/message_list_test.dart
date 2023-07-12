@@ -26,14 +26,12 @@ void main() async {
   late MessageListView model;
   late int notifiedCount;
 
-  void checkNotNotified() {
-    check(notifiedCount).equals(0);
-  }
-
-  void checkNotifiedOnce() {
-    check(notifiedCount).equals(1);
+  void checkNotified({required int count}) {
+    check(notifiedCount).equals(count);
     notifiedCount = 0;
   }
+  void checkNotNotified() => checkNotified(count: 0);
+  void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
   void prepare({Narrow narrow = const AllMessagesNarrow()}) {
@@ -59,7 +57,7 @@ void main() async {
   }) async {
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
-    await model.fetch();
+    await model.fetchInitial();
     checkNotifiedOnce();
   }
 
@@ -82,7 +80,7 @@ void main() async {
       });
   }
 
-  test('fetch', () async {
+  test('fetchInitial', () async {
     const narrow = AllMessagesNarrow();
     prepare(narrow: narrow);
     connection.prepare(json: newestResult(
@@ -90,7 +88,7 @@ void main() async {
       messages: List.generate(kMessageListFetchBatchSize,
         (i) => eg.streamMessage(id: 1000 + i)),
     ).toJson());
-    final fetchFuture = model.fetch();
+    final fetchFuture = model.fetchInitial();
     check(model).fetched.isFalse();
     checkInvariants(model);
 
@@ -108,31 +106,125 @@ void main() async {
     );
   });
 
-  test('fetch, short history', () async {
+  test('fetchInitial, short history', () async {
     prepare();
     connection.prepare(json: newestResult(
       foundOldest: true,
       messages: List.generate(30, (i) => eg.streamMessage(id: 1000 + i)),
     ).toJson());
-    await model.fetch();
+    await model.fetchInitial();
     checkNotifiedOnce();
     check(model)
       ..messages.length.equals(30)
       ..haveOldest.isTrue();
   });
 
-  test('fetch, no messages found', () async {
+  test('fetchInitial, no messages found', () async {
     prepare();
     connection.prepare(json: newestResult(
       foundOldest: true,
       messages: [],
     ).toJson());
-    await model.fetch();
+    await model.fetchInitial();
     checkNotifiedOnce();
     check(model)
       ..fetched.isTrue()
       ..messages.isEmpty()
       ..haveOldest.isTrue();
+  });
+
+  test('fetchOlder', () async {
+    const narrow = AllMessagesNarrow();
+    prepare(narrow: narrow);
+    await prepareMessages(foundOldest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+
+    connection.prepare(json: olderResult(
+      anchor: 1000, foundOldest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+    ).toJson());
+    final fetchFuture = model.fetchOlder();
+    checkNotifiedOnce();
+    check(model).fetchingOlder.isTrue();
+
+    await fetchFuture;
+    checkNotifiedOnce();
+    check(model)
+      ..fetchingOlder.isFalse()
+      ..messages.length.equals(200);
+    checkLastRequest(
+      narrow: narrow.apiEncode(),
+      anchor: '1000',
+      includeAnchor: false,
+      numBefore: kMessageListFetchBatchSize,
+      numAfter: 0,
+    );
+  });
+
+  test('fetchOlder nop when already fetching', () async {
+    const narrow = AllMessagesNarrow();
+    prepare(narrow: narrow);
+    await prepareMessages(foundOldest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+
+    connection.prepare(json: olderResult(
+      anchor: 1000, foundOldest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+    ).toJson());
+    final fetchFuture = model.fetchOlder();
+    checkNotifiedOnce();
+    check(model).fetchingOlder.isTrue();
+
+    // Don't prepare another response.
+    final fetchFuture2 = model.fetchOlder();
+    checkNotNotified();
+    checkInvariants(model);
+    check(model).fetchingOlder.isTrue();
+
+    await fetchFuture;
+    await fetchFuture2;
+    // We must not have made another request, because we didn't
+    // prepare another response and didn't get an exception.
+    checkNotifiedOnce();
+    check(model)
+      ..fetchingOlder.isFalse()
+      ..messages.length.equals(200);
+  });
+
+  test('fetchOlder nop when already haveOldest true', () async {
+    prepare(narrow: const AllMessagesNarrow());
+    await prepareMessages(foundOldest: true, messages:
+      List.generate(30, (i) => eg.streamMessage(id: 1000 + i)));
+    check(model)
+      ..haveOldest.isTrue()
+      ..messages.length.equals(30);
+
+    await model.fetchOlder();
+    // We must not have made a request, because we didn't
+    // prepare a response and didn't get an exception.
+    checkNotNotified();
+    checkInvariants(model);
+    check(model)
+      ..haveOldest.isTrue()
+      ..messages.length.equals(30);
+  });
+
+  test('fetchOlder handles servers not understanding includeAnchor', () async {
+    const narrow = AllMessagesNarrow();
+    prepare(narrow: narrow);
+    await prepareMessages(foundOldest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+
+    // The old behavior is to include the anchor message regardless of includeAnchor.
+    connection.prepare(json: olderResult(
+      anchor: 1000, foundOldest: false, foundAnchor: true,
+      messages: List.generate(101, (i) => eg.streamMessage(id: 900 + i)),
+    ).toJson());
+    await model.fetchOlder();
+    checkNotified(count: 2);
+    check(model)
+      ..fetchingOlder.isFalse()
+      ..messages.length.equals(200);
   });
 
   test('maybeAddMessage', () async {
@@ -376,7 +468,11 @@ void checkInvariants(MessageListView model) {
   if (!model.fetched) {
     check(model)
       ..messages.isEmpty()
-      ..haveOldest.isFalse();
+      ..haveOldest.isFalse()
+      ..fetchingOlder.isFalse();
+  }
+  if (model.haveOldest) {
+    check(model).fetchingOlder.isFalse();
   }
 
   for (int i = 0; i < model.messages.length - 1; i++) {
@@ -390,11 +486,14 @@ void checkInvariants(MessageListView model) {
   }
 
   check(model).items.length.equals(
-    (model.haveOldest ? 1 : 0)
+    ((model.haveOldest || model.fetchingOlder) ? 1 : 0)
     + model.messages.length);
   int i = 0;
   if (model.haveOldest) {
     check(model.items[i++]).isA<MessageListHistoryStartItem>();
+  }
+  if (model.fetchingOlder) {
+    check(model.items[i++]).isA<MessageListLoadingItem>();
   }
   for (int j = 0; j < model.messages.length; j++) {
     check(model.items[i++]).isA<MessageListMessageItem>()
@@ -416,6 +515,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
+  Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
 }
 
 /// A GetMessagesResult the server might return on an `anchor=newest` request.
@@ -431,6 +531,24 @@ GetMessagesResult newestResult({
     foundAnchor: false,
     foundNewest: true,
 
+    foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
+/// A GetMessagesResult the server might return when we request older messages.
+GetMessagesResult olderResult({
+  required int anchor,
+  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  required bool foundOldest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundNewest: false, // empirically always this, even when anchor happens to be latest
     foundOldest: foundOldest,
     historyLimited: historyLimited,
     messages: messages,
