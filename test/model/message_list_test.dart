@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/message_list.dart';
@@ -11,6 +15,7 @@ import 'package:zulip/model/store.dart';
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
 import 'content_checks.dart';
 
 void main() async {
@@ -57,6 +62,106 @@ void main() async {
     await model.fetch();
     checkNotifiedOnce();
   }
+
+  void checkLastRequest({
+    required ApiNarrow narrow,
+    required String anchor,
+    bool? includeAnchor,
+    required int numBefore,
+    required int numAfter,
+  }) {
+    check(connection.lastRequest).isA<http.Request>()
+      ..method.equals('GET')
+      ..url.path.equals('/api/v1/messages')
+      ..url.queryParameters.deepEquals({
+        'narrow': jsonEncode(narrow),
+        'anchor': anchor,
+        if (includeAnchor != null) 'include_anchor': includeAnchor.toString(),
+        'num_before': numBefore.toString(),
+        'num_after': numAfter.toString(),
+      });
+  }
+
+  test('fetch', () async {
+    const narrow = AllMessagesNarrow();
+    prepare(narrow: narrow);
+    connection.prepare(json: newestResult(
+      foundOldest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)),
+    ).toJson());
+    final fetchFuture = model.fetch();
+    check(model).fetched.isFalse();
+    checkInvariants(model);
+
+    checkNotNotified();
+    await fetchFuture;
+    checkNotifiedOnce();
+    check(model).messages.length.equals(100);
+    checkLastRequest(
+      narrow: narrow.apiEncode(),
+      anchor: 'newest',
+      numBefore: 100,
+      numAfter: 10,
+    );
+  });
+
+  test('fetch, short history', () async {
+    prepare();
+    connection.prepare(json: newestResult(
+      foundOldest: true,
+      messages: List.generate(30, (i) => eg.streamMessage(id: 1000 + i)),
+    ).toJson());
+    await model.fetch();
+    checkNotifiedOnce();
+    check(model).messages.length.equals(30);
+  });
+
+  test('fetch, no messages found', () async {
+    prepare();
+    connection.prepare(json: newestResult(
+      foundOldest: true,
+      messages: [],
+    ).toJson());
+    await model.fetch();
+    checkNotifiedOnce();
+    check(model)
+      ..fetched.isTrue()
+      ..messages.isEmpty();
+  });
+
+  test('maybeAddMessage', () async {
+    final stream = eg.stream();
+    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepareMessages(foundOldest: true, messages:
+      List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
+
+    check(model).messages.length.equals(30);
+    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: stream));
+    checkNotifiedOnce();
+    check(model).messages.length.equals(31);
+  });
+
+  test('maybeAddMessage, not in narrow', () async {
+    final stream = eg.stream(streamId: 123);
+    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepareMessages(foundOldest: true, messages:
+      List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
+
+    check(model).messages.length.equals(30);
+    final otherStream = eg.stream(streamId: 234);
+    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: otherStream));
+    checkNotNotified();
+    check(model).messages.length.equals(30);
+  });
+
+  test('maybeAddMessage, before fetch', () async {
+    final stream = eg.stream();
+    prepare(narrow: StreamNarrow(stream.streamId));
+    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: stream));
+    checkNotNotified();
+    check(model).fetched.isFalse();
+    checkInvariants(model);
+  });
 
   test('findMessageWithId', () async {
     prepare();
@@ -253,6 +358,29 @@ void main() async {
         check(model).messages.single.reactions.jsonEquals([eg.unicodeEmojiReaction]);
       });
     });
+  });
+
+  test('reassemble', () async {
+    final stream = eg.stream();
+    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepareMessages(foundOldest: true, messages:
+      List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
+    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: stream));
+    checkNotifiedOnce();
+    check(model).messages.length.equals(31);
+
+    // Mess with model.contents, to simulate it having come from
+    // a previous version of the code.
+    final correctContent = parseContent(model.messages[0].content);
+    model.contents[0] = const ZulipContent(nodes: [
+      ParagraphNode(links: null, nodes: [TextNode('something outdated')])
+    ]);
+    check(model.contents[0]).not(it()..equalsNode(correctContent));
+
+    model.reassemble();
+    checkNotifiedOnce();
+    check(model).messages.length.equals(31);
+    check(model.contents[0]).equalsNode(correctContent);
   });
 }
 
