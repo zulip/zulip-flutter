@@ -11,3 +11,8 @@ test/model/schemas/*.json -diff
 # information independent of any non-generated file in the tree.
 # And thankfully it's much less verbose than, say, a yarn.lock.
 #pubspec.lock -diff
+
+
+# Treat SVG files as binary.  They're XML, but typically
+# generated from a GUI editor and unenlightening to read.
+*.svg binary
