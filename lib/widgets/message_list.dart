@@ -11,6 +11,7 @@ import '../model/store.dart';
 import 'action_sheet.dart';
 import 'compose_box.dart';
 import 'content.dart';
+import 'icons.dart';
 import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
@@ -70,6 +71,27 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   final Narrow narrow;
 
+  Widget _buildStreamRow(ZulipStream? stream, String text) {
+    final icon = switch (stream) {
+      ZulipStream(isWebPublic: true) => ZulipIcons.globe,
+      ZulipStream(inviteOnly: true) => ZulipIcons.lock,
+      ZulipStream() => ZulipIcons.hash_sign,
+      null => null, // A null [Icon.icon] makes a blank space.
+    };
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
+      //   For screenshots of some experiments, see:
+      //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Icon(size: 16, icon),
+        const SizedBox(width: 8),
+        Flexible(child: Text(text)),
+      ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (narrow) {
@@ -78,13 +100,15 @@ class MessageListAppBarTitle extends StatelessWidget {
 
       case StreamNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
-        return Text("#$streamName"); // TODO show stream privacy icon
+        final stream = store.streams[streamId];
+        final streamName = stream?.name ?? '(unknown stream)';
+        return _buildStreamRow(stream, streamName);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
-        return Text("#$streamName > $topic"); // TODO show stream privacy icon; format on two lines
+        final stream = store.streams[streamId];
+        final streamName = stream?.name ?? '(unknown stream)';
+        return _buildStreamRow(stream, "$streamName > $topic");
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
