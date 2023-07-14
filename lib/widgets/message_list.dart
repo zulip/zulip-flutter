@@ -448,6 +448,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600)))),
           // TODO topic links?
           // Then web also has edit/resolve/mute buttons. Skip those for mobile.
+          RecipientHeaderDate(message: message),
         ])));
   }
 }
@@ -486,17 +487,40 @@ class DmRecipientHeader extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: _kDmRecipientHeaderColor)),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: RecipientHeaderChevronContainer(
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          RecipientHeaderChevronContainer(
             color: _kDmRecipientHeaderColor,
             child: Text(style: const TextStyle(color: Colors.white),
-              title)))));
+              title)),
+          RecipientHeaderDate(message: message),
+        ])));
   }
 }
 
-final _kDmRecipientHeaderColor =
-    const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor();
+final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor();
+
+class RecipientHeaderDate extends StatelessWidget {
+  const RecipientHeaderDate({super.key, required this.message});
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      child: Text(
+        style: _kRecipientHeaderDateStyle,
+        _kRecipientHeaderDateFormat.format(
+          DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000))));
+  }
+}
+
+final _kRecipientHeaderDateStyle = TextStyle(
+  fontWeight: FontWeight.w600,
+  color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+);
+
+final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(i18n)
 
 /// A widget with the distinctive chevron-tailed shape in Zulip recipient headers.
 class RecipientHeaderChevronContainer extends StatelessWidget {

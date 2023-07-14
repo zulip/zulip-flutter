@@ -201,6 +201,24 @@ void main() {
       tester.widget(find.text("You and (unknown user)"));
       tester.widget(find.text("You and (unknown user), ${eg.thirdUser.fullName}"));
     });
+
+    testWidgets('show dates', (tester) async {
+      await setupMessageListPage(tester, messages: [
+        eg.streamMessage(timestamp: 1671409088),
+        eg.dmMessage(timestamp: 1692755322, from: eg.selfUser, to: []),
+      ]);
+      // We show the dates in the user's timezone.  Dart's standard library
+      // doesn't give us a way to control which timezone is used — only to
+      // choose between UTC and the user's timezone, whatever that may be.
+      // So we do the latter, and that means these dates come out differently
+      // depending on the timezone in the environment running the tests.
+      // Related upstream issues:
+      //   https://github.com/dart-lang/sdk/issues/28985 (about DateTime.now, not timezone)
+      //   https://github.com/dart-lang/sdk/issues/44928 (about the Dart implementation's own internal tests)
+      // For this test, just accept outputs corresponding to any possible timezone.
+      tester.widget(find.textContaining(RegExp("2022-12-1[89]")));
+      tester.widget(find.textContaining(RegExp("2023-08-2[23]")));
+    });
   });
 
   group('MessageWithSender', () {
