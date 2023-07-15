@@ -180,16 +180,20 @@ mixin _MessageSequence {
     // and date separators #173.
     final message = messages[index];
     final content = contents[index];
+    bool canShareSender;
     if (index > 0 && canShareRecipientHeader(messages[index - 1], message)) {
       assert(items.last is MessageListMessageItem);
       final prevMessageItem = items.last as MessageListMessageItem;
       assert(identical(prevMessageItem.message, messages[index - 1]));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
+      canShareSender = (prevMessageItem.message.senderId == message.senderId);
     } else {
       items.add(MessageListRecipientHeaderItem(message));
+      canShareSender = false;
     }
-    items.add(MessageListMessageItem(message, content, showSender: true, isLastInBlock: true));
+    items.add(MessageListMessageItem(message, content,
+      showSender: !canShareSender, isLastInBlock: true));
   }
 
   /// Update [items] to include markers at start and end as appropriate.
@@ -403,7 +407,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// were changed, and ignores any changes to its stream or topic.
   ///
   /// TODO(#150): Handle message moves.
-  // NB that when handling message moves (#150), recipient headers may need updating.
+  // NB that when handling message moves (#150), recipient headers
+  // may need updating, and consequently showSender too.
   void maybeUpdateMessage(UpdateMessageEvent event) {
     final idx = _findMessageWithId(event.messageId);
     if (idx == -1)  {
