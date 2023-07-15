@@ -280,11 +280,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: CircularProgressIndicator())), // TODO perhaps a different indicator
-          MessageListMessageItem(:var message, :var content) =>
+          MessageListMessageItem() =>
             MessageItem(
               trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
-              message: message,
-              content: content)
+              item: data),
         };
       });
   }
@@ -326,13 +325,11 @@ class ScrollToBottomButton extends StatelessWidget {
 class MessageItem extends StatelessWidget {
   const MessageItem({
     super.key,
-    required this.message,
-    required this.content,
+    required this.item,
     this.trailing,
   });
 
-  final Message message;
-  final ZulipContent content;
+  final MessageListMessageItem item;
   final Widget? trailing;
 
   @override
@@ -340,22 +337,21 @@ class MessageItem extends StatelessWidget {
     // TODO recipient headings depend on narrow
 
     final store = PerAccountStoreWidget.of(context);
+    final message = item.message;
 
     Color highlightBorderColor;
     Color restBorderColor;
     Widget recipientHeader;
     if (message is StreamMessage) {
-      final msg = (message as StreamMessage);
-      final subscription = store.subscriptions[msg.streamId];
+      final subscription = store.subscriptions[message.streamId];
       highlightBorderColor = colorForStream(subscription);
       restBorderColor = _kStreamMessageBorderColor;
       recipientHeader = StreamTopicRecipientHeader(
-        message: msg, streamColor: highlightBorderColor);
+        message: message, streamColor: highlightBorderColor);
     } else if (message is DmMessage) {
-      final msg = (message as DmMessage);
       highlightBorderColor = _kDmRecipientHeaderColor;
       restBorderColor = _kDmRecipientHeaderColor;
-      recipientHeader = DmRecipientHeader(message: msg);
+      recipientHeader = DmRecipientHeader(message: message);
     } else {
       throw Exception("impossible message type: ${message.runtimeType}");
     }
@@ -376,7 +372,7 @@ class MessageItem extends StatelessWidget {
       content: Column(children: [
         DecoratedBox(
           decoration: borderDecoration,
-          child: MessageWithSender(message: message, content: content)),
+          child: MessageWithSender(message: message, content: item.content)),
         if (trailing != null) trailing!,
       ]));
 
