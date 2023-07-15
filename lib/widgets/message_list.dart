@@ -281,6 +281,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: CircularProgressIndicator())); // TODO perhaps a different indicator
+          case MessageListRecipientHeaderItem():
+            final header = RecipientHeader(message: data.message);
+            return StickyHeaderItem(allowOverflow: true,
+              header: header, child: header);
           case MessageListMessageItem():
             return MessageItem(
               trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
@@ -376,17 +380,19 @@ class MessageItem extends StatelessWidget {
       // right than at bottom and in the recipient header: black 10% alpha,
       // vs. 88% lightness.  Assume that's an accident.
       shape: Border(
-        left: recipientBorder, bottom: restBorder, right: restBorder));
+        left: recipientBorder,
+        right: restBorder,
+        bottom: item.isLastInBlock ? restBorder : BorderSide.none,
+      ));
 
-    final recipientHeader = RecipientHeader(message: message);
     return StickyHeaderItem(
-      header: recipientHeader,
+      allowOverflow: !item.isLastInBlock,
+      header: RecipientHeader(message: message),
       child: Column(children: [
-        recipientHeader,
         DecoratedBox(
           decoration: borderDecoration,
           child: MessageWithSender(message: message, content: item.content)),
-        if (trailing != null) trailing!,
+        if (trailing != null && item.isLastInBlock) trailing!,
       ]));
 
     // Web handles the left-side recipient marker in a funky way:
