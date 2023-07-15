@@ -468,12 +468,16 @@ class DmRecipientHeader extends StatelessWidget {
         Navigator.push(context,
           MessageListPage.buildRoute(context: context, narrow: narrow));
       },
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: RecipientHeaderChevronContainer(
-          color: _kDmRecipientHeaderColor,
-          child: const Text("Direct message", // TODO DM recipient headers
-            style: TextStyle(color: Colors.white)))));
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: _kDmRecipientHeaderColor)),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: RecipientHeaderChevronContainer(
+            color: _kDmRecipientHeaderColor,
+            child: const Text("Direct message", // TODO DM recipient headers
+              style: TextStyle(color: Colors.white))))));
   }
 }
 
