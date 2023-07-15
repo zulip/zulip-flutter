@@ -29,9 +29,15 @@ class MessageListRecipientHeaderItem extends MessageListItem {
 class MessageListMessageItem extends MessageListItem {
   final Message message;
   ZulipContent content;
+  bool showSender;
   bool isLastInBlock;
 
-  MessageListMessageItem(this.message, this.content, {required this.isLastInBlock});
+  MessageListMessageItem(
+    this.message,
+    this.content, {
+    required this.showSender,
+    required this.isLastInBlock,
+  });
 }
 
 /// Indicates the app is loading more messages at the top.
@@ -183,7 +189,7 @@ mixin _MessageSequence {
     } else {
       items.add(MessageListRecipientHeaderItem(message));
     }
-    items.add(MessageListMessageItem(message, content, isLastInBlock: true));
+    items.add(MessageListMessageItem(message, content, showSender: true, isLastInBlock: true));
   }
 
   /// Update [items] to include markers at start and end as appropriate.
