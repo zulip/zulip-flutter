@@ -580,25 +580,30 @@ class MessageWithPossibleSender extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
-            child: GestureDetector(
-              onTap: () => Navigator.push(context,
-                ProfilePage.buildRoute(context: context,
-                  userId: message.senderId)),
-              child: Avatar(userId: message.senderId, size: 35, borderRadius: 4))),
+          item.showSender
+            ? Padding(
+                padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
+                child: GestureDetector(
+                  onTap: () => Navigator.push(context,
+                    ProfilePage.buildRoute(context: context,
+                      userId: message.senderId)),
+                  child: Avatar(size: 35, borderRadius: 4,
+                    userId: message.senderId)))
+            : const SizedBox(width: 3 + 35 + 11),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 3),
-                GestureDetector(
-                  onTap: () => Navigator.push(context,
-                    ProfilePage.buildRoute(context: context,
-                      userId: message.senderId)),
-                  child: Text(message.senderFullName, // TODO get from user data
-                    style: const TextStyle(fontWeight: FontWeight.bold))),
-                const SizedBox(height: 4),
+                if (item.showSender) ...[
+                  const SizedBox(height: 3),
+                  GestureDetector(
+                    onTap: () => Navigator.push(context,
+                      ProfilePage.buildRoute(context: context,
+                        userId: message.senderId)),
+                    child: Text(message.senderFullName, // TODO get from user data
+                      style: const TextStyle(fontWeight: FontWeight.bold))),
+                  const SizedBox(height: 4),
+                ],
                 MessageContent(message: message, content: item.content),
               ])),
           Container(

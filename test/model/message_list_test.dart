@@ -677,6 +677,7 @@ void checkInvariants(MessageListView model) {
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
       ..content.identicalTo(model.contents[j])
+      ..showSender.isTrue()
       ..isLastInBlock.equals(
         i == model.items.length || model.items[i] is! MessageListMessageItem);
   }
@@ -690,6 +691,7 @@ extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHe
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
   Subject<Message> get message => has((x) => x.message, 'message');
   Subject<ZulipContent> get content => has((x) => x.content, 'content');
+  Subject<bool> get showSender => has((x) => x.showSender, 'showSender');
   Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
 }
 
