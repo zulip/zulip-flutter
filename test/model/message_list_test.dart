@@ -486,7 +486,7 @@ void checkInvariants(MessageListView model) {
 
   check(model).items.length.equals(
     ((model.haveOldest || model.fetchingOlder) ? 1 : 0)
-    + model.messages.length);
+    + 2 * model.messages.length);
   int i = 0;
   if (model.haveOldest) {
     check(model.items[i++]).isA<MessageListHistoryStartItem>();
@@ -495,15 +495,23 @@ void checkInvariants(MessageListView model) {
     check(model.items[i++]).isA<MessageListLoadingItem>();
   }
   for (int j = 0; j < model.messages.length; j++) {
+    check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
+      .message.identicalTo(model.messages[j]);
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
-      ..content.identicalTo(model.contents[j]);
+      ..content.identicalTo(model.contents[j])
+      ..isLastInBlock.isTrue();
   }
+}
+
+extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
+  Subject<Message> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
   Subject<Message> get message => has((x) => x.message, 'message');
   Subject<ZulipContent> get content => has((x) => x.content, 'content');
+  Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
 }
 
 extension MessageListViewChecks on Subject<MessageListView> {

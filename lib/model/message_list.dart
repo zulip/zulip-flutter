@@ -19,12 +19,19 @@ sealed class MessageListItem {
   const MessageListItem();
 }
 
+class MessageListRecipientHeaderItem extends MessageListItem {
+  final Message message;
+
+  MessageListRecipientHeaderItem(this.message);
+}
+
 /// A message to show in the message list.
 class MessageListMessageItem extends MessageListItem {
   final Message message;
   final ZulipContent content;
+  final bool isLastInBlock;
 
-  MessageListMessageItem(this.message, this.content);
+  MessageListMessageItem(this.message, this.content, {required this.isLastInBlock});
 }
 
 /// Indicates the app is loading more messages at the top.
@@ -104,6 +111,8 @@ mixin _MessageSequence {
         switch (item.direction) {
           case MessageListDirection.older:       return -1;
         }
+      case MessageListRecipientHeaderItem(:var message):
+        return (message.id <= messageId) ? -1 : 1;
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
     }
   }
@@ -118,7 +127,7 @@ mixin _MessageSequence {
     assert(itemIndex > -1
       && items[itemIndex] is MessageListMessageItem
       && identical((items[itemIndex] as MessageListMessageItem).message, message));
-    items[itemIndex] = MessageListMessageItem(message, content);
+    items[itemIndex] = MessageListMessageItem(isLastInBlock: true, message, content);
   }
 
   /// Append [message] to [messages], and update derived data accordingly.
@@ -163,7 +172,11 @@ mixin _MessageSequence {
     // This will get more complicated to handle the ways that messages interact
     // with the display of neighboring messages: sender headings #175,
     // recipient headings #174, and date separators #173.
-    items.add(MessageListMessageItem(messages[index], contents[index]));
+    items.add(MessageListRecipientHeaderItem(messages[index]));
+    items.add(MessageListMessageItem(
+      isLastInBlock: true,
+      messages[index], contents[index],
+    ));
   }
 
   /// Update [items] to include markers at start and end as appropriate.
