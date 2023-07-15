@@ -549,6 +549,43 @@ void main() async {
     checkNotifiedOnce();
   });
 
+  test('showSender is maintained correctly', () async {
+    // TODO(#150): This will get more complicated with message moves.
+    // Until then, we always compute this sequentially from oldest to newest.
+    // So we just need to exercise the different cases of the logic for
+    // whether the sender should be shown, but the difference between
+    // fetchInitial and maybeAddMessage etc. doesn't matter.
+
+    const timestamp = 1693602618;
+    final stream = eg.stream();
+    Message streamMessage(int id, User sender) =>
+      eg.streamMessage(id: id, sender: sender,
+        stream: stream, topic: 'foo', timestamp: timestamp);
+    Message dmMessage(int id, User sender) =>
+      eg.dmMessage(id: id, from: sender, timestamp: timestamp,
+        to: [sender.userId == eg.selfUser.userId ? eg.otherUser : eg.selfUser]);
+
+    prepare();
+    await prepareMessages(foundOldest: true, messages: [
+      streamMessage(1, eg.selfUser),  // first message, so show sender
+      streamMessage(2, eg.selfUser),  // hide sender
+      streamMessage(3, eg.otherUser), // no recipient header, but new sender
+      dmMessage(4,     eg.otherUser), // same sender, but recipient header
+    ]);
+
+    // We check showSender has the right values in [checkInvariants],
+    // but to make this test explicit:
+    check(model.items).deepEquals([
+      it()..isA<MessageListHistoryStartItem>(),
+      it()..isA<MessageListRecipientHeaderItem>(),
+      it()..isA<MessageListMessageItem>().showSender.isTrue(),
+      it()..isA<MessageListMessageItem>().showSender.isFalse(),
+      it()..isA<MessageListMessageItem>().showSender.isTrue(),
+      it()..isA<MessageListRecipientHeaderItem>(),
+      it()..isA<MessageListMessageItem>().showSender.isTrue(),
+    ]);
+  });
+
   group('canShareRecipientHeader', () {
     test('stream messages vs DMs, no share', () {
       final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
@@ -669,15 +706,18 @@ void checkInvariants(MessageListView model) {
     check(model.items[i++]).isA<MessageListLoadingItem>();
   }
   for (int j = 0; j < model.messages.length; j++) {
+    bool isFirstInBlock = false;
     if (j == 0
         || !canShareRecipientHeader(model.messages[j-1], model.messages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(model.messages[j]);
+      isFirstInBlock = true;
     }
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
       ..content.identicalTo(model.contents[j])
-      ..showSender.isTrue()
+      ..showSender.equals(
+        isFirstInBlock || model.messages[j].senderId != model.messages[j-1].senderId)
       ..isLastInBlock.equals(
         i == model.items.length || model.items[i] is! MessageListMessageItem);
   }
