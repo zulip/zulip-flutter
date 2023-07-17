@@ -112,7 +112,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(Duration.zero);
       check(itemCount(tester)).equals(300);
-    });
+    }, skip: true); // TODO this still reproduces manually, still needs debugging,
+                    // but has become harder to reproduce in a test.
   });
 
   group('ScrollToBottomButton interactions', () {

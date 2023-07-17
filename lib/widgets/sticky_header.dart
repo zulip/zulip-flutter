@@ -3,12 +3,109 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+/// A list item that provides a sticky header for an enclosing [StickyHeaderListView].
+///
+/// This widget wraps its [child] with no effect on the latter's layout.
+///
+/// When this widget is a list item in a [StickyHeaderListView],
+/// and is the item that the list selects for obtaining a sticky header,
+/// then this widget's [header] widget is built and used as the sticky header.
+class StickyHeaderItem extends SingleChildRenderObjectWidget {
+  const StickyHeaderItem({
+    super.key,
+    this.allowOverflow = false,
+    required this.header,
+    super.child,
+  });
+
+  /// Whether to allow the sticky header to overflow the item's own bounds.
+  ///
+  /// When [allowOverflow] is false (the default) and an enclosing
+  /// [StickyHeaderListView] displays a sticky header based on this item,
+  /// the header will be scrolled partially out of the viewport if necessary
+  /// in order to keep it within the bounds that were laid out for [child].
+  ///
+  /// When [allowOverflow] is true, such a header will be shown in full,
+  /// adjoining the edge of the viewport, even if the underlying [child] would
+  /// have been visible for a smaller extent than the extent of the header.
+  final bool allowOverflow;
+
+  /// The widget to use as the sticky header corresponding to this item.
+  ///
+  /// When this [StickyHeaderItem] is the list item at the applicable edge
+  /// of the list in an enclosing [StickyHeaderListView], this [header] widget
+  /// will be built and laid out to display as the sticky header.
+  final Widget header;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderStickyHeaderItem(
+      allowOverflow: allowOverflow,
+      header: header,
+    );
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderStickyHeaderItem renderObject) {
+    renderObject
+      ..allowOverflow = allowOverflow
+      ..header = header;
+  }
+}
+
+/// The render object configured by a [StickyHeaderItem].
+class RenderStickyHeaderItem extends RenderProxyBox {
+  RenderStickyHeaderItem({
+    required bool allowOverflow,
+    required Widget header,
+  }) : _allowOverflow = allowOverflow,
+       _header = header;
+
+  bool get allowOverflow => _allowOverflow;
+  bool _allowOverflow;
+  set allowOverflow(bool value) {
+    if (allowOverflow == value) return;
+    _allowOverflow = value;
+    markNeedsLayout();
+  }
+
+  Widget get header => _header;
+  Widget _header;
+  set header(Widget value) {
+    if (header == value) return;
+    _header = value;
+    // Mark for layout, to cause the enclosing list to lay out
+    // so that [_RenderSliverStickyListInner.performLayout] runs.
+    markNeedsLayout();
+  }
+}
+
+/// A list view with sticky headers.
+///
+/// This widget takes most of its behavior from [ListView].
+/// It adds a mechanism for each list item to provide an additional widget
+/// to be shown as a header at the start or end of the list's viewport,
+/// remaining there unmoving even as the item scrolls underneath it,
+/// as if "stuck" in place at the viewport's edge.
+///
+/// Specifically, after laying out the list for a given frame,
+/// [StickyHeaderListView] examines the list item that spans the "header edge"
+/// of the viewport (by default, the top edge).
+/// If that item is a [StickyHeaderItem], then its [StickyHeaderItem.header]
+/// widget will be built and laid out to show at the header edge of the
+/// viewport, painting over the list items.
+///
+/// The header edge defaults to the top of the viewport,
+/// or if [scrollDirection] is horizontal then to the start in the
+/// reading direction of the ambient [Directionality].
+/// It can be controlled with [reverseHeader].
 class StickyHeaderListView extends BoxScrollView {
   // Like ListView, but with sticky headers.
   StickyHeaderListView({
     super.key,
     super.scrollDirection,
     super.reverse,
+    this.reverseHeader = false,
     super.controller,
     super.primary,
     super.physics,
@@ -39,6 +136,7 @@ class StickyHeaderListView extends BoxScrollView {
     super.key,
     super.scrollDirection,
     super.reverse,
+    this.reverseHeader = false,
     super.controller,
     super.primary,
     super.physics,
@@ -75,6 +173,7 @@ class StickyHeaderListView extends BoxScrollView {
     super.key,
     super.scrollDirection,
     super.reverse,
+    this.reverseHeader = false,
     super.controller,
     super.primary,
     super.physics,
@@ -128,6 +227,7 @@ class StickyHeaderListView extends BoxScrollView {
     super.key,
     super.scrollDirection,
     super.reverse,
+    this.reverseHeader = false,
     super.controller,
     super.primary,
     super.physics,
@@ -142,218 +242,475 @@ class StickyHeaderListView extends BoxScrollView {
     super.clipBehavior,
   });
 
+  /// Whether the sticky header appears at the end, instead of the start,
+  /// in the reading direction.
+  ///
+  /// If [reverseHeader] is false (the default), then
+  /// the header will appear at the reading start of the list.
+  /// This is the top when [scrollDirection] is [Axis.vertical].
+  /// For a horizontal-scrolling list, this is the left when the
+  /// ambient [Directionality] has [TextDirection.ltr],
+  /// and the right for [TextDirection.rtl].
+  ///
+  /// If [reverseHeader] is true, then the header will appear at the
+  /// reading end of the list, which is the opposite side from the reading start.
+  final bool reverseHeader;
+
   final SliverChildDelegate childrenDelegate;
 
   @override
   Widget buildChildLayout(BuildContext context) {
-    return SliverStickyHeaderList(delegate: childrenDelegate);
+    return _SliverStickyHeaderList(
+      headerPlacement: (reverseHeader ^ reverse)
+        ? HeaderPlacement.scrollingEnd : HeaderPlacement.scrollingStart,
+      delegate: childrenDelegate);
   }
 }
 
-class SliverStickyHeaderList extends SliverMultiBoxAdaptorWidget {
-  const SliverStickyHeaderList({super.key, required super.delegate});
+/// Where a header goes, in terms of the list's scrolling direction.
+///
+/// For example if the list scrolls to the left, then
+/// [scrollingStart] means the right edge of the list, regardless of whether
+/// the ambient [Directionality] is RTL or LTR.
+enum HeaderPlacement { scrollingStart, scrollingEnd }
+
+class _SliverStickyHeaderList extends RenderObjectWidget {
+  _SliverStickyHeaderList({
+    required this.headerPlacement,
+    required SliverChildDelegate delegate,
+  }) : child = _SliverStickyHeaderListInner(
+    headerPlacement: headerPlacement,
+    delegate: delegate,
+  );
+
+  final HeaderPlacement headerPlacement;
+  final _SliverStickyHeaderListInner child;
+
+  @override
+  _SliverStickyHeaderListElement createElement() => _SliverStickyHeaderListElement(this);
+
+  @override
+  _RenderSliverStickyHeaderList createRenderObject(BuildContext context) {
+    final element = context as _SliverStickyHeaderListElement;
+    return _RenderSliverStickyHeaderList(element: element);
+  }
+}
+
+enum _SliverStickyHeaderListSlot { header, list }
+
+class _SliverStickyHeaderListElement extends RenderObjectElement {
+  _SliverStickyHeaderListElement(_SliverStickyHeaderList super.widget);
+
+  @override
+  _SliverStickyHeaderList get widget => super.widget as _SliverStickyHeaderList;
+
+  @override
+  _RenderSliverStickyHeaderList get renderObject => super.renderObject as _RenderSliverStickyHeaderList;
+
+  //
+  // Compare SingleChildRenderObjectElement.
+  //
+
+  Element? _header;
+  Element? _child;
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    if (_header != null) visitor(_header!);
+    if (_child != null) visitor(_child!);
+  }
+
+  @override
+  void forgetChild(Element child) {
+    if (child == _header) {
+      assert(child != _child);
+      _header = null;
+    } else if (child == _child) {
+      _child = null;
+    }
+    super.forgetChild(child);
+  }
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    super.mount(parent, newSlot);
+    _child = updateChild(_child, widget.child, _SliverStickyHeaderListSlot.list);
+  }
+
+  @override
+  void update(_SliverStickyHeaderList newWidget) {
+    super.update(newWidget);
+    assert(widget == newWidget);
+    _child = updateChild(_child, widget.child, _SliverStickyHeaderListSlot.list);
+    renderObject.child!.markHeaderNeedsRebuild();
+  }
+
+  @override
+  void performRebuild() {
+    renderObject.child!.markHeaderNeedsRebuild();
+    super.performRebuild();
+  }
+
+  void _rebuildHeader(RenderStickyHeaderItem? item) {
+    owner!.buildScope(this, () {
+      _header = updateChild(_header, item?.header, _SliverStickyHeaderListSlot.header);
+    });
+  }
+
+  @override
+  void insertRenderObjectChild(RenderObject child, _SliverStickyHeaderListSlot slot) {
+    final renderObject = this.renderObject;
+    switch (slot) {
+      case _SliverStickyHeaderListSlot.header:
+        assert(child is RenderBox);
+        renderObject.header = child as RenderBox;
+      case _SliverStickyHeaderListSlot.list:
+        assert(child is _RenderSliverStickyHeaderListInner);
+        renderObject.child = child as _RenderSliverStickyHeaderListInner;
+    }
+    assert(renderObject == this.renderObject);
+  }
+
+  @override
+  void moveRenderObjectChild(covariant RenderObject child, covariant Object? oldSlot, covariant Object? newSlot) {
+    assert(false);
+  }
+
+  @override
+  void removeRenderObjectChild(RenderObject child, _SliverStickyHeaderListSlot slot) {
+    final renderObject = this.renderObject;
+    switch (slot) {
+      case _SliverStickyHeaderListSlot.header:
+        assert(renderObject.header == child);
+        renderObject.header = null;
+      case _SliverStickyHeaderListSlot.list:
+        assert(renderObject.child == child);
+        renderObject.child = null;
+    }
+    assert(renderObject == this.renderObject);
+  }
+}
+
+class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelpers {
+  _RenderSliverStickyHeaderList({
+    required _SliverStickyHeaderListElement element,
+  }) : _element = element;
+
+  final _SliverStickyHeaderListElement _element;
+
+  Widget? _headerWidget;
+
+  /// The limiting edge (if any) of the header's item,
+  /// in the list's internal coordinates.
+  ///
+  /// This is null if there is no header, or if the header's item has
+  /// [StickyHeaderItem.allowOverflow] true.
+  double? _headerEndBound;
+
+  void _rebuildHeader(RenderBox? listChild) {
+    final item = _findStickyHeaderItem(listChild);
+
+    if (item?.header != _headerWidget) {
+      _headerWidget = item?.header;
+
+      // The invokeLayoutCallback needs to happen on the same(?) RenderObject
+      // that will end up getting mutated.  Attempting it on the child RenderObject
+      // would trip an assertion.
+      invokeLayoutCallback((constraints) {
+        _element._rebuildHeader(item);
+      });
+    }
+
+    double? endBound;
+    if (item != null && !item.allowOverflow) {
+      final childParentData = listChild!.parentData! as SliverMultiBoxAdaptorParentData;
+      endBound = switch (_element.widget.headerPlacement) {
+        HeaderPlacement.scrollingStart =>
+          childParentData.layoutOffset! + listChild.size.onAxis(constraints.axis),
+        HeaderPlacement.scrollingEnd =>
+          childParentData.layoutOffset!,
+      };
+    }
+    if (endBound != _headerEndBound) {
+      _headerEndBound = endBound;
+      assert(debugDoingThisLayout);
+      // This will affect the result of layout... but this method is only called
+      // when we're already in the middle of our own performLayout,
+      // laying out our child.  So we haven't yet used this information,
+      // and will use the updated version after the child's layout returns.
+      markNeedsPaint();
+    }
+  }
+
+  RenderStickyHeaderItem? _findStickyHeaderItem(RenderBox? child) {
+    RenderBox? node = child;
+    do {
+      if (node is RenderStickyHeaderItem) return node;
+      if (node is! RenderProxyBox) return null;
+      node = node.child;
+    } while (true);
+  }
+
+  //
+  // Managing the two children [header] and [child].
+  // This is modeled on [RenderObjectWithChildMixin].
+  //
+
+  RenderBox? get header => _header;
+  RenderBox? _header;
+  set header(RenderBox? value) {
+    if (_header != null) dropChild(_header!);
+    _header = value;
+    if (_header != null) adoptChild(_header!);
+  }
+
+  _RenderSliverStickyHeaderListInner? get child => _child;
+  _RenderSliverStickyHeaderListInner? _child;
+  set child(_RenderSliverStickyHeaderListInner? value) {
+    if (_child != null) dropChild(_child!);
+    _child = value;
+    if (_child != null) adoptChild(_child!);
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _header?.attach(owner);
+    _child?.attach(owner);
+  }
+
+  @override
+  void detach() {
+    super.detach();
+    _header?.detach();
+    _child?.detach();
+  }
+
+  @override
+  void redepthChildren() {
+    if (_header != null) redepthChild(_header!);
+    if (_child != null) redepthChild(_child!);
+  }
+
+  @override
+  void visitChildren(RenderObjectVisitor visitor) {
+    if (_header != null) visitor(_header!);
+    if (_child != null) visitor(_child!);
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return [
+      if (_header != null) _header!.toDiagnosticsNode(name: 'header'),
+      if (_child != null) _child!.toDiagnosticsNode(name: 'child'),
+    ];
+  }
+
+  //
+  // The sliver protocol.
+  // Modeled on [RenderProxySliver] as to [child],
+  // and [RenderSliverToBoxAdapter] (along with [RenderSliverSingleBoxAdapter],
+  // its base class) as to [header].
+  //
+
+  @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! SliverPhysicalParentData) {
+      child.parentData = SliverPhysicalParentData();
+    }
+  }
+
+  bool _headerAtCoordinateEnd() {
+    return axisDirectionIsReversed(constraints.axisDirection)
+      ^ (_element.widget.headerPlacement == HeaderPlacement.scrollingEnd);
+  }
+
+  @override
+  void performLayout() {
+    assert(child != null);
+    child!.layout(constraints, parentUsesSize: true);
+    SliverGeometry geometry = child!.geometry!;
+
+    if (header != null) {
+      header!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
+
+      final headerExtent = header!.size.onAxis(constraints.axis);
+      final double headerOffset;
+      if (_headerEndBound == null) {
+        final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
+        final cacheExtent = calculateCacheOffset(constraints, from: 0, to: headerExtent);
+
+        assert(0 <= paintedHeaderSize && paintedHeaderSize.isFinite);
+
+        geometry = SliverGeometry( // TODO review interaction with other slivers
+          scrollExtent: geometry.scrollExtent,
+          layoutExtent: geometry.layoutExtent,
+          paintExtent: math.max(geometry.paintExtent, paintedHeaderSize),
+          cacheExtent: math.max(geometry.cacheExtent, cacheExtent),
+          maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
+          hitTestExtent: math.max(geometry.hitTestExtent, paintedHeaderSize),
+          hasVisualOverflow: geometry.hasVisualOverflow
+            || headerExtent > constraints.remainingPaintExtent,
+        );
+
+        headerOffset = _headerAtCoordinateEnd()
+          ? geometry.layoutExtent - headerExtent
+          : 0.0;
+      } else {
+        // The limiting edge of the header's item,
+        // in the outer, non-scrolling coordinates.
+        final endBoundAbsolute = axisDirectionIsReversed(constraints.axisDirection)
+          ? geometry.layoutExtent - (_headerEndBound! - constraints.scrollOffset)
+          : _headerEndBound! - constraints.scrollOffset;
+
+        headerOffset = _headerAtCoordinateEnd()
+          ? math.max(geometry.layoutExtent - headerExtent, endBoundAbsolute)
+          : math.min(0.0, endBoundAbsolute - headerExtent);
+      }
+
+      final headerParentData = (header!.parentData as SliverPhysicalParentData);
+      headerParentData.paintOffset = offsetInDirection(
+        constraints.axis.coordinateDirection, headerOffset);
+    }
+
+    this.geometry = geometry;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (child != null) {
+      context.paintChild(child!, offset);
+    }
+    if (header != null && geometry!.visible) {
+      final headerParentData = (header!.parentData as SliverPhysicalParentData);
+      context.paintChild(header!, offset + headerParentData.paintOffset);
+    }
+  }
+
+  @override
+  bool hitTestChildren(SliverHitTestResult result, {required double mainAxisPosition, required double crossAxisPosition}) {
+    assert(child != null);
+    assert(geometry!.hitTestExtent > 0.0);
+    if (header != null) {
+      final headerParentData = (header!.parentData as SliverPhysicalParentData);
+      final headerOffset = headerParentData.paintOffset
+        .inDirection(constraints.axisDirection);
+      if (hitTestBoxChild(BoxHitTestResult.wrap(result), header!,
+            mainAxisPosition: mainAxisPosition - headerOffset,
+            crossAxisPosition: crossAxisPosition)) {
+        return true;
+      }
+    }
+    return child!.hitTest(result,
+      mainAxisPosition: mainAxisPosition, crossAxisPosition: crossAxisPosition);
+  }
+
+  @override
+  double childMainAxisPosition(RenderObject child) {
+    if (child == this.child) return 0.0;
+    assert(child == header);
+    final headerParentData = (header!.parentData as SliverPhysicalParentData);
+    return headerParentData.paintOffset.inDirection(constraints.axisDirection);
+  }
+
+  @override
+  void applyPaintTransform(RenderObject child, Matrix4 transform) {
+    assert(child == this.child || child == header);
+    final childParentData = child.parentData! as SliverPhysicalParentData;
+    childParentData.applyPaintTransform(transform);
+  }
+}
+
+class _SliverStickyHeaderListInner extends SliverMultiBoxAdaptorWidget {
+  const _SliverStickyHeaderListInner({
+    required this.headerPlacement,
+    required super.delegate,
+  });
+
+  final HeaderPlacement headerPlacement;
 
   @override
   SliverMultiBoxAdaptorElement createElement() =>
     SliverMultiBoxAdaptorElement(this, replaceMovedChildren: true);
 
   @override
-  RenderSliverStickyHeaderList createRenderObject(BuildContext context) {
+  _RenderSliverStickyHeaderListInner createRenderObject(BuildContext context) {
     final element = context as SliverMultiBoxAdaptorElement;
-    return RenderSliverStickyHeaderList(childManager: element);
+    return _RenderSliverStickyHeaderListInner(childManager: element);
   }
 }
 
-class RenderSliverStickyHeaderList extends RenderSliverList {
-  RenderSliverStickyHeaderList({required super.childManager});
+class _RenderSliverStickyHeaderListInner extends RenderSliverList {
+  _RenderSliverStickyHeaderListInner({required super.childManager});
 
-  @override
-  void performLayout() {
-    super.performLayout();
+  _SliverStickyHeaderListInner get widget => (childManager as SliverMultiBoxAdaptorElement).widget as _SliverStickyHeaderListInner;
 
-    assert(constraints.growthDirection == GrowthDirection.forward); // TODO dir
-
-    // debugPrint("our constraints: $constraints");
-    // debugPrint("our geometry: $geometry");
+  /// The unique child, if any, that spans the start of the visible portion
+  /// of the list.
+  ///
+  /// This means (child start) <= (viewport start) < (child end).
+  RenderBox? _findChildAtStart() {
     final scrollOffset = constraints.scrollOffset;
-    // debugPrint("our scroll offset: $scrollOffset");
 
     RenderBox? child;
-    for (child = firstChild; child != null; child = childAfter(child)) {
+    for (child = firstChild; ; child = childAfter(child)) {
+      if (child == null) {
+        // Ran out of children.
+        return null;
+      }
       final parentData = child.parentData! as SliverMultiBoxAdaptorParentData;
       assert(parentData.layoutOffset != null);
-
-      RenderBox? innerChild = child;
-      while (innerChild is RenderProxyBox) {
-        innerChild = innerChild.child;
+      if (scrollOffset < parentData.layoutOffset!) {
+        // This child is already past the start of the sliver's viewport.
+        return null;
       }
-      if (innerChild is! RenderStickyHeaderItem) {
-        continue;
+      if (scrollOffset < parentData.layoutOffset! + child.size.onAxis(constraints.axis)) {
+        return child;
       }
-      assert(axisDirectionToAxis(innerChild.direction) == constraints.axis);
-
-      double childScrollOffset;
-      if (innerChild.direction == constraints.axisDirection) {
-        childScrollOffset = math.max(0.0,
-          scrollOffset - parentData.layoutOffset!);
-      } else {
-        final childEndOffset =
-          parentData.layoutOffset! + child.size.onAxis(constraints.axis);
-        // TODO should this be our layoutExtent or paintExtent, or what?
-        childScrollOffset = math.max(0.0,
-          childEndOffset - (scrollOffset + geometry!.layoutExtent));
-      }
-      innerChild.provideScrollPosition(childScrollOffset);
-    }
-  }
-}
-
-enum StickyHeaderSlot { header, content }
-
-class StickyHeaderItem extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot, RenderBox> {
-  const StickyHeaderItem({
-    super.key,
-    this.direction = AxisDirection.down,
-    this.header,
-    this.content,
-  });
-
-  final AxisDirection direction;
-  final Widget? header;
-  final Widget? content;
-
-  @override
-  Iterable<StickyHeaderSlot> get slots => StickyHeaderSlot.values;
-
-  @override
-  Widget? childForSlot(StickyHeaderSlot slot) {
-    switch (slot) {
-      case StickyHeaderSlot.header:
-        return header;
-      case StickyHeaderSlot.content:
-        return content;
     }
   }
 
-  @override
-  SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> createRenderObject(
-      BuildContext context) {
-    return RenderStickyHeaderItem(direction: direction);
+  /// The unique child, if any, that spans the end of the visible portion
+  /// of the list.
+  ///
+  /// This means (child start) < (viewport end) <= (child end).
+  RenderBox? _findChildAtEnd() {
+    final endOffset = constraints.scrollOffset + constraints.viewportMainAxisExtent;
+
+    RenderBox? child;
+    for (child = lastChild; ; child = childBefore(child)) {
+      if (child == null) {
+        // Ran out of children.
+        return null;
+      }
+      final parentData = child.parentData! as SliverMultiBoxAdaptorParentData;
+      assert(parentData.layoutOffset != null);
+      if (endOffset > parentData.layoutOffset! + child.size.onAxis(constraints.axis)) {
+        // This child already stops before the end of the sliver's viewport.
+        return null;
+      }
+      if (endOffset > parentData.layoutOffset!) {
+        return child;
+      }
+    }
   }
-}
 
-class RenderStickyHeaderItem extends RenderBox with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
-  RenderStickyHeaderItem({required AxisDirection direction})
-    : _direction = direction;
-
-  RenderBox? get _header => childForSlot(StickyHeaderSlot.header);
-
-  RenderBox? get _content => childForSlot(StickyHeaderSlot.content);
-
-  AxisDirection get direction => _direction;
-  AxisDirection _direction;
-
-  set direction(AxisDirection value) {
-    if (value == _direction) return;
-    _direction = value;
+  void markHeaderNeedsRebuild() {
     markNeedsLayout();
   }
 
   @override
-  Iterable<RenderBox> get children => [
-    if (_header != null) _header!,
-    if (_content != null) _content!,
-  ];
-
-  double? _slackSize;
-
-  void provideScrollPosition(double scrollPosition) {
-    assert(hasSize);
-    final header = _header;
-    if (header == null) return;
-    assert(header.hasSize);
-    assert(_slackSize != null);
-
-    assert(0.0 <= scrollPosition);
-    final position = math.min(scrollPosition, _slackSize!);
-
-    Offset offset;
-    if (!axisDirectionIsReversed(direction)) {
-      offset = offsetInDirection(direction, position);
-    } else {
-      // TODO simplify this one
-      offset = offsetInDirection(direction, position - _slackSize!);
-    }
-    if (offset == _parentData(header).offset) {
-      return;
-    }
-    _parentData(header).offset = offset;
-    markNeedsPaint();
-  }
-
-  @override
   void performLayout() {
-    Axis axis = axisDirectionToAxis(direction);
+    assert(constraints.growthDirection == GrowthDirection.forward); // TODO dir
 
-    final constraints = this.constraints;
-    assert(!constraints.hasBoundedAxis(axis));
-    assert(constraints.hasTightAxis(flipAxis(axis)));
+    super.performLayout();
 
-    final header = _header;
-    if (header != null) header.layout(constraints, parentUsesSize: true);
-    final headerSize = header?.size.onAxis(axis) ?? 0;
-
-    final content = _content;
-    if (content != null) content.layout(constraints, parentUsesSize: true);
-    final contentSize = content?.size.onAxis(axis) ?? 0;
-
-    if (!axisDirectionIsReversed(direction)) {
-      if (header != null) _parentData(header).offset = Offset.zero;
-      if (content != null) {
-        _parentData(content).offset = offsetInDirection(direction, headerSize);
-      }
-    } else {
-      if (header != null) {
-        _parentData(header).offset = offsetInDirection(direction, -contentSize);
-      }
-      if (content != null) _parentData(content).offset = Offset.zero;
-    }
-
-    final totalSize = headerSize + contentSize;
-    size = constraints.constrain(sizeOn(axis, main: totalSize));
-    _slackSize = contentSize;
+    final child = switch (widget.headerPlacement) {
+      HeaderPlacement.scrollingStart => _findChildAtStart(),
+      HeaderPlacement.scrollingEnd   => _findChildAtEnd(),
+    };
+    (parent! as _RenderSliverStickyHeaderList)._rebuildHeader(child);
   }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    void paintChild(RenderBox child, PaintingContext context, Offset offset) {
-      context.paintChild(child, offset + _parentData(child).offset);
-    }
-
-    final content = _content;
-    if (content != null) paintChild(content, context, offset);
-    final header = _header;
-    if (header != null) paintChild(header, context, offset);
-  }
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    for (final child in children) {
-      final parentData = _parentData(child);
-      if (result.addWithPaintOffset(
-          offset: parentData.offset,
-          position: position,
-          hitTest: (result, transformed) {
-            assert(transformed == position - parentData.offset);
-            return child.hitTest(result, position: transformed);
-          })) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  BoxParentData _parentData(RenderBox child) => child.parentData! as BoxParentData;
 }
 
 extension AxisCoordinateDirection on Axis {

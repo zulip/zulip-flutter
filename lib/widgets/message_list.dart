@@ -382,9 +382,11 @@ class MessageItem extends StatelessWidget {
       shape: Border(
         left: recipientBorder, bottom: restBorder, right: restBorder));
 
+    final recipientHeader = RecipientHeader(message: message);
     return StickyHeaderItem(
-      header: RecipientHeader(message: message),
-      content: Column(children: [
+      header: recipientHeader,
+      child: Column(children: [
+        recipientHeader,
         DecoratedBox(
           decoration: borderDecoration,
           child: MessageWithSender(message: message, content: item.content)),
