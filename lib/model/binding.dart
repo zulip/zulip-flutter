@@ -1,3 +1,4 @@
+import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 export 'package:url_launcher/url_launcher.dart' show LaunchMode;
@@ -72,6 +73,38 @@ abstract class ZulipBinding {
     Uri url, {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   });
+
+  /// Provides device and operating system information,
+  /// via package:device_info_plus.
+  ///
+  /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
+  Future<BaseDeviceInfo> deviceInfo();
+}
+
+/// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
+abstract class BaseDeviceInfo {
+  BaseDeviceInfo();
+}
+
+/// Like [device_info_plus.AndroidDeviceInfo], but without things we don't use.
+class AndroidDeviceInfo extends BaseDeviceInfo {
+  /// The Android SDK version.
+  ///
+  /// Possible values are defined in:
+  ///   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
+  final int sdkInt;
+
+  AndroidDeviceInfo({required this.sdkInt});
+}
+
+/// Like [device_info_plus.IosDeviceInfo], but without things we don't use.
+class IosDeviceInfo extends BaseDeviceInfo {
+  /// The current operating system version.
+  ///
+  /// See: https://developer.apple.com/documentation/uikit/uidevice/1620043-systemversion
+  final String systemVersion;
+
+  IosDeviceInfo({required this.systemVersion});
 }
 
 /// A concrete binding for use in the live application.
@@ -102,5 +135,15 @@ class LiveZulipBinding extends ZulipBinding {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   }) {
     return url_launcher.launchUrl(url, mode: mode);
+  }
+
+  @override
+  Future<BaseDeviceInfo> deviceInfo() async {
+    final deviceInfo = await device_info_plus.DeviceInfoPlugin().deviceInfo;
+    return switch (deviceInfo) {
+      device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
+      device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
+      _                                                  => throw UnimplementedError(),
+    };
   }
 }

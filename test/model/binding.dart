@@ -59,6 +59,7 @@ class TestZulipBinding extends ZulipBinding {
 
     launchUrlResult = true;
     _launchUrlCalls = null;
+    deviceInfoResult = _defaultDeviceInfoResult;
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -125,5 +126,16 @@ class TestZulipBinding extends ZulipBinding {
   }) async {
     (_launchUrlCalls ??= []).add((url: url, mode: mode));
     return launchUrlResult;
+  }
+
+  /// The value that `ZulipBinding.instance.deviceInfo()` should return.
+  ///
+  /// See also [takeDeviceInfoCalls].
+  BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
+  static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
+
+  @override
+  Future<BaseDeviceInfo> deviceInfo() {
+    return Future(() => deviceInfoResult);
   }
 }
