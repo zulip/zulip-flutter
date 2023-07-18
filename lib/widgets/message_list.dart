@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -58,7 +60,6 @@ class _MessageListPageState extends State<MessageListPage> {
 
               child: Expanded(
                 child: MessageList(narrow: widget.narrow))),
-
             ComposeBox(controllerKey: _composeBoxKey, narrow: widget.narrow),
           ]))));
   }
@@ -97,7 +98,6 @@ class MessageListAppBarTitle extends StatelessWidget {
   }
 }
 
-
 class MessageList extends StatefulWidget {
   const MessageList({super.key, required this.narrow});
 
@@ -109,6 +109,14 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> {
   MessageListView? model;
+  final ScrollController scrollController = ScrollController();
+  final ValueNotifier<bool> _scrollToBottomVisibleValue = ValueNotifier<bool>(false);
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(_scrollChanged);
+  }
 
   @override
   void didChangeDependencies() {
@@ -126,6 +134,8 @@ class _MessageListState extends State<MessageList> {
   @override
   void dispose() {
     model?.dispose();
+    scrollController.dispose();
+    _scrollToBottomVisibleValue.dispose();
     super.dispose();
   }
 
@@ -140,6 +150,23 @@ class _MessageListState extends State<MessageList> {
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
     });
+  }
+
+  void _adjustButtonVisibility(ScrollMetrics scrollMetrics) {
+    if (scrollMetrics.extentBefore == 0) {
+      _scrollToBottomVisibleValue.value = false;
+    } else {
+      _scrollToBottomVisibleValue.value = true;
+    }
+  }
+
+  void _scrollChanged() {
+    _adjustButtonVisibility(scrollController.position);
+  }
+
+  bool _metricsChanged(ScrollMetricsNotification scrollMetricsNotification) {
+    _adjustButtonVisibility(scrollMetricsNotification.metrics);
+    return true;
   }
 
   @override
@@ -161,7 +188,18 @@ class _MessageListState extends State<MessageList> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
-              child: _buildListView(context))))));
+              child: NotificationListener<ScrollMetricsNotification>(
+                onNotification: _metricsChanged,
+                child: Stack(
+                  children: <Widget>[
+                    _buildListView(context),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: ScrollToBottomButton(
+                        scrollController: scrollController,
+                        visibleValue: _scrollToBottomVisibleValue)),
+                  ])))))));
   }
 
   Widget _buildListView(context) {
@@ -179,6 +217,7 @@ class _MessageListState extends State<MessageList> {
         _ => ScrollViewKeyboardDismissBehavior.manual,
       },
 
+      controller: scrollController,
       itemCount: length,
       // Setting reverse: true means the scroll starts at the bottom.
       // Flipping the indexes (in itemBuilder) means the start/bottom
@@ -191,6 +230,39 @@ class _MessageListState extends State<MessageList> {
         trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
         message: model!.messages[length - 1 - i],
         content: model!.contents[length - 1 - i]));
+  }
+}
+
+class ScrollToBottomButton extends StatelessWidget {
+  const ScrollToBottomButton({super.key, required this.scrollController, required this.visibleValue});
+
+  final ValueNotifier<bool> visibleValue;
+  final ScrollController scrollController;
+
+  Future<void> _navigateToBottom() async {
+    final distance = scrollController.position.pixels;
+    final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
+    final durationMs = max(300, durationMsAtSpeedLimit);
+    scrollController.animateTo(
+      0,
+      duration: Duration(milliseconds: durationMs),
+      curve: Curves.ease);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: visibleValue,
+      builder: (BuildContext context, bool value, Widget? child) {
+        return (value && child != null) ? child : const SizedBox.shrink();
+      },
+      // TODO: fix hardcoded values for size and style here
+      child: IconButton(
+        tooltip: "Scroll to bottom",
+        icon: const Icon(Icons.expand_circle_down_rounded),
+        iconSize: 40,
+        color: const HSLColor.fromAHSL(0.5,240,0.96,0.68).toColor(),
+        onPressed: _navigateToBottom));
   }
 }
 
