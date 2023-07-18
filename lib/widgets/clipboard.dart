@@ -20,11 +20,7 @@ void copyWithPopup({
   await Clipboard.setData(data);
   final deviceInfo = await ZulipBinding.instance.deviceInfo();
 
-  // https://github.com/dart-lang/linter/issues/4007
-  // ignore: use_build_context_synchronously
-  if (!context.mounted) {
-    return;
-  }
+  if (!context.mounted) return;
 
   final bool shouldShowSnackbar;
   switch (deviceInfo) {
