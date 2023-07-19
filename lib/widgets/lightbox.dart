@@ -144,7 +144,9 @@ class _LightboxPageState extends State<_LightboxPage> {
         child: AnimatedContainer(
             duration: const Duration(milliseconds: 100),
             curve: Curves.easeIn,
-            height: _headerFooterVisible ? kToolbarHeight : 0,
+            height: _headerFooterVisible ? AppBar.preferredHeightFor(context, 
+                                                                      MediaQuery.of(context).size) 
+                                                                  : 0,
             child: AppBar(
                 centerTitle: false,
                 foregroundColor: appBarForegroundColor,
