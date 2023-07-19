@@ -4,7 +4,11 @@ import 'dart:ui';
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 
+extension ClipboardDataChecks on Subject<ClipboardData> {
+  Subject<String?> get text => has((d) => d.text, 'text');
+}
 
 extension ValueNotifierChecks<T> on Subject<ValueNotifier<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
