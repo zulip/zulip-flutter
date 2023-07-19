@@ -22,18 +22,14 @@ void copyWithPopup({
 
   if (!context.mounted) return;
 
-  final bool shouldShowSnackbar;
-  switch (deviceInfo) {
-    case AndroidDeviceInfo(:var sdkInt):
-      // Android 13+ shows its own popup on copying to the clipboard,
-      // so we suppress ours, following the advice at:
-      //   https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
-      // TODO(android-sdk-33): Simplify this and dartdoc
-      shouldShowSnackbar = sdkInt <= 32;
-    default:
-      shouldShowSnackbar = true;
-  }
-
+  final shouldShowSnackbar = switch (deviceInfo) {
+    // Android 13+ shows its own popup on copying to the clipboard,
+    // so we suppress ours, following the advice at:
+    //   https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
+    // TODO(android-sdk-33): Simplify this and dartdoc
+    AndroidDeviceInfo(:var sdkInt) => sdkInt <= 32,
+    _                              => true,
+  };
   if (shouldShowSnackbar) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(behavior: SnackBarBehavior.floating, content: successContent));
