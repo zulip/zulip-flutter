@@ -132,45 +132,57 @@ class _LightboxPageState extends State<_LightboxPage> {
     final appBarBackgroundColor = Colors.grey.shade900.withOpacity(0.87);
     const appBarForegroundColor = Colors.white;
 
-    PreferredSizeWidget? appBar;
-    if (_headerFooterVisible) {
-      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
-      final timestampText = DateFormat
-        .yMMMd(/* TODO(i18n): Pass selected language here, I think? */)
+    // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
+    final timestampText = DateFormat.yMMMd(
+            /* TODO(i18n): Pass selected language here, I think? */)
         .add_Hms()
-        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+        .format(DateTime.fromMillisecondsSinceEpoch(
+            widget.message.timestamp * 1000));
 
-      appBar = AppBar(
-        centerTitle: false,
-        foregroundColor: appBarForegroundColor,
-        backgroundColor: appBarBackgroundColor,
+    final appBar = PreferredSize(
+        preferredSize: Size(MediaQuery.of(context).size.width, kToolbarHeight),
+        child: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeIn,
+            height: _headerFooterVisible ? kToolbarHeight : 0,
+            child: AppBar(
+                centerTitle: false,
+                foregroundColor: appBarForegroundColor,
+                backgroundColor: appBarBackgroundColor,
 
-        // TODO(#41): Show message author's avatar
-        title: RichText(
-          text: TextSpan(children: [
-            TextSpan(
-              text: '${widget.message.senderFullName}\n',
+                // TODO(#41): Show message author's avatar
+                title: RichText(
+                    text: TextSpan(children: [
+                  TextSpan(
+                      text: '${widget.message.senderFullName}\n',
 
-              // Restate default
-              style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
-            TextSpan(
-              text: timestampText,
+                      // Restate default
+                      style: themeData.textTheme.titleLarge!
+                          .copyWith(color: appBarForegroundColor)),
+                  TextSpan(
+                      text: timestampText,
 
-              // Make smaller, like a subtitle
-              style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-          ])));
-    }
+                      // Make smaller, like a subtitle
+                      style: themeData.textTheme.titleSmall!
+                          .copyWith(color: appBarForegroundColor)),
+                ])))));
 
-    Widget? bottomAppBar;
-    if (_headerFooterVisible) {
-      bottomAppBar = BottomAppBar(
-        color: appBarBackgroundColor,
-        child: Row(children: [
-          _CopyLinkButton(url: widget.src),
-          // TODO(#43): Share image
-          // TODO(#42): Download image
-        ]));
-    }
+    
+    final bottomAppBar = AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeIn,
+        // 80 is the default in M3, we need to set a value for the animation
+        // to work
+        height: _headerFooterVisible
+            ? BottomAppBarTheme.of(context).height ?? 80
+            : 0,
+        child: BottomAppBar(
+            color: appBarBackgroundColor,
+            child: Row(children: [
+              _CopyLinkButton(url: widget.src),
+              // TODO(#43): Share image
+              // TODO(#42): Download image
+            ])));
 
     return Theme(
       data: themeData.copyWith(
