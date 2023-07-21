@@ -92,9 +92,9 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> {
         //   (maybe handle centrally in `widget.controller`)
         replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
       case WildcardMentionAutocompleteResult():
-        replacementString = '[unimplemented]'; // TODO
+        replacementString = '[unimplemented]'; // TODO(#234)
       case UserGroupMentionAutocompleteResult():
-        replacementString = '[unimplemented]'; // TODO
+        replacementString = '[unimplemented]'; // TODO(#233)
     }
 
     widget.controller.value = intent.textEditingValue.replaced(
@@ -110,12 +110,12 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> {
     String label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        // TODO avatar
+        // TODO(#227) avatar
         label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
       case WildcardMentionAutocompleteResult():
-        label = '[unimplemented]'; // TODO
+        label = '[unimplemented]'; // TODO(#234)
       case UserGroupMentionAutocompleteResult():
-        label = '[unimplemented]'; // TODO
+        label = '[unimplemented]'; // TODO(#233)
     }
     return InkWell(
       onTap: () {

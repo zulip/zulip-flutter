@@ -267,7 +267,7 @@ class MentionAutocompleteView extends ChangeNotifier {
         }
       }
     }
-    return results; // TODO sort for most relevant first
+    return results; // TODO(#228) sort for most relevant first
   }
 }
 
@@ -283,8 +283,8 @@ class MentionAutocompleteQuery {
   final List<String> _lowercaseWords;
 
   bool testUser(User user, AutocompleteDataCache cache) {
-    // TODO test email too, not just name
-    // TODO test with diacritics stripped, where appropriate
+    // TODO(#236) test email too, not just name
+    // TODO(#237) test with diacritics stripped, where appropriate
 
     final List<String> nameWords = cache.nameWordsForUser(user);
 
