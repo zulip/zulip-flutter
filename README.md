@@ -14,6 +14,16 @@ To use Zulip on iOS or Android, install the [official mobile Zulip client][].
 
 ## Getting started in developing this prototype
 
+### Setting up
+
+1. Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install)
+   for your platform of choice.
+2. Switch to the latest version of Flutter by running `flutter channel main`
+   and `flutter upgrade` (see [Dependencies](#dependencies) below).
+3. Ensure Flutter is correctly configured by running `flutter doctor`.
+4. Start the app with `flutter run`, or from your IDE.
+
+
 ### Flutter help
 
 A few resources to get you started if this is your first Flutter project:
@@ -25,12 +35,6 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-### App Setup
-
-1. Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install) for your platform of choice
-2. Pin to the latest version of Flutter by running `flutter channel main` and `flutter upgrade` (see [Dependencies](#dependencies) below)
-3. Ensure Flutter is correctly configured by running `flutter doctor`
-4. Start the app with `flutter run`
 
 ### Dependencies
 
