@@ -81,8 +81,9 @@ class _CopyLinkButton extends StatelessWidget {
   }
 }
 
-class _LightboxPage extends StatefulWidget {
-  const _LightboxPage({
+@visibleForTesting
+class LightboxPage extends StatefulWidget {
+  const LightboxPage({
     required this.routeEntranceAnimation,
     required this.message,
     required this.src,
@@ -93,10 +94,10 @@ class _LightboxPage extends StatefulWidget {
   final String src;
 
   @override
-  State<_LightboxPage> createState() => _LightboxPageState();
+  State<LightboxPage> createState() => _LightboxPageState();
 }
 
-class _LightboxPageState extends State<_LightboxPage> {
+class _LightboxPageState extends State<LightboxPage> {
   // TODO(#38): Animate entrance/exit of header and footer
   bool _headerFooterVisible = false;
 
@@ -128,7 +129,6 @@ class _LightboxPageState extends State<_LightboxPage> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-
     final appBarBackgroundColor = Colors.grey.shade900.withOpacity(0.87);
     const appBarForegroundColor = Colors.white;
 
@@ -230,7 +230,7 @@ Route getLightboxRoute({
       Animation<double> secondaryAnimation,
     ) {
       // TODO(#40): Drag down to close?
-      return _LightboxPage(routeEntranceAnimation: animation, message: message, src: src);
+      return LightboxPage(routeEntranceAnimation: animation, message: message, src: src);
     },
     transitionsBuilder: (
       BuildContext context,
