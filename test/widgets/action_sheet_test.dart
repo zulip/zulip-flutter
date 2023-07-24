@@ -100,6 +100,7 @@ void main() {
       final quoteAndReplyButton = findQuoteAndReplyButton(tester);
       check(quoteAndReplyButton).isNotNull();
       await tester.tap(find.byWidget(quoteAndReplyButton!));
+      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
     void checkLoadingState(PerAccountStore store, ComposeContentController contentController, {
