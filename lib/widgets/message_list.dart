@@ -107,7 +107,7 @@ class MessageList extends StatefulWidget {
   State<StatefulWidget> createState() => _MessageListState();
 }
 
-class _MessageListState extends State<MessageList> {
+class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
   MessageListView? model;
   final ScrollController scrollController = ScrollController();
   final ValueNotifier<bool> _scrollToBottomVisibleValue = ValueNotifier<bool>(false);
@@ -119,16 +119,9 @@ class _MessageListState extends State<MessageList> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final store = PerAccountStoreWidget.of(context);
-    if (model != null && model!.store == store) {
-      // We already have a model, and it's for the right store.
-      return;
-    }
-    // Otherwise, set up the model.  Dispose of any old model.
+  void onNewStore() {
     model?.dispose();
-    _initModel(store);
+    _initModel(PerAccountStoreWidget.of(context));
   }
 
   @override

@@ -140,6 +140,9 @@ class PerAccountStoreWidget extends StatefulWidget {
   ///  * [GlobalStoreWidget.of], for the app's data beyond that of a
   ///    particular account.
   ///  * [InheritedNotifier], which provides the "dependency" mechanism.
+  // TODO(#185): Explain in dartdoc that the returned [PerAccountStore] might
+  //   differ from one call to the next, and to handle that with
+  //   [PerAccountStoreAwareStateMixin].
   static PerAccountStore of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
     assert(widget != null, 'No PerAccountStoreWidget ancestor');
@@ -244,5 +247,43 @@ class LoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(child: CircularProgressIndicator());
+  }
+}
+
+/// A [State] that uses the ambient [PerAccountStore].
+///
+/// The ambient [PerAccountStore] can be replaced in some circumstances,
+/// such as when an event queue expires. See [PerAccountStoreWidget.of].
+/// When that happens, stateful widgets should
+/// - remove listeners on the old [PerAccountStore], and
+/// - add listeners on the new one.
+///
+/// Use this mixin, overriding [onNewStore], to do that concisely.
+// TODO(#185): Until #185, I think [PerAccountStoreWidget.of] never actually
+//   returns a different [PerAccountStore] from one call to the next.
+//   But it will, and when it does, we want our [StatefulWidgets] to handle it.
+mixin PerAccountStoreAwareStateMixin<T extends StatefulWidget> on State<T> {
+  PerAccountStore? _store;
+
+  /// Called when there is a new ambient [PerAccountStore].
+  ///
+  /// Specifically this is called when this element is first inserted into the tree
+  /// (so that it has an ambient [PerAccountStore] for the first time),
+  /// and again whenever dependencies change so that [PerAccountStoreWidget.of]
+  /// would return a different store from previously.
+  ///
+  /// In this, remove any listeners on the old store
+  /// and add them on the new store.
+  void onNewStore();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final storeNow = PerAccountStoreWidget.of(context);
+    if (_store != storeNow) {
+      _store = storeNow;
+      onNewStore();
+    }
   }
 }
