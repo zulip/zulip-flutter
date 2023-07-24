@@ -127,6 +127,7 @@ StreamMessage streamMessage({
   String? topic,
   String? content,
   String? contentMarkdown,
+  List<String>? flags,
 }) {
   final effectiveStream = stream ?? _stream();
   // The use of JSON here is convenient in order to delegate parts of the data
@@ -140,7 +141,7 @@ StreamMessage streamMessage({
     ..._messagePropertiesFromContent(content, contentMarkdown),
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
-    'flags': [],
+    'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'subject': topic ?? 'example topic',
     'timestamp': 1678139636,
@@ -158,6 +159,7 @@ DmMessage dmMessage({
   required List<User> to,
   String? content,
   String? contentMarkdown,
+  List<String>? flags,
 }) {
   assert(!to.any((user) => user.userId == from.userId));
   return DmMessage.fromJson({
@@ -168,7 +170,7 @@ DmMessage dmMessage({
       .map((u) => {'id': u.userId, 'email': u.email, 'full_name': u.fullName})
       .toList(growable: false),
 
-    'flags': [],
+    'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'subject': '',
     'timestamp': 1678139636,

@@ -250,13 +250,13 @@ class Subscription {
 sealed class Message {
   final String? avatarUrl;
   final String client;
-  final String content;
+  String content;
   final String contentType;
 
   // final List<MessageEditHistory> editHistory; // TODO handle
   final int id;
-  final bool isMeMessage;
-  final int? lastEditTimestamp;
+  bool isMeMessage;
+  int? lastEditTimestamp;
 
   // final List<Reaction> reactions; // TODO handle
   final int recipientId;
@@ -271,7 +271,7 @@ sealed class Message {
 
   // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
-  final List<String> flags; // TODO enum
+  List<String> flags; // TODO enum
   final String? matchContent;
   final String? matchSubject;
 

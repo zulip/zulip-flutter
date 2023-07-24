@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import 'content.dart';
@@ -83,6 +84,73 @@ class MessageListView extends ChangeNotifier {
     // TODO insert in middle instead, when appropriate
     messages.add(message);
     contents.add(parseContent(message.content));
+    notifyListeners();
+  }
+
+  _applyChangesToMessage(UpdateMessageEvent event, Message message) {
+    // In earlier server versions, omitting the userId indicates that this is a
+    // rendering-only update. That means this change was initiated by the server,
+    // not the user.
+    //
+    // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
+    final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
+    if (event.editTimestamp != null && !isRenderingOnly) {
+      // Only update the timestamp if this was a user-led update,
+      // not a server-only update
+      message.lastEditTimestamp = event.editTimestamp;
+    }
+
+    message.flags = event.flags;
+
+    if (event.renderedContent != null) {
+      assert(message.contentType == 'text/html',
+        "Message contentType was ${message.contentType}; expected text/html.");
+      message.content = event.renderedContent!;
+    }
+
+    if (event.isMeMessage != null) {
+      message.isMeMessage = event.isMeMessage!;
+    }
+  }
+
+  // This is almost directly copied from package:collection/src/algorithms.dart
+  // The way that package was set up doesn't allow us to search
+  // for a message ID among a bunch of message objects - this is a quick
+  // modification of that method to work here for us.
+  @visibleForTesting
+  int findMessageWithId(int messageId) {
+    var min = 0;
+    var max = messages.length;
+    while (min < max) {
+      var mid = min + ((max - min) >> 1);
+      final message = messages[mid];
+      var comp = message.id.compareTo(messageId);
+      if (comp == 0) return mid;
+      if (comp < 0) {
+        min = mid + 1;
+      } else {
+        max = mid;
+      }
+    }
+    return -1;
+  }
+
+  /// Update the message the given event applies to, if present in this view.
+  ///
+  /// This method only handles the case where the message's contents
+  /// were changed, and ignores any changes to its stream or topic.
+  ///
+  /// TODO(#150): Handle message moves.
+  void maybeUpdateMessage(UpdateMessageEvent event) {
+    final idx = findMessageWithId(event.messageId);
+    if (idx == -1)  {
+      return;
+    }
+
+    final message = messages[idx];
+    _applyChangesToMessage(event, message);
+
+    contents[idx] = parseContent(message.content);
     notifyListeners();
   }
 
