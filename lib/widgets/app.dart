@@ -4,6 +4,7 @@ import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'login.dart';
 import 'message_list.dart';
+import 'recent_dm_conversations.dart';
 import 'store.dart';
 
 class ZulipApp extends StatelessWidget {
@@ -152,6 +153,11 @@ class HomePage extends StatelessWidget {
               MessageListPage.buildRoute(context: context,
                 narrow: const AllMessagesNarrow())),
             child: const Text("All messages")),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.push(context,
+              RecentDmConversationsPage.buildRoute(context: context)),
+            child: const Text("Direct messages")),
           if (testStreamId != null) ...[
             const SizedBox(height: 16),
             ElevatedButton(
