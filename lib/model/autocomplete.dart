@@ -192,10 +192,13 @@ class MentionAutocompleteView extends ChangeNotifier {
   final PerAccountStore store;
   final Narrow narrow;
 
+  MentionAutocompleteQuery? get query => _query;
   MentionAutocompleteQuery? _query;
-  set query(MentionAutocompleteQuery query) {
+  set query(MentionAutocompleteQuery? query) {
     _query = query;
-    _startSearch(query);
+    if (query != null) {
+      _startSearch(query);
+    }
   }
 
   /// Recompute user results for the current query, if any.
