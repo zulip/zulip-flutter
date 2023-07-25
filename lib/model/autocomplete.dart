@@ -192,9 +192,9 @@ class MentionAutocompleteView extends ChangeNotifier {
   final PerAccountStore store;
   final Narrow narrow;
 
-  MentionAutocompleteQuery? _currentQuery;
+  MentionAutocompleteQuery? _query;
   set query(MentionAutocompleteQuery query) {
-    _currentQuery = query;
+    _query = query;
     _startSearch(query);
   }
 
@@ -202,8 +202,8 @@ class MentionAutocompleteView extends ChangeNotifier {
   ///
   /// Called in particular when we get a [RealmUserEvent].
   void refreshStaleUserResults() {
-    if (_currentQuery != null) {
-      _startSearch(_currentQuery!);
+    if (_query != null) {
+      _startSearch(_query!);
     }
   }
 
@@ -211,8 +211,8 @@ class MentionAutocompleteView extends ChangeNotifier {
   ///
   /// This will redo the search from scratch for the current query, if any.
   void reassemble() {
-    if (_currentQuery != null) {
-      _startSearch(_currentQuery!);
+    if (_query != null) {
+      _startSearch(_query!);
     }
   }
 
@@ -251,7 +251,7 @@ class MentionAutocompleteView extends ChangeNotifier {
       // CPU perf: End this task; enqueue a new one for resuming this work
       await Future(() {});
 
-      if (query != _currentQuery || !hasListeners) { // false if [dispose] has been called.
+      if (query != _query || !hasListeners) { // false if [dispose] has been called.
         return null;
       }
 
