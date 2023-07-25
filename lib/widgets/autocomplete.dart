@@ -26,15 +26,21 @@ class ComposeAutocomplete extends StatefulWidget {
   State<ComposeAutocomplete> createState() => _ComposeAutocompleteState();
 }
 
-class _ComposeAutocompleteState extends State<ComposeAutocomplete> {
+class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccountStoreAwareStateMixin<ComposeAutocomplete> {
   MentionAutocompleteView? _viewModel; // TODO different autocomplete view types
+
+  void _initViewModel() {
+    final store = PerAccountStoreWidget.of(context);
+    _viewModel = MentionAutocompleteView.init(store: store, narrow: widget.narrow)
+      ..addListener(_viewModelChanged);
+  }
 
   void _composeContentChanged() {
     final newAutocompleteIntent = widget.controller.autocompleteIntent();
     if (newAutocompleteIntent != null) {
-      final store = PerAccountStoreWidget.of(context);
-      _viewModel ??= MentionAutocompleteView.init(store: store, narrow: widget.narrow)
-        ..addListener(_viewModelChanged);
+      if (_viewModel == null) {
+        _initViewModel();
+      }
       _viewModel!.query = newAutocompleteIntent.query;
     } else {
       if (_viewModel != null) {
@@ -49,6 +55,16 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> {
   void initState() {
     super.initState();
     widget.controller.addListener(_composeContentChanged);
+  }
+
+  @override
+  void onNewStore() {
+    if (_viewModel != null) {
+      final query = _viewModel!.query;
+      _viewModel!.dispose();
+      _initViewModel();
+      _viewModel!.query = query;
+    }
   }
 
   @override
