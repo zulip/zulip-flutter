@@ -31,11 +31,17 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
         home: GlobalStoreWidget(
         child: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,
-          child: LightboxPage(
-          message: message,
-          routeEntranceAnimation: const AlwaysStoppedAnimation<double>(1),
-          src: "https://zulip.com/",
-        )))));
+          child: MediaQuery(
+            // This simulates the effect of a notch
+            data: const MediaQueryData(padding: EdgeInsets.only(top: 60),
+              size: Size(800, 600),
+            ),
+            child: LightboxPage(
+              message: message,
+              routeEntranceAnimation: const AlwaysStoppedAnimation<double>(1),
+              src: "https://zulip.com/",
+            ),
+          )))));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
@@ -96,6 +102,27 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 3000));
       
       expect(tester.getSize(find.byType(AppBar)).height, 0);
+
+      // unset the client here, otherwise the test will always fail
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('appbar is visible despite notch', (WidgetTester tester) async {
+      await setupToMessageActionSheet(tester, message: eg.streamMessage(), narrow: StreamNarrow(eg.streamMessage().streamId));
+
+      expect(find.byType(AppBar), findsOneWidget);
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      await tester.pumpAndSettle(const Duration(milliseconds: 3000));
+
+      expect(tester.getSize(find.byType(AppBar)).height, greaterThan(20));
+
+      // This will fail if the appBar is obstructed by the notch
+      expect(
+        find.byWidgetPredicate((widget) =>
+          widget is RichText &&
+          widget.text.toPlainText().contains('A Person')).hitTestable(),
+        findsOneWidget
+      );
 
       // unset the client here, otherwise the test will always fail
       debugNetworkImageHttpClientProvider = null;
