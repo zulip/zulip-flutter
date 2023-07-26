@@ -143,14 +143,16 @@ class _LightboxPageState extends State<LightboxPage> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeIn,
-        height: _headerFooterVisible ? AppBar.preferredHeightFor(context, 
-                                                                  MediaQuery.of(context).size) 
+        height: _headerFooterVisible ? AppBar.preferredHeightFor(
+                                        context, 
+                                        Size(0, MediaQuery.of(context).padding.top + kToolbarHeight)
+                                      ) 
                                       : 0,
         child: AppBar(
           centerTitle: false,
           foregroundColor: appBarForegroundColor,
           backgroundColor: appBarBackgroundColor,
-
+          
           // TODO(#41): Show message author's avatar
           title: RichText(
             text: TextSpan(children: [
