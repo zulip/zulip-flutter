@@ -47,10 +47,11 @@ class ChooseAccountPage extends StatelessWidget {
   }) {
     return Card(
       clipBehavior: Clip.hardEdge,
-      child: InkWell(
+      child: ListTile(
+        title: title,
+        subtitle: subtitle,
         onTap: () => Navigator.push(context,
-          HomePage.buildRoute(accountId: accountId)),
-        child: ListTile(title: title, subtitle: subtitle)));
+          HomePage.buildRoute(accountId: accountId))));
   }
 
   @override
