@@ -248,7 +248,7 @@ class Subscription {
 ///
 /// https://zulip.com/api/get-messages#response
 sealed class Message {
-  final String? avatarUrl;
+  // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
   final String client;
   String content;
   final String contentType;
@@ -276,7 +276,6 @@ sealed class Message {
   final String? matchSubject;
 
   Message({
-    this.avatarUrl,
     required this.client,
     required this.content,
     required this.contentType,
@@ -315,7 +314,6 @@ class StreamMessage extends Message {
   final int streamId;
 
   StreamMessage({
-    super.avatarUrl,
     required super.client,
     required super.content,
     required super.contentType,
@@ -417,7 +415,6 @@ class DmMessage extends Message {
   Iterable<int> get allRecipientIds => displayRecipient.map((e) => e.id);
 
   DmMessage({
-    super.avatarUrl,
     required super.client,
     required super.content,
     required super.contentType,

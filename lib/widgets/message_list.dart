@@ -475,10 +475,11 @@ class MessageWithSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final author = store.users[message.senderId]!;
 
-    final avatarUrl = message.avatarUrl == null // TODO get from user data
+    final avatarUrl = author.avatarUrl == null
       ? null // TODO handle computing gravatars
-      : resolveUrl(message.avatarUrl!, store.account);
+      : resolveUrl(author.avatarUrl!, store.account);
     final avatar = (avatarUrl == null)
       ? const SizedBox.shrink()
       : RealmContentNetworkImage(
