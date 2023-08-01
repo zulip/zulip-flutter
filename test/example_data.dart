@@ -10,7 +10,12 @@ const String recentZulipVersion = '8.0';
 const int recentZulipFeatureLevel = 185;
 const int futureZulipFeatureLevel = 9999;
 
-User user({int? userId, String? email, String? fullName}) {
+User user({
+  int? userId,
+  String? email,
+  String? fullName,
+  String? avatarUrl,
+}) {
   return User(
     userId: userId ?? 123, // TODO generate example IDs
     deliveryEmailStaleDoNotUse: 'name@example.com',
@@ -25,7 +30,7 @@ User user({int? userId, String? email, String? fullName}) {
     isBot: false,
     role: 400,
     timezone: 'UTC',
-    avatarUrl: null,
+    avatarUrl: avatarUrl,
     avatarVersion: 0,
     profileData: null,
   );
