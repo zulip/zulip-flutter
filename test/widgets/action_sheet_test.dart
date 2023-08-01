@@ -238,14 +238,19 @@ void main() {
       TestZulipBinding.instance.reset();
     });
 
+    Future<void> tapCopyButton(WidgetTester tester) async {
+      await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
+      await tester.tap(find.byIcon(Icons.copy));
+      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+    }
+
     testWidgets('success', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
 
-      await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
-      await tester.tap(find.byIcon(Icons.copy));
+      await tapCopyButton(tester);
       await tester.pump(Duration.zero);
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals('Hello world');
     });
@@ -255,9 +260,8 @@ void main() {
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
 
-      await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
       prepareRawContentResponseError(store);
-      await tester.tap(find.byIcon(Icons.copy));
+      await tapCopyButton(tester);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
