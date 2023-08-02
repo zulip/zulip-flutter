@@ -243,7 +243,7 @@ class MessageImage extends StatelessWidget {
               message: message,
               src: resolvedSrc,
               child: RealmContentNetworkImage(
-                resolvedSrc.toString(),
+                resolvedSrc,
                 filterQuality: FilterQuality.medium))))));
   }
 }
@@ -648,7 +648,7 @@ class MessageImageEmoji extends StatelessWidget {
           // too low.
           top: -1.5,
           child: RealmContentNetworkImage(
-            resolvedSrc.toString(),
+            resolvedSrc,
             filterQuality: FilterQuality.medium,
             width: size,
             height: size,
@@ -749,9 +749,7 @@ class RealmContentNetworkImage extends StatelessWidget {
     this.cacheHeight,
   });
 
-  /// An absolute URL string for the image.
-  // TODO: Take a [Uri] object, not a String
-  final String src;
+  final Uri src;
 
   final double scale;
   final ImageFrameBuilder? frameBuilder;
@@ -780,10 +778,8 @@ class RealmContentNetworkImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final account = PerAccountStoreWidget.of(context).account;
 
-    final Uri parsedSrc = Uri.parse(src);
-
     return Image.network(
-      parsedSrc.toString(),
+      src.toString(),
 
       scale: scale,
       frameBuilder: frameBuilder,
@@ -806,7 +802,7 @@ class RealmContentNetworkImage extends StatelessWidget {
       isAntiAlias: isAntiAlias,
 
       // Only send the auth header to the server `auth` belongs to.
-      headers: parsedSrc.origin == account.realmUrl.origin
+      headers: src.origin == account.realmUrl.origin
         ? authHeader(email: account.email, apiKey: account.apiKey)
         : null,
 

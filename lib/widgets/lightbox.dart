@@ -197,7 +197,7 @@ class _LightboxPageState extends State<_LightboxPage> {
                   child: LightboxHero(
                     message: widget.message,
                     src: widget.src,
-                    child: RealmContentNetworkImage(widget.src.toString(), filterQuality: FilterQuality.medium))))))),
+                    child: RealmContentNetworkImage(widget.src, filterQuality: FilterQuality.medium))))))),
         bottomNavigationBar: bottomAppBar));
   }
 }

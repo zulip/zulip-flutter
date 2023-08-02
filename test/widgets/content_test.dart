@@ -121,7 +121,7 @@ void main() {
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
-    Future<String?> actualAuthHeader(WidgetTester tester, String src) async {
+    Future<String?> actualAuthHeader(WidgetTester tester, Uri src) async {
       final globalStore = TestZulipBinding.instance.globalStore;
       addTearDown(TestZulipBinding.instance.reset);
       await globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -144,20 +144,20 @@ void main() {
     }
 
     testWidgets('includes auth header if `src` on-realm', (tester) async {
-      check(await actualAuthHeader(tester, 'https://chat.example/image.png'))
+      check(await actualAuthHeader(tester, Uri.parse('https://chat.example/image.png')))
         .isNotNull().equals(authHeaders['Authorization']!);
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('excludes auth header if `src` off-realm', (tester) async {
-      check(await actualAuthHeader(tester, 'https://other.example/image.png'))
+      check(await actualAuthHeader(tester, Uri.parse('https://other.example/image.png')))
         .isNull();
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('throws if no `PerAccountStoreWidget` ancestor', (WidgetTester tester) async {
       await tester.pumpWidget(
-        const RealmContentNetworkImage('https://zulip.invalid/path/to/image.png', filterQuality: FilterQuality.medium));
+        RealmContentNetworkImage(Uri.parse('https://zulip.invalid/path/to/image.png'), filterQuality: FilterQuality.medium));
       check(tester.takeException()).isA<AssertionError>();
     });
   });

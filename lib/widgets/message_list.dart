@@ -482,10 +482,7 @@ class MessageWithSender extends StatelessWidget {
       : resolveUrl(author.avatarUrl!, store.account);
     final avatar = (avatarUrl == null)
       ? const SizedBox.shrink()
-      : RealmContentNetworkImage(
-          avatarUrl.toString(),
-          filterQuality: FilterQuality.medium,
-        );
+      : RealmContentNetworkImage(avatarUrl, filterQuality: FilterQuality.medium);
 
     final time = _kMessageTimestampFormat
       .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
