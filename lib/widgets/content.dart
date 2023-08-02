@@ -837,13 +837,13 @@ class Avatar extends StatelessWidget {
       ? const SizedBox.shrink()
       : RealmContentNetworkImage(avatarUrl, filterQuality: FilterQuality.medium);
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(borderRadius))),
+    return SizedBox(
       width: size,
       height: size,
-      child: avatar);
+      child: ClipRRect(
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
+        clipBehavior: Clip.antiAlias,
+        child: avatar));
   }
 }
 
