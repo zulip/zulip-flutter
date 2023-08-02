@@ -483,7 +483,7 @@ class MessageWithSender extends StatelessWidget {
     final avatar = (avatarUrl == null)
       ? const SizedBox.shrink()
       : RealmContentNetworkImage(
-          avatarUrl,
+          avatarUrl.toString(),
           filterQuality: FilterQuality.medium,
         );
 

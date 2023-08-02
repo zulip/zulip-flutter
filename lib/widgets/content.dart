@@ -224,7 +224,7 @@ class MessageImage extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(getLightboxRoute(
-          context: context, message: message, src: resolvedSrc));
+          context: context, message: message, src: resolvedSrc.toString()));
       },
       child: Align(
         alignment: Alignment.centerLeft,
@@ -241,9 +241,9 @@ class MessageImage extends StatelessWidget {
             color: const Color.fromRGBO(0, 0, 0, 0.03),
             child: LightboxHero(
               message: message,
-              src: resolvedSrc,
+              src: resolvedSrc.toString(),
               child: RealmContentNetworkImage(
-                resolvedSrc,
+                resolvedSrc.toString(),
                 filterQuality: FilterQuality.medium))))));
   }
 }
@@ -648,7 +648,7 @@ class MessageImageEmoji extends StatelessWidget {
           // too low.
           top: -1.5,
           child: RealmContentNetworkImage(
-            resolvedSrc,
+            resolvedSrc.toString(),
             filterQuality: FilterQuality.medium,
             width: size,
             height: size,
@@ -823,10 +823,9 @@ class RealmContentNetworkImage extends StatelessWidget {
 /// Resolve `url` to `account`'s realm, if relative
 // This may dissolve when we start passing around URLs as [Uri] objects instead
 // of strings.
-String resolveUrl(String url, Account account) {
+Uri resolveUrl(String url, Account account) {
   final realmUrl = account.realmUrl;
-  final resolved = realmUrl.resolve(url); // TODO handle if fails to parse
-  return resolved.toString();
+  return realmUrl.resolve(url); // TODO handle if fails to parse
 }
 
 InlineSpan _errorUnimplemented(UnimplementedNode node) {
