@@ -830,12 +830,13 @@ class Avatar extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final user = store.users[userId]!;
 
-    final avatarUrl = user.avatarUrl == null
-      ? null // TODO(#255): handle computing gravatars
-      : resolveUrl(user.avatarUrl!, store.account);
-    final avatar = (avatarUrl == null)
+    final resolvedUrl = switch (user.avatarUrl) {
+      null          => null, // TODO(#255): handle computing gravatars
+      var avatarUrl => resolveUrl(avatarUrl, store.account),
+    };
+    final avatar = (resolvedUrl == null)
       ? const SizedBox.shrink()
-      : RealmContentNetworkImage(avatarUrl, filterQuality: FilterQuality.medium);
+      : RealmContentNetworkImage(resolvedUrl, filterQuality: FilterQuality.medium);
 
     return SizedBox.square(
       dimension: size,
