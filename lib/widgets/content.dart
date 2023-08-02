@@ -812,6 +812,41 @@ class RealmContentNetworkImage extends StatelessWidget {
   }
 }
 
+/// A rounded square with size [size] showing a user's avatar.
+class Avatar extends StatelessWidget {
+  const Avatar({
+    super.key,
+    required this.userId,
+    required this.size,
+    required this.borderRadius,
+  });
+
+  final int userId;
+  final double size;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final user = store.users[userId]!;
+
+    final avatarUrl = user.avatarUrl == null
+      ? null // TODO(#255): handle computing gravatars
+      : resolveUrl(user.avatarUrl!, store.account);
+    final avatar = (avatarUrl == null)
+      ? const SizedBox.shrink()
+      : RealmContentNetworkImage(avatarUrl, filterQuality: FilterQuality.medium);
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius))),
+      width: size,
+      height: size,
+      child: avatar);
+  }
+}
+
 //
 // Small helpers.
 //

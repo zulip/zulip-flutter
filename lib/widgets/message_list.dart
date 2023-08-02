@@ -474,16 +474,6 @@ class MessageWithSender extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final author = store.users[message.senderId]!;
-
-    final avatarUrl = author.avatarUrl == null
-      ? null // TODO handle computing gravatars
-      : resolveUrl(author.avatarUrl!, store.account);
-    final avatar = (avatarUrl == null)
-      ? const SizedBox.shrink()
-      : RealmContentNetworkImage(avatarUrl, filterQuality: FilterQuality.medium);
-
     final time = _kMessageTimestampFormat
       .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
 
@@ -496,13 +486,7 @@ class MessageWithSender extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
-            child: Container(
-              clipBehavior: Clip.antiAlias,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(4))),
-              width: 35,
-              height: 35,
-              child: avatar)),
+            child: Avatar(userId: message.senderId, size: 35, borderRadius: 4)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
