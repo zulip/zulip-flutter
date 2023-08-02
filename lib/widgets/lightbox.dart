@@ -17,7 +17,7 @@ class _LightboxHeroTag {
   _LightboxHeroTag({required this.messageId, required this.src});
 
   final int messageId;
-  final String src;
+  final Uri src;
 
   @override
   bool operator ==(Object other) {
@@ -40,7 +40,7 @@ class LightboxHero extends StatelessWidget {
   });
 
   final Message message;
-  final String src;
+  final Uri src;
   final Widget child;
 
   @override
@@ -66,7 +66,7 @@ class LightboxHero extends StatelessWidget {
 class _CopyLinkButton extends StatelessWidget {
   const _CopyLinkButton({required this.url});
 
-  final String url;
+  final Uri url;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class _CopyLinkButton extends StatelessWidget {
       onPressed: () async {
         // TODO(i18n)
         copyWithPopup(context: context, successContent: const Text('Link copied'),
-          data: ClipboardData(text: url));
+          data: ClipboardData(text: url.toString()));
       });
   }
 }
@@ -90,7 +90,7 @@ class _LightboxPage extends StatefulWidget {
 
   final Animation routeEntranceAnimation;
   final Message message;
-  final String src;
+  final Uri src;
 
   @override
   State<_LightboxPage> createState() => _LightboxPageState();
@@ -197,7 +197,7 @@ class _LightboxPageState extends State<_LightboxPage> {
                   child: LightboxHero(
                     message: widget.message,
                     src: widget.src,
-                    child: RealmContentNetworkImage(widget.src, filterQuality: FilterQuality.medium))))))),
+                    child: RealmContentNetworkImage(widget.src.toString(), filterQuality: FilterQuality.medium))))))),
         bottomNavigationBar: bottomAppBar));
   }
 }
@@ -205,7 +205,7 @@ class _LightboxPageState extends State<_LightboxPage> {
 Route getLightboxRoute({
   required BuildContext context,
   required Message message,
-  required String src
+  required Uri src,
 }) {
   return AccountPageRouteBuilder(
     context: context,

@@ -224,7 +224,7 @@ class MessageImage extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(getLightboxRoute(
-          context: context, message: message, src: resolvedSrc.toString()));
+          context: context, message: message, src: resolvedSrc));
       },
       child: Align(
         alignment: Alignment.centerLeft,
@@ -241,7 +241,7 @@ class MessageImage extends StatelessWidget {
             color: const Color.fromRGBO(0, 0, 0, 0.03),
             child: LightboxHero(
               message: message,
-              src: resolvedSrc.toString(),
+              src: resolvedSrc,
               child: RealmContentNetworkImage(
                 resolvedSrc.toString(),
                 filterQuality: FilterQuality.medium))))));
