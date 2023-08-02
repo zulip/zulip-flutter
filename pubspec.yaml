@@ -89,6 +89,7 @@ flutter:
 
   assets:
     - assets/Source_Code_Pro/LICENSE.md
+    - assets/Source_Sans_3/LICENSE.md
 
   fonts:
     # Zulip's custom icons.  To use or edit, see class ZulipIcons.
@@ -100,6 +101,12 @@ flutter:
       fonts:
         - asset: assets/Source_Code_Pro/SourceCodeVF-Upright.otf
         - asset: assets/Source_Code_Pro/SourceCodeVF-Italic.otf
+          style: italic
+
+    - family: Source Sans 3
+      fonts:
+        - asset: assets/Source_Sans_3/SourceSans3VF-Upright.otf
+        - asset: assets/Source_Sans_3/SourceSans3VF-Italic.otf
           style: italic
 
     # If adding a font, remember to account for its license in lib/licenses.dart.
