@@ -88,15 +88,12 @@ class MessageListView extends ChangeNotifier {
   }
 
   _applyChangesToMessage(UpdateMessageEvent event, Message message) {
-    // In earlier server versions, omitting the userId indicates that this is a
-    // rendering-only update. That means this change was initiated by the server,
-    // not the user.
-    //
     // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
     final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
     if (event.editTimestamp != null && !isRenderingOnly) {
-      // Only update the timestamp if this was a user-led update,
-      // not a server-only update
+      // A rendering-only update gets omitted from the message edit history,
+      // and [Message.lastEditTimestamp] is the last timestamp of that history.
+      // So on a rendering-only update, the timestamp doesn't get updated.
       message.lastEditTimestamp = event.editTimestamp;
     }
 
