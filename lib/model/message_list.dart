@@ -151,6 +151,32 @@ class MessageListView extends ChangeNotifier {
     notifyListeners();
   }
 
+  void maybeUpdateMessageReactions(ReactionEvent event) {
+    final index = findMessageWithId(event.messageId);
+    if (index == -1) {
+      return;
+    }
+
+    final message = messages[index];
+    switch (event.op) {
+      case ReactionOp.add:
+        message.reactions.add(Reaction(
+          emojiName: event.emojiName,
+          emojiCode: event.emojiCode,
+          reactionType: event.reactionType,
+          userId: event.userId,
+        ));
+      case ReactionOp.remove:
+        message.reactions.removeWhere((r) {
+          return r.emojiCode == event.emojiCode
+            && r.reactionType == event.reactionType
+            && r.userId == event.userId;
+        });
+    }
+
+    notifyListeners();
+  }
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// This will redo from scratch any computations we can, such as parsing

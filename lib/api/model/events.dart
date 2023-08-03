@@ -33,6 +33,7 @@ sealed class Event {
       case 'message': return MessageEvent.fromJson(json);
       case 'update_message': return UpdateMessageEvent.fromJson(json);
       case 'delete_message': return DeleteMessageEvent.fromJson(json);
+      case 'reaction': return ReactionEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
       default: return UnexpectedEvent.fromJson(json);
@@ -368,6 +369,50 @@ class DeleteMessageEvent extends Event {
 enum MessageType {
   stream,
   private;
+}
+
+/// A Zulip event of type `reaction`, with op `add` or `remove`.
+///
+/// See:
+///   https://zulip.com/api/get-events#reaction-add
+///   https://zulip.com/api/get-events#reaction-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ReactionEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'reaction';
+
+  final ReactionOp op;
+
+  final String emojiName;
+  final String emojiCode;
+  final ReactionType reactionType;
+  final int userId;
+  // final Map<String, dynamic> user; // deprecated; ignore
+  final int messageId;
+
+  ReactionEvent({
+    required super.id,
+    required this.op,
+    required this.emojiName,
+    required this.emojiCode,
+    required this.reactionType,
+    required this.userId,
+    required this.messageId,
+  });
+
+  factory ReactionEvent.fromJson(Map<String, dynamic> json) =>
+    _$ReactionEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$ReactionEventToJson(this);
+}
+
+/// The type of [ReactionEvent.op].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum ReactionOp {
+  add,
+  remove,
 }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat

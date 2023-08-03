@@ -162,5 +162,103 @@ void main() async {
     test('rendering-only update does not change timestamp (for old server versions)', () async {
       await checkRenderingOnly(legacy: true);
     });
+
+    group('ReactionEvent handling', () {
+      ReactionEvent mkEvent(Reaction reaction, ReactionOp op, int messageId) {
+        return ReactionEvent(
+          id: 1,
+          op: op,
+          emojiName: reaction.emojiName,
+          emojiCode: reaction.emojiCode,
+          reactionType: reaction.reactionType,
+          userId: reaction.userId,
+          messageId: messageId,
+        );
+      }
+
+      test('add reaction', () async {
+        final originalMessage = eg.streamMessage(stream: stream, reactions: []);
+        final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+
+        final message = messageList.messages.single;
+
+        bool listenersNotified = false;
+        messageList.addListener(() { listenersNotified = true; });
+
+        messageList.maybeUpdateMessageReactions(
+          mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
+
+        check(listenersNotified).isTrue();
+        check(messageList.messages.single)
+          ..identicalTo(message)
+          ..reactions.jsonEquals([eg.unicodeEmojiReaction]);
+      });
+
+      test('add reaction; message is not in list', () async {
+        final someMessage = eg.streamMessage(id: 1, reactions: []);
+        final messageList = await messageListViewWithMessages([someMessage], stream, narrow);
+
+        bool listenersNotified = false;
+        messageList.addListener(() { listenersNotified = true; });
+
+        messageList.maybeUpdateMessageReactions(
+          mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
+
+        check(listenersNotified).isFalse();
+        check(messageList.messages.single).reactions.jsonEquals([]);
+      });
+
+      test('remove reaction', () async {
+        final eventReaction = Reaction(reactionType: ReactionType.unicodeEmoji,
+          emojiName: 'wave',                  emojiCode: '1f44b', userId: 1);
+
+        // Same emoji, different user. Not to be removed.
+        final reaction2 = Reaction.fromJson(eventReaction.toJson()
+          ..['user_id'] = 2);
+
+        // Same user, different emoji. Not to be removed.
+        final reaction3 = Reaction.fromJson(eventReaction.toJson()
+          ..['emoji_code'] = '1f6e0'
+          ..['emoji_name'] = 'working_on_it');
+
+        // Same user, same emojiCode, different emojiName. To be removed: servers
+        // key on user, message, reaction type, and emoji code, but not emoji name.
+        // So we mimic that behavior; see discussion:
+        //   https://github.com/zulip/zulip-flutter/pull/256#discussion_r1284865099
+        final reaction4 = Reaction.fromJson(eventReaction.toJson()
+          ..['emoji_name'] = 'hello');
+
+        final originalMessage = eg.streamMessage(stream: stream,
+          reactions: [reaction2, reaction3, reaction4]);
+        final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+
+        final message = messageList.messages.single;
+
+        bool listenersNotified = false;
+        messageList.addListener(() { listenersNotified = true; });
+
+        messageList.maybeUpdateMessageReactions(
+          mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
+
+        check(listenersNotified).isTrue();
+        check(messageList.messages.single)
+          ..identicalTo(message)
+          ..reactions.jsonEquals([reaction2, reaction3]);
+      });
+
+      test('remove reaction; message is not in list', () async {
+        final someMessage = eg.streamMessage(id: 1, reactions: [eg.unicodeEmojiReaction]);
+        final messageList = await messageListViewWithMessages([someMessage], stream, narrow);
+
+        bool listenersNotified = false;
+        messageList.addListener(() { listenersNotified = true; });
+
+        messageList.maybeUpdateMessageReactions(
+          mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
+
+        check(listenersNotified).isFalse();
+        check(messageList.messages.single).reactions.jsonEquals([eg.unicodeEmojiReaction]);
+      });
+    });
   });
 }

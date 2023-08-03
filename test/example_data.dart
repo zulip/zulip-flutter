@@ -132,6 +132,7 @@ StreamMessage streamMessage({
   String? content,
   String? contentMarkdown,
   int? lastEditTimestamp,
+  List<Reaction>? reactions,
   List<String>? flags,
 }) {
   final effectiveStream = stream ?? _stream();
@@ -146,7 +147,7 @@ StreamMessage streamMessage({
     ..._messagePropertiesFromContent(content, contentMarkdown),
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
-    'reactions': [],
+    'reactions': reactions?.map((r) => r.toJson()).toList() ?? [],
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,
@@ -186,6 +187,13 @@ DmMessage dmMessage({
     'type': 'private',
   });
 }
+
+Reaction unicodeEmojiReaction = Reaction(
+  emojiName: 'thumbs_up',
+  emojiCode: '1f44d',
+  reactionType: ReactionType.unicodeEmoji,
+  userId: selfUser.userId,
+);
 
 // TODO example data for many more types
 

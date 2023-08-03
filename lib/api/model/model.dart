@@ -464,6 +464,9 @@ class Reaction {
     _$ReactionFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReactionToJson(this);
+
+  @override
+  String toString() => 'Reaction(emojiName: $emojiName, emojiCode: $emojiCode, reactionType: $reactionType, userId: $userId)';
 }
 
 /// As in [Reaction.reactionType].
