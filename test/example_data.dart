@@ -146,6 +146,7 @@ StreamMessage streamMessage({
     ..._messagePropertiesFromContent(content, contentMarkdown),
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
+    'reactions': [],
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,
@@ -176,7 +177,7 @@ DmMessage dmMessage({
     'display_recipient': [from, ...to]
       .map((u) => {'id': u.userId, 'email': u.email, 'full_name': u.fullName})
       .toList(growable: false),
-
+    'reactions': [],
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,

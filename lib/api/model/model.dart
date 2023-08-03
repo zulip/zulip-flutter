@@ -258,7 +258,7 @@ sealed class Message {
   bool isMeMessage;
   int? lastEditTimestamp;
 
-  // final List<Reaction> reactions; // TODO handle
+  final List<Reaction> reactions;
   final int recipientId;
   final String senderEmail;
   final String senderFullName;
@@ -282,6 +282,7 @@ sealed class Message {
     required this.id,
     required this.isMeMessage,
     this.lastEditTimestamp,
+    required this.reactions,
     required this.recipientId,
     required this.senderEmail,
     required this.senderFullName,
@@ -320,6 +321,7 @@ class StreamMessage extends Message {
     required super.id,
     required super.isMeMessage,
     super.lastEditTimestamp,
+    required super.reactions,
     required super.recipientId,
     required super.senderEmail,
     required super.senderFullName,
@@ -421,6 +423,7 @@ class DmMessage extends Message {
     required super.id,
     required super.isMeMessage,
     super.lastEditTimestamp,
+    required super.reactions,
     required super.recipientId,
     required super.senderEmail,
     required super.senderFullName,
@@ -439,4 +442,34 @@ class DmMessage extends Message {
 
   @override
   Map<String, dynamic> toJson() => _$DmMessageToJson(this);
+}
+
+/// As in [Message.reactions].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class Reaction {
+  final String emojiName;
+  final String emojiCode;
+  final ReactionType reactionType;
+  final int userId;
+  // final Map<String, dynamic> user; // deprecated; ignore
+
+  Reaction({
+    required this.emojiName,
+    required this.emojiCode,
+    required this.reactionType,
+    required this.userId,
+  });
+
+  factory Reaction.fromJson(Map<String, dynamic> json) =>
+    _$ReactionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReactionToJson(this);
+}
+
+/// As in [Reaction.reactionType].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum ReactionType {
+  unicodeEmoji,
+  realmEmoji,
+  zulipExtraEmoji;
 }
