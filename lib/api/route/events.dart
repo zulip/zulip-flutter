@@ -11,10 +11,11 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) {
   return connection.post('registerQueue', InitialSnapshot.fromJson, 'register', {
     'apply_markdown': true,
     'slim_presence': true,
+    'client_gravatar': false, // TODO(#255): turn on
     'client_capabilities': {
       'notification_settings_null': true,
       'bulk_message_deletion': true,
-      'user_avatar_url_field_optional': true,
+      'user_avatar_url_field_optional': false, // TODO(#254): turn on
       'stream_typing_notifications': false, // TODO implement
       'user_settings_object': true,
     },
