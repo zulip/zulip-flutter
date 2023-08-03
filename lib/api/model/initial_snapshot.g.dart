@@ -31,6 +31,10 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       streams: (json['streams'] as List<dynamic>)
           .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
           .toList(),
+      userSettings: json['user_settings'] == null
+          ? null
+          : UserSettings.fromJson(
+              json['user_settings'] as Map<String, dynamic>),
       maxFileUploadSizeMib: json['max_file_upload_size_mib'] as int,
       realmUsers:
           (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -59,6 +63,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'recent_private_conversations': instance.recentPrivateConversations,
       'subscriptions': instance.subscriptions,
       'streams': instance.streams,
+      'user_settings': instance.userSettings,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'realm_users': instance.realmUsers,
       'realm_non_active_users': instance.realmNonActiveUsers,
@@ -78,4 +83,13 @@ Map<String, dynamic> _$RecentDmConversationToJson(
     <String, dynamic>{
       'max_message_id': instance.maxMessageId,
       'user_ids': instance.userIds,
+    };
+
+UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
+      displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
+    );
+
+Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
+    <String, dynamic>{
+      'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
     };

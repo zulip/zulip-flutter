@@ -208,6 +208,7 @@ InitialSnapshot initialSnapshot({
   List<RecentDmConversation>? recentPrivateConversations,
   List<Subscription>? subscriptions,
   List<ZulipStream>? streams,
+  UserSettings? userSettings,
   int? maxFileUploadSizeMib,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
@@ -224,6 +225,7 @@ InitialSnapshot initialSnapshot({
     recentPrivateConversations: recentPrivateConversations ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
     streams: streams ?? [], // TODO add streams to default
+    userSettings: userSettings, // TODO add userSettings to default
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
