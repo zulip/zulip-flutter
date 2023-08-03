@@ -151,6 +151,7 @@ class PerAccountStore extends ChangeNotifier {
     required InitialSnapshot initialSnapshot,
   }) : zulipVersion = initialSnapshot.zulipVersion,
        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
+       userSettings = initialSnapshot.userSettings,
        users = Map.fromEntries(
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
@@ -171,6 +172,9 @@ class PerAccountStore extends ChangeNotifier {
   // Data attached to the realm or the server.
   final String zulipVersion; // TODO get from account; update there on initial snapshot
   final int maxFileUploadSizeMib; // No event for this.
+
+  // Data attached to the self-account on the realm.
+  final UserSettings? userSettings; // TODO(#135) update with user_settings/update event
 
   // Users and data about them.
   final Map<int, User> users;
