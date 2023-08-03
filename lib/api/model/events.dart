@@ -55,7 +55,7 @@ class UnexpectedEvent extends Event {
   Map<String, dynamic> toJson() => json;
 }
 
-/// A Zulip event of type `alert_words`.
+/// A Zulip event of type `alert_words`: https://zulip.com/api/get-events#alert_words
 @JsonSerializable(fieldRename: FieldRename.snake)
 class AlertWordsEvent extends Event {
   @override
@@ -74,6 +74,9 @@ class AlertWordsEvent extends Event {
 }
 
 /// A Zulip event of type `realm_user`.
+///
+/// The corresponding API docs are in several places for
+/// different values of `op`; see subclasses.
 abstract class RealmUserEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
@@ -122,6 +125,7 @@ class RealmUserRemoveEvent extends RealmUserEvent {
   }
 }
 
+/// As in [RealmUserUpdateEvent.customProfileField].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class RealmUserUpdateCustomProfileField {
   final int id;
@@ -184,6 +188,9 @@ class RealmUserUpdateEvent extends RealmUserEvent {
 }
 
 /// A Zulip event of type `stream`.
+///
+/// The corresponding API docs are in several places for
+/// different values of `op`; see subclasses.
 abstract class StreamEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
@@ -231,7 +238,7 @@ class StreamDeleteEvent extends StreamEvent {
 // TODO(#182) StreamUpdateEvent, for a [StreamEvent] with op `update`:
 //   https://zulip.com/api/get-events#stream-update
 
-/// A Zulip event of type `message`.
+/// A Zulip event of type `message`: https://zulip.com/api/get-events#message
 // TODO use [JsonSerializable] here too, using its customization features,
 //   in order to skip the boilerplate in [fromJson] and [toJson].
 class MessageEvent extends Event {
@@ -267,7 +274,7 @@ class MessageEvent extends Event {
   }
 }
 
-/// A Zulip event of type `update_message`.
+/// A Zulip event of type `update_message`: https://zulip.com/api/get-events#update_message
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageEvent extends Event {
   @override
@@ -329,7 +336,7 @@ enum PropagateMode {
   changeAll;
 }
 
-/// A Zulip event of type `delete_message`.
+/// A Zulip event of type `delete_message`: https://zulip.com/api/get-events#delete_message
 @JsonSerializable(fieldRename: FieldRename.snake)
 class DeleteMessageEvent extends Event {
   @override
@@ -363,6 +370,7 @@ enum MessageType {
   private;
 }
 
+/// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat
 @JsonSerializable(fieldRename: FieldRename.snake)
 class HeartbeatEvent extends Event {
   @override
