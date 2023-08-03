@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'model.dart';
@@ -116,11 +117,14 @@ class RecentDmConversation {
 ///
 /// For docs, search for "user_settings:"
 /// in <https://zulip.com/api/register-queue>.
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(fieldRename: FieldRename.snake, createFieldMap: true)
 class UserSettings {
-  final bool? displayEmojiReactionUsers; // TODO(server-6)
+  bool? displayEmojiReactionUsers; // TODO(server-6)
 
-  // TODO more, as needed
+  // TODO more, as needed. When adding a setting here, please also:
+  // (1) add it to the [UserSettingName] enum below
+  // (2) then re-run the command to refresh the .g.dart files
+  // (3) handle the event that signals an update to the setting
 
   UserSettings({
     required this.displayEmojiReactionUsers,
@@ -130,4 +134,29 @@ class UserSettings {
     _$UserSettingsFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserSettingsToJson(this);
+
+  /// A list of [UserSettings]'s properties, as strings.
+  // _$…FieldMap is thanks to `createFieldMap: true`
+  @visibleForTesting
+  static final Iterable<String> debugKnownNames = _$UserSettingsFieldMap.keys;
+}
+
+/// The name of a user setting that has a property in [UserSettings].
+///
+/// In Zulip event-handling code (for [UserSettingsUpdateEvent]),
+/// we switch exhaustively on a value of this type
+/// to ensure that every setting in [UserSettings] responds to the event.
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum UserSettingName {
+  displayEmojiReactionUsers;
+
+  /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
+  ///
+  /// Example:
+  ///   'display_emoji_reaction_users' -> UserSettingName.displayEmojiReactionUsers
+  static UserSettingName? fromRawString(String raw) => _byRawString[raw];
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
+  static final _byRawString = _$UserSettingNameEnumMap
+    .map((key, value) => MapEntry(value, key));
 }

@@ -89,7 +89,15 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
       displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
     );
 
+const _$UserSettingsFieldMap = <String, String>{
+  'displayEmojiReactionUsers': 'display_emoji_reaction_users',
+};
+
 Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
     <String, dynamic>{
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
     };
+
+const _$UserSettingNameEnumMap = {
+  UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
+};

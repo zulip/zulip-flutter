@@ -23,6 +23,29 @@ Map<String, dynamic> _$AlertWordsEventToJson(AlertWordsEvent instance) =>
       'alert_words': instance.alertWords,
     };
 
+UserSettingsUpdateEvent _$UserSettingsUpdateEventFromJson(
+        Map<String, dynamic> json) =>
+    UserSettingsUpdateEvent(
+      id: json['id'] as int,
+      property: $enumDecodeNullable(_$UserSettingNameEnumMap, json['property'],
+          unknownValue: JsonKey.nullForUndefinedEnumValue),
+      value: UserSettingsUpdateEvent._readValue(json, 'value'),
+    );
+
+Map<String, dynamic> _$UserSettingsUpdateEventToJson(
+        UserSettingsUpdateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'property': _$UserSettingNameEnumMap[instance.property],
+      'value': instance.value,
+    };
+
+const _$UserSettingNameEnumMap = {
+  UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
+};
+
 RealmUserAddEvent _$RealmUserAddEventFromJson(Map<String, dynamic> json) =>
     RealmUserAddEvent(
       id: json['id'] as int,

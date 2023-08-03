@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'initial_snapshot.dart';
 import 'model.dart';
 
 part 'events.g.dart';
@@ -16,6 +17,11 @@ sealed class Event {
   factory Event.fromJson(Map<String, dynamic> json) {
     switch (json['type'] as String) {
       case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'user_settings':
+        switch (json['op'] as String) {
+          case 'update': return UserSettingsUpdateEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'realm_user':
         switch (json['op'] as String) {
           case 'add': return RealmUserAddEvent.fromJson(json);
@@ -72,6 +78,53 @@ class AlertWordsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
+}
+
+/// A Zulip event of type `user_settings` with op `update`.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserSettingsUpdateEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_settings';
+
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  /// The name of the setting, or null if we don't recognize it.
+  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
+  final UserSettingName? property;
+
+  /// The new value, or null if we don't recognize the setting.
+  ///
+  /// This will have the type appropriate for [property]; for example,
+  /// if the setting is boolean, then `value is bool` will always be true.
+  /// This invariant is enforced by [UserSettingsUpdateEvent.fromJson].
+  @JsonKey(readValue: _readValue)
+  final Object? value;
+
+  /// [value], with a check that its type corresponds to [property]
+  /// (e.g., `value as bool`).
+  static Object? _readValue(Map json, String key) {
+    final value = json['value'];
+    switch (UserSettingName.fromRawString(json['property'] as String)) {
+      case UserSettingName.displayEmojiReactionUsers:
+        return value as bool;
+      case null:
+        return null;
+    }
+  }
+
+  UserSettingsUpdateEvent({
+    required super.id,
+    required this.property,
+    required this.value,
+  });
+
+  factory UserSettingsUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$UserSettingsUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserSettingsUpdateEventToJson(this);
 }
 
 /// A Zulip event of type `realm_user`.

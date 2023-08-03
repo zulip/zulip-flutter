@@ -174,7 +174,7 @@ class PerAccountStore extends ChangeNotifier {
   final int maxFileUploadSizeMib; // No event for this.
 
   // Data attached to the self-account on the realm.
-  final UserSettings? userSettings; // TODO(#135) update with user_settings/update event
+  final UserSettings? userSettings; // TODO(server-5)
 
   // Users and data about them.
   final Map<int, User> users;
@@ -219,6 +219,17 @@ class PerAccountStore extends ChangeNotifier {
     } else if (event is AlertWordsEvent) {
       assert(debugLog("server event: alert_words"));
       // We don't yet store this data, so there's nothing to update.
+    } else if (event is UserSettingsUpdateEvent) {
+      assert(debugLog("server event: user_settings/update ${event.property?.name ?? '[unrecognized]'}"));
+      if (event.property == null) {
+        // unrecognized setting; do nothing
+        return;
+      }
+      switch (event.property!) {
+        case UserSettingName.displayEmojiReactionUsers:
+          userSettings?.displayEmojiReactionUsers = event.value as bool;
+      }
+      notifyListeners();
     } else if (event is RealmUserAddEvent) {
       assert(debugLog("server event: realm_user/add"));
       users[event.person.userId] = event.person;
