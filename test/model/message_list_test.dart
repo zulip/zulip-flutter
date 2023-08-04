@@ -140,9 +140,12 @@ void main() async {
       );
 
       final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+      bool listenersNotified = false;
+      messageList.addListener(() { listenersNotified = true; });
 
       final message = messageList.messages.single;
       messageList.maybeUpdateMessage(updateEvent);
+      check(listenersNotified).isTrue();
       check(messageList.messages.single)
         ..identicalTo(message)
         // Content is updated...
