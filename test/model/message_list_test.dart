@@ -64,11 +64,7 @@ void main() async {
   group('maybeUpdateMessage', () {
     test('update a message', () async {
       final originalMessage = eg.streamMessage(id: 243, stream: stream,
-        content: "<p>Hello, world</p>",
-        flags: [],
-      );
-      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
-
+        content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
         id: 1,
         messageId: originalMessage.id,
@@ -81,15 +77,16 @@ void main() async {
         renderingOnly: false,
       );
 
+      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+      bool listenersNotified = false;
+      messageList.addListener(() { listenersNotified = true; });
+
       final message = messageList.messages.single;
       check(message)
         ..content.not(it()..equals(updateEvent.renderedContent!))
         ..lastEditTimestamp.isNull()
         ..flags.not(it()..deepEquals(updateEvent.flags))
         ..isMeMessage.not(it()..equals(updateEvent.isMeMessage!));
-
-      bool listenersNotified = false;
-      messageList.addListener(() { listenersNotified = true; });
 
       messageList.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isTrue();
@@ -104,8 +101,6 @@ void main() async {
     test('ignore when message not present', () async {
       final originalMessage = eg.streamMessage(id: 243, stream: stream,
         content: "<p>Hello, world</p>");
-      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
-
       final updateEvent = UpdateMessageEvent(
         id: 1,
         messageId: originalMessage.id + 1,
@@ -117,6 +112,7 @@ void main() async {
         renderingOnly: false,
       );
 
+      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
       bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
 
@@ -132,8 +128,6 @@ void main() async {
       final originalMessage = eg.streamMessage(id: 972, stream: stream,
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
-      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
-
       final updateEvent = UpdateMessageEvent(
         id: 1,
         messageId: originalMessage.id,
@@ -144,6 +138,8 @@ void main() async {
         renderingOnly: legacy ? null : true,
         userId: null,
       );
+
+      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
 
       final message = messageList.messages.single;
       messageList.maybeUpdateMessage(updateEvent);
