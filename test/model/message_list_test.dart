@@ -5,7 +5,6 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
@@ -15,7 +14,7 @@ import '../model/test_store.dart';
 
 const int userId = 1;
 
-Future<PerAccountStore> setupStore(ZulipStream stream) async {
+Future<MessageListView> messageListViewWithMessages(List<Message> messages, ZulipStream stream, Narrow narrow) async {
   addTearDown(TestZulipBinding.instance.reset);
 
   await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -24,10 +23,6 @@ Future<PerAccountStore> setupStore(ZulipStream stream) async {
   store.addUser(eg.user(userId: userId));
   store.addStream(stream);
 
-  return store;
-}
-
-Future<MessageListView> messageListViewWithMessages(List<Message> messages, PerAccountStore store, Narrow narrow) async {
   final messageList = MessageListView.init(store: store, narrow: narrow);
 
   final connection = store.connection as FakeApiConnection;
@@ -51,11 +46,10 @@ void main() async {
   final narrow = StreamNarrow(stream.streamId);
 
   test('findMessageWithId', () async {
-    final store = await setupStore(stream);
     final m1 = eg.streamMessage(id: 2, stream: stream);
     final m2 = eg.streamMessage(id: 4, stream: stream);
     final m3 = eg.streamMessage(id: 6, stream: stream);
-    final messageList = await messageListViewWithMessages([m1, m2, m3], store, narrow);
+    final messageList = await messageListViewWithMessages([m1, m2, m3], stream, narrow);
 
     // Exercise the binary search before, at, and after each element of the list.
     check(messageList.findMessageWithId(1)).equals(-1);
@@ -69,13 +63,11 @@ void main() async {
 
   group('maybeUpdateMessage', () {
     test('update a message', () async {
-      final store = await setupStore(stream);
-
       final originalMessage = eg.streamMessage(id: 243, stream: stream,
         content: "<p>Hello, world</p>",
         flags: [],
       );
-      final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
+      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
 
       final updateEvent = UpdateMessageEvent(
         id: 1,
@@ -110,11 +102,9 @@ void main() async {
     });
 
     test('ignore when message not present', () async {
-      final store = await setupStore(stream);
-
       final originalMessage = eg.streamMessage(id: 243, stream: stream,
         content: "<p>Hello, world</p>");
-      final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
+      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
 
       final updateEvent = UpdateMessageEvent(
         id: 1,
@@ -139,12 +129,10 @@ void main() async {
 
     // TODO(server-5): Cut legacy case for rendering-only message update
     Future<void> checkRenderingOnly({required bool legacy}) async {
-      final store = await setupStore(stream);
-
       final originalMessage = eg.streamMessage(id: 972, stream: stream,
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
-      final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
+      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
 
       final updateEvent = UpdateMessageEvent(
         id: 1,
