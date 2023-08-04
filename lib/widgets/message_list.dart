@@ -21,6 +21,7 @@ class MessageListPage extends StatefulWidget {
 
   static Route<void> buildRoute({required BuildContext context, required Narrow narrow}) {
     return MaterialAccountPageRoute(context: context,
+      settings: RouteSettings(name: 'message_list', arguments: narrow), // for testing
       builder: (context) => MessageListPage(narrow: narrow));
   }
 

@@ -15,6 +15,15 @@ extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<
   Subject<T?> get currentState => has((k) => k.currentState, 'currentState');
 }
 
+extension RouteChecks<T> on Subject<Route<T>> {
+  Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
+}
+
+extension RouteSettingsChecks<T> on Subject<RouteSettings> {
+  Subject<String?> get name => has((s) => s.name, 'name');
+  Subject<Object?> get arguments => has((s) => s.arguments, 'arguments');
+}
+
 extension ValueNotifierChecks<T> on Subject<ValueNotifier<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
 }
