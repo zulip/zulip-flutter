@@ -827,6 +827,26 @@ class Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return AvatarShape(
+      size: size,
+      borderRadius: borderRadius,
+      child: AvatarImage(userId: userId));
+  }
+}
+
+/// The appropriate avatar image for a user ID.
+///
+/// Wrap this with [AvatarShape].
+class AvatarImage extends StatelessWidget {
+  const AvatarImage({
+    super.key,
+    required this.userId,
+  });
+
+  final int userId;
+
+  @override
+  Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final user = store.users[userId]!;
 
@@ -834,16 +854,33 @@ class Avatar extends StatelessWidget {
       null          => null, // TODO(#255): handle computing gravatars
       var avatarUrl => resolveUrl(avatarUrl, store.account),
     };
-    final avatar = (resolvedUrl == null)
+    return (resolvedUrl == null)
       ? const SizedBox.shrink()
       : RealmContentNetworkImage(resolvedUrl, filterQuality: FilterQuality.medium);
+  }
+}
 
+/// A rounded square shape, to wrap an [AvatarImage] or similar.
+class AvatarShape extends StatelessWidget {
+  const AvatarShape({
+    super.key,
+    required this.size,
+    required this.borderRadius,
+    required this.child,
+  });
+
+  final double size;
+  final double borderRadius;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         clipBehavior: Clip.antiAlias,
-        child: avatar));
+        child: child));
   }
 }
 
