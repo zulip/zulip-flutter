@@ -137,7 +137,8 @@ void main() async {
         ..content.not(it()..equals(updateEvent.renderedContent!));
     });
 
-    test('rendering-only update does not change timestamp', () async {
+    // TODO(server-5): Cut legacy case for rendering-only message update
+    Future<void> checkRenderingOnly({required bool legacy}) async {
       final store = await setupStore(stream);
 
       const oldContent = "<p>Hello, world</p>";
@@ -157,39 +158,7 @@ void main() async {
         flags: originalMessage.flags,
         renderedContent: newContent,
         editTimestamp: newTimestamp,
-        renderingOnly: true,
-        userId: null,
-      );
-
-      final message = messageList.messages[0];
-      messageList.maybeUpdateMessage(updateEvent);
-      check(message)
-        ..content.equals(newContent)
-        ..lastEditTimestamp.equals(oldTimestamp);
-    });
-
-    // TODO(server-5): Cut this test; rely on renderingOnly from FL 114
-    test('rendering-only update does not change timestamp (for old server versions)', () async {
-      final store = await setupStore(stream);
-
-      const oldContent = "<p>Hello, world</p>";
-      const oldTimestamp = 78492;
-      const newContent = "<p>Hello, world</p> <div>Some link preview</div>";
-      const newTimestamp = 99999;
-
-      final originalMessage = eg.streamMessage(id: 972, stream: stream, content: oldContent);
-      originalMessage.lastEditTimestamp = oldTimestamp;
-
-      final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
-
-      final updateEvent = UpdateMessageEvent(
-        id: 1,
-        messageId: originalMessage.id,
-        messageIds: [originalMessage.id],
-        flags: originalMessage.flags,
-        renderedContent: newContent,
-        editTimestamp: newTimestamp,
-        renderingOnly: null,
+        renderingOnly: legacy ? null : true,
         userId: null,
       );
 
@@ -198,6 +167,14 @@ void main() async {
       check(message)
         ..content.equals(newContent)
         ..lastEditTimestamp.equals(oldTimestamp);
+    }
+
+    test('rendering-only update does not change timestamp', () async {
+      await checkRenderingOnly(legacy: false);
+    });
+
+    test('rendering-only update does not change timestamp (for old server versions)', () async {
+      await checkRenderingOnly(legacy: true);
     });
   });
 }
