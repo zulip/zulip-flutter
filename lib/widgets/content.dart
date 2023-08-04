@@ -836,6 +836,8 @@ class Avatar extends StatelessWidget {
 
 /// The appropriate avatar image for a user ID.
 ///
+/// If the user isn't found, gives a [SizedBox.shrink].
+///
 /// Wrap this with [AvatarShape].
 class AvatarImage extends StatelessWidget {
   const AvatarImage({
@@ -848,7 +850,11 @@ class AvatarImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final user = store.users[userId]!;
+    final user = store.users[userId];
+
+    if (user == null) { // TODO(log)
+      return const SizedBox.shrink();
+    }
 
     final resolvedUrl = switch (user.avatarUrl) {
       null          => null, // TODO(#255): handle computing gravatars
