@@ -77,16 +77,13 @@ void main() async {
       );
       final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
 
-      final newFlags = ["starred"];
-      const newContent = "<p>Hello, edited</p>";
-      const editTimestamp = 99999;
       final updateEvent = UpdateMessageEvent(
         id: 1,
         messageId: originalMessage.id,
         messageIds: [originalMessage.id],
-        flags: newFlags,
-        renderedContent: newContent,
-        editTimestamp: editTimestamp,
+        flags: ["starred"],
+        renderedContent: "<p>Hello, edited</p>",
+        editTimestamp: 99999,
         isMeMessage: true,
         userId: userId,
         renderingOnly: false,
@@ -94,10 +91,10 @@ void main() async {
 
       final message = messageList.messages.single;
       check(message)
-        ..content.not(it()..equals(newContent))
+        ..content.not(it()..equals(updateEvent.renderedContent!))
         ..lastEditTimestamp.isNull()
-        ..flags.not(it()..deepEquals(newFlags))
-        ..isMeMessage.isFalse();
+        ..flags.not(it()..deepEquals(updateEvent.flags))
+        ..isMeMessage.not(it()..equals(updateEvent.isMeMessage!));
 
       bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
@@ -106,10 +103,10 @@ void main() async {
       check(listenersNotified).isTrue();
       check(messageList.messages.single)
         ..identicalTo(message)
-        ..content.equals(newContent)
-        ..lastEditTimestamp.equals(editTimestamp)
-        ..flags.equals(newFlags)
-        ..isMeMessage.isTrue();
+        ..content.equals(updateEvent.renderedContent!)
+        ..lastEditTimestamp.equals(updateEvent.editTimestamp)
+        ..flags.equals(updateEvent.flags)
+        ..isMeMessage.equals(updateEvent.isMeMessage!);
     });
 
     test('ignore when message not present', () async {
