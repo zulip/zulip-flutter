@@ -67,8 +67,8 @@ void main() async {
     check(messageList.findMessageWithId(7)).equals(-1);
   });
 
-  group('update message tests', () {
-    test('update events are correctly applied to message when it is in the stream', () async {
+  group('maybeUpdateMessage', () {
+    test('update a message', () async {
       final store = await setupStore(stream);
 
       const oldContent = "<p>Hello, world</p>";
@@ -114,7 +114,7 @@ void main() async {
         ..isMeMessage.isTrue();
     });
 
-    test('update event is ignored when message is not in the message list', () async {
+    test('ignore when message not present', () async {
       final store = await setupStore(stream);
 
       const oldContent = "<p>Hello, world</p>";
