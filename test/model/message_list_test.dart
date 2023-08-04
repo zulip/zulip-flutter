@@ -99,13 +99,11 @@ void main() async {
         ..flags.deepEquals(oldFlags)
         ..isMeMessage.isFalse();
 
-      var listenersNotified = false;
-
+      bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
+
       messageList.maybeUpdateMessage(updateEvent);
-
       check(listenersNotified).isTrue();
-
       check(message)
         ..identicalTo(messageList.messages.single)
         ..content.equals(newContent)
@@ -138,11 +136,10 @@ void main() async {
       final message = messageList.messages.single;
       check(message).content.equals(oldContent);
 
-      var listenersNotified = false;
-
+      bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
-      messageList.maybeUpdateMessage(updateEvent);
 
+      messageList.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isFalse();
       check(message).content.equals(oldContent);
     });
