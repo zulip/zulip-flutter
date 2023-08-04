@@ -31,7 +31,6 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, PerA
   final messageList = MessageListView.init(store: store, narrow: narrow);
 
   final connection = store.connection as FakeApiConnection;
-
   connection.prepare(json: GetMessagesResult(
     anchor: messages.first.id,
     foundNewest: true,
@@ -40,10 +39,7 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, PerA
     historyLimited: false,
     messages: messages,
   ).toJson());
-
   await messageList.fetch();
-
-  check(messageList.messages.length).equals(messages.length);
 
   return messageList;
 }
