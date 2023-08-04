@@ -141,13 +141,9 @@ void main() async {
     Future<void> checkRenderingOnly({required bool legacy}) async {
       final store = await setupStore(stream);
 
-      const oldContent = "<p>Hello, world</p>";
-      const oldTimestamp = 78492;
-      const newContent = "<p>Hello, world</p> <div>Some link preview</div>";
-      const newTimestamp = 99999;
-
-      final originalMessage = eg.streamMessage(id: 972, stream: stream, content: oldContent);
-      originalMessage.lastEditTimestamp = oldTimestamp;
+      final originalMessage = eg.streamMessage(id: 972, stream: stream,
+        content: "<p>Hello, world</p>");
+      originalMessage.lastEditTimestamp = 78492;
 
       final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
 
@@ -156,17 +152,21 @@ void main() async {
         messageId: originalMessage.id,
         messageIds: [originalMessage.id],
         flags: originalMessage.flags,
-        renderedContent: newContent,
-        editTimestamp: newTimestamp,
+        renderedContent: "<p>Hello, world</p> <div>Some link preview</div>",
+        editTimestamp: 99999,
         renderingOnly: legacy ? null : true,
         userId: null,
       );
 
       final message = messageList.messages.single;
       messageList.maybeUpdateMessage(updateEvent);
-      check(message)
-        ..content.equals(newContent)
-        ..lastEditTimestamp.equals(oldTimestamp);
+      check(messageList.messages.single)
+        ..identicalTo(message)
+        // Content is updated...
+        ..content.equals(updateEvent.renderedContent!)
+        // ... edit timestamp is not.
+        ..lastEditTimestamp.equals(originalMessage.lastEditTimestamp)
+        ..lastEditTimestamp.not(it()..equals(updateEvent.editTimestamp));
     }
 
     test('rendering-only update does not change timestamp', () async {
