@@ -71,23 +71,22 @@ void main() async {
     test('update a message', () async {
       final store = await setupStore(stream);
 
-      const oldContent = "<p>Hello, world</p>";
-      const newContent = "<p>Hello, edited</p>";
-      const newTimestamp = 99999;
-
-      List<String> oldFlags = [];
-      List<String> newFlags = ["starred"];
-
-      final originalMessage = eg.streamMessage(id: 243, stream: stream, content: oldContent, flags: oldFlags);
+      final originalMessage = eg.streamMessage(id: 243, stream: stream,
+        content: "<p>Hello, world</p>",
+        flags: [],
+      );
       final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
 
+      final newFlags = ["starred"];
+      const newContent = "<p>Hello, edited</p>";
+      const editTimestamp = 99999;
       final updateEvent = UpdateMessageEvent(
         id: 1,
         messageId: originalMessage.id,
         messageIds: [originalMessage.id],
         flags: newFlags,
         renderedContent: newContent,
-        editTimestamp: newTimestamp,
+        editTimestamp: editTimestamp,
         isMeMessage: true,
         userId: userId,
         renderingOnly: false,
@@ -95,8 +94,9 @@ void main() async {
 
       final message = messageList.messages.single;
       check(message)
-        ..content.equals(oldContent)
-        ..flags.deepEquals(oldFlags)
+        ..content.not(it()..equals(newContent))
+        ..lastEditTimestamp.isNull()
+        ..flags.not(it()..deepEquals(newFlags))
         ..isMeMessage.isFalse();
 
       bool listenersNotified = false;
@@ -107,7 +107,7 @@ void main() async {
       check(messageList.messages.single)
         ..identicalTo(message)
         ..content.equals(newContent)
-        ..lastEditTimestamp.equals(newTimestamp)
+        ..lastEditTimestamp.equals(editTimestamp)
         ..flags.equals(newFlags)
         ..isMeMessage.isTrue();
     });
