@@ -104,8 +104,8 @@ void main() async {
 
       messageList.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isTrue();
-      check(message)
-        ..identicalTo(messageList.messages.single)
+      check(messageList.messages.single)
+        ..identicalTo(message)
         ..content.equals(newContent)
         ..lastEditTimestamp.equals(newTimestamp)
         ..flags.equals(newFlags)
