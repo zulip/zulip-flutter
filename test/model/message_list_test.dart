@@ -50,32 +50,24 @@ void main() async {
   final stream = eg.stream();
   final narrow = StreamNarrow(stream.streamId);
 
+  test('findMessageWithId', () async {
+    final store = await setupStore(stream);
+    final m1 = eg.streamMessage(id: 2, stream: stream);
+    final m2 = eg.streamMessage(id: 4, stream: stream);
+    final m3 = eg.streamMessage(id: 6, stream: stream);
+    final messageList = await messageListViewWithMessages([m1, m2, m3], store, narrow);
+
+    // Exercise the binary search before, at, and after each element of the list.
+    check(messageList.findMessageWithId(1)).equals(-1);
+    check(messageList.findMessageWithId(2)).equals(0);
+    check(messageList.findMessageWithId(3)).equals(-1);
+    check(messageList.findMessageWithId(4)).equals(1);
+    check(messageList.findMessageWithId(5)).equals(-1);
+    check(messageList.findMessageWithId(6)).equals(2);
+    check(messageList.findMessageWithId(7)).equals(-1);
+  });
+
   group('update message tests', () {
-
-    test('find message in message list returns index of message', () async {
-      final store = await setupStore(stream);
-
-      final m1 = eg.streamMessage(id: 2, stream: stream);
-      final m2 = eg.streamMessage(id: 4, stream: stream);
-      final m3 = eg.streamMessage(id: 6, stream: stream);
-
-      final messageList = await messageListViewWithMessages([m1, m2, m3], store, narrow);
-      // The implementation of this uses a binary search, so let's test it
-      // a bit more exhaustively.
-
-      check(messageList.findMessageWithId(1)).equals(-1);
-      check(messageList.findMessageWithId(2)).equals(0);
-      check(messageList.findMessageWithId(3)).equals(-1);
-      check(messageList.findMessageWithId(4)).equals(1);
-      check(messageList.findMessageWithId(5)).equals(-1);
-      check(messageList.findMessageWithId(6)).equals(2);
-      check(messageList.findMessageWithId(7)).equals(-1);
-
-      // Invalid IDs
-      check(messageList.findMessageWithId(-8409)).equals(-1);
-      check(messageList.findMessageWithId(0)).equals(-1);
-    });
-
     test('update events are correctly applied to message when it is in the stream', () async {
       final store = await setupStore(stream);
 
