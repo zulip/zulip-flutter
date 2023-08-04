@@ -112,11 +112,8 @@ void main() async {
     test('ignore when message not present', () async {
       final store = await setupStore(stream);
 
-      const oldContent = "<p>Hello, world</p>";
-      const newContent = "<p>Hello, edited</p>";
-      const newTimestamp = 99999;
-
-      final originalMessage = eg.streamMessage(id: 243, stream: stream, content: oldContent);
+      final originalMessage = eg.streamMessage(id: 243, stream: stream,
+        content: "<p>Hello, world</p>");
       final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
 
       final updateEvent = UpdateMessageEvent(
@@ -124,21 +121,20 @@ void main() async {
         messageId: originalMessage.id + 1,
         messageIds: [originalMessage.id + 1],
         flags: originalMessage.flags,
-        renderedContent: newContent,
-        editTimestamp: newTimestamp,
+        renderedContent: "<p>Hello, edited</p>",
+        editTimestamp: 99999,
         userId: userId,
         renderingOnly: false,
       );
-
-      final message = messageList.messages.single;
-      check(message).content.equals(oldContent);
 
       bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
 
       messageList.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isFalse();
-      check(message).content.equals(oldContent);
+      check(messageList.messages.single)
+        ..content.equals(originalMessage.content)
+        ..content.not(it()..equals(updateEvent.renderedContent!));
     });
 
     test('rendering-only update does not change timestamp', () async {
