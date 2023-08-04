@@ -9,9 +9,9 @@ import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
+import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
-import '../example_data.dart' as eg;
 
 const int userId = 1;
 
