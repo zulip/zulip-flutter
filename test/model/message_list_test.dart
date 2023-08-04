@@ -142,9 +142,8 @@ void main() async {
       final store = await setupStore(stream);
 
       final originalMessage = eg.streamMessage(id: 972, stream: stream,
+        lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
-      originalMessage.lastEditTimestamp = 78492;
-
       final messageList = await messageListViewWithMessages([originalMessage], store, narrow);
 
       final updateEvent = UpdateMessageEvent(

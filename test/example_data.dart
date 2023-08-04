@@ -94,7 +94,6 @@ ZulipStream stream({
 
 final _messagePropertiesBase = {
   'is_me_message': false,
-  'last_edit_timestamp': null,
   'recipient_id': 32, // obsolescent in API, and ignored
 };
 
@@ -132,6 +131,7 @@ StreamMessage streamMessage({
   String? topic,
   String? content,
   String? contentMarkdown,
+  int? lastEditTimestamp,
   List<String>? flags,
 }) {
   final effectiveStream = stream ?? _stream();
@@ -148,6 +148,7 @@ StreamMessage streamMessage({
     'stream_id': effectiveStream.streamId,
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
+    'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? 'example topic',
     'timestamp': 1678139636,
     'type': 'stream',
@@ -164,6 +165,7 @@ DmMessage dmMessage({
   required List<User> to,
   String? content,
   String? contentMarkdown,
+  int? lastEditTimestamp,
   List<String>? flags,
 }) {
   assert(!to.any((user) => user.userId == from.userId));
@@ -177,6 +179,7 @@ DmMessage dmMessage({
 
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
+    'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
     'timestamp': 1678139636,
     'type': 'private',
