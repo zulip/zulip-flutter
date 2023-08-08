@@ -3,6 +3,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 
 import '../../example_data.dart' as eg;
+import '../../stdlib_checks.dart';
 import 'events_checks.dart';
 import 'model_checks.dart';
 

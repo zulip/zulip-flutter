@@ -11,7 +11,6 @@ import 'package:zulip/model/narrow.dart';
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
 import '../fake_api.dart';
-import '../model/model_checks.dart';
 import 'route_checks.dart';
 
 void main() {

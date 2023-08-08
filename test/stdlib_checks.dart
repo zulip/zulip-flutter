@@ -19,6 +19,73 @@ extension NullableMapChecks<K, V> on Subject<Map<K, V>?> {
   }
 }
 
+/// Convert [object] to a pure JSON-like value.
+///
+/// The result is similar to `jsonDecode(jsonEncode(object))`, but without
+/// passing through a serialized form.
+///
+/// All JSON atoms (numbers, booleans, null, and strings) are used directly.
+/// All JSON containers (lists, and maps with string keys) are copied
+/// as their elements are converted recursively.
+/// For any other value, a dynamic call `.toJson()` is made and
+/// should return either a JSON atom or a JSON container.
+Object? deepToJson(Object? object) {
+  // Implementation is based on the recursion underlying [jsonEncode],
+  // at [_JsonStringifier.writeObject] in the stdlib's convert/json.dart .
+  // (We leave out the cycle-checking, for simplicity / out of laziness.)
+
+  var (result, success) = _deeplyConvertShallowJsonValue(object);
+  if (success) return result;
+
+  final Object? shallowlyConverted;
+  try {
+    shallowlyConverted = (object as dynamic).toJson();
+  } catch (e) {
+    throw JsonUnsupportedObjectError(object, cause: e);
+  }
+
+  (result, success) = _deeplyConvertShallowJsonValue(shallowlyConverted);
+  if (success) return result;
+  throw JsonUnsupportedObjectError(object);
+}
+
+(Object? result, bool success) _deeplyConvertShallowJsonValue(Object? object) {
+  final Object? result;
+  switch (object) {
+    case null || bool() || String() || num():
+      result = object;
+    case List():
+      result = object.map((x) => deepToJson(x)).toList();
+    case Map() when object.keys.every((k) => k is String):
+      result = object.map((k, v) => MapEntry(k, deepToJson(v)));
+    default:
+      return (null, false);
+  }
+  return (result, true);
+}
+
+extension JsonChecks on Subject<Object?> {
+  /// Expects that the value is deeply equal to [expected],
+  /// after calling [deepToJson] on both.
+  ///
+  /// Deep equality is computed by [MapChecks.deepEquals]
+  /// or [IterableChecks.deepEquals].
+  void jsonEquals(Object? expected) {
+    final expectedJson = deepToJson(expected);
+    final actualJson = has((e) => deepToJson(e), 'deepToJson');
+    switch (expectedJson) {
+      case null || bool() || String() || num():
+        return actualJson.equals(expectedJson);
+      case List():
+        return actualJson.isA<List>().deepEquals(expectedJson);
+      case Map():
+        return actualJson.isA<Map>().deepEquals(expectedJson);
+      case _:
+        assert(false);
+    }
+  }
+}
+
 extension UriChecks on Subject<Uri> {
   Subject<String> get asString => has((u) => u.toString(), 'toString'); // TODO(checks): what's a good convention for this?
 
