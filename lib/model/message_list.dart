@@ -87,7 +87,7 @@ class MessageListView extends ChangeNotifier {
     notifyListeners();
   }
 
-  _applyChangesToMessage(UpdateMessageEvent event, Message message) {
+  static void _applyChangesToMessage(UpdateMessageEvent event, Message message) {
     // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
     final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
     if (event.editTimestamp != null && !isRenderingOnly) {
