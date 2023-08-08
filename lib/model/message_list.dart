@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import 'algorithms.dart';
 import 'content.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -34,25 +35,9 @@ mixin _MessageSequence {
   /// It exists as an optimization, to memoize the work of parsing.
   final List<ZulipContent> contents = [];
 
-  // Based on binarySearchBy in package:collection/src/algorithms.dart .
-  // (The package:collection version expects to be passed a whole element,
-  // not just a key -- so here, a whole [Message] rather than a message ID.)
-  @visibleForTesting
-  int findMessageWithId(int messageId) {
-    int min = 0;
-    int max = messages.length;
-    while (min < max) {
-      final mid = min + ((max - min) >> 1);
-      final message = messages[mid];
-      final comp = message.id.compareTo(messageId);
-      if (comp == 0) return mid;
-      if (comp < 0) {
-        min = mid + 1;
-      } else {
-        max = mid;
-      }
-    }
-    return -1;
+  int _findMessageWithId(int messageId) {
+    return binarySearchByKey(messages, messageId,
+      (message, messageId) => message.id.compareTo(messageId));
   }
 
   /// Update data derived from the content of the index-th message.
@@ -182,7 +167,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   ///
   /// TODO(#150): Handle message moves.
   void maybeUpdateMessage(UpdateMessageEvent event) {
-    final idx = findMessageWithId(event.messageId);
+    final idx = _findMessageWithId(event.messageId);
     if (idx == -1)  {
       return;
     }
@@ -193,7 +178,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void maybeUpdateMessageReactions(ReactionEvent event) {
-    final index = findMessageWithId(event.messageId);
+    final index = _findMessageWithId(event.messageId);
     if (index == -1) {
       return;
     }

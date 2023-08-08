@@ -164,24 +164,6 @@ void main() async {
     checkInvariants(model);
   });
 
-  test('findMessageWithId', () async {
-    prepare();
-    await prepareMessages(foundOldest: true, messages: [
-      eg.streamMessage(id: 2),
-      eg.streamMessage(id: 4),
-      eg.streamMessage(id: 6),
-    ]);
-
-    // Exercise the binary search before, at, and after each element of the list.
-    check(model.findMessageWithId(1)).equals(-1);
-    check(model.findMessageWithId(2)).equals(0);
-    check(model.findMessageWithId(3)).equals(-1);
-    check(model.findMessageWithId(4)).equals(1);
-    check(model.findMessageWithId(5)).equals(-1);
-    check(model.findMessageWithId(6)).equals(2);
-    check(model.findMessageWithId(7)).equals(-1);
-  });
-
   group('maybeUpdateMessage', () {
     test('update a message', () async {
       final originalMessage = eg.streamMessage(id: 243,
