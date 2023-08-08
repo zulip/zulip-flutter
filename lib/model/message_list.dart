@@ -110,18 +110,17 @@ class MessageListView extends ChangeNotifier {
     }
   }
 
-  // This is almost directly copied from package:collection/src/algorithms.dart
-  // The way that package was set up doesn't allow us to search
-  // for a message ID among a bunch of message objects - this is a quick
-  // modification of that method to work here for us.
+  // Based on binarySearchBy in package:collection/src/algorithms.dart .
+  // (The package:collection version expects to be passed a whole element,
+  // not just a key -- so here, a whole [Message] rather than a message ID.)
   @visibleForTesting
   int findMessageWithId(int messageId) {
-    var min = 0;
-    var max = messages.length;
+    int min = 0;
+    int max = messages.length;
     while (min < max) {
-      var mid = min + ((max - min) >> 1);
+      final mid = min + ((max - min) >> 1);
       final message = messages[mid];
-      var comp = message.id.compareTo(messageId);
+      final comp = message.id.compareTo(messageId);
       if (comp == 0) return mid;
       if (comp < 0) {
         min = mid + 1;
