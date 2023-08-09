@@ -29,12 +29,10 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, [Nar
 }
 
 void main() async {
-  final stream = eg.stream();
-
   test('findMessageWithId', () async {
-    final m1 = eg.streamMessage(id: 2, stream: stream);
-    final m2 = eg.streamMessage(id: 4, stream: stream);
-    final m3 = eg.streamMessage(id: 6, stream: stream);
+    final m1 = eg.streamMessage(id: 2);
+    final m2 = eg.streamMessage(id: 4);
+    final m3 = eg.streamMessage(id: 6);
     final model = await messageListViewWithMessages([m1, m2, m3]);
 
     // Exercise the binary search before, at, and after each element of the list.
@@ -49,7 +47,7 @@ void main() async {
 
   group('maybeUpdateMessage', () {
     test('update a message', () async {
-      final originalMessage = eg.streamMessage(id: 243, stream: stream,
+      final originalMessage = eg.streamMessage(id: 243,
         content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
         id: 1,
@@ -85,7 +83,7 @@ void main() async {
     });
 
     test('ignore when message not present', () async {
-      final originalMessage = eg.streamMessage(id: 243, stream: stream,
+      final originalMessage = eg.streamMessage(id: 243,
         content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
         id: 1,
@@ -111,7 +109,7 @@ void main() async {
 
     // TODO(server-5): Cut legacy case for rendering-only message update
     Future<void> checkRenderingOnly({required bool legacy}) async {
-      final originalMessage = eg.streamMessage(id: 972, stream: stream,
+      final originalMessage = eg.streamMessage(id: 972,
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
@@ -163,7 +161,7 @@ void main() async {
       }
 
       test('add reaction', () async {
-        final originalMessage = eg.streamMessage(stream: stream, reactions: []);
+        final originalMessage = eg.streamMessage(reactions: []);
         final model = await messageListViewWithMessages([originalMessage]);
 
         final message = model.messages.single;
@@ -214,7 +212,7 @@ void main() async {
         final reaction4 = Reaction.fromJson(eventReaction.toJson()
           ..['emoji_name'] = 'hello');
 
-        final originalMessage = eg.streamMessage(stream: stream,
+        final originalMessage = eg.streamMessage(
           reactions: [reaction2, reaction3, reaction4]);
         final model = await messageListViewWithMessages([originalMessage]);
 
