@@ -85,13 +85,22 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     //   share sheet.
     Navigator.of(context).pop();
 
+    final rawContent = await fetchRawContentWithFeedback(
+      context: messageListContext,
+      messageId: message.id,
+      errorDialogTitle: 'Sharing failed',
+    );
+
+    if (rawContent == null) return;
+
+    if (!messageListContext.mounted) return;
+
     // TODO: to support iPads, we're asked to give a
     //   `sharePositionOrigin` param, or risk crashing / hanging:
     //     https://pub.dev/packages/share_plus#ipad
     //   Perhaps a wart in the API; discussion:
     //     https://github.com/zulip/zulip-flutter/pull/12#discussion_r1130146231
-    // TODO: Share raw Markdown, not HTML
-    await Share.shareWithResult(message.content);
+    await Share.shareWithResult(rawContent);
   };
 }
 
