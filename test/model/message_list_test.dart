@@ -9,15 +9,11 @@ import 'package:zulip/model/narrow.dart';
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
-import '../model/test_store.dart';
 
 const int userId = 1;
 
-Future<MessageListView> messageListViewWithMessages(List<Message> messages, ZulipStream stream, Narrow narrow) async {
+Future<MessageListView> messageListViewWithMessages(List<Message> messages, Narrow narrow) async {
   final store = eg.store();
-  store.addUser(eg.user(userId: userId));
-  store.addStream(stream);
-
   final messageList = MessageListView.init(store: store, narrow: narrow);
 
   final connection = store.connection as FakeApiConnection;
@@ -42,7 +38,7 @@ void main() async {
     final m1 = eg.streamMessage(id: 2, stream: stream);
     final m2 = eg.streamMessage(id: 4, stream: stream);
     final m3 = eg.streamMessage(id: 6, stream: stream);
-    final messageList = await messageListViewWithMessages([m1, m2, m3], stream, narrow);
+    final messageList = await messageListViewWithMessages([m1, m2, m3], narrow);
 
     // Exercise the binary search before, at, and after each element of the list.
     check(messageList.findMessageWithId(1)).equals(-1);
@@ -70,7 +66,7 @@ void main() async {
         renderingOnly: false,
       );
 
-      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+      final messageList = await messageListViewWithMessages([originalMessage], narrow);
       bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
 
@@ -105,7 +101,7 @@ void main() async {
         renderingOnly: false,
       );
 
-      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+      final messageList = await messageListViewWithMessages([originalMessage], narrow);
       bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
 
@@ -132,7 +128,7 @@ void main() async {
         userId: null,
       );
 
-      final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+      final messageList = await messageListViewWithMessages([originalMessage], narrow);
       bool listenersNotified = false;
       messageList.addListener(() { listenersNotified = true; });
 
@@ -171,7 +167,7 @@ void main() async {
 
       test('add reaction', () async {
         final originalMessage = eg.streamMessage(stream: stream, reactions: []);
-        final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+        final messageList = await messageListViewWithMessages([originalMessage], narrow);
 
         final message = messageList.messages.single;
 
@@ -189,7 +185,7 @@ void main() async {
 
       test('add reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: []);
-        final messageList = await messageListViewWithMessages([someMessage], stream, narrow);
+        final messageList = await messageListViewWithMessages([someMessage], narrow);
 
         bool listenersNotified = false;
         messageList.addListener(() { listenersNotified = true; });
@@ -223,7 +219,7 @@ void main() async {
 
         final originalMessage = eg.streamMessage(stream: stream,
           reactions: [reaction2, reaction3, reaction4]);
-        final messageList = await messageListViewWithMessages([originalMessage], stream, narrow);
+        final messageList = await messageListViewWithMessages([originalMessage], narrow);
 
         final message = messageList.messages.single;
 
@@ -241,7 +237,7 @@ void main() async {
 
       test('remove reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: [eg.unicodeEmojiReaction]);
-        final messageList = await messageListViewWithMessages([someMessage], stream, narrow);
+        final messageList = await messageListViewWithMessages([someMessage], narrow);
 
         bool listenersNotified = false;
         messageList.addListener(() { listenersNotified = true; });
