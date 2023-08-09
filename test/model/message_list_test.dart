@@ -12,21 +12,50 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 
-Future<MessageListView> messageListViewWithMessages(List<Message> messages, [Narrow narrow = const AllMessagesNarrow()]) async {
-  final store = eg.store();
-  final model = MessageListView.init(store: store, narrow: narrow);
-
-  final connection = store.connection as FakeApiConnection;
-  connection.prepare(json:
-    newestResult(foundOldest: true, messages: messages).toJson());
-  await model.fetch();
-
-  return model;
-}
-
 void main() async {
+  // These variables are the common state operated on by each test.
+  // Each test case calls [prepare] to initialize them.
+  late PerAccountStore store;
+  late FakeApiConnection connection;
+  late MessageListView model;
+  late int notifiedCount;
+
+  void checkNotNotified() {
+    check(notifiedCount).equals(0);
+  }
+
+  void checkNotifiedOnce() {
+    check(notifiedCount).equals(1);
+    notifiedCount = 0;
+  }
+
+  /// Initialize [model] and the rest of the test state.
+  void prepare({Narrow narrow = const AllMessagesNarrow()}) {
+    store = eg.store();
+    connection = store.connection as FakeApiConnection;
+    notifiedCount = 0;
+    model = MessageListView.init(store: store, narrow: narrow)
+      ..addListener(() { notifiedCount++; });
+    check(model).fetched.isFalse();
+    checkNotNotified();
+  }
+
+  /// Perform the initial message fetch for [model].
+  ///
+  /// The test case must have already called [prepare] to initialize the state.
+  Future<void> prepareMessages({
+    required bool foundOldest,
+    required List<Message> messages,
+  }) async {
+    connection.prepare(json:
+      newestResult(foundOldest: foundOldest, messages: messages).toJson());
+    await model.fetch();
+    checkNotifiedOnce();
+  }
+
   test('findMessageWithId', () async {
-    final model = await messageListViewWithMessages([
+    prepare();
+    await prepareMessages(foundOldest: true, messages: [
       eg.streamMessage(id: 2),
       eg.streamMessage(id: 4),
       eg.streamMessage(id: 6),
@@ -57,10 +86,8 @@ void main() async {
         userId: 1,
         renderingOnly: false,
       );
-
-      final model = await messageListViewWithMessages([originalMessage]);
-      bool listenersNotified = false;
-      model.addListener(() { listenersNotified = true; });
+      prepare();
+      await prepareMessages(foundOldest: true, messages: [originalMessage]);
 
       final message = model.messages.single;
       check(message)
@@ -70,7 +97,7 @@ void main() async {
         ..isMeMessage.not(it()..equals(updateEvent.isMeMessage!));
 
       model.maybeUpdateMessage(updateEvent);
-      check(listenersNotified).isTrue();
+      checkNotifiedOnce();
       check(model).messages.single
         ..identicalTo(message)
         ..content.equals(updateEvent.renderedContent!)
@@ -92,13 +119,11 @@ void main() async {
         userId: 1,
         renderingOnly: false,
       );
-
-      final model = await messageListViewWithMessages([originalMessage]);
-      bool listenersNotified = false;
-      model.addListener(() { listenersNotified = true; });
+      prepare();
+      await prepareMessages(foundOldest: true, messages: [originalMessage]);
 
       model.maybeUpdateMessage(updateEvent);
-      check(listenersNotified).isFalse();
+      checkNotNotified();
       check(model).messages.single
         ..content.equals(originalMessage.content)
         ..content.not(it()..equals(updateEvent.renderedContent!));
@@ -119,14 +144,12 @@ void main() async {
         renderingOnly: legacy ? null : true,
         userId: null,
       );
-
-      final model = await messageListViewWithMessages([originalMessage]);
-      bool listenersNotified = false;
-      model.addListener(() { listenersNotified = true; });
-
+      prepare();
+      await prepareMessages(foundOldest: true, messages: [originalMessage]);
       final message = model.messages.single;
+
       model.maybeUpdateMessage(updateEvent);
-      check(listenersNotified).isTrue();
+      checkNotifiedOnce();
       check(model).messages.single
         ..identicalTo(message)
         // Content is updated...
@@ -159,17 +182,13 @@ void main() async {
 
       test('add reaction', () async {
         final originalMessage = eg.streamMessage(reactions: []);
-        final model = await messageListViewWithMessages([originalMessage]);
-
+        prepare();
+        await prepareMessages(foundOldest: true, messages: [originalMessage]);
         final message = model.messages.single;
-
-        bool listenersNotified = false;
-        model.addListener(() { listenersNotified = true; });
 
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
-
-        check(listenersNotified).isTrue();
+        checkNotifiedOnce();
         check(model).messages.single
           ..identicalTo(message)
           ..reactions.jsonEquals([eg.unicodeEmojiReaction]);
@@ -177,15 +196,11 @@ void main() async {
 
       test('add reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: []);
-        final model = await messageListViewWithMessages([someMessage]);
-
-        bool listenersNotified = false;
-        model.addListener(() { listenersNotified = true; });
-
+        prepare();
+        await prepareMessages(foundOldest: true, messages: [someMessage]);
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
-
-        check(listenersNotified).isFalse();
+        checkNotNotified();
         check(model).messages.single.reactions.jsonEquals([]);
       });
 
@@ -211,17 +226,13 @@ void main() async {
 
         final originalMessage = eg.streamMessage(
           reactions: [reaction2, reaction3, reaction4]);
-        final model = await messageListViewWithMessages([originalMessage]);
-
+        prepare();
+        await prepareMessages(foundOldest: true, messages: [originalMessage]);
         final message = model.messages.single;
-
-        bool listenersNotified = false;
-        model.addListener(() { listenersNotified = true; });
 
         model.maybeUpdateMessageReactions(
           mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
-
-        check(listenersNotified).isTrue();
+        checkNotifiedOnce();
         check(model).messages.single
           ..identicalTo(message)
           ..reactions.jsonEquals([reaction2, reaction3]);
@@ -229,15 +240,11 @@ void main() async {
 
       test('remove reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: [eg.unicodeEmojiReaction]);
-        final model = await messageListViewWithMessages([someMessage]);
-
-        bool listenersNotified = false;
-        model.addListener(() { listenersNotified = true; });
-
+        prepare();
+        await prepareMessages(foundOldest: true, messages: [someMessage]);
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
-
-        check(listenersNotified).isFalse();
+        checkNotNotified();
         check(model).messages.single.reactions.jsonEquals([eg.unicodeEmojiReaction]);
       });
     });
