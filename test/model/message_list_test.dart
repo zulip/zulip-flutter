@@ -3,8 +3,10 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/content.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
@@ -75,7 +77,7 @@ void main() async {
 
       model.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isTrue();
-      check(model.messages.single)
+      check(model).messages.single
         ..identicalTo(message)
         ..content.equals(updateEvent.renderedContent!)
         ..lastEditTimestamp.equals(updateEvent.editTimestamp)
@@ -103,7 +105,7 @@ void main() async {
 
       model.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isFalse();
-      check(model.messages.single)
+      check(model).messages.single
         ..content.equals(originalMessage.content)
         ..content.not(it()..equals(updateEvent.renderedContent!));
     });
@@ -131,7 +133,7 @@ void main() async {
       final message = model.messages.single;
       model.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isTrue();
-      check(model.messages.single)
+      check(model).messages.single
         ..identicalTo(message)
         // Content is updated...
         ..content.equals(updateEvent.renderedContent!)
@@ -174,7 +176,7 @@ void main() async {
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
 
         check(listenersNotified).isTrue();
-        check(model.messages.single)
+        check(model).messages.single
           ..identicalTo(message)
           ..reactions.jsonEquals([eg.unicodeEmojiReaction]);
       });
@@ -190,7 +192,7 @@ void main() async {
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
 
         check(listenersNotified).isFalse();
-        check(model.messages.single).reactions.jsonEquals([]);
+        check(model).messages.single.reactions.jsonEquals([]);
       });
 
       test('remove reaction', () async {
@@ -226,7 +228,7 @@ void main() async {
           mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
 
         check(listenersNotified).isTrue();
-        check(model.messages.single)
+        check(model).messages.single
           ..identicalTo(message)
           ..reactions.jsonEquals([reaction2, reaction3]);
       });
@@ -242,8 +244,16 @@ void main() async {
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
 
         check(listenersNotified).isFalse();
-        check(model.messages.single).reactions.jsonEquals([eg.unicodeEmojiReaction]);
+        check(model).messages.single.reactions.jsonEquals([eg.unicodeEmojiReaction]);
       });
     });
   });
+}
+
+extension MessageListViewChecks on Subject<MessageListView> {
+  Subject<PerAccountStore> get store => has((x) => x.store, 'store');
+  Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
+  Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
+  Subject<List<ZulipContent>> get contents => has((x) => x.contents, 'contents');
+  Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
 }
