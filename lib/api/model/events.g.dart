@@ -43,6 +43,7 @@ Map<String, dynamic> _$UserSettingsUpdateEventToJson(
     };
 
 const _$UserSettingNameEnumMap = {
+  UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
 };
 

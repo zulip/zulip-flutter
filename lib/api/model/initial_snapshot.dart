@@ -119,6 +119,7 @@ class RecentDmConversation {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake, createFieldMap: true)
 class UserSettings {
+  bool twentyFourHourTime;
   bool? displayEmojiReactionUsers; // TODO(server-6)
 
   // TODO more, as needed. When adding a setting here, please also:
@@ -127,6 +128,7 @@ class UserSettings {
   // (3) handle the event that signals an update to the setting
 
   UserSettings({
+    required this.twentyFourHourTime,
     required this.displayEmojiReactionUsers,
   });
 
@@ -148,6 +150,7 @@ class UserSettings {
 /// to ensure that every setting in [UserSettings] responds to the event.
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum UserSettingName {
+  twentyFourHourTime,
   displayEmojiReactionUsers;
 
   /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.

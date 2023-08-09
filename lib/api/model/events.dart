@@ -107,6 +107,7 @@ class UserSettingsUpdateEvent extends Event {
   static Object? _readValue(Map json, String key) {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
+      case UserSettingName.twentyFourHourTime:
       case UserSettingName.displayEmojiReactionUsers:
         return value as bool;
       case null:

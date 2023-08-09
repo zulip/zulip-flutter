@@ -86,18 +86,22 @@ Map<String, dynamic> _$RecentDmConversationToJson(
     };
 
 UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
+      twentyFourHourTime: json['twenty_four_hour_time'] as bool,
       displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
     );
 
 const _$UserSettingsFieldMap = <String, String>{
+  'twentyFourHourTime': 'twenty_four_hour_time',
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
 };
 
 Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
     <String, dynamic>{
+      'twenty_four_hour_time': instance.twentyFourHourTime,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
     };
 
 const _$UserSettingNameEnumMap = {
+  UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
 };

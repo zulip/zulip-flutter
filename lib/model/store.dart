@@ -226,6 +226,8 @@ class PerAccountStore extends ChangeNotifier {
         return;
       }
       switch (event.property!) {
+        case UserSettingName.twentyFourHourTime:
+          userSettings?.twentyFourHourTime        = event.value as bool;
         case UserSettingName.displayEmojiReactionUsers:
           userSettings?.displayEmojiReactionUsers = event.value as bool;
       }
