@@ -30,10 +30,11 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, [Nar
 
 void main() async {
   test('findMessageWithId', () async {
-    final m1 = eg.streamMessage(id: 2);
-    final m2 = eg.streamMessage(id: 4);
-    final m3 = eg.streamMessage(id: 6);
-    final model = await messageListViewWithMessages([m1, m2, m3]);
+    final model = await messageListViewWithMessages([
+      eg.streamMessage(id: 2),
+      eg.streamMessage(id: 4),
+      eg.streamMessage(id: 6),
+    ]);
 
     // Exercise the binary search before, at, and after each element of the list.
     check(model.findMessageWithId(1)).equals(-1);
