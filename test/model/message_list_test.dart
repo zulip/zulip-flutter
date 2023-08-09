@@ -10,7 +10,7 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 
-Future<MessageListView> messageListViewWithMessages(List<Message> messages, Narrow narrow) async {
+Future<MessageListView> messageListViewWithMessages(List<Message> messages, [Narrow narrow = const AllMessagesNarrow()]) async {
   final store = eg.store();
   final model = MessageListView.init(store: store, narrow: narrow);
 
@@ -30,13 +30,12 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, Narr
 
 void main() async {
   final stream = eg.stream();
-  final narrow = StreamNarrow(stream.streamId);
 
   test('findMessageWithId', () async {
     final m1 = eg.streamMessage(id: 2, stream: stream);
     final m2 = eg.streamMessage(id: 4, stream: stream);
     final m3 = eg.streamMessage(id: 6, stream: stream);
-    final model = await messageListViewWithMessages([m1, m2, m3], narrow);
+    final model = await messageListViewWithMessages([m1, m2, m3]);
 
     // Exercise the binary search before, at, and after each element of the list.
     check(model.findMessageWithId(1)).equals(-1);
@@ -64,7 +63,7 @@ void main() async {
         renderingOnly: false,
       );
 
-      final model = await messageListViewWithMessages([originalMessage], narrow);
+      final model = await messageListViewWithMessages([originalMessage]);
       bool listenersNotified = false;
       model.addListener(() { listenersNotified = true; });
 
@@ -99,7 +98,7 @@ void main() async {
         renderingOnly: false,
       );
 
-      final model = await messageListViewWithMessages([originalMessage], narrow);
+      final model = await messageListViewWithMessages([originalMessage]);
       bool listenersNotified = false;
       model.addListener(() { listenersNotified = true; });
 
@@ -126,7 +125,7 @@ void main() async {
         userId: null,
       );
 
-      final model = await messageListViewWithMessages([originalMessage], narrow);
+      final model = await messageListViewWithMessages([originalMessage]);
       bool listenersNotified = false;
       model.addListener(() { listenersNotified = true; });
 
@@ -165,7 +164,7 @@ void main() async {
 
       test('add reaction', () async {
         final originalMessage = eg.streamMessage(stream: stream, reactions: []);
-        final model = await messageListViewWithMessages([originalMessage], narrow);
+        final model = await messageListViewWithMessages([originalMessage]);
 
         final message = model.messages.single;
 
@@ -183,7 +182,7 @@ void main() async {
 
       test('add reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: []);
-        final model = await messageListViewWithMessages([someMessage], narrow);
+        final model = await messageListViewWithMessages([someMessage]);
 
         bool listenersNotified = false;
         model.addListener(() { listenersNotified = true; });
@@ -217,7 +216,7 @@ void main() async {
 
         final originalMessage = eg.streamMessage(stream: stream,
           reactions: [reaction2, reaction3, reaction4]);
-        final model = await messageListViewWithMessages([originalMessage], narrow);
+        final model = await messageListViewWithMessages([originalMessage]);
 
         final message = model.messages.single;
 
@@ -235,7 +234,7 @@ void main() async {
 
       test('remove reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: [eg.unicodeEmojiReaction]);
-        final model = await messageListViewWithMessages([someMessage], narrow);
+        final model = await messageListViewWithMessages([someMessage]);
 
         bool listenersNotified = false;
         model.addListener(() { listenersNotified = true; });
