@@ -11,6 +11,7 @@ import 'package:zulip/model/store.dart';
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import 'content_checks.dart';
 
 void main() async {
   // These variables are the common state operated on by each test.
@@ -35,8 +36,12 @@ void main() async {
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     model = MessageListView.init(store: store, narrow: narrow)
-      ..addListener(() { notifiedCount++; });
+      ..addListener(() {
+        checkInvariants(model);
+        notifiedCount++;
+      });
     check(model).fetched.isFalse();
+    checkInvariants(model);
     checkNotNotified();
   }
 
@@ -249,6 +254,22 @@ void main() async {
       });
     });
   });
+}
+
+void checkInvariants(MessageListView model) {
+  if (!model.fetched) {
+    check(model).messages.isEmpty();
+  }
+
+  for (int i = 0; i < model.messages.length - 1; i++) {
+    check(model.messages[i].id).isLessThan(model.messages[i+1].id);
+  }
+
+  check(model).contents.length.equals(model.messages.length);
+  for (int i = 0; i < model.contents.length; i++) {
+    check(model.contents[i])
+      .equalsNode(parseContent(model.messages[i].content));
+  }
 }
 
 extension MessageListViewChecks on Subject<MessageListView> {
