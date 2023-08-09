@@ -9,17 +9,12 @@ import 'package:zulip/model/narrow.dart';
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
-import '../model/binding.dart';
 import '../model/test_store.dart';
 
 const int userId = 1;
 
 Future<MessageListView> messageListViewWithMessages(List<Message> messages, ZulipStream stream, Narrow narrow) async {
-  addTearDown(TestZulipBinding.instance.reset);
-
-  await TestZulipBinding.instance.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-
-  final store = await TestZulipBinding.instance.globalStore.perAccount(eg.selfAccount.id);
+  final store = eg.store();
   store.addUser(eg.user(userId: userId));
   store.addStream(stream);
 
@@ -40,8 +35,6 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, Zuli
 }
 
 void main() async {
-  TestZulipBinding.ensureInitialized();
-
   final stream = eg.stream();
   final narrow = StreamNarrow(stream.streamId);
 
