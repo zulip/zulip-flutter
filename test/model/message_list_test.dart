@@ -10,8 +10,6 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 
-const int userId = 1;
-
 Future<MessageListView> messageListViewWithMessages(List<Message> messages, Narrow narrow) async {
   final store = eg.store();
   final messageList = MessageListView.init(store: store, narrow: narrow);
@@ -62,7 +60,7 @@ void main() async {
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
         isMeMessage: true,
-        userId: userId,
+        userId: 1,
         renderingOnly: false,
       );
 
@@ -97,7 +95,7 @@ void main() async {
         flags: originalMessage.flags,
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
-        userId: userId,
+        userId: 1,
         renderingOnly: false,
       );
 
