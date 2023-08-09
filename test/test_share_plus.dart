@@ -1,7 +1,11 @@
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MockSharePlus {
   MockSharePlus();
+
+  /// The mock [ShareResult.raw] that `shareWithResult` should give.
+  String resultString = 'some-success-response';
 
   /// The last string that `shareWithResult` was called with.
   String? sharedString;
@@ -13,7 +17,7 @@ class MockSharePlus {
         // `arguments`'s type; logging runtimeType gives _Map<Object?, Object?>.
         final arguments = methodCall.arguments as Map;
         sharedString = arguments['text'] as String;
-        return 'some-success-response';
+        return resultString;
       default:
         throw UnimplementedError();
     }

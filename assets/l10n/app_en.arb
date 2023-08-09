@@ -124,6 +124,10 @@
       "message": {"type": "String", "example": "Invalid format"}
     }
   },
+  "errorSharingFailed": "Sharing failed",
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
