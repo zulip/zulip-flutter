@@ -17,14 +17,8 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, [Nar
   final model = MessageListView.init(store: store, narrow: narrow);
 
   final connection = store.connection as FakeApiConnection;
-  connection.prepare(json: GetMessagesResult(
-    anchor: messages.first.id,
-    foundNewest: true,
-    foundOldest: true,
-    foundAnchor: true,
-    historyLimited: false,
-    messages: messages,
-  ).toJson());
+  connection.prepare(json:
+    newestResult(foundOldest: true, messages: messages).toJson());
   await model.fetch();
 
   return model;
@@ -256,4 +250,23 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
   Subject<List<ZulipContent>> get contents => has((x) => x.contents, 'contents');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
+}
+
+/// A GetMessagesResult the server might return on an `anchor=newest` request.
+GetMessagesResult newestResult({
+  required bool foundOldest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    // These anchor, foundAnchor, and foundNewest values are what the server
+    // appears to always return when the request had `anchor=newest`.
+    anchor: 10000000000000000, // that's 16 zeros
+    foundAnchor: false,
+    foundNewest: true,
+
+    foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
 }
