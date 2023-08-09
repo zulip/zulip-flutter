@@ -12,7 +12,7 @@ import '../example_data.dart' as eg;
 
 Future<MessageListView> messageListViewWithMessages(List<Message> messages, Narrow narrow) async {
   final store = eg.store();
-  final messageList = MessageListView.init(store: store, narrow: narrow);
+  final model = MessageListView.init(store: store, narrow: narrow);
 
   final connection = store.connection as FakeApiConnection;
   connection.prepare(json: GetMessagesResult(
@@ -23,9 +23,9 @@ Future<MessageListView> messageListViewWithMessages(List<Message> messages, Narr
     historyLimited: false,
     messages: messages,
   ).toJson());
-  await messageList.fetch();
+  await model.fetch();
 
-  return messageList;
+  return model;
 }
 
 void main() async {
@@ -36,16 +36,16 @@ void main() async {
     final m1 = eg.streamMessage(id: 2, stream: stream);
     final m2 = eg.streamMessage(id: 4, stream: stream);
     final m3 = eg.streamMessage(id: 6, stream: stream);
-    final messageList = await messageListViewWithMessages([m1, m2, m3], narrow);
+    final model = await messageListViewWithMessages([m1, m2, m3], narrow);
 
     // Exercise the binary search before, at, and after each element of the list.
-    check(messageList.findMessageWithId(1)).equals(-1);
-    check(messageList.findMessageWithId(2)).equals(0);
-    check(messageList.findMessageWithId(3)).equals(-1);
-    check(messageList.findMessageWithId(4)).equals(1);
-    check(messageList.findMessageWithId(5)).equals(-1);
-    check(messageList.findMessageWithId(6)).equals(2);
-    check(messageList.findMessageWithId(7)).equals(-1);
+    check(model.findMessageWithId(1)).equals(-1);
+    check(model.findMessageWithId(2)).equals(0);
+    check(model.findMessageWithId(3)).equals(-1);
+    check(model.findMessageWithId(4)).equals(1);
+    check(model.findMessageWithId(5)).equals(-1);
+    check(model.findMessageWithId(6)).equals(2);
+    check(model.findMessageWithId(7)).equals(-1);
   });
 
   group('maybeUpdateMessage', () {
@@ -64,20 +64,20 @@ void main() async {
         renderingOnly: false,
       );
 
-      final messageList = await messageListViewWithMessages([originalMessage], narrow);
+      final model = await messageListViewWithMessages([originalMessage], narrow);
       bool listenersNotified = false;
-      messageList.addListener(() { listenersNotified = true; });
+      model.addListener(() { listenersNotified = true; });
 
-      final message = messageList.messages.single;
+      final message = model.messages.single;
       check(message)
         ..content.not(it()..equals(updateEvent.renderedContent!))
         ..lastEditTimestamp.isNull()
         ..flags.not(it()..deepEquals(updateEvent.flags))
         ..isMeMessage.not(it()..equals(updateEvent.isMeMessage!));
 
-      messageList.maybeUpdateMessage(updateEvent);
+      model.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isTrue();
-      check(messageList.messages.single)
+      check(model.messages.single)
         ..identicalTo(message)
         ..content.equals(updateEvent.renderedContent!)
         ..lastEditTimestamp.equals(updateEvent.editTimestamp)
@@ -99,13 +99,13 @@ void main() async {
         renderingOnly: false,
       );
 
-      final messageList = await messageListViewWithMessages([originalMessage], narrow);
+      final model = await messageListViewWithMessages([originalMessage], narrow);
       bool listenersNotified = false;
-      messageList.addListener(() { listenersNotified = true; });
+      model.addListener(() { listenersNotified = true; });
 
-      messageList.maybeUpdateMessage(updateEvent);
+      model.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isFalse();
-      check(messageList.messages.single)
+      check(model.messages.single)
         ..content.equals(originalMessage.content)
         ..content.not(it()..equals(updateEvent.renderedContent!));
     });
@@ -126,14 +126,14 @@ void main() async {
         userId: null,
       );
 
-      final messageList = await messageListViewWithMessages([originalMessage], narrow);
+      final model = await messageListViewWithMessages([originalMessage], narrow);
       bool listenersNotified = false;
-      messageList.addListener(() { listenersNotified = true; });
+      model.addListener(() { listenersNotified = true; });
 
-      final message = messageList.messages.single;
-      messageList.maybeUpdateMessage(updateEvent);
+      final message = model.messages.single;
+      model.maybeUpdateMessage(updateEvent);
       check(listenersNotified).isTrue();
-      check(messageList.messages.single)
+      check(model.messages.single)
         ..identicalTo(message)
         // Content is updated...
         ..content.equals(updateEvent.renderedContent!)
@@ -165,34 +165,34 @@ void main() async {
 
       test('add reaction', () async {
         final originalMessage = eg.streamMessage(stream: stream, reactions: []);
-        final messageList = await messageListViewWithMessages([originalMessage], narrow);
+        final model = await messageListViewWithMessages([originalMessage], narrow);
 
-        final message = messageList.messages.single;
+        final message = model.messages.single;
 
         bool listenersNotified = false;
-        messageList.addListener(() { listenersNotified = true; });
+        model.addListener(() { listenersNotified = true; });
 
-        messageList.maybeUpdateMessageReactions(
+        model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
 
         check(listenersNotified).isTrue();
-        check(messageList.messages.single)
+        check(model.messages.single)
           ..identicalTo(message)
           ..reactions.jsonEquals([eg.unicodeEmojiReaction]);
       });
 
       test('add reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: []);
-        final messageList = await messageListViewWithMessages([someMessage], narrow);
+        final model = await messageListViewWithMessages([someMessage], narrow);
 
         bool listenersNotified = false;
-        messageList.addListener(() { listenersNotified = true; });
+        model.addListener(() { listenersNotified = true; });
 
-        messageList.maybeUpdateMessageReactions(
+        model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
 
         check(listenersNotified).isFalse();
-        check(messageList.messages.single).reactions.jsonEquals([]);
+        check(model.messages.single).reactions.jsonEquals([]);
       });
 
       test('remove reaction', () async {
@@ -217,34 +217,34 @@ void main() async {
 
         final originalMessage = eg.streamMessage(stream: stream,
           reactions: [reaction2, reaction3, reaction4]);
-        final messageList = await messageListViewWithMessages([originalMessage], narrow);
+        final model = await messageListViewWithMessages([originalMessage], narrow);
 
-        final message = messageList.messages.single;
+        final message = model.messages.single;
 
         bool listenersNotified = false;
-        messageList.addListener(() { listenersNotified = true; });
+        model.addListener(() { listenersNotified = true; });
 
-        messageList.maybeUpdateMessageReactions(
+        model.maybeUpdateMessageReactions(
           mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
 
         check(listenersNotified).isTrue();
-        check(messageList.messages.single)
+        check(model.messages.single)
           ..identicalTo(message)
           ..reactions.jsonEquals([reaction2, reaction3]);
       });
 
       test('remove reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(id: 1, reactions: [eg.unicodeEmojiReaction]);
-        final messageList = await messageListViewWithMessages([someMessage], narrow);
+        final model = await messageListViewWithMessages([someMessage], narrow);
 
         bool listenersNotified = false;
-        messageList.addListener(() { listenersNotified = true; });
+        model.addListener(() { listenersNotified = true; });
 
-        messageList.maybeUpdateMessageReactions(
+        model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
 
         check(listenersNotified).isFalse();
-        check(messageList.messages.single).reactions.jsonEquals([eg.unicodeEmojiReaction]);
+        check(model.messages.single).reactions.jsonEquals([eg.unicodeEmojiReaction]);
       });
     });
   });
