@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
-import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -13,10 +12,11 @@ import 'package:zulip/widgets/sticky_header.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
-import '../test_images.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/message_list_test.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import 'content_checks.dart';
 
 Future<void> setupMessageListPage(WidgetTester tester, {
@@ -36,14 +36,8 @@ Future<void> setupMessageListPage(WidgetTester tester, {
   final List<StreamMessage> messages = List.generate(10, (index) {
     return eg.streamMessage(id: index, sender: eg.selfUser);
   });
-  connection.prepare(json: GetMessagesResult(
-    anchor: messages[0].id,
-    foundNewest: true,
-    foundOldest: true,
-    foundAnchor: true,
-    historyLimited: false,
-    messages: messages,
-  ).toJson());
+  connection.prepare(json:
+    newestResult(foundOldest: true, messages: messages).toJson());
 
   await tester.pumpWidget(
     MaterialApp(
