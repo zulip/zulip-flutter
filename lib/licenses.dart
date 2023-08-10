@@ -16,4 +16,7 @@ Stream<LicenseEntry> additionalLicenses() async* {
   yield LicenseEntryWithLineBreaks(
     ['Source Sans 3'],
     await rootBundle.loadString('assets/Source_Sans_3/LICENSE.md'));
+  yield LicenseEntryWithLineBreaks(
+    ['Noto Color Emoji'],
+    await rootBundle.loadString('assets/Noto_Color_Emoji/LICENSE'));
 }
