@@ -20,7 +20,7 @@ import '../model/test_store.dart';
 import 'content_checks.dart';
 
 Future<void> setupMessageListPage(WidgetTester tester, {
-  required Narrow narrow,
+  Narrow narrow = const AllMessagesNarrow(),
 }) async {
   addTearDown(TestZulipBinding.instance.reset);
   addTearDown(tester.view.resetPhysicalSize);
@@ -72,8 +72,7 @@ void main() {
     }
 
     testWidgets('scrolling changes visibility', (WidgetTester tester) async {
-      final stream = eg.stream();
-      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId));
+      await setupMessageListPage(tester);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -90,8 +89,7 @@ void main() {
     });
 
     testWidgets('dimension updates changes visibility', (WidgetTester tester) async {
-      final stream = eg.stream();
-      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId));
+      await setupMessageListPage(tester);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -112,8 +110,7 @@ void main() {
     });
 
     testWidgets('button functionality', (WidgetTester tester) async {
-      final stream = eg.stream();
-      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId));
+      await setupMessageListPage(tester);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -165,7 +162,7 @@ void main() {
         ..statusCode = HttpStatus.ok
         ..content = kSolidBlueAvatar;
 
-      await setupMessageListPage(tester, narrow: const AllMessagesNarrow());
+      await setupMessageListPage(tester);
       checkResultForSender(eg.selfUser.avatarUrl);
 
       await handleNewAvatarEventAndPump(tester, '/foo.png');
