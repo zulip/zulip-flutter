@@ -28,6 +28,8 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       subscriptions: (json['subscriptions'] as List<dynamic>)
           .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
           .toList(),
+      unreadMsgs: UnreadMessagesSnapshot.fromJson(
+          json['unread_msgs'] as Map<String, dynamic>),
       streams: (json['streams'] as List<dynamic>)
           .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -62,6 +64,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'custom_profile_fields': instance.customProfileFields,
       'recent_private_conversations': instance.recentPrivateConversations,
       'subscriptions': instance.subscriptions,
+      'unread_msgs': instance.unreadMsgs,
       'streams': instance.streams,
       'user_settings': instance.userSettings,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
@@ -99,6 +102,84 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
     <String, dynamic>{
       'twenty_four_hour_time': instance.twentyFourHourTime,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
+    };
+
+UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(
+        Map<String, dynamic> json) =>
+    UnreadMessagesSnapshot(
+      count: json['count'] as int,
+      dms: (json['pms'] as List<dynamic>)
+          .map((e) => UnreadDmSnapshot.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      streams: (json['streams'] as List<dynamic>)
+          .map((e) => UnreadStreamSnapshot.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      huddles: (json['huddles'] as List<dynamic>)
+          .map((e) => UnreadHuddleSnapshot.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      mentions:
+          (json['mentions'] as List<dynamic>).map((e) => e as int).toList(),
+      oldUnreadsMissing: json['old_unreads_missing'] as bool,
+    );
+
+Map<String, dynamic> _$UnreadMessagesSnapshotToJson(
+        UnreadMessagesSnapshot instance) =>
+    <String, dynamic>{
+      'count': instance.count,
+      'pms': instance.dms,
+      'streams': instance.streams,
+      'huddles': instance.huddles,
+      'mentions': instance.mentions,
+      'old_unreads_missing': instance.oldUnreadsMissing,
+    };
+
+UnreadDmSnapshot _$UnreadDmSnapshotFromJson(Map<String, dynamic> json) =>
+    UnreadDmSnapshot(
+      otherUserId:
+          UnreadDmSnapshot._readOtherUserId(json, 'other_user_id') as int,
+      unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
+          .map((e) => e as int)
+          .toList(),
+    );
+
+Map<String, dynamic> _$UnreadDmSnapshotToJson(UnreadDmSnapshot instance) =>
+    <String, dynamic>{
+      'other_user_id': instance.otherUserId,
+      'unread_message_ids': instance.unreadMessageIds,
+    };
+
+UnreadStreamSnapshot _$UnreadStreamSnapshotFromJson(
+        Map<String, dynamic> json) =>
+    UnreadStreamSnapshot(
+      topic: json['topic'] as String,
+      streamId: json['stream_id'] as int,
+      unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
+          .map((e) => e as int)
+          .toList(),
+    );
+
+Map<String, dynamic> _$UnreadStreamSnapshotToJson(
+        UnreadStreamSnapshot instance) =>
+    <String, dynamic>{
+      'topic': instance.topic,
+      'stream_id': instance.streamId,
+      'unread_message_ids': instance.unreadMessageIds,
+    };
+
+UnreadHuddleSnapshot _$UnreadHuddleSnapshotFromJson(
+        Map<String, dynamic> json) =>
+    UnreadHuddleSnapshot(
+      userIdsString: json['user_ids_string'] as String,
+      unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
+          .map((e) => e as int)
+          .toList(),
+    );
+
+Map<String, dynamic> _$UnreadHuddleSnapshotToJson(
+        UnreadHuddleSnapshot instance) =>
+    <String, dynamic>{
+      'user_ids_string': instance.userIdsString,
+      'unread_message_ids': instance.unreadMessageIds,
     };
 
 const _$UserSettingNameEnumMap = {

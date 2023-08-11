@@ -92,6 +92,25 @@ ZulipStream stream({
   );
 }
 
+UnreadMessagesSnapshot unreadMsgs({
+  int? count,
+  List<UnreadDmSnapshot>? dms,
+  List<UnreadStreamSnapshot>? streams,
+  List<UnreadHuddleSnapshot>? huddles,
+  List<int>? mentions,
+  bool? oldUnreadsMissing,
+}) {
+  return UnreadMessagesSnapshot(
+    count: count ?? 0,
+    dms: dms ?? [],
+    streams: streams ?? [],
+    huddles: huddles ?? [],
+    mentions: mentions ?? [],
+    oldUnreadsMissing: oldUnreadsMissing ?? false,
+  );
+}
+const _unreadMsgs = unreadMsgs;
+
 final _messagePropertiesBase = {
   'is_me_message': false,
   'recipient_id': 32, // obsolescent in API, and ignored
@@ -223,6 +242,7 @@ InitialSnapshot initialSnapshot({
   List<CustomProfileField>? customProfileFields,
   List<RecentDmConversation>? recentPrivateConversations,
   List<Subscription>? subscriptions,
+  UnreadMessagesSnapshot? unreadMsgs,
   List<ZulipStream>? streams,
   UserSettings? userSettings,
   int? maxFileUploadSizeMib,
@@ -240,6 +260,7 @@ InitialSnapshot initialSnapshot({
     customProfileFields: customProfileFields ?? [],
     recentPrivateConversations: recentPrivateConversations ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
+    unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default
     userSettings: userSettings, // TODO add userSettings to default
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,

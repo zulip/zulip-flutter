@@ -29,6 +29,8 @@ class InitialSnapshot {
 
   final List<Subscription> subscriptions;
 
+  final UnreadMessagesSnapshot unreadMsgs;
+
   final List<ZulipStream> streams;
 
   // Servers pre-5.0 don't have `user_settings`, and instead provide whatever
@@ -79,6 +81,7 @@ class InitialSnapshot {
     required this.customProfileFields,
     required this.recentPrivateConversations,
     required this.subscriptions,
+    required this.unreadMsgs,
     required this.streams,
     required this.userSettings,
     required this.maxFileUploadSizeMib,
@@ -162,4 +165,102 @@ enum UserSettingName {
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$UserSettingNameEnumMap
     .map((key, value) => MapEntry(value, key));
+}
+
+/// The `unread_msgs` snapshot.
+///
+/// For docs, search for "unread_msgs:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UnreadMessagesSnapshot {
+  final int count;
+
+  @JsonKey(name: 'pms')
+  final List<UnreadDmSnapshot> dms;
+
+  final List<UnreadStreamSnapshot> streams;
+  final List<UnreadHuddleSnapshot> huddles;
+  final List<int> mentions;
+  final bool oldUnreadsMissing;
+
+  UnreadMessagesSnapshot({
+    required this.count,
+    required this.dms,
+    required this.streams,
+    required this.huddles,
+    required this.mentions,
+    required this.oldUnreadsMissing,
+  });
+
+  factory UnreadMessagesSnapshot.fromJson(Map<String, dynamic> json) =>
+    _$UnreadMessagesSnapshotFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UnreadMessagesSnapshotToJson(this);
+}
+
+/// An item in [UnreadMessagesSnapshot.dms].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UnreadDmSnapshot {
+  @JsonKey(readValue: _readOtherUserId)
+  final int otherUserId;
+
+  // The doc mistakenly calls this `unread_ids`:
+  //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20.60unread_msgs.2Epms.5B.5D.2Eunread_message_ids.60/near/1623940
+  final List<int> unreadMessageIds;
+
+  // other_user_id was introduced at FL 119 as the new name for sender_id:
+  //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20When.20was.20.60unread_msgs.2Epms.5B.5D.2Eother_user_id.60.20added.3F/near/1623961
+  // TODO(server-5): Simplify away.
+  static _readOtherUserId(Map json, String key) {
+    return json[key] ?? json['sender_id'];
+  }
+
+  UnreadDmSnapshot({
+    required this.otherUserId,
+    required this.unreadMessageIds,
+  });
+
+  factory UnreadDmSnapshot.fromJson(Map<String, dynamic> json) =>
+    _$UnreadDmSnapshotFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UnreadDmSnapshotToJson(this);
+}
+
+/// An item in [UnreadMessagesSnapshot.streams].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UnreadStreamSnapshot {
+  final String topic;
+  final int streamId;
+  final List<int> unreadMessageIds;
+
+  UnreadStreamSnapshot({
+    required this.topic,
+    required this.streamId,
+    required this.unreadMessageIds,
+  });
+
+  factory UnreadStreamSnapshot.fromJson(Map<String, dynamic> json) =>
+    _$UnreadStreamSnapshotFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UnreadStreamSnapshotToJson(this);
+}
+
+/// An item in [UnreadMessagesSnapshot.huddles].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UnreadHuddleSnapshot {
+  final String userIdsString;
+
+  // The doc mistakenly calls this `unread_ids`:
+  //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20.60unread_msgs.2Epms.5B.5D.2Eunread_message_ids.60/near/1623940
+  final List<int> unreadMessageIds;
+
+  UnreadHuddleSnapshot({
+    required this.userIdsString,
+    required this.unreadMessageIds,
+  });
+
+  factory UnreadHuddleSnapshot.fromJson(Map<String, dynamic> json) =>
+    _$UnreadHuddleSnapshotFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UnreadHuddleSnapshotToJson(this);
 }
