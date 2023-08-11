@@ -28,6 +28,9 @@ void main() {
 
   Future<void> setupMessageListPage(WidgetTester tester, {
     Narrow narrow = const AllMessagesNarrow(),
+    bool foundOldest = true,
+    int? messageCount,
+    List<Message>? messages,
   }) async {
     addTearDown(TestZulipBinding.instance.reset);
     addTearDown(tester.view.resetPhysicalSize);
@@ -40,11 +43,12 @@ void main() {
 
     // prepare message list data
     store.addUser(eg.selfUser);
-    final List<StreamMessage> messages = List.generate(10, (index) {
+    assert((messageCount == null) != (messages == null));
+    messages ??= List.generate(messageCount!, (index) {
       return eg.streamMessage(id: index, sender: eg.selfUser);
     });
     connection.prepare(json:
-      newestResult(foundOldest: true, messages: messages).toJson());
+      newestResult(foundOldest: foundOldest, messages: messages).toJson());
 
     await tester.pumpWidget(
       MaterialApp(
@@ -70,7 +74,7 @@ void main() {
     }
 
     testWidgets('scrolling changes visibility', (WidgetTester tester) async {
-      await setupMessageListPage(tester);
+      await setupMessageListPage(tester, messageCount: 10);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -87,7 +91,7 @@ void main() {
     });
 
     testWidgets('dimension updates changes visibility', (WidgetTester tester) async {
-      await setupMessageListPage(tester);
+      await setupMessageListPage(tester, messageCount: 10);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -108,7 +112,7 @@ void main() {
     });
 
     testWidgets('button functionality', (WidgetTester tester) async {
-      await setupMessageListPage(tester);
+      await setupMessageListPage(tester, messageCount: 10);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -160,7 +164,7 @@ void main() {
         ..statusCode = HttpStatus.ok
         ..content = kSolidBlueAvatar;
 
-      await setupMessageListPage(tester);
+      await setupMessageListPage(tester, messageCount: 10);
       checkResultForSender(eg.selfUser.avatarUrl);
 
       await handleNewAvatarEventAndPump(tester, '/foo.png');
