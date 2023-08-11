@@ -79,6 +79,11 @@ class NetworkException extends ApiRequestException {
   final Object cause;
 
   NetworkException({required super.routeName, required super.message, required this.cause});
+
+  @override
+  String toString() {
+    return 'NetworkException: $message ($cause)';
+  }
 }
 
 /// Some kind of server-side error in handling the request.

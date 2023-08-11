@@ -23,4 +23,6 @@ void main() {
       routeName: 'aRoute', message: 'oops').toString()
     ).equals('ZulipApiException: 401 PROBLEM {"x":"y"} aRoute: oops');
   });
+
+  // NetworkException.toString: see "API network errors" test in core_test.dart
 }

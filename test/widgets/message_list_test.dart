@@ -1004,7 +1004,7 @@ void main() {
         await tester.pumpAndSettle();
         checkErrorDialog(tester,
           expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
-          expectedMessage: 'Oops');
+          expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
       });
     });
   });

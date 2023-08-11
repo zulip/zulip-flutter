@@ -454,7 +454,7 @@ class MarkAsReadWidget extends StatelessWidget {
       final zulipLocalizations = ZulipLocalizations.of(context);
       await showErrorDialog(context: context,
         title: zulipLocalizations.errorMarkAsReadFailedTitle,
-        message: e.toString());
+        message: e.toString()); // TODO(#741): extract user-facing message better
       return;
     }
     if (!context.mounted) return;
