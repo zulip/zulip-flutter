@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/store.dart';
@@ -75,8 +76,19 @@ class FakeHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     lastRequest = request;
+
+    if (_nextResponse == null) {
+      throw FlutterError.fromParts([
+        ErrorSummary(
+          'An API request was attempted in a test when no response was prepared.'),
+        ErrorDescription(
+          'Each API request in a test context must be preceded by a corresponding '
+          'call to [FakeApiConnection.prepare].'),
+      ]);
+    }
     final response = _nextResponse!;
     _nextResponse = null;
+
     switch (response) {
       case _PreparedException(:var exception):
         return Future(() => throw exception);
