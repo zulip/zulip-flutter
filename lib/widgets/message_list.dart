@@ -16,6 +16,7 @@ import 'action_sheet.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'dialog.dart';
+import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'profile.dart';
@@ -775,6 +776,8 @@ class MessageWithPossibleSender extends StatelessWidget {
                   const SizedBox(height: 4),
                 ],
                 MessageContent(message: message, content: item.content),
+                if ((message.reactions?.total ?? 0) > 0)
+                  ReactionChipsList(messageId: message.id, reactions: message.reactions!)
               ])),
           Container(
             width: 80,
