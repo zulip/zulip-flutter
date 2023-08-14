@@ -9,11 +9,12 @@ import '../model/store.dart';
 import 'app.dart';
 import 'dialog.dart';
 import 'input.dart';
+import 'page.dart';
 import 'store.dart';
 
-class _LoginSequenceRoute extends MaterialPageRoute<void> {
+class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
   _LoginSequenceRoute({
-    required super.builder,
+    required super.page,
   });
 }
 
@@ -101,8 +102,7 @@ class AddAccountPage extends StatefulWidget {
   const AddAccountPage({super.key});
 
   static Route<void> buildRoute() {
-    return _LoginSequenceRoute(builder: (context) =>
-      const AddAccountPage());
+    return _LoginSequenceRoute(page: const AddAccountPage());
   }
 
   @override
@@ -231,8 +231,8 @@ class PasswordLoginPage extends StatefulWidget {
   final GetServerSettingsResult serverSettings;
 
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
-    return _LoginSequenceRoute(builder: (context) =>
-      PasswordLoginPage(serverSettings: serverSettings));
+    return _LoginSequenceRoute(
+      page: PasswordLoginPage(serverSettings: serverSettings));
   }
 
   @override

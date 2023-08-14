@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'page.dart';
+
 class AboutZulipPage extends StatefulWidget {
   const AboutZulipPage({super.key});
 
   static Route<void> buildRoute(BuildContext context) {
-    return MaterialPageRoute(builder: (context) => const AboutZulipPage());
+    return MaterialWidgetRoute(page: const AboutZulipPage());
   }
 
   @override

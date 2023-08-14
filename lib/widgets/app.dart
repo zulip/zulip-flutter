@@ -4,6 +4,7 @@ import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'login.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 
@@ -110,8 +111,8 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   static Route<void> buildRoute({required int accountId}) {
-    return MaterialPageRoute(builder: (context) =>
-      PerAccountStoreWidget(accountId: accountId,
+    return MaterialWidgetRoute(
+      page: PerAccountStoreWidget(accountId: accountId,
         child: const HomePage()));
   }
 
