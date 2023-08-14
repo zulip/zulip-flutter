@@ -7,15 +7,18 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
-import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'content_checks.dart';
+import 'message_list_checks.dart';
+import 'page_checks.dart';
 
 Future<void> setupPage(WidgetTester tester, {
   required List<DmMessage> dmMessages,
@@ -275,9 +278,9 @@ void main() {
         await tester.tap(find.byType(RecentDmConversationsItem));
         // no `tester.pump`, to avoid having to mock API response for [MessageListPage]
 
-        check(pushedRoutes).last.settings
-          ..name.equals('message_list')
-          ..arguments.equals(expectedNarrow);
+        check(pushedRoutes).last.isA<WidgetRoute>().page
+          .isA<MessageListPage>()
+          .narrow.equals(expectedNarrow);
       }
 
       testWidgets('1:1', (WidgetTester tester) async {

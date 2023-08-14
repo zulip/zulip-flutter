@@ -20,9 +20,8 @@ class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
   static Route<void> buildRoute({required BuildContext context, required Narrow narrow}) {
-    return MaterialAccountPageRoute(context: context,
-      settings: RouteSettings(name: 'message_list', arguments: narrow), // for testing
-      builder: (context) => MessageListPage(narrow: narrow));
+    return MaterialAccountWidgetRoute(context: context,
+      page: MessageListPage(narrow: narrow));
   }
 
   /// A [ComposeBoxController], if this [MessageListPage] offers a compose box.
