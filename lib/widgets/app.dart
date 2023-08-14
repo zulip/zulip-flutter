@@ -22,7 +22,12 @@ class ZulipApp extends StatelessWidget {
       //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
       // Or try this tool to see the whole palette:
       //   https://m3.material.io/theme-builder#/custom
-      colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor));
+      colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor),
+      // `preferBelow: false` seems like a better default for mobile;
+      // the area below a long-press target seems more likely to be hidden by
+      // a finger or thumb than the area above.
+      tooltipTheme: const TooltipThemeData(preferBelow: false),
+    );
     return GlobalStoreWidget(
       child: MaterialApp(
         title: 'Zulip',
