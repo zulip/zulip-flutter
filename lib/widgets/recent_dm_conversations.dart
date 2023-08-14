@@ -13,8 +13,8 @@ class RecentDmConversationsPage extends StatefulWidget {
   const RecentDmConversationsPage({super.key});
 
   static Route<void> buildRoute({required BuildContext context}) {
-    return MaterialAccountPageRoute(context: context,
-      builder: (context) => const RecentDmConversationsPage());
+    return MaterialAccountWidgetRoute(context: context,
+      page: const RecentDmConversationsPage());
   }
 
   @override
