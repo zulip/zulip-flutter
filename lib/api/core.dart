@@ -147,6 +147,16 @@ class ApiConnection {
       ..files.add(http.MultipartFile('file', content, length, filename: filename));
     return send(routeName, fromJson, request);
   }
+
+  Future<T> delete<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
+      String path, Map<String, dynamic>? params) async {
+    final url = realmUrl.replace(path: "/api/v1/$path");
+    final request = http.Request('DELETE', url);
+    if (params != null) {
+      request.bodyFields = encodeParameters(params)!;
+    }
+    return send(routeName, fromJson, request);
+  }
 }
 
 ApiRequestException _makeApiException(String routeName, int httpStatus, Map<String, dynamic>? json) {
