@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
+import 'code_block.dart';
+
 /// A node in a parse tree for Zulip message-style content.
 ///
 /// See [ZulipContent].
@@ -255,23 +257,35 @@ class QuotationNode extends BlockContentNode {
 }
 
 class CodeBlockNode extends BlockContentNode {
-  // TODO(#191) represent the code-highlighting style spans in CodeBlockNode
-  const CodeBlockNode({super.debugHtmlNode, required this.text});
+  const CodeBlockNode(this.spans, {super.debugHtmlNode});
+
+  final List<CodeBlockSpanNode> spans;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return spans.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
+class CodeBlockSpanNode extends InlineContentNode {
+  const CodeBlockSpanNode({super.debugHtmlNode, required this.text, required this.type});
 
   final String text;
+  final CodeBlockSpanType type;
 
   @override
   bool operator ==(Object other) {
-    return other is CodeBlockNode && other.text == text;
+    return other is CodeBlockSpanNode && other.text == text && other.type == type;
   }
 
   @override
-  int get hashCode => Object.hash('CodeBlockNode', text);
+  int get hashCode => Object.hash('CodeBlockSpanNode', text, type);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('text', text));
+    properties.add(EnumProperty('type', type));
   }
 }
 
@@ -658,27 +672,46 @@ class _ZulipContentParser {
       return UnimplementedBlockContentNode(htmlNode: divElement);
     }
 
-    final buffer = StringBuffer();
+    final spans = <CodeBlockSpanNode>[];
     for (int i = 0; i < mainElement.nodes.length; i++) {
       final child = mainElement.nodes[i];
-      if (child is dom.Text) {
-        String text = child.text;
-        if (i == mainElement.nodes.length - 1) {
-          // The HTML tends to have a final newline here.  If included in the
-          // [Text] widget, that would make a trailing blank line.  So cut it out.
-          text = text.replaceFirst(RegExp(r'\n$'), '');
-        }
-        buffer.write(text);
-      } else if (child is dom.Element && child.localName == 'span') {
-        // TODO(#191) parse the code-highlighting spans, to style them
-        buffer.write(child.text);
-      } else {
-        return UnimplementedBlockContentNode(htmlNode: divElement);
-      }
-    }
-    final text = buffer.toString();
 
-    return CodeBlockNode(text: text, debugHtmlNode: debugHtmlNode);
+      final CodeBlockSpanNode span;
+      switch (child) {
+        case dom.Text(:var text):
+          if (i == mainElement.nodes.length - 1) {
+            // The HTML tends to have a final newline here.  If included in the
+            // [Text] widget, that would make a trailing blank line.  So cut it out.
+            text = text.replaceFirst(RegExp(r'\n$'), '');
+          }
+          if (text.isEmpty) {
+            continue;
+          }
+          span = CodeBlockSpanNode(text: text, type: CodeBlockSpanType.text);
+
+        case dom.Element(localName: 'span', :final text, :final classes)
+            when classes.length == 1:
+          final CodeBlockSpanType type = codeBlockSpanTypeFromClassName(classes.first);
+          switch (type) {
+            case CodeBlockSpanType.unknown:
+              // TODO(#194): Show these as un-syntax-highlighted code, in production.
+              return UnimplementedBlockContentNode(htmlNode: divElement);
+            case CodeBlockSpanType.highlightedLines:
+              // TODO: Implement nesting in CodeBlockSpanNode to support hierarchically
+              //       inherited styles for `span.hll` nodes.
+              return UnimplementedBlockContentNode(htmlNode: divElement);
+            default:
+              span = CodeBlockSpanNode(text: text, type: type);
+          }
+
+        default:
+          return UnimplementedBlockContentNode(htmlNode: divElement);
+      }
+
+      spans.add(span);
+    }
+
+    return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
   }
 
   BlockContentNode parseImageNode(dom.Element divElement) {

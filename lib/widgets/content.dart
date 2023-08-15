@@ -8,9 +8,10 @@ import '../api/model/model.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/store.dart';
+import 'code_block.dart';
 import 'dialog.dart';
-import 'store.dart';
 import 'lightbox.dart';
+import 'store.dart';
 import 'text.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
@@ -255,8 +256,6 @@ class CodeBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = node.text;
-
     return Container(
       padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
       decoration: BoxDecoration(
@@ -266,7 +265,17 @@ class CodeBlock extends StatelessWidget {
           color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
       child: SingleChildScrollViewWithScrollbar(
         scrollDirection: Axis.horizontal,
-        child: Text(text, style: _kCodeBlockStyle)));
+        child: Text.rich(_buildNodes(node.spans))));
+  }
+
+  InlineSpan _buildNodes(List<CodeBlockSpanNode> nodes) {
+    return TextSpan(
+      style: _kCodeBlockStyle,
+      children: nodes.map(_buildNode).toList(growable: false));
+  }
+
+  InlineSpan _buildNode(CodeBlockSpanNode node) {
+    return TextSpan(text: node.text, style: codeBlockTextStyle(node.type));
   }
 }
 

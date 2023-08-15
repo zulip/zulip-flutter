@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:html/parser.dart';
 import 'package:test/scaffolding.dart';
+import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
 
 import 'content_checks.dart';
@@ -292,19 +293,91 @@ void main() {
       QuotationNode([ParagraphNode(links: null, nodes: [TextNode('words')])]),
     ]);
 
-  testParse('parse code blocks, no language',
+  testParse('parse code blocks, without syntax highlighting',
     // "```\nverb\natim\n```"
     '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>', const [
-      CodeBlockNode(text: 'verb\natim'),
+      CodeBlockNode([
+        CodeBlockSpanNode(text: 'verb\natim', type: CodeBlockSpanType.text),
+      ]),
     ]);
 
-  testParse('parse code blocks, with highlighted language',
+  testParse('parse code blocks, with syntax highlighting',
     // "```dart\nclass A {}\n```"
     '<div class="codehilite" data-code-language="Dart"><pre>'
         '<span></span><code><span class="kd">class</span><span class="w"> </span>'
         '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
         '\n</code></pre></div>', const [
-      CodeBlockNode(text: 'class A {}'),
+      CodeBlockNode([
+        CodeBlockSpanNode(text: 'class', type: CodeBlockSpanType.keywordDeclaration),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: 'A', type: CodeBlockSpanType.nameClass),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: '{}', type: CodeBlockSpanType.punctuation),
+      ]),
+    ]);
+
+  testParse('parse code blocks, multiline, with syntax highlighting',
+    // '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```'
+    '<div class="codehilite" data-code-language="Rust"><pre>'
+        '<span></span><code><span class="k">fn</span> <span class="nf">main</span>'
+        '<span class="p">()</span><span class="w"> </span><span class="p">{</span>\n'
+        '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
+        '<span class="s">"Hello "</span><span class="p">);</span>\n\n'
+        '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
+        '<span class="s">"world!</span><span class="se">\\n</span><span class="s">"</span>'
+        '<span class="p">);</span>\n<span class="p">}</span>\n'
+        '</code></pre></div>', const [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: 'fn', type: CodeBlockSpanType.keyword),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(text: 'main', type: CodeBlockSpanType.nameFunction),
+        CodeBlockSpanNode(text: '()', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: '{', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(text: '    ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: 'print!', type: CodeBlockSpanType.nameFunctionMagic),
+        CodeBlockSpanNode(text: '(', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: '"Hello "', type: CodeBlockSpanType.string),
+        CodeBlockSpanNode(text: ');', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: '\n\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(text: '    ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: 'print!', type: CodeBlockSpanType.nameFunctionMagic),
+        CodeBlockSpanNode(text: '(', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: '"world!', type: CodeBlockSpanType.string),
+        CodeBlockSpanNode(text: '\\n', type: CodeBlockSpanType.stringEscape),
+        CodeBlockSpanNode(text: '"', type: CodeBlockSpanType.string),
+        CodeBlockSpanNode(text: ');', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(text: '}', type: CodeBlockSpanType.punctuation),
+      ]),
+    ]);
+
+  testParse('parse code blocks, with syntax highlighting and highlighted lines',
+    // '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```'
+    '<div class="codehilite"><pre>'
+        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
+        '<span class="hll"><span class="gh"># he</span>\n'
+        '</span><span class="gu">## llo</span>\n'
+        '<span class="hll"><span class="gu">### world</span>\n'
+        '</span></code></pre></div>', [
+      // TODO: Fix this, see comment under `CodeBlockSpanType.highlightedLines` case in lib/model/content.dart.
+      blockUnimplemented('<div class="codehilite"><pre>'
+        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
+        '<span class="hll"><span class="gh"># he</span>\n'
+        '</span><span class="gu">## llo</span>\n'
+        '<span class="hll"><span class="gu">### world</span>\n'
+        '</span></code></pre></div>'),
+    ]);
+
+  testParse('parse code blocks, unknown span type',
+    // (no markdown; this test is for future Pygments versions adding new token types)
+    '<div class="codehilite" data-code-language="Dart"><pre>'
+        '<span></span><code><span class="unknown">class</span>'
+        '\n</code></pre></div>', [
+      blockUnimplemented('<div class="codehilite" data-code-language="Dart"><pre>'
+        '<span></span><code><span class="unknown">class</span>'
+        '\n</code></pre></div>'),
     ]);
 
   testParse('parse image',
@@ -328,7 +401,9 @@ void main() {
             ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('three')]),
           ]]),
         ]),
-        CodeBlockNode(text: 'four'),
+        CodeBlockNode([
+          CodeBlockSpanNode(text: 'four', type: CodeBlockSpanType.text),
+        ]),
         ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
       ]]),
     ]);

@@ -18,6 +18,44 @@ import 'dialog_checks.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group("CodeBlock", () {
+    Future<void> prepareContent(WidgetTester tester, String html) async {
+      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
+    }
+
+    testWidgets('without syntax highlighting', (WidgetTester tester) async {
+      // "```\nverb\natim\n```"
+      await prepareContent(tester,
+        '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>');
+      tester.widget(find.text('verb\natim'));
+    });
+
+    testWidgets('with syntax highlighting', (WidgetTester tester) async {
+      // "```dart\nclass A {}\n```"
+      await prepareContent(tester,
+        '<div class="codehilite" data-code-language="Dart"><pre>'
+          '<span></span><code><span class="kd">class</span><span class="w"> </span>'
+          '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
+          '\n</code></pre></div>');
+      tester.widget(find.text('class A {}'));
+    });
+
+    testWidgets('multiline, with syntax highlighting', (WidgetTester tester) async {
+      // '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```'
+      await prepareContent(tester,
+        '<div class="codehilite" data-code-language="Rust"><pre>'
+            '<span></span><code><span class="k">fn</span> <span class="nf">main</span>'
+            '<span class="p">()</span><span class="w"> </span><span class="p">{</span>\n'
+            '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
+            '<span class="s">"Hello "</span><span class="p">);</span>\n\n'
+            '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
+            '<span class="s">"world!</span><span class="se">\\n</span><span class="s">"</span>'
+            '<span class="p">);</span>\n<span class="p">}</span>\n'
+            '</code></pre></div>');
+      tester.widget(find.text('fn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}'));
+    });
+  });
+
   group('LinkNode interactions', () {
     const expectedModeAndroid = LaunchMode.externalApplication;
 
