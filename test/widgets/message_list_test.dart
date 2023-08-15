@@ -176,6 +176,33 @@ void main() {
     });
   });
 
+  group('recipient headers', () {
+    testWidgets('show names on DMs', (tester) async {
+      await setupMessageListPage(tester, messages: [
+        eg.dmMessage(from: eg.selfUser, to: []),
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]),
+      ]);
+      store.addUser(eg.otherUser);
+      store.addUser(eg.thirdUser);
+      await tester.pump();
+      tester.widget(find.text("You with yourself"));
+      tester.widget(find.text("You and ${eg.otherUser.fullName}"));
+      tester.widget(find.text("You and ${eg.otherUser.fullName}, ${eg.thirdUser.fullName}"));
+    });
+
+    testWidgets('show names on DMs: smoothly handle unknown users', (tester) async {
+      await setupMessageListPage(tester, messages: [
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]),
+      ]);
+      store.addUser(eg.thirdUser);
+      await tester.pump();
+      tester.widget(find.text("You and (unknown user)"));
+      tester.widget(find.text("You and (unknown user), ${eg.thirdUser.fullName}"));
+    });
+  });
+
   group('MessageWithSender', () {
     testWidgets('Updates avatar on RealmUserUpdateEvent', (tester) async {
       addTearDown(testBinding.reset);
