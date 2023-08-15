@@ -257,7 +257,6 @@ class CodeBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
@@ -266,7 +265,9 @@ class CodeBlock extends StatelessWidget {
         borderRadius: BorderRadius.circular(4)),
       child: SingleChildScrollViewWithScrollbar(
         scrollDirection: Axis.horizontal,
-        child: Text.rich(_buildNodes(node.spans))));
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
+          child: Text.rich(_buildNodes(node.spans)))));
   }
 
   InlineSpan _buildNodes(List<CodeBlockSpanNode> nodes) {
