@@ -334,4 +334,106 @@ void main() {
       });
     });
   });
+
+  group('addReaction', () {
+    Future<void> checkAddReaction(FakeApiConnection connection, {
+      required int messageId,
+      required Reaction reaction,
+      required String expectedReactionType,
+    }) async {
+      connection.prepare(json: {});
+      await addReaction(connection,
+        messageId: messageId,
+        reactionType: reaction.reactionType,
+        emojiCode: reaction.emojiCode,
+        emojiName: reaction.emojiName,
+      );
+      check(connection.lastRequest).isNotNull().isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/$messageId/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': expectedReactionType,
+            'emoji_code': reaction.emojiCode,
+            'emoji_name': reaction.emojiName,
+          });
+    }
+
+    test('unicode emoji', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkAddReaction(connection,
+          messageId: eg.streamMessage().id,
+          reaction: eg.unicodeEmojiReaction,
+          expectedReactionType: 'unicode_emoji');
+      });
+    });
+
+    test('realm emoji', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkAddReaction(connection,
+          messageId: eg.streamMessage().id,
+          reaction: eg.realmEmojiReaction,
+          expectedReactionType: 'realm_emoji');
+      });
+    });
+
+    test('Zulip extra emoji', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkAddReaction(connection,
+          messageId: eg.streamMessage().id,
+          reaction: eg.zulipExtraEmojiReaction,
+          expectedReactionType: 'zulip_extra_emoji');
+      });
+    });
+  });
+
+  group('removeReaction', () {
+    Future<void> checkRemoveReaction(FakeApiConnection connection, {
+      required int messageId,
+      required Reaction reaction,
+      required String expectedReactionType,
+    }) async {
+      connection.prepare(json: {});
+      await removeReaction(connection,
+        messageId: messageId,
+        reactionType: reaction.reactionType,
+        emojiCode: reaction.emojiCode,
+        emojiName: reaction.emojiName,
+      );
+      check(connection.lastRequest).isNotNull().isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals('/api/v1/messages/$messageId/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': expectedReactionType,
+            'emoji_code': reaction.emojiCode,
+            'emoji_name': reaction.emojiName,
+          });
+    }
+
+    test('unicode emoji', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkRemoveReaction(connection,
+          messageId: eg.streamMessage().id,
+          reaction: eg.unicodeEmojiReaction,
+          expectedReactionType: 'unicode_emoji');
+      });
+    });
+
+    test('realm emoji', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkRemoveReaction(connection,
+          messageId: eg.streamMessage().id,
+          reaction: eg.realmEmojiReaction,
+          expectedReactionType: 'realm_emoji');
+      });
+    });
+
+    test('Zulip extra emoji', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkRemoveReaction(connection,
+          messageId: eg.streamMessage().id,
+          reaction: eg.zulipExtraEmojiReaction,
+          expectedReactionType: 'zulip_extra_emoji');
+      });
+    });
+  });
 }

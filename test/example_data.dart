@@ -197,6 +197,20 @@ Reaction unicodeEmojiReaction = Reaction(
   userId: selfUser.userId,
 );
 
+Reaction realmEmojiReaction = Reaction(
+  emojiName: 'twocents',
+  emojiCode: '181',
+  reactionType: ReactionType.realmEmoji,
+  userId: selfUser.userId,
+);
+
+Reaction zulipExtraEmojiReaction = Reaction(
+  emojiName: 'zulip',
+  emojiCode: 'zulip',
+  reactionType: ReactionType.zulipExtraEmoji,
+  userId: selfUser.userId,
+);
+
 // TODO example data for many more types
 
 InitialSnapshot initialSnapshot({

@@ -263,3 +263,31 @@ class UploadFileResult {
 
   Map<String, dynamic> toJson() => _$UploadFileResultToJson(this);
 }
+
+/// https://zulip.com/api/add-reaction
+Future<void> addReaction(ApiConnection connection, {
+  required int messageId,
+  required ReactionType reactionType,
+  required String emojiCode,
+  required String emojiName,
+}) {
+  return connection.post('addReaction', (_) {}, 'messages/$messageId/reactions', {
+    'emoji_name': RawParameter(emojiName),
+    'emoji_code': RawParameter(emojiCode),
+    'reaction_type': RawParameter(reactionType.toJson()),
+  });
+}
+
+/// https://zulip.com/api/remove-reaction
+Future<void> removeReaction(ApiConnection connection, {
+  required int messageId,
+  required ReactionType reactionType,
+  required String emojiCode,
+  required String emojiName,
+}) {
+  return connection.delete('removeReaction', (_) {}, 'messages/$messageId/reactions', {
+    'emoji_name': RawParameter(emojiName),
+    'emoji_code': RawParameter(emojiCode),
+    'reaction_type': RawParameter(reactionType.toJson()),
+  });
+}
