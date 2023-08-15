@@ -475,4 +475,6 @@ enum ReactionType {
   unicodeEmoji,
   realmEmoji,
   zulipExtraEmoji;
+
+  String toJson() => _$ReactionTypeEnumMap[this]!;
 }

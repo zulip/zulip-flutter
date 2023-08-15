@@ -297,7 +297,7 @@ Reaction _$ReactionFromJson(Map<String, dynamic> json) => Reaction(
 Map<String, dynamic> _$ReactionToJson(Reaction instance) => <String, dynamic>{
       'emoji_name': instance.emojiName,
       'emoji_code': instance.emojiCode,
-      'reaction_type': _$ReactionTypeEnumMap[instance.reactionType]!,
+      'reaction_type': instance.reactionType,
       'user_id': instance.userId,
     };
 

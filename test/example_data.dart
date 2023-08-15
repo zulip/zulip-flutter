@@ -147,7 +147,9 @@ StreamMessage streamMessage({
     ..._messagePropertiesFromContent(content, contentMarkdown),
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
-    'reactions': reactions?.map((r) => r.toJson()).toList() ?? [],
+    'reactions': reactions?.map(
+      (r) => r.toJson()..['reaction_type'] = r.reactionType.toJson(),
+    ).toList() ?? [],
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,

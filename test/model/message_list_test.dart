@@ -396,23 +396,22 @@ void main() async {
 
       test('remove reaction', () async {
         final eventReaction = Reaction(reactionType: ReactionType.unicodeEmoji,
-          emojiName: 'wave',                  emojiCode: '1f44b', userId: 1);
+          emojiName: 'wave',          emojiCode: '1f44b', userId: 1);
 
         // Same emoji, different user. Not to be removed.
-        final reaction2 = Reaction.fromJson(eventReaction.toJson()
-          ..['user_id'] = 2);
+        final reaction2 = Reaction(reactionType: ReactionType.unicodeEmoji,
+          emojiName: 'wave',          emojiCode: '1f44b', userId: 2);
 
         // Same user, different emoji. Not to be removed.
-        final reaction3 = Reaction.fromJson(eventReaction.toJson()
-          ..['emoji_code'] = '1f6e0'
-          ..['emoji_name'] = 'working_on_it');
+        final reaction3 = Reaction(reactionType: ReactionType.unicodeEmoji,
+          emojiName: 'working_on_it', emojiCode: '1f6e0', userId: 1);
 
         // Same user, same emojiCode, different emojiName. To be removed: servers
         // key on user, message, reaction type, and emoji code, but not emoji name.
         // So we mimic that behavior; see discussion:
         //   https://github.com/zulip/zulip-flutter/pull/256#discussion_r1284865099
-        final reaction4 = Reaction.fromJson(eventReaction.toJson()
-          ..['emoji_name'] = 'hello');
+        final reaction4 = Reaction(reactionType: ReactionType.unicodeEmoji,
+          emojiName: 'hello',         emojiCode: '1f44b', userId: 1);
 
         final originalMessage = eg.streamMessage(
           reactions: [reaction2, reaction3, reaction4]);
