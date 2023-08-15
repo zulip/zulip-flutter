@@ -262,7 +262,8 @@ class CodeBlock extends StatelessWidget {
         color: Colors.white,
         border: Border.all(
           width: 1,
-          color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor())),
+          color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor()),
+        borderRadius: BorderRadius.circular(4)),
       child: SingleChildScrollViewWithScrollbar(
         scrollDirection: Axis.horizontal,
         child: Text.rich(_buildNodes(node.spans))));
