@@ -64,7 +64,7 @@ class ApiConnection {
 
   void addAuth(http.BaseRequest request) {
     if (_authValue != null) {
-      request.headers['Authorization'] = _authValue!;
+      request.headers['Authorization'] = _authValue;
     }
   }
 
