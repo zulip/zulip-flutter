@@ -134,6 +134,17 @@ To update the version bounds:
 * Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
 
 
+### Upgrading dependencies
+
+When upgrading dependencies, try to keep our generated files
+updated atomically with them.  (This will become more automated
+when we have CI, #60.)
+
+The generated files that most frequently need an update are
+`ios/Podfile.lock` and `macos/Podfile.lock`.  To update those,
+run `flutter pub get && flutter build ios --config-only && flutter build macos --config-only`.
+
+
 ## License
 
 Copyright (c) 2022 Kandra Labs, Inc., and contributors.
