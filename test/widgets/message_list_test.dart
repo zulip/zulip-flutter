@@ -33,10 +33,6 @@ void main() {
     List<Message>? messages,
   }) async {
     addTearDown(testBinding.reset);
-    addTearDown(tester.view.resetPhysicalSize);
-
-    tester.view.physicalSize = const Size(600, 800);
-
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
@@ -72,8 +68,8 @@ void main() {
 
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
-        messages: List.generate(30, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(30);
+        messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+      check(itemCount(tester)).equals(100);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -86,13 +82,13 @@ void main() {
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
 
       // Now we have more messages.
-      check(itemCount(tester)).equals(130);
+      check(itemCount(tester)).equals(200);
     });
 
     testWidgets('observe double-fetch glitch', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
-        messages: List.generate(30, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(30);
+        messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+      check(itemCount(tester)).equals(100);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -101,9 +97,9 @@ void main() {
       // ... and we fetch more messages as we go.
       connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
-      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(130);
+      check(itemCount(tester)).equals(200);
 
       // But on the next frame, we promptly fetch *another* batch.
       // This is a glitch and it'd be nicer if we didn't.
@@ -111,7 +107,7 @@ void main() {
         messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(230);
+      check(itemCount(tester)).equals(300);
     });
   });
 
@@ -140,7 +136,7 @@ void main() {
     });
 
     testWidgets('dimension updates changes visibility', (WidgetTester tester) async {
-      await setupMessageListPage(tester, messageCount: 10);
+      await setupMessageListPage(tester, messageCount: 100);
 
       final scrollController = findMessageListScrollController(tester)!;
 
@@ -151,6 +147,7 @@ void main() {
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
+      addTearDown(tester.view.resetPhysicalSize);
       tester.view.physicalSize = const Size(2000, 40000);
       await tester.pump();
       // Dimension changes use NotificationListener<ScrollMetricsNotification

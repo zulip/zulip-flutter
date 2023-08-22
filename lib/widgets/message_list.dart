@@ -427,7 +427,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
       child: ColoredBox(
         color: _kStreamMessageBorderColor,
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-          // TODO: Long stream name will break layout; find a fix.
+          // TODO(#282): Long stream name will break layout; find a fix.
           GestureDetector(
             onTap: () => Navigator.push(context,
               MessageListPage.buildRoute(context: context,
