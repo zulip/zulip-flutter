@@ -146,6 +146,11 @@ void main() {
     '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
     const UnicodeEmojiNode(text: ':thumbs_up:'));
 
+  testParseInline('parse Unicode emoji, multiple codepoints',
+    // ":transgender_flag:"
+    '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
+    const UnicodeEmojiNode(text: ':transgender_flag:'));
+
   testParseInline('parse custom emoji',
     // ":flutter:"
     '<p><img alt=":flutter:" class="emoji" src="/user_avatars/2/emoji/images/204.png" title="flutter"></p>',
