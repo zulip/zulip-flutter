@@ -141,15 +141,20 @@ void main() {
     // TODO test group mentions and wildcard mentions
   });
 
-  testParseInline('parse Unicode emoji',
+  testParseInline('parse Unicode emoji, encoded in span element',
     // ":thumbs_up:"
     '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(text: ':thumbs_up:'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')); // "👍"
 
-  testParseInline('parse Unicode emoji, multiple codepoints',
+  testParseInline('parse Unicode emoji, encoded in span element, multiple codepoints',
     // ":transgender_flag:"
     '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
-    const UnicodeEmojiNode(text: ':transgender_flag:'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}')); // "🏳️‍⚧️"
+
+  testParseInline('parse Unicode emoji, not encoded in span element',
+    // "\u{1fabf}"
+    '<p>\u{1fabf}</p>',
+    const TextNode('\u{1fabf}')); // "🪿"
 
   testParseInline('parse custom emoji',
     // ":flutter:"

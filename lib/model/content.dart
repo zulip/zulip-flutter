@@ -452,22 +452,22 @@ abstract class EmojiNode extends InlineContentNode {
 }
 
 class UnicodeEmojiNode extends EmojiNode {
-  const UnicodeEmojiNode({super.debugHtmlNode, required this.text});
+  const UnicodeEmojiNode({super.debugHtmlNode, required this.emojiUnicode});
 
-  final String text;
+  final String emojiUnicode;
 
   @override
   bool operator ==(Object other) {
-    return other is UnicodeEmojiNode && other.text == text;
+    return other is UnicodeEmojiNode && other.emojiUnicode == emojiUnicode;
   }
 
   @override
-  int get hashCode => Object.hash('UnicodeEmojiNode', text);
+  int get hashCode => Object.hash('UnicodeEmojiNode', emojiUnicode);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(StringProperty('text', text));
+    properties.add(StringProperty('emojiUnicode', emojiUnicode));
   }
 }
 
@@ -524,6 +524,27 @@ class _ZulipContentParser {
   }
 
   static final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)*$");
+
+  // Ported from https://github.com/zulip/zulip-mobile/blob/c979530d6804db33310ed7d14a4ac62017432944/src/emoji/data.js#L108-L112
+  //
+  // Which was in turn ported from https://github.com/zulip/zulip/blob/63c9296d5339517450f79f176dc02d77b08020c8/zerver/models.py#L3235-L3242
+  // and that describes the encoding as follows:
+  //
+  // > * For Unicode emoji, [emoji_code is] a dash-separated hex encoding of
+  // >   the sequence of Unicode codepoints that define this emoji in the
+  // >   Unicode specification.  For examples, see "non_qualified" or
+  // >   "unified" in the following data, with "non_qualified" taking
+  // >   precedence when both present:
+  // >   https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pretty.json
+  String? tryParseEmojiCodeToUnicode(String code) {
+    try {
+      return String.fromCharCodes(code.split('-').map((hex) => int.parse(hex, radix: 16)));
+    } on FormatException { // thrown by `int.parse`
+      return null;
+    } on ArgumentError { // thrown by `String.fromCharCodes`
+      return null;
+    }
+  }
 
   InlineContentNode parseInlineContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.inline);
@@ -582,7 +603,14 @@ class _ZulipContentParser {
         && classes.length == 2
         && classes.contains('emoji')
         && classes.every(_emojiClassRegexp.hasMatch)) {
-      return UnicodeEmojiNode(text: element.text, debugHtmlNode: debugHtmlNode);
+      final emojiCode = classes
+        .firstWhere((className) => className.startsWith('emoji-'))
+        .replaceFirst('emoji-', '');
+      assert(emojiCode.isNotEmpty);
+
+      final unicode = tryParseEmojiCodeToUnicode(emojiCode);
+      if (unicode == null) return unimplemented();
+      return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'img'

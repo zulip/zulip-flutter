@@ -460,8 +460,7 @@ class _InlineContentBuilder {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
         child: UserMention(node: node));
     } else if (node is UnicodeEmojiNode) {
-      return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: MessageUnicodeEmoji(node: node));
+      return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
     } else if (node is ImageEmojiNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
         child: MessageImageEmoji(node: node));
@@ -618,23 +617,6 @@ class UserMention extends StatelessWidget {
 //   ],
 //   shape: RoundedRectangleBorder(
 //     borderRadius: BorderRadius.all(Radius.circular(3))));
-}
-
-class MessageUnicodeEmoji extends StatelessWidget {
-  const MessageUnicodeEmoji({super.key, required this.node});
-
-  final UnicodeEmojiNode node;
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO(#58) get spritesheet and show actual emoji glyph
-    final text = node.text;
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: Colors.white, border: Border.all(color: Colors.purple)),
-      child: Text(text));
-  }
 }
 
 class MessageImageEmoji extends StatelessWidget {
