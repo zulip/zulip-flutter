@@ -110,6 +110,8 @@ class UserSettingsUpdateEvent extends Event {
       case UserSettingName.twentyFourHourTime:
       case UserSettingName.displayEmojiReactionUsers:
         return value as bool;
+      case UserSettingName.emojiset:
+        return Emojiset.fromRawString(value as String);
       case null:
         return null;
     }

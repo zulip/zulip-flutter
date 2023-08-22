@@ -230,6 +230,8 @@ class PerAccountStore extends ChangeNotifier {
           userSettings?.twentyFourHourTime        = event.value as bool;
         case UserSettingName.displayEmojiReactionUsers:
           userSettings?.displayEmojiReactionUsers = event.value as bool;
+        case UserSettingName.emojiset:
+          userSettings?.emojiset                  = event.value as Emojiset;
       }
       notifyListeners();
     } else if (event is RealmUserAddEvent) {

@@ -124,6 +124,7 @@ class RecentDmConversation {
 class UserSettings {
   bool twentyFourHourTime;
   bool? displayEmojiReactionUsers; // TODO(server-6)
+  Emojiset emojiset;
 
   // TODO more, as needed. When adding a setting here, please also:
   // (1) add it to the [UserSettingName] enum below
@@ -133,6 +134,7 @@ class UserSettings {
   UserSettings({
     required this.twentyFourHourTime,
     required this.displayEmojiReactionUsers,
+    required this.emojiset,
   });
 
   factory UserSettings.fromJson(Map<String, dynamic> json) =>
@@ -154,7 +156,8 @@ class UserSettings {
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum UserSettingName {
   twentyFourHourTime,
-  displayEmojiReactionUsers;
+  displayEmojiReactionUsers,
+  emojiset;
 
   /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
   ///
@@ -164,6 +167,25 @@ enum UserSettingName {
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$UserSettingNameEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
+/// As in [UserSettings.emojiset].
+@JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
+enum Emojiset {
+  google,
+  googleBlob,
+  twitter,
+  text;
+
+  /// Get an [Emojiset] from a raw string. Throws if the string is unrecognized.
+  ///
+  /// Example:
+  ///   'google-blob' -> Emojiset.googleBlob
+  static Emojiset fromRawString(String raw) => _byRawString[raw]!;
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.kebab`
+  static final _byRawString = _$EmojisetEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 

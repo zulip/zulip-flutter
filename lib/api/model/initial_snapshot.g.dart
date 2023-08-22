@@ -91,18 +91,28 @@ Map<String, dynamic> _$RecentDmConversationToJson(
 UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
       twentyFourHourTime: json['twenty_four_hour_time'] as bool,
       displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
+      emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
     );
 
 const _$UserSettingsFieldMap = <String, String>{
   'twentyFourHourTime': 'twenty_four_hour_time',
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
+  'emojiset': 'emojiset',
 };
 
 Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
     <String, dynamic>{
       'twenty_four_hour_time': instance.twentyFourHourTime,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
+      'emojiset': _$EmojisetEnumMap[instance.emojiset]!,
     };
+
+const _$EmojisetEnumMap = {
+  Emojiset.google: 'google',
+  Emojiset.googleBlob: 'google-blob',
+  Emojiset.twitter: 'twitter',
+  Emojiset.text: 'text',
+};
 
 UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(
         Map<String, dynamic> json) =>
@@ -185,4 +195,5 @@ Map<String, dynamic> _$UnreadHuddleSnapshotToJson(
 const _$UserSettingNameEnumMap = {
   UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
+  UserSettingName.emojiset: 'emojiset',
 };
