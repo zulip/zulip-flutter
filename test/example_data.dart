@@ -152,6 +152,7 @@ StreamMessage streamMessage({
   String? contentMarkdown,
   int? lastEditTimestamp,
   List<Reaction>? reactions,
+  int? timestamp,
   List<String>? flags,
 }) {
   final effectiveStream = stream ?? _stream();
@@ -173,7 +174,7 @@ StreamMessage streamMessage({
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? 'example topic',
-    'timestamp': 1678139636,
+    'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
   });
 }
@@ -189,6 +190,7 @@ DmMessage dmMessage({
   String? content,
   String? contentMarkdown,
   int? lastEditTimestamp,
+  int? timestamp,
   List<String>? flags,
 }) {
   assert(!to.any((user) => user.userId == from.userId));
@@ -204,7 +206,7 @@ DmMessage dmMessage({
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
-    'timestamp': 1678139636,
+    'timestamp': timestamp ?? 1678139636,
     'type': 'private',
   });
 }
