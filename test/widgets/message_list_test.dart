@@ -97,11 +97,15 @@ void main() {
       // ... and we fetch more messages as we go.
       connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(Duration.zero);
+      for (int i = 0; i < 30; i++) {
+        // Find the point in the fling where the fetch starts.
+        await tester.pump(const Duration(milliseconds: 100));
+        if (itemCount(tester)! > 100) break; // The loading indicator appeared.
+      }
+      await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
       check(itemCount(tester)).equals(200);
 
-      // But on the next frame, we promptly fetch *another* batch.
+      // On the next frame, we promptly fetch *another* batch.
       // This is a glitch and it'd be nicer if we didn't.
       connection.prepare(json: olderResult(anchor: 850, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
