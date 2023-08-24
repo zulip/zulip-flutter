@@ -352,7 +352,9 @@ sealed class Message {
   bool isMeMessage;
   int? lastEditTimestamp;
 
-  final List<Reaction> reactions;
+  @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
+  Reactions? reactions; // null is equivalent to an empty [Reactions]
+
   final int recipientId;
   final String senderEmail;
   final String senderFullName;
@@ -369,6 +371,15 @@ sealed class Message {
   List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
   final String? matchContent;
   final String? matchSubject;
+
+  static Reactions? _reactionsFromJson(dynamic json) {
+    final list = (json as List<dynamic>);
+    return list.isNotEmpty ? Reactions.fromJson(list) : null;
+  }
+
+  static Object _reactionsToJson(Reactions? value) {
+    return value ?? [];
+  }
 
   static List<MessageFlag> _flagsFromJson(dynamic json) {
     final list = json as List<dynamic>;

@@ -3,6 +3,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 
 import 'api/fake_api.dart';
+import 'stdlib_checks.dart';
 
 final Uri realmUrl = Uri.parse('https://chat.example/');
 
@@ -162,22 +163,20 @@ StreamMessage streamMessage({
   // of the properties as we're constructing the data.  That's probably OK
   // because (a) this is only for tests; (b) the types do get checked
   // dynamically in the constructor, so any ill-typing won't propagate further.
-  return StreamMessage.fromJson({
+  return StreamMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(sender),
     ..._messagePropertiesFromContent(content, contentMarkdown),
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
-    'reactions': reactions?.map(
-      (r) => r.toJson()..['reaction_type'] = r.reactionType.toJson(),
-    ).toList() ?? [],
+    'reactions': reactions == null ? [] : Reactions(reactions),
     'flags': flags ?? [],
     'id': id ?? 1234567, // TODO generate example IDs
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? 'example topic',
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
-  });
+  }) as Map<String, dynamic>);
 }
 
 /// Construct an example direct message.

@@ -350,18 +350,21 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     final message = messages[index];
     switch (event.op) {
       case ReactionOp.add:
-        message.reactions.add(Reaction(
+        (message.reactions ??= Reactions([])).add(Reaction(
           emojiName: event.emojiName,
           emojiCode: event.emojiCode,
           reactionType: event.reactionType,
           userId: event.userId,
         ));
       case ReactionOp.remove:
-        message.reactions.removeWhere((r) {
-          return r.emojiCode == event.emojiCode
-            && r.reactionType == event.reactionType
-            && r.userId == event.userId;
-        });
+        if (message.reactions == null) { // TODO(log)
+          return;
+        }
+        message.reactions!.remove(
+          reactionType: event.reactionType,
+          emojiCode: event.emojiCode,
+          userId: event.userId,
+        );
     }
 
     notifyListeners();

@@ -82,8 +82,9 @@ void main() {
   });
 
   group('DmMessage', () {
-    final Map<String, dynamic> baseJson = Map.unmodifiable(
-      eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]).toJson());
+    final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(
+      eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+    ) as Map<String, dynamic>);
 
     DmMessage parse(Map<String, dynamic> specialJson) {
       return DmMessage.fromJson({ ...baseJson, ...specialJson });

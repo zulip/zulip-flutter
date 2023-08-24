@@ -15,7 +15,7 @@ void main() {
     MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
       'type': 'message',
       'id': 1,
-      'message': message.toJson()..remove('flags'),
+      'message': (deepToJson(message) as Map<String, dynamic>)..remove('flags'),
       'flags': flags.map((f) => f.toJson()).toList(),
     }) as MessageEvent;
     check(mkEvent(message.flags)).message.jsonEquals(message);

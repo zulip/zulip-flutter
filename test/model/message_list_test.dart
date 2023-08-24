@@ -381,7 +381,7 @@ void main() async {
         checkNotifiedOnce();
         check(model).messages.single
           ..identicalTo(message)
-          ..reactions.jsonEquals([eg.unicodeEmojiReaction]);
+          ..reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
       });
 
       test('add reaction; message is not in list', () async {
@@ -391,7 +391,7 @@ void main() async {
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
         checkNotNotified();
-        check(model).messages.single.reactions.jsonEquals([]);
+        check(model).messages.single.reactions.isNull();
       });
 
       test('remove reaction', () async {
@@ -424,7 +424,7 @@ void main() async {
         checkNotifiedOnce();
         check(model).messages.single
           ..identicalTo(message)
-          ..reactions.jsonEquals([reaction2, reaction3]);
+          ..reactions.isNotNull().jsonEquals([reaction2, reaction3]);
       });
 
       test('remove reaction; message is not in list', () async {
@@ -434,7 +434,7 @@ void main() async {
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
         checkNotNotified();
-        check(model).messages.single.reactions.jsonEquals([eg.unicodeEmojiReaction]);
+        check(model).messages.single.reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
       });
     });
   });
