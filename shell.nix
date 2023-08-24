@@ -41,5 +41,6 @@ mkShell {
 
   LD_LIBRARY_PATH = lib.makeLibraryPath [
     fontconfig.lib
+    sqlite.out
   ];
 }
