@@ -845,7 +845,7 @@ class AvatarImage extends StatelessWidget {
     };
     return (resolvedUrl == null)
       ? const SizedBox.shrink()
-      : RealmContentNetworkImage(resolvedUrl, filterQuality: FilterQuality.medium);
+      : RealmContentNetworkImage(resolvedUrl, filterQuality: FilterQuality.medium, fit: BoxFit.cover);
   }
 }
 
