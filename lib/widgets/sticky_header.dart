@@ -187,7 +187,7 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
       while (innerChild is RenderProxyBox) {
         innerChild = innerChild.child;
       }
-      if (innerChild is! RenderStickyHeader) {
+      if (innerChild is! RenderStickyHeaderItem) {
         continue;
       }
       assert(axisDirectionToAxis(innerChild.direction) == constraints.axis);
@@ -210,8 +210,8 @@ class RenderSliverStickyHeaderList extends RenderSliverList {
 
 enum StickyHeaderSlot { header, content }
 
-class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot, RenderBox> {
-  const StickyHeader({
+class StickyHeaderItem extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot, RenderBox> {
+  const StickyHeaderItem({
     super.key,
     this.direction = AxisDirection.down,
     this.header,
@@ -238,12 +238,12 @@ class StickyHeader extends SlottedMultiChildRenderObjectWidget<StickyHeaderSlot,
   @override
   SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> createRenderObject(
       BuildContext context) {
-    return RenderStickyHeader(direction: direction);
+    return RenderStickyHeaderItem(direction: direction);
   }
 }
 
-class RenderStickyHeader extends RenderBox with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
-  RenderStickyHeader({required AxisDirection direction})
+class RenderStickyHeaderItem extends RenderBox with SlottedContainerRenderObjectMixin<StickyHeaderSlot, RenderBox> {
+  RenderStickyHeaderItem({required AxisDirection direction})
     : _direction = direction;
 
   RenderBox? get _header => childForSlot(StickyHeaderSlot.header);
