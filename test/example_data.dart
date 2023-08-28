@@ -28,7 +28,7 @@ User user({
     isGuest: false,
     isBillingAdmin: false,
     isBot: false,
-    role: 400,
+    role: UserRole.member,
     timezone: 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,

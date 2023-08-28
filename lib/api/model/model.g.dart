@@ -44,7 +44,8 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       isBot: json['is_bot'] as bool,
       botType: json['bot_type'] as int?,
       botOwnerId: json['bot_owner_id'] as int?,
-      role: json['role'] as int,
+      role: $enumDecode(_$UserRoleEnumMap, json['role'],
+          unknownValue: UserRole.unknown),
       timezone: json['timezone'] as String,
       avatarUrl: json['avatar_url'] as String?,
       avatarVersion: json['avatar_version'] as int,
@@ -79,6 +80,15 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
           instance.profileData?.map((k, e) => MapEntry(k.toString(), e)),
       'is_system_bot': instance.isSystemBot,
     };
+
+const _$UserRoleEnumMap = {
+  UserRole.owner: 100,
+  UserRole.administrator: 200,
+  UserRole.moderator: 300,
+  UserRole.member: 400,
+  UserRole.guest: 600,
+  UserRole.unknown: null,
+};
 
 ProfileFieldUserData _$ProfileFieldUserDataFromJson(
         Map<String, dynamic> json) =>

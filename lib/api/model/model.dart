@@ -56,7 +56,8 @@ class User {
   bool isBot;
   int? botType; // TODO enum
   int? botOwnerId;
-  int role; // TODO enum
+  @JsonKey(unknownEnumValue: UserRole.unknown)
+  UserRole role;
   String timezone;
   String? avatarUrl; // TODO distinguish null from missing https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20omitted.20vs.2E.20null.20in.20JSON/near/1551759
   int avatarVersion;
@@ -119,6 +120,25 @@ class ProfileFieldUserData {
     _$ProfileFieldUserDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProfileFieldUserDataToJson(this);
+}
+
+/// As in [User.role].
+@JsonEnum(valueField: "apiValue")
+enum UserRole{
+  owner(apiValue: 100),
+  administrator(apiValue: 200),
+  moderator(apiValue: 300),
+  member(apiValue: 400),
+  guest(apiValue: 600),
+  unknown(apiValue: null);
+
+  const UserRole({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
 }
 
 /// As in `streams` in the initial snapshot.

@@ -211,7 +211,7 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final int? avatarVersion;
   @JsonKey(readValue: _readFromPerson) final String? timezone;
   @JsonKey(readValue: _readFromPerson) final int? botOwnerId;
-  @JsonKey(readValue: _readFromPerson) final int? role; // TODO enum
+  @JsonKey(readValue: _readFromPerson, unknownEnumValue: UserRole.unknown) final UserRole? role;
   @JsonKey(readValue: _readFromPerson) final bool? isBillingAdmin;
   @JsonKey(readValue: _readFromPerson) final String? deliveryEmail; // TODO handle JSON `null`
   @JsonKey(readValue: _readFromPerson) final RealmUserUpdateCustomProfileField? customProfileField;

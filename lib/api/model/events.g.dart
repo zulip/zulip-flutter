@@ -92,7 +92,9 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
           RealmUserUpdateEvent._readFromPerson(json, 'timezone') as String?,
       botOwnerId:
           RealmUserUpdateEvent._readFromPerson(json, 'bot_owner_id') as int?,
-      role: RealmUserUpdateEvent._readFromPerson(json, 'role') as int?,
+      role: $enumDecodeNullable(
+          _$UserRoleEnumMap, RealmUserUpdateEvent._readFromPerson(json, 'role'),
+          unknownValue: UserRole.unknown),
       isBillingAdmin:
           RealmUserUpdateEvent._readFromPerson(json, 'is_billing_admin')
               as bool?,
@@ -127,6 +129,15 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
       'custom_profile_field': instance.customProfileField,
       'new_email': instance.newEmail,
     };
+
+const _$UserRoleEnumMap = {
+  UserRole.owner: 100,
+  UserRole.administrator: 200,
+  UserRole.moderator: 300,
+  UserRole.member: 400,
+  UserRole.guest: 600,
+  UserRole.unknown: null,
+};
 
 StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
     StreamCreateEvent(
