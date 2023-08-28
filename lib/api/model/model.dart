@@ -9,7 +9,8 @@ part 'model.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CustomProfileField {
   final int id;
-  final int type; // TODO enum; also TODO(server-6) a value added
+  @JsonKey(unknownEnumValue: CustomProfileFieldType.unknown)
+  final CustomProfileFieldType type;
   final int order;
   final String name;
   final String hint;
@@ -30,6 +31,74 @@ class CustomProfileField {
     _$CustomProfileFieldFromJson(json);
 
   Map<String, dynamic> toJson() => _$CustomProfileFieldToJson(this);
+}
+
+/// As in [CustomProfileField.type].
+@JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
+enum CustomProfileFieldType {
+  shortText(apiValue: 1),
+  longText(apiValue: 2),
+  choice(apiValue: 3),
+  date(apiValue: 4),
+  link(apiValue: 5),
+  user(apiValue: 6),
+  externalAccount(apiValue: 7),
+  pronouns(apiValue: 8), // TODO(server-6) newly added
+  unknown(apiValue: null);
+
+  const CustomProfileFieldType({
+    required this.apiValue
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+}
+
+/// An item in the realm-level field data for a "choice" custom profile field.
+///
+/// The value of [CustomProfileField.fieldData] decodes to a
+/// `List<CustomProfileFieldChoiceDataItem>` when
+/// the [CustomProfileField.type] is [CustomProfileFieldType.choice].
+///
+/// TODO(server): This isn't really documented.  But see chat thread:
+///   https://chat.zulip.org/#narrow/stream/378-api-design/topic/custom.20profile.20fields/near/1383005
+@JsonSerializable(fieldRename: FieldRename.snake)
+class CustomProfileFieldChoiceDataItem {
+  final String text;
+
+  const CustomProfileFieldChoiceDataItem({required this.text});
+
+  factory CustomProfileFieldChoiceDataItem.fromJson(Map<String, dynamic> json) =>
+    _$CustomProfileFieldChoiceDataItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CustomProfileFieldChoiceDataItemToJson(this);
+
+  static Map<String, CustomProfileFieldChoiceDataItem> parseFieldDataChoices(Map<String, dynamic> json) =>
+    json.map((k, v) => MapEntry(k, CustomProfileFieldChoiceDataItem.fromJson(v)));
+}
+
+/// The realm-level field data for an "external account" custom profile field.
+///
+/// This is the decoding of [CustomProfileField.fieldData] when
+/// the [CustomProfileField.type] is [CustomProfileFieldType.externalAccount].
+///
+/// TODO(server): This is undocumented.  See chat thread:
+///   https://chat.zulip.org/#narrow/stream/378-api-design/topic/external.20account.20custom.20profile.20fields/near/1387213
+@JsonSerializable(fieldRename: FieldRename.snake)
+class CustomProfileFieldExternalAccountData {
+  final String subtype;
+  final String? urlPattern;
+
+  const CustomProfileFieldExternalAccountData({
+    required this.subtype,
+    required this.urlPattern,
+  });
+
+  factory CustomProfileFieldExternalAccountData.fromJson(Map<String, dynamic> json) =>
+    _$CustomProfileFieldExternalAccountDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CustomProfileFieldExternalAccountDataToJson(this);
 }
 
 /// As in [InitialSnapshot.realmUsers], [InitialSnapshot.realmNonActiveUsers], and [InitialSnapshot.crossRealmBots].

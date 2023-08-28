@@ -48,6 +48,23 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.emojiset: 'emojiset',
 };
 
+CustomProfileFieldsEvent _$CustomProfileFieldsEventFromJson(
+        Map<String, dynamic> json) =>
+    CustomProfileFieldsEvent(
+      id: json['id'] as int,
+      fields: (json['fields'] as List<dynamic>)
+          .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$CustomProfileFieldsEventToJson(
+        CustomProfileFieldsEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'fields': instance.fields,
+    };
+
 RealmUserAddEvent _$RealmUserAddEventFromJson(Map<String, dynamic> json) =>
     RealmUserAddEvent(
       id: json['id'] as int,

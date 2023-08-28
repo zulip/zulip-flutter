@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
@@ -7,6 +9,20 @@ import '../../stdlib_checks.dart';
 import 'model_checks.dart';
 
 void main() {
+  test('CustomProfileFieldChoiceDataItem', () {
+    const input = '''{
+      "0": {"text": "Option 0", "order": 1},
+      "1": {"text": "Option 1", "order": 2},
+      "2": {"text": "Option 2", "order": 3}
+    }''';
+    final choices = CustomProfileFieldChoiceDataItem.parseFieldDataChoices(jsonDecode(input));
+    check(choices).jsonEquals({
+      '0': const CustomProfileFieldChoiceDataItem(text: 'Option 0'),
+      '1': const CustomProfileFieldChoiceDataItem(text: 'Option 1'),
+      '2': const CustomProfileFieldChoiceDataItem(text: 'Option 2'),
+    });
+  });
+
   group('User', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable({
       'user_id': 123,

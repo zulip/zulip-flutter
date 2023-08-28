@@ -11,7 +11,8 @@ part of 'model.dart';
 CustomProfileField _$CustomProfileFieldFromJson(Map<String, dynamic> json) =>
     CustomProfileField(
       id: json['id'] as int,
-      type: json['type'] as int,
+      type: $enumDecode(_$CustomProfileFieldTypeEnumMap, json['type'],
+          unknownValue: CustomProfileFieldType.unknown),
       order: json['order'] as int,
       name: json['name'] as String,
       hint: json['hint'] as String,
@@ -28,6 +29,45 @@ Map<String, dynamic> _$CustomProfileFieldToJson(CustomProfileField instance) =>
       'hint': instance.hint,
       'field_data': instance.fieldData,
       'display_in_profile_summary': instance.displayInProfileSummary,
+    };
+
+const _$CustomProfileFieldTypeEnumMap = {
+  CustomProfileFieldType.shortText: 1,
+  CustomProfileFieldType.longText: 2,
+  CustomProfileFieldType.choice: 3,
+  CustomProfileFieldType.date: 4,
+  CustomProfileFieldType.link: 5,
+  CustomProfileFieldType.user: 6,
+  CustomProfileFieldType.externalAccount: 7,
+  CustomProfileFieldType.pronouns: 8,
+  CustomProfileFieldType.unknown: null,
+};
+
+CustomProfileFieldChoiceDataItem _$CustomProfileFieldChoiceDataItemFromJson(
+        Map<String, dynamic> json) =>
+    CustomProfileFieldChoiceDataItem(
+      text: json['text'] as String,
+    );
+
+Map<String, dynamic> _$CustomProfileFieldChoiceDataItemToJson(
+        CustomProfileFieldChoiceDataItem instance) =>
+    <String, dynamic>{
+      'text': instance.text,
+    };
+
+CustomProfileFieldExternalAccountData
+    _$CustomProfileFieldExternalAccountDataFromJson(
+            Map<String, dynamic> json) =>
+        CustomProfileFieldExternalAccountData(
+          subtype: json['subtype'] as String,
+          urlPattern: json['url_pattern'] as String?,
+        );
+
+Map<String, dynamic> _$CustomProfileFieldExternalAccountDataToJson(
+        CustomProfileFieldExternalAccountData instance) =>
+    <String, dynamic>{
+      'subtype': instance.subtype,
+      'url_pattern': instance.urlPattern,
     };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(

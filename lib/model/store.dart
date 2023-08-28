@@ -152,6 +152,7 @@ class PerAccountStore extends ChangeNotifier {
   }) : zulipVersion = initialSnapshot.zulipVersion,
        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
        realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
+       customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields),
        userSettings = initialSnapshot.userSettings,
        users = Map.fromEntries(
          initialSnapshot.realmUsers
@@ -174,6 +175,7 @@ class PerAccountStore extends ChangeNotifier {
   final String zulipVersion; // TODO get from account; update there on initial snapshot
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+  List<CustomProfileField> customProfileFields;
 
   // Data attached to the self-account on the realm.
   final UserSettings? userSettings; // TODO(server-5)
@@ -235,6 +237,10 @@ class PerAccountStore extends ChangeNotifier {
         case UserSettingName.emojiset:
           userSettings?.emojiset                  = event.value as Emojiset;
       }
+      notifyListeners();
+    } else if (event is CustomProfileFieldsEvent) {
+      assert(debugLog("server event: custom_profile_fields"));
+      customProfileFields = _sortCustomProfileFields(event.fields);
       notifyListeners();
     } else if (event is RealmUserAddEvent) {
       assert(debugLog("server event: realm_user/add"));
@@ -320,6 +326,21 @@ class PerAccountStore extends ChangeNotifier {
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
     return _apiSendMessage(connection, destination: destination, content: content);
+  }
+
+  static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
+    // TODO(server): The realm-wide field objects have an `order` property,
+    //   but the actual API appears to be that the fields should be shown in
+    //   the order they appear in the array (`custom_profile_fields` in the
+    //   API; our `realmFields` array here.)  See chat thread:
+    //     https://chat.zulip.org/#narrow/stream/378-api-design/topic/custom.20profile.20fields/near/1382982
+    //
+    // We go on to put at the start of the list any fields that are marked for
+    // displaying in the "profile summary".  (Possibly they should be at the
+    // start of the list in the first place, but make sure just in case.)
+    final displayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary == true);
+    final nonDisplayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary != true);
+    return displayFields.followedBy(nonDisplayFields).toList();
   }
 }
 

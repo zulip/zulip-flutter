@@ -22,6 +22,7 @@ sealed class Event {
           case 'update': return UserSettingsUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'custom_profile_fields': return CustomProfileFieldsEvent.fromJson(json);
       case 'realm_user':
         switch (json['op'] as String) {
           case 'add': return RealmUserAddEvent.fromJson(json);
@@ -128,6 +129,24 @@ class UserSettingsUpdateEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$UserSettingsUpdateEventToJson(this);
+}
+
+/// A Zulip event of type `custom_profile_fields`: https://zulip.com/api/get-events#custom_profile_fields
+@JsonSerializable(fieldRename: FieldRename.snake)
+class CustomProfileFieldsEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'custom_profile_fields';
+
+  final List<CustomProfileField> fields;
+
+  CustomProfileFieldsEvent({required super.id, required this.fields});
+
+  factory CustomProfileFieldsEvent.fromJson(Map<String, dynamic> json) =>
+    _$CustomProfileFieldsEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$CustomProfileFieldsEventToJson(this);
 }
 
 /// A Zulip event of type `realm_user`.
