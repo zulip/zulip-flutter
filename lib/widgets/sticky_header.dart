@@ -356,6 +356,13 @@ class RenderStickyHeaderItem extends RenderBox with SlottedContainerRenderObject
   BoxParentData _parentData(RenderBox child) => child.parentData! as BoxParentData;
 }
 
+extension AxisCoordinateDirection on Axis {
+  AxisDirection get coordinateDirection => switch (this) {
+    Axis.horizontal => AxisDirection.right,
+    Axis.vertical => AxisDirection.down,
+  };
+}
+
 Size sizeOn(Axis axis, {double main = 0, double cross = 0}) {
   switch (axis) {
     case Axis.horizontal:
@@ -386,6 +393,17 @@ extension SizeOnAxis on Size {
       case Axis.vertical:
         return height;
     }
+  }
+}
+
+extension OffsetInDirection on Offset {
+  double inDirection(AxisDirection direction) {
+    return switch (direction) {
+      AxisDirection.right =>  dx,
+      AxisDirection.left  => -dx,
+      AxisDirection.down  =>  dy,
+      AxisDirection.up    => -dy,
+    };
   }
 }
 
