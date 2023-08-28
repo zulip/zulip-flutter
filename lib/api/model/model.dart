@@ -32,19 +32,6 @@ class CustomProfileField {
   Map<String, dynamic> toJson() => _$CustomProfileFieldToJson(this);
 }
 
-@JsonSerializable(fieldRename: FieldRename.snake)
-class ProfileFieldUserData {
-  final String value;
-  final String? renderedValue;
-
-  ProfileFieldUserData({required this.value, this.renderedValue});
-
-  factory ProfileFieldUserData.fromJson(Map<String, dynamic> json) =>
-    _$ProfileFieldUserDataFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ProfileFieldUserDataToJson(this);
-}
-
 /// As in [InitialSnapshot.realmUsers], [InitialSnapshot.realmNonActiveUsers], and [InitialSnapshot.crossRealmBots].
 ///
 /// In the Zulip API, the items in realm_users, realm_non_active_users, and
@@ -118,6 +105,20 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserToJson(this);
+}
+
+/// As in [User.profileData].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ProfileFieldUserData {
+  final String value;
+  final String? renderedValue;
+
+  ProfileFieldUserData({required this.value, this.renderedValue});
+
+  factory ProfileFieldUserData.fromJson(Map<String, dynamic> json) =>
+    _$ProfileFieldUserDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProfileFieldUserDataToJson(this);
 }
 
 /// As in `streams` in the initial snapshot.

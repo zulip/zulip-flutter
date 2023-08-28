@@ -30,20 +30,6 @@ Map<String, dynamic> _$CustomProfileFieldToJson(CustomProfileField instance) =>
       'display_in_profile_summary': instance.displayInProfileSummary,
     };
 
-ProfileFieldUserData _$ProfileFieldUserDataFromJson(
-        Map<String, dynamic> json) =>
-    ProfileFieldUserData(
-      value: json['value'] as String,
-      renderedValue: json['rendered_value'] as String?,
-    );
-
-Map<String, dynamic> _$ProfileFieldUserDataToJson(
-        ProfileFieldUserData instance) =>
-    <String, dynamic>{
-      'value': instance.value,
-      'rendered_value': instance.renderedValue,
-    };
-
 User _$UserFromJson(Map<String, dynamic> json) => User(
       userId: json['user_id'] as int,
       deliveryEmailStaleDoNotUse: json['delivery_email'] as String?,
@@ -92,6 +78,20 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'profile_data':
           instance.profileData?.map((k, e) => MapEntry(k.toString(), e)),
       'is_system_bot': instance.isSystemBot,
+    };
+
+ProfileFieldUserData _$ProfileFieldUserDataFromJson(
+        Map<String, dynamic> json) =>
+    ProfileFieldUserData(
+      value: json['value'] as String,
+      renderedValue: json['rendered_value'] as String?,
+    );
+
+Map<String, dynamic> _$ProfileFieldUserDataToJson(
+        ProfileFieldUserData instance) =>
+    <String, dynamic>{
+      'value': instance.value,
+      'rendered_value': instance.renderedValue,
     };
 
 ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(

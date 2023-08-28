@@ -23,8 +23,6 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
-  // TODO etc., etc.
-
   final List<RecentDmConversation> recentPrivateConversations;
 
   final List<Subscription> subscriptions;
