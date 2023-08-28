@@ -39,6 +39,8 @@ class InitialSnapshot {
   // TODO(server-5) remove pre-5.0 comment
   final UserSettings? userSettings; // TODO(server-5)
 
+  final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+
   final int maxFileUploadSizeMib;
 
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
@@ -82,6 +84,7 @@ class InitialSnapshot {
     required this.unreadMsgs,
     required this.streams,
     required this.userSettings,
+    required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.realmUsers,
     required this.realmNonActiveUsers,
@@ -92,6 +95,30 @@ class InitialSnapshot {
     _$InitialSnapshotFromJson(json);
 
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
+}
+
+/// An item in `realm_default_external_accounts`.
+///
+/// For docs, search for "realm_default_external_accounts:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmDefaultExternalAccount {
+  final String name;
+  final String text;
+  final String hint;
+  final String urlPattern;
+
+  RealmDefaultExternalAccount({
+    required this.name,
+    required this.text,
+    required this.hint,
+    required this.urlPattern,
+  });
+
+  factory RealmDefaultExternalAccount.fromJson(Map<String, dynamic> json) =>
+    _$RealmDefaultExternalAccountFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmDefaultExternalAccountToJson(this);
 }
 
 /// An item in `recent_private_conversations`.

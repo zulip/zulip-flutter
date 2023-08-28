@@ -37,6 +37,11 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
           ? null
           : UserSettings.fromJson(
               json['user_settings'] as Map<String, dynamic>),
+      realmDefaultExternalAccounts:
+          (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(
+            k, RealmDefaultExternalAccount.fromJson(e as Map<String, dynamic>)),
+      ),
       maxFileUploadSizeMib: json['max_file_upload_size_mib'] as int,
       realmUsers:
           (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -67,10 +72,29 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'unread_msgs': instance.unreadMsgs,
       'streams': instance.streams,
       'user_settings': instance.userSettings,
+      'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'realm_users': instance.realmUsers,
       'realm_non_active_users': instance.realmNonActiveUsers,
       'cross_realm_bots': instance.crossRealmBots,
+    };
+
+RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
+        Map<String, dynamic> json) =>
+    RealmDefaultExternalAccount(
+      name: json['name'] as String,
+      text: json['text'] as String,
+      hint: json['hint'] as String,
+      urlPattern: json['url_pattern'] as String,
+    );
+
+Map<String, dynamic> _$RealmDefaultExternalAccountToJson(
+        RealmDefaultExternalAccount instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'text': instance.text,
+      'hint': instance.hint,
+      'url_pattern': instance.urlPattern,
     };
 
 RecentDmConversation _$RecentDmConversationFromJson(

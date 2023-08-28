@@ -247,6 +247,7 @@ InitialSnapshot initialSnapshot({
   UnreadMessagesSnapshot? unreadMsgs,
   List<ZulipStream>? streams,
   UserSettings? userSettings,
+  Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
@@ -265,6 +266,7 @@ InitialSnapshot initialSnapshot({
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default
     userSettings: userSettings, // TODO add userSettings to default
+    realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
