@@ -14,6 +14,7 @@ import 'compose_box.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'page.dart';
+import 'profile.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 
@@ -580,14 +581,22 @@ class MessageWithSender extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
-            child: Avatar(userId: message.senderId, size: 35, borderRadius: 4)),
+            child: GestureDetector(
+              onTap: () => Navigator.push(context,
+                ProfilePage.buildRoute(context: context,
+                  userId: message.senderId)),
+              child: Avatar(userId: message.senderId, size: 35, borderRadius: 4))),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 3),
-                Text(message.senderFullName, // TODO get from user data
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                GestureDetector(
+                  onTap: () => Navigator.push(context,
+                    ProfilePage.buildRoute(context: context,
+                      userId: message.senderId)),
+                  child: Text(message.senderFullName, // TODO get from user data
+                    style: const TextStyle(fontWeight: FontWeight.bold))),
                 const SizedBox(height: 4),
                 MessageContent(message: message, content: content),
               ])),

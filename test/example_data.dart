@@ -15,6 +15,7 @@ User user({
   String? email,
   String? fullName,
   String? avatarUrl,
+  Map<int, ProfileFieldUserData>? profileData,
 }) {
   return User(
     userId: userId ?? 123, // TODO generate example IDs
@@ -32,7 +33,7 @@ User user({
     timezone: 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,
-    profileData: null,
+    profileData: profileData,
   );
 }
 
