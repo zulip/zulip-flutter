@@ -167,9 +167,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         return;
       }
 
-      // TODO(#36): support login methods beyond username/password
       Navigator.push(context,
-        PasswordLoginPage.buildRoute(serverSettings: serverSettings));
+        AuthMethodsPage.buildRoute(serverSettings: serverSettings));
     } finally {
       setState(() {
         _inProgress = false;
@@ -222,6 +221,80 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   : null,
                 child: const Text('Continue')),
             ])))));
+  }
+}
+
+class AuthMethodsPage extends StatefulWidget {
+  const AuthMethodsPage({super.key, required this.serverSettings});
+
+  final GetServerSettingsResult serverSettings;
+
+  static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
+    return _LoginSequenceRoute(
+      page: AuthMethodsPage(serverSettings: serverSettings));
+  }
+
+  @override
+  State<AuthMethodsPage> createState() => _AuthMethodsPageState();
+}
+
+class _AuthMethodsPageState extends State<AuthMethodsPage> {
+  // TODO: Remove this list when all the methods are tested,
+  //       or update to add a new method.
+  static const Set<String> _testedAuthMethods = {
+    'github',
+    'google',
+  };
+
+  Future<void> _openBrowserLogin(ExternalAuthenticationMethod method) async {}
+
+  @override
+  Widget build(BuildContext context) {
+    // 'realmIcon' for chat.zulip.org, only contains the path component.
+    // So, resolve it to the 'realmUri' to get the full Uri with host.
+    final Uri? iconUrl = widget.serverSettings.realmIcon != null
+      ? widget.serverSettings.realmUri.resolveUri(widget.serverSettings.realmIcon!)
+      : null;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Log in')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(8),
+          children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              if (iconUrl != null) ...[
+                Image.network(
+                  iconUrl.toString(),
+                  key: const Key('realm_icon'),
+                  width: 48,
+                  height: 48),
+                const SizedBox(width: 8),
+              ],
+              Text(widget.serverSettings.realmName, style: const TextStyle(fontSize: 20)),
+            ]),
+          ),
+          if (widget.serverSettings.emailAuthEnabled)
+            OutlinedButton(
+              onPressed: () => Navigator.push(context, PasswordLoginPage.buildRoute(serverSettings: widget.serverSettings)),
+              child: const Text('Sign in with password')),
+          ...widget.serverSettings.externalAuthenticationMethods.map(
+            (authMethod) => switch (authMethod.displayIcon) {
+              null || '' => OutlinedButton(
+                onPressed: _testedAuthMethods.contains(authMethod.name) ? () => _openBrowserLogin(authMethod) : null,
+                child: Text('Sign in with ${authMethod.displayName}'),
+              ),
+              final displayIcon => OutlinedButton.icon(
+                onPressed: _testedAuthMethods.contains(authMethod.name) ? () => _openBrowserLogin(authMethod) : null,
+                icon: Image.network(displayIcon, width: 24, height: 24),
+                label: Text('Sign in with ${authMethod.displayName}'),
+              ),
+            }).toList(),
+        ])));
   }
 }
 

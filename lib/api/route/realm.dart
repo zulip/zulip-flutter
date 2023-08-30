@@ -29,9 +29,31 @@ Future<GetServerSettingsResult> getServerSettings({
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
+class ExternalAuthenticationMethod {
+  final String name;
+  final String displayName;
+  final String? displayIcon;
+  final String loginUrl;
+  final String signupUrl;
+
+  ExternalAuthenticationMethod({
+    required this.name,
+    required this.displayName,
+    this.displayIcon,
+    required this.loginUrl,
+    required this.signupUrl,
+  });
+
+  factory ExternalAuthenticationMethod.fromJson(Map<String, dynamic> json) =>
+    _$ExternalAuthenticationMethodFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ExternalAuthenticationMethodToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
 class GetServerSettingsResult {
   final Map<String, bool> authenticationMethods;
-  // final List<ExternalAuthenticationMethod> external_authentication_methods; // TODO handle
+  final List<ExternalAuthenticationMethod> externalAuthenticationMethods;
 
   final int zulipFeatureLevel;
   final String zulipVersion;
@@ -44,12 +66,13 @@ class GetServerSettingsResult {
   final bool requireEmailFormatUsernames;
   final Uri realmUri;
   final String realmName;
-  final String realmIcon;
+  final Uri? realmIcon;
   final String realmDescription;
   final bool? realmWebPublicAccessEnabled; // TODO(server-5)
 
   GetServerSettingsResult({
     required this.authenticationMethods,
+    required this.externalAuthenticationMethods,
     required this.zulipFeatureLevel,
     required this.zulipVersion,
     this.zulipMergeBase,

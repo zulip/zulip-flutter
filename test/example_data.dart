@@ -1,5 +1,6 @@
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/store.dart';
 
 import 'api/fake_api.dart';
@@ -275,5 +276,55 @@ PerAccountStore store() {
     account: selfAccount,
     connection: FakeApiConnection.fromAccount(selfAccount),
     initialSnapshot: initialSnapshot(),
+  );
+}
+
+GetServerSettingsResult serverSettings({
+  Map<String, bool>? authenticationMethods,
+  List<ExternalAuthenticationMethod>? externalAuthenticationMethods,
+  int? zulipFeatureLevel,
+  String? zulipVersion,
+  String? zulipMergeBase,
+  bool? pushNotificationsEnabled,
+  bool? isIncompatible,
+  bool? emailAuthEnabled,
+  bool? requireEmailFormatUsernames,
+  Uri? realmUri,
+  String? realmName,
+  Uri? realmIcon,
+  String? realmDescription,
+  bool? realmWebPublicAccessEnabled,
+  }) {
+  return GetServerSettingsResult(
+    authenticationMethods: authenticationMethods ?? {},
+    externalAuthenticationMethods: externalAuthenticationMethods ?? [],
+    zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
+    zulipVersion: zulipVersion ?? recentZulipVersion,
+    zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
+    pushNotificationsEnabled: pushNotificationsEnabled ?? false,
+    isIncompatible: isIncompatible ?? false,
+    emailAuthEnabled: emailAuthEnabled ?? true,
+    requireEmailFormatUsernames: requireEmailFormatUsernames ?? true,
+    realmUri: realmUri ?? realmUrl,
+    realmName: realmName ?? '',
+    realmIcon: realmIcon,
+    realmDescription: realmDescription ?? '',
+    realmWebPublicAccessEnabled: realmWebPublicAccessEnabled ?? false,
+  );
+}
+
+ExternalAuthenticationMethod externalAuthenticationMethod({
+  String? name,
+  String? displayName,
+  String? displayIcon,
+  String? loginUrl,
+  String? signupUrl,
+}) {
+  return ExternalAuthenticationMethod(
+    name: name ?? '',
+    displayName: displayName ?? '',
+    displayIcon: displayIcon,
+    loginUrl: loginUrl ?? '',
+    signupUrl: signupUrl ?? '',
   );
 }
