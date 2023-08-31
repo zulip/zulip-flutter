@@ -332,15 +332,10 @@ class RecipientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO recipient headings depend on narrow
     final message = this.message;
-    switch (message) {
-      case StreamMessage():
-        final store = PerAccountStoreWidget.of(context);
-        final subscription = store.subscriptions[message.streamId];
-        return StreamTopicRecipientHeader(
-          message: message, streamColor: colorForStream(subscription));
-      case DmMessage():
-        return DmRecipientHeader(message: message);
-    }
+    return switch (message) {
+      StreamMessage() => StreamTopicRecipientHeader(message: message),
+      DmMessage() => DmRecipientHeader(message: message),
+    };
   }
 }
 
@@ -421,14 +416,16 @@ Color colorForStream(Subscription? subscription) {
 }
 
 class StreamTopicRecipientHeader extends StatelessWidget {
-  const StreamTopicRecipientHeader(
-    {super.key, required this.message, required this.streamColor});
+  const StreamTopicRecipientHeader({super.key, required this.message});
 
   final StreamMessage message;
-  final Color streamColor;
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final subscription = store.subscriptions[message.streamId];
+    final streamColor = colorForStream(subscription);
+
     final streamName = message.displayRecipient; // TODO get from stream data
     final topic = message.subject;
     final contrastingColor =
