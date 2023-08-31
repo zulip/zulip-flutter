@@ -21,7 +21,12 @@ class ZulipApp extends StatelessWidget {
       // Note that specifiying only "Noto Color Emoji" in the fallback list,
       // Flutter tries to use it to draw even the non emoji characters
       // which leads to broken text rendering.
-      fontFamilyFallback: const <String>['sans-serif', 'Noto Color Emoji'],
+      fontFamilyFallback: [
+        // …since apparently iOS doesn't support 'sans-serif', use this instead:
+        //   https://github.com/flutter/flutter/issues/63507#issuecomment-1698504425
+        if (Theme.of(context).platform == TargetPlatform.iOS) '.AppleSystemUIFont' else 'sans-serif',
+        'Noto Color Emoji',
+      ],
       useMaterial3: false, // TODO(#225) fix things and switch to true
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.
