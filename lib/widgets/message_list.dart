@@ -491,12 +491,9 @@ class DmRecipientHeader extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: () {
-        final store = PerAccountStoreWidget.of(context);
-        final narrow = DmNarrow.ofMessage(message, selfUserId: store.account.userId);
-        Navigator.push(context,
-          MessageListPage.buildRoute(context: context, narrow: narrow));
-      },
+      onTap: () => Navigator.push(context,
+        MessageListPage.buildRoute(context: context,
+          narrow: DmNarrow.ofMessage(message, selfUserId: store.account.userId))),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: Colors.white,
