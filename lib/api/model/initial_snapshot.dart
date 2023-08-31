@@ -225,13 +225,8 @@ class UnreadMessagesSnapshot {
 class UnreadDmSnapshot {
   @JsonKey(readValue: _readOtherUserId)
   final int otherUserId;
-
-  // The doc mistakenly calls this `unread_ids`:
-  //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20.60unread_msgs.2Epms.5B.5D.2Eunread_message_ids.60/near/1623940
   final List<int> unreadMessageIds;
 
-  // other_user_id was introduced at FL 119 as the new name for sender_id:
-  //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20When.20was.20.60unread_msgs.2Epms.5B.5D.2Eother_user_id.60.20added.3F/near/1623961
   // TODO(server-5): Simplify away.
   static _readOtherUserId(Map json, String key) {
     return json[key] ?? json['sender_id'];
@@ -271,9 +266,6 @@ class UnreadStreamSnapshot {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnreadHuddleSnapshot {
   final String userIdsString;
-
-  // The doc mistakenly calls this `unread_ids`:
-  //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20.60unread_msgs.2Epms.5B.5D.2Eunread_message_ids.60/near/1623940
   final List<int> unreadMessageIds;
 
   UnreadHuddleSnapshot({
