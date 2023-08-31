@@ -17,6 +17,7 @@ import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/message_list_test.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_checks.dart';
 
@@ -182,6 +183,33 @@ void main() {
   });
 
   group('recipient headers', () {
+    testWidgets('show stream name from message when stream unknown', (tester) async {
+      // This can perfectly well happen, because message fetches can race
+      // with events.
+      final stream = eg.stream(name: 'stream name');
+      await setupMessageListPage(tester, messages: [
+        eg.streamMessage(stream: stream),
+      ]);
+      await tester.pump();
+      tester.widget(find.text('stream name'));
+    });
+
+    testWidgets('show stream name from stream data when known', (tester) async {
+      final stream = eg.stream(name: 'old stream name');
+      await setupMessageListPage(tester, messages: [
+        eg.streamMessage(stream: stream),
+      ]);
+      // TODO(#182) this test would be more realistic using a StreamUpdateEvent
+      store.handleEvent(StreamCreateEvent(id: stream.streamId, streams: [
+        ZulipStream.fromJson({
+          ...(deepToJson(stream) as Map<String, dynamic>),
+          'name': 'new stream name',
+        }),
+      ]));
+      await tester.pump();
+      tester.widget(find.text('new stream name'));
+    });
+
     testWidgets('show names on DMs', (tester) async {
       await setupMessageListPage(tester, messages: [
         eg.dmMessage(from: eg.selfUser, to: []),
