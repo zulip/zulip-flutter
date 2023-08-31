@@ -423,15 +423,18 @@ class StreamTopicRecipientHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+
+    final stream = store.streams[message.streamId];
+    final streamName = stream?.name ?? message.displayRecipient; // TODO(log) if missing
+    final topic = message.subject;
+
     final subscription = store.subscriptions[message.streamId];
     final streamColor = colorForStream(subscription);
-
-    final streamName = message.displayRecipient; // TODO get from stream data
-    final topic = message.subject;
     final contrastingColor =
       ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
         ? Colors.white
         : Colors.black;
+
     return GestureDetector(
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
