@@ -461,6 +461,183 @@ void main() async {
     check(model).messages.length.equals(31);
     check(model.contents[0]).equalsNode(correctContent);
   });
+
+  test('recipient headers are maintained consistently', () async {
+    // This tests the code that maintains the invariant that recipient headers
+    // are present just where [canShareRecipientHeader] requires them.
+    // In [checkInvariants] we check the current state against that invariant,
+    // so here we just need to exercise that code through all the relevant cases.
+    // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants] call
+    // (in the listener that increments [notifiedCount]).
+    //
+    // A separate unit test covers [canShareRecipientHeader] itself.
+    // So this test just needs messages that can share, and messages that can't,
+    // and doesn't need to exercise the different reasons that messages can't.
+
+    const timestamp = 1693602618;
+    final stream = eg.stream();
+    Message streamMessage(int id) =>
+      eg.streamMessage(id: id, stream: stream, topic: 'foo', timestamp: timestamp);
+    Message dmMessage(int id) =>
+      eg.dmMessage(id: id, from: eg.selfUser, to: [], timestamp: timestamp);
+
+    // First, test fetchInitial, where some headers are needed and others not.
+    prepare();
+    connection.prepare(json: newestResult(
+      foundOldest: false,
+      messages: [streamMessage(10), streamMessage(11), dmMessage(12)],
+    ).toJson());
+    await model.fetchInitial();
+    checkNotifiedOnce();
+
+    // Then fetchOlder, where a header is needed in between…
+    connection.prepare(json: olderResult(
+      anchor: model.messages[0].id,
+      foundOldest: false,
+      messages: [streamMessage(7), streamMessage(8), dmMessage(9)],
+    ).toJson());
+    await model.fetchOlder();
+    checkNotified(count: 2);
+
+    //  … and fetchOlder where there's no header in between.
+    connection.prepare(json: olderResult(
+      anchor: model.messages[0].id,
+      foundOldest: false,
+      messages: [streamMessage(6)],
+    ).toJson());
+    await model.fetchOlder();
+    checkNotified(count: 2);
+
+    // Then test maybeAddMessage, where a new header is needed…
+    model.maybeAddMessage(streamMessage(13));
+    checkNotifiedOnce();
+
+    // … and where it's not.
+    model.maybeAddMessage(streamMessage(14));
+    checkNotifiedOnce();
+
+    // Then test maybeUpdateMessage, where a header is and remains needed…
+    UpdateMessageEvent updateEvent(Message message) => UpdateMessageEvent(
+      id: 1, messageId: message.id, messageIds: [message.id],
+      flags: message.flags,
+      renderedContent: '${message.content}<p>edited</p>',
+    );
+    model.maybeUpdateMessage(updateEvent(model.messages.first));
+    checkNotifiedOnce();
+    model.maybeUpdateMessage(updateEvent(model.messages[model.messages.length - 2]));
+    checkNotifiedOnce();
+
+    // … and where it's not.
+    model.maybeUpdateMessage(updateEvent(model.messages.last));
+    checkNotifiedOnce();
+
+    // Then test reassemble.
+    model.reassemble();
+    checkNotifiedOnce();
+
+    // Have a new fetchOlder reach the oldest, so that a history-start marker appears…
+    connection.prepare(json: olderResult(
+      anchor: model.messages[0].id,
+      foundOldest: true,
+      messages: [streamMessage(5)],
+    ).toJson());
+    await model.fetchOlder();
+    checkNotified(count: 2);
+
+    // … and then test reassemble again.
+    model.reassemble();
+    checkNotifiedOnce();
+  });
+
+  group('canShareRecipientHeader', () {
+    test('stream messages vs DMs, no share', () {
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      final streamMessage = eg.streamMessage(timestamp: dmMessage.timestamp);
+      check(canShareRecipientHeader(streamMessage, dmMessage)).isFalse();
+      check(canShareRecipientHeader(dmMessage, streamMessage)).isFalse();
+    });
+
+    test('stream messages of same day share just if same stream/topic', () {
+      final stream0 = eg.stream(streamId: 123);
+      final stream1 = eg.stream(streamId: 234);
+      final messageAB = eg.streamMessage(stream: stream0, topic: 'foo');
+      final messageXB = eg.streamMessage(stream: stream1, topic: 'foo', timestamp: messageAB.timestamp);
+      final messageAX = eg.streamMessage(stream: stream0, topic: 'bar', timestamp: messageAB.timestamp);
+      check(canShareRecipientHeader(messageAB, messageAB)).isTrue();
+      check(canShareRecipientHeader(messageAB, messageXB)).isFalse();
+      check(canShareRecipientHeader(messageXB, messageAB)).isFalse();
+      check(canShareRecipientHeader(messageAB, messageAX)).isFalse();
+      check(canShareRecipientHeader(messageAX, messageAB)).isFalse();
+      check(canShareRecipientHeader(messageAX, messageXB)).isFalse();
+      check(canShareRecipientHeader(messageXB, messageAX)).isFalse();
+    });
+
+    test('DMs of same day share just if same recipients', () {
+      final message0 = eg.dmMessage(from: eg.selfUser, to: []);
+      final message01 = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser], timestamp: message0.timestamp);
+      final message10 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], timestamp: message0.timestamp);
+      final message02 = eg.dmMessage(from: eg.selfUser, to: [eg.thirdUser], timestamp: message0.timestamp);
+      final message20 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], timestamp: message0.timestamp);
+      final message012 = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser, eg.thirdUser], timestamp: message0.timestamp);
+      final message102 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], timestamp: message0.timestamp);
+      final message201 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser], timestamp: message0.timestamp);
+      final groups = [[message0], [message01, message10],
+        [message02, message20], [message012, message102, message201]];
+      for (int i0 = 0; i0 < groups.length; i0++) {
+        for (int i1 = 0; i1 < groups.length; i1++) {
+          for (int j0 = 0; j0 < groups[i0].length; j0++) {
+            for (int j1 = 0; j1 < groups[i1].length; j1++) {
+              final message0 = groups[i0][j0];
+              final message1 = groups[i1][j1];
+              check(
+                because: 'recipients ${message0.allRecipientIds} vs ${message1.allRecipientIds}',
+                canShareRecipientHeader(message0, message1),
+              ).equals(i0 == i1);
+            }
+          }
+        }
+      }
+    });
+
+    test('messages to same recipient share just if same day', () {
+      // These timestamps will differ depending on the timezone of the
+      // environment where the tests are run, in order to give the same results
+      // in the code under test which is also based on the ambient timezone.
+      // TODO(dart): It'd be great if tests could control the ambient timezone,
+      //   so as to exercise cases like where local time falls back across midnight.
+      int timestampFromLocalTime(String date) => DateTime.parse(date).millisecondsSinceEpoch ~/ 1000;
+
+      const t111a = '2021-01-01 00:00:00';
+      const t111b = '2021-01-01 12:00:00';
+      const t111c = '2021-01-01 23:59:58';
+      const t111d = '2021-01-01 23:59:59';
+      const t112a = '2021-01-02 00:00:00';
+      const t112b = '2021-01-02 00:00:01';
+      const t121 = '2021-02-01 00:00:00';
+      const t211 = '2022-01-01 00:00:00';
+      final groups = [[t111a, t111b, t111c, t111d], [t112a, t112b], [t121], [t211]];
+
+      final stream = eg.stream();
+      for (int i0 = 0; i0 < groups.length; i0++) {
+        for (int i1 = i0; i1 < groups.length; i1++) {
+          for (int j0 = 0; j0 < groups[i0].length; j0++) {
+            for (int j1 = (i0 == i1) ? j0 : 0; j1 < groups[i1].length; j1++) {
+              final time0 = groups[i0][j0];
+              final time1 = groups[i1][j1];
+              check(because: 'times $time0, $time1', canShareRecipientHeader(
+                eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time0)),
+                eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time1)),
+              )).equals(i0 == i1);
+              check(because: 'times $time0, $time1', canShareRecipientHeader(
+                eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time0)),
+                eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time1)),
+              )).equals(i0 == i1);
+            }
+          }
+        }
+      }
+    });
+  });
 }
 
 void checkInvariants(MessageListView model) {
@@ -484,9 +661,6 @@ void checkInvariants(MessageListView model) {
       .equalsNode(parseContent(model.messages[i].content));
   }
 
-  check(model).items.length.equals(
-    ((model.haveOldest || model.fetchingOlder) ? 1 : 0)
-    + 2 * model.messages.length);
   int i = 0;
   if (model.haveOldest) {
     check(model.items[i++]).isA<MessageListHistoryStartItem>();
@@ -495,13 +669,18 @@ void checkInvariants(MessageListView model) {
     check(model.items[i++]).isA<MessageListLoadingItem>();
   }
   for (int j = 0; j < model.messages.length; j++) {
-    check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
-      .message.identicalTo(model.messages[j]);
+    if (j == 0
+        || !canShareRecipientHeader(model.messages[j-1], model.messages[j])) {
+      check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
+        .message.identicalTo(model.messages[j]);
+    }
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
       ..content.identicalTo(model.contents[j])
-      ..isLastInBlock.isTrue();
+      ..isLastInBlock.equals(
+        i == model.items.length || model.items[i] is! MessageListMessageItem);
   }
+  check(model.items).length.equals(i);
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
