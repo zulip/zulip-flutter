@@ -161,6 +161,13 @@ class DmNarrow extends Narrow implements SendableNarrow {
     );
   }
 
+  factory DmNarrow.withUser(int userId, {required int selfUserId}) {
+    return DmNarrow(
+      allRecipientIds: {userId, selfUserId}.toList()..sort(),
+      selfUserId: selfUserId,
+    );
+  }
+
   /// The user IDs of everyone in the conversation, sorted.
   ///
   /// Each message in the conversation is sent by one of these users

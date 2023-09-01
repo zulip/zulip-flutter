@@ -69,6 +69,27 @@ void main() {
         selfUserId: eg.selfUser.userId));
     });
 
+    test('withUser: same user', () {
+      final actual = DmNarrow.withUser(5, selfUserId: 5);
+      check(actual).equals(DmNarrow(
+        allRecipientIds: [5],
+        selfUserId: 5));
+    });
+
+    test('withUser: user ID less than selfUserId', () {
+      final actual = DmNarrow.withUser(3, selfUserId: 5);
+      check(actual).equals(DmNarrow(
+          allRecipientIds: [3, 5],
+          selfUserId: 5));
+    });
+
+    test('withUser: user ID greater than selfUserId', () {
+      final actual = DmNarrow.withUser(7, selfUserId: 5);
+      check(actual).equals(DmNarrow(
+          allRecipientIds: [5, 7],
+          selfUserId: 5));
+    });
+
     test('otherRecipientIds', () {
       check(DmNarrow(allRecipientIds: [1, 2, 3], selfUserId: 2))
         .otherRecipientIds.deepEquals([1, 3]);
