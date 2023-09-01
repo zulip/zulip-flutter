@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'login.dart';
+import 'login/browser_login.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
@@ -25,10 +26,29 @@ class ZulipApp extends StatelessWidget {
       //   https://m3.material.io/theme-builder#/custom
       colorScheme: ColorScheme.fromSeed(seedColor: kZulipBrandColor));
     return GlobalStoreWidget(
-      child: MaterialApp(
-        title: 'Zulip',
-        theme: theme,
-        home: const ChooseAccountPage()));
+      child: BrowserLoginWidget(
+        child: Builder(
+          builder: (context) => MaterialApp(
+            title: 'Zulip',
+            theme: theme,
+            home: const ChooseAccountPage(),
+            navigatorKey: BrowserLoginWidget.of(context).navigatorKey,
+            // TODO: Migrate to `MaterialApp.router` & `Router`, so that we can receive
+            //       a full Uri instead of just path+query components and also maybe
+            //       remove the InheritedWidget + navigatorKey hack.
+            // See docs:
+            //   https://api.flutter.dev/flutter/widgets/Router-class.html
+            onGenerateRoute: (settings) {
+              if (settings.name == null) return null;
+              final uri = Uri.parse(settings.name!);
+              if (uri.queryParameters.containsKey('otp_encrypted_api_key')) {
+                BrowserLoginWidget.of(context).loginFromExternalRoute(context, uri);
+                return null;
+              }
+              return null;
+            })),
+      ),
+    );
   }
 }
 

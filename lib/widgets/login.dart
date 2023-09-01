@@ -9,11 +9,12 @@ import '../model/store.dart';
 import 'app.dart';
 import 'dialog.dart';
 import 'input.dart';
+import 'login/browser_login.dart';
 import 'page.dart';
 import 'store.dart';
 
-class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
-  _LoginSequenceRoute({
+class LoginSequenceRoute extends MaterialWidgetRoute<void> {
+  LoginSequenceRoute({
     required super.page,
   });
 }
@@ -102,7 +103,7 @@ class AddAccountPage extends StatefulWidget {
   const AddAccountPage({super.key});
 
   static Route<void> buildRoute() {
-    return _LoginSequenceRoute(page: const AddAccountPage());
+    return LoginSequenceRoute(page: const AddAccountPage());
   }
 
   @override
@@ -230,7 +231,7 @@ class AuthMethodsPage extends StatefulWidget {
   final GetServerSettingsResult serverSettings;
 
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
-    return _LoginSequenceRoute(
+    return LoginSequenceRoute(
       page: AuthMethodsPage(serverSettings: serverSettings));
   }
 
@@ -243,10 +244,12 @@ class _AuthMethodsPageState extends State<AuthMethodsPage> {
   //       or update to add a new method.
   static const Set<String> _testedAuthMethods = {
     'github',
+    'gitlab',
     'google',
   };
 
-  Future<void> _openBrowserLogin(ExternalAuthenticationMethod method) async {}
+  Future<void> _openBrowserLogin(ExternalAuthenticationMethod method) =>
+    BrowserLoginWidget.of(context).openLoginUrl(widget.serverSettings, method.loginUrl);
 
   @override
   Widget build(BuildContext context) {
@@ -304,7 +307,7 @@ class PasswordLoginPage extends StatefulWidget {
   final GetServerSettingsResult serverSettings;
 
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
-    return _LoginSequenceRoute(
+    return LoginSequenceRoute(
       page: PasswordLoginPage(serverSettings: serverSettings));
   }
 
@@ -396,7 +399,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
 
       Navigator.of(context).pushAndRemoveUntil(
         HomePage.buildRoute(accountId: accountId),
-        (route) => (route is! _LoginSequenceRoute),
+        (route) => (route is! LoginSequenceRoute),
       );
     } finally {
       setState(() {

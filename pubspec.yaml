@@ -56,7 +56,8 @@ dependencies:
   image_picker: ^1.0.0
   package_info_plus: ^4.0.1
   collection: ^1.17.2
-  url_launcher: ^6.1.11
+  url_launcher: ^6.1.14
+  convert: ^3.1.1
 
 dev_dependencies:
   flutter_test:

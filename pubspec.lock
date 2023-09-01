@@ -186,7 +186,7 @@ packages:
     source: hosted
     version: "1.18.0"
   convert:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: convert
       sha256: "0f08b14755d163f6e2134cb58222dd25ea2a2ee8a195e53983d57c075324d592"
@@ -921,18 +921,18 @@ packages:
     dependency: "direct main"
     description:
       name: url_launcher
-      sha256: "781bd58a1eb16069412365c98597726cd8810ae27435f04b3b4d3a470bacd61e"
+      sha256: "47e208a6711459d813ba18af120d9663c20bdf6985d6ad39fe165d2538378d27"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.12"
+    version: "6.1.14"
   url_launcher_android:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "3dd2388cc0c42912eee04434531a26a82512b9cb1827e0214430c9bcbddfe025"
+      sha256: b04af59516ab45762b2ca6da40fa830d72d0f6045cd97744450b73493fa76330
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.38"
+    version: "6.1.0"
   url_launcher_ios:
     dependency: transitive
     description:
