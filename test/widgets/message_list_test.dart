@@ -70,7 +70,7 @@ void main() {
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(200);
+      check(itemCount(tester)).equals(101);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -83,13 +83,13 @@ void main() {
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
 
       // Now we have more messages.
-      check(itemCount(tester)).equals(400);
+      check(itemCount(tester)).equals(201);
     });
 
     testWidgets('observe double-fetch glitch', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(200);
+      check(itemCount(tester)).equals(101);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -101,10 +101,10 @@ void main() {
       for (int i = 0; i < 30; i++) {
         // Find the point in the fling where the fetch starts.
         await tester.pump(const Duration(milliseconds: 100));
-        if (itemCount(tester)! > 200) break; // The loading indicator appeared.
+        if (itemCount(tester)! > 101) break; // The loading indicator appeared.
       }
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
-      check(itemCount(tester)).equals(400);
+      check(itemCount(tester)).equals(201);
 
       // On the next frame, we promptly fetch *another* batch.
       // This is a glitch and it'd be nicer if we didn't.
@@ -112,7 +112,7 @@ void main() {
         messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(600);
+      check(itemCount(tester)).equals(301);
     }, skip: true); // TODO this still reproduces manually, still needs debugging,
                     // but has become harder to reproduce in a test.
   });

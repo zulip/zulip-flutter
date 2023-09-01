@@ -28,8 +28,8 @@ class MessageListRecipientHeaderItem extends MessageListItem {
 /// A message to show in the message list.
 class MessageListMessageItem extends MessageListItem {
   final Message message;
-  final ZulipContent content;
-  final bool isLastInBlock;
+  ZulipContent content;
+  bool isLastInBlock;
 
   MessageListMessageItem(this.message, this.content, {required this.isLastInBlock});
 }
@@ -127,7 +127,7 @@ mixin _MessageSequence {
     assert(itemIndex > -1
       && items[itemIndex] is MessageListMessageItem
       && identical((items[itemIndex] as MessageListMessageItem).message, message));
-    items[itemIndex] = MessageListMessageItem(isLastInBlock: true, message, content);
+    (items[itemIndex] as MessageListMessageItem).content = content;
   }
 
   /// Append [message] to [messages], and update derived data accordingly.
@@ -170,13 +170,20 @@ mixin _MessageSequence {
   /// This message must already have been parsed and reflected in [contents].
   void _processMessage(int index) {
     // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175,
-    // recipient headings #174, and date separators #173.
-    items.add(MessageListRecipientHeaderItem(messages[index]));
-    items.add(MessageListMessageItem(
-      isLastInBlock: true,
-      messages[index], contents[index],
-    ));
+    // with the display of neighboring messages: sender headings #175
+    // and date separators #173.
+    final message = messages[index];
+    final content = contents[index];
+    if (index > 0 && canShareRecipientHeader(messages[index - 1], message)) {
+      assert(items.last is MessageListMessageItem);
+      final prevMessageItem = items.last as MessageListMessageItem;
+      assert(identical(prevMessageItem.message, messages[index - 1]));
+      assert(prevMessageItem.isLastInBlock);
+      prevMessageItem.isLastInBlock = false;
+    } else {
+      items.add(MessageListRecipientHeaderItem(message));
+    }
+    items.add(MessageListMessageItem(message, content, isLastInBlock: true));
   }
 
   /// Update [items] to include markers at start and end as appropriate.
@@ -208,6 +215,53 @@ mixin _MessageSequence {
     }
     _updateEndMarkers();
   }
+}
+
+@visibleForTesting
+bool canShareRecipientHeader(Message prevMessage, Message message) {
+  if (prevMessage is StreamMessage && message is StreamMessage) {
+    if (prevMessage.streamId != message.streamId) return false;
+    if (prevMessage.subject != message.subject) return false;
+  } else if (prevMessage is DmMessage && message is DmMessage) {
+    if (!_equalIdSequences(prevMessage.allRecipientIds, message.allRecipientIds)) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  // switch ((prevMessage, message)) {
+  //   case (StreamMessage(), StreamMessage()):
+  //     // TODO(dart-3): this doesn't type-narrow prevMessage and message
+  //   case (DmMessage(), DmMessage()):
+  //     // …
+  //   default:
+  //     return false;
+  // }
+
+  // TODO memoize [DateTime]s... also use memoized for showing date/time in msglist
+  final prevTime = DateTime.fromMillisecondsSinceEpoch(prevMessage.timestamp * 1000);
+  final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
+  if (!_sameDay(prevTime, time)) return false;
+
+  return true;
+}
+
+// Intended for [Message.allRecipientIds].  Assumes efficient `length`.
+bool _equalIdSequences(Iterable<int> xs, Iterable<int> ys) {
+  if (xs.length != ys.length) return false;
+  final xs_ = xs.iterator; final ys_ = ys.iterator;
+  while (xs_.moveNext() && ys_.moveNext()) {
+    if (xs_.current != ys_.current) return false;
+  }
+  return true;
+}
+
+bool _sameDay(DateTime date1, DateTime date2) {
+  if (date1.year != date2.year) return false;
+  if (date1.month != date2.month) return false;
+  if (date1.day != date2.day) return false;
+  return true;
 }
 
 /// A view-model for a message list.
@@ -343,6 +397,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// were changed, and ignores any changes to its stream or topic.
   ///
   /// TODO(#150): Handle message moves.
+  // NB that when handling message moves (#150), recipient headers may need updating.
   void maybeUpdateMessage(UpdateMessageEvent event) {
     final idx = _findMessageWithId(event.messageId);
     if (idx == -1)  {
