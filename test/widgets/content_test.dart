@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:checks/checks.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,8 +63,6 @@ void main() {
   });
 
   group('LinkNode interactions', () {
-    const expectedModeAndroid = LaunchMode.externalApplication;
-
     // The Flutter test font uses square glyphs, so width equals height:
     //   https://github.com/flutter/flutter/wiki/Flutter-Test-Fonts
     const fontSize = 48.0;
@@ -89,10 +86,8 @@ void main() {
         '<p><a href="https://example/">hello</a></p>');
 
       await tester.tap(find.text('hello'));
-      final expectedMode = defaultTargetPlatform == TargetPlatform.android ?
-        LaunchMode.externalApplication : LaunchMode.platformDefault;
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://example/'), mode: expectedMode));
+        .single.equals((url: Uri.parse('https://example/'), mode: LaunchMode.platformDefault));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('multiple links in paragraph', (tester) async {
@@ -106,11 +101,11 @@ void main() {
 
       await tester.tapAt(base.translate(1*fontSize, 0)); // "fXo bar baz"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
 
       await tester.tapAt(base.translate(9*fontSize, 0)); // "foo bar bXz"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://b/'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('https://b/'), mode: LaunchMode.platformDefault));
     });
 
     testWidgets('link nested in other spans', (tester) async {
@@ -118,7 +113,7 @@ void main() {
         '<p><strong><em><a href="https://a/">word</a></em></strong></p>');
       await tester.tap(find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
     });
 
     testWidgets('link containing other spans', (tester) async {
@@ -129,11 +124,11 @@ void main() {
 
       await tester.tapAt(base.translate(1*fontSize, 0)); // "tXo words"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
 
       await tester.tapAt(base.translate(6*fontSize, 0)); // "two woXds"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
     });
 
     testWidgets('relative links are resolved', (tester) async {
@@ -141,7 +136,7 @@ void main() {
         '<p><a href="/a/b?c#d">word</a></p>');
       await tester.tap(find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('${eg.realmUrl}a/b?c#d'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('${eg.realmUrl}a/b?c#d'), mode: LaunchMode.platformDefault));
     });
 
     testWidgets('link inside HeadingNode', (tester) async {
@@ -149,7 +144,7 @@ void main() {
         '<h6><a href="https://a/">word</a></h6>');
       await tester.tap(find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
     });
 
     testWidgets('error dialog if invalid link', (tester) async {
@@ -159,7 +154,7 @@ void main() {
       await tester.tap(find.text('word'));
       await tester.pump();
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('file:///etc/bad'), mode: expectedModeAndroid));
+        .single.equals((url: Uri.parse('file:///etc/bad'), mode: LaunchMode.platformDefault));
       checkErrorDialog(tester, expectedTitle: 'Unable to open link');
     });
   });
@@ -206,7 +201,7 @@ void main() {
       await tester.tap(find.text('invalid'));
       final expectedUrl = eg.realmUrl.resolve('/#narrow/stream/1-check/topic');
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: expectedUrl, mode: LaunchMode.externalApplication));
+        .single.equals((url: expectedUrl, mode: LaunchMode.platformDefault));
       check(pushedRoutes).isEmpty();
     });
   });

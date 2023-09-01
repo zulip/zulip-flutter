@@ -1,5 +1,4 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -167,10 +166,10 @@ void main() {
       );
 
       await tester.tap(find.text(testUrl));
-      final expectedMode = defaultTargetPlatform == TargetPlatform.android ?
-        LaunchMode.externalApplication : LaunchMode.platformDefault;
-      check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse(testUrl), mode: expectedMode));
+      check(testBinding.takeLaunchUrlCalls()).single.equals((
+        url: Uri.parse(testUrl),
+        mode: LaunchMode.platformDefault,
+      ));
     });
 
     testWidgets('page builds; external link type navigates away', (WidgetTester tester) async {
@@ -194,10 +193,10 @@ void main() {
       );
 
       await tester.tap(find.text('externalValue'));
-      final expectedMode = defaultTargetPlatform == TargetPlatform.android ?
-        LaunchMode.externalApplication : LaunchMode.platformDefault;
-      check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('http://example/externalValue'), mode: expectedMode));
+      check(testBinding.takeLaunchUrlCalls()).single.equals((
+        url: Uri.parse('http://example/externalValue'),
+        mode: LaunchMode.platformDefault,
+      ));
     });
 
     testWidgets('page builds; user links to profile', (WidgetTester tester) async {

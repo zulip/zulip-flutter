@@ -680,15 +680,7 @@ void _launchUrl(BuildContext context, String urlString) async {
   bool launched = false;
   String? errorMessage;
   try {
-    launched = await ZulipBinding.instance.launchUrl(url,
-      mode: switch (Theme.of(context).platform) {
-        // TODO(#279): On Android we settle for LaunchMode.externalApplication
-        //   because url_launcher's in-app is a weirdly bare UX.
-        //   Switch once that's fixed upstream (by us or otherwise).
-        TargetPlatform.android => UrlLaunchMode.externalApplication,
-        _ => UrlLaunchMode.platformDefault,
-      },
-    );
+    launched = await ZulipBinding.instance.launchUrl(url);
   } on PlatformException catch (e) {
     errorMessage = e.message;
   }
