@@ -27,14 +27,15 @@ class MessageListMessageItem extends MessageListItem {
   MessageListMessageItem(this.message, this.content);
 }
 
-/// Indicates the app is loading more messages at the top or bottom.
+/// Indicates the app is loading more messages at the top.
+// TODO(#80): or loading at the bottom, by adding a [MessageListDirection.newer]
 class MessageListLoadingItem extends MessageListItem {
   final MessageListDirection direction;
 
   const MessageListLoadingItem(this.direction);
 }
 
-enum MessageListDirection { older, newer }
+enum MessageListDirection { older }
 
 /// Indicates we've reached the oldest message in the narrow.
 class MessageListHistoryStartItem extends MessageListItem {
@@ -102,7 +103,6 @@ mixin _MessageSequence {
       case MessageListLoadingItem():
         switch (item.direction) {
           case MessageListDirection.older:       return -1;
-          case MessageListDirection.newer:       return 1;
         }
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
     }
