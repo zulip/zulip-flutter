@@ -270,22 +270,22 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       reverse: true,
       itemBuilder: (context, i) {
         final data = model!.items[length - 1 - i];
-        return switch (data) {
-          MessageListHistoryStartItem() =>
-            const Center(
+        switch (data) {
+          case MessageListHistoryStartItem():
+            return const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Text("No earlier messages."))), // TODO use an icon
-          MessageListLoadingItem() =>
-            const Center(
+                child: Text("No earlier messages."))); // TODO use an icon
+          case MessageListLoadingItem():
+            return const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: CircularProgressIndicator())), // TODO perhaps a different indicator
-          MessageListMessageItem() =>
-            MessageItem(
+                child: CircularProgressIndicator())); // TODO perhaps a different indicator
+          case MessageListMessageItem():
+            return MessageItem(
               trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
-              item: data),
-        };
+              item: data);
+        }
       });
   }
 }
