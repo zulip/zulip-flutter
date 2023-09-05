@@ -1,1 +1,15 @@
-{}
+{
+  "chooseAccountPageTitle": "アカウントを選択",
+  "chooseAccountButtonAddAnAccount": "新しいアカウントを追加",
+  "profileButtonSendDirectMessage": "ダイレクトメッセージを送信",
+  "cameraAccessDeniedTitle": "権限が必要です",
+  "cameraAccessDeniedMessage": "画像をアップロードするには、「設定」で Zulip に追加の権限を許可してください。",
+  "cameraAccessDeniedButtonText": "設定を開く",
+  "subscribedToNStreams": "{num, plural, other{{num}つのストリームをフォローしています}}",
+  "userRoleOwner": "オーナー",
+  "userRoleAdministrator": "管理者",
+  "userRoleModerator": "モデレータ",
+  "userRoleMember": "メンバー",
+  "userRoleGuest": "ゲスト",
+  "userRoleUnknown": "不明"
+}

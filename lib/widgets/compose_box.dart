@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../api/model/model.dart';
@@ -603,6 +604,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final picker = ImagePicker();
     final XFile? result;
     try {
@@ -619,10 +621,10 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
         // permission-request alert once, the first time the app wants to
         // use a protected resource. After that, the only way the user can
         // grant it is in Settings.
-        showSuggestedActionDialog(context: context, // TODO(i18n)
-          title: 'Permissions needed',
-          message: 'To upload an image, please grant Zulip additional permissions in Settings.',
-          actionButtonText: 'Open settings',
+        showSuggestedActionDialog(context: context,
+          title: zulipLocalizations.cameraAccessDeniedTitle,
+          message: zulipLocalizations.cameraAccessDeniedMessage,
+          actionButtonText: zulipLocalizations.cameraAccessDeniedButtonText,
           onActionButtonPress: () {
             AppSettings.openAppSettings();
           });

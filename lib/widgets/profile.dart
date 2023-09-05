@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/model.dart';
 import '../model/content.dart';
@@ -28,6 +29,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final user = store.users[userId];
     if (user == null) {
@@ -42,7 +44,7 @@ class ProfilePage extends StatelessWidget {
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText.merge(const TextStyle(fontWeight: FontWeight.bold))),
       // TODO(#291) render email field
-      Text(roleToLabel(user.role),
+      Text(roleToLabel(user.role, zulipLocalizations),
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText),
       // TODO(#197) render user status
@@ -56,7 +58,7 @@ class ProfilePage extends StatelessWidget {
           MessageListPage.buildRoute(context: context,
             narrow: DmNarrow.withUser(userId, selfUserId: store.account.userId))),
         icon: const Icon(Icons.email),
-        label: const Text('Send direct message')),
+        label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
     ];
 
     return Scaffold(
@@ -93,14 +95,14 @@ class _ProfileErrorPage extends StatelessWidget {
   }
 }
 
-String roleToLabel(UserRole role) {
+String roleToLabel(UserRole role, ZulipLocalizations zulipLocalizations) {
   return switch (role) {
-    UserRole.owner => 'Owner',
-    UserRole.administrator => 'Administrator',
-    UserRole.moderator => 'Moderator',
-    UserRole.member => 'Member',
-    UserRole.guest => 'Guest',
-    UserRole.unknown => 'Unknown',
+    UserRole.owner => zulipLocalizations.userRoleOwner,
+    UserRole.administrator => zulipLocalizations.userRoleAdministrator,
+    UserRole.moderator => zulipLocalizations.userRoleModerator,
+    UserRole.member => zulipLocalizations.userRoleMember,
+    UserRole.guest => zulipLocalizations.userRoleGuest,
+    UserRole.unknown => zulipLocalizations.userRoleUnknown,
   };
 }
 

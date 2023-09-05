@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -44,6 +45,8 @@ Future<void> setupPage(WidgetTester tester, {
     GlobalStoreWidget(
       child: MaterialApp(
         navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
         home: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,
           child: ProfilePage(userId: pageUserId)))));

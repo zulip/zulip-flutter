@@ -79,11 +79,12 @@ class ChooseAccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choose account'),
+        title: Text(zulipLocalizations.chooseAccountPageTitle),
         actions: const [ChooseAccountPageOverflowButton()]),
       body: SafeArea(
         minimum: const EdgeInsets.all(8),
@@ -100,7 +101,7 @@ class ChooseAccountPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => Navigator.push(context,
                   AddAccountPage.buildRoute()),
-                child: const Text('Add an account')),
+                child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
             ]))),
       ));
   }
@@ -140,6 +141,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     InlineSpan bold(String text) => TextSpan(
       text: text, style: const TextStyle(fontWeight: FontWeight.bold));
@@ -164,10 +166,7 @@ class HomePage extends StatelessWidget {
               Text.rich(TextSpan(
                 text: 'Zulip server version: ',
                 children: [bold(store.zulipVersion)])),
-              Text.rich(TextSpan(text: 'Subscribed to ', children: [
-                bold(store.subscriptions.length.toString()),
-                const TextSpan(text: ' streams'),
-              ])),
+              Text(zulipLocalizations.subscribedToNStreams(store.subscriptions.length)),
             ])),
           const SizedBox(height: 16),
           ElevatedButton(
