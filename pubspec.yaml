@@ -57,6 +57,8 @@ dependencies:
   package_info_plus: ^4.0.1
   collection: ^1.17.2
   url_launcher: ^6.1.11
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +83,11 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+
+  # Generate localization bindings from ARB files in lib/l10n/.
+  # This happens automatically with `flutter run`
+  # but can be manually run with `flutter gen-l10n`
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

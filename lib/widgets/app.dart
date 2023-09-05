@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/narrow.dart';
 import 'about_zulip.dart';
@@ -45,6 +46,8 @@ class ZulipApp extends StatelessWidget {
     return GlobalStoreWidget(
       child: MaterialApp(
         title: 'Zulip',
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
         theme: theme,
         home: const ChooseAccountPage()));
   }
