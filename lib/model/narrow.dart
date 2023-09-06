@@ -1,4 +1,5 @@
 
+import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
@@ -158,6 +159,23 @@ class DmNarrow extends Narrow implements SendableNarrow {
       allRecipientIds: [...conversation.userIds, selfUserId]..sort(),
       selfUserId: selfUserId,
     );
+  }
+
+  /// A [DmNarrow] from an [UnreadHuddleSnapshot].
+  factory DmNarrow.ofUnreadHuddleSnapshot(UnreadHuddleSnapshot snapshot, {required int selfUserId}) {
+    final userIds = snapshot.userIdsString.split(',').map((id) => int.parse(id));
+    return DmNarrow(selfUserId: selfUserId,
+      // (already sorted; see API doc)
+      allRecipientIds: userIds.toList(growable: false));
+  }
+
+  factory DmNarrow.ofUpdateMessageFlagsMessageDetail(
+    UpdateMessageFlagsMessageDetail detail, {
+    required int selfUserId,
+  }) {
+    assert(detail.type == MessageType.private);
+    return DmNarrow(selfUserId: selfUserId,
+      allRecipientIds: [...detail.userIds!, selfUserId]..sort());
   }
 
   /// The user IDs of everyone in the conversation, sorted.

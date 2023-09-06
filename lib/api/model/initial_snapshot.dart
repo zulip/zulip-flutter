@@ -234,7 +234,7 @@ class UnreadMessagesSnapshot {
 
   final bool oldUnreadsMissing;
 
-  UnreadMessagesSnapshot({
+  const UnreadMessagesSnapshot({
     required this.count,
     required this.dms,
     required this.streams,

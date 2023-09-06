@@ -17,6 +17,7 @@ import 'autocomplete.dart';
 import 'database.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
+import 'unreads.dart';
 
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion;
@@ -154,6 +155,7 @@ class PerAccountStore extends ChangeNotifier {
        realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
        customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields),
        userSettings = initialSnapshot.userSettings,
+       unreads = Unreads(initial: initialSnapshot.unreadMsgs, selfUserId: account.userId),
        users = Map.fromEntries(
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
@@ -181,6 +183,7 @@ class PerAccountStore extends ChangeNotifier {
 
   // Data attached to the self-account on the realm.
   final UserSettings? userSettings; // TODO(server-5)
+  final Unreads unreads;
 
   // Users and data about them.
   final Map<int, User> users;
@@ -306,19 +309,23 @@ class PerAccountStore extends ChangeNotifier {
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
       }
+      unreads.handleMessageEvent(event);
     } else if (event is UpdateMessageEvent) {
       assert(debugLog("server event: update_message ${event.messageId}"));
       for (final view in _messageListViews) {
         view.maybeUpdateMessage(event);
       }
+      unreads.handleUpdateMessageEvent(event);
     } else if (event is DeleteMessageEvent) {
       assert(debugLog("server event: delete_message ${event.messageIds}"));
-      // TODO handle
+      // TODO handle in message lists
+      unreads.handleDeleteMessageEvent(event);
     } else if (event is UpdateMessageFlagsEvent) {
       assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
       for (final view in _messageListViews) {
         view.maybeUpdateMessageFlags(event);
       }
+      unreads.handleUpdateMessageFlagsEvent(event);
     } else if (event is ReactionEvent) {
       assert(debugLog("server event: reaction/${event.op}"));
       for (final view in _messageListViews) {
