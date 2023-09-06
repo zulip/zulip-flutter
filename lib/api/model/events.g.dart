@@ -166,7 +166,9 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
       messageId: json['message_id'] as int,
       messageIds:
           (json['message_ids'] as List<dynamic>).map((e) => e as int).toList(),
-      flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      flags: (json['flags'] as List<dynamic>)
+          .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
+          .toList(),
       editTimestamp: json['edit_timestamp'] as int?,
       streamName: json['stream_name'] as String?,
       streamId: json['stream_id'] as int?,
@@ -203,6 +205,17 @@ Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
       'rendered_content': instance.renderedContent,
       'is_me_message': instance.isMeMessage,
     };
+
+const _$MessageFlagEnumMap = {
+  MessageFlag.read: 'read',
+  MessageFlag.starred: 'starred',
+  MessageFlag.collapsed: 'collapsed',
+  MessageFlag.mentioned: 'mentioned',
+  MessageFlag.wildcardMentioned: 'wildcard_mentioned',
+  MessageFlag.hasAlertWord: 'has_alert_word',
+  MessageFlag.historical: 'historical',
+  MessageFlag.unknown: 'unknown',
+};
 
 const _$PropagateModeEnumMap = {
   PropagateMode.changeOne: 'change_one',

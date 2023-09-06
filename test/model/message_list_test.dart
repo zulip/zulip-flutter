@@ -269,7 +269,7 @@ void main() async {
         id: 1,
         messageId: originalMessage.id,
         messageIds: [originalMessage.id],
-        flags: ["starred"],
+        flags: [MessageFlag.starred],
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
         isMeMessage: true,

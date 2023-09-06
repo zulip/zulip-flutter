@@ -3,6 +3,8 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
 
 import '../../example_data.dart' as eg;
+import '../../stdlib_checks.dart';
+import 'model_checks.dart';
 
 void main() {
   group('User', () {
@@ -44,6 +46,22 @@ void main() {
       check(mkUser({}).isSystemBot).isNull();
       check(mkUser({'is_cross_realm_bot': true}).isSystemBot).equals(true);
       check(mkUser({'is_system_bot': true}).isSystemBot).equals(true);
+    });
+  });
+
+  group('Message', () {
+    test('no crash on unrecognized flag', () {
+      final m1 = Message.fromJson(
+        (deepToJson(eg.streamMessage()) as Map<String, dynamic>)
+          ..['flags'] = ['read', 'something_unknown'],
+      );
+      check(m1).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+
+      final m2 = Message.fromJson(
+        (deepToJson(eg.dmMessage(from: eg.selfUser, to: [eg.otherUser])) as Map<String, dynamic>)
+          ..['flags'] = ['read', 'something_unknown'],
+      );
+      check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
     });
   });
 

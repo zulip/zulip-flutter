@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/api/model/model.dart';
 
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
@@ -11,15 +12,15 @@ import 'model_checks.dart';
 void main() {
   test('message: move flags into message object', () {
     final message = eg.streamMessage();
-    MessageEvent mkEvent(List<String> flags) => Event.fromJson({
+    MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
       'type': 'message',
       'id': 1,
       'message': message.toJson()..remove('flags'),
-      'flags': flags,
+      'flags': flags.map((f) => f.toJson()).toList(),
     }) as MessageEvent;
     check(mkEvent(message.flags)).message.jsonEquals(message);
     check(mkEvent([])).message.flags.deepEquals([]);
-    check(mkEvent(['read'])).message.flags.deepEquals(['read']);
+    check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
   });
 
   test('user_settings: all known settings have event handling', () {

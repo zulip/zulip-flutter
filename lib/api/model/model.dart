@@ -271,9 +271,15 @@ sealed class Message {
 
   // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
-  List<String> flags; // TODO enum
+  @JsonKey(fromJson: _flagsFromJson)
+  List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
   final String? matchContent;
   final String? matchSubject;
+
+  static List<MessageFlag> _flagsFromJson(dynamic json) {
+    final list = json as List<dynamic>;
+    return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
+  }
 
   Message({
     required this.client,
@@ -303,6 +309,32 @@ sealed class Message {
   }
 
   Map<String, dynamic> toJson();
+}
+
+/// As in [Message.flags].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum MessageFlag {
+  read,
+  starred,
+  collapsed,
+  mentioned,
+  wildcardMentioned,
+  hasAlertWord,
+  historical,
+  unknown;
+
+  /// Get a [MessageFlag] from a raw, snake-case string.
+  ///
+  /// Will be [MessageFlag.unknown] if we don't recognize the string.
+  ///
+  /// Example:
+  ///   'wildcard_mentioned' -> Flag.wildcardMentioned
+  static MessageFlag fromRawString(String raw) => _byRawString[raw] ?? unknown;
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
+  static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
+
+  String toJson() => _$MessageFlagEnumMap[this]!;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

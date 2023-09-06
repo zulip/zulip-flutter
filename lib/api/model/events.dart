@@ -341,7 +341,7 @@ class UpdateMessageEvent extends Event {
   final bool? renderingOnly; // TODO(server-5)
   final int messageId;
   final List<int> messageIds;
-  final List<String> flags; // TODO enum
+  final List<MessageFlag> flags;
   final int? editTimestamp; // TODO(server-5)
   final String? streamName;
   final int? streamId;

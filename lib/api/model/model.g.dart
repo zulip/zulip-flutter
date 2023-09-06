@@ -196,7 +196,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       senderRealmStr: json['sender_realm_str'] as String,
       subject: json['subject'] as String,
       timestamp: json['timestamp'] as int,
-      flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
       matchSubject: json['match_subject'] as String?,
       displayRecipient: json['display_recipient'] as String,
@@ -257,7 +257,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       senderRealmStr: json['sender_realm_str'] as String,
       subject: json['subject'] as String,
       timestamp: json['timestamp'] as int,
-      flags: (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
+      flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
       matchSubject: json['match_subject'] as String?,
       displayRecipient: const DmRecipientListConverter()
@@ -305,4 +305,15 @@ const _$ReactionTypeEnumMap = {
   ReactionType.unicodeEmoji: 'unicode_emoji',
   ReactionType.realmEmoji: 'realm_emoji',
   ReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
+};
+
+const _$MessageFlagEnumMap = {
+  MessageFlag.read: 'read',
+  MessageFlag.starred: 'starred',
+  MessageFlag.collapsed: 'collapsed',
+  MessageFlag.mentioned: 'mentioned',
+  MessageFlag.wildcardMentioned: 'wildcard_mentioned',
+  MessageFlag.hasAlertWord: 'has_alert_word',
+  MessageFlag.historical: 'historical',
+  MessageFlag.unknown: 'unknown',
 };

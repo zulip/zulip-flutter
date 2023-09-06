@@ -6,7 +6,7 @@ extension MessageChecks on Subject<Message> {
   Subject<bool> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');
   Subject<int?> get lastEditTimestamp => has((e) => e.lastEditTimestamp, 'lastEditTimestamp');
   Subject<List<Reaction>> get reactions => has((e) => e.reactions, 'reactions');
-  Subject<List<String>> get flags => has((e) => e.flags, 'flags');
+  Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
 
   // TODO accessors for other fields
 }
