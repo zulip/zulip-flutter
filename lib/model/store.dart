@@ -267,6 +267,10 @@ class PerAccountStore extends ChangeNotifier {
         } else {
           profileData.remove(update.id);
         }
+        if (profileData.isEmpty) {
+          // null is equivalent to `{}` for efficiency; see [User._readProfileData].
+          user.profileData = null;
+        }
       }
       autocompleteViewManager.handleRealmUserUpdateEvent(event);
       notifyListeners();
