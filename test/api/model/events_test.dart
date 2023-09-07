@@ -42,4 +42,22 @@ void main() {
     check(mkEvent([])).message.flags.deepEquals([]);
     check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
   });
+
+  test('update_message_flags/remove: require messageDetails in mark-as-unread', () {
+    final baseJson = {
+      'id': 1,
+      'type': 'update_message_flags',
+      'op': 'remove',
+      'flag': 'starred',
+      'messages': [123],
+      'all': false,
+    };
+    check(() => UpdateMessageFlagsRemoveEvent.fromJson(baseJson)).returnsNormally();
+    check(() => UpdateMessageFlagsRemoveEvent.fromJson({
+      ...baseJson, 'flag': 'read',
+    })).throws();
+    check(() => UpdateMessageFlagsRemoveEvent.fromJson({
+      ...baseJson, 'message_details': {'123': {'type': 'private', 'mentioned': false, 'user_ids': [2]}},
+    })).returnsNormally();
+  });
 }

@@ -309,6 +309,9 @@ class PerAccountStore extends ChangeNotifier {
     } else if (event is DeleteMessageEvent) {
       assert(debugLog("server event: delete_message ${event.messageIds}"));
       // TODO handle
+    } else if (event is UpdateMessageFlagsEvent) {
+      assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
+      // TODO handle
     } else if (event is ReactionEvent) {
       assert(debugLog("server event: reaction/${event.op}"));
       for (final view in _messageListViews) {

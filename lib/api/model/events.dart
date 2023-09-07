@@ -40,6 +40,12 @@ sealed class Event {
       case 'message': return MessageEvent.fromJson(json);
       case 'update_message': return UpdateMessageEvent.fromJson(json);
       case 'delete_message': return DeleteMessageEvent.fromJson(json);
+      case 'update_message_flags':
+        switch (json['op'] as String) {
+          case 'add': return UpdateMessageFlagsAddEvent.fromJson(json);
+          case 'remove': return UpdateMessageFlagsRemoveEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'reaction': return ReactionEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -439,11 +445,120 @@ class DeleteMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
 }
 
-/// As in [DeleteMessageEvent.messageType].
+/// As in [DeleteMessageEvent.messageType]
+/// or [UpdateMessageFlagsMessageDetail.type].
 @JsonEnum(fieldRename: FieldRename.snake)
 enum MessageType {
   stream,
   private;
+}
+
+/// A Zulip event of type `update_message_flags`.
+///
+/// For the corresponding API docs, see subclasses.
+sealed class UpdateMessageFlagsEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'update_message_flags';
+
+  String get op;
+
+  @JsonKey(unknownEnumValue: MessageFlag.unknown)
+  final MessageFlag flag;
+  final List<int> messages;
+
+  UpdateMessageFlagsEvent({
+    required super.id,
+    required this.flag,
+    required this.messages,
+  });
+}
+
+/// An [UpdateMessageFlagsEvent] with op `add`: https://zulip.com/api/get-events#update_message_flags-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageFlagsAddEvent extends UpdateMessageFlagsEvent {
+  @override
+  String get op => 'add';
+
+  final bool all;
+
+  UpdateMessageFlagsAddEvent({
+    required super.id,
+    required super.flag,
+    required super.messages,
+    required this.all,
+  });
+
+  factory UpdateMessageFlagsAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$UpdateMessageFlagsAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UpdateMessageFlagsAddEventToJson(this);
+}
+
+/// An [UpdateMessageFlagsEvent] with op `remove`: https://zulip.com/api/get-events#update_message_flags-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
+  @override
+  String get op => 'remove';
+
+  // final bool all; // deprecated, ignore
+  final Map<int, UpdateMessageFlagsMessageDetail>? messageDetails;
+
+  UpdateMessageFlagsRemoveEvent({
+    required super.id,
+    required super.flag,
+    required super.messages,
+    required this.messageDetails,
+  });
+
+  factory UpdateMessageFlagsRemoveEvent.fromJson(Map<String, dynamic> json) {
+    final result = _$UpdateMessageFlagsRemoveEventFromJson(json);
+    // Crunchy-shell validation
+    if (
+      result.flag == MessageFlag.read
+      && true // (we assume `event_types` has `message` and `update_message_flags`)
+    ) {
+      result.messageDetails as Map<int, UpdateMessageFlagsMessageDetail>;
+    }
+    return result;
+  }
+
+  @override
+  Map<String, dynamic> toJson() => _$UpdateMessageFlagsRemoveEventToJson(this);
+}
+
+/// As in [UpdateMessageFlagsRemoveEvent.messageDetails].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageFlagsMessageDetail {
+  final MessageType type;
+  final bool? mentioned;
+  final List<int>? userIds;
+  final int? streamId;
+  final String? topic;
+
+  UpdateMessageFlagsMessageDetail({
+    required this.type,
+    required this.mentioned,
+    required this.userIds,
+    required this.streamId,
+    required this.topic,
+  });
+
+  factory UpdateMessageFlagsMessageDetail.fromJson(Map<String, dynamic> json) {
+    final result = _$UpdateMessageFlagsMessageDetailFromJson(json);
+    // Crunchy-shell validation
+    switch (result.type) {
+      case MessageType.stream:
+        result.streamId as int;
+        result.topic as String;
+      case MessageType.private:
+        result.userIds as List<int>;
+    }
+    return result;
+  }
+
+  Map<String, dynamic> toJson() => _$UpdateMessageFlagsMessageDetailToJson(this);
 }
 
 /// A Zulip event of type `reaction`, with op `add` or `remove`.

@@ -275,6 +275,75 @@ const _$MessageTypeEnumMap = {
   MessageType.private: 'private',
 };
 
+UpdateMessageFlagsAddEvent _$UpdateMessageFlagsAddEventFromJson(
+        Map<String, dynamic> json) =>
+    UpdateMessageFlagsAddEvent(
+      id: json['id'] as int,
+      flag: $enumDecode(_$MessageFlagEnumMap, json['flag'],
+          unknownValue: MessageFlag.unknown),
+      messages:
+          (json['messages'] as List<dynamic>).map((e) => e as int).toList(),
+      all: json['all'] as bool,
+    );
+
+Map<String, dynamic> _$UpdateMessageFlagsAddEventToJson(
+        UpdateMessageFlagsAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'flag': instance.flag,
+      'messages': instance.messages,
+      'all': instance.all,
+    };
+
+UpdateMessageFlagsRemoveEvent _$UpdateMessageFlagsRemoveEventFromJson(
+        Map<String, dynamic> json) =>
+    UpdateMessageFlagsRemoveEvent(
+      id: json['id'] as int,
+      flag: $enumDecode(_$MessageFlagEnumMap, json['flag'],
+          unknownValue: MessageFlag.unknown),
+      messages:
+          (json['messages'] as List<dynamic>).map((e) => e as int).toList(),
+      messageDetails: (json['message_details'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(
+            int.parse(k),
+            UpdateMessageFlagsMessageDetail.fromJson(
+                e as Map<String, dynamic>)),
+      ),
+    );
+
+Map<String, dynamic> _$UpdateMessageFlagsRemoveEventToJson(
+        UpdateMessageFlagsRemoveEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'flag': instance.flag,
+      'messages': instance.messages,
+      'message_details':
+          instance.messageDetails?.map((k, e) => MapEntry(k.toString(), e)),
+    };
+
+UpdateMessageFlagsMessageDetail _$UpdateMessageFlagsMessageDetailFromJson(
+        Map<String, dynamic> json) =>
+    UpdateMessageFlagsMessageDetail(
+      type: $enumDecode(_$MessageTypeEnumMap, json['type']),
+      mentioned: json['mentioned'] as bool?,
+      userIds:
+          (json['user_ids'] as List<dynamic>?)?.map((e) => e as int).toList(),
+      streamId: json['stream_id'] as int?,
+      topic: json['topic'] as String?,
+    );
+
+Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
+        UpdateMessageFlagsMessageDetail instance) =>
+    <String, dynamic>{
+      'type': _$MessageTypeEnumMap[instance.type]!,
+      'mentioned': instance.mentioned,
+      'user_ids': instance.userIds,
+      'stream_id': instance.streamId,
+      'topic': instance.topic,
+    };
+
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: json['id'] as int,
