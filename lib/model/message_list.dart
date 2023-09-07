@@ -420,6 +420,35 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     notifyListeners();
   }
 
+  void maybeUpdateMessageFlags(UpdateMessageFlagsEvent event) {
+    final isAdd = switch (event) {
+      UpdateMessageFlagsAddEvent()    => true,
+      UpdateMessageFlagsRemoveEvent() => false,
+    };
+
+    bool didUpdateAny = false;
+    if (isAdd && (event as UpdateMessageFlagsAddEvent).all) {
+      for (final message in messages) {
+        message.flags.add(event.flag);
+        didUpdateAny = true;
+      }
+    } else {
+      for (final messageId in event.messages) {
+        final index = _findMessageWithId(messageId);
+        if (index != -1) {
+          final message = messages[index];
+          isAdd ? message.flags.add(event.flag) : message.flags.remove(event.flag);
+          didUpdateAny = true;
+        }
+      }
+    }
+    if (!didUpdateAny) {
+      return;
+    }
+
+    notifyListeners();
+  }
+
   void maybeUpdateMessageReactions(ReactionEvent event) {
     final index = _findMessageWithId(event.messageId);
     if (index == -1) {

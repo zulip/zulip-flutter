@@ -439,6 +439,137 @@ void main() async {
     });
   });
 
+  group('maybeUpdateMessageFlags', () {
+    UpdateMessageFlagsAddEvent mkAddEvent(
+      MessageFlag flag,
+      List<int> messageIds, {
+      bool all = false,
+    }) {
+      return UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: flag,
+        messages: messageIds,
+        all: all,
+      );
+    }
+
+    UpdateMessageFlagsRemoveEvent mkRemoveEvent(MessageFlag flag, List<Message> messages) {
+      final messageDetails = Map.fromEntries(messages.map((message) {
+        final mentioned = message.flags.contains(MessageFlag.mentioned)
+          || message.flags.contains(MessageFlag.wildcardMentioned);
+        return MapEntry(
+          message.id,
+          switch (message) {
+            StreamMessage() => UpdateMessageFlagsMessageDetail(
+              type: MessageType.stream,
+              mentioned: mentioned,
+              streamId: message.streamId,
+              topic: message.subject,
+              userIds: null,
+            ),
+            DmMessage() => UpdateMessageFlagsMessageDetail(
+              type: MessageType.private,
+              mentioned: mentioned,
+              streamId: null,
+              topic: null,
+              userIds: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId).otherRecipientIds,
+            ),
+          });
+      }));
+
+      return UpdateMessageFlagsRemoveEvent(
+        id: 1,
+        flag: flag,
+        messages: messages.map((m) => m.id).toList(),
+        messageDetails: messageDetails,
+      );
+    }
+
+    group('add flag', () {
+      test('not in list', () async {
+        prepare();
+        final message = eg.streamMessage(id: 1, flags: []);
+        await prepareMessages(foundOldest: true, messages: [message]);
+        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
+        checkNotNotified();
+        check(model).messages.single.flags.deepEquals([]);
+      });
+
+      test('affected message, unaffected message, absent message', () async {
+        prepare();
+        final message1 = eg.streamMessage(id: 1, flags: []);
+        final message2 = eg.streamMessage(id: 2, flags: []);
+        await prepareMessages(foundOldest: true, messages: [message1, message2]);
+        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [message2.id, 3]));
+        checkNotifiedOnce();
+        check(model).messages
+          ..[0].flags.deepEquals([])
+          ..[1].flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('all: true, list non-empty', () async {
+        prepare();
+        final message1 = eg.streamMessage(id: 1, flags: []);
+        final message2 = eg.streamMessage(id: 2, flags: []);
+        await prepareMessages(foundOldest: true, messages: [message1, message2]);
+        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [], all: true));
+        checkNotifiedOnce();
+        check(model).messages
+          ..[0].flags.deepEquals([MessageFlag.read])
+          ..[1].flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('all: true, list empty', () async {
+        prepare();
+        await prepareMessages(foundOldest: true, messages: []);
+        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [], all: true));
+        checkNotNotified();
+      });
+
+      test('other flags not clobbered', () async {
+        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        prepare();
+        await prepareMessages(foundOldest: true, messages: [message]);
+        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [message.id]));
+        checkNotifiedOnce();
+        check(model).messages.single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
+      });
+    });
+
+    group('remove flag', () {
+      test('not in list', () async {
+        prepare();
+        final message = eg.streamMessage(id: 1, flags: [MessageFlag.read]);
+        await prepareMessages(foundOldest: true, messages: [message]);
+        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
+        checkNotNotified();
+        check(model).messages.single.flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('affected message, unaffected message, absent message', () async {
+        prepare();
+        final message1 = eg.streamMessage(id: 1, flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(id: 2, flags: [MessageFlag.read]);
+        final message3 = eg.streamMessage(id: 3, flags: [MessageFlag.read]);
+        await prepareMessages(foundOldest: true, messages: [message1, message2]);
+        model.maybeUpdateMessageFlags(mkRemoveEvent(MessageFlag.read, [message2, message3]));
+        checkNotifiedOnce();
+        check(model).messages
+          ..[0].flags.deepEquals([MessageFlag.read])
+          ..[1].flags.deepEquals([]);
+      });
+
+      test('other flags not affected', () async {
+        final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
+        prepare();
+        await prepareMessages(foundOldest: true, messages: [message]);
+        model.maybeUpdateMessageFlags(mkRemoveEvent(MessageFlag.read, [message]));
+        checkNotifiedOnce();
+        check(model).messages.single.flags.deepEquals([MessageFlag.starred]);
+      });
+    });
+  });
+
   test('reassemble', () async {
     final stream = eg.stream();
     prepare(narrow: StreamNarrow(stream.streamId));
