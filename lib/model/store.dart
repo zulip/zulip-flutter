@@ -161,6 +161,8 @@ class PerAccountStore extends ChangeNotifier {
          .map((user) => MapEntry(user.userId, user))),
        streams = Map.fromEntries(initialSnapshot.streams.map(
          (stream) => MapEntry(stream.streamId, stream))),
+       streamsByName = Map.fromEntries(initialSnapshot.streams.map(
+         (stream) => MapEntry(stream.name, stream))),
        subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
          (subscription) => MapEntry(subscription.streamId, subscription))),
        recentDmConversationsView = RecentDmConversationsView(
@@ -185,6 +187,7 @@ class PerAccountStore extends ChangeNotifier {
 
   // Streams, topics, and stuff about them.
   final Map<int, ZulipStream> streams;
+  final Map<String, ZulipStream> streamsByName;
   final Map<int, Subscription> subscriptions;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
@@ -285,6 +288,7 @@ class PerAccountStore extends ChangeNotifier {
     } else if (event is StreamCreateEvent) {
       assert(debugLog("server event: stream/create"));
       streams.addEntries(event.streams.map((stream) => MapEntry(stream.streamId, stream)));
+      streamsByName.addEntries(event.streams.map((stream) => MapEntry(stream.name, stream)));
       // (Don't touch `subscriptions`. If the user is subscribed to the stream,
       // details will come in a later `subscription` event.)
       notifyListeners();
@@ -292,6 +296,7 @@ class PerAccountStore extends ChangeNotifier {
       assert(debugLog("server event: stream/delete"));
       for (final stream in event.streams) {
         streams.remove(stream.streamId);
+        streamsByName.remove(stream.name);
         subscriptions.remove(stream.streamId);
       }
       notifyListeners();
