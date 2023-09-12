@@ -438,8 +438,15 @@ class DeleteMessageEvent extends Event {
     this.topic,
   });
 
-  factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) =>
-    _$DeleteMessageEventFromJson(json);
+  factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
+    final result = _$DeleteMessageEventFromJson(json);
+    // Crunchy-shell validation
+    if (result.messageType == MessageType.stream) {
+      result.streamId as int;
+      result.topic as String;
+    }
+    return result;
+  }
 
   @override
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);

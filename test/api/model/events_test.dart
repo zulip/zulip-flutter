@@ -43,6 +43,38 @@ void main() {
     check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
   });
 
+  test('delete_message: require streamId and topic for stream messages', () {
+    check(() => DeleteMessageEvent.fromJson({
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'private',
+    })).returnsNormally();
+
+    final baseJsonStream = {
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'stream',
+    };
+
+    check(() => DeleteMessageEvent.fromJson({
+      ...baseJsonStream
+    })).throws();
+
+    check(() => DeleteMessageEvent.fromJson({
+      ...baseJsonStream, 'stream_id': 1, 'topic': 'some topic',
+    })).returnsNormally();
+
+    check(() => DeleteMessageEvent.fromJson({
+      ...baseJsonStream, 'stream_id': 1,
+    })).throws();
+
+    check(() => DeleteMessageEvent.fromJson({
+      ...baseJsonStream, 'topic': 'some topic',
+    })).throws();
+  });
+
   test('update_message_flags/remove: require messageDetails in mark-as-unread', () {
     final baseJson = {
       'id': 1,
