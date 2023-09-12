@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/internal_link.dart';
 
 import '../example_data.dart' as eg;
 import 'test_store.dart';
