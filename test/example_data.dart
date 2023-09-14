@@ -155,7 +155,7 @@ StreamMessage streamMessage({
   int? lastEditTimestamp,
   List<Reaction>? reactions,
   int? timestamp,
-  List<String>? flags,
+  List<MessageFlag>? flags,
 }) {
   final effectiveStream = stream ?? _stream();
   // The use of JSON here is convenient in order to delegate parts of the data
@@ -191,7 +191,7 @@ DmMessage dmMessage({
   String? contentMarkdown,
   int? lastEditTimestamp,
   int? timestamp,
-  List<String>? flags,
+  List<MessageFlag>? flags,
 }) {
   assert(!to.any((user) => user.userId == from.userId));
   return DmMessage.fromJson({
