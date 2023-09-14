@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'page.dart';
@@ -30,8 +31,9 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text("About Zulip")),
+      appBar: AppBar(title: Text(zulipLocalizations.aboutPageTitle)),
       body: SingleChildScrollView(
         child: SafeArea(
           minimum: const EdgeInsets.all(8), // ListView pads vertical
@@ -40,11 +42,11 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ListTile(
-                  title: const Text('App version'),
+                  title: Text(zulipLocalizations.aboutPageAppVersion),
                   subtitle: Text(_packageInfo?.version ?? '(…)')),
                 ListTile(
-                  title: const Text('Open-source licenses'),
-                  subtitle: const Text('Tap to view'),
+                  title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
+                  subtitle: Text(zulipLocalizations.aboutPageTapToView),
                   onTap: () {
                     // TODO(upstream?): This route and its child routes (pushed
                     //   when you tap a package to view its licenses) can't be

@@ -1,4 +1,20 @@
 {
+  "aboutPageTitle": "About Zulip",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page"
+  },
+  "aboutPageAppVersion": "App version",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "Open-source licenses",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Section heading in About Zulip page to navigate to Open-source Licenses page"
+  },
+  "aboutPageTapToView": "Tap to view",
+  "@aboutPageTapToView": {
+    "description": "Button label in About Zulip page to navigate to Open-source Licenses page"
+  },
   "chooseAccountPageTitle": "Choose account",
   "@chooseAccountPageTitle": {
     "description": "Title for ChooseAccountPage"
