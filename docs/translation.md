@@ -1,26 +1,43 @@
 # Translations
 
 Our goal is for this app to be localized and offered in many
-languages, just like zulip-mobile and zulip web.
+languages, just like zulip-mobile and Zulip web.
+
 
 ## Current state
 
-Currently in place is integration with `flutter_localizations`
-package, allowing all flutter UI elements to be localized
+We have a framework set up that makes it possible for UI strings
+to be translated.  (This was issue #275.)  This means that when
+adding new strings to the UI, instead of using a constant string
+in English we'll add the string to that framework.
+For details, see below.
 
-Per the discussion in #275 the approach here is to start with
-ARB files and have dart autogenerate the bindings. I believe
-this is the most straightforward way when connecting with a
-translation management system, as they output ARB files that
-we consume (this is also the same way web and mobile works
-but with .po or .json files, I believe).
+At present not all of the codebase has been migrated to use the framework,
+so you'll see some existing code that uses constant strings.
+Fixing that is issue #277.
 
-## Adding new strings
+At present we don't have the strings wired up to a platform for
+people to contribute translations.  That's issue #276.
+Until then, we have only a handful of strings actually translated,
+just to make it possible to demonstrate the framework
+is working correctly.
 
-Add the appropriate entry in `assets/l10n/app_en.arb` ensuring
-you add a corresponding resource attribute describing the
-string in context. Example:
 
+## Adding new UI strings
+
+### Adding a string to the translation database
+
+To add a new string in the UI, start by
+adding an entry in the ARB file `assets/l10n/app_en.arb`.
+This includes a name that you choose for the string,
+its value in English,
+and a "resource attribute" describing the string in context.
+The name will become an identifier in our Dart code.
+The description will provide context for people contributing translations.
+
+For example, this entry describes a UI string
+named `profileButtonSendDirectMessage`
+which appears in English as "Send direct message":
 ```
   "profileButtonSendDirectMessage": "Send direct message",
   "@profileButtonSendDirectMessage": {
@@ -28,39 +45,54 @@ string in context. Example:
   },
 ```
 
-The bindings are automatically generated when you execute
-`flutter run` although you can also manually trigger it
-using `flutter gen-l10n`.
+Then run the app (with `flutter run` or in your IDE),
+or perform a hot reload,
+to cause the Dart bindings to be updated based on your
+changes to the ARB file.
+(You can also trigger an update directly, with `flutter gen-l10n`.)
 
-Untranslated strings will be included in a generated
-`build/untranslated_messages.json` file. This output
-awaits #276.
 
-## Using in code
+### Using a translated string in the code
 
-To utilize in our widgets you need to import the generated
-bindings:
+To use in our widgets, you need to import the generated bindings:
 ```
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 ```
 
-And in your widget code pull the localizations out of the context:
+Then in your widget code, pull the localizations object
+off of the Flutter build context:
 ```
 Widget build(BuildContext context) {
   final zulipLocalizations = ZulipLocalizations.of(context);
 ```
 
-And finally access one of the generated properties:
-`Text(zulipLocalizations.chooseAccountButtonAddAnAccount)`.
+Finally, on the localizations object use the getter
+that was generated for the new string:
+`Text(zulipLocalizations.profileButtonSendDirectMessage)`.
 
-String that take placeholders are generated as functions
-that take arguments: `zulipLocalizations.subscribedToNStreams(store.subscriptions.length)`
 
-## Hack to enforce locale (for testing, etc)
+### Strings with placeholders
 
-To manually trigger a locale change for testing I've found
-it helpful to add the `localeResolutionCallback` in
-`app.dart` to enforce a particular locale:
+When a UI string is a constant per language, with no placeholders,
+the generated Dart code provides a simple getter, as seen above.
+
+When the string takes a placeholder,
+the generated Dart binding for it will instead be a function,
+taking arguments corresponding to the placeholders.
+
+For example:
+`zulipLocalizations.subscribedToNStreams(store.subscriptions.length)`.
+
+
+## Hack to enforce locale (for testing, etc.)
+
+For testing the app's behavior in different locales,
+you can use your device's system settings to
+change the preferred language.
+
+Alternatively, you may find it helpful to
+pass a `localeResolutionCallback` to the `MaterialApp` in `app.dart`
+to enforce a particular locale:
 
 ```
 return GlobalStoreWidget(
@@ -75,16 +107,20 @@ return GlobalStoreWidget(
     home: const ChooseAccountPage()));
 ```
 
-(careful that returning a locale not in `supportedLocales`
-will crash, the default behavior ensures a fallback is
-always selected)
+(When using this hack, returning a locale not in `supportedLocales` will
+cause a crash.
+The default behavior without `localeResolutionCallback` ensures
+a fallback is always selected.)
+
 
 ## Tests
 
-Widgets that access localization will fail if the root
-`MaterialApp` given in the setup isn't also set up with
-localizations. Make sure to add the right
-`localizationDelegates` and `supportedLocales`:
+Widgets that access localizations will fail if
+the ambient `MaterialApp` isn't set up for localizations.
+For the `MaterialApp` used in the app, we do this in `app.dart`.
+In tests, this typically requires a test's setup code to provide
+arguments `localizationDelegates` and `supportedLocales`.
+For example:
 
 ```
   await tester.pumpWidget(
@@ -95,3 +131,21 @@ localizations. Make sure to add the right
         supportedLocales: ZulipLocalizations.supportedLocales,
         home: PerAccountStoreWidget(
 ```
+
+
+## Other notes
+
+Our approach uses the `flutter_localizations` package.
+We use the `gen_l10n` way, where we write ARB files
+and the tool generates the Dart bindings.
+
+As discussed in issue #275, the other way around was
+also an option.  But this way seems most straightforward
+when connecting with a translation management system,
+as they output ARB files that we consume.
+This also parallels how zulip-mobile works with `.json` files
+(and Zulip web, and the Zulip server with `.po` files?)
+
+A file `build/untranslated_messages.json` is emitted
+whenever the Dart bindings are generated from the ARB files.
+This output awaits #276.

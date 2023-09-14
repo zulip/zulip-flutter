@@ -9,11 +9,11 @@
   },
   "aboutPageOpenSourceLicenses": "Open-source licenses",
   "@aboutPageOpenSourceLicenses": {
-    "description": "Section heading in About Zulip page to navigate to Open-source Licenses page"
+    "description": "Item title in About Zulip page to navigate to Licenses page"
   },
   "aboutPageTapToView": "Tap to view",
   "@aboutPageTapToView": {
-    "description": "Button label in About Zulip page to navigate to Open-source Licenses page"
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
   },
   "chooseAccountPageTitle": "Choose account",
   "@chooseAccountPageTitle": {

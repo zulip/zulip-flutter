@@ -145,14 +145,10 @@ The generated files that most frequently need an update are
 run `flutter pub get && flutter build ios --config-only && flutter build macos --config-only`.
 
 
-### Translation
+### Translations and i18n
 
-We currently have a framework for string translation in place that
-incorporates the `flutter_localizations` package and has some
-example usages.
-
-For information on how the dart bindings are generated and how
-to add new strings, refer to the [translation docs](docs/translation.md).
+When adding new strings in the UI, we set them up to be translated.
+For details on how to do this, see the [translation doc](docs/translation.md).
 
 
 ## License
