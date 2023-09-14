@@ -9,6 +9,10 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 
+extension ListChecks<T> on Subject<List<T>> {
+  Subject<T> operator [](int index) => has((l) => l[index], '[$index]');
+}
+
 extension NullableMapChecks<K, V> on Subject<Map<K, V>?> {
   void deepEquals(Map<Object?, Object?>? expected) {
     if (expected == null) {
