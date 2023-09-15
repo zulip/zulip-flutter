@@ -8,13 +8,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../test_images.dart';
+import '../test_navigation.dart';
 import 'dialog_checks.dart';
+import 'message_list_checks.dart';
+import 'page_checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -155,6 +161,53 @@ void main() {
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('file:///etc/bad'), mode: expectedModeAndroid));
       checkErrorDialog(tester, expectedTitle: 'Unable to open link');
+    });
+  });
+
+  group('LinkNode on internal links', () {
+    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, {
+      required String html,
+    }) async {
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        streams: [eg.stream(streamId: 1, name: 'check')],
+      ));
+      addTearDown(testBinding.reset);
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        navigatorObservers: [testNavObserver],
+        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: BlockContentList(nodes: parseContent(html).nodes)))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+      // `tester.pumpWidget` introduces an initial route, remove so
+      // consumers only have newly pushed routes.
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.removeLast();
+      return pushedRoutes;
+    }
+
+    testWidgets('valid internal links are navigated to within app', (tester) async {
+      final pushedRoutes = await prepareContent(tester,
+        html: '<p><a href="/#narrow/stream/1-check">stream</a></p>');
+
+      await tester.tap(find.text('stream'));
+      check(testBinding.takeLaunchUrlCalls()).isEmpty();
+      check(pushedRoutes).single.isA<WidgetRoute>()
+        .page.isA<MessageListPage>().narrow.equals(const StreamNarrow(1));
+    });
+
+    testWidgets('invalid internal links are opened in browser', (tester) async {
+      // Link is invalid due to `topic` operator missing an operand.
+      final pushedRoutes = await prepareContent(tester,
+        html: '<p><a href="/#narrow/stream/1-check/topic">invalid</a></p>');
+
+      await tester.tap(find.text('invalid'));
+      final expectedUrl = eg.realmUrl.resolve('/#narrow/stream/1-check/topic');
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: expectedUrl, mode: LaunchMode.externalApplication));
+      check(pushedRoutes).isEmpty();
     });
   });
 

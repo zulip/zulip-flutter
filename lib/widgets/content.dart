@@ -12,6 +12,7 @@ import '../model/store.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'lightbox.dart';
+import 'message_list.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -665,6 +666,14 @@ void _launchUrl(BuildContext context, String urlString) async {
   final url = tryResolveOnRealmUrl(urlString, store.account.realmUrl);
   if (url == null) { // TODO(log)
     await showError(context, null);
+    return;
+  }
+
+  final internalNarrow = parseInternalLink(url, store);
+  if (internalNarrow != null) {
+    Navigator.push(context,
+      MessageListPage.buildRoute(context: context,
+        narrow: internalNarrow));
     return;
   }
 
