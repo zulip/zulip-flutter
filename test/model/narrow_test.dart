@@ -90,6 +90,20 @@ void main() {
           selfUserId: 5));
     });
 
+    test('withUsers: without selfUserId', () {
+      final actual = DmNarrow.withUsers([1, 2], selfUserId: 3);
+      check(actual).equals(DmNarrow(
+          allRecipientIds: [1, 2, 3],
+          selfUserId: 3));
+    });
+
+    test('withUsers: with selfUserId', () {
+      final actual = DmNarrow.withUsers([1, 2, 3], selfUserId: 3);
+      check(actual).equals(DmNarrow(
+          allRecipientIds: [1, 2, 3],
+          selfUserId: 3));
+    });
+
     test('otherRecipientIds', () {
       check(DmNarrow(allRecipientIds: [1, 2, 3], selfUserId: 2))
         .otherRecipientIds.deepEquals([1, 3]);
