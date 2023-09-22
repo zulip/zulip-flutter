@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-// ignore_for_file: unnecessary_cast
+// ignore_for_file: constant_identifier_names, unnecessary_cast
 
 part of 'database.dart';
 
