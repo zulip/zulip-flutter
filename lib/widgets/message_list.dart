@@ -536,7 +536,7 @@ final _kRecipientHeaderDateStyle = TextStyle(
   color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
 );
 
-final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(i18n)
+final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(#278)
 
 /// A widget with the distinctive chevron-tailed shape in Zulip recipient headers.
 class RecipientHeaderChevronContainer extends StatelessWidget {
