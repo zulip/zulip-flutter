@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
@@ -70,12 +71,13 @@ class _CopyLinkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return IconButton(
-      tooltip: 'Copy link',
+      tooltip: zulipLocalizations.lightboxCopyLinkTooltip,
       icon: const Icon(Icons.copy),
       onPressed: () async {
-        // TODO(i18n)
-        copyWithPopup(context: context, successContent: const Text('Link copied'),
+        copyWithPopup(context: context,
+          successContent: Text(zulipLocalizations.successLinkCopied),
           data: ClipboardData(text: url.toString()));
       });
   }
@@ -136,7 +138,7 @@ class _LightboxPageState extends State<_LightboxPage> {
     if (_headerFooterVisible) {
       // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
       final timestampText = DateFormat
-        .yMMMd(/* TODO(i18n): Pass selected language here, I think? */)
+        .yMMMd(/* TODO(#278): Pass selected language here, I think? */)
         .add_Hms()
         .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
 
