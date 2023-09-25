@@ -39,6 +39,38 @@
   "@cameraAccessDeniedButtonText": {
     "description": "Message for dialog when the user needs to grant permissions for camera access."
   },
+  "actionSheetOptionCopy": "Copy message text",
+  "@actionSheetOptionCopy":  {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionShare": "Share",
+  "@actionSheetOptionShare":  {
+    "description": "Label for share button on action sheet."
+  },
+  "actionSheetOptionQuoteAndReply": "Quote and reply",
+  "@actionSheetOptionQuoteAndReply":  {
+    "description": "Label for Quote and reply button on action sheet."
+  },
+  "errorCouldNotFetchMessageSource": "Could not fetch message source",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorCopyingFailed": "Copying failed",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the users system clipboard failed."
+  },
+  "errorMessageDoesNotSeemToExist": "That message does not seem to exist.",
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "errorQuotationFailed": "Quotation failed",
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "successMessageCopied": "Message Copied",
+  "@successMessageCopied": {
+    "description": "Message when content of a message was copied to the users system clipboard."
+  },
   "subscribedToNStreams": "Subscribed to {num, plural, =0{no streams} =1{1 stream} other{{num} streams}}",
   "@subscribedToNStreams": {
     "description": "Test page label showing number of streams user is subscribed to.",

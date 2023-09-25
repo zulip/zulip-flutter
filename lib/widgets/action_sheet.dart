@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../api/exception.dart';
@@ -43,7 +44,7 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   }) : assert(messageListContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
 
   IconData get icon;
-  String get label;
+  String label(ZulipLocalizations zulipLocalizations);
   void Function(BuildContext) get onPressed;
 
   final Message message;
@@ -51,10 +52,11 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return MenuItemButton(
       leadingIcon: Icon(icon),
       onPressed: () => onPressed(context),
-      child: Text(label));
+      child: Text(label(zulipLocalizations)));
   }
 }
 
@@ -67,7 +69,10 @@ class ShareButton extends MessageActionSheetMenuItemButton {
 
   @override get icon => Icons.adaptive.share;
 
-  @override get label => 'Share';
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionShare;
+  }
 
   @override get onPressed => (BuildContext context) async {
     // Close the message action sheet; we're about to show the share
@@ -104,13 +109,14 @@ Future<String?> fetchRawContentWithFeedback({
     // - If request(s) take(s) a long time, show snackbar with cancel
     //   button, like "Still working on quote-and-reply…".
     //   On final failure or success, auto-dismiss the snackbar.
+    final zulipLocalizations = ZulipLocalizations.of(context);
     try {
       fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
         messageId: messageId,
         applyMarkdown: false,
       );
       if (fetchedMessage == null) {
-        errorMessage = 'That message does not seem to exist.';
+        errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
       }
     } catch (e) {
       switch (e) {
@@ -119,7 +125,7 @@ Future<String?> fetchRawContentWithFeedback({
         // TODO specific messages for common errors, like network errors
         //   (support with reusable code)
         default:
-          errorMessage = 'Could not fetch message source.';
+          errorMessage = zulipLocalizations.errorCouldNotFetchMessageSource;
       }
     }
 
@@ -146,12 +152,16 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
   @override get icon => Icons.format_quote_outlined;
 
-  @override get label => 'Quote and reply';
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionQuoteAndReply;
+  }
 
   @override get onPressed => (BuildContext bottomSheetContext) async {
     // Close the message action sheet. We'll show the request progress
     // in the compose-box content input with a "[Quoting…]" placeholder.
     Navigator.of(bottomSheetContext).pop();
+    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
 
     // This will be null only if the compose box disappeared after the
     // message action sheet opened, and before "Quote and reply" was pressed.
@@ -174,7 +184,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     final rawContent = await fetchRawContentWithFeedback(
       context: messageListContext,
       messageId: message.id,
-      errorDialogTitle: 'Quotation failed',
+      errorDialogTitle: zulipLocalizations.errorQuotationFailed,
     );
 
     if (!messageListContext.mounted) return;
@@ -203,26 +213,30 @@ class CopyButton extends MessageActionSheetMenuItemButton {
 
   @override get icon => Icons.copy;
 
-  @override get label => 'Copy message text';
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionCopy;
+  }
 
   @override get onPressed => (BuildContext context) async {
     // Close the message action sheet. We won't be showing request progress,
     // but hopefully it won't take long at all, and
     // fetchRawContentWithFeedback has a TODO for giving feedback if it does.
     Navigator.of(context).pop();
+    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
 
     final rawContent = await fetchRawContentWithFeedback(
       context: messageListContext,
       messageId: message.id,
-      errorDialogTitle: 'Copying failed',
+      errorDialogTitle: zulipLocalizations.errorCopyingFailed,
     );
 
     if (rawContent == null) return;
 
     if (!messageListContext.mounted) return;
 
-    // TODO(i18n)
-    copyWithPopup(context: context, successContent: const Text('Message copied'),
+    copyWithPopup(context: context,
+      successContent: Text(zulipLocalizations.successMessageCopied),
       data: ClipboardData(text: rawContent));
   };
 }
