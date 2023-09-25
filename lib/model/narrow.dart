@@ -131,6 +131,20 @@ class DmNarrow extends Narrow implements SendableNarrow {
       assert(allRecipientIds.contains(selfUserId)),
       _selfUserId = selfUserId;
 
+  factory DmNarrow.withUser(int userId, {required int selfUserId}) {
+    return DmNarrow(
+      allRecipientIds: {userId, selfUserId}.toList()..sort(),
+      selfUserId: selfUserId,
+    );
+  }
+
+  factory DmNarrow.withUsers(List<int> userIds, {required int selfUserId}) {
+    return DmNarrow(
+      allRecipientIds: {...userIds, selfUserId}.toList()..sort(),
+      selfUserId: selfUserId,
+    );
+  }
+
   factory DmNarrow.ofMessage(DmMessage message, {required int selfUserId}) {
     return DmNarrow(
       allRecipientIds: List.unmodifiable(message.allRecipientIds),
@@ -142,20 +156,6 @@ class DmNarrow extends Narrow implements SendableNarrow {
   factory DmNarrow.ofRecentDmConversation(RecentDmConversation conversation, {required int selfUserId}) {
     return DmNarrow(
       allRecipientIds: [...conversation.userIds, selfUserId]..sort(),
-      selfUserId: selfUserId,
-    );
-  }
-
-  factory DmNarrow.withUser(int userId, {required int selfUserId}) {
-    return DmNarrow(
-      allRecipientIds: {userId, selfUserId}.toList()..sort(),
-      selfUserId: selfUserId,
-    );
-  }
-
-  factory DmNarrow.withUsers(List<int> userIds, {required int selfUserId}) {
-    return DmNarrow(
-      allRecipientIds: {...userIds, selfUserId}.toList()..sort(),
       selfUserId: selfUserId,
     );
   }
