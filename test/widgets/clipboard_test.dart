@@ -32,7 +32,6 @@ void main() {
             body: Builder(builder: (context) => Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  // TODO(i18n)
                   copyWithPopup(context: context, successContent: const Text('Text copied'),
                     data: ClipboardData(text: text));
                 },
