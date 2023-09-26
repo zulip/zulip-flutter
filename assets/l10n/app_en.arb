@@ -71,6 +71,18 @@
   "@successMessageCopied": {
     "description": "Message when content of a message was copied to the users system clipboard."
   },
+  "dialogCancel": "Cancel",
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "dialogContinue": "Continue",
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "errorDialogContinue": "OK",
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge error."
+  },
   "subscribedToNStreams": "Subscribed to {num, plural, =0{no streams} =1{1 stream} other{{num} streams}}",
   "@subscribedToNStreams": {
     "description": "Test page label showing number of streams user is subscribed to.",

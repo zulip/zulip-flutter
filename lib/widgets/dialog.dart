@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 Widget _dialogActionText(String text) {
   return Text(
@@ -14,12 +15,12 @@ Widget _dialogActionText(String text) {
   );
 }
 
-// TODO(i18n): title, message, and action-button text
 Future<void> showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
 }) {
+  final zulipLocalizations = ZulipLocalizations.of(context);
   return showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
@@ -28,7 +29,7 @@ Future<void> showErrorDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: _dialogActionText('OK')),
+          child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
       ]));
 }
 
@@ -39,6 +40,7 @@ void showSuggestedActionDialog({
   required String? actionButtonText,
   required VoidCallback onActionButtonPress,
 }) {
+  final zulipLocalizations = ZulipLocalizations.of(context);
   showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
@@ -47,9 +49,9 @@ void showSuggestedActionDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: _dialogActionText('Cancel')),
+          child: _dialogActionText(zulipLocalizations.dialogCancel)),
         TextButton(
           onPressed: onActionButtonPress,
-          child: _dialogActionText(actionButtonText ?? 'Continue')),
+          child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
       ]));
 }

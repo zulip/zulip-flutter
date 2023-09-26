@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
@@ -68,6 +69,8 @@ void main() {
       addTearDown(testBinding.reset);
 
       await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
         home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
           child: BlockContentList(
             nodes: parseContent(html).nodes)))));
