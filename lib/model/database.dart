@@ -52,13 +52,10 @@ class AppDatabase extends _$AppDatabase {
 
   // When updating the schema:
   //  * Make the change in the table classes, and bump schemaVersion.
-  //  * Export the new schema:
-  //    $ dart run drift_dev schema dump lib/model/database.dart test/model/schemas/
-  //  * Generate test migrations from the schemas:
-  //    $ dart run drift_dev schema generate --data-classes --companions test/model/schemas/ test/model/schemas/
+  //  * Export the new schema and generate test migrations:
+  //    $ tools/check --fix drift
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
-  // TODO encapsulate those `drift_dev schema` commands into tools/check or the like
   @override
   int get schemaVersion => 2; // See note.
 

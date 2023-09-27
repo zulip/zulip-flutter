@@ -25,7 +25,7 @@ extra_suites=(
 
 usage() {
     cat >&2 <<EOF
-usage: tools/check [SUITE]...
+usage: tools/check [OPTION]... [SUITE]...
 
 Run our tests.
 
@@ -33,13 +33,18 @@ By default, run ${#default_suites[@]} suite(s):
   ${default_suites[*]}
 and skip ${#extra_suites[@]} suite(s):
   ${extra_suites[*]}
+
+Options:
+  --fix       Fix issues found, where possible.
 EOF
     exit 2
 }
 
+opt_fix=
 opt_suites=()
 while (( $# )); do
     case "$1" in
+        --fix) opt_fix=1; shift;;
         analyze|test|drift)
             opt_suites+=("$1"); shift;;
         *) usage;;
@@ -61,7 +66,8 @@ cd "$rootdir"
 # usage: check_no_changes CHANGE_DESCRIPTION [GIT_PATHSPECS...]
 #
 # Check that there were no changes to files matching GIT_PATHSPECS.
-# Any changes get cleaned up but cause failure.
+# With `--fix`, describe the changes but leave them in place;
+# otherwise any changes get cleaned up but cause failure.
 #
 # This is useful for suites that check that some generated files
 # in the tree are up to date.  Such a suite might regenerate the
@@ -75,7 +81,8 @@ cd "$rootdir"
 # to be passed as positional arguments to `git diff`, `git clean`, and
 # many other Git commands.  For docs, see `git help glossary` under "pathspec".
 #
-# The CHANGE_DESCRIPTION is used in the error message on failure.
+# The CHANGE_DESCRIPTION is used in the error message on failure,
+# or the informational message when `--fix` is triggered.
 check_no_changes() {
     local change_description="$1"; shift
 
@@ -84,11 +91,16 @@ check_no_changes() {
         return
     fi
 
-    echo >&2 "Error: there were ${change_description}:"
-    git_status_short "$@"
-    git checkout HEAD -- "$@"
-    git clean -fd --quiet -- "$@"
-    return 1
+    if [ -n "${opt_fix}" ]; then
+        echo >&2 "There were ${change_description}:"
+        git_status_short "$@"
+    else
+        echo >&2 "Error: there were ${change_description}:"
+        git_status_short "$@"
+        git checkout HEAD -- "$@"
+        git clean -fd --quiet -- "$@"
+        return 1
+    fi
 }
 
 run_analyze() {
