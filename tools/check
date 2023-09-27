@@ -19,7 +19,7 @@ set -euo pipefail
 
 ## CLI PARSING
 
-default_suites=(analyze test drift)
+default_suites=(analyze test build_runner drift)
 extra_suites=(
 )
 
@@ -45,7 +45,7 @@ opt_suites=()
 while (( $# )); do
     case "$1" in
         --fix) opt_fix=1; shift;;
-        analyze|test|drift)
+        analyze|test|build_runner|drift)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -111,6 +111,24 @@ run_test() {
     flutter test
 }
 
+run_build_runner() {
+    check_no_uncommitted_or_untracked '*.g.dart' \
+    || return
+
+    # build_runner has a --verbose, but lacks a --quiet.
+    # So we filter out "[INFO]" messages ourselves.
+    dart run build_runner build --delete-conflicting-outputs \
+    | perl -lne '
+        BEGIN { my $silence = 0 }
+        if (/^\[INFO\]/) { $silence = 1 }
+        elsif (/^\[[A-Z]/) { $silence = 0 }
+        print if (!$silence)
+      ' \
+    || return
+
+    check_no_changes "updates to *.g.dart files" '*.g.dart'
+}
+
 run_drift() {
     local schema_dir=test/model/schemas/
 
@@ -133,6 +151,7 @@ for suite in "${opt_suites[@]}"; do
     case "$suite" in
         analyze)      run_analyze ;;
         test)         run_test ;;
+        build_runner) run_build_runner ;;
         drift)        run_drift ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
