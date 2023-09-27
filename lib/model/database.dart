@@ -58,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   //    $ dart run drift_dev schema generate --data-classes --companions test/model/schemas/ test/model/schemas/
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
-  // TODO run those `drift_dev schema` commands in CI: https://github.com/zulip/zulip-flutter/issues/60
+  // TODO encapsulate those `drift_dev schema` commands into tools/check or the like
   @override
   int get schemaVersion => 2; // See note.
 

@@ -19,7 +19,7 @@ set -euo pipefail
 
 ## CLI PARSING
 
-default_suites=(analyze test)
+default_suites=(analyze test drift)
 extra_suites=(
 )
 
@@ -40,7 +40,7 @@ EOF
 opt_suites=()
 while (( $# )); do
     case "$1" in
-        analyze|test)
+        analyze|test|drift)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -56,6 +56,41 @@ fi
 rootdir=$(git rev-parse --show-toplevel)
 cd "$rootdir"
 
+. tools/lib/git.sh
+
+# usage: check_no_changes CHANGE_DESCRIPTION [GIT_PATHSPECS...]
+#
+# Check that there were no changes to files matching GIT_PATHSPECS.
+# Any changes get cleaned up but cause failure.
+#
+# This is useful for suites that check that some generated files
+# in the tree are up to date.  Such a suite might regenerate the
+# files, then call `check_no_changes` on the outputs to check that
+# they match what was already in the tree.  Typically it also calls
+# `check_no_uncommitted_or_untracked` on the same output paths
+# before regenerating, to avoid clobbering any existing changes.
+#
+# A Git pathspec (as in GIT_PATHSPECS) is a filename, directory,
+# or other pattern describing a subset of paths in the Git tree or worktree,
+# to be passed as positional arguments to `git diff`, `git clean`, and
+# many other Git commands.  For docs, see `git help glossary` under "pathspec".
+#
+# The CHANGE_DESCRIPTION is used in the error message on failure.
+check_no_changes() {
+    local change_description="$1"; shift
+
+    if git diff --quiet -- "$@" \
+            && no_untracked_files "$@"; then
+        return
+    fi
+
+    echo >&2 "Error: there were ${change_description}:"
+    git_status_short "$@"
+    git checkout HEAD -- "$@"
+    git clean -fd --quiet -- "$@"
+    return 1
+}
+
 run_analyze() {
     flutter analyze
 }
@@ -64,12 +99,29 @@ run_test() {
     flutter test
 }
 
+run_drift() {
+    local schema_dir=test/model/schemas/
+
+    check_no_uncommitted_or_untracked "${schema_dir}" \
+    || return
+
+    dart run drift_dev schema dump \
+        lib/model/database.dart "${schema_dir}" \
+    || return
+    dart run drift_dev schema generate --data-classes --companions \
+        "${schema_dir}" "${schema_dir}" \
+    || return
+
+    check_no_changes "schema updates" "${schema_dir}"
+}
+
 failed=()
 for suite in "${opt_suites[@]}"; do
     echo "Running $suite..."
     case "$suite" in
         analyze)      run_analyze ;;
         test)         run_test ;;
+        drift)        run_drift ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
 done
