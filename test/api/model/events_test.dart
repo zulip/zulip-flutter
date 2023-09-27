@@ -10,19 +10,6 @@ import 'events_checks.dart';
 import 'model_checks.dart';
 
 void main() {
-  test('message: move flags into message object', () {
-    final message = eg.streamMessage();
-    MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
-      'type': 'message',
-      'id': 1,
-      'message': (deepToJson(message) as Map<String, dynamic>)..remove('flags'),
-      'flags': flags.map((f) => f.toJson()).toList(),
-    }) as MessageEvent;
-    check(mkEvent(message.flags)).message.jsonEquals(message);
-    check(mkEvent([])).message.flags.deepEquals([]);
-    check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
-  });
-
   test('user_settings: all known settings have event handling', () {
     final dataClassFieldNames = UserSettings.debugKnownNames;
     final enumNames = UserSettingName.values.map((n) => n.name);
@@ -41,5 +28,18 @@ void main() {
         '      matching on that enum, by adding new `switch` cases\n'
         '      on the pattern of the existing cases.'
     ).isEmpty();
+  });
+
+  test('message: move flags into message object', () {
+    final message = eg.streamMessage();
+    MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
+      'type': 'message',
+      'id': 1,
+      'message': (deepToJson(message) as Map<String, dynamic>)..remove('flags'),
+      'flags': flags.map((f) => f.toJson()).toList(),
+    }) as MessageEvent;
+    check(mkEvent(message.flags)).message.jsonEquals(message);
+    check(mkEvent([])).message.flags.deepEquals([]);
+    check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
   });
 }
