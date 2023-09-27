@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+# Careful! `set -e` doesn't do everything you'd think it does. In
+# fact, we don't get its benefit in any of the `run_foo` functions.
+#
+# This is because it has an effect only when it can exit the whole shell.
+# (Its full name is `set -o errexit`, and it means "exit" literally.)  See:
+#   https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+#
+# When one test suite fails, we want to go on to run the other suites, so
+# we use `||` to prevent the whole script from exiting there, and that
+# defeats `set -e`.
+#
+# For now our workaround is to put `|| return` in the `run_foo` just
+# after each nontrivial command that isn't the final command in the
+# function.
+set -euo pipefail
+
+
+## CLI PARSING
+
+default_suites=(analyze test)
+extra_suites=(
+)
+
+usage() {
+    cat >&2 <<EOF
+usage: tools/check [SUITE]...
+
+Run our tests.
+
+By default, run ${#default_suites[@]} suite(s):
+  ${default_suites[*]}
+and skip ${#extra_suites[@]} suite(s):
+  ${extra_suites[*]}
+EOF
+    exit 2
+}
+
+opt_suites=()
+while (( $# )); do
+    case "$1" in
+        analyze|test)
+            opt_suites+=("$1"); shift;;
+        *) usage;;
+    esac
+done
+
+if (( ! "${#opt_suites[@]}" )); then
+    opt_suites=( "${default_suites[@]}" )
+fi
+
+
+## EXECUTION
+
+rootdir=$(git rev-parse --show-toplevel)
+cd "$rootdir"
+
+run_analyze() {
+    flutter analyze
+}
+
+run_test() {
+    flutter test
+}
+
+failed=()
+for suite in "${opt_suites[@]}"; do
+    echo "Running $suite..."
+    case "$suite" in
+        analyze)      run_analyze ;;
+        test)         run_test ;;
+        *)            echo >&2 "Internal error: unknown suite $suite" ;;
+    esac || failed+=( "$suite" )
+done
+
+if (( ${#failed[@]} )); then
+    cat >&2 <<EOF
+
+FAILED: ${failed[*]}
+
+To rerun the suites that failed, run:
+  $ tools/check ${failed[*]}
+EOF
+    exit 1
+fi
+
+echo "Passed!"
