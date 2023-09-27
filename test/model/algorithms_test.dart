@@ -36,4 +36,23 @@ void main() {
       check(search(7)).equals(-1);
     });
   });
+
+  group('setUnion', () {
+    for (final (String desc, Iterable<int> xs, Iterable<int> ys) in [
+      ('empty', [], []),
+      ('nonempty, empty', [1, 2], []),
+      ('empty, nonempty', [], [1, 2]),
+      ('in order', [1, 2], [3, 4]),
+      ('reversed', [3, 4], [1, 2]),
+      ('interleaved', [1, 3], [2, 4]),
+      ('all dupes', [1, 2], [1, 2]),
+      ('some dupes', [1, 2], [2, 3]),
+      ('comparison is numeric, not lexicographic', [11], [2]),
+    ]) {
+      test(desc, () {
+        final expected = Set.of(xs.followedBy(ys)).toList()..sort();
+        check(setUnion(xs, ys)).deepEquals(expected);
+      });
+    }
+  });
 }
