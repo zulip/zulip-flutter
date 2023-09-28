@@ -57,7 +57,9 @@ void main() {
       ...baseJson, 'flag': 'read',
     })).throws();
     check(() => UpdateMessageFlagsRemoveEvent.fromJson({
-      ...baseJson, 'message_details': {'123': {'type': 'private', 'mentioned': false, 'user_ids': [2]}},
+      ...baseJson,
+      'flag': 'read',
+      'message_details': {'123': {'type': 'private', 'mentioned': false, 'user_ids': [2]}},
     })).returnsNormally();
   });
 }
