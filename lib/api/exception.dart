@@ -18,6 +18,9 @@ sealed class ApiRequestException implements Exception {
   final String message;
 
   ApiRequestException({required this.routeName, required this.message});
+
+  @override
+  String toString() => message;
 }
 
 /// An error returned through the Zulip server API.
