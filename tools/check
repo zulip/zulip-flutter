@@ -16,6 +16,11 @@
 # function.
 set -euo pipefail
 
+this_dir=${BASH_SOURCE[0]%/*}
+
+# shellcheck source=tools/lib/git.sh
+. "${this_dir}"/lib/git.sh
+
 
 ## CLI PARSING
 
@@ -29,21 +34,40 @@ usage: tools/check [OPTION]... [SUITE]...
 
 Run our tests.
 
+By default, run only on files changed in this branch
+as compared to the upstream \`main\`.
+
 By default, run ${#default_suites[@]} suite(s):
   ${default_suites[*]}
 and skip ${#extra_suites[@]} suite(s):
   ${extra_suites[*]}
 
-Options:
+What tests to run:
+  --all-files
+              Run on all files, not only changed files.
+  --diff COMMIT
+              Run only on files that differ from the given commit.
+              (E.g., \`--diff @\` for files with uncommitted changes;
+              \`--diff @~10\` for files changed in last 10 commits; or see
+              \`git help revisions\` for many more ways to name a commit.)
+  --all       In the given suites, run on all files. If no list of suites
+              was specified, run all suites.
+
+Extra things to do:
   --fix       Fix issues found, where possible.
 EOF
     exit 2
 }
 
+opt_files=branch
+opt_all=
 opt_fix=
 opt_suites=()
 while (( $# )); do
     case "$1" in
+        --diff) shift; opt_files=diff:"$1"; shift;;
+        --all-files) opt_files=all; shift;;
+        --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
         analyze|test|build_runner|drift)
             opt_suites+=("$1"); shift;;
@@ -52,8 +76,20 @@ while (( $# )); do
 done
 
 if (( ! "${#opt_suites[@]}" )); then
-    opt_suites=( "${default_suites[@]}" )
+    if [ -n "${opt_all}" ]; then
+        opt_suites=( "${default_suites[@]}" "${extra_suites[@]}" )
+    else
+        opt_suites=( "${default_suites[@]}" )
+    fi
 fi
+
+files_base_commit=
+# shellcheck disable=SC2119  # this is a silly warning
+case "$opt_files" in
+    all) ;;
+    branch) files_base_commit="$(git_base_commit)";;
+    diff:*) files_base_commit="${opt_files#diff:}";;
+esac
 
 
 ## EXECUTION
@@ -61,7 +97,16 @@ fi
 rootdir=$(git rev-parse --show-toplevel)
 cd "$rootdir"
 
-. tools/lib/git.sh
+# True just if $opt_files intersects the given set of paths.
+files_check() {
+    case "$opt_files" in
+        all)
+            ;;
+        branch | diff:*)
+            ! git diff --quiet "${files_base_commit}" -- "$@"
+            ;;
+    esac
+}
 
 # usage: check_no_changes CHANGE_DESCRIPTION [GIT_PATHSPECS...]
 #
@@ -131,6 +176,13 @@ run_build_runner() {
 
 run_drift() {
     local schema_dir=test/model/schemas/
+
+    # We omit from this files_check some files that in principle can affect
+    # the outcome of this suite, but are expected to more often just cause noise
+    # by rerunning it on changes that cannot actually affect it:
+    #   pubspec.{yaml,lock} tools/check
+    files_check lib/model/database{,.g}.dart "${schema_dir}" \
+    || return 0
 
     check_no_uncommitted_or_untracked "${schema_dir}" \
     || return
