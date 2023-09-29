@@ -51,3 +51,36 @@ check_no_uncommitted_or_untracked()
     echo >&2 "Aborting, to avoid losing your work."
     return 1
 }
+
+# Compute what remote name is being used for the upstream repo.
+git_upstream_remote_name() {
+    # Out of the names listed by `git remote`, pick one from the
+    # list below, in preference order.
+    grep -m1 -xFf <(git remote) <<EOF
+upstream
+origin
+EOF
+}
+
+git_upstream_ref() {
+    echo refs/remotes/"$(git_upstream_remote_name)"/main
+}
+
+# usage: git_base_commit [TIP [UPSTREAM]]
+#
+# The merge-base of TIP (default: current HEAD) with
+# UPSTREAM (default: upstream/main or origin/main).
+git_base_commit() {
+    tip_commit=${1:-@}
+    upstream=${2:-$(git_upstream_ref)}
+    git merge-base "$tip_commit" "$upstream"
+}
+
+# usage: git_changed_files [DIFFARGS..]
+#
+# Lists files that have changed, excluding files that no longer exist.
+#
+# Arguments are passed through to `git diff`.
+git_changed_files() {
+    git diff --name-only --diff-filter=d "$@"
+}
