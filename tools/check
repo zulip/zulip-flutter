@@ -26,6 +26,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 default_suites=(analyze test build_runner drift icons)
 extra_suites=(
+    shellcheck  # Requires its own dependency, from outside the pub system.
 )
 
 usage() {
@@ -69,7 +70,7 @@ while (( $# )); do
         --all-files) opt_files=all; shift;;
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
-        analyze|test|build_runner|drift|icons)
+        analyze|test|build_runner|drift|icons|shellcheck)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -256,6 +257,35 @@ run_icons() {
     check_no_changes "icon updates" "${outputs[@]}"
 }
 
+run_shellcheck() {
+    # Omitted from this check: nothing (nothing known, anyway).
+    files_check tools/ '!*.'{dart,js,json} \
+    || return 0
+
+    # Shellcheck is fast, <1s; so if we touched any possible targets at all,
+    # just run on the full list of targets.
+    # shellcheck disable=SC2207  # filenames in our own tree, assume well-behaved
+    targets=(
+        $(git grep -l '#!.*sh\b' -- tools/)
+        $(git ls-files -- tools/'*.sh')
+    )
+
+    if ! type shellcheck >/dev/null 2>&1; then
+        cat >&2 <<EOF
+shellcheck: command not found
+
+Consider installing Shellcheck:
+  https://github.com/koalaman/shellcheck#installing
+
+Alternatively, skip running the \`shellcheck\` suite.
+See \`tools/check --help\`.
+EOF
+        return 1
+    fi
+
+    shellcheck -x --shell=bash -- "${targets[@]}"
+}
+
 failed=()
 for suite in "${opt_suites[@]}"; do
     echo "Running $suite..."
@@ -265,6 +295,7 @@ for suite in "${opt_suites[@]}"; do
         build_runner) run_build_runner ;;
         drift)        run_drift ;;
         icons)        run_icons ;;
+        shellcheck)   run_shellcheck ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
 done
