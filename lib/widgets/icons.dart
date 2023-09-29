@@ -16,7 +16,7 @@ abstract final class ZulipIcons {
   //    or otherwise edit the SVG files there.
   //    The files' names (before ".svg") should be valid Dart identifiers.
   //
-  //  * Then run the command `scripts/icons/build-icon-font`.
+  //  * Then run the command `tools/icons/build-icon-font`.
   //    That will update this file and the generated icon font,
   //    `assets/icons/ZulipIcons.ttf`.
   //
