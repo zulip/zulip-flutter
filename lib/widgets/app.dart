@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
+import '../model/localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'login.dart';
@@ -49,6 +50,10 @@ class ZulipApp extends StatelessWidget {
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         theme: theme,
+        builder: (BuildContext context, Widget? child) {
+          GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+          return child!;
+        },
         home: const ChooseAccountPage()));
   }
 }
