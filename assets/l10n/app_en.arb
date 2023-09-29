@@ -43,10 +43,7 @@
   "@subscribedToNStreams": {
     "description": "Test page label showing number of streams user is subscribed to.",
     "placeholders": {
-      "num": {
-        "type": "int",
-        "example": "4"
-      }
+      "num": {"type": "int", "example": "4"}
     }
   },
   "userRoleOwner": "Owner",
