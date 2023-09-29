@@ -98,6 +98,25 @@ rootdir=$(git rev-parse --show-toplevel)
 cd "$rootdir"
 
 # True just if $opt_files intersects the given set of paths.
+#
+# On what paths to include in this check (and more generally, how to write
+# conditions to implement `--diff`): Aim to cover perhaps 95% or 99% of the
+# changes in practice that would affect the outcome of the suite, but not 100%.
+#
+# In particular, omit pubspec.yaml, pubspec.lock, and tools/check itself,
+# except where the suite is specifically aimed at those files.
+#
+# It's OK to cover less than 100% because those changes will be caught in CI
+# using `--all` (or even by the developer using `--all` locally, out of a suspicion
+# that their change affects the suite).  And predicting which changes could matter,
+# short of simply running the suite, is usually imprecise; so covering the last
+# few edge cases would come at the cost of running on a lot of changes that are
+# very unlikely to matter, like unrelated changes in pubspec.lock.
+#
+# Do, though, write down in a comment the known types of changes that could affect
+# the outcome and are being left out.  That's helpful when either revising which
+# changes we choose to omit, or debugging inadvertent omissions, by separating
+# the two from each other.
 files_check() {
     case "$opt_files" in
         all)
@@ -156,7 +175,33 @@ run_test() {
     flutter test
 }
 
+# Whether the build_runner suite should run, given $opt_files.
+should_run_build_runner() {
+    # First, check for changes in relevant metadata.
+    # Omitted from this files_check:
+    #   pubspec.{yaml,lock} tools/check
+    if files_check build.yaml; then
+        return 0;
+    fi
+
+    # Otherwise, check for changes in the input files of build_runner.
+    # These input files should have `part "foo.g.dart"` directives.
+    # Omitted from this check: any files where that isn't yet added.
+    # (And at this point we must have a meaningful $files_base_commit.)
+    if git_changed_files "${files_base_commit}" \
+            | xargs -r git grep -l '^part .*g\.dart.;$' \
+            | grep -q .; then
+        return 0
+    fi
+
+    # No relevant changes found.
+    return 1
+}
+
 run_build_runner() {
+    should_run_build_runner \
+    || return 0
+
     check_no_uncommitted_or_untracked '*.g.dart' \
     || return
 
@@ -177,9 +222,7 @@ run_build_runner() {
 run_drift() {
     local schema_dir=test/model/schemas/
 
-    # We omit from this files_check some files that in principle can affect
-    # the outcome of this suite, but are expected to more often just cause noise
-    # by rerunning it on changes that cannot actually affect it:
+    # Omitted from this check:
     #   pubspec.{yaml,lock} tools/check
     files_check lib/model/database{,.g}.dart "${schema_dir}" \
     || return 0
