@@ -24,7 +24,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 ## CLI PARSING
 
-default_suites=(analyze test build_runner drift)
+default_suites=(analyze test build_runner drift icons)
 extra_suites=(
 )
 
@@ -69,7 +69,7 @@ while (( $# )); do
         --all-files) opt_files=all; shift;;
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
-        analyze|test|build_runner|drift)
+        analyze|test|build_runner|drift|icons)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -240,6 +240,22 @@ run_drift() {
     check_no_changes "schema updates" "${schema_dir}"
 }
 
+run_icons() {
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check tools/icons/ assets/icons/ lib/widgets/icons.dart \
+    || return 0
+
+    local outputs=( assets/icons/ZulipIcons.ttf lib/widgets/icons.dart )
+
+    check_no_uncommitted_or_untracked "${outputs[@]}" \
+    || return
+
+    tools/icons/build-icon-font
+
+    check_no_changes "icon updates" "${outputs[@]}"
+}
+
 failed=()
 for suite in "${opt_suites[@]}"; do
     echo "Running $suite..."
@@ -248,6 +264,7 @@ for suite in "${opt_suites[@]}"; do
         test)         run_test ;;
         build_runner) run_build_runner ;;
         drift)        run_drift ;;
+        icons)        run_icons ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
 done
