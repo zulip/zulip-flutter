@@ -56,13 +56,19 @@ What tests to run:
 
 Extra things to do:
   --fix       Fix issues found, where possible.
+
+Modifying this script's output:
+  --verbose   Print more details about everything.
 EOF
     exit 2
 }
 
+orig_cmdline="$0 $*"
+
 opt_files=branch
 opt_all=
 opt_fix=
+opt_verbose=
 opt_suites=()
 while (( $# )); do
     case "$1" in
@@ -70,6 +76,7 @@ while (( $# )); do
         --all-files) opt_files=all; shift;;
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
+        --verbose) opt_verbose=1; shift;;
         analyze|test|build_runner|drift|icons|shellcheck)
             opt_suites+=("$1"); shift;;
         *) usage;;
@@ -97,6 +104,20 @@ esac
 
 rootdir=$(git rev-parse --show-toplevel)
 cd "$rootdir"
+
+divider_line='================================================================'
+
+# usage: if_verbose COMMAND...
+#
+# Run the given command just if $opt_verbose; else do nothing.
+#
+# This is a convenience shorthand for simple commands.  For more complex logic,
+# write `if [ -n "${opt_verbose}" ]` directly.
+if_verbose() {
+  if [ -n "${opt_verbose}" ]; then
+    "$@"
+  fi
+}
 
 # True just if $opt_files intersects the given set of paths.
 #
@@ -169,10 +190,12 @@ check_no_changes() {
 }
 
 run_analyze() {
+    # no `flutter analyze --verbose` even when $opt_verbose; it's *very* verbose
     flutter analyze
 }
 
 run_test() {
+    # no `flutter test --verbose` even when $opt_verbose; it's *very* verbose
     flutter test
 }
 
@@ -206,16 +229,25 @@ run_build_runner() {
     check_no_uncommitted_or_untracked '*.g.dart' \
     || return
 
-    # build_runner has a --verbose, but lacks a --quiet.
-    # So we filter out "[INFO]" messages ourselves.
-    dart run build_runner build --delete-conflicting-outputs \
-    | perl -lne '
-        BEGIN { my $silence = 0 }
-        if (/^\[INFO\]/) { $silence = 1 }
-        elsif (/^\[[A-Z]/) { $silence = 0 }
-        print if (!$silence)
-      ' \
-    || return
+    local build_runner_cmd=(
+        dart run build_runner build --delete-conflicting-outputs
+    )
+    if [ -n "${opt_verbose}" ]; then
+        # No --verbose needed; build_runner is verbose enough by default.
+        "${build_runner_cmd[@]}" \
+        || return
+    else
+        # build_runner lacks a --quiet, and is fairly verbose to begin with.
+        # So we filter out "[INFO]" messages ourselves.
+        "${build_runner_cmd[@]}" \
+        | perl -lne '
+            BEGIN { my $silence = 0 }
+            if (/^\[INFO\]/) { $silence = 1 }
+            elsif (/^\[[A-Z]/) { $silence = 0 }
+            print if (!$silence)
+          ' \
+        || return
+    fi
 
     check_no_changes "updates to *.g.dart files" '*.g.dart'
 }
@@ -283,11 +315,45 @@ EOF
         return 1
     fi
 
+    if_verbose shellcheck --version
     shellcheck -x --shell=bash -- "${targets[@]}"
 }
 
+describe_git_head() {
+    local name="$1" repo_path="$2"
+    local commit_data
+    commit_data=$(
+        TZ=UTC \
+        git --git-dir "${repo_path}" \
+            log -1 --format="%h • %cd" \
+            --abbrev=9 --date=iso8601-local
+    )
+    echo "${name} ${commit_data}"
+}
+
+print_header() {
+    local flutter_executable flutter_tree
+
+    echo "Test command: ${orig_cmdline}"
+
+    echo "Time now: $(date --utc +'%F %T %z')"
+
+    describe_git_head "zulip-flutter" .git/
+
+    # We avoid `flutter --version` because, weirdly, when run in a
+    # GitHub Actions step it takes about 30 seconds.  (The first time;
+    # it's fast subsequent times.)  That's even after `flutter precache`.
+    flutter_executable=$(readlink -f "$(type -p flutter)")
+    flutter_tree=${flutter_executable%/bin/flutter}
+    describe_git_head "flutter/flutter" "${flutter_tree}"/.git
+
+    dart --version
+}
+
+if_verbose print_header
 failed=()
 for suite in "${opt_suites[@]}"; do
+    if_verbose echo "${divider_line}"
     echo "Running $suite..."
     case "$suite" in
         analyze)      run_analyze ;;
@@ -299,6 +365,7 @@ for suite in "${opt_suites[@]}"; do
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
 done
+if_verbose echo "${divider_line}"
 
 if (( ${#failed[@]} )); then
     cat >&2 <<EOF
