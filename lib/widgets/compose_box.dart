@@ -208,10 +208,11 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerUploadEnd on the
   /// upload's success or failure.
-  int registerUploadStart(String filename) {
+  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations) {
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
-    final placeholder = inlineLink('Uploading $filename...', null); // TODO(i18n)
+    final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
+    final placeholder = inlineLink(linkText, null);
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');
@@ -430,6 +431,7 @@ Future<void> _uploadFiles({
 }) async {
   assert(context.mounted);
   final store = PerAccountStoreWidget.of(context);
+  final zulipLocalizations = ZulipLocalizations.of(context);
 
   final List<_File> tooLargeFiles = [];
   final List<_File> rightSizeFiles = [];
@@ -445,18 +447,19 @@ Future<void> _uploadFiles({
     final listMessage = tooLargeFiles
       .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
       .join('\n');
-    showErrorDialog( // TODO(i18n)
+    showErrorDialog(
       context: context,
-      title: 'File(s) too large',
-      message:
-        '${tooLargeFiles.length} file(s) are larger than the server\'s limit'
-        ' of ${store.maxFileUploadSizeMib} MiB and will not be uploaded:'
-        '\n\n$listMessage');
+      title: zulipLocalizations.errorFilesTooLargeTitle(tooLargeFiles.length),
+      message: zulipLocalizations.errorFilesTooLarge(
+        tooLargeFiles.length,
+        store.maxFileUploadSizeMib,
+        listMessage));
   }
 
   final List<(int, _File)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
-    final tag = contentController.registerUploadStart(file.filename);
+    final tag = contentController.registerUploadStart(file.filename,
+      zulipLocalizations);
     uploadsInProgress.add((tag, file));
   }
   if (!contentFocusNode.hasFocus) {
@@ -475,7 +478,8 @@ Future<void> _uploadFiles({
       // TODO(#37): Specifically handle `413 Payload Too Large`
       // TODO(#37): On API errors, quote `msg` from server, with "The server said:"
       showErrorDialog(context: context,
-        title: 'Failed to upload file: $filename', message: e.toString());
+        title: zulipLocalizations.errorFailedToUploadFileTitle(filename),
+        message: e.toString());
     } finally {
       contentController.registerUploadEnd(tag, url);
     }

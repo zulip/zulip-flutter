@@ -59,6 +59,29 @@
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the users system clipboard failed."
   },
+  "errorFailedToUploadFileTitle": "Failed to upload file: {filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "file.txt"}
+    }
+  },
+  "errorFilesTooLarge": "{num, plural, =1{File is} other{{num} files are}} larger than the server's limit of {maxFileUploadSizeMib} MiB and will not be uploaded:\n\n{listMessage}",
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "num": {"type": "int", "example": "2"},
+      "maxFileUploadSizeMib": {"type": "int", "example": "15"},
+      "listMessage": {"type": "String", "example": "foo.txt\nbar.txt"}
+    }
+  },
+  "errorFilesTooLargeTitle": "{num, plural, =1{File} other{Files}} too large",
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
   "errorLoginInvalidInputTitle": "Invalid input",
   "@errorLoginInvalidInputTitle": {
     "description": "Error title for login when input is invalid."
@@ -100,6 +123,13 @@
   "successMessageCopied": "Message Copied",
   "@successMessageCopied": {
     "description": "Message when content of a message was copied to the users system clipboard."
+  },
+  "composeBoxUploadingFilename": "Uploading {filename}...",
+  "@composeBoxUploadingFilename": {
+    "description": "Label in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "file.txt"}
+    }
   },
   "contentValidationErrorTooLong": "Message length shouldn't be greater than 10000 characters.",
   "@contentValidationErrorTooLong": {
