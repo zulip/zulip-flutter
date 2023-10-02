@@ -132,6 +132,57 @@
   "@successMessageCopied": {
     "description": "Message when content of a message was copied to the users system clipboard."
   },
+  "composeBoxAttachFilesTooltip": "Attach files",
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
+  },
+  "composeBoxAttachMediaTooltip": "Attach images or videos",
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
+  "composeBoxAttachFromCameraTooltip": "Take a photo",
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "composeBoxGenericContentHint": "Type a message",
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
+  "composeBoxDmContentHint": "Message @{user}",
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {"type": "String", "example": "stream name"}
+    }
+  },
+  "composeBoxGroupDmContentHint": "Message group",
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
+  "composeBoxSelfDmContentHint": "Jot down something",
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
+  "composeBoxStreamContentHint": "Message #{stream} > {topic}",
+  "@composeBoxStreamContentHint": {
+    "description": "Hint text for content input when sending a message to a stream",
+    "placeholders": {
+      "stream": {"type": "String", "example": "stream name"},
+      "topic": {"type": "String", "example": "topic name"}
+    }
+  },
+  "composeBoxSendTooltip": "Send",
+  "@composeBoxSendTooltip":  {
+    "description": "Tooltip for send button in compose box."
+  },
+  "composeBoxUnknownStreamName": "(unknown stream)",
+  "@composeBoxUnknownStreamName": {
+    "description": "Replacement name for stream when it cannot be found in the store."
+  },
+  "composeBoxTopicHintText": "Topic",
+  "@composeBoxTopicHintText":  {
+    "description": "Hint text for topic input widget in compose box."
+  },
   "composeBoxUploadingFilename": "Uploading {filename}...",
   "@composeBoxUploadingFilename": {
     "description": "Label in compose box showing the specified file is currently uploading.",

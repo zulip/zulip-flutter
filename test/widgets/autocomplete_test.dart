@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -40,6 +41,8 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 
   await tester.pumpWidget(
     MaterialApp(
+      localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+      supportedLocales: ZulipLocalizations.supportedLocales,
       home: GlobalStoreWidget(
         child: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,

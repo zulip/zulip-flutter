@@ -360,12 +360,14 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final streamName = store.streams[widget.narrow.streamId]?.name ?? '(unknown stream)';
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final streamName = store.streams[widget.narrow.streamId]?.name
+      ?? zulipLocalizations.composeBoxUnknownStreamName;
     return _ContentInput(
       narrow: widget.narrow,
       controller: widget.controller,
       focusNode: widget.focusNode,
-      hintText: "Message #$streamName > $_topicTextNormalized");
+      hintText: zulipLocalizations.composeBoxStreamContentHint(streamName, _topicTextNormalized));
   }
 }
 
@@ -381,23 +383,25 @@ class _FixedDestinationContentInput extends StatelessWidget {
   final FocusNode focusNode;
 
   String _hintText(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     switch (narrow) {
       case TopicNarrow(:final streamId, :final topic):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[streamId]?.name ?? '(unknown stream)';
-        return "Message #$streamName > $topic";
+        final streamName = store.streams[streamId]?.name
+          ?? zulipLocalizations.composeBoxUnknownStreamName;
+        return zulipLocalizations.composeBoxStreamContentHint(streamName, topic);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
-        return "Jot down something";
+        return zulipLocalizations.composeBoxSelfDmContentHint;
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
         final fullName = store.users[otherUserId]?.fullName;
-        if (fullName == null) return 'Type a message';
-        return 'Message @$fullName';
+        if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
+        return zulipLocalizations.composeBoxDmContentHint(fullName);
 
       case DmNarrow(): // A group DM thread.
-        return 'Message group';
+        return zulipLocalizations.composeBoxGroupDmContentHint;
     }
   }
 
@@ -493,7 +497,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   final FocusNode contentFocusNode;
 
   IconData get icon;
-  String get tooltip;
+  String tooltip(ZulipLocalizations zulipLocalizations);
 
   /// Request files from the user, in the way specific to this upload type.
   ///
@@ -525,9 +529,10 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return IconButton(
       icon: Icon(icon),
-      tooltip: tooltip,
+      tooltip: tooltip(zulipLocalizations),
       onPressed: () => _handlePress(context));
   }
 }
@@ -576,8 +581,10 @@ class _AttachFileButton extends _AttachUploadsButton {
 
   @override
   IconData get icon => Icons.attach_file;
+
   @override
-  String get tooltip => 'Attach files';
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.composeBoxAttachFilesTooltip;
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
@@ -590,8 +597,10 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   IconData get icon => Icons.image;
+
   @override
-  String get tooltip => 'Attach images or videos';
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.composeBoxAttachMediaTooltip;
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
@@ -605,8 +614,10 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 
   @override
   IconData get icon => Icons.camera_alt;
+
   @override
-  String get tooltip => 'Take a photo';
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+      zulipLocalizations.composeBoxAttachFromCameraTooltip;
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
@@ -731,6 +742,7 @@ class _SendButtonState extends State<_SendButton> {
   Widget build(BuildContext context) {
     final disabled = _hasValidationErrors;
     final colorScheme = Theme.of(context).colorScheme;
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
     final backgroundColor = disabled
@@ -748,7 +760,7 @@ class _SendButtonState extends State<_SendButton> {
         color: backgroundColor,
       ),
       child: IconButton(
-        tooltip: 'Send',
+        tooltip: zulipLocalizations.composeBoxSendTooltip,
 
         // Match the height of the content input. Zeroing the padding lets the
         // constraints take over.
@@ -866,6 +878,7 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     return _ComposeBoxLayout(
       contentController: _contentController,
@@ -873,7 +886,7 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
       topicInput: TextField(
         controller: _topicController,
         style: TextStyle(color: colorScheme.onSurface),
-        decoration: const InputDecoration(hintText: 'Topic'),
+        decoration: InputDecoration(hintText: zulipLocalizations.composeBoxTopicHintText),
       ),
       contentInput: _StreamContentInput(
         narrow: widget.narrow,
