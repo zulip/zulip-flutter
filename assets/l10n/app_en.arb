@@ -91,6 +91,14 @@
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
   },
+  "topicValidationErrorTooLong": "Topic length shouldn't be greater than 60 characters.",
+  "@topicValidationErrorTooLong": {
+    "description": "Topic validation error when topic is too long."
+  },
+  "topicValidationErrorMandatoryButEmpty": "Topics are required in this organization.",
+  "@topicValidationErrorMandatoryButEmpty": {
+    "description": "Topic validation error when topic is required but was empty."
+  },
   "subscribedToNStreams": "Subscribed to {num, plural, =0{no streams} =1{1 stream} other{{num} streams}}",
   "@subscribedToNStreams": {
     "description": "Test page label showing number of streams user is subscribed to.",

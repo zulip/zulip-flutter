@@ -48,12 +48,12 @@ enum TopicValidationError {
   mandatoryButEmpty,
   tooLong;
 
-  String message() {
+  String message(ZulipLocalizations zulipLocalizations) {
     switch (this) {
       case tooLong:
-        return "Topic length shouldn't be greater than 60 characters.";
+        return zulipLocalizations.topicValidationErrorTooLong;
       case mandatoryButEmpty:
-        return 'Topics are required in this organization.';
+        return zulipLocalizations.topicValidationErrorMandatoryButEmpty;
     }
   }
 }
@@ -699,9 +699,10 @@ class _SendButtonState extends State<_SendButton> {
 
   void _send() {
     if (_hasValidationErrors) {
+      final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
         for (final error in widget.topicController?.validationErrors ?? const [])
-          error.message(),
+          error.message(zulipLocalizations),
         for (final error in widget.contentController.validationErrors)
           error.message(),
       ];
