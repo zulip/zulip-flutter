@@ -27,17 +27,21 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
-  "cameraAccessDeniedTitle": "Permissions needed",
-  "@cameraAccessDeniedTitle": {
-    "description": "Title for dialog when the user needs to grant permissions for camera access."
+  "permissionsNeededTitle": "Permissions needed",
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog when the user needs to grant additional permissions."
   },
-  "cameraAccessDeniedMessage": "To upload an image, please grant Zulip additional permissions in Settings.",
-  "@cameraAccessDeniedMessage": {
+  "permissionsNeededOpenSettings": "Open settings",
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "permissionsDeniedCameraAccess": "To upload an image, please grant Zulip additional permissions in Settings.",
+  "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog when the user needs to grant permissions for camera access."
   },
-  "cameraAccessDeniedButtonText": "Open settings",
-  "@cameraAccessDeniedButtonText": {
-    "description": "Message for dialog when the user needs to grant permissions for camera access."
+  "permissionsDeniedReadExternalStorage": "To upload files, please grant Zulip additional permissions in Settings.",
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog when the user needs to grant permissions for external storage read access."
   },
   "actionSheetOptionCopy": "Copy message text",
   "@actionSheetOptionCopy":  {
@@ -89,6 +93,10 @@
   "errorLoginFailedTitle": "Login failed",
   "@errorLoginFailedTitle": {
     "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorMessageNotSent": "Message not sent",
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
   },
   "errorLoginCouldNotConnect": "Failed to connect to server:\n{url}",
   "@errorLoginCouldNotConnect": {
@@ -158,6 +166,10 @@
   "errorDialogContinue": "OK",
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge error."
+  },
+  "errorDialogTitle": "Error",
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
   },
   "lightboxCopyLinkTooltip": "Copy link",
   "@lightboxCopyLinkTooltip": {
