@@ -1,0 +1,28 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Clone Flutter SDK
+      # We can't do a depth-1 clone, because we need the most recent tag
+      # so that Flutter knows its version and sees the constraint in our
+      # pubspec is satisfied.  It's uncommon for flutter/flutter to go
+      # more than 100 commits between tags.  Fetch 1000 for good measure.
+      run: |
+        git clone --depth=1000 https://github.com/flutter/flutter ~/flutter
+        TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
+        echo ~/flutter/bin >> "$GITHUB_PATH"
+
+    - name: Download Flutter SDK artifacts (flutter precache)
+      run: flutter precache --universal
+
+    - name: Download our dependencies (flutter pub get)
+      run: flutter pub get
+
+    - name: Run tools/check
+      run: TERM=dumb tools/check
