@@ -59,6 +59,25 @@
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the users system clipboard failed."
   },
+  "errorLoginInvalidInputTitle": "Invalid input",
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "errorLoginFailedTitle": "Login failed",
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorLoginCouldNotConnect": "Failed to connect to server:\n{url}",
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://example.com/"}
+    }
+  },
+  "errorLoginCouldNotConnectTitle": "Could not connect",
+  "@errorLoginCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
   "errorMessageDoesNotSeemToExist": "That message does not seem to exist.",
   "@errorMessageDoesNotSeemToExist": {
     "description": "Error message when loading a message that does not exist."
@@ -66,6 +85,13 @@
   "errorQuotationFailed": "Quotation failed",
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
+  },
+  "errorServerMessage": "The server said:\n\n{message}",
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {"type": "String", "example": "Invalid format"}
+    }
   },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
@@ -106,6 +132,50 @@
   "lightboxCopyLinkTooltip": "Copy link",
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
+  },
+  "loginPageTitle": "Log in",
+  "@loginPageTitle": {
+    "description": "Page title for login page."
+  },
+  "loginFormSubmitLabel": "Log in",
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
+  },
+  "loginAddAnAccountPageTitle": "Add an account",
+  "@loginAddAnAccountPageTitle": {
+    "description": "Page title for screen to add a Zulip account."
+  },
+  "loginServerUrlInputLabel": "Your Zulip server URL",
+  "@loginServerUrlInputLabel": {
+    "description": "Input label in login page for Zulip server URL entry."
+  },
+  "loginHidePassword": "Hide password",
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "loginEmailLabel": "Email address",
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to login."
+  },
+  "loginErrorMissingEmail": "Please enter your email.",
+  "@loginErrorMissingEmail": {
+    "description": "Error message when an empty email was provided."
+  },
+  "loginPasswordLabel": "Password",
+  "@loginPasswordLabel": {
+    "description": "Label for input for password field."
+  },
+  "loginErrorMissingPassword": "Please enter your password.",
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "loginUsernameLabel": "Username",
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to login."
+  },
+  "loginErrorMissingUsername": "Please enter your username.",
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
   },
   "topicValidationErrorTooLong": "Topic length shouldn't be greater than 60 characters.",
   "@topicValidationErrorTooLong": {

@@ -141,7 +141,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     final error = _parseResult.error;
     if (error != null) {
       showErrorDialog(context: context,
-        title: 'Invalid input',
+        title: zulipLocalizations.errorLoginInvalidInputTitle,
         message: error.message(zulipLocalizations));
       return;
     }
@@ -161,7 +161,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         // TODO(#105) give more helpful feedback; see `fetchServerSettings`
         //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
-          title: 'Could not connect', message: 'Failed to connect to server:\n$url');
+          title: zulipLocalizations.errorLoginCouldNotConnectTitle,
+          message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
         return;
       }
       // https://github.com/dart-lang/linter/issues/4007
@@ -190,7 +191,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       : error.message(zulipLocalizations);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add an account'),
+      appBar: AppBar(title: Text(zulipLocalizations.loginAddAnAccountPageTitle),
         bottom: _inProgress
           ? const PreferredSize(preferredSize: Size.fromHeight(4),
               child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
@@ -215,7 +216,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   // …but leave out unfocusing the input in case more editing is needed.
                 },
                 decoration: InputDecoration(
-                  labelText: 'Your Zulip server URL',
+                  labelText: zulipLocalizations.loginServerUrlInputLabel,
                   errorText: errorText,
                   helperText: kLayoutPinningHelperText,
                   hintText: 'your-org.zulipchat.com')),
@@ -224,7 +225,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 onPressed: !_inProgress && errorText == null
                   ? () => _onSubmitted(context)
                   : null,
-                child: const Text('Continue')),
+                child: Text(zulipLocalizations.dialogContinue)),
             ])))));
   }
 }
@@ -293,10 +294,13 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
         // TODO(#105) give more helpful feedback. The RN app is
         //   unhelpful here; we should at least recognize invalid auth errors, and
         //   errors for deactivated user or realm (see zulip-mobile#4571).
+        final zulipLocalizations = ZulipLocalizations.of(context);
         final message = (e is ZulipApiException)
-          ? 'The server said:\n\n${e.message}'
+          ? zulipLocalizations.errorServerMessage(e.message)
           : e.message;
-        showErrorDialog(context: context, title: 'Login failed', message: message);
+        showErrorDialog(context: context,
+          title: zulipLocalizations.errorLoginFailedTitle,
+          message: message);
         return;
       }
 
@@ -339,6 +343,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final requireEmailFormatUsernames = widget.serverSettings.requireEmailFormatUsernames;
 
     final usernameField = TextFormField(
@@ -354,8 +359,8 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
           return requireEmailFormatUsernames
-            ? 'Please enter your email.'
-            : 'Please enter your username.';
+            ? zulipLocalizations.loginErrorMissingEmail
+            : zulipLocalizations.loginErrorMissingUsername;
         }
         if (requireEmailFormatUsernames) {
           // TODO(#106): validate is in the shape of an email
@@ -364,7 +369,9 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       },
       textInputAction: TextInputAction.next,
       decoration: InputDecoration(
-        labelText: requireEmailFormatUsernames ? 'Email address' : 'Username',
+        labelText: requireEmailFormatUsernames
+          ? zulipLocalizations.loginEmailLabel
+          : zulipLocalizations.loginUsernameLabel,
         helperText: kLayoutPinningHelperText,
       ));
 
@@ -376,14 +383,14 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your password.';
+          return zulipLocalizations.loginErrorMissingPassword;
         }
         return null;
       },
       textInputAction: TextInputAction.go,
       onFieldSubmitted: (value) => _submit(),
       decoration: InputDecoration(
-        labelText: 'Password',
+        labelText: zulipLocalizations.loginPasswordLabel,
         helperText: kLayoutPinningHelperText,
         // TODO(material-3): Simplify away `Semantics` by using IconButton's
         //   M3-only params `isSelected` / `selectedIcon`, after fixing
@@ -393,14 +400,14 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
         //   [ButtonStyleButton].)
         suffixIcon: Semantics(toggled: _obscurePassword,
           child: IconButton(
-            tooltip: 'Hide password',
+            tooltip: zulipLocalizations.loginHidePassword,
             onPressed: _handlePasswordVisibilityPress,
             icon: _obscurePassword
               ? const Icon(Icons.visibility_off)
               : const Icon(Icons.visibility)))));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Log in'),
+      appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
         bottom: _inProgress
           ? const PreferredSize(preferredSize: Size.fromHeight(4),
               child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
@@ -420,7 +427,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: _inProgress ? null : _submit,
-                    child: const Text('Log in')),
+                    child: Text(zulipLocalizations.loginFormSubmitLabel)),
                 ])))))));
   }
 }
