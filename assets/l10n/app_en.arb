@@ -75,6 +75,22 @@
   "@successMessageCopied": {
     "description": "Message when content of a message was copied to the users system clipboard."
   },
+  "contentValidationErrorTooLong": "Message length shouldn't be greater than 10000 characters.",
+  "@contentValidationErrorTooLong": {
+    "description": "Content validation error message when the message is too long."
+  },
+  "contentValidationErrorEmpty": "You have nothing to send!",
+  "@contentValidationErrorEmpty": {
+    "description": "Content validation error message when the message is empty."
+  },
+  "contentValidationErrorQuoteAndReplyInProgress": "Please wait for the quotation to complete.",
+  "@contentValidationErrorQuoteAndReplyInProgress": {
+    "description": "Content validation error message when a quotation has not completed yet."
+  },
+  "contentValidationErrorUploadInProgress": "Please wait for the upload to complete.",
+  "@contentValidationErrorUploadInProgress": {
+    "description": "Content validation error message when attachments have not finished uploading."
+  },
   "dialogCancel": "Cancel",
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."

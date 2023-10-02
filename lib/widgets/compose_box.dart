@@ -90,16 +90,16 @@ enum ContentValidationError {
   quoteAndReplyInProgress,
   uploadInProgress;
 
-  String message() {
+  String message(ZulipLocalizations zulipLocalizations) {
     switch (this) {
       case ContentValidationError.tooLong:
-        return "Message length shouldn't be greater than 10000 characters.";
+        return zulipLocalizations.contentValidationErrorTooLong;
       case ContentValidationError.empty:
-        return 'You have nothing to send!';
+        return zulipLocalizations.contentValidationErrorEmpty;
       case ContentValidationError.quoteAndReplyInProgress:
-        return 'Please wait for the quotation to complete.';
+        return zulipLocalizations.contentValidationErrorQuoteAndReplyInProgress;
       case ContentValidationError.uploadInProgress:
-        return 'Please wait for the upload to complete.';
+        return zulipLocalizations.contentValidationErrorUploadInProgress;
     }
   }
 }
@@ -704,7 +704,7 @@ class _SendButtonState extends State<_SendButton> {
         for (final error in widget.topicController?.validationErrors ?? const [])
           error.message(zulipLocalizations),
         for (final error in widget.contentController.validationErrors)
-          error.message(),
+          error.message(zulipLocalizations),
       ];
       showErrorDialog(
         context: context,
