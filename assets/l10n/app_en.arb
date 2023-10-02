@@ -116,6 +116,22 @@
       "httpStatus": {"type": "int", "example": "500"}
     }
   },
+  "serverUrlValidationErrorEmpty": "Please enter a URL.",
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "serverUrlValidationErrorInvalidUrl": "Please enter a valid URL.",
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "serverUrlValidationErrorNoUseEmail": "Please enter the server URL, not your email.",
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "serverUrlValidationErrorUnsupportedScheme": "The server URL must start with http:// or https://.",
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
   "userRoleOwner": "Owner",
   "@userRoleOwner": {
     "description": "Label for UserRole.owner"

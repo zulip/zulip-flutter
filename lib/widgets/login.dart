@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/core.dart';
 import '../api/exception.dart';
@@ -42,17 +43,17 @@ enum ServerUrlValidationError {
     }
   }
 
-  String message() { // TODO(i18n)
+  String message(ZulipLocalizations zulipLocalizations) {
     switch (this) {
       case empty:
-        return 'Please enter a URL.';
+        return zulipLocalizations.serverUrlValidationErrorEmpty;
       case invalidUrl:
-        return 'Please enter a valid URL.';
+        return zulipLocalizations.serverUrlValidationErrorInvalidUrl;
       case noUseEmail:
-        return 'Please enter the server URL, not your email.';
+        return zulipLocalizations.serverUrlValidationErrorNoUseEmail;
       case unsupportedSchemeZulip:
       case unsupportedSchemeOther:
-        return 'The server URL must start with http:// or https://.';
+        return zulipLocalizations.serverUrlValidationErrorUnsupportedScheme;
     }
   }
 }
@@ -135,11 +136,13 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   Future<void> _onSubmitted(BuildContext context) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final url = _parseResult.url;
     final error = _parseResult.error;
     if (error != null) {
       showErrorDialog(context: context,
-        title: 'Invalid input', message: error.message());
+        title: 'Invalid input',
+        message: error.message(zulipLocalizations));
       return;
     }
     assert(url != null);
@@ -180,10 +183,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final error = _parseResult.error;
     final errorText = error == null || error.shouldDeferFeedback()
       ? null
-      : error.message();
+      : error.message(zulipLocalizations);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add an account'),
