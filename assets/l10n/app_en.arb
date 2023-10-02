@@ -29,7 +29,7 @@
   },
   "permissionsNeededTitle": "Permissions needed",
   "@permissionsNeededTitle": {
-    "description": "Title for dialog when the user needs to grant additional permissions."
+    "description": "Title for dialog asking the user to grant additional permissions."
   },
   "permissionsNeededOpenSettings": "Open settings",
   "@permissionsNeededOpenSettings": {
@@ -37,11 +37,11 @@
   },
   "permissionsDeniedCameraAccess": "To upload an image, please grant Zulip additional permissions in Settings.",
   "@permissionsDeniedCameraAccess": {
-    "description": "Message for dialog when the user needs to grant permissions for camera access."
+    "description": "Message for dialog asking the user to grant permissions for camera access."
   },
   "permissionsDeniedReadExternalStorage": "To upload files, please grant Zulip additional permissions in Settings.",
   "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog when the user needs to grant permissions for external storage read access."
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
   "actionSheetOptionCopy": "Copy message text",
   "@actionSheetOptionCopy":  {
@@ -61,7 +61,7 @@
   },
   "errorCopyingFailed": "Copying failed",
   "@errorCopyingFailed": {
-    "description": "Error message when copying the text of a message to the users system clipboard failed."
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
   },
   "errorFailedToUploadFileTitle": "Failed to upload file: {filename}",
   "@errorFailedToUploadFileTitle": {
@@ -130,7 +130,7 @@
   },
   "successMessageCopied": "Message Copied",
   "@successMessageCopied": {
-    "description": "Message when content of a message was copied to the users system clipboard."
+    "description": "Message when content of a message was copied to the user's system clipboard."
   },
   "composeBoxAttachFilesTooltip": "Attach files",
   "@composeBoxAttachFilesTooltip": {
@@ -185,7 +185,7 @@
   },
   "composeBoxUploadingFilename": "Uploading {filename}...",
   "@composeBoxUploadingFilename": {
-    "description": "Label in compose box showing the specified file is currently uploading.",
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
     "placeholders": {
       "filename": {"type": "String", "example": "file.txt"}
     }
@@ -216,7 +216,7 @@
   },
   "errorDialogContinue": "OK",
   "@errorDialogContinue": {
-    "description": "Button label in error dialogs to acknowledge error."
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
   },
   "errorDialogTitle": "Error",
   "@errorDialogTitle": {
@@ -248,7 +248,7 @@
   },
   "loginEmailLabel": "Email address",
   "@loginEmailLabel": {
-    "description": "Label for input when an email is required to login."
+    "description": "Label for input when an email is required to log in."
   },
   "loginErrorMissingEmail": "Please enter your email.",
   "@loginErrorMissingEmail": {
@@ -256,7 +256,7 @@
   },
   "loginPasswordLabel": "Password",
   "@loginPasswordLabel": {
-    "description": "Label for input for password field."
+    "description": "Label for password input field."
   },
   "loginErrorMissingPassword": "Please enter your password.",
   "@loginErrorMissingPassword": {
@@ -264,7 +264,7 @@
   },
   "loginUsernameLabel": "Username",
   "@loginUsernameLabel": {
-    "description": "Label for input when a username is required to login."
+    "description": "Label for input when a username is required to log in."
   },
   "loginErrorMissingUsername": "Please enter your username.",
   "@loginErrorMissingUsername": {
@@ -291,7 +291,7 @@
   },
   "errorMalformedResponse": "Server gave malformed response; HTTP status {httpStatus}",
   "@errorMalformedResponse": {
-    "description": "Error message when an API call fails because we could not parse it.",
+    "description": "Error message when an API call fails because we could not parse the response.",
     "placeholders": {
       "httpStatus": {"type": "int", "example": "200"}
     }
