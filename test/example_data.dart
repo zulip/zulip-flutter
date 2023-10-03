@@ -273,11 +273,12 @@ InitialSnapshot initialSnapshot({
     crossRealmBots: crossRealmBots ?? [],
   );
 }
+const _initialSnapshot = initialSnapshot;
 
-PerAccountStore store() {
+PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
   return PerAccountStore.fromInitialSnapshot(
-    account: selfAccount,
-    connection: FakeApiConnection.fromAccount(selfAccount),
-    initialSnapshot: initialSnapshot(),
+    account: account ?? selfAccount,
+    connection: FakeApiConnection.fromAccount(account ?? selfAccount),
+    initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }
