@@ -46,6 +46,24 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "errorNetworkRequestFailed": "Network request failed",
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "errorMalformedResponse": "Server gave malformed response; HTTP status {httpStatus}",
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse it.",
+    "placeholders": {
+      "httpStatus": {"type": "int", "example": "200"}
+    }
+  },
+  "errorRequestFailed": "Network request failed: HTTP status {httpStatus}",
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {"type": "int", "example": "500"}
+    }
+  },
   "userRoleOwner": "Owner",
   "@userRoleOwner": {
     "description": "Label for UserRole.owner"

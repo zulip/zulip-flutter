@@ -1,4 +1,6 @@
 
+import '../model/localizations.dart';
+
 /// Some kind of error from a Zulip API network request.
 sealed class ApiRequestException implements Exception {
   /// The name of the Zulip API route for the request.
@@ -92,7 +94,8 @@ class Server5xxException extends ServerException {
     required super.httpStatus,
     required super.data,
   }) : assert(500 <= httpStatus && httpStatus <= 599),
-       super(message: 'Network request failed: HTTP status $httpStatus'); // TODO(i18n)
+       super(message: GlobalLocalizations.zulipLocalizations
+         .errorRequestFailed(httpStatus));
 }
 
 /// An error where the server's response doesn't match the Zulip API.
@@ -113,5 +116,6 @@ class MalformedServerResponseException extends ServerException {
     required super.routeName,
     required super.httpStatus,
     required super.data,
-  }) : super(message: 'Server gave malformed response; HTTP status $httpStatus'); // TODO(i18n)
+  }) : super(message: GlobalLocalizations.zulipLocalizations
+         .errorMalformedResponse(httpStatus));
 }

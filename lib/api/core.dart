@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../log.dart';
+import '../model/localizations.dart';
 import 'exception.dart';
 
 /// A value for an API request parameter, to use directly without JSON encoding.
@@ -90,7 +91,8 @@ class ApiConnection {
       } else if (e is TlsException) {
         message = e.message;
       } else {
-        message = 'Network request failed';
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        message = zulipLocalizations.errorNetworkRequestFailed;
       }
       throw NetworkException(routeName: routeName, cause: e, message: message);
     }

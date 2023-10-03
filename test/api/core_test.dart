@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:checks/context.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
@@ -153,9 +154,11 @@ void main() {
           ..which(condition));
     }
 
+    final zulipLocalizations = lookupZulipLocalizations(ZulipLocalizations.supportedLocales.first);
     checkRequest(http.ClientException('Oops'), it()..message.equals('Oops'));
     checkRequest(const TlsException('Oops'), it()..message.equals('Oops'));
-    checkRequest((foo: 'bar'), it()..message.equals('Network request failed'));
+    checkRequest((foo: 'bar'), it()
+      ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
   });
 
   test('API 4xx errors, well formed', () async {
