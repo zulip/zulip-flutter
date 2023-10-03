@@ -78,3 +78,14 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 
   return store.account.realmUrl.replace(fragment: fragment.toString());
 }
+
+/// Create a new `Uri` object in relation to a given realmUrl.
+///
+/// Returns `null` if `urlString` could not be parsed as a `Uri`.
+Uri? tryResolveOnRealmUrl(String urlString, Uri realmUrl) {
+  try {
+    return realmUrl.resolve(urlString);
+  } on FormatException {
+    return null;
+  }
+}

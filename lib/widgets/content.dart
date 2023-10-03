@@ -7,6 +7,7 @@ import '../api/core.dart';
 import '../api/model/model.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
+import '../model/internal_link.dart';
 import '../model/store.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -661,12 +662,9 @@ void _launchUrl(BuildContext context, String urlString) async {
   }
 
   final store = PerAccountStoreWidget.of(context);
-  final Uri url;
-  try {
-    url = store.account.realmUrl.resolve(urlString);
-  } on FormatException { // TODO(log)
+  final url = tryResolveOnRealmUrl(urlString, store.account.realmUrl);
+  if (url == null) { // TODO(log)
     await showError(context, null);
-    if (!context.mounted) return; // TODO(dart): redundant for sake of lint
     return;
   }
 
