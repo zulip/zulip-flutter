@@ -55,16 +55,9 @@ class TestZulipBinding extends ZulipBinding {
   /// should clean up by calling this method.  Typically this is done using
   /// [addTearDown], like `addTearDown(testBinding.reset);`.
   void reset() {
-    _globalStore?.dispose();
-    _globalStore = null;
-    assert(() {
-      _debugAlreadyLoadedStore = false;
-      return true;
-    }());
-
-    launchUrlResult = true;
-    _launchUrlCalls = null;
-    deviceInfoResult = _defaultDeviceInfoResult;
+    _resetStore();
+    _resetLaunchUrl();
+    _resetDeviceInfo();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -79,6 +72,15 @@ class TestZulipBinding extends ZulipBinding {
   TestGlobalStore? _globalStore;
 
   bool _debugAlreadyLoadedStore = false;
+
+  void _resetStore() {
+    _globalStore?.dispose();
+    _globalStore = null;
+    assert(() {
+      _debugAlreadyLoadedStore = false;
+      return true;
+    }());
+  }
 
   @override
   Future<GlobalStore> loadGlobalStore() {
@@ -110,6 +112,11 @@ class TestZulipBinding extends ZulipBinding {
   /// See also [takeLaunchUrlCalls].
   bool launchUrlResult = true;
 
+  void _resetLaunchUrl() {
+    launchUrlResult = true;
+    _launchUrlCalls = null;
+  }
+
   /// Consume the log of calls made to `ZulipBinding.instance.launchUrl()`.
   ///
   /// This returns a list of the arguments to all calls made
@@ -138,6 +145,10 @@ class TestZulipBinding extends ZulipBinding {
   /// See also [takeDeviceInfoCalls].
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
   static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
+
+  void _resetDeviceInfo() {
+    deviceInfoResult = _defaultDeviceInfoResult;
+  }
 
   @override
   Future<BaseDeviceInfo> deviceInfo() {
