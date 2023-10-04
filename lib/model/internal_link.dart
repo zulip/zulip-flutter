@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../api/model/narrow.dart';
 import 'narrow.dart';
 import 'store.dart';
+
+part 'internal_link.g.dart';
 
 const _hashReplacements = {
   "%": ".",
@@ -102,6 +105,180 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 Uri? tryResolveOnRealmUrl(String urlString, Uri realmUrl) {
   try {
     return realmUrl.resolve(urlString);
+  } on FormatException {
+    return null;
+  }
+}
+
+/// A [Narrow] from a given URL, on `store`'s realm.
+///
+/// `url` must already be passed through [tryResolveOnRealmUrl].
+///
+/// Returns `null` if any of the operator/operand pairs are invalid.
+///
+/// Since narrow links can combine operators in ways our [Narrow] type can't
+/// represent, this can also return null for valid narrow links.
+///
+/// This can also return null for some valid narrow links that our Narrow
+/// type *could* accurately represent. We should try to understand these
+/// better, but some kinds will be rare, even unheard-of:
+///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
+// TODO(#252): handle all valid narrow links, returning a search narrow
+Narrow? parseInternalLink(Uri url, PerAccountStore store) {
+  if (!_isInternalLink(url, store.account.realmUrl)) return null;
+
+  final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
+  switch (category) {
+    case 'narrow':
+      if (segments.isEmpty || !segments.length.isEven) return null;
+      return _interpretNarrowSegments(segments, store);
+  }
+  return null;
+}
+
+/// Check if `url` is an internal link on the given `realmUrl`.
+bool _isInternalLink(Uri url, Uri realmUrl) {
+  try {
+    if (url.origin != realmUrl.origin) return false;
+  } on StateError {
+    return false;
+  }
+  return (url.hasEmptyPath || url.path == '/')
+    && !url.hasQuery
+    && url.hasFragment;
+}
+
+/// Split `fragment` of arbitrary segments and handle trailing slashes
+(String, List<String>) _getCategoryAndSegmentsFromFragment(String fragment) {
+  final [category, ...segments] = fragment.split('/');
+  if (segments.length > 1 && segments.last == '') segments.removeLast();
+  return (category, segments);
+}
+
+Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
+  assert(segments.isNotEmpty);
+  assert(segments.length.isEven);
+
+  ApiNarrowStream? streamElement;
+  ApiNarrowTopic? topicElement;
+  ApiNarrowDm? dmElement;
+
+  for (var i = 0; i < segments.length; i += 2) {
+    final (operator, negated) = _parseOperator(segments[i]);
+    if (negated) return null;
+    final operand = segments[i + 1];
+    switch (operator) {
+      case _NarrowOperator.stream:
+        if (streamElement != null) return null;
+        final streamId = _parseStreamOperand(operand, store);
+        if (streamId == null) return null;
+        streamElement = ApiNarrowStream(streamId, negated: negated);
+
+      case _NarrowOperator.topic:
+      case _NarrowOperator.subject:
+        if (topicElement != null) return null;
+        final String? topic = decodeHashComponent(operand);
+        if (topic == null) return null;
+        topicElement = ApiNarrowTopic(topic, negated: negated);
+
+      case _NarrowOperator.dm:
+      case _NarrowOperator.pmWith:
+        if (dmElement != null) return null;
+        final dmIds = _parseDmOperand(operand);
+        if (dmIds == null) return null;
+        dmElement = ApiNarrowDm(dmIds, negated: negated);
+
+      case _NarrowOperator.near:
+        continue; // TODO(#82): support for near
+
+      case _NarrowOperator.unknown:
+        return null;
+    }
+  }
+
+  if (dmElement != null) {
+    if (streamElement != null || topicElement != null) return null;
+    return DmNarrow.withUsers(dmElement.operand, selfUserId: store.account.userId);
+  } else if (streamElement != null) {
+    final streamId = streamElement.operand;
+    if (topicElement != null) {
+      return TopicNarrow(streamId, topicElement.operand);
+    } else {
+      return StreamNarrow(streamId);
+    }
+  }
+  return null;
+}
+
+@JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
+enum _NarrowOperator {
+  // 'dm' is new in server-7.0; means the same as 'pm-with'
+  dm,
+  near,
+  pmWith,
+  stream,
+  subject,
+  topic,
+  unknown;
+
+  static _NarrowOperator fromRawString(String raw) => _byRawString[raw] ?? unknown;
+
+  static final _byRawString = _$_NarrowOperatorEnumMap.map((key, value) => MapEntry(value, key));
+}
+
+(_NarrowOperator, bool) _parseOperator(String input) {
+  final String operator;
+  final bool negated;
+  if (input.startsWith('-')) {
+    operator = input.substring(1);
+    negated = true;
+  } else {
+    operator = input;
+    negated = false;
+  }
+  return (_NarrowOperator.fromRawString(operator), negated);
+}
+
+/// Parse the operand of a `stream` operator, returning a stream ID.
+///
+/// The ID might point to a stream that's hidden from our user (perhaps
+/// doesn't exist). If so, most likely the user doesn't have permission to
+/// see the stream's existence -- like with a guest user for any stream
+/// they're not in, or any non-admin with a private stream they're not in.
+/// Could be that whoever wrote the link just made something up.
+///
+/// Returns null if the operand has an unexpected shape, or has the old shape
+/// (stream name but no ID) and we don't know of a stream by the given name.
+int? _parseStreamOperand(String operand, PerAccountStore store) {
+  // "New" (2018) format: ${stream_id}-${stream_name} .
+  final match = RegExp(r'^(\d+)(?:-.*)?$').firstMatch(operand);
+  final newFormatStreamId = (match != null) ? int.parse(match.group(1)!, radix: 10) : null;
+  if (newFormatStreamId != null && store.streams.containsKey(newFormatStreamId)) {
+    return newFormatStreamId;
+  }
+
+  // Old format: just stream name.  This case is relevant indefinitely,
+  // so that links in old conversations continue to work.
+  final String? streamName = decodeHashComponent(operand);
+  if (streamName == null) return null;
+  final stream = store.streamsByName[streamName];
+  if (stream != null) return stream.streamId;
+
+  if (newFormatStreamId != null) {
+    // Neither format found a stream, so it's hidden or doesn't exist. But
+    // at least we have a stream ID; give that to the caller.
+    return newFormatStreamId;
+  }
+
+  // Unexpected shape, or the old shape and we don't know of a stream with
+  // the given name.
+  return null;
+}
+
+List<int>? _parseDmOperand(String operand) {
+  final rawIds = operand.split('-')[0].split(',');
+  try {
+    return rawIds.map((rawId) => int.parse(rawId, radix: 10)).toList();
   } on FormatException {
     return null;
   }
