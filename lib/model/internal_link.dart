@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import '../api/model/narrow.dart';
 import 'narrow.dart';
@@ -17,6 +18,22 @@ final _encodeHashComponentRegex = RegExp(r'[%().]');
 String _encodeHashComponent(String str) {
   return Uri.encodeComponent(str)
     .replaceAllMapped(_encodeHashComponentRegex, (Match m) => _hashReplacements[m[0]!]!);
+}
+
+/// Decode a dot-encoded string; return null if malformed.
+// The Zulip webapp uses this encoding in narrow-links:
+// https://github.com/zulip/zulip/blob/1577662a6/static/js/hash_util.js#L18-L25
+@visibleForTesting
+String? decodeHashComponent(String str) {
+  try {
+    return Uri.decodeComponent(str.replaceAll('.', '%'));
+  } on ArgumentError {
+    // as with '%1': Invalid argument(s): Truncated URI
+    return null;
+  } on FormatException {
+    // as with '%FF': FormatException: Invalid UTF-8 byte (at offset 0)
+    return null;
+  }
 }
 
 /// A URL to the given [Narrow], on `store`'s realm.
