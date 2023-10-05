@@ -503,6 +503,7 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
   String get op => 'remove';
 
   // final bool all; // deprecated, ignore
+  // TODO(json_serializable): keys use plain `int.parse`, permitting hexadecimal
   final Map<int, UpdateMessageFlagsMessageDetail>? messageDetails;
 
   UpdateMessageFlagsRemoveEvent({

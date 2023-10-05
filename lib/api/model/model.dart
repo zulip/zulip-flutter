@@ -134,10 +134,13 @@ class User {
   String timezone;
   String? avatarUrl; // TODO distinguish null from missing https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20omitted.20vs.2E.20null.20in.20JSON/near/1551759
   int avatarVersion;
+
   // null for bots, which don't have custom profile fields.
   // If null for a non-bot, equivalent to `{}` (null just written for efficiency.)
+  // TODO(json_serializable): keys use plain `int.parse`, permitting hexadecimal
   @JsonKey(readValue: _readProfileData)
   Map<int, ProfileFieldUserData>? profileData;
+
   @JsonKey(readValue: _readIsSystemBot)
   bool? isSystemBot; // TODO(server-5)
 

@@ -110,7 +110,7 @@ class ApiNarrowMessageId extends ApiNarrowElement {
   ApiNarrowMessageId(int operand, {super.negated}) : operand = operand.toString();
 
   factory ApiNarrowMessageId.fromJson(Map<String, dynamic> json) => ApiNarrowMessageId(
-    int.parse(json['operand'] as String),
+    int.parse(json['operand'] as String, radix: 10),
     negated: json['negated'] as bool? ?? false,
   );
 }
