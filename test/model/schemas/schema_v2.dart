@@ -52,9 +52,10 @@ class Accounts extends Table with TableInfo<Accounts, AccountsData> {
         ackedPushToken
       ];
   @override
-  String get aliasedName => _alias ?? 'accounts';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'accounts';
+  String get actualTableName => $name;
+  static const String $name = 'accounts';
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
