@@ -7,6 +7,11 @@ import 'package:checks/checks.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+extension AnimationChecks<T> on Subject<Animation<T>> {
+  Subject<AnimationStatus> get status => has((d) => d.status, 'status');
+  Subject<T> get value => has((d) => d.value, 'value');
+}
+
 extension ClipboardDataChecks on Subject<ClipboardData> {
   Subject<String?> get text => has((d) => d.text, 'text');
 }

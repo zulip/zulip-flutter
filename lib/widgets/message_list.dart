@@ -283,6 +283,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
               header: header, child: header);
           case MessageListMessageItem():
             return MessageItem(
+              key: ValueKey(data.message.id),
               trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
               item: data);
         }
@@ -355,10 +356,51 @@ class MessageItem extends StatelessWidget {
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: RecipientHeader(message: message),
-      child: Column(children: [
-        MessageWithPossibleSender(item: item),
-        if (trailing != null && item.isLastInBlock) trailing!,
-      ]));
+      child: _UnreadMarker(
+        isRead: message.flags.contains(MessageFlag.read),
+        child: Column(children: [
+          MessageWithPossibleSender(item: item),
+          if (trailing != null && item.isLastInBlock) trailing!,
+        ])));
+  }
+}
+
+/// Widget responsible for showing the read status of a message.
+class _UnreadMarker extends StatelessWidget {
+  const _UnreadMarker({required this.isRead, required this.child});
+
+  final bool isRead;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        Positioned(
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: 4,
+          child: AnimatedOpacity(
+            opacity: isRead ? 0 : 1,
+            // Web uses 2s and 0.3s durations, and a CSS ease-out curve.
+            // See zulip:web/styles/message_row.css .
+            duration: Duration(milliseconds: isRead ? 2000 : 300),
+            curve: Curves.easeOut,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                // The color hsl(227deg 78% 59%) comes from the Figma mockup at:
+                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
+                // See discussion about design at:
+                //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+                color: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+                // TODO(#95): Don't show this extra border in dark mode, see:
+                //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+                border: Border(left: BorderSide(
+                  width: 1,
+                  color: Colors.white.withOpacity(0.6))))))),
+      ]);
   }
 }
 

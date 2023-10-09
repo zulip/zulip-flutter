@@ -17,6 +17,7 @@ import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/message_list_test.dart';
 import '../model/test_store.dart';
+import '../flutter_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_checks.dart';
@@ -298,6 +299,62 @@ void main() {
       checkResultForSender('/bar.jpg');
 
       debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('_UnreadMarker animations', () {
+    // TODO: Improve animation state testing so it is less tied to
+    //   implementation details and more focused on output, see:
+    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/robust.20widget.20finders.20in.20tests/near/1671738
+    Animation<double> getAnimation(WidgetTester tester, int messageId) {
+      final widget = tester.widget<FadeTransition>(find.descendant(
+        of: find.byKey(ValueKey(messageId)),
+        matching: find.byType(FadeTransition)));
+      return widget.opacity;
+    }
+
+    testWidgets('from read to unread', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      await setupMessageListPage(tester, messages: [message]);
+      check(getAnimation(tester, message.id))
+        ..value.equals(0.0)
+        ..status.equals(AnimationStatus.dismissed);
+
+      store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+        MessageFlag.read, [message]));
+      await tester.pump(); // process handleEvent
+      check(getAnimation(tester, message.id))
+        ..value.equals(0.0)
+        ..status.equals(AnimationStatus.forward);
+
+      await tester.pumpAndSettle();
+      check(getAnimation(tester, message.id))
+        ..value.equals(1.0)
+        ..status.equals(AnimationStatus.completed);
+    });
+
+    testWidgets('from unread to read', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      await setupMessageListPage(tester, messages: [message]);
+      check(getAnimation(tester, message.id))
+        ..value.equals(1.0)
+        ..status.equals(AnimationStatus.dismissed);
+
+      store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: MessageFlag.read,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pump(); // process handleEvent
+      check(getAnimation(tester, message.id))
+        ..value.equals(1.0)
+        ..status.equals(AnimationStatus.forward);
+
+      await tester.pumpAndSettle();
+      check(getAnimation(tester, message.id))
+        ..value.equals(0.0)
+        ..status.equals(AnimationStatus.completed);
     });
   });
 }
