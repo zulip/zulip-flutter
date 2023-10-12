@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/model/binding.dart';
@@ -63,6 +65,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetLaunchUrl();
     _resetDeviceInfo();
     _resetFirebase();
+    _resetNotifications();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -188,6 +191,17 @@ class TestZulipBinding extends ZulipBinding {
 
   @override
   Stream<RemoteMessage> get firebaseMessagingOnMessage => firebaseMessaging.onMessage.stream;
+
+  void _resetNotifications() {
+    _notificationsPlugin = null;
+  }
+
+  FakeFlutterLocalNotificationsPlugin? _notificationsPlugin;
+
+  @override
+  FakeFlutterLocalNotificationsPlugin get notifications {
+    return (_notificationsPlugin ??= FakeFlutterLocalNotificationsPlugin());
+  }
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
@@ -227,4 +241,95 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
   Stream<String> get onTokenRefresh => _tokenController.stream;
 
   StreamController<RemoteMessage> onMessage = StreamController.broadcast();
+}
+
+class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
+  InitializationSettings? initializationSettings;
+  DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse;
+  DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse;
+
+  @override
+  Future<bool?> initialize(
+    InitializationSettings initializationSettings, {
+    DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
+    DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse,
+  }) async {
+    assert(this.initializationSettings == null);
+    this.initializationSettings = initializationSettings;
+    this.onDidReceiveNotificationResponse = onDidReceiveNotificationResponse;
+    this.onDidReceiveBackgroundNotificationResponse = onDidReceiveBackgroundNotificationResponse;
+    return true;
+  }
+
+  FlutterLocalNotificationsPlatform? _platform;
+
+  @override
+  T? resolvePlatformSpecificImplementation<T extends FlutterLocalNotificationsPlatform>() {
+    // This follows the logic of the base class's implementation,
+    // but supplies our fakes for the per-platform classes.
+    assert(initializationSettings != null);
+    assert(T != FlutterLocalNotificationsPlatform);
+    if (kIsWeb) return null;
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        assert(_platform == null || _platform is FakeAndroidFlutterLocalNotificationsPlugin);
+        if (T != AndroidFlutterLocalNotificationsPlugin) return null;
+        return (_platform ??= FakeAndroidFlutterLocalNotificationsPlugin()) as T?;
+
+      case TargetPlatform.iOS:
+        assert(_platform == null || _platform is FakeIOSFlutterLocalNotificationsPlugin);
+        if (T != IOSFlutterLocalNotificationsPlugin) return null;
+        return (_platform ??= FakeIOSFlutterLocalNotificationsPlugin()) as T?;
+
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        return null;
+    }
+  }
+
+  /// Consume the log of calls made to [show].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [show] since the last call to this method.
+  List<FlutterLocalNotificationsPluginShowCall> takeShowCalls() {
+    final result = _showCalls;
+    _showCalls = [];
+    return result;
+  }
+  List<FlutterLocalNotificationsPluginShowCall> _showCalls = [];
+
+  @override
+  Future<void> show(int id, String? title, String? body,
+      NotificationDetails? notificationDetails, {String? payload}) async {
+    assert(initializationSettings != null);
+    _showCalls.add((id, title, body, notificationDetails, payload: payload));
+  }
+}
+
+typedef FlutterLocalNotificationsPluginShowCall = (
+  int id, String? title, String? body,
+  NotificationDetails? notificationDetails, {String? payload}
+);
+
+class FakeAndroidFlutterLocalNotificationsPlugin extends Fake implements AndroidFlutterLocalNotificationsPlugin {
+  /// Consume the log of calls made to [createNotificationChannel].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [createNotificationChannel] since the last call to this method.
+  List<AndroidNotificationChannel> takeCreatedChannels() {
+    final result = _createdChannels;
+    _createdChannels = [];
+    return result;
+  }
+  List<AndroidNotificationChannel> _createdChannels = [];
+
+  @override
+  Future<void> createNotificationChannel(AndroidNotificationChannel notificationChannel) async {
+    _createdChannels.add(notificationChannel);
+  }
+}
+
+class FakeIOSFlutterLocalNotificationsPlugin extends Fake implements IOSFlutterLocalNotificationsPlugin {
 }

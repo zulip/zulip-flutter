@@ -2,6 +2,7 @@ import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../firebase_options.dart';
@@ -98,6 +99,9 @@ abstract class ZulipBinding {
 
   /// Wraps [firebase_messaging.FirebaseMessaging.onMessage].
   Stream<firebase_messaging.RemoteMessage> get firebaseMessagingOnMessage;
+
+  /// Wraps the [FlutterLocalNotificationsPlugin] singleton constructor.
+  FlutterLocalNotificationsPlugin get notifications;
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -194,4 +198,7 @@ class LiveZulipBinding extends ZulipBinding {
   Stream<firebase_messaging.RemoteMessage> get firebaseMessagingOnMessage {
     return firebase_messaging.FirebaseMessaging.onMessage;
   }
+
+  @override
+  FlutterLocalNotificationsPlugin get notifications => FlutterLocalNotificationsPlugin();
 }
