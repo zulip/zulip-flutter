@@ -47,7 +47,7 @@ dependencies:
   intl: ^0.18.0
   share_plus: ^7.0.0
   device_info_plus: ^9.0.0
-  file_picker: ^5.2.7
+  file_picker: ^6.0.0
   drift: ^2.5.0
   path_provider: ^2.0.13
   path: ^1.8.3
