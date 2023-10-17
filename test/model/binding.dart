@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
@@ -58,6 +62,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetStore();
     _resetLaunchUrl();
     _resetDeviceInfo();
+    _resetFirebase();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -154,4 +159,72 @@ class TestZulipBinding extends ZulipBinding {
   Future<BaseDeviceInfo> deviceInfo() {
     return Future(() => deviceInfoResult);
   }
+
+  void _resetFirebase() {
+    _firebaseInitialized = false;
+    _firebaseMessaging = null;
+  }
+
+  bool _firebaseInitialized = false;
+  FakeFirebaseMessaging? _firebaseMessaging;
+
+  @override
+  Future<void> firebaseInitializeApp() async {
+    _firebaseInitialized = true;
+  }
+
+  /// The value `firebaseMessaging.getToken` will initialize the token to.
+  ///
+  /// After `firebaseMessaging.getToken` has been called once, this has no effect.
+  set firebaseMessagingInitialToken(String value) {
+    (_firebaseMessaging ??= FakeFirebaseMessaging())._initialToken = value;
+  }
+
+  @override
+  FakeFirebaseMessaging get firebaseMessaging {
+    assert(_firebaseInitialized);
+    return (_firebaseMessaging ??= FakeFirebaseMessaging());
+  }
+
+  @override
+  Stream<RemoteMessage> get firebaseMessagingOnMessage => firebaseMessaging.onMessage.stream;
+}
+
+class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
+  String? _initialToken;
+
+  /// Set the token to a new value, as if it were newly generated.
+  ///
+  /// This will cause listeners of [onTokenRefresh] to be called, but
+  /// in a microtask, not synchronously.
+  void setToken(String value) {
+    _token = value;
+    _tokenController.add(value);
+  }
+
+  String? _token;
+
+  final StreamController<String> _tokenController =
+    StreamController<String>.broadcast();
+
+  @override
+  Future<String?> getToken({String? vapidKey}) async {
+    assert(vapidKey == null);
+    if (_token == null) {
+      assert(_initialToken != null,
+        'Tests that call [NotificationService.start], or otherwise cause'
+        ' a call to `ZulipBinding.instance.firebaseMessaging.getToken`,'
+        ' must set `testBinding.firebaseMessagingInitialToken` first.');
+
+      // This causes [onTokenRefresh] to fire, just like the real [getToken]
+      // does when no token exists (e.g., on first run after install).
+      setToken(_initialToken!);
+    }
+    return _token;
+  }
+
+  @override
+  Stream<String> get onTokenRefresh => _tokenController.stream;
+
+  StreamController<RemoteMessage> onMessage = StreamController.broadcast();
 }
