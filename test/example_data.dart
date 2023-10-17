@@ -344,3 +344,11 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }
+
+LivePerAccountStore liveStore({Account? account, InitialSnapshot? initialSnapshot}) {
+  return LivePerAccountStore.fromInitialSnapshot(
+    account: account ?? selfAccount,
+    connection: FakeApiConnection.fromAccount(account ?? selfAccount),
+    initialSnapshot: initialSnapshot ?? _initialSnapshot(),
+  );
+}
