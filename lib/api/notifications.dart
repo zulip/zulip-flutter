@@ -95,7 +95,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   String get type => 'message';
 
   final int senderId;
-  final String senderEmail;
+  // final String senderEmail; // obsolete; ignore
   final Uri senderAvatarUrl;
   final String senderFullName;
 
@@ -120,7 +120,6 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
     required super.realmUri,
     required super.userId,
     required this.senderId,
-    required this.senderEmail,
     required this.senderAvatarUrl,
     required this.senderFullName,
     required this.recipient,

@@ -73,7 +73,6 @@ void main() {
         ..realmUri.equals(Uri.parse(baseJson['realm_uri']!))
         ..userId.equals(234)
         ..senderId.equals(123)
-        ..senderEmail.equals(streamJson['sender_email']!)
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
         ..senderFullName.equals(streamJson['sender_full_name']!)
         ..zulipMessageId.equals(12345)
@@ -106,6 +105,7 @@ void main() {
           .deepEquals({ ...json }
             ..remove('recipient_type') // Redundant with stream_id.
             ..remove('content_truncated') // Redundant with content.
+            ..remove('sender_email') // Redundant with sender_id.
           );
       }
 
@@ -119,6 +119,7 @@ void main() {
       final baseline = parse(streamJson);
       check(parse({ ...streamJson }..remove('recipient_type'))).jsonEquals(baseline);
       check(parse({ ...streamJson }..remove('content_truncated'))).jsonEquals(baseline);
+      check(parse({ ...streamJson }..remove('sender_email'))).jsonEquals(baseline);
     });
 
     test('obsolete or novel fields have no effect', () {
@@ -162,7 +163,6 @@ void main() {
            "${n++}", () => checkParseFails({ ...dmJson, 'sender_avatar_url': '' }));
 
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_id')));
-      test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_email')));
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_full_name')));
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('zulip_message_id')));
       test("${n++}", () => checkParseFails({ ...dmJson, 'zulip_message_id': '12,34' }));
@@ -243,7 +243,6 @@ extension FcmMessageWithIdentityChecks on Subject<FcmMessageWithIdentity> {
 
 extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
   Subject<int> get senderId => has((x) => x.senderId, 'senderId');
-  Subject<String> get senderEmail => has((x) => x.senderEmail, 'senderEmail');
   Subject<Uri> get senderAvatarUrl => has((x) => x.senderAvatarUrl, 'senderAvatarUrl');
   Subject<String> get senderFullName => has((x) => x.senderFullName, 'senderFullName');
   Subject<FcmMessageRecipient> get recipient => has((x) => x.recipient, 'recipient');

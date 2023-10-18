@@ -15,7 +15,6 @@ MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
       realmUri: Uri.parse(json['realm_uri'] as String),
       userId: const _IntConverter().fromJson(json['user_id'] as String),
       senderId: const _IntConverter().fromJson(json['sender_id'] as String),
-      senderEmail: json['sender_email'] as String,
       senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
       senderFullName: json['sender_full_name'] as String,
       recipient: FcmMessageRecipient.fromJson(
@@ -35,7 +34,6 @@ Map<String, dynamic> _$MessageFcmMessageToJson(MessageFcmMessage instance) =>
       'user_id': const _IntConverter().toJson(instance.userId),
       'event': instance.type,
       'sender_id': const _IntConverter().toJson(instance.senderId),
-      'sender_email': instance.senderEmail,
       'sender_avatar_url': instance.senderAvatarUrl.toString(),
       'sender_full_name': instance.senderFullName,
       'zulip_message_id': const _IntConverter().toJson(instance.zulipMessageId),
