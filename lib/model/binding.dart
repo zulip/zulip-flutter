@@ -100,6 +100,9 @@ abstract class ZulipBinding {
   /// Wraps [firebase_messaging.FirebaseMessaging.onMessage].
   Stream<firebase_messaging.RemoteMessage> get firebaseMessagingOnMessage;
 
+  /// Wraps [firebase_messaging.FirebaseMessaging.onBackgroundMessage].
+  void firebaseMessagingOnBackgroundMessage(firebase_messaging.BackgroundMessageHandler handler);
+
   /// Wraps the [FlutterLocalNotificationsPlugin] singleton constructor.
   FlutterLocalNotificationsPlugin get notifications;
 }
@@ -197,6 +200,11 @@ class LiveZulipBinding extends ZulipBinding {
   @override
   Stream<firebase_messaging.RemoteMessage> get firebaseMessagingOnMessage {
     return firebase_messaging.FirebaseMessaging.onMessage;
+  }
+
+  @override
+  void firebaseMessagingOnBackgroundMessage(firebase_messaging.BackgroundMessageHandler handler) {
+    firebase_messaging.FirebaseMessaging.onBackgroundMessage(handler);
   }
 
   @override

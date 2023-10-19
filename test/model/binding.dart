@@ -192,6 +192,11 @@ class TestZulipBinding extends ZulipBinding {
   @override
   Stream<RemoteMessage> get firebaseMessagingOnMessage => firebaseMessaging.onMessage.stream;
 
+  @override
+  void firebaseMessagingOnBackgroundMessage(BackgroundMessageHandler handler) {
+    firebaseMessaging.onBackgroundMessage.stream.listen(handler);
+  }
+
   void _resetNotifications() {
     _notificationsPlugin = null;
   }
@@ -241,6 +246,12 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
   Stream<String> get onTokenRefresh => _tokenController.stream;
 
   StreamController<RemoteMessage> onMessage = StreamController.broadcast();
+
+  /// Controls [TestZulipBinding.firebaseMessagingOnBackgroundMessage].
+  ///
+  /// Calling [StreamController.add] on this will cause a call
+  /// to any handler registered through that method.
+  StreamController<RemoteMessage> onBackgroundMessage = StreamController.broadcast();
 }
 
 class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
