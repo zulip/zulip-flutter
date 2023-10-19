@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../model/algorithms.dart';
 import 'model.dart';
 
 part 'initial_snapshot.g.dart';
@@ -263,7 +264,7 @@ class UnreadDmSnapshot {
   UnreadDmSnapshot({
     required this.otherUserId,
     required this.unreadMessageIds,
-  });
+  }) : assert(isSortedWithoutDuplicates(unreadMessageIds));
 
   factory UnreadDmSnapshot.fromJson(Map<String, dynamic> json) =>
     _$UnreadDmSnapshotFromJson(json);
@@ -282,7 +283,7 @@ class UnreadStreamSnapshot {
     required this.topic,
     required this.streamId,
     required this.unreadMessageIds,
-  });
+  }) : assert(isSortedWithoutDuplicates(unreadMessageIds));
 
   factory UnreadStreamSnapshot.fromJson(Map<String, dynamic> json) =>
     _$UnreadStreamSnapshotFromJson(json);
@@ -299,7 +300,7 @@ class UnreadHuddleSnapshot {
   UnreadHuddleSnapshot({
     required this.userIdsString,
     required this.unreadMessageIds,
-  });
+  }) : assert(isSortedWithoutDuplicates(unreadMessageIds));
 
   factory UnreadHuddleSnapshot.fromJson(Map<String, dynamic> json) =>
     _$UnreadHuddleSnapshotFromJson(json);
