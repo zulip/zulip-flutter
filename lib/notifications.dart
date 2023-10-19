@@ -19,7 +19,21 @@ class NotificationService {
   static void debugReset() {
     instance.token.dispose();
     _instance = null;
+    assert(debugBackgroundIsolateIsLive = true);
   }
+
+  /// Whether a background isolate should initialize [LiveZulipBinding].
+  ///
+  /// Ordinarily a [ZulipBinding.firebaseMessagingOnBackgroundMessage] callback
+  /// will be invoked in a background isolate where it must set up its
+  /// [ZulipBinding], just as the `main` function does for most of the app.
+  /// Consequently, by default we have that callback initialize
+  /// [LiveZulipBinding], just like `main` does.
+  ///
+  /// In a test that behavior is undesirable.  Tests that will cause
+  /// [ZulipBinding.firebaseMessagingOnBackgroundMessage] callbacks
+  /// to get invoked should therefore set this to false.
+  static bool debugBackgroundIsolateIsLive = true;
 
   /// The FCM registration token for this install of the app.
   ///
@@ -41,7 +55,8 @@ class NotificationService {
     //   (in order to avoid calling for permissions)
 
     await NotificationDisplayManager._init();
-    ZulipBinding.instance.firebaseMessagingOnMessage.listen(_onRemoteMessage);
+    ZulipBinding.instance.firebaseMessagingOnMessage.listen(_onForegroundMessage);
+    ZulipBinding.instance.firebaseMessagingOnBackgroundMessage(_onBackgroundMessage);
 
     // Get the FCM registration token, now and upon changes.  See FCM API docs:
     //   https://firebase.google.com/docs/cloud-messaging/android/client#sample-register
@@ -71,8 +86,41 @@ class NotificationService {
     token.value = value;
   }
 
-  static void _onRemoteMessage(FirebaseRemoteMessage message) {
+  static void _onForegroundMessage(FirebaseRemoteMessage message) {
     assert(debugLog("notif message: ${message.data}"));
+    _onRemoteMessage(message);
+  }
+
+  static Future<void> _onBackgroundMessage(FirebaseRemoteMessage message) async {
+    // This callback will run in a separate isolate from the rest of the app.
+    // See docs:
+    //   https://firebase.flutter.dev/docs/messaging/usage/#background-messages
+    _initBackgroundIsolate();
+
+    assert(debugLog("notif message in background: ${message.data}"));
+    _onRemoteMessage(message);
+  }
+
+  static void _initBackgroundIsolate() {
+    bool isolateIsLive = true;
+    assert(() {
+      isolateIsLive = debugBackgroundIsolateIsLive;
+      return true;
+    }());
+    if (!isolateIsLive) {
+      return;
+    }
+
+    // Compare these setup steps to the ones in `main` in lib/main.dart .
+    assert(() {
+      debugLogEnabled = true;
+      return true;
+    }());
+    LiveZulipBinding.ensureInitialized();
+    NotificationDisplayManager._init(); // TODO call this just once per isolate
+  }
+
+  static void _onRemoteMessage(FirebaseRemoteMessage message) {
     final data = FcmMessage.fromJson(message.data);
     switch (data) {
       case MessageFcmMessage(): NotificationDisplayManager._onMessageFcmMessage(data, message.data);

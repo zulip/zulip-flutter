@@ -68,6 +68,7 @@ void main() {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
+    NotificationService.debugBackgroundIsolateIsLive = false;
     await NotificationService.instance.start();
   }
 
@@ -93,13 +94,10 @@ void main() {
   });
 
   group('NotificationDisplayManager', () {
-    Future<void> checkNotification(MessageFcmMessage data, {
+    void checkNotification(MessageFcmMessage data, {
       required String expectedTitle,
       required String expectedTagComponent,
-    }) async {
-      testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: data.toJson()));
-      await null;
+    }) {
       check(testBinding.notifications.takeShowCalls()).single
         ..id.equals(NotificationDisplayManager.kNotificationId)
         ..title.equals(expectedTitle)
@@ -112,11 +110,28 @@ void main() {
         );
     }
 
+    Future<void> checkNotifications(MessageFcmMessage data, {
+      required String expectedTitle,
+      required String expectedTagComponent,
+    }) async {
+      testBinding.firebaseMessaging.onMessage.add(
+        RemoteMessage(data: data.toJson()));
+      await null;
+      checkNotification(data, expectedTitle: expectedTitle,
+        expectedTagComponent: expectedTagComponent);
+
+      testBinding.firebaseMessaging.onBackgroundMessage.add(
+        RemoteMessage(data: data.toJson()));
+      await null;
+      checkNotification(data, expectedTitle: expectedTitle,
+        expectedTagComponent: expectedTagComponent);
+    }
+
     test('stream message', () async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotification(messageFcmMessage(message, streamName: stream.name),
+      await checkNotifications(messageFcmMessage(message, streamName: stream.name),
         expectedTitle: '${stream.name} > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     });
@@ -125,7 +140,7 @@ void main() {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotification(messageFcmMessage(message, streamName: null),
+      await checkNotifications(messageFcmMessage(message, streamName: null),
         expectedTitle: '(unknown stream) > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     });
@@ -133,7 +148,7 @@ void main() {
     test('group DM', () async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
-      await checkNotification(messageFcmMessage(message),
+      await checkNotifications(messageFcmMessage(message),
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     });
@@ -141,7 +156,7 @@ void main() {
     test('1:1 DM', () async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      await checkNotification(messageFcmMessage(message),
+      await checkNotifications(messageFcmMessage(message),
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     });
@@ -149,7 +164,7 @@ void main() {
     test('self-DM', () async {
       await init();
       final message = eg.dmMessage(from: eg.selfUser, to: []);
-      await checkNotification(messageFcmMessage(message),
+      await checkNotifications(messageFcmMessage(message),
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     });
