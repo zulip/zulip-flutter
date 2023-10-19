@@ -196,7 +196,7 @@ DmMessage dmMessage({
   List<MessageFlag>? flags,
 }) {
   assert(!to.any((user) => user.userId == from.userId));
-  return DmMessage.fromJson({
+  return DmMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(from),
     ..._messagePropertiesFromContent(content, contentMarkdown),
@@ -210,7 +210,7 @@ DmMessage dmMessage({
     'subject': '',
     'timestamp': timestamp ?? 1678139636,
     'type': 'private',
-  });
+  }) as Map<String, dynamic>);
 }
 
 Reaction unicodeEmojiReaction = Reaction(
