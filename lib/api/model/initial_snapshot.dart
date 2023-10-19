@@ -227,7 +227,10 @@ class UnreadMessagesSnapshot {
 
   final List<UnreadStreamSnapshot> streams;
   final List<UnreadHuddleSnapshot> huddles;
+
+  // Unlike other lists of message IDs here, [mentions] is *not* sorted.
   final List<int> mentions;
+
   final bool oldUnreadsMissing;
 
   UnreadMessagesSnapshot({
