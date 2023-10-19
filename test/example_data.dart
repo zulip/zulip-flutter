@@ -1,5 +1,7 @@
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import 'api/fake_api.dart';
@@ -281,4 +283,39 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
     connection: FakeApiConnection.fromAccount(account ?? selfAccount),
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
+}
+
+UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
+  MessageFlag flag,
+  Iterable<Message> messages, {
+  int? selfUserId,
+}) {
+  return UpdateMessageFlagsRemoveEvent(
+    id: 0,
+    flag: flag,
+    messages: messages.map((m) => m.id).toList(),
+    messageDetails: Map.fromEntries(messages.map((message) {
+      final mentioned = message.flags.contains(MessageFlag.mentioned)
+        || message.flags.contains(MessageFlag.wildcardMentioned);
+      return MapEntry(
+        message.id,
+        switch (message) {
+          StreamMessage() => UpdateMessageFlagsMessageDetail(
+            type: MessageType.stream,
+            mentioned: mentioned,
+            streamId: message.streamId,
+            topic: message.subject,
+            userIds: null,
+          ),
+          DmMessage() => UpdateMessageFlagsMessageDetail(
+            type: MessageType.private,
+            mentioned: mentioned,
+            streamId: null,
+            topic: null,
+            userIds: DmNarrow.ofMessage(message, selfUserId: selfUserId ?? selfUser.userId)
+              .otherRecipientIds,
+          ),
+        },
+      );
+    })));
 }

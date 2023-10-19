@@ -453,37 +453,7 @@ void main() async {
       );
     }
 
-    UpdateMessageFlagsRemoveEvent mkRemoveEvent(MessageFlag flag, List<Message> messages) {
-      final messageDetails = Map.fromEntries(messages.map((message) {
-        final mentioned = message.flags.contains(MessageFlag.mentioned)
-          || message.flags.contains(MessageFlag.wildcardMentioned);
-        return MapEntry(
-          message.id,
-          switch (message) {
-            StreamMessage() => UpdateMessageFlagsMessageDetail(
-              type: MessageType.stream,
-              mentioned: mentioned,
-              streamId: message.streamId,
-              topic: message.subject,
-              userIds: null,
-            ),
-            DmMessage() => UpdateMessageFlagsMessageDetail(
-              type: MessageType.private,
-              mentioned: mentioned,
-              streamId: null,
-              topic: null,
-              userIds: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId).otherRecipientIds,
-            ),
-          });
-      }));
-
-      return UpdateMessageFlagsRemoveEvent(
-        id: 1,
-        flag: flag,
-        messages: messages.map((m) => m.id).toList(),
-        messageDetails: messageDetails,
-      );
-    }
+    const mkRemoveEvent = eg.updateMessageFlagsRemoveEvent;
 
     group('add flag', () {
       test('not in list', () async {
