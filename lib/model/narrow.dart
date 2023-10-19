@@ -3,6 +3,7 @@ import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
+import 'algorithms.dart';
 
 /// A Zulip narrow.
 sealed class Narrow {
@@ -119,22 +120,6 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   int get hashCode => Object.hash('TopicNarrow', streamId, topic);
 }
 
-bool _isSortedWithoutDuplicates(List<int> items) {
-  final length = items.length;
-  if (length == 0) {
-    return true;
-  }
-  int lastItem = items[0];
-  for (int i = 1; i < length; i++) {
-    final item = items[i];
-    if (item <= lastItem) {
-      return false;
-    }
-    lastItem = item;
-  }
-  return true;
-}
-
 /// The narrow for a direct-message conversation.
 // Zulip has many ways of representing a DM conversation; for example code
 // handling many of them, see zulip-mobile:src/utils/recipient.js .
@@ -142,7 +127,7 @@ bool _isSortedWithoutDuplicates(List<int> items) {
 // as we turn out to need them.
 class DmNarrow extends Narrow implements SendableNarrow {
   DmNarrow({required this.allRecipientIds, required int selfUserId})
-    : assert(_isSortedWithoutDuplicates(allRecipientIds)),
+    : assert(isSortedWithoutDuplicates(allRecipientIds)),
       assert(allRecipientIds.contains(selfUserId)),
       _selfUserId = selfUserId;
 

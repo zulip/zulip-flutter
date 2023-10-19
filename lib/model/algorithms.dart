@@ -41,3 +41,19 @@ int binarySearchByKey<E, K>(
   }
   return -1;
 }
+
+bool isSortedWithoutDuplicates(List<int> items) {
+  final length = items.length;
+  if (length == 0) {
+    return true;
+  }
+  int lastItem = items[0];
+  for (int i = 1; i < length; i++) {
+    final item = items[i];
+    if (item <= lastItem) {
+      return false;
+    }
+    lastItem = item;
+  }
+  return true;
+}
