@@ -224,9 +224,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         color: Colors.white,
         // Pad the left and right insets, for small devices in landscape.
         child: SafeArea(
-          // Keep some padding when there are no horizontal insets,
-          // which is usual in portrait mode.
-          minimum: const EdgeInsets.symmetric(horizontal: 8),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
@@ -354,62 +351,14 @@ class MessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
     final message = item.message;
-
-    Color highlightBorderColor;
-    Color restBorderColor;
-    if (message is StreamMessage) {
-      final subscription = store.subscriptions[message.streamId];
-      highlightBorderColor = colorForStream(subscription);
-      restBorderColor = _kStreamMessageBorderColor;
-    } else if (message is DmMessage) {
-      highlightBorderColor = _kDmRecipientHeaderColor;
-      restBorderColor = _kDmRecipientHeaderColor;
-    } else {
-      throw Exception("impossible message type: ${message.runtimeType}");
-    }
-
-    // This 3px border seems to accurately reproduce something much more
-    // complicated on web, involving CSS box-shadow; see comment below.
-    final recipientBorder = BorderSide(color: highlightBorderColor, width: 3);
-    final restBorder = BorderSide(color: restBorderColor, width: 1);
-    var borderDecoration = ShapeDecoration(
-      // Web actually uses, for stream messages, a slightly lighter border at
-      // right than at bottom and in the recipient header: black 10% alpha,
-      // vs. 88% lightness.  Assume that's an accident.
-      shape: Border(
-        left: recipientBorder,
-        right: restBorder,
-        bottom: item.isLastInBlock ? restBorder : BorderSide.none,
-      ));
-
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: RecipientHeader(message: message),
       child: Column(children: [
-        DecoratedBox(
-          decoration: borderDecoration,
-          child: MessageWithPossibleSender(item: item)),
+        MessageWithPossibleSender(item: item),
         if (trailing != null && item.isLastInBlock) trailing!,
       ]));
-
-    // Web handles the left-side recipient marker in a funky way:
-    //   box-shadow: inset 3px 0px 0px -1px #c2726a, -1px 0px 0px 0px #c2726a;
-    // (where the color is the stream color.)  That is, it's a pair of
-    // box shadows.  One of them is inset.
-    //
-    // At attempt at a literal translation might look like this:
-    //
-    // DecoratedBox(
-    //   decoration: ShapeDecoration(shadows: [
-    //     BoxShadow(offset: Offset(3, 0), spreadRadius: -1, color: highlightBorderColor),
-    //     BoxShadow(offset: Offset(-1, 0), color: highlightBorderColor),
-    //   ], shape: Border.fromBorderSide(BorderSide.none)),
-    //   child: MessageWithSender(message: message)),
-    //
-    // But CSS `box-shadow` seems to not apply under the item itself, while
-    // Flutter's BoxShadow does.
   }
 }
 
