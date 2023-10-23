@@ -66,7 +66,11 @@ dependencies:
   flutter_local_notifications: ^16.1.0
 
 dev_dependencies:
+  flutter_driver:
+    sdk: flutter
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
