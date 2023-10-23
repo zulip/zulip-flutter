@@ -127,11 +127,33 @@ class TopicNarrow extends Narrow implements SendableNarrow {
 // Please add more constructors and getters here to handle any of those
 // as we turn out to need them.
 class DmNarrow extends Narrow implements SendableNarrow {
+  /// Construct a [DmNarrow] directly from its representation.
+  ///
+  /// The user IDs in `allRecipientIds` must be distinct and sorted,
+  /// and must include `selfUserId`.
+  ///
+  /// For consuming data that follows a different convention,
+  /// see other constructors.
   DmNarrow({required this.allRecipientIds, required int selfUserId})
     : assert(isSortedWithoutDuplicates(allRecipientIds)),
       assert(allRecipientIds.contains(selfUserId)),
       _selfUserId = selfUserId;
 
+  /// A [DmNarrow] for self plus the given zero-or-more other users.
+  ///
+  /// The user IDs in `otherRecipientIds` must all be distinct from
+  /// each other and from `selfUserId`.  They need not be sorted.
+  ///
+  /// See also:
+  ///  * the plain [DmNarrow] constructor, given a list that includes self.
+  ///  * [DmNarrow.withUsers], given a list that may or may not include self.
+  factory DmNarrow.withOtherUsers(Iterable<int> otherRecipientIds,
+      {required int selfUserId}) {
+    return DmNarrow(selfUserId: selfUserId,
+      allRecipientIds: [...otherRecipientIds, selfUserId]..sort());
+  }
+
+  /// A [DmNarrow] for a 1:1 DM conversation, either with self or otherwise.
   factory DmNarrow.withUser(int userId, {required int selfUserId}) {
     return DmNarrow(
       allRecipientIds: {userId, selfUserId}.toList()..sort(),
@@ -139,6 +161,13 @@ class DmNarrow extends Narrow implements SendableNarrow {
     );
   }
 
+  /// A [DmNarrow] from a list of users which may or may not include self
+  /// and may or may not be sorted.
+  ///
+  /// Use this only when the input format is actually permitted both to
+  /// include and to exclude the self user.  When the list is known to be
+  /// one or the other, using the plain [DmNarrow] constructor
+  /// or [DmNarrow.withOtherUsers] respectively will be more efficient.
   factory DmNarrow.withUsers(List<int> userIds, {required int selfUserId}) {
     return DmNarrow(
       allRecipientIds: {...userIds, selfUserId}.toList()..sort(),
@@ -155,10 +184,7 @@ class DmNarrow extends Narrow implements SendableNarrow {
 
   /// A [DmNarrow] from an item in [InitialSnapshot.recentPrivateConversations].
   factory DmNarrow.ofRecentDmConversation(RecentDmConversation conversation, {required int selfUserId}) {
-    return DmNarrow(
-      allRecipientIds: [...conversation.userIds, selfUserId]..sort(),
-      selfUserId: selfUserId,
-    );
+    return DmNarrow.withOtherUsers(conversation.userIds, selfUserId: selfUserId);
   }
 
   /// A [DmNarrow] from an [UnreadHuddleSnapshot].
@@ -174,8 +200,7 @@ class DmNarrow extends Narrow implements SendableNarrow {
     required int selfUserId,
   }) {
     assert(detail.type == MessageType.private);
-    return DmNarrow(selfUserId: selfUserId,
-      allRecipientIds: [...detail.userIds!, selfUserId]..sort());
+    return DmNarrow.withOtherUsers(detail.userIds!, selfUserId: selfUserId);
   }
 
   /// The user IDs of everyone in the conversation, sorted.
