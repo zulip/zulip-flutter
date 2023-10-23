@@ -7,11 +7,19 @@ import 'package:zulip/model/store.dart';
 import 'api/fake_api.dart';
 import 'stdlib_checks.dart';
 
+////////////////////////////////////////////////////////////////
+// Realm-wide (or server-wide) metadata.
+//
+
 final Uri realmUrl = Uri.parse('https://chat.example/');
 
 const String recentZulipVersion = '8.0';
 const int recentZulipFeatureLevel = 185;
 const int futureZulipFeatureLevel = 9999;
+
+////////////////////////////////////////////////////////////////
+// Users and accounts.
+//
 
 User user({
   int? userId,
@@ -66,6 +74,10 @@ final Account otherAccount = Account(
 
 final User thirdUser = user(fullName: 'Third User', email: 'third@example', userId: 345);
 
+////////////////////////////////////////////////////////////////
+// Streams and subscriptions.
+//
+
 ZulipStream stream({
   int? streamId,
   String? name,
@@ -95,6 +107,10 @@ ZulipStream stream({
     canRemoveSubscribersGroupId: canRemoveSubscribersGroupId ?? 123,
   );
 }
+
+////////////////////////////////////////////////////////////////
+// Messages.
+//
 
 UnreadMessagesSnapshot unreadMsgs({
   int? count,
@@ -234,7 +250,9 @@ Reaction zulipExtraEmojiReaction = Reaction(
   userId: selfUser.userId,
 );
 
-// TODO example data for many more types
+////////////////////////////////////////////////////////////////
+// The entire per-account state.
+//
 
 InitialSnapshot initialSnapshot({
   String? queueId,
@@ -284,6 +302,10 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }
+
+////////////////////////////////////////////////////////////////
+// Events.
+//
 
 UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
   MessageFlag flag,
