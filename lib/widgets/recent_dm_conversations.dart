@@ -1,7 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
+import '../model/unreads.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
@@ -23,24 +26,30 @@ class RecentDmConversationsPage extends StatefulWidget {
 
 class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> with PerAccountStoreAwareStateMixin<RecentDmConversationsPage> {
   RecentDmConversationsView? model;
+  Unreads? unreadsModel;
 
   @override
   void onNewStore() {
     model?.removeListener(_modelChanged);
     model = PerAccountStoreWidget.of(context).recentDmConversationsView
       ..addListener(_modelChanged);
+
+    unreadsModel?.removeListener(_modelChanged);
+    unreadsModel = PerAccountStoreWidget.of(context).unreads
+      ..addListener(_modelChanged);
   }
 
   @override
   void dispose() {
     model?.removeListener(_modelChanged);
+    unreadsModel?.removeListener(_modelChanged);
     super.dispose();
   }
 
   void _modelChanged() {
     setState(() {
-      // The actual state lives in [model].
-      // This method was called because that just changed.
+      // The actual state lives in [model] and [unreadsModel].
+      // This method was called because one of those just changed.
     });
   }
 
@@ -51,14 +60,25 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
       appBar: AppBar(title: const Text('Direct messages')),
       body: ListView.builder(
         itemCount: sorted.length,
-        itemBuilder: (context, index) => RecentDmConversationsItem(narrow: sorted[index])));
+        itemBuilder: (context, index) {
+          final narrow = sorted[index];
+          return RecentDmConversationsItem(
+            narrow: narrow,
+            unreadCount: unreadsModel!.countInDmNarrow(narrow),
+          );
+        }));
   }
 }
 
 class RecentDmConversationsItem extends StatelessWidget {
-  const RecentDmConversationsItem({super.key, required this.narrow});
+  const RecentDmConversationsItem({
+    super.key,
+    required this.narrow,
+    required this.unreadCount,
+  });
 
   final DmNarrow narrow;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +128,26 @@ class RecentDmConversationsItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               title))),
           const SizedBox(width: 12),
-          // TODO(#253): Unread count
+          unreadCount > 0
+            ? Padding(
+                padding: const EdgeInsetsDirectional.only(end: 16),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    color: const Color.fromRGBO(102, 102, 153, 0.15),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 1),
+                    child: Text(
+                      style: const TextStyle(
+                        fontFamily: 'Source Sans 3',
+                        fontSize: 16,
+                        height: (18 / 16),
+                        fontFeatures: [FontFeature.enable('smcp')], // small caps
+                        color: Color(0xFF222222),
+                      ).merge(weightVariableTextStyle(context)),
+                      unreadCount.toString()))))
+            : const SizedBox(),
         ])));
   }
 }

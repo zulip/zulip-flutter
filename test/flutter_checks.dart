@@ -35,6 +35,10 @@ extension ValueNotifierChecks<T> on Subject<ValueNotifier<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
 }
 
+extension TextChecks on Subject<Text> {
+  Subject<String?> get data => has((t) => t.data, 'data');
+}
+
 extension TextStyleChecks on Subject<TextStyle> {
   Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
   Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
