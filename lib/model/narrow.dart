@@ -155,10 +155,10 @@ class DmNarrow extends Narrow implements SendableNarrow {
 
   /// A [DmNarrow] for a 1:1 DM conversation, either with self or otherwise.
   factory DmNarrow.withUser(int userId, {required int selfUserId}) {
-    return DmNarrow(
-      allRecipientIds: {userId, selfUserId}.toList()..sort(),
-      selfUserId: selfUserId,
-    );
+    return DmNarrow(selfUserId: selfUserId,
+      allRecipientIds: (userId == selfUserId)  ? [selfUserId]
+                       : (userId < selfUserId) ? [userId, selfUserId]
+                       :                         [selfUserId, userId]);
   }
 
   /// A [DmNarrow] from a list of users which may or may not include self
