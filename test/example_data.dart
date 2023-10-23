@@ -107,29 +107,32 @@ ZulipStream stream({
     canRemoveSubscribersGroupId: canRemoveSubscribersGroupId ?? 123,
   );
 }
+const _stream = stream;
 
 ////////////////////////////////////////////////////////////////
-// Messages.
+// Messages, and pieces of messages.
 //
 
-UnreadMessagesSnapshot unreadMsgs({
-  int? count,
-  List<UnreadDmSnapshot>? dms,
-  List<UnreadStreamSnapshot>? streams,
-  List<UnreadHuddleSnapshot>? huddles,
-  List<int>? mentions,
-  bool? oldUnreadsMissing,
-}) {
-  return UnreadMessagesSnapshot(
-    count: count ?? 0,
-    dms: dms ?? [],
-    streams: streams ?? [],
-    huddles: huddles ?? [],
-    mentions: mentions ?? [],
-    oldUnreadsMissing: oldUnreadsMissing ?? false,
-  );
-}
-const _unreadMsgs = unreadMsgs;
+Reaction unicodeEmojiReaction = Reaction(
+  emojiName: 'thumbs_up',
+  emojiCode: '1f44d',
+  reactionType: ReactionType.unicodeEmoji,
+  userId: selfUser.userId,
+);
+
+Reaction realmEmojiReaction = Reaction(
+  emojiName: 'twocents',
+  emojiCode: '181',
+  reactionType: ReactionType.realmEmoji,
+  userId: selfUser.userId,
+);
+
+Reaction zulipExtraEmojiReaction = Reaction(
+  emojiName: 'zulip',
+  emojiCode: 'zulip',
+  reactionType: ReactionType.zulipExtraEmoji,
+  userId: selfUser.userId,
+);
 
 final _messagePropertiesBase = {
   'is_me_message': false,
@@ -160,8 +163,6 @@ Map<String, dynamic> _messagePropertiesFromContent(String? content, String? cont
     };
   }
 }
-
-const _stream = stream;
 
 StreamMessage streamMessage({
   int? id,
@@ -229,26 +230,67 @@ DmMessage dmMessage({
   }) as Map<String, dynamic>);
 }
 
-Reaction unicodeEmojiReaction = Reaction(
-  emojiName: 'thumbs_up',
-  emojiCode: '1f44d',
-  reactionType: ReactionType.unicodeEmoji,
-  userId: selfUser.userId,
-);
+////////////////////////////////////////////////////////////////
+// Aggregate data structures.
+//
 
-Reaction realmEmojiReaction = Reaction(
-  emojiName: 'twocents',
-  emojiCode: '181',
-  reactionType: ReactionType.realmEmoji,
-  userId: selfUser.userId,
-);
+UnreadMessagesSnapshot unreadMsgs({
+  int? count,
+  List<UnreadDmSnapshot>? dms,
+  List<UnreadStreamSnapshot>? streams,
+  List<UnreadHuddleSnapshot>? huddles,
+  List<int>? mentions,
+  bool? oldUnreadsMissing,
+}) {
+  return UnreadMessagesSnapshot(
+    count: count ?? 0,
+    dms: dms ?? [],
+    streams: streams ?? [],
+    huddles: huddles ?? [],
+    mentions: mentions ?? [],
+    oldUnreadsMissing: oldUnreadsMissing ?? false,
+  );
+}
+const _unreadMsgs = unreadMsgs;
 
-Reaction zulipExtraEmojiReaction = Reaction(
-  emojiName: 'zulip',
-  emojiCode: 'zulip',
-  reactionType: ReactionType.zulipExtraEmoji,
-  userId: selfUser.userId,
-);
+////////////////////////////////////////////////////////////////
+// Events.
+//
+
+UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
+  MessageFlag flag,
+  Iterable<Message> messages, {
+  int? selfUserId,
+}) {
+  return UpdateMessageFlagsRemoveEvent(
+    id: 0,
+    flag: flag,
+    messages: messages.map((m) => m.id).toList(),
+    messageDetails: Map.fromEntries(messages.map((message) {
+      final mentioned = message.flags.contains(MessageFlag.mentioned)
+        || message.flags.contains(MessageFlag.wildcardMentioned);
+      return MapEntry(
+        message.id,
+        switch (message) {
+          StreamMessage() => UpdateMessageFlagsMessageDetail(
+            type: MessageType.stream,
+            mentioned: mentioned,
+            streamId: message.streamId,
+            topic: message.subject,
+            userIds: null,
+          ),
+          DmMessage() => UpdateMessageFlagsMessageDetail(
+            type: MessageType.private,
+            mentioned: mentioned,
+            streamId: null,
+            topic: null,
+            userIds: DmNarrow.ofMessage(message, selfUserId: selfUserId ?? selfUser.userId)
+              .otherRecipientIds,
+          ),
+        },
+      );
+    })));
+}
 
 ////////////////////////////////////////////////////////////////
 // The entire per-account state.
@@ -301,43 +343,4 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
     connection: FakeApiConnection.fromAccount(account ?? selfAccount),
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
-}
-
-////////////////////////////////////////////////////////////////
-// Events.
-//
-
-UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
-  MessageFlag flag,
-  Iterable<Message> messages, {
-  int? selfUserId,
-}) {
-  return UpdateMessageFlagsRemoveEvent(
-    id: 0,
-    flag: flag,
-    messages: messages.map((m) => m.id).toList(),
-    messageDetails: Map.fromEntries(messages.map((message) {
-      final mentioned = message.flags.contains(MessageFlag.mentioned)
-        || message.flags.contains(MessageFlag.wildcardMentioned);
-      return MapEntry(
-        message.id,
-        switch (message) {
-          StreamMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.stream,
-            mentioned: mentioned,
-            streamId: message.streamId,
-            topic: message.subject,
-            userIds: null,
-          ),
-          DmMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.private,
-            mentioned: mentioned,
-            streamId: null,
-            topic: null,
-            userIds: DmNarrow.ofMessage(message, selfUserId: selfUserId ?? selfUser.userId)
-              .otherRecipientIds,
-          ),
-        },
-      );
-    })));
 }
