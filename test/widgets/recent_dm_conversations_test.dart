@@ -13,6 +13,7 @@ import 'package:zulip/widgets/recent_dm_conversations.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
+import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
@@ -106,7 +107,7 @@ void main() {
   });
 
   group('RecentDmConversationsItem', () {
-    group('appearance', () {
+    group('content/appearance', () {
       void checkAvatar(WidgetTester tester, DmNarrow narrow) {
         final shape = tester.widget<AvatarShape>(
           find.descendant(
@@ -145,6 +146,26 @@ void main() {
         }
       }
 
+      Future<void> markMessageAsRead(WidgetTester tester, Message message) async {
+        final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+        store.handleEvent(UpdateMessageFlagsAddEvent(
+          id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
+        await tester.pump();
+      }
+
+      void checkUnreadCount(WidgetTester tester, int expectedCount) {
+        final Text? textWidget = tester.widgetList<Text>(find.descendant(
+          of: find.byType(RecentDmConversationsItem),
+          matching: find.textContaining(RegExp(r'^\d+$'),
+        ))).singleOrNull;
+
+        if (expectedCount == 0) {
+          check(textWidget).isNull();
+        } else {
+          check(textWidget).isNotNull().data.equals(expectedCount.toString());
+        }
+      }
+
       group('self-1:1', () {
         testWidgets('has right title/avatar', (WidgetTester tester) async {
           final message = eg.dmMessage(from: eg.selfUser, to: []);
@@ -168,6 +189,15 @@ void main() {
           await setupPage(tester, users: [], dmMessages: [message],
             newNameForSelfUser: name);
           checkTitle(tester, name, 2);
+        });
+
+        testWidgets('unread counts', (WidgetTester tester) async {
+          final message = eg.dmMessage(from: eg.selfUser, to: []);
+          await setupPage(tester, users: [], dmMessages: [message]);
+
+          checkUnreadCount(tester, 1);
+          await markMessageAsRead(tester, message);
+          checkUnreadCount(tester, 0);
         });
       });
 
@@ -205,6 +235,15 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester, users: [user], dmMessages: [message]);
           checkTitle(tester, user.fullName, 2);
+        });
+
+        testWidgets('unread counts', (WidgetTester tester) async {
+          final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+          await setupPage(tester, users: [], dmMessages: [message]);
+
+          checkUnreadCount(tester, 1);
+          await markMessageAsRead(tester, message);
+          checkUnreadCount(tester, 0);
         });
       });
 
@@ -254,6 +293,15 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           checkTitle(tester, users.map((u) => u.fullName).join(', '), 2);
+        });
+
+        testWidgets('unread counts', (WidgetTester tester) async {
+          final message = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
+          await setupPage(tester, users: [], dmMessages: [message]);
+
+          checkUnreadCount(tester, 1);
+          await markMessageAsRead(tester, message);
+          checkUnreadCount(tester, 0);
         });
       });
     });
