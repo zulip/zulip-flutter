@@ -24,6 +24,9 @@ void main() {
   });
 
   group('MessageFcmMessage', () {
+    // These JSON test data aim to reflect what current servers send.
+    // We ignore some of the fields; see tests.
+
     final baseJson = {
       ...baseBaseJson,
       "event": "message",
@@ -46,23 +49,17 @@ void main() {
       "stream_id": "42",
       "stream": "denmark",
       "topic": "play",
-
-      "alert": "New stream message from A Sender in denmark",
     };
 
     final groupDmJson = {
       ...baseJson,
       "recipient_type": "private",
       "pm_users": "123,234,345",
-
-      "alert": "New private group message from A Sender",
     };
 
     final dmJson = {
       ...baseJson,
       "recipient_type": "private",
-
-      "alert": "New private message from A Sender",
     };
 
     MessageFcmMessage parse(Map<String, dynamic> json) {
@@ -109,7 +106,6 @@ void main() {
           .deepEquals({ ...json }
             ..remove('recipient_type') // Redundant with stream_id.
             ..remove('content_truncated') // Redundant with content.
-            ..remove('alert') // Redundant with the other data; we make our own UI.
           );
       }
 
@@ -123,7 +119,6 @@ void main() {
       final baseline = parse(streamJson);
       check(parse({ ...streamJson }..remove('recipient_type'))).jsonEquals(baseline);
       check(parse({ ...streamJson }..remove('content_truncated'))).jsonEquals(baseline);
-      check(parse({ ...streamJson }..remove('alert'))).jsonEquals(baseline);
     });
 
     test('obsolete or novel fields have no effect', () {
@@ -133,6 +128,9 @@ void main() {
 
       // Cut in 2017, in zulip/zulip@c007b9ea4.
       checkInert({ 'user': 'client@example.com' });
+
+      // Cut in 2023, in zulip/zulip@5d8897b90.
+      checkInert({ 'alert': 'New private message from A Sender' });
 
       // Hypothetical future field.
       checkInert({ 'awesome_feature': 'enabled' });
