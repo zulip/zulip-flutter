@@ -65,15 +65,11 @@ void main() {
       "alert": "New private message from A Sender",
     };
 
-    test("'message' messages parse as MessageFcmMessage", () {
-      check(FcmMessage.fromJson(streamJson)).isA<MessageFcmMessage>();
-    });
-
     MessageFcmMessage parse(Map<String, dynamic> json) {
       return FcmMessage.fromJson(json) as MessageFcmMessage;
     }
 
-    test("fields get parsed right in 'message' happy path", () {
+    test("fields get parsed right in happy path", () {
       check(parse(streamJson))
         ..server.equals(baseJson['server']!)
         ..realmId.equals(4)
@@ -187,10 +183,6 @@ void main() {
       'zulip_message_ids': '123,234',
       'zulip_message_id': '123',
     };
-
-    test("'remove' messages parse as RemoveFcmMessage", () {
-      check(FcmMessage.fromJson(baseJson)).isA<RemoveFcmMessage>();
-    });
 
     RemoveFcmMessage parse(Map<String, dynamic> json) {
       return FcmMessage.fromJson(json) as RemoveFcmMessage;
