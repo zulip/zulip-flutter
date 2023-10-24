@@ -92,6 +92,9 @@ class RecentDmConversationsItem extends StatelessWidget {
         title = selfUser.fullName;
         avatar = AvatarImage(userId: selfUser.userId);
       case [var otherUserId]:
+        // TODO(#296) actually don't show this row if the user is muted?
+        //   (should we offer a "spam folder" style summary screen of recent
+        //   1:1 DM conversations from muted users?)
         final otherUser = store.users[otherUserId];
         title = otherUser?.fullName ?? '(unknown user)';
         avatar = AvatarImage(userId: otherUserId);
