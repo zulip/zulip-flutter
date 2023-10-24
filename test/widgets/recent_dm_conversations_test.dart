@@ -61,12 +61,9 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('RecentDmConversationsPage', () {
-    Finder findConversationItem(Narrow narrow) {
-      return find.byWidgetPredicate(
-            (widget) =>
-        widget is RecentDmConversationsItem && widget.narrow == narrow,
-      );
-    }
+    Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
+      (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
+    );
 
     testWidgets('page builds; conversations appear in order', (WidgetTester tester) async {
       final user1 = eg.user(userId: 1);
