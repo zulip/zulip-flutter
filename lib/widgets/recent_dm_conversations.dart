@@ -31,6 +31,12 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
       ..addListener(_modelChanged);
   }
 
+  @override
+  void dispose() {
+    model?.removeListener(_modelChanged);
+    super.dispose();
+  }
+
   void _modelChanged() {
     setState(() {
       // The actual state lives in [model].
