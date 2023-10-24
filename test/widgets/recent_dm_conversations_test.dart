@@ -146,7 +146,7 @@ void main() {
       }
 
       group('self-1:1', () {
-        testWidgets('has right content', (WidgetTester tester) async {
+        testWidgets('has right title/avatar', (WidgetTester tester) async {
           final message = eg.dmMessage(from: eg.selfUser, to: []);
           await setupPage(tester, users: [], dmMessages: [message]);
 
@@ -172,7 +172,7 @@ void main() {
       });
 
       group('1:1', () {
-        testWidgets('has right content', (WidgetTester tester) async {
+        testWidgets('has right title/avatar', (WidgetTester tester) async {
           final user = eg.user(userId: 1);
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester, users: [user], dmMessages: [message]);
@@ -217,7 +217,7 @@ void main() {
           return result;
         }
 
-        testWidgets('has right content', (WidgetTester tester) async {
+        testWidgets('has right title/avatar', (WidgetTester tester) async {
           final users = usersList(2);
           final user0 = users[0];
           final user1 = users[1];
