@@ -106,7 +106,7 @@ mixin _MessageSequence {
       (message, messageId) => message.id.compareTo(messageId));
   }
 
-  int _findItemWithMessageId(int messageId) {
+  int findItemWithMessageId(int messageId) {
     return binarySearchByKey(items, messageId, _compareItemToMessageId);
   }
 
@@ -129,7 +129,7 @@ mixin _MessageSequence {
     final content = parseContent(message.content);
     contents[index] = content;
 
-    final itemIndex = _findItemWithMessageId(message.id);
+    final itemIndex = findItemWithMessageId(message.id);
     assert(itemIndex > -1
       && items[itemIndex] is MessageListMessageItem
       && identical((items[itemIndex] as MessageListMessageItem).message, message));
