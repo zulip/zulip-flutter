@@ -3,6 +3,7 @@
 /// Use this file for types in the Dart SDK, as well as in other
 /// packages published by the Dart team that function as
 /// part of the Dart standard library.
+library;
 
 import 'dart:convert';
 

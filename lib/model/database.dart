@@ -46,7 +46,7 @@ LazyDatabase _openConnection() {
 
 @DriftDatabase(tables: [Accounts])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase(QueryExecutor e) : super(e);
+  AppDatabase(super.e);
 
   AppDatabase.live() : this(_openConnection());
 
