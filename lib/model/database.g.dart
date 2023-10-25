@@ -421,6 +421,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     }
     if (realmUrl.present) {
       final converter = $AccountsTable.$converterrealmUrl;
+
       map['realm_url'] = Variable<String>(converter.toSql(realmUrl.value));
     }
     if (userId.present) {

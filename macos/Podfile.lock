@@ -3,20 +3,20 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/CoreOnly (10.15.0):
-    - FirebaseCore (= 10.15.0)
-  - Firebase/Messaging (10.15.0):
+  - Firebase/CoreOnly (10.16.0):
+    - FirebaseCore (= 10.16.0)
+  - Firebase/Messaging (10.16.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 10.15.0)
-  - firebase_core (2.17.0):
-    - Firebase/CoreOnly (~> 10.15.0)
+    - FirebaseMessaging (~> 10.16.0)
+  - firebase_core (2.20.0):
+    - Firebase/CoreOnly (~> 10.16.0)
     - FlutterMacOS
-  - firebase_messaging (14.6.9):
-    - Firebase/CoreOnly (~> 10.15.0)
-    - Firebase/Messaging (~> 10.15.0)
+  - firebase_messaging (14.7.2):
+    - Firebase/CoreOnly (~> 10.16.0)
+    - Firebase/Messaging (~> 10.16.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseCore (10.15.0):
+  - FirebaseCore (10.16.0):
     - FirebaseCoreInternal (~> 10.0)
     - GoogleUtilities/Environment (~> 7.8)
     - GoogleUtilities/Logger (~> 7.8)
@@ -27,7 +27,7 @@ PODS:
     - GoogleUtilities/Environment (~> 7.8)
     - GoogleUtilities/UserDefaults (~> 7.8)
     - PromisesObjC (~> 2.1)
-  - FirebaseMessaging (10.15.0):
+  - FirebaseMessaging (10.16.0):
     - FirebaseCore (~> 10.0)
     - FirebaseInstallations (~> 10.0)
     - GoogleDataTransport (~> 9.2)
@@ -139,13 +139,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
   file_selector_macos: 468fb6b81fac7c0e88d71317f3eec34c3b008ff9
-  Firebase: 66043bd4579e5b73811f96829c694c7af8d67435
-  firebase_core: 4d1711af1e10f9907f468e04f995c59f60bdc710
-  firebase_messaging: 801a6ebd7785263051db042f1d75f4151cecbad0
-  FirebaseCore: 2cec518b43635f96afe7ac3a9c513e47558abd2e
+  Firebase: 25899099b77d255a636e3579c3d9dce10ec150d5
+  firebase_core: 844b9a36afc5874a395699929626d594a448183d
+  firebase_messaging: 0894580843ad23972a3cf1b2fb3c3569e47a400f
+  FirebaseCore: 65a801af84cca84361ef9eac3fd868656968a53b
   FirebaseCoreInternal: 26233f705cc4531236818a07ac84d20c333e505a
   FirebaseInstallations: b822f91a61f7d1ba763e5ccc9d4f2e6f2ed3b3ee
-  FirebaseMessaging: 0c0ae1eb722ef0c07f7801e5ded8dccd1357d6d4
+  FirebaseMessaging: 80b4a086d20ed4fd385a702f4bfa920e14f5064d
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   GoogleDataTransport: 54dee9d48d14580407f8f5fbf2f496e92437a2f2
   GoogleUtilities: 13e2c67ede716b8741c7989e26893d151b2b2084
