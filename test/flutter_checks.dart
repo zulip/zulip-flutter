@@ -1,4 +1,6 @@
 /// `package:checks`-related extensions for the Flutter framework.
+library;
+
 import 'dart:ui';
 
 import 'package:checks/checks.dart';
