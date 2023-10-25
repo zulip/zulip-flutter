@@ -356,5 +356,57 @@ void main() {
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.completed);
     });
+
+    testWidgets('animation state persistence', (WidgetTester tester) async {
+      // Check that _UnreadMarker maintains its in-progress animation
+      // as the number of items changes in MessageList. See
+      // `findChildIndexCallback` passed into [StickyHeaderListView.builder]
+      // at [_MessageListState._buildListView].
+      final message = eg.streamMessage(flags: []);
+      await setupMessageListPage(tester, messages: [message]);
+      check(getAnimation(tester, message.id))
+        ..value.equals(1.0)
+        ..status.equals(AnimationStatus.dismissed);
+
+      store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 0,
+        flag: MessageFlag.read,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pump(); // process handleEvent
+      check(getAnimation(tester, message.id))
+        ..value.equals(1.0)
+        ..status.equals(AnimationStatus.forward);
+
+      // run animation partially
+      await tester.pump(const Duration(milliseconds: 30));
+      check(getAnimation(tester, message.id))
+        ..value.isGreaterThan(0.0)
+        ..value.isLessThan(1.0)
+        ..status.equals(AnimationStatus.forward);
+
+      // introduce new message
+      final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
+      store.handleEvent(MessageEvent(id: 0, message: newMessage));
+      await tester.pump(); // process handleEvent
+      check(find.byType(MessageItem).evaluate()).length.equals(2);
+      check(getAnimation(tester, message.id))
+        ..value.isGreaterThan(0.0)
+        ..value.isLessThan(1.0)
+        ..status.equals(AnimationStatus.forward);
+      check(getAnimation(tester, newMessage.id))
+        ..value.equals(0.0)
+        ..status.equals(AnimationStatus.dismissed);
+
+      final frames = await tester.pumpAndSettle();
+      check(frames).isGreaterThan(1);
+      check(getAnimation(tester, message.id))
+        ..value.equals(0.0)
+        ..status.equals(AnimationStatus.completed);
+      check(getAnimation(tester, newMessage.id))
+        ..value.equals(0.0)
+        ..status.equals(AnimationStatus.dismissed);
+    });
   });
 }

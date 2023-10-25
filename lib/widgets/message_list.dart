@@ -255,6 +255,27 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         _ => ScrollViewKeyboardDismissBehavior.manual,
       },
 
+      // To preserve state across rebuilds for individual [MessageItem]
+      // widgets as the size of [MessageListView.items] changes we need
+      // to match old widgets by their key to their new position in
+      // the list.
+      //
+      // The keys are of type [ValueKey] with a value of [Message.id]
+      // and here we use a O(log n) binary search method. This could
+      // be improved but for now it only triggers for materialized
+      // widgets. As a simple test, flinging through All Messages in
+      // CZO on a Pixel 5, this only runs about 10 times per rebuild
+      // and the timing for each call is <100 microseconds.
+      //
+      // Non-message items (e.g., start and end markers) that do not
+      // have state that needs to be preserved have not been given keys
+      // and will not trigger this callback.
+      findChildIndexCallback: (Key key) {
+        final valueKey = key as ValueKey;
+        final index = model!.findItemWithMessageId(valueKey.value);
+        if (index == -1) return null;
+        return length - 1 - index;
+      },
       controller: scrollController,
       itemCount: length,
       // Setting reverse: true means the scroll starts at the bottom.
