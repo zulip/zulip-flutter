@@ -86,7 +86,7 @@ class RecentDmConversationsItem extends StatelessWidget {
       },
       child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.fromLTRB(12, 8, 0, 8),
+          Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
             child: AvatarShape(size: 32, borderRadius: 3, child: avatar)),
           const SizedBox(width: 8),
           Expanded(child: Padding(
