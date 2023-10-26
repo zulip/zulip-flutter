@@ -22,7 +22,8 @@ import 'narrow.dart';
 /// or unknown to the component. In all components,
 /// a message's status will be unknown if, at /register time,
 /// it was very old by the server's reckoning. See [oldUnreadsMissing].
-/// It may also be unknown for other reasons that differ by component; see each.
+/// In [mentions], there's another more complex reason
+/// the state might be unknown; see there.
 ///
 /// Messages in unsubscribed streams, and messages sent by muted users,
 /// are generally deemed read by the server and shouldn't be expected to appear.
