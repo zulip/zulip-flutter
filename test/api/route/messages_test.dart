@@ -172,6 +172,34 @@ void main() {
     });
   });
 
+  test('Narrow.toJson', () {
+    return FakeApiConnection.with_((connection) async {
+      void checkNarrow(ApiNarrow narrow, String expected) {
+        narrow = resolveDmElements(narrow, connection.zulipFeatureLevel!);
+        check(jsonEncode(narrow)).equals(expected);
+      }
+
+      checkNarrow(const AllMessagesNarrow().apiEncode(), jsonEncode([]));
+      checkNarrow(const StreamNarrow(12).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+      ]));
+      checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
+
+      checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+
+      connection.zulipFeatureLevel = 176;
+      checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+        {'operator': 'pm-with', 'operand': [123, 234]},
+      ]));
+      connection.zulipFeatureLevel = eg.futureZulipFeatureLevel;
+    });
+  });
+
   group('getMessages', () {
     Future<GetMessagesResult> checkGetMessages(
       FakeApiConnection connection, {
@@ -215,38 +243,20 @@ void main() {
       });
     });
 
-    test('narrow', () {
-      return FakeApiConnection.with_((connection) async {
-        Future<void> checkNarrow(ApiNarrow narrow, String expected) async {
-          connection.prepare(json: fakeResult.toJson());
-          await checkGetMessages(connection,
-            narrow: narrow,
-            anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
-            expected: {
-              'narrow': expected,
-              'anchor': 'newest',
-              'num_before': '10',
-              'num_after': '20',
-            });
-        }
-
-        await checkNarrow(const AllMessagesNarrow().apiEncode(), jsonEncode([]));
-        await checkNarrow(const StreamNarrow(12).apiEncode(), jsonEncode([
-          {'operator': 'stream', 'operand': 12},
-        ]));
-        await checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
-          {'operator': 'stream', 'operand': 12},
-          {'operator': 'topic', 'operand': 'stuff'},
-        ]));
-
-        await checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
-          {'operator': 'dm', 'operand': [123, 234]},
-        ]));
-        connection.zulipFeatureLevel = 176;
-        await checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
-          {'operator': 'pm-with', 'operand': [123, 234]},
-        ]));
-        connection.zulipFeatureLevel = eg.futureZulipFeatureLevel;
+    test('narrow uses resolveDmElements to encode', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessages(connection,
+          narrow: [ApiNarrowDm([123, 234])],
+          anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+          expected: {
+            'narrow': jsonEncode([
+              {'operator': 'pm-with', 'operand': [123, 234]},
+            ]),
+            'anchor': 'newest',
+            'num_before': '10',
+            'num_after': '20',
+          });
       });
     });
 

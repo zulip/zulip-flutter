@@ -90,15 +90,8 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   bool? applyMarkdown,
   // bool? useFirstUnreadAnchor // omitted because deprecated
 }) {
-  if (narrow.any((element) => element is ApiNarrowDm)) {
-    final supportsOperatorDm = connection.zulipFeatureLevel! >= 177; // TODO(server-7)
-    narrow = narrow.map((element) => switch (element) {
-      ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
-      _             => element,
-    }).toList();
-  }
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
-    'narrow': narrow,
+    'narrow': resolveDmElements(narrow, connection.zulipFeatureLevel!),
     'anchor': switch (anchor) {
       NumericAnchor(:var messageId) => messageId,
       AnchorCode.newest             => RawParameter('newest'),

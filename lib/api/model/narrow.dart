@@ -1,5 +1,19 @@
 typedef ApiNarrow = List<ApiNarrowElement>;
 
+/// Resolve any [ApiNarrowDm] elements appropriately.
+///
+/// This encapsulates a server-feature check.
+ApiNarrow resolveDmElements(ApiNarrow narrow, int zulipFeatureLevel) {
+  if (!narrow.any((element) => element is ApiNarrowDm)) {
+    return narrow;
+  }
+  final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
+  return narrow.map((element) => switch (element) {
+    ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
+    _             => element,
+  }).toList();
+}
+
 /// An element in the list representing a narrow in the Zulip API.
 ///
 /// Docs: <https://zulip.com/api/construct-narrow>
@@ -51,6 +65,8 @@ class ApiNarrowTopic extends ApiNarrowElement {
 /// An instance directly of this class must not be serialized with [jsonEncode],
 /// and more generally its [operator] getter must not be called.
 /// Instead, call [resolve] and use the object it returns.
+///
+/// If part of [ApiNarrow] use [resolveDmElements].
 class ApiNarrowDm extends ApiNarrowElement {
   @override String get operator {
     assert(false,
