@@ -287,14 +287,17 @@ class Unreads extends ChangeNotifier {
                     .add(messageId);
               }
             }
-            newlyUnreadInStreams.forEach((incomingStreamId, incomingTopics) {
-              incomingTopics.forEach((incomingTopic, incomingMessageIds) {
+            for (final MapEntry(key: incomingStreamId, value: incomingTopics)
+                 in newlyUnreadInStreams.entries) {
+              for (final MapEntry(key: incomingTopic, value: incomingMessageIds)
+                   in incomingTopics.entries) {
                 _addAllInStreamTopic(incomingMessageIds..sort(), incomingStreamId, incomingTopic);
-              });
-            });
-            newlyUnreadInDms.forEach((incomingDmNarrow, incomingMessageIds) {
+              }
+            }
+            for (final MapEntry(key: incomingDmNarrow, value: incomingMessageIds)
+                 in newlyUnreadInDms.entries) {
               _addAllInDm(incomingMessageIds..sort(), incomingDmNarrow);
-            });
+            }
         }
     }
     notifyListeners();
@@ -328,21 +331,21 @@ class Unreads extends ChangeNotifier {
   // TODO use efficient model lookups
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
     final newlyEmptyStreams = [];
-    streams.forEach((streamId, topics) {
+    for (final MapEntry(key: streamId, value: topics) in streams.entries) {
       final newlyEmptyTopics = [];
-      topics.forEach((topic, messageIds) {
+      for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         messageIds.removeWhere((id) => idsToRemove.contains(id));
         if (messageIds.isEmpty) {
           newlyEmptyTopics.add(topic);
         }
-      });
+      }
       for (final topic in newlyEmptyTopics) {
         topics.remove(topic);
       }
       if (topics.isEmpty) {
         newlyEmptyStreams.add(streamId);
       }
-    });
+    }
     for (final streamId in newlyEmptyStreams) {
       streams.remove(streamId);
     }
@@ -387,12 +390,12 @@ class Unreads extends ChangeNotifier {
   // TODO use efficient model lookups
   void _slowRemoveAllInDms(Set<int> idsToRemove) {
     final newlyEmptyDms = [];
-    dms.forEach((dmNarrow, messageIds) {
+    for (final MapEntry(key: dmNarrow, value: messageIds) in dms.entries) {
       messageIds.removeWhere((id) => idsToRemove.contains(id));
       if (messageIds.isEmpty) {
         newlyEmptyDms.add(dmNarrow);
       }
-    });
+    }
     for (final dmNarrow in newlyEmptyDms) {
       dms.remove(dmNarrow);
     }
