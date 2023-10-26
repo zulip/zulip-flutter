@@ -92,12 +92,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
 }) {
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     'narrow': resolveDmElements(narrow, connection.zulipFeatureLevel!),
-    'anchor': switch (anchor) {
-      NumericAnchor(:var messageId) => messageId,
-      AnchorCode.newest             => RawParameter('newest'),
-      AnchorCode.oldest             => RawParameter('oldest'),
-      AnchorCode.firstUnread        => RawParameter('first_unread'),
-    },
+    'anchor': RawParameter(anchor.toJson()),
     if (includeAnchor != null) 'include_anchor': includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
@@ -112,17 +107,28 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
 sealed class Anchor {
   /// This const constructor allows subclasses to have const constructors.
   const Anchor();
+
+  String toJson();
 }
 
 /// An anchor value for [getMessages] other than a specific message ID.
 ///
 /// https://zulip.com/api/get-messages#parameter-anchor
-enum AnchorCode implements Anchor { newest, oldest, firstUnread }
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum AnchorCode implements Anchor {
+  newest, oldest, firstUnread;
+
+  @override
+  String toJson() => _$AnchorCodeEnumMap[this]!;
+}
 
 /// A specific message ID, used as an anchor in [getMessages].
 class NumericAnchor extends Anchor {
   const NumericAnchor(this.messageId);
   final int messageId;
+
+  @override
+  String toJson() => messageId.toString();
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

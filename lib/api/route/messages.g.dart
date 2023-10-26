@@ -59,3 +59,9 @@ Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
     <String, dynamic>{
       'uri': instance.uri,
     };
+
+const _$AnchorCodeEnumMap = {
+  AnchorCode.newest: 'newest',
+  AnchorCode.oldest: 'oldest',
+  AnchorCode.firstUnread: 'first_unread',
+};

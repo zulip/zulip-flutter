@@ -200,6 +200,19 @@ void main() {
     });
   });
 
+  test('Anchor.toJson', () {
+    void checkAnchor(Anchor anchor, String expected) {
+      check(anchor.toJson()).equals(expected);
+    }
+
+    checkAnchor(AnchorCode.newest,      'newest');
+    checkAnchor(AnchorCode.oldest,      'oldest');
+    checkAnchor(AnchorCode.firstUnread, 'first_unread');
+    checkAnchor(const NumericAnchor(1), '1');
+    checkAnchor(const NumericAnchor(999999999), '999999999');
+    checkAnchor(const NumericAnchor(10000000000000000), '10000000000000000');
+  });
+
   group('getMessages', () {
     Future<GetMessagesResult> checkGetMessages(
       FakeApiConnection connection, {
@@ -260,27 +273,19 @@ void main() {
       });
     });
 
-    test('anchor', () {
+    test('numeric anchor', () {
       return FakeApiConnection.with_((connection) async {
-        Future<void> checkAnchor(Anchor anchor, String expected) async {
-          connection.prepare(json: fakeResult.toJson());
-          await checkGetMessages(connection,
-            narrow: const AllMessagesNarrow().apiEncode(),
-            anchor: anchor, numBefore: 10, numAfter: 20,
-            expected: {
-              'narrow': jsonEncode([]),
-              'anchor': expected,
-              'num_before': '10',
-              'num_after': '20',
-            });
-        }
-
-        await checkAnchor(AnchorCode.newest,      'newest');
-        await checkAnchor(AnchorCode.oldest,      'oldest');
-        await checkAnchor(AnchorCode.firstUnread, 'first_unread');
-        await checkAnchor(const NumericAnchor(1), '1');
-        await checkAnchor(const NumericAnchor(999999999), '999999999');
-        await checkAnchor(const NumericAnchor(10000000000000000), '10000000000000000');
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessages(connection,
+          narrow: const AllMessagesNarrow().apiEncode(),
+          anchor: const NumericAnchor(42),
+          numBefore: 10, numAfter: 20,
+          expected: {
+            'narrow': jsonEncode([]),
+            'anchor': '42',
+            'num_before': '10',
+            'num_after': '20',
+          });
       });
     });
   });
