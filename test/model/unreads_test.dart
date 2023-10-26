@@ -146,6 +146,53 @@ void main() {
     });
   });
 
+  group('count helpers', () {
+    test('countInAllMessagesNarrow', () {
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
+      prepare();
+      fillWithMessages([
+        eg.streamMessage(stream: stream1, topic: 'a', flags: []),
+        eg.streamMessage(stream: stream1, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream1, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream2, topic: 'c', flags: []),
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
+      ]);
+      check(model.countInAllMessagesNarrow()).equals(6);
+    });
+
+    test('countInStreamNarrow', () {
+      final stream = eg.stream();
+      prepare();
+      fillWithMessages([
+        eg.streamMessage(stream: stream, topic: 'a', flags: []),
+        eg.streamMessage(stream: stream, topic: 'a', flags: []),
+        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+      ]);
+      check(model.countInStreamNarrow(stream.streamId)).equals(5);
+    });
+
+    test('countInTopicNarrow', () {
+      final stream = eg.stream();
+      prepare();
+      fillWithMessages(List.generate(7, (i) => eg.streamMessage(
+        stream: stream, topic: 'a', flags: [])));
+      check(model.countInTopicNarrow(stream.streamId, 'a')).equals(7);
+    });
+
+    test('countInDmNarrow', () {
+      prepare();
+      fillWithMessages(List.generate(5, (i) => eg.dmMessage(
+        from: eg.otherUser, to: [eg.selfUser], flags: [])));
+      final narrow = DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId);
+      check(model.countInDmNarrow(narrow)).equals(5);
+    });
+  });
+
   group('handleMessageEvent', () {
     for (final (isUnread, isStream, isDirectMentioned, isWildcardMentioned) in [
       (true,  true,  true,  true ),

@@ -123,7 +123,53 @@ class Unreads extends ChangeNotifier {
 
   final int selfUserId;
 
+  // TODO(#346): account for muted topics and streams
+  // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
+  int countInAllMessagesNarrow() {
+    int c = 0;
+    for (final messageIds in dms.values) {
+      c = c + messageIds.length;
+    }
+    for (final topics in streams.values) {
+      for (final messageIds in topics.values) {
+        c = c + messageIds.length;
+      }
+    }
+    return c;
+  }
+
+  // TODO(#346): account for muted topics and streams
+  // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
+  int countInStreamNarrow(int streamId) {
+    final topics = streams[streamId];
+    if (topics == null) return 0;
+    int c = 0;
+    for (final messageIds in topics.values) {
+      c = c + messageIds.length;
+    }
+    return c;
+  }
+
+  // TODO(#346): account for muted topics and streams
+  int countInTopicNarrow(int streamId, String topic) {
+    final topics = streams[streamId];
+    return topics?[topic]?.length ?? 0;
+  }
+
   int countInDmNarrow(DmNarrow narrow) => dms[narrow]?.length ?? 0;
+
+  int countInNarrow(Narrow narrow) {
+    switch (narrow) {
+      case AllMessagesNarrow():
+        return countInAllMessagesNarrow();
+      case StreamNarrow():
+        return countInStreamNarrow(narrow.streamId);
+      case TopicNarrow():
+        return countInTopicNarrow(narrow.streamId, narrow.topic);
+      case DmNarrow():
+        return countInDmNarrow(narrow);
+    }
+  }
 
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
