@@ -17,7 +17,7 @@ import 'narrow.dart';
 /// Callers should do their own filtering based on other state, like muting,
 /// as desired.
 ///
-/// In each component of this model ([streams], [dms], [mentions]),
+/// In each component of this model ([_totalCount], [streams], [dms], [mentions]),
 /// if a message is not represented, its status is either read
 /// or unknown to the component. In all components,
 /// a message's status will be unknown if, at /register time,
@@ -40,6 +40,7 @@ import 'narrow.dart';
 //   messages and refresh [mentions] (see [mentions] dartdoc).
 class Unreads extends ChangeNotifier {
   factory Unreads({required UnreadMessagesSnapshot initial, required selfUserId}) {
+    int totalCount = 0;
     final streams = <int, Map<String, QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
@@ -48,20 +49,24 @@ class Unreads extends ChangeNotifier {
       final streamId = unreadStreamSnapshot.streamId;
       final topic = unreadStreamSnapshot.topic;
       (streams[streamId] ??= {})[topic] = QueueList.from(unreadStreamSnapshot.unreadMessageIds);
+      totalCount += unreadStreamSnapshot.unreadMessageIds.length;
     }
 
     for (final unreadDmSnapshot in initial.dms) {
       final otherUserId = unreadDmSnapshot.otherUserId;
       final narrow = DmNarrow.withUser(otherUserId, selfUserId: selfUserId);
       dms[narrow] = QueueList.from(unreadDmSnapshot.unreadMessageIds);
+      totalCount += unreadDmSnapshot.unreadMessageIds.length;
     }
 
     for (final unreadHuddleSnapshot in initial.huddles) {
       final narrow = DmNarrow.ofUnreadHuddleSnapshot(unreadHuddleSnapshot, selfUserId: selfUserId);
       dms[narrow] = QueueList.from(unreadHuddleSnapshot.unreadMessageIds);
+      totalCount += unreadHuddleSnapshot.unreadMessageIds.length;
     }
 
     return Unreads._(
+      totalCount: totalCount,
       streams: streams,
       dms: dms,
       mentions: mentions,
@@ -71,15 +76,24 @@ class Unreads extends ChangeNotifier {
   }
 
   Unreads._({
+    required totalCount,
     required this.streams,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
     required this.selfUserId,
-  });
+  }) : _totalCount = totalCount;
 
-  // TODO excluded for now; would need to handle nuances around muting etc.
-  // int count;
+  /// Total unread messages.
+  ///
+  /// Prefer this when possible over traversing the model to make a sum.
+  ///
+  /// We initialize and maintain this ourselves,
+  /// ignoring [UnreadMessagesSnapshot.count] because it has information gaps
+  /// beyond the ones explained in [oldUnreadsMissing]:
+  ///   https://chat.zulip.org/#narrow/stream/378-api-design/topic/register.3A.20maintaining.20.60unread_msgs.2Ementions.60.20correctly/near/1668449
+  int get totalCount => _totalCount;
+  int _totalCount;
 
   /// Unread stream messages, as: stream ID → topic → message ID.
   final Map<int, Map<String, QueueList<int>>> streams;
@@ -251,6 +265,7 @@ class Unreads extends ChangeNotifier {
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {
+              _totalCount = 0;
               streams.clear();
               dms.clear();
               mentions.clear();
@@ -320,27 +335,40 @@ class Unreads extends ChangeNotifier {
 
   void _addLastInStreamTopic(int messageId, int streamId, String topic) {
     ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    _totalCount += 1;
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, String topic) {
+    int numAdded = 0;
     final topics = streams[streamId] ??= {};
     topics.update(topic,
-      ifAbsent: () => messageIds,
+      ifAbsent: () {
+        numAdded = messageIds.length;
+        return messageIds;
+      },
       // setUnion dedupes existing and incoming unread IDs,
       // so we tolerate zulip/zulip#22164, fixed in 6.0
       // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
+      (existing) {
+        final result = setUnion(existing, messageIds);
+        numAdded = result.length - messageIds.length;
+        return result;
+      },
     );
+    _totalCount += numAdded;
   }
 
   // TODO use efficient model lookups
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
+    int numRemoved = 0;
     final newlyEmptyStreams = [];
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
       final newlyEmptyTopics = [];
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
+        final lengthBefore = messageIds.length;
         messageIds.removeWhere((id) => idsToRemove.contains(id));
+        numRemoved += lengthBefore - messageIds.length;
         if (messageIds.isEmpty) {
           newlyEmptyTopics.add(topic);
         }
@@ -355,6 +383,7 @@ class Unreads extends ChangeNotifier {
     for (final streamId in newlyEmptyStreams) {
       streams.remove(streamId);
     }
+    _totalCount -= numRemoved;
   }
 
   void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
@@ -364,7 +393,9 @@ class Unreads extends ChangeNotifier {
     if (messageIds == null) return;
 
     // ([QueueList] doesn't have a `removeAll`)
+    final lengthBefore = messageIds.length;
     messageIds.removeWhere((id) => incomingMessageIds.contains(id));
+    _totalCount -= lengthBefore - messageIds.length;
     if (messageIds.isEmpty) {
       topics.remove(topic);
       if (topics.isEmpty) {
@@ -380,24 +411,37 @@ class Unreads extends ChangeNotifier {
 
   void _addLastInDm(int messageId, DmNarrow narrow) {
     (dms[narrow] ??= QueueList()).addLast(messageId);
+    _totalCount += 1;
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInDm(QueueList<int> messageIds, DmNarrow dmNarrow) {
+    int numAdded = 0;
     dms.update(dmNarrow,
-      ifAbsent: () => messageIds,
+      ifAbsent: () {
+        numAdded = messageIds.length;
+        return messageIds;
+      },
       // setUnion dedupes existing and incoming unread IDs,
       // so we tolerate zulip/zulip#22164, fixed in 6.0
       // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
+      (existing) {
+        final result = setUnion(existing, messageIds);
+        numAdded = result.length - messageIds.length;
+        return result;
+      },
     );
+    _totalCount += numAdded;
   }
 
   // TODO use efficient model lookups
   void _slowRemoveAllInDms(Set<int> idsToRemove) {
+    int numRemoved = 0;
     final newlyEmptyDms = [];
     for (final MapEntry(key: dmNarrow, value: messageIds) in dms.entries) {
+      final lengthBefore = messageIds.length;
       messageIds.removeWhere((id) => idsToRemove.contains(id));
+      numRemoved += lengthBefore - messageIds.length;
       if (messageIds.isEmpty) {
         newlyEmptyDms.add(dmNarrow);
       }
@@ -405,5 +449,6 @@ class Unreads extends ChangeNotifier {
     for (final dmNarrow in newlyEmptyDms) {
       dms.remove(dmNarrow);
     }
+    _totalCount -= numRemoved;
   }
 }

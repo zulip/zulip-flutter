@@ -87,6 +87,7 @@ void main() {
     }
 
     check(model)
+      ..count.equals(messages.where((m) => !m.flags.contains(MessageFlag.read)).length)
       ..streams.deepEquals(expectedStreams)
       ..dms.deepEquals(expectedDms)
       ..mentions.unorderedEquals(expectedMentions);
