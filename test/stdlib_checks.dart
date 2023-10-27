@@ -63,6 +63,8 @@ Object? deepToJson(Object? object) {
       result = object.map((x) => deepToJson(x)).toList();
     case Map() when object.keys.every((k) => k is String):
       result = object.map((k, v) => MapEntry<String, dynamic>(k, deepToJson(v)));
+    case Map() when object.keys.every((k) => k is int):
+      result = object.map((k, v) => MapEntry<String, dynamic>(k.toString(), deepToJson(v)));
     default:
       return (null, false);
   }
