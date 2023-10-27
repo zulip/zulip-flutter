@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -164,6 +166,20 @@ Map<String, dynamic> _messagePropertiesFromContent(String? content, String? cont
   }
 }
 
+/// A fresh message ID, from a random but always strictly increasing sequence.
+int _nextMessageId() => (_lastMessageId += 1 + Random().nextInt(100));
+int _lastMessageId = 1000;
+
+/// Construct an example stream message.
+///
+/// If the message ID `id` is not given, it will be generated from a random
+/// but increasing sequence, which is shared with [dmMessage].
+/// Use an explicit `id` only if the ID needs to correspond to some other data
+/// in the test, or if the IDs need to increase in a different order from the
+/// calls to [streamMessage] and [dmMessage].
+///
+/// See also:
+///  * [dmMessage], to construct an example direct message.
 StreamMessage streamMessage({
   int? id,
   User? sender,
@@ -190,7 +206,7 @@ StreamMessage streamMessage({
     'stream_id': effectiveStream.streamId,
     'reactions': reactions == null ? [] : Reactions(reactions),
     'flags': flags ?? [],
-    'id': id ?? 1234567, // TODO generate example IDs
+    'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? 'example topic',
     'timestamp': timestamp ?? 1678139636,
@@ -199,6 +215,12 @@ StreamMessage streamMessage({
 }
 
 /// Construct an example direct message.
+///
+/// If the message ID `id` is not given, it will be generated from a random
+/// but increasing sequence, which is shared with [streamMessage].
+/// Use an explicit `id` only if the ID needs to correspond to some other data
+/// in the test, or if the IDs need to increase in a different order from the
+/// calls to [streamMessage] and [dmMessage].
 ///
 /// See also:
 ///  * [streamMessage], to construct an example stream message.
@@ -222,7 +244,7 @@ DmMessage dmMessage({
       .toList(growable: false),
     'reactions': [],
     'flags': flags ?? [],
-    'id': id ?? 1234567, // TODO generate example IDs
+    'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
     'timestamp': timestamp ?? 1678139636,
