@@ -814,7 +814,7 @@ packages:
     source: hosted
     version: "7.2.1"
   share_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: share_plus_platform_interface
       sha256: df08bc3a07d01f5ea47b45d03ffcba1fa9cd5370fb44b3f38c70e42cced0f956
