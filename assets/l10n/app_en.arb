@@ -289,6 +289,10 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "errorInvalidResponse": "The server sent an invalid response",
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
   "errorNetworkRequestFailed": "Network request failed",
   "@errorNetworkRequestFailed": {
     "description": "Error message when a network request fails."
@@ -322,6 +326,28 @@
   "serverUrlValidationErrorUnsupportedScheme": "The server URL must start with http:// or https://.",
   "@serverUrlValidationErrorUnsupportedScheme": {
     "description": "Error message when URL has an unsupported scheme."
+  },
+  "markAsReadLabel": "Mark {num, plural, =1{1 message} other{{num} messages}} as read",
+  "@markAsReadLabel": {
+    "description": "Button text to mark messages as read.",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
+  "markAsReadComplete": "Marked {num, plural, =1{1 message} other{{num} messages}} as read.",
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
+  "markAsReadInProgress": "Marking messages as read...",
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "errorMarkAsReadFailedTitle": "Mark as read failed",
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
   },
   "userRoleOwner": "Owner",
   "@userRoleOwner": {

@@ -2,15 +2,19 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
+import '../api/model/narrow.dart';
+import '../api/route/messages.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import 'action_sheet.dart';
 import 'compose_box.dart';
 import 'content.dart';
+import 'dialog.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'profile.dart';
@@ -274,10 +278,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final valueKey = key as ValueKey;
         final index = model!.findItemWithMessageId(valueKey.value);
         if (index == -1) return null;
-        return length - 1 - index;
+        return length - 1 - (index - 1);
       },
       controller: scrollController,
-      itemCount: length,
+      itemCount: length + 1,
       // Setting reverse: true means the scroll starts at the bottom.
       // Flipping the indexes (in itemBuilder) means the start/bottom
       // has the latest messages.
@@ -286,7 +290,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // TODO on new message when scrolled up, anchor scroll to what's in view
       reverse: true,
       itemBuilder: (context, i) {
-        final data = model!.items[length - 1 - i];
+        if (i == 0) return MarkAsReadWidget(narrow: widget.narrow);
+
+        final data = model!.items[length - 1 - (i - 1)];
         switch (data) {
           case MessageListHistoryStartItem():
             return const Center(
@@ -305,7 +311,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           case MessageListMessageItem():
             return MessageItem(
               key: ValueKey(data.message.id),
-              trailing: i == 0 ? const SizedBox(height: 8) : const SizedBox(height: 11),
+              trailing: i == 1 ? const SizedBox(height: 8) : const SizedBox(height: 11),
               item: data);
         }
       });
@@ -342,6 +348,60 @@ class ScrollToBottomButton extends StatelessWidget {
         iconSize: 40,
         color: const HSLColor.fromAHSL(0.5,240,0.96,0.68).toColor(),
         onPressed: _navigateToBottom));
+  }
+}
+
+class MarkAsReadWidget extends StatelessWidget {
+  const MarkAsReadWidget({super.key, required this.narrow});
+
+  final Narrow narrow;
+
+  void _handlePress(BuildContext context) async {
+    if (!context.mounted) return;
+    try {
+      await markNarrowAsRead(context, narrow);
+    } catch (e) {
+      if (!context.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorMarkAsReadFailedTitle,
+        message: e.toString());
+    }
+    // TODO: clear Unreads.oldUnreadsMissing when `narrow` is [AllMessagesNarrow]
+    //   In the rare case that the user had more than 50K total unreads
+    //   on the server, the client won't have known about all of them;
+    //   this was communicated to the client via `oldUnreadsMissing`.
+    //
+    //   However, since we successfully marked **everything** as read,
+    //   we know that we now have a correct data set of unreads.
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInNarrow(narrow);
+    return AnimatedCrossFade(
+      duration: const Duration(milliseconds: 300),
+      crossFadeState: (unreadCount > 0) ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      firstChild: const SizedBox.shrink(),
+      secondChild: SizedBox(width: double.infinity,
+        // Design referenced from:
+        //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
+        child: ColoredBox(
+          // TODO(#368): this should pull from stream color
+          color: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.all(10),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w200),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              ),
+              onPressed: () => _handlePress(context),
+              icon: const Icon(Icons.playlist_add_check),
+              label: Text(zulipLocalizations.markAsReadLabel(unreadCount)))))));
   }
 }
 
@@ -635,3 +695,120 @@ final _kMessageTimestampStyle = TextStyle(
   fontSize: 12,
   fontWeight: FontWeight.w400,
   color: const HSLColor.fromAHSL(0.4, 0, 0, 0.2).toColor());
+
+Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
+  final store = PerAccountStoreWidget.of(context);
+  final connection = store.connection;
+  if (connection.zulipFeatureLevel! < 155) { // TODO(server-6)
+    return await _legacyMarkNarrowAsRead(context, narrow);
+  }
+
+  // Compare web's `mark_all_as_read` in web/src/unread_ops.js
+  // and zulip-mobile's `markAsUnreadFromMessage` in src/action-sheets/index.js .
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+  // Use [AnchorCode.oldest], because [AnchorCode.firstUnread]
+  // will be the oldest non-muted unread message, which would
+  // result in muted unreads older than the first unread not
+  // being processed.
+  Anchor anchor = AnchorCode.oldest;
+  int responseCount = 0;
+  int updatedCount = 0;
+
+  final apiNarrow = switch (narrow) {
+    // Since there's a database index on is:unread, it's a fast
+    // search query and thus worth using as an optimization
+    // when processing all messages.
+    AllMessagesNarrow() => [ApiNarrowIsUnread()],
+    _                   => narrow.apiEncode(),
+  };
+  while (true) {
+    final result = await updateMessageFlagsForNarrow(connection,
+      anchor: anchor,
+      // [AnchorCode.oldest] is an anchor ID lower than any valid
+      // message ID; and follow-up requests will have already
+      // processed the anchor ID, so we just want this to be
+      // unconditionally false.
+      includeAnchor: false,
+      // There is an upper limit of 5000 messages per batch
+      // (numBefore + numAfter <= 5000) enforced on the server.
+      // See `update_message_flags_in_narrow` in zerver/views/message_flags.py .
+      // zulip-mobile uses `numAfter` of 5000, but web uses 1000
+      // for more responsive feedback. See zulip@f0d87fcf6.
+      numBefore: 0,
+      numAfter: 1000,
+      narrow: apiNarrow,
+      op: UpdateMessageFlagsOp.add,
+      flag: MessageFlag.read);
+    if (!context.mounted) {
+      scaffoldMessenger.clearSnackBars();
+      return;
+    }
+    responseCount++;
+    updatedCount += result.updatedCount;
+
+    if (result.foundNewest) {
+      if (responseCount > 1) {
+        // We previously showed an in-progress [SnackBar], so say we're done.
+        // There may be a backlog of [SnackBar]s accumulated in the queue
+        // so be sure to clear them out here.
+        scaffoldMessenger
+          ..clearSnackBars()
+          ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+              content: Text(zulipLocalizations.markAsReadComplete(updatedCount))));
+      }
+      return;
+    }
+
+    if (result.lastProcessedId == null) {
+      // No messages were in the range of the request.
+      // This should be impossible given that `foundNewest` was false
+      // (and that our `numAfter` was positive.)
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorMarkAsReadFailedTitle,
+        message: zulipLocalizations.errorInvalidResponse);
+      return;
+    }
+    anchor = NumericAnchor(result.lastProcessedId!);
+
+    // The task is taking a while, so tell the user we're working on it.
+    // No need to say how many messages, as the [MarkAsUnread] widget
+    // should follow along.
+    // TODO: Ideally we'd have a progress widget here that showed up based
+    //   on actual time elapsed -- so it could appear before the first
+    //   batch returns, if that takes a while -- and that then stuck
+    //   around continuously until the task ends. For now we use a
+    //   series of [SnackBar]s, which may feel a bit janky.
+    //   There is complexity in tracking the status of each [SnackBar],
+    //   due to having no way to determine which is currently active,
+    //   or if there is an active one at all.  Resetting the [SnackBar] here
+    //   results in the same message popping in and out and the user experience
+    //   is better for now if we allow them to run their timer through
+    //   and clear the backlog later.
+    scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+      content: Text(zulipLocalizations.markAsReadInProgress)));
+  }
+}
+
+Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async {
+  final store = PerAccountStoreWidget.of(context);
+  final connection = store.connection;
+  switch (narrow) {
+    case AllMessagesNarrow():
+      await markAllAsRead(connection);
+    case StreamNarrow(:final streamId):
+      await markStreamAsRead(connection, streamId: streamId);
+    case TopicNarrow(:final streamId, :final topic):
+      await markTopicAsRead(connection, streamId: streamId, topicName: topic);
+    case DmNarrow():
+      final unreadDms = store.unreads.dms[narrow];
+      // Silently ignore this race-condition as the outcome
+      // (no unreads in this narrow) was the desired end-state
+      // of pushing the button.
+      if (unreadDms == null) return;
+      await updateMessageFlags(connection,
+        messages: unreadDms,
+        op: UpdateMessageFlagsOp.add,
+        flag: MessageFlag.read);
+  }
+}
