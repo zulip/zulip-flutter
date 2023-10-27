@@ -41,14 +41,15 @@ import 'narrow.dart';
 class Unreads extends ChangeNotifier {
   factory Unreads({required UnreadMessagesSnapshot initial, required selfUserId}) {
     int totalCount = 0;
-    final streams = <int, Map<String, QueueList<int>>>{};
+    final streams = <int, StreamUnreads>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
     for (final unreadStreamSnapshot in initial.streams) {
       final streamId = unreadStreamSnapshot.streamId;
       final topic = unreadStreamSnapshot.topic;
-      (streams[streamId] ??= {})[topic] = QueueList.from(unreadStreamSnapshot.unreadMessageIds);
+      (streams[streamId] ??= StreamUnreads.empty())
+        .topics[topic] = QueueList.from(unreadStreamSnapshot.unreadMessageIds);
       totalCount += unreadStreamSnapshot.unreadMessageIds.length;
     }
 
@@ -96,7 +97,7 @@ class Unreads extends ChangeNotifier {
   int _totalCount;
 
   /// Unread stream messages, as: stream ID → topic → message ID.
-  final Map<int, Map<String, QueueList<int>>> streams;
+  final Map<int, StreamUnreads> streams;
 
   /// Unread DM messages, as: DM narrow → message ID.
   final Map<DmNarrow, QueueList<int>> dms;
@@ -327,22 +328,23 @@ class Unreads extends ChangeNotifier {
   // TODO use efficient lookups
   bool _slowIsPresentInStreams(int messageId) {
     return streams.values.any(
-      (topics) => topics.values.any(
+      (streamUnreads) => streamUnreads.topics.values.any(
         (messageIds) => messageIds.contains(messageId),
       ),
     );
   }
 
   void _addLastInStreamTopic(int messageId, int streamId, String topic) {
-    ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    final streamUnreads = streams[streamId] ??= StreamUnreads.empty();
+    (streamUnreads.topics[topic] ??= QueueList()).addLast(messageId);
     _totalCount += 1;
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, String topic) {
     int numAdded = 0;
-    final topics = streams[streamId] ??= {};
-    topics.update(topic,
+    final streamUnreads = streams[streamId] ??= StreamUnreads.empty();
+    streamUnreads.topics.update(topic,
       ifAbsent: () {
         numAdded = messageIds.length;
         return messageIds;
@@ -363,9 +365,9 @@ class Unreads extends ChangeNotifier {
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
     int numRemoved = 0;
     final newlyEmptyStreams = [];
-    for (final MapEntry(key: streamId, value: topics) in streams.entries) {
+    for (final MapEntry(key: streamId, value: streamUnreads) in streams.entries) {
       final newlyEmptyTopics = [];
-      for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
+      for (final MapEntry(key: topic, value: messageIds) in streamUnreads.topics.entries) {
         final lengthBefore = messageIds.length;
         messageIds.removeWhere((id) => idsToRemove.contains(id));
         numRemoved += lengthBefore - messageIds.length;
@@ -374,9 +376,9 @@ class Unreads extends ChangeNotifier {
         }
       }
       for (final topic in newlyEmptyTopics) {
-        topics.remove(topic);
+        streamUnreads.topics.remove(topic);
       }
-      if (topics.isEmpty) {
+      if (streamUnreads.topics.isEmpty) {
         newlyEmptyStreams.add(streamId);
       }
     }
@@ -387,9 +389,9 @@ class Unreads extends ChangeNotifier {
   }
 
   void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
-    final topics = streams[streamId];
-    if (topics == null) return;
-    final messageIds = topics[topic];
+    final streamUnreads = streams[streamId];
+    if (streamUnreads == null) return;
+    final messageIds = streamUnreads.topics[topic];
     if (messageIds == null) return;
 
     // ([QueueList] doesn't have a `removeAll`)
@@ -397,8 +399,8 @@ class Unreads extends ChangeNotifier {
     messageIds.removeWhere((id) => incomingMessageIds.contains(id));
     _totalCount -= lengthBefore - messageIds.length;
     if (messageIds.isEmpty) {
-      topics.remove(topic);
-      if (topics.isEmpty) {
+      streamUnreads.topics.remove(topic);
+      if (streamUnreads.topics.isEmpty) {
         streams.remove(streamId);
       }
     }
@@ -451,4 +453,14 @@ class Unreads extends ChangeNotifier {
     }
     _totalCount -= numRemoved;
   }
+}
+
+class StreamUnreads {
+  StreamUnreads({required this.topics});
+  StreamUnreads.empty() : topics = {};
+
+  Map<String, QueueList<int>> topics;
+
+  @visibleForTesting
+  Map<String, dynamic> toJson() => {'topics': topics};
 }

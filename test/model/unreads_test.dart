@@ -8,6 +8,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/unreads.dart';
 
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
 import 'unreads_checks.dart';
 
 void main() {
@@ -53,7 +54,7 @@ void main() {
     assert(Set.of(messages.map((m) => m.id)).length == messages.length,
       'checkMatchesMessages: duplicate messages in test input');
 
-    final Map<int, Map<String, QueueList<int>>> expectedStreams = {};
+    final Map<int, StreamUnreads> expectedStreams = {};
     final Map<DmNarrow, QueueList<int>> expectedDms = {};
     final Set<int> expectedMentions = {};
     for (final message in messages) {
@@ -62,8 +63,8 @@ void main() {
       }
       switch (message) {
         case StreamMessage():
-          final perTopic = expectedStreams[message.streamId] ??= {};
-          final messageIds = perTopic[message.subject] ??= QueueList();
+          final streamUnreads = expectedStreams[message.streamId] ??= StreamUnreads.empty();
+          final messageIds = streamUnreads.topics[message.subject] ??= QueueList();
           messageIds.add(message.id);
         case DmMessage():
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
@@ -77,8 +78,8 @@ void main() {
         expectedMentions.add(message.id);
       }
     }
-    for (final perTopic in expectedStreams.values) {
-      for (final messageIds in perTopic.values) {
+    for (final streamUnreads in expectedStreams.values) {
+      for (final messageIds in streamUnreads.topics.values) {
         messageIds.sort();
       }
     }
@@ -88,7 +89,7 @@ void main() {
 
     check(model)
       ..count.equals(messages.where((m) => !m.flags.contains(MessageFlag.read)).length)
-      ..streams.deepEquals(expectedStreams)
+      ..streams.jsonEquals(expectedStreams)
       ..dms.deepEquals(expectedDms)
       ..mentions.unorderedEquals(expectedMentions);
   }
