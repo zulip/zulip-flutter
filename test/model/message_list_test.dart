@@ -86,7 +86,7 @@ void main() async {
     connection.prepare(json: newestResult(
       foundOldest: false,
       messages: List.generate(kMessageListFetchBatchSize,
-        (i) => eg.streamMessage(id: 1000 + i)),
+        (i) => eg.streamMessage()),
     ).toJson());
     final fetchFuture = model.fetchInitial();
     check(model).fetched.isFalse();
@@ -110,7 +110,7 @@ void main() async {
     prepare();
     connection.prepare(json: newestResult(
       foundOldest: true,
-      messages: List.generate(30, (i) => eg.streamMessage(id: 1000 + i)),
+      messages: List.generate(30, (i) => eg.streamMessage()),
     ).toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
@@ -194,7 +194,7 @@ void main() async {
   test('fetchOlder nop when already haveOldest true', () async {
     prepare(narrow: const AllMessagesNarrow());
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(id: 1000 + i)));
+      List.generate(30, (i) => eg.streamMessage()));
     check(model)
       ..haveOldest.isTrue()
       ..messages.length.equals(30);
@@ -231,10 +231,10 @@ void main() async {
     final stream = eg.stream();
     prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
+      List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
-    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: stream));
+    model.maybeAddMessage(eg.streamMessage(stream: stream));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
   });
@@ -243,11 +243,11 @@ void main() async {
     final stream = eg.stream(streamId: 123);
     prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
+      List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
     final otherStream = eg.stream(streamId: 234);
-    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: otherStream));
+    model.maybeAddMessage(eg.streamMessage(stream: otherStream));
     checkNotNotified();
     check(model).messages.length.equals(30);
   });
@@ -255,7 +255,7 @@ void main() async {
   test('maybeAddMessage, before fetch', () async {
     final stream = eg.stream();
     prepare(narrow: StreamNarrow(stream.streamId));
-    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: stream));
+    model.maybeAddMessage(eg.streamMessage(stream: stream));
     checkNotNotified();
     check(model).fetched.isFalse();
     checkInvariants(model);
@@ -263,7 +263,7 @@ void main() async {
 
   group('maybeUpdateMessage', () {
     test('update a message', () async {
-      final originalMessage = eg.streamMessage(id: 243,
+      final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
         id: 1,
@@ -297,7 +297,7 @@ void main() async {
     });
 
     test('ignore when message not present', () async {
-      final originalMessage = eg.streamMessage(id: 243,
+      final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
         id: 1,
@@ -321,7 +321,7 @@ void main() async {
 
     // TODO(server-5): Cut legacy case for rendering-only message update
     Future<void> checkRenderingOnly({required bool legacy}) async {
-      final originalMessage = eg.streamMessage(id: 972,
+      final originalMessage = eg.streamMessage(
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
       final updateEvent = UpdateMessageEvent(
@@ -385,7 +385,7 @@ void main() async {
       });
 
       test('add reaction; message is not in list', () async {
-        final someMessage = eg.streamMessage(id: 1, reactions: []);
+        final someMessage = eg.streamMessage(reactions: []);
         prepare();
         await prepareMessages(foundOldest: true, messages: [someMessage]);
         model.maybeUpdateMessageReactions(
@@ -428,7 +428,7 @@ void main() async {
       });
 
       test('remove reaction; message is not in list', () async {
-        final someMessage = eg.streamMessage(id: 1, reactions: [eg.unicodeEmojiReaction]);
+        final someMessage = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
         prepare();
         await prepareMessages(foundOldest: true, messages: [someMessage]);
         model.maybeUpdateMessageReactions(
@@ -458,7 +458,7 @@ void main() async {
     group('add flag', () {
       test('not in list', () async {
         prepare();
-        final message = eg.streamMessage(id: 1, flags: []);
+        final message = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
         checkNotNotified();
@@ -467,8 +467,8 @@ void main() async {
 
       test('affected message, unaffected message, absent message', () async {
         prepare();
-        final message1 = eg.streamMessage(id: 1, flags: []);
-        final message2 = eg.streamMessage(id: 2, flags: []);
+        final message1 = eg.streamMessage(flags: []);
+        final message2 = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [message2.id, 3]));
         checkNotifiedOnce();
@@ -479,8 +479,8 @@ void main() async {
 
       test('all: true, list non-empty', () async {
         prepare();
-        final message1 = eg.streamMessage(id: 1, flags: []);
-        final message2 = eg.streamMessage(id: 2, flags: []);
+        final message1 = eg.streamMessage(flags: []);
+        final message2 = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [], all: true));
         checkNotifiedOnce();
@@ -509,7 +509,7 @@ void main() async {
     group('remove flag', () {
       test('not in list', () async {
         prepare();
-        final message = eg.streamMessage(id: 1, flags: [MessageFlag.read]);
+        final message = eg.streamMessage(flags: [MessageFlag.read]);
         await prepareMessages(foundOldest: true, messages: [message]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
         checkNotNotified();
@@ -518,9 +518,9 @@ void main() async {
 
       test('affected message, unaffected message, absent message', () async {
         prepare();
-        final message1 = eg.streamMessage(id: 1, flags: [MessageFlag.read]);
-        final message2 = eg.streamMessage(id: 2, flags: [MessageFlag.read]);
-        final message3 = eg.streamMessage(id: 3, flags: [MessageFlag.read]);
+        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message3 = eg.streamMessage(flags: [MessageFlag.read]);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
         model.maybeUpdateMessageFlags(mkRemoveEvent(MessageFlag.read, [message2, message3]));
         checkNotifiedOnce();
@@ -544,8 +544,8 @@ void main() async {
     final stream = eg.stream();
     prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
-    model.maybeAddMessage(eg.streamMessage(id: 1100, stream: stream));
+      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+    model.maybeAddMessage(eg.streamMessage(stream: stream));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
 

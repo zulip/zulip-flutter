@@ -204,8 +204,8 @@ void main() {
             oldTopic == newTopic ? 'same topic' : 'different topic',
           ].join(' / ');
           test(description, () {
-            final oldMessage = eg.streamMessage(id: 1, stream: oldStream, topic: oldTopic, flags: []);
-            final newMessage = eg.streamMessage(id: 2, stream: newStream, topic: newTopic, flags: []);
+            final oldMessage = eg.streamMessage(stream: oldStream, topic: oldTopic, flags: []);
+            final newMessage = eg.streamMessage(stream: newStream, topic: newTopic, flags: []);
 
             prepare();
             fillWithMessages([oldMessage]);
@@ -241,10 +241,10 @@ void main() {
 
       group('new unread follows existing unread', () {
         for (final (oldDesc, oldFrom, oldTo) in variousDms) {
-          final oldMessage = eg.dmMessage(id: 1, from: oldFrom, to: oldTo, flags: []);
+          final oldMessage = eg.dmMessage(from: oldFrom, to: oldTo, flags: []);
           final oldNarrow = DmNarrow.ofMessage(oldMessage, selfUserId: eg.selfUser.userId);
           for (final (newDesc, newFrom, newTo) in variousDms) {
-            final newMessage = eg.dmMessage(id: 2, from: newFrom, to: newTo, flags: []);
+            final newMessage = eg.dmMessage(from: newFrom, to: newTo, flags: []);
             final newNarrow = DmNarrow.ofMessage(newMessage, selfUserId: eg.selfUser.userId);
 
             test('existing in $oldDesc narrow; new in ${oldNarrow == newNarrow ? 'same narrow' : 'different narrow ($newDesc)'}', () {
@@ -534,10 +534,10 @@ void main() {
       // the model, so we get coverage for that case too.
       test('add flag: ${mentionFlag.name}', () {
         final messages = [
-          eg.streamMessage(id: 1, flags: []),
-          eg.streamMessage(id: 2, flags: [MessageFlag.read]),
-          eg.dmMessage(id: 3, from: eg.otherUser, to: [eg.selfUser], flags: []),
-          eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]),
+          eg.streamMessage(flags: []),
+          eg.streamMessage(flags: [MessageFlag.read]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]),
         ];
 
         prepare();
@@ -571,10 +571,10 @@ void main() {
       // the model, so we get coverage for that case too.
       test('remove flag: ${mentionFlag.name}', () {
         final messages = [
-          eg.streamMessage(id: 1, flags: [mentionFlag]),
-          eg.streamMessage(id: 2, flags: [mentionFlag, MessageFlag.read]),
-          eg.dmMessage(id: 3, from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag]),
-          eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag, MessageFlag.read]),
+          eg.streamMessage(flags: [mentionFlag]),
+          eg.streamMessage(flags: [mentionFlag, MessageFlag.read]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag, MessageFlag.read]),
         ];
 
         prepare();

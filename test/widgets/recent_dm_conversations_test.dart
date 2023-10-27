@@ -92,7 +92,7 @@ void main() {
       for (int i = 0; i < 30; i++) {
         final user = eg.user(userId: i, fullName: 'User ${i.toString()}');
         users.add(user);
-        messages.add(eg.dmMessage(id: i, from: eg.selfUser, to: [user]));
+        messages.add(eg.dmMessage(from: eg.selfUser, to: [user]));
       }
 
       await setupPage(tester, users: users, dmMessages: messages);
@@ -286,19 +286,19 @@ void main() {
       testWidgets('1:1', (WidgetTester tester) async {
         final user = eg.user(userId: 1, fullName: 'User 1');
         await runAndCheck(tester, users: [user],
-          message: eg.dmMessage(id: 1, from: eg.selfUser, to: [user]));
+          message: eg.dmMessage(from: eg.selfUser, to: [user]));
       });
 
       testWidgets('self-1:1', (WidgetTester tester) async {
         await runAndCheck(tester, users: [],
-          message: eg.dmMessage(id: 1, from: eg.selfUser, to: []));
+          message: eg.dmMessage(from: eg.selfUser, to: []));
       });
 
       testWidgets('group', (WidgetTester tester) async {
         final user1 = eg.user(userId: 1, fullName: 'User 1');
         final user2 = eg.user(userId: 2, fullName: 'User 2');
         await runAndCheck(tester, users: [user1, user2],
-          message: eg.dmMessage(id: 1, from: eg.selfUser, to: [user1, user2]));
+          message: eg.dmMessage(from: eg.selfUser, to: [user1, user2]));
       });
     });
   });

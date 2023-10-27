@@ -42,7 +42,7 @@ void main() {
     store.addUser(eg.selfUser);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
-      return eg.streamMessage(id: index, sender: eg.selfUser);
+      return eg.streamMessage(sender: eg.selfUser);
     });
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
