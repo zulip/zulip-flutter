@@ -123,6 +123,8 @@ class Unreads extends ChangeNotifier {
 
   final int selfUserId;
 
+  int countInDmNarrow(DmNarrow narrow) => dms[narrow]?.length ?? 0;
+
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
     if (message.flags.contains(MessageFlag.read)) {
