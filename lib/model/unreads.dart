@@ -48,9 +48,12 @@ class Unreads extends ChangeNotifier {
     for (final unreadStreamSnapshot in initial.streams) {
       final streamId = unreadStreamSnapshot.streamId;
       final topic = unreadStreamSnapshot.topic;
-      (streams[streamId] ??= StreamUnreads.empty())
-        .topics[topic] = QueueList.from(unreadStreamSnapshot.unreadMessageIds);
-      totalCount += unreadStreamSnapshot.unreadMessageIds.length;
+      final streamUnreads = streams[streamId] ??= StreamUnreads.empty();
+      final unreadInTopic = unreadStreamSnapshot.unreadMessageIds.length;
+      streamUnreads
+        ..topics[topic] = QueueList.from(unreadStreamSnapshot.unreadMessageIds)
+        ..count += unreadInTopic;
+      totalCount += unreadInTopic;
     }
 
     for (final unreadDmSnapshot in initial.dms) {
@@ -337,6 +340,7 @@ class Unreads extends ChangeNotifier {
   void _addLastInStreamTopic(int messageId, int streamId, String topic) {
     final streamUnreads = streams[streamId] ??= StreamUnreads.empty();
     (streamUnreads.topics[topic] ??= QueueList()).addLast(messageId);
+    streamUnreads.count++;
     _totalCount += 1;
   }
 
@@ -358,19 +362,23 @@ class Unreads extends ChangeNotifier {
         return result;
       },
     );
+    streamUnreads.count += numAdded;
     _totalCount += numAdded;
   }
 
   // TODO use efficient model lookups
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
-    int numRemoved = 0;
+    int totalRemoved = 0;
     final newlyEmptyStreams = [];
     for (final MapEntry(key: streamId, value: streamUnreads) in streams.entries) {
+      int removedInStream = 0;
       final newlyEmptyTopics = [];
       for (final MapEntry(key: topic, value: messageIds) in streamUnreads.topics.entries) {
         final lengthBefore = messageIds.length;
         messageIds.removeWhere((id) => idsToRemove.contains(id));
-        numRemoved += lengthBefore - messageIds.length;
+        final removedInTopic = lengthBefore - messageIds.length;
+        removedInStream += removedInTopic;
+        totalRemoved += removedInTopic;
         if (messageIds.isEmpty) {
           newlyEmptyTopics.add(topic);
         }
@@ -381,11 +389,12 @@ class Unreads extends ChangeNotifier {
       if (streamUnreads.topics.isEmpty) {
         newlyEmptyStreams.add(streamId);
       }
+      streamUnreads.count -= removedInStream;
     }
     for (final streamId in newlyEmptyStreams) {
       streams.remove(streamId);
     }
-    _totalCount -= numRemoved;
+    _totalCount -= totalRemoved;
   }
 
   void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
@@ -397,7 +406,9 @@ class Unreads extends ChangeNotifier {
     // ([QueueList] doesn't have a `removeAll`)
     final lengthBefore = messageIds.length;
     messageIds.removeWhere((id) => incomingMessageIds.contains(id));
-    _totalCount -= lengthBefore - messageIds.length;
+    final numRemoved = lengthBefore - messageIds.length;
+    streamUnreads.count -= numRemoved;
+    _totalCount -= numRemoved;
     if (messageIds.isEmpty) {
       streamUnreads.topics.remove(topic);
       if (streamUnreads.topics.isEmpty) {
@@ -456,11 +467,18 @@ class Unreads extends ChangeNotifier {
 }
 
 class StreamUnreads {
-  StreamUnreads({required this.topics});
-  StreamUnreads.empty() : topics = {};
+  StreamUnreads({required this.count, required this.topics});
+  StreamUnreads.empty()
+    : count = 0,
+      topics = {};
+
+  /// Total unread messages in this stream.
+  ///
+  /// Prefer this when possible over traversing [topics] to make a sum.
+  int count;
 
   Map<String, QueueList<int>> topics;
 
   @visibleForTesting
-  Map<String, dynamic> toJson() => {'topics': topics};
+  Map<String, dynamic> toJson() => {'count': count, 'topics': topics};
 }

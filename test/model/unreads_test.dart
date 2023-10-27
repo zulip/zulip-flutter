@@ -66,6 +66,7 @@ void main() {
           final streamUnreads = expectedStreams[message.streamId] ??= StreamUnreads.empty();
           final messageIds = streamUnreads.topics[message.subject] ??= QueueList();
           messageIds.add(message.id);
+          streamUnreads.count++;
         case DmMessage():
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
           final messageIds = expectedDms[narrow] ??= QueueList();
