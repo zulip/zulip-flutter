@@ -22,6 +22,13 @@ extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<
   Subject<T?> get currentState => has((k) => k.currentState, 'currentState');
 }
 
+extension IconChecks on Subject<Icon> {
+  Subject<IconData?> get icon => has((i) => i.icon, 'icon');
+  Subject<Color?> get color => has((i) => i.color, 'color');
+
+  // TODO others
+}
+
 extension RouteChecks<T> on Subject<Route<T>> {
   Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
 }

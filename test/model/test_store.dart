@@ -76,4 +76,12 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   void addStreams(List<ZulipStream> streams) {
     handleEvent(StreamCreateEvent(id: 1, streams: streams));
   }
+
+  void addSubscription(Subscription subscription) {
+    addSubscriptions([subscription]);
+  }
+
+  void addSubscriptions(List<Subscription> subscriptions) {
+    handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
+  }
 }

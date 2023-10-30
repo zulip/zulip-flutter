@@ -86,7 +86,7 @@ class RecentDmConversationsItem extends StatelessWidget {
 
     final String title;
     final Widget avatar;
-    switch (narrow.otherRecipientIds) {
+    switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = selfUser.fullName;
         avatar = AvatarImage(userId: selfUser.userId);

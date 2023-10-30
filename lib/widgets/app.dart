@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
+import 'inbox.dart';
 import 'login.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -253,6 +254,11 @@ class HomePage extends StatelessWidget {
               MessageListPage.buildRoute(context: context,
                 narrow: const AllMessagesNarrow())),
             child: const Text("All messages")),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.push(context,
+              InboxPage.buildRoute(context: context)),
+            child: const Text("Inbox")), // TODO(i18n)
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
