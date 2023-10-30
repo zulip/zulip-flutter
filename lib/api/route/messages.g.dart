@@ -60,8 +60,48 @@ Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
       'uri': instance.uri,
     };
 
+UpdateMessageFlagsResult _$UpdateMessageFlagsResultFromJson(
+        Map<String, dynamic> json) =>
+    UpdateMessageFlagsResult(
+      messages:
+          (json['messages'] as List<dynamic>).map((e) => e as int).toList(),
+    );
+
+Map<String, dynamic> _$UpdateMessageFlagsResultToJson(
+        UpdateMessageFlagsResult instance) =>
+    <String, dynamic>{
+      'messages': instance.messages,
+    };
+
+UpdateMessageFlagsForNarrowResult _$UpdateMessageFlagsForNarrowResultFromJson(
+        Map<String, dynamic> json) =>
+    UpdateMessageFlagsForNarrowResult(
+      processedCount: json['processed_count'] as int,
+      updatedCount: json['updated_count'] as int,
+      firstProcessedId: json['first_processed_id'] as int?,
+      lastProcessedId: json['last_processed_id'] as int?,
+      foundOldest: json['found_oldest'] as bool,
+      foundNewest: json['found_newest'] as bool,
+    );
+
+Map<String, dynamic> _$UpdateMessageFlagsForNarrowResultToJson(
+        UpdateMessageFlagsForNarrowResult instance) =>
+    <String, dynamic>{
+      'processed_count': instance.processedCount,
+      'updated_count': instance.updatedCount,
+      'first_processed_id': instance.firstProcessedId,
+      'last_processed_id': instance.lastProcessedId,
+      'found_oldest': instance.foundOldest,
+      'found_newest': instance.foundNewest,
+    };
+
 const _$AnchorCodeEnumMap = {
   AnchorCode.newest: 'newest',
   AnchorCode.oldest: 'oldest',
   AnchorCode.firstUnread: 'first_unread',
+};
+
+const _$UpdateMessageFlagsOpEnumMap = {
+  UpdateMessageFlagsOp.add: 'add',
+  UpdateMessageFlagsOp.remove: 'remove',
 };

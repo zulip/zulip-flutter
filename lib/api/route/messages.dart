@@ -288,3 +288,88 @@ Future<void> removeReaction(ApiConnection connection, {
     'reaction_type': RawParameter(reactionType.toJson()),
   });
 }
+
+/// https://zulip.com/api/update-message-flags
+Future<UpdateMessageFlagsResult> updateMessageFlags(ApiConnection connection, {
+  required List<int> messages,
+  required UpdateMessageFlagsOp op,
+  required MessageFlag flag,
+}) {
+  return connection.post('updateMessageFlags', UpdateMessageFlagsResult.fromJson, 'messages/flags', {
+    'messages': messages,
+    'op': RawParameter(op.toJson()),
+    'flag': RawParameter(flag.toJson()),
+  });
+}
+
+/// An `op` value for [updateMessageFlags] and [updateMessageFlagsForNarrow].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum UpdateMessageFlagsOp {
+  add,
+  remove;
+
+  String toJson() => _$UpdateMessageFlagsOpEnumMap[this]!;
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageFlagsResult {
+  final List<int> messages;
+
+  UpdateMessageFlagsResult({
+    required this.messages,
+  });
+
+  factory UpdateMessageFlagsResult.fromJson(Map<String, dynamic> json) =>
+    _$UpdateMessageFlagsResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateMessageFlagsResultToJson(this);
+}
+
+/// https://zulip.com/api/update-message-flags-for-narrow
+///
+/// This binding only supports feature levels 155+.
+// TODO(server-6) remove FL 155+ mention in doc, and the related `assert`
+Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnection connection, {
+  required Anchor anchor,
+  bool? includeAnchor,
+  required int numBefore,
+  required int numAfter,
+  required ApiNarrow narrow,
+  required UpdateMessageFlagsOp op,
+  required MessageFlag flag,
+}) {
+  assert(connection.zulipFeatureLevel! >= 155);
+  return connection.post('updateMessageFlagsForNarrow', UpdateMessageFlagsForNarrowResult.fromJson, 'messages/flags/narrow', {
+    'anchor': RawParameter(anchor.toJson()),
+    if (includeAnchor != null) 'include_anchor': includeAnchor,
+    'num_before': numBefore,
+    'num_after': numAfter,
+    'narrow': resolveDmElements(narrow, connection.zulipFeatureLevel!),
+    'op': RawParameter(op.toJson()),
+    'flag': RawParameter(flag.toJson()),
+  });
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageFlagsForNarrowResult {
+  final int processedCount;
+  final int updatedCount;
+  final int? firstProcessedId;
+  final int? lastProcessedId;
+  final bool foundOldest;
+  final bool foundNewest;
+
+  UpdateMessageFlagsForNarrowResult({
+    required this.processedCount,
+    required this.updatedCount,
+    required this.firstProcessedId,
+    required this.lastProcessedId,
+    required this.foundOldest,
+    required this.foundNewest,
+  });
+
+  factory UpdateMessageFlagsForNarrowResult.fromJson(Map<String, dynamic> json) =>
+    _$UpdateMessageFlagsForNarrowResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateMessageFlagsForNarrowResultToJson(this);
+}

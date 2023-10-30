@@ -430,7 +430,7 @@ sealed class Message {
   Map<String, dynamic> toJson();
 }
 
-/// As in [Message.flags].
+/// https://zulip.com/api/update-message-flags#available-flags
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum MessageFlag {
   read,

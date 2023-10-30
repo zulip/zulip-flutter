@@ -451,4 +451,124 @@ void main() {
       });
     });
   });
+
+  group('updateMessageFlags', () {
+    Future<UpdateMessageFlagsResult> checkUpdateMessageFlags(
+      FakeApiConnection connection, {
+      required List<int> messages,
+      required UpdateMessageFlagsOp op,
+      required MessageFlag flag,
+      required Map<String, String> expected,
+    }) async {
+      final result = await updateMessageFlags(connection,
+        messages: messages, op: op, flag: flag);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags')
+        ..bodyFields.deepEquals(expected);
+      return result;
+    }
+
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json:
+          UpdateMessageFlagsResult(messages: [1, 2]).toJson());
+        await checkUpdateMessageFlags(connection,
+          messages: [1, 2, 3],
+          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          expected: {
+            'messages': jsonEncode([1, 2, 3]),
+            'op': 'add',
+            'flag': 'read',
+          });
+      });
+    });
+  });
+
+  group('updateMessageFlagsForNarrow', () {
+    Future<UpdateMessageFlagsForNarrowResult> checkUpdateMessageFlagsForNarrow(
+      FakeApiConnection connection, {
+      required Anchor anchor,
+      required int numBefore,
+      required int numAfter,
+      required ApiNarrow narrow,
+      required UpdateMessageFlagsOp op,
+      required MessageFlag flag,
+      required Map<String, String> expected,
+    }) async {
+      final result = await updateMessageFlagsForNarrow(connection,
+        anchor: anchor, numBefore: numBefore, numAfter: numAfter,
+        narrow: narrow, op: op, flag: flag);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags/narrow')
+        ..bodyFields.deepEquals(expected);
+      return result;
+    }
+
+    UpdateMessageFlagsForNarrowResult mkResult({required bool foundOldest}) =>
+      UpdateMessageFlagsForNarrowResult(
+        processedCount: 11, updatedCount: 3,
+        firstProcessedId: null, lastProcessedId: null,
+        foundOldest: foundOldest, foundNewest: true);
+
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: mkResult(foundOldest: true).toJson());
+        await checkUpdateMessageFlagsForNarrow(connection,
+          anchor: AnchorCode.oldest,
+          numBefore: 0, numAfter: 20,
+          narrow: const AllMessagesNarrow().apiEncode(),
+          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          expected: {
+            'anchor': 'oldest',
+            'num_before': '0',
+            'num_after': '20',
+            'narrow': jsonEncode([]),
+            'op': 'add',
+            'flag': 'read',
+          });
+      });
+    });
+
+    test('narrow uses resolveDmElements to encode', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
+        connection.prepare(json: mkResult(foundOldest: true).toJson());
+        await checkUpdateMessageFlagsForNarrow(connection,
+          anchor: AnchorCode.oldest,
+          numBefore: 0, numAfter: 20,
+          narrow: [ApiNarrowDm([123, 234])],
+          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          expected: {
+            'anchor': 'oldest',
+            'num_before': '0',
+            'num_after': '20',
+            'narrow': jsonEncode([
+              {'operator': 'pm-with', 'operand': [123, 234]},
+            ]),
+            'op': 'add',
+            'flag': 'read',
+          });
+      });
+    });
+
+    test('numeric anchor', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: mkResult(foundOldest: false).toJson());
+        await checkUpdateMessageFlagsForNarrow(connection,
+          anchor: const NumericAnchor(42),
+          numBefore: 0, numAfter: 20,
+          narrow: const AllMessagesNarrow().apiEncode(),
+          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          expected: {
+            'anchor': '42',
+            'num_before': '0',
+            'num_after': '20',
+            'narrow': jsonEncode([]),
+            'op': 'add',
+            'flag': 'read',
+          });
+      });
+    });
+  });
 }
