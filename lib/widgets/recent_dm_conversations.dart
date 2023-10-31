@@ -107,7 +107,7 @@ class RecentDmConversationsItem extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               title))),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           // TODO(#253): Unread count
         ])));
   }
