@@ -18,7 +18,7 @@ class NotificationService {
   @visibleForTesting
   static void debugReset() {
     instance.token.dispose();
-    instance.token = ValueNotifier(null);
+    _instance = null;
   }
 
   /// The FCM registration token for this install of the app.
