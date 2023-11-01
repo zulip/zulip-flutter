@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -179,10 +182,6 @@ class NotificationChannelManager {
 
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
-  // We rely on the tag instead.
-  @visibleForTesting
-  static const kNotificationId = 0;
-
   static Future<void> _init() async {
     await ZulipBinding.instance.notifications.initialize(
       const InitializationSettings(
@@ -204,8 +203,19 @@ class NotificationDisplayManager {
       FcmMessageDmRecipient() =>
         data.senderFullName,
     };
+    final conversationKey = _conversationKey(data);
     ZulipBinding.instance.notifications.show(
-      kNotificationId,
+      // When creating the PendingIntent for the user to open the notification,
+      // the plugin makes the underlying Intent objects look the same.
+      // They differ in their extras, but that doesn't count:
+      //   https://developer.android.com/reference/android/app/PendingIntent
+      //
+      // This leaves only PendingIntent.requestCode to distinguish one
+      // PendingIntent from another; the plugin sets that to the notification ID.
+      // We need a distinct PendingIntent for each conversation, so that the
+      // notifications can lead to the right conversations when opened.
+      // So, use a hash of the conversation key.
+      notificationIdAsHashOf(conversationKey),
       title,
       data.content,
       NotificationDetails(android: AndroidNotificationDetails(
@@ -218,11 +228,26 @@ class NotificationDisplayManager {
         // But really we should fix flutter_local_notifications to not do that
         // (see issue linked below), or replace that package entirely (#351).
         '(Zulip internal error)', // TODO never implicitly create channel: https://github.com/MaikuB/flutter_local_notifications/issues/2135
-        tag: _conversationKey(data),
+        tag: conversationKey,
         color: kZulipBrandColor,
         icon: 'zulip_notification', // TODO vary for debug
         // TODO(#128) inbox-style
       )));
+  }
+
+  /// A notification ID, derived as a hash of the given string key.
+  ///
+  /// The result fits in 31 bits, the size of a nonnegative Java `int`,
+  /// so that it can be used as an Android notification ID.  (It's possible
+  /// negative values would work too, which would add one bit.)
+  ///
+  /// This is a cryptographic hash, meaning that collisions are about as
+  /// unlikely as one could hope for given the size of the hash.
+  @visibleForTesting
+  static int notificationIdAsHashOf(String key) {
+    final bytes = sha256.convert(utf8.encode(key)).bytes;
+    return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16)
+      | ((bytes[3] & 0x7f) << 24);
   }
 
   static String _conversationKey(MessageFcmMessage data) {

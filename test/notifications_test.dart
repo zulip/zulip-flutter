@@ -98,13 +98,16 @@ void main() {
       required String expectedTitle,
       required String expectedTagComponent,
     }) {
+      final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
+      final expectedId =
+        NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       check(testBinding.notifications.takeShowCalls()).single
-        ..id.equals(NotificationDisplayManager.kNotificationId)
+        ..id.equals(expectedId)
         ..title.equals(expectedTitle)
         ..body.equals(data.content)
         ..notificationDetails.isNotNull().android.isNotNull().which(it()
           ..channelId.equals(NotificationChannelManager.kChannelId)
-          ..tag.equals('${data.realmUri}|${data.userId}|$expectedTagComponent')
+          ..tag.equals(expectedTag)
           ..color.equals(kZulipBrandColor)
           ..icon.equals('zulip_notification')
         );
