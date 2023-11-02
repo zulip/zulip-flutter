@@ -13,6 +13,13 @@ import 'store.dart';
 class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key, this.navigatorObservers});
 
+  /// A key for the navigator for the whole app.
+  ///
+  /// For code that exists entirely outside the widget tree and has no natural
+  /// [BuildContext] of its own, this enables interacting with the app's
+  /// navigation, by calling [GlobalKey.currentState] to get a [NavigatorState].
+  static final navigatorKey = GlobalKey<NavigatorState>();
+
   /// A list to pass through to [MaterialApp.navigatorObservers].
   /// Useful in tests.
   final List<NavigatorObserver>? navigatorObservers;
@@ -54,6 +61,7 @@ class ZulipApp extends StatelessWidget {
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         theme: theme,
+        navigatorKey: navigatorKey,
         navigatorObservers: navigatorObservers ?? const [],
         builder: (BuildContext context, Widget? child) {
           GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -7,7 +8,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'api/notifications.dart';
 import 'log.dart';
 import 'model/binding.dart';
+import 'model/narrow.dart';
 import 'widgets/app.dart';
+import 'widgets/message_list.dart';
+import 'widgets/page.dart';
+import 'widgets/store.dart';
 
 class NotificationService {
   static NotificationService get instance => (_instance ??= NotificationService._());
@@ -187,6 +192,7 @@ class NotificationDisplayManager {
       const InitializationSettings(
         android: AndroidInitializationSettings('zulip_notification'),
       ),
+      onDidReceiveNotificationResponse: _onNotificationOpened,
     );
     await NotificationChannelManager._ensureChannel();
   }
@@ -218,6 +224,7 @@ class NotificationDisplayManager {
       notificationIdAsHashOf(conversationKey),
       title,
       data.content,
+      payload: jsonEncode(dataJson),
       NotificationDetails(android: AndroidNotificationDetails(
         NotificationChannelManager.kChannelId,
         // This [FlutterLocalNotificationsPlugin.show] call can potentially create
@@ -232,6 +239,9 @@ class NotificationDisplayManager {
         color: kZulipBrandColor,
         icon: 'zulip_notification', // TODO vary for debug
         // TODO(#128) inbox-style
+
+        // TODO plugin sets PendingIntent.FLAG_UPDATE_CURRENT; is that OK?
+        // TODO plugin doesn't set our Intent flags; is that OK?
       )));
   }
 
@@ -263,5 +273,31 @@ class NotificationDisplayManager {
     // The realm URL can't contain a `|`, because `|` is not a URL code point:
     //   https://url.spec.whatwg.org/#url-code-points
     return "${data.realmUri}|${data.userId}";
+  }
+
+  static void _onNotificationOpened(NotificationResponse response) async {
+    final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
+    assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
+    final navigator = ZulipApp.navigatorKey.currentState;
+    if (navigator == null) return; // TODO(log) handle
+
+    final globalStore = GlobalStoreWidget.of(navigator.context);
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl == data.realmUri && account.userId == data.userId);
+    if (account == null) return; // TODO(log)
+
+    final narrow = switch (data.recipient) {
+      FcmMessageStreamRecipient(:var streamId, :var topic) =>
+        TopicNarrow(streamId, topic),
+      FcmMessageDmRecipient(:var allRecipientIds) =>
+        DmNarrow(allRecipientIds: allRecipientIds, selfUserId: account.userId),
+    };
+
+    assert(debugLog('  account: $account, narrow: $narrow'));
+    // TODO(nav): Better interact with existing nav stack on notif open
+    navigator.push(MaterialWidgetRoute(
+      page: PerAccountStoreWidget(accountId: account.id,
+        // TODO(#82): Open at specific message, not just conversation
+        child: MessageListPage(narrow: narrow))));
   }
 }
