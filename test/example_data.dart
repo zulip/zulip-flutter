@@ -14,6 +14,7 @@ import 'stdlib_checks.dart';
 //
 
 final Uri realmUrl = Uri.parse('https://chat.example/');
+Uri get _realmUrl => realmUrl;
 
 const String recentZulipVersion = '8.0';
 const int recentZulipFeatureLevel = 185;
@@ -53,28 +54,36 @@ User user({
   );
 }
 
+Account account({
+  int? id,
+  Uri? realmUrl,
+  required User user,
+  String? apiKey,
+}) {
+  return Account(
+    id: id ?? 1000, // TODO generate example IDs
+    realmUrl: realmUrl ?? _realmUrl,
+    email: user.email,
+    apiKey: apiKey ?? 'aeouasdf',
+    userId: user.userId,
+    zulipFeatureLevel: recentZulipFeatureLevel,
+    zulipVersion: recentZulipVersion,
+    zulipMergeBase: recentZulipVersion,
+  );
+}
+
 final User selfUser = user(fullName: 'Self User', email: 'self@example', userId: 123);
-final Account selfAccount = Account(
+final Account selfAccount = account(
   id: 1001,
-  realmUrl: realmUrl,
-  email: selfUser.email,
+  user: selfUser,
   apiKey: 'asdfqwer',
-  userId: selfUser.userId,
-  zulipFeatureLevel: recentZulipFeatureLevel,
-  zulipVersion: recentZulipVersion,
-  zulipMergeBase: recentZulipVersion,
 );
 
 final User otherUser = user(fullName: 'Other User', email: 'other@example', userId: 234);
-final Account otherAccount = Account(
+final Account otherAccount = account(
   id: 1002,
-  realmUrl: realmUrl,
-  email: otherUser.email,
+  user: otherUser,
   apiKey: 'sdfgwert',
-  userId: otherUser.userId,
-  zulipFeatureLevel: recentZulipFeatureLevel,
-  zulipVersion: recentZulipVersion,
-  zulipMergeBase: recentZulipVersion,
 );
 
 final User thirdUser = user(fullName: 'Third User', email: 'third@example', userId: 345);
