@@ -11,7 +11,11 @@ import 'recent_dm_conversations.dart';
 import 'store.dart';
 
 class ZulipApp extends StatelessWidget {
-  const ZulipApp({super.key});
+  const ZulipApp({super.key, this.navigatorObservers});
+
+  /// A list to pass through to [MaterialApp.navigatorObservers].
+  /// Useful in tests.
+  final List<NavigatorObserver>? navigatorObservers;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +54,7 @@ class ZulipApp extends StatelessWidget {
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         theme: theme,
+        navigatorObservers: navigatorObservers ?? const [],
         builder: (BuildContext context, Widget? child) {
           GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
           return child!;
