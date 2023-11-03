@@ -2,7 +2,15 @@
 
 A Zulip client for Android and iOS, using Flutter.
 
-This is an early prototype for development.
+This is a prototype, currently [in alpha][].
+When it's ready, it [will become the new][] official mobile Zulip client.
+To see what work is planned before that launch,
+see the [milestones][] and the [project board][].
+
+[in alpha]: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/zulip-flutter.20releases/near/1626608
+[will become the new]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1582367
+[milestones]: https://github.com/zulip/zulip-flutter/milestones?direction=asc&sort=title
+[project board]: https://github.com/orgs/zulip/projects/5/views/4
 
 
 ## Using Zulip
@@ -19,24 +27,23 @@ To use Zulip on iOS or Android, install the [official mobile Zulip client][].
 1. Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install)
    for your platform of choice.
 2. Switch to the latest version of Flutter by running `flutter channel main`
-   and `flutter upgrade` (see [Dependencies](#dependencies) below).
+   and `flutter upgrade` (see [Flutter version](#flutter-version) below).
 3. Ensure Flutter is correctly configured by running `flutter doctor`.
 4. Start the app with `flutter run`, or from your IDE.
 
 
 ### Flutter help
 
-A few resources to get you started if this is your first Flutter project:
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
+Specific resources include:
 
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
 
-
-### Dependencies
+### Flutter version
 
 While in the prototype phase, we use the latest Flutter from Flutter's
 main branch.  Use `flutter channel main` and `flutter upgrade`.
@@ -51,21 +58,27 @@ community.  See [issue #15][].
 
 ### Tests
 
-You can run all our forms of tests with two commands:
+You can run all our forms of tests with the `tools/check` script:
 
 ```
-$ flutter analyze
-$ flutter test
+$ tools/check
 ```
 
-Both should always pass, with no errors or warnings of any kind.
+See `tools/check --help` for more information.
 
-The `flutter analyze` command runs the Dart analyzer, which performs
-type-checking and linting.  The `flutter test` command runs our
-unit tests, located in the `test/` directory.
+The two major test suites are the Dart analyzer, which performs
+type-checking and linting; and our unit tests, located in the `test/`
+directory.
 
-Both commands accept a list of file or directory paths to operate
-only on those files, and other options.
+You can run these suites directly with the commands `flutter analyze`
+and `flutter test` respectively.  Both commands accept a list of file
+or directory paths to operate on, and other options.  Particularly
+recommended is a command like
+```
+$ flutter test test/foo/bar_test.dart --name 'baz'
+```
+which will run only the tests in `test/foo/bar_test.dart`,
+and within those only the tests with names matching `baz`.
 
 When editing in an IDE, the IDE should give you the exact same feedback
 as `flutter analyze` would.  When editing a test file, the IDE can also
@@ -129,20 +142,25 @@ To update the version bounds:
 * Update the lower bounds at `environment` in `pubspec.yaml`
   to the new versions, as seen in `flutter --version`.
 * Run `flutter pub get`, which will update `pubspec.lock`.
-* Make a quick check that things work: `flutter analyze && flutter test`,
+* Make a quick check that things work: `tools/check`,
   and do a quick smoke-test of the app.
 * Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
 
 
 ### Upgrading dependencies
 
-When upgrading dependencies, try to keep our generated files
-updated atomically with them.  (This will become more automated
-when we have CI, #60.)
+When adding or upgrading dependencies, try to keep our generated files
+updated atomically with them.
 
-The generated files that most frequently need an update are
-`ios/Podfile.lock` and `macos/Podfile.lock`.  To update those,
-run `flutter pub get && flutter build ios --config-only && flutter build macos --config-only`.
+In particular the files `ios/Podfile.lock` and `macos/Podfile.lock`
+frequently need an update when dependencies change.
+To update those, run (on a Mac) the commands
+`flutter build ios --config-only && flutter build macos --config-only`.
+
+(Ideally we would validate these automatically in CI: [#329][].
+Several other kinds of generated files are already validated in CI.)
+
+[#329]: https://github.com/zulip/zulip-flutter/issues/329
 
 
 ### Translations and i18n
