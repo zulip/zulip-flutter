@@ -81,6 +81,14 @@ void main() {
     await NotificationService.instance.start();
   }
 
+  group('permissions', () {
+    testWidgets('on iOS request permission', (tester) async {
+      await init();
+      check(testBinding.firebaseMessaging.takeRequestPermissionCalls())
+        .length.equals(1);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+  });
+
   group('NotificationChannelManager', () {
     test('smoke', () async {
       await init();
