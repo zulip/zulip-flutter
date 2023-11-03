@@ -16,6 +16,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 
+import 'flutter_checks.dart';
 import 'model/binding.dart';
 import 'example_data.dart' as eg;
 import 'test_navigation.dart';
@@ -185,72 +186,67 @@ void main() {
   group('NotificationDisplayManager open', () {
     late List<Route<dynamic>> pushedRoutes;
 
-    Future<void> prepare(WidgetTester tester) async {
+    Future<void> prepare(WidgetTester tester, {bool early = false}) async {
       await init();
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      if (early) {
+        check(pushedRoutes).isEmpty();
+        return;
+      }
       await tester.pump();
       check(pushedRoutes).length.equals(1);
       pushedRoutes.clear();
     }
 
-    void openNotification(Account account, Message message) {
+    Future<void> openNotification(Account account, Message message) async {
       final fcmMessage = messageFcmMessage(message, account: account);
       testBinding.notifications.receiveNotificationResponse(NotificationResponse(
         notificationResponseType: NotificationResponseType.selectedNotification,
         payload: jsonEncode(fcmMessage)));
+      await null; // let _navigateForNotification find navigator
     }
 
-    void checkOpenedMessageList({required int expectedAccountId, required Narrow expectedNarrow}) {
-      check(pushedRoutes).single.isA<WidgetRoute>().page
+    void matchesNavigation(Subject<Route> route, Account account, Message message) {
+      route.isA<WidgetRoute>().page
         .isA<PerAccountStoreWidget>()
-        ..accountId.equals(expectedAccountId)
+        ..accountId.equals(account.id)
         ..child.isA<MessageListPage>()
-            .narrow.equals(expectedNarrow);
-      pushedRoutes.clear();
+            .narrow.equals(SendableNarrow.ofMessage(message,
+              selfUserId: account.userId));
     }
 
-    void checkOpenNotification(Account account, Message message) {
-      openNotification(account, message);
-      checkOpenedMessageList(
-        expectedAccountId: account.id,
-        expectedNarrow: SendableNarrow.ofMessage(message,
-          selfUserId: account.userId));
+    Future<void> checkOpenNotification(Account account, Message message) async {
+      await openNotification(account, message);
+      matchesNavigation(check(pushedRoutes).single, account, message);
+      pushedRoutes.clear();
     }
 
     testWidgets('stream message', (tester) async {
       testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
       await prepare(tester);
-      checkOpenNotification(eg.selfAccount, eg.streamMessage());
+      await checkOpenNotification(eg.selfAccount, eg.streamMessage());
     });
 
     testWidgets('direct message', (tester) async {
       testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
       await prepare(tester);
-      checkOpenNotification(eg.selfAccount,
+      await checkOpenNotification(eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
-    });
-
-    testWidgets('no widgets in tree', (tester) async {
-      await init();
-      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-
-      openNotification(eg.selfAccount, message);
-      // nothing happened, but nothing blew up
     });
 
     testWidgets('no accounts', (tester) async {
       await prepare(tester);
-      openNotification(eg.selfAccount, eg.streamMessage());
+      await openNotification(eg.selfAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
     });
 
     testWidgets('mismatching account', (tester) async {
       testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
       await prepare(tester);
-      openNotification(eg.otherAccount, eg.streamMessage());
+      await openNotification(eg.otherAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
     });
 
@@ -268,10 +264,52 @@ void main() {
       }
       await prepare(tester);
 
-      checkOpenNotification(accounts[0], eg.streamMessage());
-      checkOpenNotification(accounts[1], eg.streamMessage());
-      checkOpenNotification(accounts[2], eg.streamMessage());
-      checkOpenNotification(accounts[3], eg.streamMessage());
+      await checkOpenNotification(accounts[0], eg.streamMessage());
+      await checkOpenNotification(accounts[1], eg.streamMessage());
+      await checkOpenNotification(accounts[2], eg.streamMessage());
+      await checkOpenNotification(accounts[3], eg.streamMessage());
+    });
+
+    testWidgets('wait for app to become ready', (tester) async {
+      testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await prepare(tester, early: true);
+      final message = eg.streamMessage();
+      await openNotification(eg.selfAccount, message);
+      // The app should still not be ready (or else this test won't work right).
+      check(ZulipApp.ready.value).isFalse();
+      check(ZulipApp.navigatorKey.currentState).isNull();
+      // And the openNotification hasn't caused any navigation yet.
+      check(pushedRoutes).isEmpty();
+
+      // Now let the GlobalStore get loaded and the app's main UI get mounted.
+      await tester.pump();
+      // The navigator first pushes the home route…
+      check(pushedRoutes).length.equals(2);
+      check(pushedRoutes[0]).settings.name.equals("/");
+      // … and then the one the notification leads to.
+      matchesNavigation(check(pushedRoutes[1]), eg.selfAccount, message);
+    });
+
+    testWidgets('at app launch', (tester) async {
+      // Set up a value for `getNotificationLaunchDetails` to return.
+      final account = eg.selfAccount;
+      final message = eg.streamMessage();
+      final response = NotificationResponse(
+        notificationResponseType: NotificationResponseType.selectedNotification,
+        payload: jsonEncode(messageFcmMessage(message, account: account)));
+      testBinding.notifications.appLaunchDetails =
+        NotificationAppLaunchDetails(true, notificationResponse: response);
+
+      // Now start the app.
+      testBinding.globalStore.insertAccount(account.toCompanion(false));
+      await prepare(tester, early: true);
+      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+
+      // Once the app is ready, we navigate to the conversation.
+      await tester.pump();
+      check(pushedRoutes).length.equals(2);
+      check(pushedRoutes[0]).settings.name.equals("/");
+      matchesNavigation(check(pushedRoutes[1]), account, message);
     });
   });
 }

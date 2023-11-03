@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'api/notifications.dart';
@@ -194,6 +195,10 @@ class NotificationDisplayManager {
       ),
       onDidReceiveNotificationResponse: _onNotificationOpened,
     );
+    final launchDetails = await ZulipBinding.instance.notifications.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      _handleNotificationAppLaunch(launchDetails!.notificationResponse);
+    }
     await NotificationChannelManager._ensureChannel();
   }
 
@@ -278,10 +283,25 @@ class NotificationDisplayManager {
   static void _onNotificationOpened(NotificationResponse response) async {
     final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
     assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
-    final navigator = ZulipApp.navigatorKey.currentState;
-    if (navigator == null) return; // TODO(log) handle
+    _navigateForNotification(data);
+  }
 
-    final globalStore = GlobalStoreWidget.of(navigator.context);
+  static void _handleNotificationAppLaunch(NotificationResponse? response) async {
+    assert(response != null);
+    if (response == null) return; // TODO(log) seems like a bug in flutter_local_notifications if this can happen
+
+    final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
+    assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
+    _navigateForNotification(data);
+  }
+
+  static void _navigateForNotification(MessageFcmMessage data) async {
+    NavigatorState navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    final globalStore = GlobalStoreWidget.of(context);
     final account = globalStore.accounts.firstWhereOrNull((account) =>
       account.realmUrl == data.realmUri && account.userId == data.userId);
     if (account == null) return; // TODO(log)
@@ -299,5 +319,6 @@ class NotificationDisplayManager {
       page: PerAccountStoreWidget(accountId: account.id,
         // TODO(#82): Open at specific message, not just conversation
         child: MessageListPage(narrow: narrow))));
+    return;
   }
 }
