@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -78,7 +79,25 @@ class NotificationService {
           .listen(_onTokenRefresh);
         await _getFcmToken();
 
-      case TargetPlatform.iOS:
+      case TargetPlatform.iOS: // TODO(#324): defer requesting notif permission
+        await ZulipBinding.instance.firebaseInitializeApp(
+          options: kFirebaseOptionsIos);
+
+        // Docs on this API: https://firebase.flutter.dev/docs/messaging/permissions/
+        final settings = await ZulipBinding.instance.firebaseMessaging
+          .requestPermission();
+        assert(debugLog('notif settings: $settings'));
+        switch (settings.authorizationStatus) {
+          case AuthorizationStatus.denied:
+            return;
+          case AuthorizationStatus.authorized:
+          case AuthorizationStatus.provisional:
+          case AuthorizationStatus.notDetermined:
+        }
+
+        await _getApnsToken();
+        // TODO does iOS need token refresh too?
+
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
       case TargetPlatform.windows:
@@ -95,6 +114,13 @@ class NotificationService {
     // The call to `getToken` won't cause `onTokenRefresh` to fire if we
     // already have a token from a previous run of the app.
     // So we need to use the `getToken` return value.
+    token.value = value;
+  }
+
+  Future<void> _getApnsToken() async {
+    final value = await ZulipBinding.instance.firebaseMessaging.getAPNSToken();
+    // TODO(#323) warn user if getAPNSToken returns null, or doesn't timely return
+    assert(debugLog("notif APNs token: $value"));
     token.value = value;
   }
 
@@ -116,6 +142,9 @@ class NotificationService {
         await registerFcmToken(connection, token: token);
 
       case TargetPlatform.iOS:
+        const appBundleId = 'com.zulip.flutter'; // TODO(#407) find actual value live
+        await registerApnsToken(connection, token: token, appid: appBundleId);
+
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
       case TargetPlatform.windows:

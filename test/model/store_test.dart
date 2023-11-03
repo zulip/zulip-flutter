@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
@@ -117,14 +118,21 @@ void main() {
       connection = store.connection as FakeApiConnection;
     }
 
-    void checkLastRequest({required String token}) {
+    void checkLastRequestApns({required String token, required String appid}) {
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/users/me/apns_device_token')
+        ..bodyFields.deepEquals({'token': token, 'appid': appid});
+    }
+
+    void checkLastRequestFcm({required String token}) {
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/users/me/android_gcm_reg_id')
         ..bodyFields.deepEquals({'token': token});
     }
 
-    test('token already known', () async {
+    testAndroidIos('token already known', () async {
       // This tests the case where [NotificationService.start] has already
       // learned the token before the store is created.
       // (This is probably the common case.)
@@ -137,16 +145,22 @@ void main() {
       prepareStore();
       connection.prepare(json: {});
       await store.registerNotificationToken();
-      checkLastRequest(token: '012abc');
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        checkLastRequestFcm(token: '012abc');
+      } else {
+        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter');
+      }
 
-      // If the token changes, send it again.
-      testBinding.firebaseMessaging.setToken('456def');
-      connection.prepare(json: {});
-      await null; // Run microtasks.  TODO use FakeAsync for these tests.
-      checkLastRequest(token: '456def');
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        // If the token changes, send it again.
+        testBinding.firebaseMessaging.setToken('456def');
+        connection.prepare(json: {});
+        await null; // Run microtasks.  TODO use FakeAsync for these tests.
+        checkLastRequestFcm(token: '456def');
+      }
     });
 
-    test('token initially unknown', () async {
+    testAndroidIos('token initially unknown', () async {
       // This tests the case where the store is created while our
       // request for the token is still pending.
       addTearDown(testBinding.reset);
@@ -170,13 +184,19 @@ void main() {
       // When the token later appears, send it.
       connection.prepare(json: {});
       await startFuture;
-      checkLastRequest(token: '012abc');
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        checkLastRequestFcm(token: '012abc');
+      } else {
+        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter');
+      }
 
-      // If the token subsequently changes, send it again.
-      testBinding.firebaseMessaging.setToken('456def');
-      connection.prepare(json: {});
-      await null; // Run microtasks.  TODO use FakeAsync for these tests.
-      checkLastRequest(token: '456def');
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        // If the token subsequently changes, send it again.
+        testBinding.firebaseMessaging.setToken('456def');
+        connection.prepare(json: {});
+        await null; // Run microtasks.  TODO use FakeAsync for these tests.
+        checkLastRequestFcm(token: '456def');
+      }
     });
   });
 
@@ -238,4 +258,14 @@ class LoadingTestGlobalStore extends TestGlobalStore {
     (completers[account] ??= []).add(completer);
     return completer.future;
   }
+}
+
+void testAndroidIos(String description, FutureOr<void> Function() body) {
+  test('$description (Android)', body);
+  test('$description (iOS)', () async {
+    final origTargetPlatform = debugDefaultTargetPlatformOverride;
+    addTearDown(() => debugDefaultTargetPlatformOverride = origTargetPlatform);
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    await body();
+  });
 }

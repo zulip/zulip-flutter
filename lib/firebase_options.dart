@@ -21,9 +21,31 @@ const kFirebaseOptionsAndroid = FirebaseOptions(
   apiKey: _ZulipFirebaseOptions.firebaseApiKey,
 );
 
+/// Configuration used for finding the notification token on iOS.
+///
+/// On iOS, we don't use Firebase to actually deliver notifications;
+/// rather the Zulip notification bouncer service communicates with
+/// the Apple Push Notification service (APNs) directly.
+///
+/// But we do use the Firebase library as a convenient binding to the
+/// platform API for the setup steps of requesting the user's permission
+/// to show notifications, and getting the token that the service uses
+/// to represent that permission.
+/// These values are similar to [kFirebaseOptionsAndroid] but are for iOS,
+/// and they let us initialize the Firebase library so that we can do that.
+///
+/// TODO: Cut out Firebase for APNs and use a thinner platform-API binding.
+const kFirebaseOptionsIos = FirebaseOptions(
+  appId: '1:${_ZulipFirebaseOptions.projectNumber}:ios:9cad34899ca57ba6',
+  messagingSenderId: _ZulipFirebaseOptions.projectNumber,
+  projectId: _ZulipFirebaseOptions.projectId,
+  apiKey: _ZulipFirebaseOptions.firebaseApiKey,
+);
+
 abstract class _ZulipFirebaseOptions {
   static const projectNumber = '835904834568';
 
+  // Despite its value, this name applies across Android and iOS.
   static const projectId = 'zulip-android';
 
   // Despite the name, this Google Cloud "API key" is a very different kind
