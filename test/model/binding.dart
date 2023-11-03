@@ -318,6 +318,14 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
     _showCalls.add((id, title, body, notificationDetails, payload: payload));
   }
 
+  /// The value to be returned by [getNotificationAppLaunchDetails].
+  NotificationAppLaunchDetails? appLaunchDetails;
+
+  @override
+  Future<NotificationAppLaunchDetails?> getNotificationAppLaunchDetails() {
+    return Future.value(appLaunchDetails);
+  }
+
   void receiveNotificationResponse(NotificationResponse details) {
     if (onDidReceiveNotificationResponse != null) {
       onDidReceiveNotificationResponse!(details);
