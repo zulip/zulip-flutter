@@ -15,10 +15,16 @@ import 'package:firebase_core/firebase_core.dart';
 const kFirebaseOptionsAndroid = FirebaseOptions(
   // This `appId` and `messagingSenderId` are the same as in zulip-mobile;
   // see zulip-mobile:android/app/src/main/res/values/firebase.xml .
-  appId: '1:835904834568:android:6ae61ae43a7c3410',
-  messagingSenderId: '835904834568',
+  appId: '1:${_ZulipFirebaseOptions.projectNumber}:android:6ae61ae43a7c3410',
+  messagingSenderId: _ZulipFirebaseOptions.projectNumber,
+  projectId: _ZulipFirebaseOptions.projectId,
+  apiKey: _ZulipFirebaseOptions.firebaseApiKey,
+);
 
-  projectId: 'zulip-android',
+abstract class _ZulipFirebaseOptions {
+  static const projectNumber = '835904834568';
+
+  static const projectId = 'zulip-android';
 
   // Despite the name, this Google Cloud "API key" is a very different kind
   // of thing from a Zulip "API key".  In particular, it's designed to be
@@ -29,8 +35,10 @@ const kFirebaseOptionsAndroid = FirebaseOptions(
   // This key was created fresh for this use in zulip-flutter.
   // It's easy to create additional keys associated with the same `appId`
   // and other details above, and to enable or disable individual keys.
+  // See the Google Cloud console:
+  //   https://console.cloud.google.com/apis/credentials
   //
   // TODO: Perhaps use a different key in published builds; still fundamentally
   //   public, but would avoid accidental reuse in dev or modified builds.
-  apiKey: 'AIzaSyC6kw5sqCYjxQl2Lbd_8MDmc1lu2EG0pY4',
-);
+  static const firebaseApiKey = 'AIzaSyC6kw5sqCYjxQl2Lbd_8MDmc1lu2EG0pY4';
+}
