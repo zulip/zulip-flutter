@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/localizations.dart';
@@ -13,16 +17,64 @@ import 'store.dart';
 class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key, this.navigatorObservers});
 
+  /// Whether the app's widget tree is ready.
+  ///
+  /// This begins as false.  It transitions to true when the
+  /// [GlobalStore] has been loaded and the [MaterialApp] has been mounted,
+  /// and then remains true.
+  static ValueListenable<bool> get ready => _ready;
+  static ValueNotifier<bool> _ready = ValueNotifier(false);
+
+  /// The navigator for the whole app.
+  ///
+  /// This is always the [GlobalKey.currentState] of [navigatorKey].
+  /// If [navigatorKey] is already mounted, this future completes immediately.
+  /// Otherwise, it waits for [ready] to become true and then completes.
+  static Future<NavigatorState> get navigator {
+    final state = navigatorKey.currentState;
+    if (state != null) return Future.value(state);
+
+    assert(!ready.value);
+    final completer = Completer<NavigatorState>();
+    ready.addListener(() {
+      assert(ready.value);
+      completer.complete(navigatorKey.currentState!);
+    });
+    return completer.future;
+  }
+
   /// A key for the navigator for the whole app.
   ///
   /// For code that exists entirely outside the widget tree and has no natural
   /// [BuildContext] of its own, this enables interacting with the app's
   /// navigation, by calling [GlobalKey.currentState] to get a [NavigatorState].
+  ///
+  /// During the app's early startup, this key will not yet be mounted.
+  /// It will always be mounted before [ready] becomes true,
+  /// and naturally before any widgets are mounted which are part of the
+  /// app's main UI managed by the navigator.
+  ///
+  /// See also [navigator], to asynchronously wait for the navigator
+  /// to be mounted.
   static final navigatorKey = GlobalKey<NavigatorState>();
+
+  /// Reset the state of [ZulipApp] statics, for testing.
+  ///
+  /// TODO refactor this better, perhaps unify with ZulipBinding
+  @visibleForTesting
+  static void debugReset() {
+    _ready.dispose();
+    _ready = ValueNotifier(false);
+  }
 
   /// A list to pass through to [MaterialApp.navigatorObservers].
   /// Useful in tests.
   final List<NavigatorObserver>? navigatorObservers;
+
+  void _declareReady() {
+    assert(navigatorKey.currentContext != null);
+    _ready.value = true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +116,10 @@ class ZulipApp extends StatelessWidget {
         navigatorKey: navigatorKey,
         navigatorObservers: navigatorObservers ?? const [],
         builder: (BuildContext context, Widget? child) {
+          if (!ready.value) {
+            SchedulerBinding.instance.addPostFrameCallback(
+              (_) => _declareReady());
+          }
           GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
           return child!;
         },

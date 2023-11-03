@@ -8,6 +8,7 @@ import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/app.dart';
 
 import 'test_store.dart';
 
@@ -61,6 +62,7 @@ class TestZulipBinding extends ZulipBinding {
   /// should clean up by calling this method.  Typically this is done using
   /// [addTearDown], like `addTearDown(testBinding.reset);`.
   void reset() {
+    ZulipApp.debugReset();
     _resetStore();
     _resetLaunchUrl();
     _resetDeviceInfo();
