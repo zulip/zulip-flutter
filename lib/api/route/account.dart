@@ -32,7 +32,7 @@ class FetchApiKeyResult {
   FetchApiKeyResult({
     required this.apiKey,
     required this.email,
-    this.userId,
+    required this.userId,
   });
 
   factory FetchApiKeyResult.fromJson(Map<String, dynamic> json) =>

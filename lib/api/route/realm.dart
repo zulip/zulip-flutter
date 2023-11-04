@@ -52,7 +52,7 @@ class GetServerSettingsResult {
     required this.authenticationMethods,
     required this.zulipFeatureLevel,
     required this.zulipVersion,
-    this.zulipMergeBase,
+    required this.zulipMergeBase,
     required this.pushNotificationsEnabled,
     required this.isIncompatible,
     required this.emailAuthEnabled,
@@ -61,7 +61,7 @@ class GetServerSettingsResult {
     required this.realmName,
     required this.realmIcon,
     required this.realmDescription,
-    this.realmWebPublicAccessEnabled,
+    required this.realmWebPublicAccessEnabled,
   });
 
   factory GetServerSettingsResult.fromJson(Map<String, dynamic> json) =>
