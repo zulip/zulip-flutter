@@ -126,6 +126,15 @@ to keep the generated files up to date:
 $ dart run build_runner watch --delete-conflicting-outputs
 ```
 
+In our API types, constructors should generally avoid default values for
+their parameters, even `null`.  This means writing e.g. `required this.foo`
+rather than just `this.foo`, even when `foo` is nullable.
+This is because it's common in the Zulip API for a null or missing value
+to be quite salient in meaning, and not a boring value appropriate for a
+default, so that it's best to ensure callers make an explicit choice.
+If passing explicit values in tests is cumbersome, a factory function
+in `test/example_data.dart` is an appropriate way to share defaults.
+
 
 ### Upgrading Flutter
 
