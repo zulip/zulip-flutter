@@ -95,7 +95,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
         (k, e) => MapEntry(int.parse(k),
             ProfileFieldUserData.fromJson(e as Map<String, dynamic>)),
       ),
-      isSystemBot: User._readIsSystemBot(json, 'is_system_bot') as bool?,
+      isSystemBot: User._readIsSystemBot(json, 'is_system_bot') as bool,
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
