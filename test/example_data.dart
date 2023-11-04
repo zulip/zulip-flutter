@@ -280,6 +280,40 @@ const _unreadMsgs = unreadMsgs;
 // Events.
 //
 
+UpdateMessageEvent updateMessageEditEvent(
+  Message origMessage, {
+  int? userId = -1, // null means null; default is [selfUser.userId]
+  bool? renderingOnly = false,
+  int? messageId,
+  List<MessageFlag>? flags,
+  int? editTimestamp,
+  String? streamName,
+  String? renderedContent,
+  bool isMeMessage = false,
+}) {
+  messageId ??= origMessage.id;
+  return UpdateMessageEvent(
+    id: 0,
+    userId: userId == -1 ? selfUser.userId : userId,
+    renderingOnly: renderingOnly,
+    messageId: messageId,
+    messageIds: [messageId],
+    flags: flags ?? origMessage.flags,
+    editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
+    streamName: streamName,
+    streamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    newStreamId: null,
+    propagateMode: null,
+    origSubject: null,
+    subject: null,
+    origContent: 'some probably-mismatched old Markdown',
+    origRenderedContent: origMessage.content,
+    content: 'some probably-mismatched new Markdown',
+    renderedContent: renderedContent ?? origMessage.content,
+    isMeMessage: isMeMessage,
+  );
+}
+
 UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
   MessageFlag flag,
   Iterable<Message> messages, {

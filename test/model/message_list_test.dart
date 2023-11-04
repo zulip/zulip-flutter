@@ -265,16 +265,11 @@ void main() async {
     test('update a message', () async {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
-      final updateEvent = UpdateMessageEvent(
-        id: 1,
-        messageId: originalMessage.id,
-        messageIds: [originalMessage.id],
+      final updateEvent = eg.updateMessageEditEvent(originalMessage,
         flags: [MessageFlag.starred],
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
         isMeMessage: true,
-        userId: 1,
-        renderingOnly: false,
       );
       prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
@@ -299,15 +294,9 @@ void main() async {
     test('ignore when message not present', () async {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
-      final updateEvent = UpdateMessageEvent(
-        id: 1,
+      final updateEvent = eg.updateMessageEditEvent(originalMessage,
         messageId: originalMessage.id + 1,
-        messageIds: [originalMessage.id + 1],
-        flags: originalMessage.flags,
         renderedContent: "<p>Hello, edited</p>",
-        editTimestamp: 99999,
-        userId: 1,
-        renderingOnly: false,
       );
       prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
@@ -324,11 +313,7 @@ void main() async {
       final originalMessage = eg.streamMessage(
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
-      final updateEvent = UpdateMessageEvent(
-        id: 1,
-        messageId: originalMessage.id,
-        messageIds: [originalMessage.id],
-        flags: originalMessage.flags,
+      final updateEvent = eg.updateMessageEditEvent(originalMessage,
         renderedContent: "<p>Hello, world</p> <div>Some link preview</div>",
         editTimestamp: 99999,
         renderingOnly: legacy ? null : true,
@@ -618,10 +603,8 @@ void main() async {
     checkNotifiedOnce();
 
     // Then test maybeUpdateMessage, where a header is and remains needed…
-    UpdateMessageEvent updateEvent(Message message) => UpdateMessageEvent(
-      id: 1, messageId: message.id, messageIds: [message.id],
-      flags: message.flags,
-      renderedContent: '${message.content}<p>edited</p>',
+    UpdateMessageEvent updateEvent(Message message) => eg.updateMessageEditEvent(
+      message, renderedContent: '${message.content}<p>edited</p>',
     );
     model.maybeUpdateMessage(updateEvent(model.messages.first));
     checkNotifiedOnce();
