@@ -73,11 +73,11 @@ class InitialSnapshot {
   }
 
   InitialSnapshot({
-    this.queueId,
+    required this.queueId,
     required this.lastEventId,
     required this.zulipFeatureLevel,
     required this.zulipVersion,
-    this.zulipMergeBase,
+    required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
     required this.recentPrivateConversations,

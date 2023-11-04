@@ -41,7 +41,7 @@ class GetEventsResult {
 
   GetEventsResult({
     required this.events,
-    this.queueId,
+    required this.queueId,
   });
 
   factory GetEventsResult.fromJson(Map<String, dynamic> json) =>
