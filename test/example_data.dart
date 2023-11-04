@@ -42,6 +42,8 @@ User user({
     isGuest: false,
     isBillingAdmin: false,
     isBot: false,
+    botType: null,
+    botOwnerId: null,
     role: UserRole.member,
     timezone: 'UTC',
     avatarUrl: avatarUrl,
