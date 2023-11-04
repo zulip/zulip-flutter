@@ -376,7 +376,13 @@ void main() {
             streamId: message.streamId,
             topic: message.subject,
           ),
-          DmMessage() => DeleteMessageEvent(id: 0, messageType: MessageType.private, messageIds: [message.id]),
+          DmMessage() => DeleteMessageEvent(
+            id: 0,
+            messageType: MessageType.private,
+            messageIds: [message.id],
+            streamId: null,
+            topic: null,
+          ),
         };
         model.handleDeleteMessageEvent(event);
         checkNotifiedOnce();
@@ -412,6 +418,8 @@ void main() {
         id: 0,
         messageIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         messageType: MessageType.private,
+        streamId: null,
+        topic: null,
       ));
       checkNotifiedOnce();
       checkMatchesMessages([]);
@@ -445,6 +453,8 @@ void main() {
         id: 0,
         messageIds: [message.id],
         messageType: MessageType.private,
+        streamId: null,
+        topic: null,
       ));
       // TODO improve implementation; then:
       //   checkNotNotified();

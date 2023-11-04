@@ -434,8 +434,8 @@ class DeleteMessageEvent extends Event {
     required super.id,
     required this.messageIds,
     required this.messageType,
-    this.streamId,
-    this.topic,
+    required this.streamId,
+    required this.topic,
   });
 
   factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
