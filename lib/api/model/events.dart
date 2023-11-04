@@ -249,6 +249,9 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   RealmUserUpdateEvent({
     required super.id,
     required this.userId,
+    // Unlike in most of the API bindings, we leave these constructor arguments
+    // optional.  That's because in these events only one or a handful of these
+    // will appear in a given event value.
     this.fullName,
     this.avatarUrl,
     this.avatarVersion,

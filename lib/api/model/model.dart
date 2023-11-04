@@ -194,7 +194,14 @@ class ProfileFieldUserData {
   final String value;
   final String? renderedValue;
 
-  ProfileFieldUserData({required this.value, this.renderedValue});
+  ProfileFieldUserData({
+    required this.value,
+    // Unlike in most of the API bindings, we leave this constructor argument
+    // optional.  That's because for most types of custom profile fields,
+    // this property is always indeed absent, and because this constructor is
+    // otherwise convenient to write many calls to in our test code.
+    this.renderedValue,
+  });
 
   factory ProfileFieldUserData.fromJson(Map<String, dynamic> json) =>
     _$ProfileFieldUserDataFromJson(json);
