@@ -226,11 +226,9 @@ class DmDestination extends MessageDestination {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SendMessageResult {
   final int id;
-  final String? deliverAt;
 
   SendMessageResult({
     required this.id,
-    this.deliverAt,
   });
 
   factory SendMessageResult.fromJson(Map<String, dynamic> json) =>

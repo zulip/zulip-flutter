@@ -43,13 +43,11 @@ Map<String, dynamic> _$GetMessagesResultToJson(GetMessagesResult instance) =>
 SendMessageResult _$SendMessageResultFromJson(Map<String, dynamic> json) =>
     SendMessageResult(
       id: json['id'] as int,
-      deliverAt: json['deliver_at'] as String?,
     );
 
 Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'deliver_at': instance.deliverAt,
     };
 
 UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
