@@ -286,7 +286,7 @@ void main() {
                 if (!isKnownToModel) {
                   check(because: "no crash if message is in model's blindspots",
                     () => model.handleUpdateMessageEvent(
-                      UpdateMessageEvent(id: 0, messageId: message.id, messageIds: [], flags: newFlags),
+                      eg.updateMessageEditEvent(message, flags: newFlags),
                     )).returnsNormally();
                   // Rarely, this event will be about an unread that's unknown
                   // to the model, or at least one of the model's components;
@@ -307,7 +307,7 @@ void main() {
                   continue;
                 }
                 model.handleUpdateMessageEvent(
-                  UpdateMessageEvent(id: 0, messageId: message.id, messageIds: [], flags: newFlags),
+                  eg.updateMessageEditEvent(message, flags: newFlags),
                 );
 
                 if (
