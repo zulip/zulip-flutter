@@ -47,6 +47,7 @@ User user({
     avatarUrl: avatarUrl,
     avatarVersion: 0,
     profileData: profileData,
+    isSystemBot: false,
   );
 }
 

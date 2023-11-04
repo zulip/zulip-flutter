@@ -142,7 +142,7 @@ class User {
   Map<int, ProfileFieldUserData>? profileData;
 
   @JsonKey(readValue: _readIsSystemBot)
-  bool? isSystemBot; // TODO(server-5)
+  bool isSystemBot;
 
   static Map<String, dynamic>? _readProfileData(Map json, String key) {
     final value = (json[key] as Map<String, dynamic>?);
@@ -153,8 +153,12 @@ class User {
     return (value != null && value.isNotEmpty) ? value : null;
   }
 
-  static bool? _readIsSystemBot(Map json, String key) {
-    return json[key] ?? json['is_cross_realm_bot'];
+  static bool _readIsSystemBot(Map json, String key) {
+    // This field is absent in `realm_users` and `realm_non_active_users`,
+    // which contain no system bots; it's present in `cross_realm_bots`.
+    return json[key]
+        ?? json['is_cross_realm_bot'] // TODO(server-5): renamed to `is_system_bot`
+        ?? false;
   }
 
   User({
@@ -176,7 +180,7 @@ class User {
     required this.avatarUrl,
     required this.avatarVersion,
     this.profileData,
-    this.isSystemBot,
+    required this.isSystemBot,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

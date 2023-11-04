@@ -59,9 +59,9 @@ void main() {
     });
 
     test('is_system_bot', () {
-      check(mkUser({}).isSystemBot).isNull();
-      check(mkUser({'is_cross_realm_bot': true}).isSystemBot).equals(true);
-      check(mkUser({'is_system_bot': true}).isSystemBot).equals(true);
+      check(mkUser({}).isSystemBot).isFalse();
+      check(mkUser({'is_cross_realm_bot': true}).isSystemBot).isTrue();
+      check(mkUser({'is_system_bot': true}).isSystemBot).isTrue();
     });
   });
 
