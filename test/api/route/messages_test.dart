@@ -133,7 +133,7 @@ void main() {
         messageId: messageId,
         applyMarkdown: applyMarkdown,
       );
-      check(connection.lastRequest).isNotNull().isA<http.Request>()
+      check(connection.lastRequest).isA<http.Request>()
         ..method.equals('GET')
         ..url.path.equals('/api/v1/messages/$messageId')
         ..url.queryParameters.deepEquals(expected);
@@ -230,7 +230,7 @@ void main() {
         numBefore: numBefore, numAfter: numAfter,
         clientGravatar: clientGravatar, applyMarkdown: applyMarkdown,
       );
-      check(connection.lastRequest).isNotNull().isA<http.Request>()
+      check(connection.lastRequest).isA<http.Request>()
         ..method.equals('GET')
         ..url.path.equals('/api/v1/messages')
         ..url.queryParameters.deepEquals(expected);
@@ -306,7 +306,7 @@ void main() {
       final result = await sendMessage(connection,
         destination: destination, content: content);
       check(result).id.equals(42);
-      check(connection.lastRequest).isNotNull().isA<http.Request>()
+      check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals(expectedBodyFields);
@@ -363,7 +363,7 @@ void main() {
         emojiCode: reaction.emojiCode,
         emojiName: reaction.emojiName,
       );
-      check(connection.lastRequest).isNotNull().isA<http.Request>()
+      check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/$messageId/reactions')
         ..bodyFields.deepEquals({
@@ -414,7 +414,7 @@ void main() {
         emojiCode: reaction.emojiCode,
         emojiName: reaction.emojiName,
       );
-      check(connection.lastRequest).isNotNull().isA<http.Request>()
+      check(connection.lastRequest).isA<http.Request>()
         ..method.equals('DELETE')
         ..url.path.equals('/api/v1/messages/$messageId/reactions')
         ..bodyFields.deepEquals({
