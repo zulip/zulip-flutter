@@ -138,7 +138,7 @@ Subscription subscription(
   bool? audibleNotifications,
   bool? pinToTop,
   bool? isMuted,
-  String? color,
+  int? color,
 }) {
   return Subscription(
     streamId: stream.streamId,
@@ -161,7 +161,7 @@ Subscription subscription(
     audibleNotifications: audibleNotifications ?? false,
     pinToTop: pinToTop ?? false,
     isMuted: isMuted ?? false,
-    color: color ?? "#FF0000",
+    color: color ?? 0xFFFF0000,
   );
 }
 

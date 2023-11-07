@@ -42,6 +42,17 @@ void main() {
     }) as SubscriptionRemoveEvent).streamIds.jsonEquals([123, 456]);
   });
 
+  test('subscription/update: convert color correctly', () {
+    check(Event.fromJson({
+      'id': 1,
+      'type': 'subscription',
+      'op': 'update',
+      'stream_id': 1,
+      'property': 'color',
+      'value': '#123456',
+    }) as SubscriptionUpdateEvent).value.equals(0xff123456);
+  });
+
   test('message: move flags into message object', () {
     final message = eg.streamMessage();
     MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({

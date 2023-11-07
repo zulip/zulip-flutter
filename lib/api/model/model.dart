@@ -325,7 +325,16 @@ class Subscription extends ZulipStream {
   bool isMuted;
   // final bool? inHomeView; // deprecated; ignore
 
-  String color;
+  /// As an int that dart:ui's Color constructor will take:
+  ///   <https://api.flutter.dev/flutter/dart-ui/Color/Color.html>
+  @JsonKey(readValue: _readColor)
+  int color;
+
+  static Object? _readColor(Map json, String key) {
+    final str = (json[key] as String);
+    assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
+    return 0xff000000 | int.parse(str.substring(1), radix: 16);
+  }
 
   Subscription({
     required super.streamId,

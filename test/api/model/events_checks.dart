@@ -19,6 +19,10 @@ extension SubscriptionRemoveEventChecks on Subject<SubscriptionRemoveEvent> {
   Subject<List<int>> get streamIds => has((e) => e.streamIds, 'streamIds');
 }
 
+extension SubscriptionUpdateEventChecks on Subject<SubscriptionUpdateEvent> {
+  Subject<Object?> get value => has((e) => e.value, 'value');
+}
+
 extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
 }

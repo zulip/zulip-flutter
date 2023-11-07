@@ -508,13 +508,6 @@ class _UnreadMarker extends StatelessWidget {
   }
 }
 
-Color colorForStream(Subscription? subscription) {
-  final color = subscription?.color;
-  if (color == null) return const Color(0x00c2c2c2);
-  assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(color));
-  return Color(0xff000000 | int.parse(color.substring(1), radix: 16));
-}
-
 class StreamTopicRecipientHeader extends StatelessWidget {
   const StreamTopicRecipientHeader({super.key, required this.message});
 
@@ -529,7 +522,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
     final topic = message.subject;
 
     final subscription = store.subscriptions[message.streamId];
-    final streamColor = colorForStream(subscription);
+    final streamColor = Color(subscription?.color ?? 0x00c2c2c2);
     final contrastingColor =
       ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
         ? Colors.white

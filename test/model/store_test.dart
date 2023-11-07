@@ -183,18 +183,18 @@ void main() {
   group('handleEvent for SubscriptionEvent', () {
     final stream = eg.stream();
 
-    test('SubscriptionProperty.color updates with a string value', () {
+    test('SubscriptionProperty.color updates with an int value', () {
       final store = eg.store(initialSnapshot: eg.initialSnapshot(
         streams: [stream],
-        subscriptions: [eg.subscription(stream, color: "#FF0000")],
+        subscriptions: [eg.subscription(stream, color: 0xFFFF0000)],
       ));
-      check(store.subscriptions[stream.streamId]!.color).equals('#FF0000');
+      check(store.subscriptions[stream.streamId]!.color).equals(0xFFFF0000);
 
       store.handleEvent(SubscriptionUpdateEvent(id: 1,
         streamId: stream.streamId,
         property: SubscriptionProperty.color,
-        value: "#FF00FF"));
-      check(store.subscriptions[stream.streamId]!.color).equals('#FF00FF');
+        value: 0xFFFF00FF));
+      check(store.subscriptions[stream.streamId]!.color).equals(0xFFFF00FF);
     });
 
     test('SubscriptionProperty.isMuted updates with a boolean value', () {

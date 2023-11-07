@@ -363,7 +363,9 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
     final value = json['value'];
     switch (SubscriptionProperty.fromRawString(json['property'] as String)) {
       case SubscriptionProperty.color:
-        return value as String;
+        final str = value as String;
+        assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
+        return 0xff000000 | int.parse(str.substring(1), radix: 16);
       case SubscriptionProperty.isMuted:
       case SubscriptionProperty.inHomeView:
       case SubscriptionProperty.pinToTop:
@@ -397,7 +399,10 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
 /// Used in handling of [SubscriptionUpdateEvent].
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum SubscriptionProperty {
+  /// As an int that dart:ui's Color constructor will take:
+  ///   <https://api.flutter.dev/flutter/dart-ui/Color/Color.html>
   color,
+
   isMuted,
   inHomeView,
   pinToTop,

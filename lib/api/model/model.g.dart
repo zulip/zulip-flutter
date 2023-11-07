@@ -210,7 +210,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       audibleNotifications: json['audible_notifications'] as bool?,
       pinToTop: json['pin_to_top'] as bool,
       isMuted: json['is_muted'] as bool,
-      color: json['color'] as String,
+      color: Subscription._readColor(json, 'color') as int,
     );
 
 Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>

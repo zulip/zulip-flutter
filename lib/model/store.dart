@@ -323,7 +323,7 @@ class PerAccountStore extends ChangeNotifier {
       if (subscription == null) return; // TODO(log)
       switch (event.property) {
         case SubscriptionProperty.color:
-          subscription.color                  = event.value as String;
+          subscription.color                  = event.value as int;
         case SubscriptionProperty.isMuted:
           subscription.isMuted                = event.value as bool;
         case SubscriptionProperty.inHomeView:

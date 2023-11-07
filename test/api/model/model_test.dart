@@ -102,6 +102,20 @@ void main() {
     });
   });
 
+  group('Subscription', () {
+    test('converts color to int', () {
+      Subscription subWithColor(String color) {
+        return Subscription.fromJson(
+          deepToJson(eg.subscription(eg.stream())) as Map<String, dynamic>
+            ..['color'] = color,
+        );
+      }
+      check(subWithColor('#e79ab5').color).equals(0xffe79ab5);
+      check(subWithColor('#ffffff').color).equals(0xffffffff);
+      check(subWithColor('#000000').color).equals(0xff000000);
+    });
+  });
+
   group('Message', () {
     test('no crash on unrecognized flag', () {
       final m1 = Message.fromJson(
