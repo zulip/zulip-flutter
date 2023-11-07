@@ -58,6 +58,7 @@ dependencies:
   package_info_plus: ^4.0.1
   collection: ^1.17.2
   url_launcher: ^6.1.11
+  url_launcher_android: ">=6.1.0"
   flutter_localizations:
     sdk: flutter
   firebase_messaging: ^14.6.3
