@@ -56,17 +56,14 @@ String? decodeHashComponent(String str) {
 // When you want to point the server to a location in a message list, you
 // you do so by passing the `anchor` param.
 Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
-  final apiNarrow = narrow.apiEncode();
+  // TODO(server-7)
+  final apiNarrow = resolveDmElements(
+    narrow.apiEncode(), store.connection.zulipFeatureLevel!);
   final fragment = StringBuffer('narrow');
   for (ApiNarrowElement element in apiNarrow) {
     fragment.write('/');
     if (element.negated) {
       fragment.write('-');
-    }
-
-    if (element is ApiNarrowDm) {
-      final supportsOperatorDm = store.connection.zulipFeatureLevel! >= 177; // TODO(server-7)
-      element = element.resolve(legacy: !supportsOperatorDm);
     }
 
     fragment.write('${element.operator}/');
