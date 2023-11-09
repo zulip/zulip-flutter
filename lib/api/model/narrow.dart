@@ -114,6 +114,14 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
 
+// TODO: generalize into ApiNarrowIs
+class ApiNarrowIsUnread extends ApiNarrowElement {
+  @override String get operator => 'is';
+  @override String get operand => 'unread';
+
+  ApiNarrowIsUnread({super.negated});
+}
+
 class ApiNarrowMessageId extends ApiNarrowElement {
   @override String get operator => 'id';
 
