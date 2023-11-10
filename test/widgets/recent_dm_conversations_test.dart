@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -49,6 +50,8 @@ Future<void> setupPage(WidgetTester tester, {
   await tester.pumpWidget(
     GlobalStoreWidget(
       child: MaterialApp(
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
         navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
         home: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,

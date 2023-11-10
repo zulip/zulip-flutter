@@ -416,5 +416,9 @@
   "userRoleUnknown": "Unknown",
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
+  },
+  "recentDmConversationsPageTitle": "Direct messages",
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page of recent DM conversations"
   }
 }

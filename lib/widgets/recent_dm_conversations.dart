@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
@@ -53,9 +54,10 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
     return Scaffold(
-      appBar: AppBar(title: const Text('Direct messages')),
+      appBar: AppBar(title: Text(zulipLocalizations.recentDmConversationsPageTitle)),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,

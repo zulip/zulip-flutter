@@ -265,7 +265,7 @@ class HomePage extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.push(context,
               RecentDmConversationsPage.buildRoute(context: context)),
-            child: const Text("Direct messages")),
+            child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
           if (testStreamId != null) ...[
             const SizedBox(height: 16),
             ElevatedButton(
