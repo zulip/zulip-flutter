@@ -66,7 +66,7 @@ class UnreadCountBadge extends StatelessWidget {
         color: getBackgroundColor(),
       ),
       child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 1),
+        padding: const EdgeInsets.fromLTRB(4, 0, 4, 1),
         child: Text(
           style: const TextStyle(
             fontFamily: 'Source Sans 3',
