@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../model/narrow.dart';
@@ -11,6 +9,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
+import 'unread_count_badge.dart';
 
 class RecentDmConversationsPage extends StatefulWidget {
   const RecentDmConversationsPage({super.key});
@@ -132,24 +131,8 @@ class RecentDmConversationsItem extends StatelessWidget {
               title))),
           const SizedBox(width: 12),
           unreadCount > 0
-            ? Padding(
-                padding: const EdgeInsetsDirectional.only(end: 16),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(3),
-                    color: const Color.fromRGBO(102, 102, 153, 0.15),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 1),
-                    child: Text(
-                      style: const TextStyle(
-                        fontFamily: 'Source Sans 3',
-                        fontSize: 16,
-                        height: (18 / 16),
-                        fontFeatures: [FontFeature.enable('smcp')], // small caps
-                        color: Color(0xFF222222),
-                      ).merge(weightVariableTextStyle(context)),
-                      unreadCount.toString()))))
+            ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+                child: UnreadCountBadge(count: unreadCount))
             : const SizedBox(),
         ])));
   }
