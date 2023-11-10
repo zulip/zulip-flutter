@@ -420,5 +420,9 @@
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page of recent DM conversations"
+  },
+  "allMessagesPageTitle": "All messages",
+  "@allMessagesPageTitle": {
+    "description": "Title for the page of all messages"
   }
 }

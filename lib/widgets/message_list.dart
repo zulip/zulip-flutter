@@ -124,9 +124,11 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
     switch (narrow) {
       case AllMessagesNarrow():
-        return const Text("All messages");
+        return Text(zulipLocalizations.allMessagesPageTitle);
 
       case StreamNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
