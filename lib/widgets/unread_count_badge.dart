@@ -12,9 +12,11 @@ class UnreadCountBadge extends StatelessWidget {
   const UnreadCountBadge({
     super.key,
     required this.count,
+    this.bold = false,
   });
 
   final int count;
+  final bool bold;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,9 @@ class UnreadCountBadge extends StatelessWidget {
             height: (18 / 16),
             fontFeatures: [FontFeature.enable('smcp')], // small caps
             color: Color(0xFF222222),
-          ).merge(weightVariableTextStyle(context)),
+          ).merge(bold
+            ? weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)
+            : weightVariableTextStyle(context)),
           count.toString())));
   }
 }
