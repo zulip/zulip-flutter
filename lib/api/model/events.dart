@@ -30,6 +30,15 @@ sealed class Event {
           case 'update': return RealmUserUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'subscription':
+        switch (json['op'] as String) {
+          case 'add': return SubscriptionAddEvent.fromJson(json);
+          case 'remove': return SubscriptionRemoveEvent.fromJson(json);
+          case 'update': return SubscriptionUpdateEvent.fromJson(json);
+          case 'peer_add': return SubscriptionPeerAddEvent.fromJson(json);
+          case 'peer_remove': return SubscriptionPeerRemoveEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'stream':
         switch (json['op'] as String) {
           case 'create': return StreamCreateEvent.fromJson(json);
@@ -270,6 +279,185 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   // TODO make round-trip (see _readFromPerson)
   @override
   Map<String, dynamic> toJson() => _$RealmUserUpdateEventToJson(this);
+}
+
+/// A Zulip event of type `subscription`.
+///
+/// The corresponding API docs are in several places for
+/// different values of `op`; see subclasses.
+sealed class SubscriptionEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'subscription';
+
+  String get op;
+
+  SubscriptionEvent({required super.id});
+}
+
+/// A [SubscriptionEvent] with op `add`: https://zulip.com/api/get-events#subscription-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SubscriptionAddEvent extends SubscriptionEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add';
+
+  final List<Subscription> subscriptions;
+
+  SubscriptionAddEvent({required super.id, required this.subscriptions});
+
+  factory SubscriptionAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$SubscriptionAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SubscriptionAddEventToJson(this);
+}
+
+/// A [SubscriptionEvent] with op `remove`: https://zulip.com/api/get-events#subscription-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SubscriptionRemoveEvent extends SubscriptionEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'remove';
+
+  @JsonKey(readValue: _readStreamIds)
+  final List<int> streamIds;
+
+  static List<int> _readStreamIds(Map json, String key) {
+    return (json['subscriptions'] as List<dynamic>)
+      .map((e) => (e as Map<String, dynamic>)['stream_id'] as int)
+      .toList();
+  }
+
+  SubscriptionRemoveEvent({required super.id, required this.streamIds});
+
+  factory SubscriptionRemoveEvent.fromJson(Map<String, dynamic> json) =>
+    _$SubscriptionRemoveEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SubscriptionRemoveEventToJson(this);
+}
+
+/// A [SubscriptionEvent] with op `update`: https://zulip.com/api/get-events#subscription-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SubscriptionUpdateEvent extends SubscriptionEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  final int streamId;
+
+  final SubscriptionProperty property;
+
+  /// The new value, or null if we don't recognize the setting.
+  ///
+  /// This will have the type appropriate for [property]; for example,
+  /// if the setting is boolean, then `value is bool` will always be true.
+  /// This invariant is enforced by [SubscriptionUpdateEvent.fromJson].
+  @JsonKey(readValue: _readValue)
+  final Object? value;
+
+  /// [value], with a check that its type corresponds to [property]
+  /// (e.g., `value as bool`).
+  static Object? _readValue(Map json, String key) {
+    final value = json['value'];
+    switch (SubscriptionProperty.fromRawString(json['property'] as String)) {
+      case SubscriptionProperty.color:
+        return value as String;
+      case SubscriptionProperty.isMuted:
+      case SubscriptionProperty.inHomeView:
+      case SubscriptionProperty.pinToTop:
+      case SubscriptionProperty.desktopNotifications:
+      case SubscriptionProperty.audibleNotifications:
+      case SubscriptionProperty.pushNotifications:
+      case SubscriptionProperty.emailNotifications:
+      case SubscriptionProperty.wildcardMentionsNotify:
+        return value as bool;
+      case SubscriptionProperty.unknown:
+        return null;
+    }
+  }
+
+  SubscriptionUpdateEvent({
+    required super.id,
+    required this.streamId,
+    required this.property,
+    required this.value,
+  });
+
+  factory SubscriptionUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$SubscriptionUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SubscriptionUpdateEventToJson(this);
+}
+
+/// The name of a property in [Subscription].
+///
+/// Used in handling of [SubscriptionUpdateEvent].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum SubscriptionProperty {
+  color,
+  isMuted,
+  inHomeView,
+  pinToTop,
+  desktopNotifications,
+  audibleNotifications,
+  pushNotifications,
+  emailNotifications,
+  wildcardMentionsNotify,
+  unknown;
+
+  static SubscriptionProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
+
+  static final _byRawString = _$SubscriptionPropertyEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
+/// A [SubscriptionEvent] with op `peer_add`: https://zulip.com/api/get-events#subscription-peer_add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SubscriptionPeerAddEvent extends SubscriptionEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'peer_add';
+
+  List<int> streamIds;
+  List<int> userIds;
+
+  SubscriptionPeerAddEvent({
+    required super.id,
+    required this.streamIds,
+    required this.userIds,
+  });
+
+  factory SubscriptionPeerAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$SubscriptionPeerAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SubscriptionPeerAddEventToJson(this);
+}
+
+/// A [SubscriptionEvent] with op `peer_remove`: https://zulip.com/api/get-events#subscription-peer_remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'peer_remove';
+
+  List<int> streamIds;
+  List<int> userIds;
+
+  SubscriptionPeerRemoveEvent({
+    required super.id,
+    required this.streamIds,
+    required this.userIds,
+  });
+
+  factory SubscriptionPeerRemoveEvent.fromJson(Map<String, dynamic> json) =>
+    _$SubscriptionPeerRemoveEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SubscriptionPeerRemoveEventToJson(this);
 }
 
 /// A Zulip event of type `stream`.

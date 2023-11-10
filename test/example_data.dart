@@ -125,6 +125,46 @@ ZulipStream stream({
 }
 const _stream = stream;
 
+/// Construct an example subscription from a stream.
+///
+/// We only allow overrides of values specific to the [Subscription], all
+/// other properties are copied from the [ZulipStream] provided.
+Subscription subscription(
+  ZulipStream stream, {
+  bool? desktopNotifications,
+  bool? emailNotifications,
+  bool? wildcardMentionsNotify,
+  bool? pushNotifications,
+  bool? audibleNotifications,
+  bool? pinToTop,
+  bool? isMuted,
+  String? color,
+}) {
+  return Subscription(
+    streamId: stream.streamId,
+    name: stream.name,
+    description: stream.description,
+    renderedDescription: stream.renderedDescription,
+    dateCreated: stream.dateCreated,
+    firstMessageId: stream.firstMessageId,
+    inviteOnly: stream.inviteOnly,
+    isWebPublic: stream.isWebPublic,
+    historyPublicToSubscribers: stream.historyPublicToSubscribers,
+    messageRetentionDays: stream.messageRetentionDays,
+    streamPostPolicy: stream.streamPostPolicy,
+    canRemoveSubscribersGroup: stream.canRemoveSubscribersGroup,
+    streamWeeklyTraffic: stream.streamWeeklyTraffic,
+    desktopNotifications: desktopNotifications ?? false,
+    emailNotifications: emailNotifications ?? false,
+    wildcardMentionsNotify: wildcardMentionsNotify ?? false,
+    pushNotifications: pushNotifications ?? false,
+    audibleNotifications: audibleNotifications ?? false,
+    pinToTop: pinToTop ?? false,
+    isMuted: isMuted ?? false,
+    color: color ?? "#FF0000",
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // Messages, and pieces of messages.
 //

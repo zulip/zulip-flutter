@@ -30,6 +30,18 @@ void main() {
     ).isEmpty();
   });
 
+  test('subscription/remove: deserialize stream_ids correctly', () {
+    check(Event.fromJson({
+      'id': 1,
+      'type': 'subscription',
+      'op': 'remove',
+      'subscriptions': [
+        {'stream_id': 123, 'name': 'name 1'},
+        {'stream_id': 456, 'name': 'name 2'},
+      ],
+    }) as SubscriptionRemoveEvent).streamIds.jsonEquals([123, 456]);
+  });
+
   test('message: move flags into message object', () {
     final message = eg.streamMessage();
     MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({

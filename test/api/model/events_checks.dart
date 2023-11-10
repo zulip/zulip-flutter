@@ -15,6 +15,10 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
   Subject<List<String>> get alertWords => has((e) => e.alertWords, 'alertWords');
 }
 
+extension SubscriptionRemoveEventChecks on Subject<SubscriptionRemoveEvent> {
+  Subject<List<int>> get streamIds => has((e) => e.streamIds, 'streamIds');
+}
+
 extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
 }

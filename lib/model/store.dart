@@ -305,6 +305,52 @@ class PerAccountStore extends ChangeNotifier {
         subscriptions.remove(stream.streamId);
       }
       notifyListeners();
+    } else if (event is SubscriptionAddEvent) {
+      assert(debugLog("server event: subscription/add"));
+      for (final subscription in event.subscriptions) {
+        subscriptions[subscription.streamId] = subscription;
+      }
+      notifyListeners();
+    } else if (event is SubscriptionRemoveEvent) {
+      assert(debugLog("server event: subscription/remove"));
+      for (final streamId in event.streamIds) {
+        subscriptions.remove(streamId);
+      }
+      notifyListeners();
+    } else if (event is SubscriptionUpdateEvent) {
+      assert(debugLog("server event: subscription/update"));
+      final subscription = subscriptions[event.streamId];
+      if (subscription == null) return; // TODO(log)
+      switch (event.property) {
+        case SubscriptionProperty.color:
+          subscription.color                  = event.value as String;
+        case SubscriptionProperty.isMuted:
+          subscription.isMuted                = event.value as bool;
+        case SubscriptionProperty.inHomeView:
+          subscription.isMuted                = !(event.value as bool);
+        case SubscriptionProperty.pinToTop:
+          subscription.pinToTop               = event.value as bool;
+        case SubscriptionProperty.desktopNotifications:
+          subscription.desktopNotifications   = event.value as bool;
+        case SubscriptionProperty.audibleNotifications:
+          subscription.audibleNotifications   = event.value as bool;
+        case SubscriptionProperty.pushNotifications:
+          subscription.pushNotifications      = event.value as bool;
+        case SubscriptionProperty.emailNotifications:
+          subscription.emailNotifications     = event.value as bool;
+        case SubscriptionProperty.wildcardMentionsNotify:
+          subscription.wildcardMentionsNotify = event.value as bool;
+        case SubscriptionProperty.unknown:
+          // unrecognized property; do nothing
+          return;
+      }
+      notifyListeners();
+    } else if (event is SubscriptionPeerAddEvent) {
+      assert(debugLog("server event: subscription/peer_add"));
+      // TODO(#374): handle event
+    } else if (event is SubscriptionPeerRemoveEvent) {
+      assert(debugLog("server event: subscription/peer_remove"));
+      // TODO(#374): handle event
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
       recentDmConversationsView.handleMessageEvent(event);

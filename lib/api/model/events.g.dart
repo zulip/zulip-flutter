@@ -156,6 +156,116 @@ const _$UserRoleEnumMap = {
   UserRole.unknown: null,
 };
 
+SubscriptionAddEvent _$SubscriptionAddEventFromJson(
+        Map<String, dynamic> json) =>
+    SubscriptionAddEvent(
+      id: json['id'] as int,
+      subscriptions: (json['subscriptions'] as List<dynamic>)
+          .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$SubscriptionAddEventToJson(
+        SubscriptionAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'subscriptions': instance.subscriptions,
+    };
+
+SubscriptionRemoveEvent _$SubscriptionRemoveEventFromJson(
+        Map<String, dynamic> json) =>
+    SubscriptionRemoveEvent(
+      id: json['id'] as int,
+      streamIds: (SubscriptionRemoveEvent._readStreamIds(json, 'stream_ids')
+              as List<dynamic>)
+          .map((e) => e as int)
+          .toList(),
+    );
+
+Map<String, dynamic> _$SubscriptionRemoveEventToJson(
+        SubscriptionRemoveEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'stream_ids': instance.streamIds,
+    };
+
+SubscriptionUpdateEvent _$SubscriptionUpdateEventFromJson(
+        Map<String, dynamic> json) =>
+    SubscriptionUpdateEvent(
+      id: json['id'] as int,
+      streamId: json['stream_id'] as int,
+      property: $enumDecode(_$SubscriptionPropertyEnumMap, json['property']),
+      value: SubscriptionUpdateEvent._readValue(json, 'value'),
+    );
+
+Map<String, dynamic> _$SubscriptionUpdateEventToJson(
+        SubscriptionUpdateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'stream_id': instance.streamId,
+      'property': _$SubscriptionPropertyEnumMap[instance.property]!,
+      'value': instance.value,
+    };
+
+const _$SubscriptionPropertyEnumMap = {
+  SubscriptionProperty.color: 'color',
+  SubscriptionProperty.isMuted: 'is_muted',
+  SubscriptionProperty.inHomeView: 'in_home_view',
+  SubscriptionProperty.pinToTop: 'pin_to_top',
+  SubscriptionProperty.desktopNotifications: 'desktop_notifications',
+  SubscriptionProperty.audibleNotifications: 'audible_notifications',
+  SubscriptionProperty.pushNotifications: 'push_notifications',
+  SubscriptionProperty.emailNotifications: 'email_notifications',
+  SubscriptionProperty.wildcardMentionsNotify: 'wildcard_mentions_notify',
+  SubscriptionProperty.unknown: 'unknown',
+};
+
+SubscriptionPeerAddEvent _$SubscriptionPeerAddEventFromJson(
+        Map<String, dynamic> json) =>
+    SubscriptionPeerAddEvent(
+      id: json['id'] as int,
+      streamIds:
+          (json['stream_ids'] as List<dynamic>).map((e) => e as int).toList(),
+      userIds:
+          (json['user_ids'] as List<dynamic>).map((e) => e as int).toList(),
+    );
+
+Map<String, dynamic> _$SubscriptionPeerAddEventToJson(
+        SubscriptionPeerAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'stream_ids': instance.streamIds,
+      'user_ids': instance.userIds,
+    };
+
+SubscriptionPeerRemoveEvent _$SubscriptionPeerRemoveEventFromJson(
+        Map<String, dynamic> json) =>
+    SubscriptionPeerRemoveEvent(
+      id: json['id'] as int,
+      streamIds:
+          (json['stream_ids'] as List<dynamic>).map((e) => e as int).toList(),
+      userIds:
+          (json['user_ids'] as List<dynamic>).map((e) => e as int).toList(),
+    );
+
+Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
+        SubscriptionPeerRemoveEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'stream_ids': instance.streamIds,
+      'user_ids': instance.userIds,
+    };
+
 StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
     StreamCreateEvent(
       id: json['id'] as int,

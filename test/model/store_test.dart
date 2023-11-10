@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications.dart';
 
@@ -176,6 +177,52 @@ void main() {
       connection.prepare(json: {});
       await null; // Run microtasks.  TODO use FakeAsync for these tests.
       checkLastRequest(token: '456def');
+    });
+  });
+
+  group('handleEvent for SubscriptionEvent', () {
+    final stream = eg.stream();
+
+    test('SubscriptionProperty.color updates with a string value', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [stream],
+        subscriptions: [eg.subscription(stream, color: "#FF0000")],
+      ));
+      check(store.subscriptions[stream.streamId]!.color).equals('#FF0000');
+
+      store.handleEvent(SubscriptionUpdateEvent(id: 1,
+        streamId: stream.streamId,
+        property: SubscriptionProperty.color,
+        value: "#FF00FF"));
+      check(store.subscriptions[stream.streamId]!.color).equals('#FF00FF');
+    });
+
+    test('SubscriptionProperty.isMuted updates with a boolean value', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [stream],
+        subscriptions: [eg.subscription(stream, isMuted: false)],
+      ));
+      check(store.subscriptions[stream.streamId]!.isMuted).isFalse();
+
+      store.handleEvent(SubscriptionUpdateEvent(id: 1,
+        streamId: stream.streamId,
+        property: SubscriptionProperty.isMuted,
+        value: true));
+      check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
+    });
+
+    test('SubscriptionProperty.inHomeView updates isMuted instead', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [stream],
+        subscriptions: [eg.subscription(stream, isMuted: false)],
+      ));
+      check(store.subscriptions[stream.streamId]!.isMuted).isFalse();
+
+      store.handleEvent(SubscriptionUpdateEvent(id: 1,
+        streamId: stream.streamId,
+        property: SubscriptionProperty.inHomeView,
+        value: false));
+      check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
     });
   });
 }
