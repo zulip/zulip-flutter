@@ -14,6 +14,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
+import 'subscription_list.dart';
 
 class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -246,6 +247,11 @@ class HomePage extends StatelessWidget {
             onPressed: () => Navigator.push(context,
               InboxPage.buildRoute(context: context)),
             child: const Text("Inbox")), // TODO(i18n)
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.push(context,
+              SubscriptionListPage.buildRoute(context: context)),
+            child: const Text("Subscribed streams")),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
