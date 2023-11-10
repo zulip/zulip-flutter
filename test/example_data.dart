@@ -103,7 +103,7 @@ ZulipStream stream({
   bool? isWebPublic,
   bool? historyPublicToSubscribers,
   int? messageRetentionDays,
-  int? streamPostPolicy,
+  StreamPostPolicy? streamPostPolicy,
   int? canRemoveSubscribersGroupId,
 }) {
   return ZulipStream(
@@ -117,7 +117,7 @@ ZulipStream stream({
     isWebPublic: isWebPublic ?? false,
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
-    streamPostPolicy: streamPostPolicy ?? 1,
+    streamPostPolicy: streamPostPolicy ?? StreamPostPolicy.any,
     canRemoveSubscribersGroupId: canRemoveSubscribersGroupId ?? 123,
   );
 }

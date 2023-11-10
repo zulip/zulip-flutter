@@ -155,7 +155,8 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       isWebPublic: json['is_web_public'] as bool,
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       messageRetentionDays: json['message_retention_days'] as int?,
-      streamPostPolicy: json['stream_post_policy'] as int,
+      streamPostPolicy:
+          $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
       canRemoveSubscribersGroupId:
           json['can_remove_subscribers_group_id'] as int?,
     );
@@ -176,6 +177,14 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'can_remove_subscribers_group_id': instance.canRemoveSubscribersGroupId,
     };
 
+const _$StreamPostPolicyEnumMap = {
+  StreamPostPolicy.any: 1,
+  StreamPostPolicy.administrators: 2,
+  StreamPostPolicy.fullMembers: 3,
+  StreamPostPolicy.moderators: 4,
+  StreamPostPolicy.unknown: null,
+};
+
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       streamId: json['stream_id'] as int,
       name: json['name'] as String,
@@ -192,7 +201,8 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       isMuted: json['is_muted'] as bool,
       isWebPublic: json['is_web_public'] as bool?,
       color: json['color'] as String,
-      streamPostPolicy: json['stream_post_policy'] as int,
+      streamPostPolicy:
+          $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
       messageRetentionDays: json['message_retention_days'] as int?,
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       firstMessageId: json['first_message_id'] as int?,
