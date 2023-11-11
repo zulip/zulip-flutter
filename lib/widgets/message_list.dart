@@ -20,6 +20,7 @@ import 'page.dart';
 import 'profile.dart';
 import 'sticky_header.dart';
 import 'store.dart';
+import 'text.dart';
 
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
@@ -406,13 +407,18 @@ class MarkAsReadWidget extends StatelessWidget {
           // TODO(#368): this should pull from stream color
           color: Colors.transparent,
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            // vertical padding adjusted for tap target height (48px) of button
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: _UnreadMarker.color,
-                padding: const EdgeInsets.all(10),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w200),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                minimumSize: const Size.fromHeight(38),
+                textStyle: const TextStyle(
+                  fontFamily: 'Source Sans 3',
+                  fontSize: 18,
+                  height: (23 / 18),
+                ).merge(weightVariableTextStyle(context)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
               ),
               onPressed: () => _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
