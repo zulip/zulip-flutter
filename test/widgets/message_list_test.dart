@@ -26,6 +26,7 @@ import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../flutter_checks.dart';
+import '../model/unreads_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_checks.dart';
@@ -756,6 +757,22 @@ void main() {
             });
       });
 
+      testWidgets('markNarrowAsRead on mark-all-as-read when Unreads.oldUnreadsMissing: true', (tester) async {
+        const narrow = AllMessagesNarrow();
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+        store.unreads.oldUnreadsMissing = true;
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 11, updatedCount: 3,
+          firstProcessedId: null, lastProcessedId: null,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pumpAndSettle();
+        check(store.unreads.oldUnreadsMissing).isFalse();
+      });
+
       testWidgets('markNarrowAsRead on invalid response', (WidgetTester tester) async {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         final narrow = TopicNarrow.ofMessage(message);
@@ -794,6 +811,9 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
+        // Might as well test with oldUnreadsMissing: true.
+        store.unreads.oldUnreadsMissing = true;
+
         connection.zulipFeatureLevel = 154;
         connection.prepare(json: {});
         await tester.tap(find.byType(MarkAsReadWidget));
@@ -803,6 +823,10 @@ void main() {
           ..bodyFields.deepEquals({});
 
         await tester.pumpAndSettle(); // process pending timers
+
+        // Check that [Unreads.handleAllMessagesReadSuccess] wasn't called;
+        // in the legacy protocol, that'd be redundant with the mark-read event.
+        check(store.unreads).oldUnreadsMissing.isTrue();
       });
 
       testWidgets('StreamNarrow on legacy server', (WidgetTester tester) async {

@@ -433,14 +433,12 @@ class MarkAsReadWidget extends StatelessWidget {
       await showErrorDialog(context: context,
         title: zulipLocalizations.errorMarkAsReadFailedTitle,
         message: e.toString());
+      return;
     }
-    // TODO: clear Unreads.oldUnreadsMissing when `narrow` is [AllMessagesNarrow]
-    //   In the rare case that the user had more than 50K total unreads
-    //   on the server, the client won't have known about all of them;
-    //   this was communicated to the client via `oldUnreadsMissing`.
-    //
-    //   However, since we successfully marked **everything** as read,
-    //   we know that we now have a correct data set of unreads.
+    if (!context.mounted) return;
+    if (narrow is AllMessagesNarrow && !useLegacy) {
+      PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
+    }
   }
 
   @override
