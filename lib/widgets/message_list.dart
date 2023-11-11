@@ -61,8 +61,12 @@ class _MessageListPageState extends State<MessageListPage> {
               // MediaQuery.removePadding with `removeTop: true`.
               context: context,
 
-              // The compose box pads the bottom inset.
-              removeBottom: true,
+              // The compose box, when present, pads the bottom inset.
+              // TODO this copies the details of when the compose box is shown;
+              //   if those details get complicated, refactor to avoid copying.
+              // TODO(#311) If we have a bottom nav, it will pad the bottom
+              //   inset, and this should always be true.
+              removeBottom: widget.narrow is! AllMessagesNarrow,
 
               child: Expanded(
                 child: MessageList(narrow: widget.narrow))),
@@ -228,6 +232,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         color: Colors.white,
         // Pad the left and right insets, for small devices in landscape.
         child: SafeArea(
+          // Don't let this be the place we pad the bottom inset. When there's
+          // no compose box, we want to let the message-list content pad it.
+          // TODO(#311) Remove as unnecessary if we do a bottom nav.
+          //   The nav will pad the bottom inset, and an ancestor of this widget
+          //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
+          bottom: false,
+
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
