@@ -92,7 +92,6 @@ class ZulipApp extends StatelessWidget {
         if (Theme.of(context).platform == TargetPlatform.iOS) '.AppleSystemUIFont' else 'sans-serif',
         'Noto Color Emoji',
       ],
-      useMaterial3: false, // TODO(#225) fix things and switch to true
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.
       // The Zulip brand color is a starting point, but doesn't end up as

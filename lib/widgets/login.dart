@@ -392,19 +392,13 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       decoration: InputDecoration(
         labelText: zulipLocalizations.loginPasswordLabel,
         helperText: kLayoutPinningHelperText,
-        // TODO(material-3): Simplify away `Semantics` by using IconButton's
-        //   M3-only params `isSelected` / `selectedIcon`, after fixing
-        //   https://github.com/flutter/flutter/issues/127145 . (Also, the
-        //   `Semantics` seen here would misbehave in M3 for reasons
-        //   involving a `Semantics` with `container: true` in an underlying
-        //   [ButtonStyleButton].)
-        suffixIcon: Semantics(toggled: _obscurePassword,
-          child: IconButton(
-            tooltip: zulipLocalizations.loginHidePassword,
-            onPressed: _handlePasswordVisibilityPress,
-            icon: _obscurePassword
-              ? const Icon(Icons.visibility_off)
-              : const Icon(Icons.visibility)))));
+        suffixIcon: IconButton(
+          tooltip: zulipLocalizations.loginHidePassword,
+          onPressed: _handlePasswordVisibilityPress,
+          icon: const Icon(Icons.visibility),
+          isSelected: _obscurePassword,
+          selectedIcon: const Icon(Icons.visibility_off),
+        )));
 
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),

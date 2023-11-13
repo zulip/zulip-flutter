@@ -133,6 +133,7 @@ class _LightboxPageState extends State<_LightboxPage> {
 
     final appBarBackgroundColor = Colors.grey.shade900.withOpacity(0.87);
     const appBarForegroundColor = Colors.white;
+    const appBarElevation = 0.0;
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
@@ -146,6 +147,7 @@ class _LightboxPageState extends State<_LightboxPage> {
         centerTitle: false,
         foregroundColor: appBarForegroundColor,
         backgroundColor: appBarBackgroundColor,
+        elevation: appBarElevation,
 
         // TODO(#41): Show message author's avatar
         title: RichText(
@@ -167,6 +169,7 @@ class _LightboxPageState extends State<_LightboxPage> {
     if (_headerFooterVisible) {
       bottomAppBar = BottomAppBar(
         color: appBarBackgroundColor,
+        elevation: appBarElevation,
         child: Row(children: [
           _CopyLinkButton(url: widget.src),
           // TODO(#43): Share image
