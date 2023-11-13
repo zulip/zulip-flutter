@@ -107,34 +107,36 @@ class RecentDmConversationsItem extends StatelessWidget {
             child: Icon(ZulipIcons.group_dm, color: Colors.black.withOpacity(0.5))));
     }
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(context,
-          MessageListPage.buildRoute(context: context, narrow: narrow));
-      },
-      child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
-            child: AvatarShape(size: 32, borderRadius: 3, child: avatar)),
-          const SizedBox(width: 8),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: const TextStyle(
-                fontFamily: 'Source Sans 3',
-                fontSize: 17,
-                height: (20 / 17),
-                color: Color(0xFF222222),
-              ).merge(weightVariableTextStyle(context)),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              title))),
-          const SizedBox(width: 12),
-          unreadCount > 0
-            ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(context,
+            MessageListPage.buildRoute(context: context, narrow: narrow));
+        },
+        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
+              child: AvatarShape(size: 32, borderRadius: 3, child: avatar)),
+            const SizedBox(width: 8),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                style: const TextStyle(
+                  fontFamily: 'Source Sans 3',
+                  fontSize: 17,
+                  height: (20 / 17),
+                  color: Color(0xFF222222),
+                ).merge(weightVariableTextStyle(context)),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                title))),
+            const SizedBox(width: 12),
+            unreadCount > 0
+              ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
                 child: UnreadCountBadge(baseStreamColor: null,
                   count: unreadCount))
             : const SizedBox(),
-        ])));
+          ]))));
   }
 }
