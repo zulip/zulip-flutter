@@ -409,6 +409,7 @@ class MarkAsReadWidget extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
+                backgroundColor: _UnreadMarker.color,
                 padding: const EdgeInsets.all(10),
                 textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w200),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
@@ -467,6 +468,12 @@ class _UnreadMarker extends StatelessWidget {
   final bool isRead;
   final Widget child;
 
+  // The color hsl(227deg 78% 59%) comes from the Figma mockup at:
+  //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
+  // See discussion about design at:
+  //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+  static final color = const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor();
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -485,11 +492,7 @@ class _UnreadMarker extends StatelessWidget {
             curve: Curves.easeOut,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                // The color hsl(227deg 78% 59%) comes from the Figma mockup at:
-                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
-                // See discussion about design at:
-                //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
-                color: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+                color: color,
                 // TODO(#95): Don't show this extra border in dark mode, see:
                 //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
                 border: Border(left: BorderSide(
