@@ -252,7 +252,17 @@ class ZulipStream {
   final StreamPostPolicy streamPostPolicy;
   // final bool isAnnouncementOnly; // deprecated for `streamPostPolicy`; ignore
 
-  final int? canRemoveSubscribersGroupId; // TODO(server-6)
+  // TODO(server-6): `canRemoveSubscribersGroupId` added in FL 142
+  // TODO(server-8): in FL 197 renamed to `canRemoveSubscribersGroup`
+  @JsonKey(readValue: _readCanRemoveSubscribersGroup)
+  final int? canRemoveSubscribersGroup;
+
+  // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
+  final int? streamWeeklyTraffic;
+
+  static int? _readCanRemoveSubscribersGroup(Map json, String key) {
+    return json[key] ?? json['can_remove_subscribers_group_id'];
+  }
 
   ZulipStream({
     required this.streamId,
@@ -266,7 +276,8 @@ class ZulipStream {
     required this.historyPublicToSubscribers,
     required this.messageRetentionDays,
     required this.streamPostPolicy,
-    required this.canRemoveSubscribersGroupId,
+    required this.canRemoveSubscribersGroup,
+    required this.streamWeeklyTraffic,
   });
 
   factory ZulipStream.fromJson(Map<String, dynamic> json) =>

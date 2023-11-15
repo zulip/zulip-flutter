@@ -1,6 +1,10 @@
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 
+extension ZulipStreamChecks on Subject<ZulipStream> {
+  Subject<int?> get canRemoveSubscribersGroup => has((e) => e.canRemoveSubscribersGroup, 'canRemoveSubscribersGroup');
+}
+
 extension MessageChecks on Subject<Message> {
   Subject<String> get content => has((e) => e.content, 'content');
   Subject<bool> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');

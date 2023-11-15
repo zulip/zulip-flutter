@@ -157,8 +157,9 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       messageRetentionDays: json['message_retention_days'] as int?,
       streamPostPolicy:
           $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
-      canRemoveSubscribersGroupId:
-          json['can_remove_subscribers_group_id'] as int?,
+      canRemoveSubscribersGroup: ZulipStream._readCanRemoveSubscribersGroup(
+          json, 'can_remove_subscribers_group') as int?,
+      streamWeeklyTraffic: json['stream_weekly_traffic'] as int?,
     );
 
 Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
@@ -174,7 +175,8 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.streamPostPolicy,
-      'can_remove_subscribers_group_id': instance.canRemoveSubscribersGroupId,
+      'can_remove_subscribers_group': instance.canRemoveSubscribersGroup,
+      'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
 
 const _$StreamPostPolicyEnumMap = {

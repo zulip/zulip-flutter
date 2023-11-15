@@ -65,6 +65,43 @@ void main() {
     });
   });
 
+  group('ZulipStream.canRemoveSubscribersGroup', () {
+    final Map<String, dynamic> baseJson = Map.unmodifiable({
+      'stream_id': 123,
+      'name': 'A stream',
+      'description': 'A description',
+      'rendered_description': '<p>A description</p>',
+      'date_created': 1686774898,
+      'first_message_id': null,
+      'invite_only': false,
+      'is_web_public': false,
+      'history_public_to_subscribers': true,
+      'message_retention_days': null,
+      'stream_post_policy': StreamPostPolicy.any.apiValue,
+      // 'can_remove_subscribers_group': null,
+      'stream_weekly_traffic': null,
+    });
+
+    test('smoke', () {
+      check(ZulipStream.fromJson({ ...baseJson,
+        'can_remove_subscribers_group': 123,
+      })).canRemoveSubscribersGroup.equals(123);
+    });
+
+    // TODO(server-8): field renamed in FL 197
+    test('support old can_remove_subscribers_group_id', () {
+      check(ZulipStream.fromJson({ ...baseJson,
+        'can_remove_subscribers_group_id': 456,
+      })).canRemoveSubscribersGroup.equals(456);
+    });
+
+    // TODO(server-6): field added in FL 142
+    test('support field missing', () {
+      check(ZulipStream.fromJson({ ...baseJson,
+      })).canRemoveSubscribersGroup.isNull();
+    });
+  });
+
   group('Message', () {
     test('no crash on unrecognized flag', () {
       final m1 = Message.fromJson(

@@ -104,7 +104,8 @@ ZulipStream stream({
   bool? historyPublicToSubscribers,
   int? messageRetentionDays,
   StreamPostPolicy? streamPostPolicy,
-  int? canRemoveSubscribersGroupId,
+  int? canRemoveSubscribersGroup,
+  int? streamWeeklyTraffic,
 }) {
   return ZulipStream(
     streamId: streamId ?? 123, // TODO generate example IDs
@@ -118,7 +119,8 @@ ZulipStream stream({
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
     streamPostPolicy: streamPostPolicy ?? StreamPostPolicy.any,
-    canRemoveSubscribersGroupId: canRemoveSubscribersGroupId ?? 123,
+    canRemoveSubscribersGroup: canRemoveSubscribersGroup ?? 123,
+    streamWeeklyTraffic: streamWeeklyTraffic,
   );
 }
 const _stream = stream;
