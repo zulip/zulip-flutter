@@ -315,17 +315,17 @@ enum StreamPostPolicy {
 class Subscription extends ZulipStream {
   // final List<int> subscribers; // we register with includeSubscribers false
 
-  final bool? desktopNotifications;
-  final bool? emailNotifications;
-  final bool? wildcardMentionsNotify;
-  final bool? pushNotifications;
-  final bool? audibleNotifications;
+  bool? desktopNotifications;
+  bool? emailNotifications;
+  bool? wildcardMentionsNotify;
+  bool? pushNotifications;
+  bool? audibleNotifications;
 
-  final bool pinToTop;
-  final bool isMuted;
+  bool pinToTop;
+  bool isMuted;
   // final bool? inHomeView; // deprecated; ignore
 
-  final String color;
+  String color;
 
   Subscription({
     required super.streamId,
