@@ -201,7 +201,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       audibleNotifications: json['audible_notifications'] as bool?,
       pinToTop: json['pin_to_top'] as bool,
       isMuted: json['is_muted'] as bool,
-      isWebPublic: json['is_web_public'] as bool?,
+      isWebPublic: json['is_web_public'] as bool,
       color: json['color'] as String,
       streamPostPolicy:
           $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
@@ -209,8 +209,8 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       firstMessageId: json['first_message_id'] as int?,
       streamWeeklyTraffic: json['stream_weekly_traffic'] as int?,
-      canRemoveSubscribersGroupId:
-          json['can_remove_subscribers_group_id'] as int?,
+      canRemoveSubscribersGroup: Subscription._readCanRemoveSubscribersGroup(
+          json, 'can_remove_subscribers_group') as int?,
     );
 
 Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
@@ -227,7 +227,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.streamPostPolicy,
-      'can_remove_subscribers_group_id': instance.canRemoveSubscribersGroupId,
+      'can_remove_subscribers_group': instance.canRemoveSubscribersGroup,
       'desktop_notifications': instance.desktopNotifications,
       'email_notifications': instance.emailNotifications,
       'wildcard_mentions_notify': instance.wildcardMentionsNotify,

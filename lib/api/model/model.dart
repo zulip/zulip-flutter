@@ -326,7 +326,7 @@ class Subscription {
   final int? streamWeeklyTraffic;
 
   final bool inviteOnly;
-  final bool? isWebPublic; // TODO(server-??): doc doesn't say when added
+  final bool isWebPublic;
   final bool historyPublicToSubscribers;
   final int? messageRetentionDays;
   // final List<int> subscribers; // we register with includeSubscribers false
@@ -334,7 +334,10 @@ class Subscription {
   final StreamPostPolicy streamPostPolicy;
   // final bool? isAnnouncementOnly; // deprecated for `streamPostPolicy`; ignore
 
-  final int? canRemoveSubscribersGroupId; // TODO(server-6)
+  // TODO(server-6): `canRemoveSubscribersGroupId` added in FL 142
+  // TODO(server-8): in FL 197 renamed to `canRemoveSubscribersGroup`
+  @JsonKey(readValue: _readCanRemoveSubscribersGroup)
+  final int? canRemoveSubscribersGroup;
 
   // Then, fields that are specific to the subscription,
   // i.e. the user's relationship to the stream.
@@ -351,6 +354,10 @@ class Subscription {
   // final bool? inHomeView; // deprecated; ignore
 
   final String color;
+
+  static int? _readCanRemoveSubscribersGroup(Map json, String key) {
+    return json[key] ?? json['can_remove_subscribers_group_id'];
+  }
 
   Subscription({
     required this.streamId,
@@ -373,7 +380,7 @@ class Subscription {
     required this.historyPublicToSubscribers,
     required this.firstMessageId,
     required this.streamWeeklyTraffic,
-    required this.canRemoveSubscribersGroupId,
+    required this.canRemoveSubscribersGroup,
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
