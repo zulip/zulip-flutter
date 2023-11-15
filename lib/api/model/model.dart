@@ -312,35 +312,8 @@ enum StreamPostPolicy {
 /// For docs, search for "subscriptions:"
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
-class Subscription {
-  // First, fields that are about the stream and not the user's relation to it.
-  // These are largely the same as in [ZulipStream].
-
-  final int streamId;
-  final String name;
-  final String description;
-  final String renderedDescription;
-
-  final int dateCreated;
-  final int? firstMessageId;
-  final int? streamWeeklyTraffic;
-
-  final bool inviteOnly;
-  final bool isWebPublic;
-  final bool historyPublicToSubscribers;
-  final int? messageRetentionDays;
+class Subscription extends ZulipStream {
   // final List<int> subscribers; // we register with includeSubscribers false
-
-  final StreamPostPolicy streamPostPolicy;
-  // final bool? isAnnouncementOnly; // deprecated for `streamPostPolicy`; ignore
-
-  // TODO(server-6): `canRemoveSubscribersGroupId` added in FL 142
-  // TODO(server-8): in FL 197 renamed to `canRemoveSubscribersGroup`
-  @JsonKey(readValue: _readCanRemoveSubscribersGroup)
-  final int? canRemoveSubscribersGroup;
-
-  // Then, fields that are specific to the subscription,
-  // i.e. the user's relationship to the stream.
 
   final bool? desktopNotifications;
   final bool? emailNotifications;
@@ -349,23 +322,25 @@ class Subscription {
   final bool? audibleNotifications;
 
   final bool pinToTop;
-
   final bool isMuted;
   // final bool? inHomeView; // deprecated; ignore
 
   final String color;
 
-  static int? _readCanRemoveSubscribersGroup(Map json, String key) {
-    return json[key] ?? json['can_remove_subscribers_group_id'];
-  }
-
   Subscription({
-    required this.streamId,
-    required this.name,
-    required this.description,
-    required this.renderedDescription,
-    required this.dateCreated,
-    required this.inviteOnly,
+    required super.streamId,
+    required super.name,
+    required super.description,
+    required super.renderedDescription,
+    required super.dateCreated,
+    required super.firstMessageId,
+    required super.inviteOnly,
+    required super.isWebPublic,
+    required super.historyPublicToSubscribers,
+    required super.messageRetentionDays,
+    required super.streamPostPolicy,
+    required super.canRemoveSubscribersGroup,
+    required super.streamWeeklyTraffic,
     required this.desktopNotifications,
     required this.emailNotifications,
     required this.wildcardMentionsNotify,
@@ -373,19 +348,13 @@ class Subscription {
     required this.audibleNotifications,
     required this.pinToTop,
     required this.isMuted,
-    required this.isWebPublic,
     required this.color,
-    required this.streamPostPolicy,
-    required this.messageRetentionDays,
-    required this.historyPublicToSubscribers,
-    required this.firstMessageId,
-    required this.streamWeeklyTraffic,
-    required this.canRemoveSubscribersGroup,
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
     _$SubscriptionFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
 }
 
