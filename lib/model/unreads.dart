@@ -127,7 +127,7 @@ class Unreads extends ChangeNotifier {
   /// Whether the model is missing data on old unread messages.
   ///
   /// Initialized to the value of [UnreadMessagesSnapshot.oldUnreadsMissing].
-  /// Is set to false when the user clears out all unreads at once.
+  /// Is set to false when the user clears out all unreads.
   bool oldUnreadsMissing;
 
   final int selfUserId;
@@ -387,6 +387,40 @@ class Unreads extends ChangeNotifier {
             }
         }
     }
+    notifyListeners();
+  }
+
+  /// To be called on success of a mark-all-as-read task in the modern protocol.
+  ///
+  /// When the user successfully marks all messages as read,
+  /// there can't possibly be ancient unreads we don't know about.
+  /// So this updates [oldUnreadsMissing] to false and calls [notifyListeners].
+  ///
+  /// When we use POST /messages/flags/narrow (FL 155+) for mark-all-as-read,
+  /// we don't expect to get a mark-as-read event with `all: true`,
+  /// even on completion of the last batch of unreads.
+  /// If we did get an event with `all: true` (as we do in the legacy mark-all-
+  /// as-read protocol), this would be handled naturally, in
+  /// [handleUpdateMessageFlagsEvent].
+  ///
+  /// Discussion:
+  ///   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680275>
+  // TODO(server-6) Delete mentions of legacy protocol.
+  void handleAllMessagesReadSuccess() {
+    oldUnreadsMissing = false;
+
+    // Best not to actually clear any unreads out of the model.
+    // That'll be handled naturally when the event comes in, with a list of which
+    // messages were marked as read. When a mark-all-as-read task is complete,
+    // I don't think the server will always have zero unreads in its state.
+    // For example, I assume a new unread message could arrive while the work is
+    // in progress, and not get caught and marked as read. We should faithfully
+    // match that state. (This point seems especially relevant when the
+    // mark-as-read work is done in batches.)
+    //
+    // Even considering races like that, it does seem basically impossible for
+    // `oldUnreadsMissing: false` to be the wrong state at this point.
+
     notifyListeners();
   }
 

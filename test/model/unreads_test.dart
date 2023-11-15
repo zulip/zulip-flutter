@@ -985,4 +985,18 @@ void main() {
       });
     });
   });
+
+  group('handleAllMessagesReadSuccess', () {
+      prepare();
+      fillWithMessages([]);
+
+      // We didn't fill the model with 50k unreads, so this is questionably
+      // realistic… but the 50k cap isn't actually API-guaranteed, and this is
+      // plausibly realistic for a hypothetical server that decides based on
+      // message age rather than the 50k cap.
+      model.oldUnreadsMissing = true;
+      model.handleAllMessagesReadSuccess();
+      checkNotifiedOnce();
+      check(model).oldUnreadsMissing.isFalse();
+  });
 }
