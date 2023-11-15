@@ -250,9 +250,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                     Positioned(
                       bottom: 0,
                       right: 0,
-                      child: ScrollToBottomButton(
-                        scrollController: scrollController,
-                        visibleValue: _scrollToBottomVisibleValue)),
+                      // TODO(#311) SafeArea shouldn't be needed if we have a
+                      //   bottom nav. That will pad the bottom inset.
+                      child: SafeArea(
+                        child: ScrollToBottomButton(
+                          scrollController: scrollController,
+                          visibleValue: _scrollToBottomVisibleValue))),
                   ])))))));
   }
 
