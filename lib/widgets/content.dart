@@ -104,7 +104,14 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
-    final text = _buildBlockInlineContainer(node: node, style: null);
+    final text = _buildBlockInlineContainer(
+      node: node,
+      style: const TextStyle(
+        fontFamily: 'Source Sans 3',
+        fontSize: 14,
+        height: (17 / 14),
+      ).merge(weightVariableTextStyle(context)),
+    );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
     // then apply no margins.  (For example, these are seen in list items.)

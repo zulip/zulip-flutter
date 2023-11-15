@@ -65,7 +65,7 @@ void main() {
   group('LinkNode interactions', () {
     // The Flutter test font uses square glyphs, so width equals height:
     //   https://github.com/flutter/flutter/wiki/Flutter-Test-Fonts
-    const fontSize = 48.0;
+    const fontSize = 14.0;
 
     Future<void> prepareContent(WidgetTester tester, String html) async {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
