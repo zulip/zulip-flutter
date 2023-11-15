@@ -420,8 +420,13 @@ class MarkAsReadWidget extends StatelessWidget {
 
   void _handlePress(BuildContext context) async {
     if (!context.mounted) return;
+
+    final store = PerAccountStoreWidget.of(context);
+    final connection = store.connection;
+    final useLegacy = connection.zulipFeatureLevel! < 155;
+
     try {
-      await markNarrowAsRead(context, narrow);
+      await markNarrowAsRead(context, narrow, useLegacy);
     } catch (e) {
       if (!context.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -953,10 +958,14 @@ final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
 final _kMessageTimestampColor = const HSLColor.fromAHSL(1, 0, 0, 0.5).toColor();
 
-Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
+Future<void> markNarrowAsRead(
+  BuildContext context,
+  Narrow narrow,
+  bool useLegacy, // TODO(server-6)
+) async {
   final store = PerAccountStoreWidget.of(context);
   final connection = store.connection;
-  if (connection.zulipFeatureLevel! < 155) { // TODO(server-6)
+  if (useLegacy) {
     return await _legacyMarkNarrowAsRead(context, narrow);
   }
 
