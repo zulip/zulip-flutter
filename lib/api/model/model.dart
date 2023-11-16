@@ -301,7 +301,6 @@ class Subscription {
 
   final int streamPostPolicy; // TODO enum
   // final bool? isAnnouncementOnly; // deprecated; ignore
-  final String emailAddress;
 
   final int? canRemoveSubscribersGroupId; // TODO(server-6)
 
@@ -334,7 +333,6 @@ class Subscription {
     required this.pushNotifications,
     required this.audibleNotifications,
     required this.pinToTop,
-    required this.emailAddress,
     required this.isMuted,
     required this.isWebPublic,
     required this.color,
