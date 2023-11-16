@@ -193,6 +193,123 @@ void main() {
         runCheck(0xFFFFFFE0, const Color(0x4dadad90)); // 0x4dacad90
         runCheck(0xFFFF69B4, const Color(0x4dff69b4));
       });
+
+      test('iconOnPlainBackground', () {
+        void runCheck(int base, Color expected) {
+          check(StreamColorSwatch(base)).iconOnPlainBackground.equals(expected);
+        }
+
+        // Check against everything in ZULIP_ASSIGNMENT_COLORS
+        // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
+        // (Skipping `streamColors` because there are 100+ of them.)
+
+        // TODO Fix bug causing our implementation's results to differ from the
+        //   replit's. Where they differ, see comment with what the replit gives.
+
+        runCheck(0xff76ce90, const Color(0xff73cb8d));
+        runCheck(0xfffae589, const Color(0xffccb95f)); // 0xffcbb85e
+        runCheck(0xffa6c7e5, const Color(0xff9cbcda)); // 0xff9cbddb
+        runCheck(0xffe79ab5, const Color(0xffe79ab5));
+        runCheck(0xffbfd56f, const Color(0xffacc25d));
+        runCheck(0xfff4ae55, const Color(0xfff0ab52)); // 0xffefa951
+        runCheck(0xffb0a5fd, const Color(0xffb0a5fd));
+        runCheck(0xffaddfe5, const Color(0xff90c1c7)); // 0xff90c2c8
+        runCheck(0xfff5ce6e, const Color(0xffd9b456)); // 0xffd8b355
+        runCheck(0xffc2726a, const Color(0xffc2726a));
+        runCheck(0xff94c849, const Color(0xff94c849));
+        runCheck(0xffbd86e5, const Color(0xffbd86e5));
+        runCheck(0xffee7e4a, const Color(0xffee7e4a));
+        runCheck(0xffa6dcbf, const Color(0xff8fc4a8));
+        runCheck(0xff95a5fd, const Color(0xff95a5fd));
+        runCheck(0xff53a063, const Color(0xff53a063));
+        runCheck(0xff9987e1, const Color(0xff9987e1));
+        runCheck(0xffe4523d, const Color(0xffe4523d));
+        runCheck(0xffc2c2c2, const Color(0xffb9b9b9));
+        runCheck(0xff4f8de4, const Color(0xff4f8de4));
+        runCheck(0xffc6a8ad, const Color(0xffc6a8ad));
+        runCheck(0xffe7cc4d, const Color(0xffd1b839)); // 0xffd0b737
+        runCheck(0xffc8bebf, const Color(0xffc0b6b7));
+        runCheck(0xffa47462, const Color(0xffa47462));
+        runCheck(0xffacc25d, const Color(0xffacc25d));
+      });
+
+      test('iconOnBarBackground', () {
+        void runCheck(int base, Color expected) {
+          check(StreamColorSwatch(base)).iconOnBarBackground.equals(expected);
+        }
+
+        // Check against everything in ZULIP_ASSIGNMENT_COLORS
+        // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
+        // (Skipping `streamColors` because there are 100+ of them.)
+
+        // TODO Fix bug causing our implementation's results to differ from the
+        //   replit's. Where they differ, see comment with what the replit gives.
+
+        runCheck(0xff76ce90, const Color(0xff46ba69));
+        runCheck(0xfffae589, const Color(0xffb49f39)); // 0xffb29d3a
+        runCheck(0xffa6c7e5, const Color(0xff6f9ec9)); // 0xff6f9fcb
+        runCheck(0xffe79ab5, const Color(0xffdb6991));
+        runCheck(0xffbfd56f, const Color(0xff8ea43e));
+        runCheck(0xfff4ae55, const Color(0xffeb901a)); // 0xffea8d19
+        runCheck(0xffb0a5fd, const Color(0xff7b69fc));
+        runCheck(0xffaddfe5, const Color(0xff67aab2)); // 0xff67acb4
+        runCheck(0xfff5ce6e, const Color(0xffc59a2c)); // 0xffc3992d
+        runCheck(0xffc2726a, const Color(0xffa94e45));
+        runCheck(0xff94c849, const Color(0xff74a331));
+        runCheck(0xffbd86e5, const Color(0xffa254da));
+        runCheck(0xffee7e4a, const Color(0xffe55716));
+        runCheck(0xffa6dcbf, const Color(0xff67af89));
+        runCheck(0xff95a5fd, const Color(0xff5972fc));
+        runCheck(0xff53a063, const Color(0xff3e784a));
+        runCheck(0xff9987e1, const Color(0xff6f56d5));
+        runCheck(0xffe4523d, const Color(0xffc8311c));
+        runCheck(0xffc2c2c2, const Color(0xff9a9a9a));
+        runCheck(0xff4f8de4, const Color(0xff216cd5));
+        runCheck(0xffc6a8ad, const Color(0xffae838a));
+        runCheck(0xffe7cc4d, const Color(0xffa69127)); // 0xffa38f26
+        runCheck(0xffc8bebf, const Color(0xffa49597));
+        runCheck(0xffa47462, const Color(0xff7f584a));
+        runCheck(0xffacc25d, const Color(0xff8ea43e));
+      });
+
+      test('barBackground', () {
+        void runCheck(int base, Color expected) {
+          check(StreamColorSwatch(base)).barBackground.equals(expected);
+        }
+
+        // Check against everything in ZULIP_ASSIGNMENT_COLORS
+        // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
+        // (Skipping `streamColors` because there are 100+ of them.)
+
+        // TODO Fix bug causing our implementation's results to differ from the
+        //   replit's. Where they differ, see comment with what the replit gives.
+
+        runCheck(0xff76ce90, const Color(0xffddefe1));
+        runCheck(0xfffae589, const Color(0xfff1ead7)); // 0xfff0ead6
+        runCheck(0xffa6c7e5, const Color(0xffe5ebf2)); // 0xffe5ecf2
+        runCheck(0xffe79ab5, const Color(0xfff6e4ea));
+        runCheck(0xffbfd56f, const Color(0xffe9edd6));
+        runCheck(0xfff4ae55, const Color(0xfffbe7d4)); // 0xfffae7d4
+        runCheck(0xffb0a5fd, const Color(0xffeae6fa));
+        runCheck(0xffaddfe5, const Color(0xffe2edee));
+        runCheck(0xfff5ce6e, const Color(0xfff5e9d5)); // 0xfff4e9d5
+        runCheck(0xffc2726a, const Color(0xfff0dbd8)); // 0xffefdbd8
+        runCheck(0xff94c849, const Color(0xffe5eed3)); // 0xffe4eed3
+        runCheck(0xffbd86e5, const Color(0xffeddff5));
+        runCheck(0xffee7e4a, const Color(0xfffdded1)); // 0xfffcded1
+        runCheck(0xffa6dcbf, const Color(0xffe2ede7));
+        runCheck(0xff95a5fd, const Color(0xffe5e6fa)); // 0xffe4e6fa
+        runCheck(0xff53a063, const Color(0xffd5e5d6));
+        runCheck(0xff9987e1, const Color(0xffe5dff4));
+        runCheck(0xffe4523d, const Color(0xfffcd6cd)); // 0xfffbd6cd
+        runCheck(0xffc2c2c2, const Color(0xffebebeb));
+        runCheck(0xff4f8de4, const Color(0xffd9e0f5)); // 0xffd8e0f5
+        runCheck(0xffc6a8ad, const Color(0xffeee7e8));
+        runCheck(0xffe7cc4d, const Color(0xfff4ead0)); // 0xfff3eacf
+        runCheck(0xffc8bebf, const Color(0xffeceaea));
+        runCheck(0xffa47462, const Color(0xffe7dad6));
+        runCheck(0xffacc25d, const Color(0xffe9edd6));
+      });
     });
   });
 

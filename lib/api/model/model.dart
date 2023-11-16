@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../widgets/color.dart';
@@ -396,8 +397,29 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
 
   Color get unreadCountBadgeBackground => this[_StreamColorVariant.unreadCountBadgeBackground]!;
 
+  /// The stream icon on a plain-colored surface, such as white.
+  ///
+  /// For the icon on a [barBackground]-colored surface,
+  /// use [iconOnBarBackground] instead.
+  Color get iconOnPlainBackground => this[_StreamColorVariant.iconOnPlainBackground]!;
+
+  /// The stream icon on a [barBackground]-colored surface.
+  ///
+  /// For the icon on a plain surface, use [iconOnPlainBackground] instead.
+  /// This color is chosen to enhance contrast with [barBackground]:
+  ///   <https://github.com/zulip/zulip/pull/27485>
+  Color get iconOnBarBackground => this[_StreamColorVariant.iconOnBarBackground]!;
+
+  /// The background color of a bar representing a stream, like a recipient bar.
+  ///
+  /// Use this in the message list, the "Inbox" view, and the "Streams" view.
+  Color get barBackground => this[_StreamColorVariant.barBackground]!;
+
   static Map<_StreamColorVariant, Color> _compute(int base) {
     final baseAsColor = Color(base);
+
+    final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
+    final clamped20to75AsHsl = HSLColor.fromColor(clamped20to75);
 
     return {
       _StreamColorVariant.base: baseAsColor,
@@ -410,6 +432,35 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
       _StreamColorVariant.unreadCountBadgeBackground:
         clampLchLightness(baseAsColor, 30, 70)
           .withOpacity(0.3),
+
+      // Follows `.sidebar-row__icon` in Vlad's replit:
+      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+      //
+      // TODO fix bug where our results differ from the replit's (see unit tests)
+      _StreamColorVariant.iconOnPlainBackground: clamped20to75,
+
+      // Follows `.recepeient__icon` in Vlad's replit:
+      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+      //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
+      //
+      // TODO fix bug where our results differ from the replit's (see unit tests)
+      _StreamColorVariant.iconOnBarBackground:
+        clamped20to75AsHsl
+          .withLightness(clamped20to75AsHsl.lightness - 0.12)
+          .toColor(),
+
+      // Follows `.recepient` in Vlad's replit:
+      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+      //
+      // TODO I think [LabColor.interpolate] doesn't actually do LAB mixing;
+      //   it just calls up to the superclass method [ColorModel.interpolate]:
+      //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
+      //   which does ordinary RGB mixing. Investigate and send a PR?
+      // TODO fix bug where our results differ from the replit's (see unit tests)
+      _StreamColorVariant.barBackground:
+        LabColor.fromColor(const Color(0xfff9f9f9))
+          .interpolate(LabColor.fromColor(clamped20to75), 0.22)
+          .toColor(),
     };
   }
 }
@@ -417,6 +468,9 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
 enum _StreamColorVariant {
   base,
   unreadCountBadgeBackground,
+  iconOnPlainBackground,
+  iconOnBarBackground,
+  barBackground,
 }
 
 /// As in the get-messages response.
