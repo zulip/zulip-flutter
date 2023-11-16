@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
@@ -113,6 +114,23 @@ void main() {
       check(subWithColor('#e79ab5').color).equals(0xffe79ab5);
       check(subWithColor('#ffffff').color).equals(0xffffffff);
       check(subWithColor('#000000').color).equals(0xff000000);
+    });
+
+    test('colorSwatch caching', () {
+      final sub = eg.subscription(eg.stream(), color: 0xffffffff);
+      check(sub.debugCachedSwatchValue).isNull();
+      sub.colorSwatch();
+      check(sub.debugCachedSwatchValue).isNotNull().base.equals(const Color(0xffffffff));
+      sub.color = 0xffff0000;
+      check(sub.debugCachedSwatchValue).isNull();
+      sub.colorSwatch();
+      check(sub.debugCachedSwatchValue).isNotNull().base.equals(const Color(0xffff0000));
+    });
+
+    group('StreamColorSwatch', () {
+      test('base', () {
+        check(StreamColorSwatch(0xffffffff)).base.equals(const Color(0xffffffff));
+      });
     });
   });
 

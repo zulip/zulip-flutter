@@ -1,8 +1,14 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 
 extension ZulipStreamChecks on Subject<ZulipStream> {
   Subject<int?> get canRemoveSubscribersGroup => has((e) => e.canRemoveSubscribersGroup, 'canRemoveSubscribersGroup');
+}
+
+extension StreamColorSwatchChecks on Subject<StreamColorSwatch> {
+  Subject<Color> get base => has((s) => s.base, 'base');
 }
 
 extension MessageChecks on Subject<Message> {

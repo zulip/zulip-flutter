@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'reaction.dart';
@@ -328,13 +330,28 @@ class Subscription extends ZulipStream {
   /// As an int that dart:ui's Color constructor will take:
   ///   <https://api.flutter.dev/flutter/dart-ui/Color/Color.html>
   @JsonKey(readValue: _readColor)
-  int color;
-
+  int get color => _color;
+  int _color;
+  set color(int value) {
+    _color = value;
+    _swatch = null;
+  }
   static Object? _readColor(Map json, String key) {
     final str = (json[key] as String);
     assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
     return 0xff000000 | int.parse(str.substring(1), radix: 16);
   }
+
+  StreamColorSwatch? _swatch;
+  /// A [StreamColorSwatch] for the subscription, memoized.
+  // TODO I'm not sure this is the right home for this; it seems like we might
+  //   instead have chosen to put it in more UI-centered code, like in a custom
+  //   material [ColorScheme] class or something. But it works for now.
+  StreamColorSwatch colorSwatch() => _swatch ??= StreamColorSwatch(color);
+
+  @visibleForTesting
+  @JsonKey(includeToJson: false)
+  StreamColorSwatch? get debugCachedSwatchValue => _swatch;
 
   Subscription({
     required super.streamId,
@@ -357,14 +374,37 @@ class Subscription extends ZulipStream {
     required this.audibleNotifications,
     required this.pinToTop,
     required this.isMuted,
-    required this.color,
-  });
+    required int color,
+  }) : _color = color;
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
     _$SubscriptionFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
+}
+
+/// A [ColorSwatch] with colors related to a base stream color.
+///
+/// Use this in UI code for colors related to [Subscription.color],
+/// such as the background of an unread count badge.
+class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
+  StreamColorSwatch(int base) : super(base, _compute(base));
+
+  Color get base => this[_StreamColorVariant.base]!;
+
+  static Map<_StreamColorVariant, Color> _compute(int base) {
+    final baseAsColor = Color(base);
+
+    return {
+      _StreamColorVariant.base: baseAsColor,
+    };
+  }
+}
+
+enum _StreamColorVariant {
+  base,
+  // TODO more, like the unread-count badge background color
 }
 
 /// As in the get-messages response.
