@@ -134,7 +134,7 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-                child: UnreadCountBadge(baseStreamColor: null,
+                child: UnreadCountBadge(backgroundColor: null,
                   count: unreadCount))
             : const SizedBox(),
           ]))));

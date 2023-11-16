@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../widgets/color.dart';
 import 'reaction.dart';
 
 export 'reaction.dart';
@@ -393,18 +394,29 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
 
   Color get base => this[_StreamColorVariant.base]!;
 
+  Color get unreadCountBadgeBackground => this[_StreamColorVariant.unreadCountBadgeBackground]!;
+
   static Map<_StreamColorVariant, Color> _compute(int base) {
     final baseAsColor = Color(base);
 
     return {
       _StreamColorVariant.base: baseAsColor,
+
+      // Follows `.unread-count` in Vlad's replit:
+      //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
+      //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
+      //
+      // TODO fix bug where our results differ from the replit's (see unit tests)
+      _StreamColorVariant.unreadCountBadgeBackground:
+        clampLchLightness(baseAsColor, 30, 70)
+          .withOpacity(0.3),
     };
   }
 }
 
 enum _StreamColorVariant {
   base,
-  // TODO more, like the unread-count badge background color
+  unreadCountBadgeBackground,
 }
 
 /// As in the get-messages response.

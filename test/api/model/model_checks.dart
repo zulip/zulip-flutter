@@ -9,6 +9,7 @@ extension ZulipStreamChecks on Subject<ZulipStream> {
 
 extension StreamColorSwatchChecks on Subject<StreamColorSwatch> {
   Subject<Color> get base => has((s) => s.base, 'base');
+  Subject<Color> get unreadCountBadgeBackground => has((s) => s.unreadCountBadgeBackground, 'unreadCountBadgeBackground');
 }
 
 extension MessageChecks on Subject<Message> {

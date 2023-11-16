@@ -131,6 +131,68 @@ void main() {
       test('base', () {
         check(StreamColorSwatch(0xffffffff)).base.equals(const Color(0xffffffff));
       });
+
+      test('unreadCountBadgeBackground', () {
+        void runCheck(int base, Color expected) {
+          check(StreamColorSwatch(base)).unreadCountBadgeBackground.equals(expected);
+        }
+
+        // Check against everything in ZULIP_ASSIGNMENT_COLORS and EXTREME_COLORS
+        // in <https://replit.com/@VladKorobov/zulip-sidebar#script.js>.
+        // On how to extract expected results from the replit, see:
+        //   https://github.com/zulip/zulip-flutter/pull/371#discussion_r1393643523
+
+        // TODO Fix bug causing our implementation's results to differ from the
+        //   replit's. Where they differ, see comment with what the replit gives.
+
+        // ZULIP_ASSIGNMENT_COLORS
+        runCheck(0xff76ce90, const Color(0x4d65bd80));
+        runCheck(0xfffae589, const Color(0x4dbdab53)); // 0x4dbdaa52
+        runCheck(0xffa6c7e5, const Color(0x4d8eafcc)); // 0x4d8fb0cd
+        runCheck(0xffe79ab5, const Color(0x4de295b0)); // 0x4de194af
+        runCheck(0xffbfd56f, const Color(0x4d9eb551)); // 0x4d9eb450
+        runCheck(0xfff4ae55, const Color(0x4de19d45)); // 0x4de09c44
+        runCheck(0xffb0a5fd, const Color(0x4daba0f8)); // 0x4daca2f9
+        runCheck(0xffaddfe5, const Color(0x4d83b4b9)); // 0x4d83b4ba
+        runCheck(0xfff5ce6e, const Color(0x4dcba749)); // 0x4dcaa648
+        runCheck(0xffc2726a, const Color(0x4dc2726a));
+        runCheck(0xff94c849, const Color(0x4d86ba3c)); // 0x4d86ba3b
+        runCheck(0xffbd86e5, const Color(0x4dbd86e5));
+        runCheck(0xffee7e4a, const Color(0x4dee7e4a));
+        runCheck(0xffa6dcbf, const Color(0x4d82b69b)); // 0x4d82b79b
+        runCheck(0xff95a5fd, const Color(0x4d95a5fd));
+        runCheck(0xff53a063, const Color(0x4d53a063));
+        runCheck(0xff9987e1, const Color(0x4d9987e1));
+        runCheck(0xffe4523d, const Color(0x4de4523d));
+        runCheck(0xffc2c2c2, const Color(0x4dababab));
+        runCheck(0xff4f8de4, const Color(0x4d4f8de4));
+        runCheck(0xffc6a8ad, const Color(0x4dc2a4a9)); // 0x4dc1a4a9
+        runCheck(0xffe7cc4d, const Color(0x4dc3ab2a)); // 0x4dc2aa28
+        runCheck(0xffc8bebf, const Color(0x4db3a9aa));
+        runCheck(0xffa47462, const Color(0x4da47462));
+
+        // EXTREME_COLORS
+        runCheck(0xFFFFFFFF, const Color(0x4dababab));
+        runCheck(0xFF000000, const Color(0x4d474747));
+        runCheck(0xFFD3D3D3, const Color(0x4dababab));
+        runCheck(0xFFA9A9A9, const Color(0x4da9a9a9));
+        runCheck(0xFF808080, const Color(0x4d808080));
+        runCheck(0xFFFFFF00, const Color(0x4dacb300)); // 0x4dacb200
+        runCheck(0xFFFF0000, const Color(0x4dff0000));
+        runCheck(0xFF008000, const Color(0x4d008000));
+        runCheck(0xFF0000FF, const Color(0x4d0000ff)); // 0x4d0902ff
+        runCheck(0xFFEE82EE, const Color(0x4dee82ee));
+        runCheck(0xFFFFA500, const Color(0x4def9800)); // 0x4ded9600
+        runCheck(0xFF800080, const Color(0x4d810181)); // 0x4d810281
+        runCheck(0xFF00FFFF, const Color(0x4d00c2c3)); // 0x4d00c3c5
+        runCheck(0xFFFF00FF, const Color(0x4dff00ff));
+        runCheck(0xFF00FF00, const Color(0x4d00cb00));
+        runCheck(0xFF800000, const Color(0x4d8d140c)); // 0x4d8b130b
+        runCheck(0xFF008080, const Color(0x4d008080));
+        runCheck(0xFF000080, const Color(0x4d492bae)); // 0x4d4b2eb3
+        runCheck(0xFFFFFFE0, const Color(0x4dadad90)); // 0x4dacad90
+        runCheck(0xFFFF69B4, const Color(0x4dff69b4));
+      });
     });
   });
 

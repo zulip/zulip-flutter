@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'color.dart';
+import '../api/model/model.dart';
 import 'text.dart';
 
 /// A widget to display a given number of unreads in a conversation.
@@ -13,42 +13,33 @@ class UnreadCountBadge extends StatelessWidget {
   const UnreadCountBadge({
     super.key,
     required this.count,
-    required this.baseStreamColor,
+    required this.backgroundColor,
     this.bold = false,
   });
 
   final int count;
   final bool bold;
 
-  /// A base stream color, from a stream subscription in user data, or null.
+  /// The badge's background color.
   ///
-  /// If not null, the background will be colored with an appropriate
-  /// transformation of this.
+  /// Pass a [StreamColorSwatch] if this badge represents messages in one
+  /// specific stream. The appropriate color from the swatch will be used.
   ///
   /// If null, the default neutral background will be used.
-  final Color? baseStreamColor;
-
-  @visibleForTesting
-  Color getBackgroundColor() {
-    if (baseStreamColor == null) {
-      return const Color.fromRGBO(102, 102, 153, 0.15);
-    }
-
-    // Follows `.unread-count` in Vlad's replit:
-    //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
-    //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
-    //
-    // TODO fix bug where our results differ from the replit's (see unit tests)
-    // TODO profiling for expensive computation
-    return clampLchLightness(baseStreamColor!, 30, 70).withOpacity(0.3);
-  }
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBackgroundColor = switch (backgroundColor) {
+      StreamColorSwatch(unreadCountBadgeBackground: var color) => color,
+      Color() => backgroundColor,
+      null => const Color.fromRGBO(102, 102, 153, 0.15),
+    };
+
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(3),
-        color: getBackgroundColor(),
+        color: effectiveBackgroundColor,
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 1),
