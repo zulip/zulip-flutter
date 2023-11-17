@@ -81,10 +81,10 @@ class Unreads extends ChangeNotifier {
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
 
-  /// Unread stream messages, as: stream ID → topic → message ID.
+  /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
   final Map<int, Map<String, QueueList<int>>> streams;
 
-  /// Unread DM messages, as: DM narrow → message ID.
+  /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
 
   /// Unread messages with the self-user @-mentioned, directly or by wildcard.
