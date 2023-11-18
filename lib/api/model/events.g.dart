@@ -8,6 +8,25 @@ part of 'events.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+RealmEmojiUpdateEvent _$RealmEmojiUpdateEventFromJson(
+        Map<String, dynamic> json) =>
+    RealmEmojiUpdateEvent(
+      id: json['id'] as int,
+      realmEmoji: (json['realm_emoji'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, RealmEmojiItem.fromJson(e as Map<String, dynamic>)),
+      ),
+    );
+
+Map<String, dynamic> _$RealmEmojiUpdateEventToJson(
+        RealmEmojiUpdateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'realm_emoji': instance.realmEmoji,
+    };
+
 AlertWordsEvent _$AlertWordsEventFromJson(Map<String, dynamic> json) =>
     AlertWordsEvent(
       id: json['id'] as int,

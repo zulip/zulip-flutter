@@ -16,6 +16,11 @@ sealed class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     switch (json['type'] as String) {
+      case 'realm_emoji':
+        switch (json['op'] as String) {
+          case 'update': return RealmEmojiUpdateEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'alert_words': return AlertWordsEvent.fromJson(json);
       case 'user_settings':
         switch (json['op'] as String) {
@@ -76,6 +81,28 @@ class UnexpectedEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => json;
+}
+
+/// A Zulip event of type `realm_emoji` with op `update`:
+///   https://zulip.com/api/get-events#realm_emoji-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiUpdateEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'realm_emoji';
+
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  final Map<String, RealmEmojiItem> realmEmoji;
+
+  RealmEmojiUpdateEvent({required super.id, required this.realmEmoji});
+
+  factory RealmEmojiUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$RealmEmojiUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmEmojiUpdateEventToJson(this);
 }
 
 /// A Zulip event of type `alert_words`: https://zulip.com/api/get-events#alert_words
