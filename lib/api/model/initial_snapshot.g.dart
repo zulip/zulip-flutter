@@ -21,6 +21,10 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
           .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
           .toList(),
+      realmEmoji: (json['realm_emoji'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, RealmEmojiItem.fromJson(e as Map<String, dynamic>)),
+      ),
       recentPrivateConversations: (json['recent_private_conversations']
               as List<dynamic>)
           .map((e) => RecentDmConversation.fromJson(e as Map<String, dynamic>))
@@ -67,6 +71,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_merge_base': instance.zulipMergeBase,
       'alert_words': instance.alertWords,
       'custom_profile_fields': instance.customProfileFields,
+      'realm_emoji': instance.realmEmoji,
       'recent_private_conversations': instance.recentPrivateConversations,
       'subscriptions': instance.subscriptions,
       'unread_msgs': instance.unreadMsgs,
@@ -95,6 +100,26 @@ Map<String, dynamic> _$RealmDefaultExternalAccountToJson(
       'text': instance.text,
       'hint': instance.hint,
       'url_pattern': instance.urlPattern,
+    };
+
+RealmEmojiItem _$RealmEmojiItemFromJson(Map<String, dynamic> json) =>
+    RealmEmojiItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      sourceUrl: json['source_url'] as String,
+      stillUrl: json['still_url'] as String?,
+      deactivated: json['deactivated'] as bool,
+      authorId: json['author_id'] as int?,
+    );
+
+Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'source_url': instance.sourceUrl,
+      'still_url': instance.stillUrl,
+      'deactivated': instance.deactivated,
+      'author_id': instance.authorId,
     };
 
 RecentDmConversation _$RecentDmConversationFromJson(

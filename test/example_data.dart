@@ -414,6 +414,7 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
   List<Subscription>? subscriptions,
   UnreadMessagesSnapshot? unreadMsgs,
@@ -433,6 +434,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),

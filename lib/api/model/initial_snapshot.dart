@@ -24,6 +24,8 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  final Map<String, RealmEmojiItem> realmEmoji;
+
   final List<RecentDmConversation> recentPrivateConversations;
 
   final List<Subscription> subscriptions;
@@ -80,6 +82,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.realmEmoji,
     required this.recentPrivateConversations,
     required this.subscriptions,
     required this.unreadMsgs,
@@ -120,6 +123,34 @@ class RealmDefaultExternalAccount {
     _$RealmDefaultExternalAccountFromJson(json);
 
   Map<String, dynamic> toJson() => _$RealmDefaultExternalAccountToJson(this);
+}
+
+/// An item in `realm_emoji`.
+///
+/// For docs, search for "realm_emoji:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiItem {
+  final String id;
+  final String name;
+  final String sourceUrl;
+  final String? stillUrl;
+  final bool deactivated;
+  final int? authorId;
+
+  RealmEmojiItem({
+    required this.id,
+    required this.name,
+    required this.sourceUrl,
+    required this.stillUrl,
+    required this.deactivated,
+    required this.authorId,
+  });
+
+  factory RealmEmojiItem.fromJson(Map<String, dynamic> json) =>
+    _$RealmEmojiItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
 
 /// An item in `recent_private_conversations`.
