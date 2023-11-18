@@ -155,6 +155,7 @@ class PerAccountStore extends ChangeNotifier {
   }) : zulipVersion = initialSnapshot.zulipVersion,
        maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
        realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
+       realmEmoji = initialSnapshot.realmEmoji,
        customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields),
        userSettings = initialSnapshot.userSettings,
        unreads = Unreads(initial: initialSnapshot.unreadMsgs, selfUserId: account.userId),
@@ -181,6 +182,7 @@ class PerAccountStore extends ChangeNotifier {
   final String zulipVersion; // TODO get from account; update there on initial snapshot
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+  Map<String, RealmEmojiItem> realmEmoji;
   List<CustomProfileField> customProfileFields;
 
   // Data attached to the self-account on the realm.
@@ -228,6 +230,10 @@ class PerAccountStore extends ChangeNotifier {
   void handleEvent(Event event) {
     if (event is HeartbeatEvent) {
       assert(debugLog("server event: heartbeat"));
+    } else if (event is RealmEmojiUpdateEvent) {
+      assert(debugLog("server event: realm_emoji/update"));
+      realmEmoji = event.realmEmoji;
+      notifyListeners();
     } else if (event is AlertWordsEvent) {
       assert(debugLog("server event: alert_words"));
       // We don't yet store this data, so there's nothing to update.
