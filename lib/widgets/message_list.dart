@@ -474,11 +474,11 @@ class _UnreadMarker extends StatelessWidget {
   final bool isRead;
   final Widget child;
 
-  // The color hsl(227deg 78% 59%) comes from the Figma mockup at:
+  // The color comes from the Figma mockup at:
   //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
   // See discussion about design at:
   //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
-  static final color = const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor();
+  static const color = Color(0xff466ae8);
 
   @override
   Widget build(BuildContext context) {
@@ -496,14 +496,14 @@ class _UnreadMarker extends StatelessWidget {
             // See zulip:web/styles/message_row.css .
             duration: Duration(milliseconds: isRead ? 2000 : 300),
             curve: Curves.easeOut,
-            child: DecoratedBox(
+            child: const DecoratedBox(
               decoration: BoxDecoration(
                 color: color,
                 // TODO(#95): Don't show this extra border in dark mode, see:
                 //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
                 border: Border(left: BorderSide(
                   width: 1,
-                  color: Colors.white.withOpacity(0.6))))))),
+                  color: Color(0x99ffffff))))))),
       ]);
   }
 }
