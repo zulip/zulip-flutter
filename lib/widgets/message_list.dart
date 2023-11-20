@@ -53,6 +53,12 @@ class _MessageListPageState extends State<MessageListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow)),
+      // TODO question for Vlad: for a stream view, should we set
+      //   [backgroundColor] based on stream color, as in this frame:
+      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
+      //   That's not obviously preferred over the default background that
+      //   we matched to the Figma in 21dbae120. See another frame, which uses that:
+      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
         builder: (BuildContext context) => Center(
           child: Column(children: [
@@ -405,26 +411,23 @@ class MarkAsReadWidget extends StatelessWidget {
       secondChild: SizedBox(width: double.infinity,
         // Design referenced from:
         //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
-        child: ColoredBox(
-          // TODO(#368): this should pull from stream color
-          color: Colors.transparent,
-          child: Padding(
-            // vertical padding adjusted for tap target height (48px) of button
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: _UnreadMarker.color,
-                minimumSize: const Size.fromHeight(38),
-                textStyle: const TextStyle(
-                  fontFamily: 'Source Sans 3',
-                  fontSize: 18,
-                  height: (23 / 18),
-                ).merge(weightVariableTextStyle(context)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-              ),
-              onPressed: () => _handlePress(context),
-              icon: const Icon(Icons.playlist_add_check),
-              label: Text(zulipLocalizations.markAsReadLabel(unreadCount)))))));
+        child: Padding(
+          // vertical padding adjusted for tap target height (48px) of button
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: _UnreadMarker.color,
+              minimumSize: const Size.fromHeight(38),
+              textStyle: const TextStyle(
+                fontFamily: 'Source Sans 3',
+                fontSize: 18,
+                height: (23 / 18),
+              ).merge(weightVariableTextStyle(context)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+            ),
+            onPressed: () => _handlePress(context),
+            icon: const Icon(Icons.playlist_add_check),
+            label: Text(zulipLocalizations.markAsReadLabel(unreadCount))))));
   }
 }
 
