@@ -293,10 +293,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final valueKey = key as ValueKey;
         final index = model!.findItemWithMessageId(valueKey.value);
         if (index == -1) return null;
-        return length - 1 - (index - 1);
+        return length - 1 - (index - 2);
       },
       controller: scrollController,
-      itemCount: length + 1,
+      itemCount: length + 2,
       // Setting reverse: true means the scroll starts at the bottom.
       // Flipping the indexes (in itemBuilder) means the start/bottom
       // has the latest messages.
@@ -305,9 +305,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // TODO on new message when scrolled up, anchor scroll to what's in view
       reverse: true,
       itemBuilder: (context, i) {
-        if (i == 0) return MarkAsReadWidget(narrow: widget.narrow);
+        // To reinforce that the end of the feed has been reached:
+        //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
+        if (i == 0) return const SizedBox(height: 36);
 
-        final data = model!.items[length - 1 - (i - 1)];
+        if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
+
+        final data = model!.items[length - 1 - (i - 2)];
         switch (data) {
           case MessageListHistoryStartItem():
             return const Center(
