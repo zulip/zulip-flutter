@@ -330,7 +330,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           case MessageListMessageItem():
             return MessageItem(
               key: ValueKey(data.message.id),
-              trailing: i == 1 ? const SizedBox(height: 8) : const SizedBox(height: 11),
+              trailingWhitespace: i == 1 ? 8 : 11,
               item: data);
         }
       });
@@ -450,11 +450,11 @@ class MessageItem extends StatelessWidget {
   const MessageItem({
     super.key,
     required this.item,
-    this.trailing,
+    this.trailingWhitespace,
   });
 
   final MessageListMessageItem item;
-  final Widget? trailing;
+  final double? trailingWhitespace;
 
   @override
   Widget build(BuildContext context) {
@@ -466,7 +466,7 @@ class MessageItem extends StatelessWidget {
         isRead: message.flags.contains(MessageFlag.read),
         child: Column(children: [
           MessageWithPossibleSender(item: item),
-          if (trailing != null && item.isLastInBlock) trailing!,
+          if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
         ])));
   }
 }
