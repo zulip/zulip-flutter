@@ -123,17 +123,18 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
         && subscriptions.containsKey(entry.key))
       .toList()
       ..sort((a, b) {
+        // TODO "pin" icon on the stream row? dividers in the list?
+        final aPinned = subscriptions[a.key]!.pinToTop;
+        final bPinned = subscriptions[b.key]!.pinToTop;
+        if (aPinned != bPinned) {
+          return aPinned ? -1 : 1;
+        }
+
         final streamA = streams[a.key]!;
         final streamB = streams[b.key]!;
 
         // TODO(i18n) something like JS's String.prototype.localeCompare
         return streamA.name.toLowerCase().compareTo(streamB.name.toLowerCase());
-      })
-      ..sort((a, b) {
-        // TODO "pin" icon on the stream row? dividers in the list?
-        final aPinned = subscriptions[a.key]!.pinToTop;
-        final bPinned = subscriptions[b.key]!.pinToTop;
-        return aPinned == bPinned ? 0 : (aPinned ? -1 : 1);
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
