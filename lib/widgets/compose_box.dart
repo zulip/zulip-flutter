@@ -761,12 +761,15 @@ class _SendButtonState extends State<_SendButton> {
       ),
       child: IconButton(
         tooltip: zulipLocalizations.composeBoxSendTooltip,
-
-        // Match the height of the content input. Zeroing the padding lets the
-        // constraints take over.
-        constraints: const BoxConstraints(minWidth: _sendButtonSize, minHeight: _sendButtonSize),
-        padding: const EdgeInsets.all(0),
-
+        style: const ButtonStyle(
+          // Match the height of the content input.
+          minimumSize: MaterialStatePropertyAll(Size.square(_sendButtonSize)),
+          // With the default of [MaterialTapTargetSize.padded], not just the
+          // tap target but the visual button would get padded to 48px square.
+          // It would be nice if the tap target extended invisibly out from the
+          // button, to make a 48px square, but that's not the behavior we get.
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
         color: foregroundColor,
         icon: const Icon(Icons.send),
         onPressed: _send));
