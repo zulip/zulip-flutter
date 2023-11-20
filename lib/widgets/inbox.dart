@@ -86,8 +86,6 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-
-    final streams = store.streams;
     final subscriptions = store.subscriptions;
 
     // TODO(perf) make an incrementally-updated view-model for InboxPage
@@ -111,30 +109,26 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     }
 
     final sortedUnreadStreams = unreadsModel!.streams.entries
-      .where((entry) =>
-        streams.containsKey(entry.key) // TODO(log) a bug if missing in streams
-        // Filter out any straggling unreads in unsubscribed streams.
-        // There won't normally be any, but it happens with certain infrequent
-        // state changes, typically for less than a few hundred milliseconds.
-        // See [Unreads].
-        //
-        // Also, we want to depend on the subscription data for things like
-        // choosing the stream icon.
-        && subscriptions.containsKey(entry.key))
+      // Filter out any straggling unreads in unsubscribed streams.
+      // There won't normally be any, but it happens with certain infrequent
+      // state changes, typically for less than a few hundred milliseconds.
+      // See [Unreads].
+      //
+      // Also, we want to depend on the subscription data for things like
+      // choosing the stream icon.
+      .where((entry) => subscriptions.containsKey(entry.key))
       .toList()
       ..sort((a, b) {
+        final subA = subscriptions[a.key]!;
+        final subB = subscriptions[b.key]!;
+
         // TODO "pin" icon on the stream row? dividers in the list?
-        final aPinned = subscriptions[a.key]!.pinToTop;
-        final bPinned = subscriptions[b.key]!.pinToTop;
-        if (aPinned != bPinned) {
-          return aPinned ? -1 : 1;
+        if (subA.pinToTop != subB.pinToTop) {
+          return subA.pinToTop ? -1 : 1;
         }
 
-        final streamA = streams[a.key]!;
-        final streamB = streams[b.key]!;
-
         // TODO(i18n) something like JS's String.prototype.localeCompare
-        return streamA.name.toLowerCase().compareTo(streamB.name.toLowerCase());
+        return subA.name.toLowerCase().compareTo(subB.name.toLowerCase());
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
