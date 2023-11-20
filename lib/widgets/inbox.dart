@@ -150,7 +150,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       topicItems.sort((a, b) {
         final (_, _, aLastUnreadId) = a;
         final (_, _, bLastUnreadId) = b;
-        return bLastUnreadId - aLastUnreadId;
+        return bLastUnreadId.compareTo(aLastUnreadId);
       });
       sections.add(_StreamSectionData(streamId, countInStream, topicItems));
     }
