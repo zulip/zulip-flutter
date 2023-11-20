@@ -202,6 +202,8 @@ void main() {
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
         // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
         // (Skipping `streamColors` because there are 100+ of them.)
+        // On how to extract expected results from the replit, see:
+        //   https://github.com/zulip/zulip-flutter/pull/381#discussion_r1399319296
 
         // TODO Fix bug causing our implementation's results to differ from the
         //   replit's. Where they differ, see comment with what the replit gives.
@@ -241,6 +243,8 @@ void main() {
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
         // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
         // (Skipping `streamColors` because there are 100+ of them.)
+        // On how to extract expected results from the replit, see:
+        //   https://github.com/zulip/zulip-flutter/pull/381#discussion_r1399319296
 
         // TODO Fix bug causing our implementation's results to differ from the
         //   replit's. Where they differ, see comment with what the replit gives.
@@ -280,6 +284,8 @@ void main() {
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
         // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
         // (Skipping `streamColors` because there are 100+ of them.)
+        // On how to extract expected results from the replit, see:
+        //   https://github.com/zulip/zulip-flutter/pull/381#discussion_r1399319296
 
         // TODO Fix bug causing our implementation's results to differ from the
         //   replit's. Where they differ, see comment with what the replit gives.
