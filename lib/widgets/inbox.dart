@@ -385,13 +385,7 @@ class _StreamHeaderItem extends _HeaderItem {
   });
 
   @override get title => subscription.name;
-  @override get icon => switch (subscription) {
-    // TODO these icons aren't quite right yet; see this message and the following:
-    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1680637
-    Subscription(isWebPublic: true) => ZulipIcons.globe,
-    Subscription(inviteOnly: true) => ZulipIcons.lock,
-    Subscription() => ZulipIcons.hash_sign,
-  };
+  @override get icon => iconDataForStream(subscription);
   @override get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
   @override get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
   @override get uncollapsedBackgroundColor =>

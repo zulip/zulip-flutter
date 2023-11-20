@@ -88,12 +88,8 @@ class MessageListAppBarTitle extends StatelessWidget {
   final Narrow narrow;
 
   Widget _buildStreamRow(ZulipStream? stream, String text) {
-    final icon = switch (stream) {
-      ZulipStream(isWebPublic: true) => ZulipIcons.globe,
-      ZulipStream(inviteOnly: true) => ZulipIcons.lock,
-      ZulipStream() => ZulipIcons.hash_sign,
-      null => null, // A null [Icon.icon] makes a blank space.
-    };
+    // A null [Icon.icon] makes a blank space.
+    final icon = (stream != null) ? iconDataForStream(stream) : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.

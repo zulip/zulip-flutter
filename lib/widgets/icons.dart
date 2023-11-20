@@ -1,6 +1,8 @@
 
 import 'package:flutter/widgets.dart';
 
+import '../api/model/model.dart';
+
 // ignore_for_file: constant_identifier_names
 
 /// Identifiers for Zulip's custom icons.
@@ -62,4 +64,15 @@ abstract final class ZulipIcons {
   static const IconData user = IconData(0xf10d, fontFamily: "Zulip Icons");
 
   // END GENERATED ICON DATA
+}
+
+IconData iconDataForStream(ZulipStream stream) {
+  // TODO: these icons aren't quite right yet;
+  //   see this message and the one after it:
+  //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1680637
+  return switch(stream) {
+    ZulipStream(isWebPublic: true) => ZulipIcons.globe,
+    ZulipStream(inviteOnly: true) => ZulipIcons.lock,
+    ZulipStream() => ZulipIcons.hash_sign,
+  };
 }
