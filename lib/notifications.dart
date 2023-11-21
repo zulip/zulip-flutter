@@ -57,28 +57,39 @@ class NotificationService {
   ValueNotifier<String?> token = ValueNotifier(null);
 
   Future<void> start() async {
-    if (defaultTargetPlatform != TargetPlatform.android) return; // TODO(#321)
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        // TODO(#324) defer notif setup if user not logged into any accounts
+        //   (in order to avoid calling for permissions)
+        await ZulipBinding.instance.firebaseInitializeApp(
+          options: kFirebaseOptionsAndroid);
 
-    await ZulipBinding.instance.firebaseInitializeApp(
-      options: kFirebaseOptionsAndroid);
+        await NotificationDisplayManager._init();
+        ZulipBinding.instance.firebaseMessagingOnMessage
+          .listen(_onForegroundMessage);
+        ZulipBinding.instance.firebaseMessagingOnBackgroundMessage(
+          _onBackgroundMessage);
 
-    // TODO(#324) defer notif setup if user not logged into any accounts
-    //   (in order to avoid calling for permissions)
+        // Get the FCM registration token, now and upon changes.  See FCM API docs:
+        //   https://firebase.google.com/docs/cloud-messaging/android/client#sample-register
+        ZulipBinding.instance.firebaseMessaging.onTokenRefresh
+          .listen(_onTokenRefresh);
+        await _getFcmToken();
 
-    await NotificationDisplayManager._init();
-    ZulipBinding.instance.firebaseMessagingOnMessage.listen(_onForegroundMessage);
-    ZulipBinding.instance.firebaseMessagingOnBackgroundMessage(_onBackgroundMessage);
-
-    // Get the FCM registration token, now and upon changes.  See FCM API docs:
-    //   https://firebase.google.com/docs/cloud-messaging/android/client#sample-register
-    ZulipBinding.instance.firebaseMessaging.onTokenRefresh.listen(_onTokenRefresh);
-    await _getToken();
+      case TargetPlatform.iOS:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        // Do nothing; we don't offer notifications on these platforms.
+        break;
+    }
   }
 
-  Future<void> _getToken() async {
+  Future<void> _getFcmToken() async {
     final value = await ZulipBinding.instance.firebaseMessaging.getToken();
     // TODO(#323) warn user if getToken returns null, or doesn't timely return
-    assert(debugLog("notif token: $value"));
+    assert(debugLog("notif FCM token: $value"));
     // The call to `getToken` won't cause `onTokenRefresh` to fire if we
     // already have a token from a previous run of the app.
     // So we need to use the `getToken` return value.
