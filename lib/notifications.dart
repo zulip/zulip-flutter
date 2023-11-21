@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'api/core.dart';
 import 'api/notifications.dart';
+import 'api/route/notifications.dart';
 import 'firebase_options.dart';
 import 'log.dart';
 import 'model/binding.dart';
@@ -106,6 +108,20 @@ class NotificationService {
     // some reason the FCM system decides to replace the token.  So both paths
     // need to save the value.
     token.value = value;
+  }
+
+  static Future<void> registerToken(ApiConnection connection, {required String token}) async {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        await registerFcmToken(connection, token: token);
+
+      case TargetPlatform.iOS:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        assert(false);
+    }
   }
 
   static void _onForegroundMessage(FirebaseRemoteMessage message) {

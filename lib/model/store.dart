@@ -12,7 +12,6 @@ import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
-import '../api/route/notifications.dart';
 import '../log.dart';
 import '../notifications.dart';
 import 'autocomplete.dart';
@@ -544,8 +543,6 @@ class LivePerAccountStore extends PerAccountStore {
   /// TODO The returned future isn't especially meaningful (it may or may not
   ///   mean we actually sent the token).  Make it just `void` once we fix the
   ///   one test that relies on the future.
-  ///
-  /// TODO(#321) handle iOS/APNs; currently only Android/FCM
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the registerFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
@@ -557,6 +554,6 @@ class LivePerAccountStore extends PerAccountStore {
   Future<void> _registerNotificationToken() async {
     final token = NotificationService.instance.token.value;
     if (token == null) return;
-    await registerFcmToken(connection, token: token);
+    await NotificationService.registerToken(connection, token: token);
   }
 }
