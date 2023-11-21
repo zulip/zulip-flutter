@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
-import '../firebase_options.dart';
 import '../widgets/store.dart';
 import 'store.dart';
 
@@ -92,7 +91,8 @@ abstract class ZulipBinding {
   /// Initialize Firebase, to use for notifications.
   ///
   /// This wraps [firebase_core.Firebase.initializeApp].
-  Future<void> firebaseInitializeApp();
+  Future<void> firebaseInitializeApp({
+      required firebase_core.FirebaseOptions options});
 
   /// Wraps [firebase_messaging.FirebaseMessaging.instance].
   firebase_messaging.FirebaseMessaging get firebaseMessaging;
@@ -174,22 +174,9 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<void> firebaseInitializeApp() {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return firebase_core.Firebase.initializeApp(options: kFirebaseOptionsAndroid);
-
-      case TargetPlatform.iOS:
-        // TODO(#321): Set up Firebase on iOS.  (Or do something else instead.)
-        return Future.value();
-
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.fuchsia:
-        // Do nothing; we don't offer notifications on these platforms.
-        return Future.value();
-    }
+  Future<void> firebaseInitializeApp({
+      required firebase_core.FirebaseOptions options}) {
+    return firebase_core.Firebase.initializeApp(options: options);
   }
 
   @override
