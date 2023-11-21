@@ -80,19 +80,6 @@ class ZulipApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ThemeData(
-      // This sets up the font fallback for normal text that
-      // may contain an emoji, where it will use any font from the "sans-serif"
-      // group to fetch the glyphs and fallback to "Noto Color Emoji" for emojis.
-      //
-      // Note that specifiying only "Noto Color Emoji" in the fallback list,
-      // Flutter tries to use it to draw even the non emoji characters
-      // which leads to broken text rendering.
-      fontFamilyFallback: [
-        // …since apparently iOS doesn't support 'sans-serif', use this instead:
-        //   https://github.com/flutter/flutter/issues/63507#issuecomment-1698504425
-        if (Theme.of(context).platform == TargetPlatform.iOS) '.AppleSystemUIFont' else 'sans-serif',
-        'Noto Color Emoji',
-      ],
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.
       // The Zulip brand color is a starting point, but doesn't end up as
