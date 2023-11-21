@@ -213,6 +213,55 @@ class TestZulipBinding extends ZulipBinding {
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
+  ////////////////////////////////
+  // Permissions.
+
+  NotificationSettings requestPermissionResult = const NotificationSettings(
+    alert: AppleNotificationSetting.enabled,
+    announcement: AppleNotificationSetting.disabled,
+    authorizationStatus: AuthorizationStatus.authorized,
+    badge: AppleNotificationSetting.enabled,
+    carPlay: AppleNotificationSetting.disabled,
+    lockScreen: AppleNotificationSetting.enabled,
+    notificationCenter: AppleNotificationSetting.enabled,
+    showPreviews: AppleShowPreviewSetting.whenAuthenticated,
+    timeSensitive: AppleNotificationSetting.disabled,
+    criticalAlert: AppleNotificationSetting.disabled,
+    sound: AppleNotificationSetting.enabled,
+  );
+
+  List<FirebaseMessagingRequestPermissionCall> takeRequestPermissionCalls() {
+    final result = _requestPermissionCalls;
+    _requestPermissionCalls = [];
+    return result;
+  }
+  List<FirebaseMessagingRequestPermissionCall> _requestPermissionCalls = [];
+
+  @override
+  Future<NotificationSettings> requestPermission({
+    bool alert = true,
+    bool announcement = false,
+    bool badge = true,
+    bool carPlay = false,
+    bool criticalAlert = false,
+    bool provisional = false,
+    bool sound = true,
+  }) async {
+    _requestPermissionCalls.add((
+      alert: alert,
+      announcement: announcement,
+      badge: badge,
+      carPlay: carPlay,
+      criticalAlert: criticalAlert,
+      provisional: provisional,
+      sound: sound,
+    ));
+    return requestPermissionResult;
+  }
+
+  ////////////////////////////////
+  // Tokens.
+
   String? _initialToken;
 
   /// Set the token to a new value, as if it were newly generated.
@@ -248,6 +297,27 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
   @override
   Stream<String> get onTokenRefresh => _tokenController.stream;
 
+  @override
+  Future<String?> getAPNSToken() async {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        // In principle the APNs token is unrelated to any FCM token.
+        // But for tests it's convenient to have just one version of
+        // [TestBinding.firebaseMessagingInitialToken].
+        return _initialToken;
+
+      case TargetPlatform.android:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        return null;
+    }
+  }
+
+  ////////////////////////////////
+  // Messages.
+
   StreamController<RemoteMessage> onMessage = StreamController.broadcast();
 
   /// Controls [TestZulipBinding.firebaseMessagingOnBackgroundMessage].
@@ -256,6 +326,16 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
   /// to any handler registered through that method.
   StreamController<RemoteMessage> onBackgroundMessage = StreamController.broadcast();
 }
+
+typedef FirebaseMessagingRequestPermissionCall = ({
+  bool alert,
+  bool announcement,
+  bool badge,
+  bool carPlay,
+  bool criticalAlert,
+  bool provisional,
+  bool sound,
+});
 
 class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
   InitializationSettings? initializationSettings;
