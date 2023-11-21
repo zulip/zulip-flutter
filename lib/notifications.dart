@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'api/notifications.dart';
+import 'firebase_options.dart';
 import 'log.dart';
 import 'model/binding.dart';
 import 'model/narrow.dart';
@@ -58,7 +59,8 @@ class NotificationService {
   Future<void> start() async {
     if (defaultTargetPlatform != TargetPlatform.android) return; // TODO(#321)
 
-    await ZulipBinding.instance.firebaseInitializeApp();
+    await ZulipBinding.instance.firebaseInitializeApp(
+      options: kFirebaseOptionsAndroid);
 
     // TODO(#324) defer notif setup if user not logged into any accounts
     //   (in order to avoid calling for permissions)
