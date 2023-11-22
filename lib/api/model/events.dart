@@ -195,7 +195,7 @@ class CustomProfileFieldsEvent extends Event {
 ///
 /// The corresponding API docs are in several places for
 /// different values of `op`; see subclasses.
-abstract class RealmUserEvent extends Event {
+sealed class RealmUserEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'realm_user';
@@ -496,7 +496,7 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
 ///
 /// The corresponding API docs are in several places for
 /// different values of `op`; see subclasses.
-abstract class StreamEvent extends Event {
+sealed class StreamEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
