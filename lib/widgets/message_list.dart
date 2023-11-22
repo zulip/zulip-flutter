@@ -46,13 +46,30 @@ class MessageListPage extends StatefulWidget {
   State<MessageListPage> createState() => _MessageListPageState();
 }
 
+const _kFallbackStreamColor = Color(0xfff5f5f5);
+
 class _MessageListPageState extends State<MessageListPage> {
   final GlobalKey<ComposeBoxController> _composeBoxKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+
+    final Color backgroundColor;
+    switch(widget.narrow) {
+      case AllMessagesNarrow():
+        backgroundColor = _kFallbackStreamColor;
+      case StreamNarrow(:final streamId):
+      case TopicNarrow(:final streamId):
+        backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
+          ?? _kFallbackStreamColor;
+      case DmNarrow():
+        backgroundColor = _kFallbackStreamColor;
+    }
+
     return Scaffold(
-      appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow)),
+      appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow),
+        backgroundColor: backgroundColor),
       // TODO question for Vlad: for a stream view, should we set
       //   [backgroundColor] based on stream color, as in this frame:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
