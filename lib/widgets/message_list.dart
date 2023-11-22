@@ -559,6 +559,9 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
         ? Colors.white
         : Colors.black;
+    final textStyle = TextStyle(
+      color: contrastingColor,
+    );
 
     final Widget streamWidget;
     if (!showStream) {
@@ -571,11 +574,18 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: StreamNarrow(message.streamId))),
-        child: RecipientHeaderChevronContainer(
-          color: streamColor,
+        child: Row(children: [
+          const SizedBox(width: 16),
           // TODO globe/lock icons for web-public and private streams
-          child: Text(streamName,
-            style: TextStyle(color: contrastingColor))));
+          Text(streamName, style: textStyle),
+          Padding(
+            // Figma has 5px horizontal padding around an 8px wide icon.
+            // Icon is 16px wide here so horizontal padding is 1px.
+            padding: const EdgeInsets.symmetric(horizontal: 1),
+            child: Icon(size: 16,
+              color: contrastingColor.withOpacity(0.6),
+              ZulipIcons.chevron_right)),
+        ]));
     }
 
     return GestureDetector(
@@ -595,7 +605,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
                 // TODO: Give a way to see the whole topic (maybe a
                 //   long-press interaction?)
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600)))),
+                style: textStyle))),
           // TODO topic links?
           // Then web also has edit/resolve/mute buttons. Skip those for mobile.
           RecipientHeaderDate(message: message,
