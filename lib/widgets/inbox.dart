@@ -155,22 +155,25 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
 
     return Scaffold(
       appBar: AppBar(title: const Text('Inbox')),
-      body: StickyHeaderListView.builder(
-        itemCount: sections.length,
-        itemBuilder: (context, index) {
-          final section = sections[index];
-          switch (section) {
-            case _AllDmsSectionData():
-              return _AllDmsSection(
-                data: section,
-                collapsed: allDmsCollapsed,
-                pageState: this,
-              );
-            case _StreamSectionData(:var streamId):
-              final collapsed = collapsedStreamIds.contains(streamId);
-              return _StreamSection(data: section, collapsed: collapsed, pageState: this);
-          }
-        }));
+      body: SafeArea(
+        // Don't pad the bottom here; we want the list content to do that.
+        bottom: false,
+        child: StickyHeaderListView.builder(
+          itemCount: sections.length,
+          itemBuilder: (context, index) {
+            final section = sections[index];
+            switch (section) {
+              case _AllDmsSectionData():
+                return _AllDmsSection(
+                  data: section,
+                  collapsed: allDmsCollapsed,
+                  pageState: this,
+                );
+              case _StreamSectionData(:var streamId):
+                final collapsed = collapsedStreamIds.contains(streamId);
+                return _StreamSection(data: section, collapsed: collapsed, pageState: this);
+            }
+          })));
   }
 }
 
