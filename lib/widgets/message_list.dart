@@ -569,7 +569,11 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     }
     final textStyle = TextStyle(
       color: contrastingColor,
-    );
+      fontFamily: 'Source Sans 3',
+      fontSize: 16,
+      letterSpacing: 0.02 * 16,
+      height: (18 / 16),
+    ).merge(weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900));
 
     final Widget streamWidget;
     if (!showStream) {
@@ -582,18 +586,25 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: StreamNarrow(message.streamId))),
-        child: Row(children: [
-          const SizedBox(width: 16),
-          // TODO globe/lock icons for web-public and private streams
-          Text(streamName, style: textStyle),
-          Padding(
-            // Figma has 5px horizontal padding around an 8px wide icon.
-            // Icon is 16px wide here so horizontal padding is 1px.
-            padding: const EdgeInsets.symmetric(horizontal: 1),
-            child: Icon(size: 16,
-              color: contrastingColor.withOpacity(0.6),
-              ZulipIcons.chevron_right)),
-        ]));
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(width: 16),
+            // TODO globe/lock icons for web-public and private streams
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              child: Text(streamName,
+                style: textStyle,
+                overflow: TextOverflow.ellipsis),
+            ),
+            Padding(
+              // Figma has 5px horizontal padding around an 8px wide icon.
+              // Icon is 16px wide here so horizontal padding is 1px.
+              padding: const EdgeInsets.symmetric(horizontal: 1),
+              child: Icon(size: 16,
+                color: contrastingColor.withOpacity(0.6),
+                ZulipIcons.chevron_right)),
+          ]));
     }
 
     return GestureDetector(
@@ -602,23 +613,24 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           narrow: TopicNarrow.ofMessage(message))),
       child: ColoredBox(
         color: backgroundColor,
-        child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-          // TODO(#282): Long stream name will break layout; find a fix.
-          streamWidget,
-          Expanded(
-            child: Padding(
-              // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.
-              padding: const EdgeInsets.fromLTRB(4, 3, 3, 2),
-              child: Text(topic,
-                // TODO: Give a way to see the whole topic (maybe a
-                //   long-press interaction?)
-                overflow: TextOverflow.ellipsis,
-                style: textStyle))),
-          // TODO topic links?
-          // Then web also has edit/resolve/mute buttons. Skip those for mobile.
-          RecipientHeaderDate(message: message,
-            color: contrastingColor.withOpacity(0.4)),
-        ])));
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // TODO(#282): Long stream name will break layout; find a fix.
+            streamWidget,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                child: Text(topic,
+                  // TODO: Give a way to see the whole topic (maybe a
+                  //   long-press interaction?)
+                  overflow: TextOverflow.ellipsis,
+                  style: textStyle))),
+            // TODO topic links?
+            // Then web also has edit/resolve/mute buttons. Skip those for mobile.
+            RecipientHeaderDate(message: message,
+              color: contrastingColor.withOpacity(0.4)),
+          ])));
   }
 }
 
@@ -679,7 +691,10 @@ class RecipientHeaderDate extends StatelessWidget {
           color: color,
           fontFamily: 'Source Sans 3',
           fontSize: 16,
-          height: (19 / 16),
+          // In Figma this has a line-height of 19, but using 18
+          // here to match the stream/topic text widgets helps
+          // to align all the text to the same baseline.
+          height: (18 / 16),
           // This is equivalent to css `all-small-caps`, see:
           //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
           fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
