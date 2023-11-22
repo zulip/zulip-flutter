@@ -57,15 +57,19 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
     final sorted = model!.sorted;
     return Scaffold(
       appBar: AppBar(title: const Text('Direct messages')),
-      body: ListView.builder(
-        itemCount: sorted.length,
-        itemBuilder: (context, index) {
-          final narrow = sorted[index];
-          return RecentDmConversationsItem(
-            narrow: narrow,
-            unreadCount: unreadsModel!.countInDmNarrow(narrow),
-          );
-        }));
+      body: SafeArea(
+        // Don't pad the bottom here; we want the list content to do that.
+        bottom: false,
+        child: ListView.builder(
+          itemCount: sorted.length,
+          itemBuilder: (context, index) {
+            final narrow = sorted[index];
+            return RecentDmConversationsItem(
+              narrow: narrow,
+              unreadCount: unreadsModel!.countInDmNarrow(narrow),
+            );
+          }),
+      ));
   }
 }
 
