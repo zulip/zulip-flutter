@@ -175,6 +175,36 @@ const _$UserRoleEnumMap = {
   UserRole.unknown: null,
 };
 
+StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
+    StreamCreateEvent(
+      id: json['id'] as int,
+      streams: (json['streams'] as List<dynamic>)
+          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$StreamCreateEventToJson(StreamCreateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'streams': instance.streams,
+    };
+
+StreamDeleteEvent _$StreamDeleteEventFromJson(Map<String, dynamic> json) =>
+    StreamDeleteEvent(
+      id: json['id'] as int,
+      streams: (json['streams'] as List<dynamic>)
+          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$StreamDeleteEventToJson(StreamDeleteEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'streams': instance.streams,
+    };
+
 SubscriptionAddEvent _$SubscriptionAddEventFromJson(
         Map<String, dynamic> json) =>
     SubscriptionAddEvent(
@@ -283,36 +313,6 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
       'op': instance.op,
       'stream_ids': instance.streamIds,
       'user_ids': instance.userIds,
-    };
-
-StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
-    StreamCreateEvent(
-      id: json['id'] as int,
-      streams: (json['streams'] as List<dynamic>)
-          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$StreamCreateEventToJson(StreamCreateEvent instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'type': instance.type,
-      'streams': instance.streams,
-    };
-
-StreamDeleteEvent _$StreamDeleteEventFromJson(Map<String, dynamic> json) =>
-    StreamDeleteEvent(
-      id: json['id'] as int,
-      streams: (json['streams'] as List<dynamic>)
-          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$StreamDeleteEventToJson(StreamDeleteEvent instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'type': instance.type,
-      'streams': instance.streams,
     };
 
 UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
