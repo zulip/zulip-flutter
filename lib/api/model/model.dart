@@ -4,6 +4,8 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../widgets/color.dart';
+import 'events.dart';
+import 'initial_snapshot.dart';
 import 'reaction.dart';
 
 export 'reaction.dart';
@@ -107,6 +109,34 @@ class CustomProfileFieldExternalAccountData {
     _$CustomProfileFieldExternalAccountDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$CustomProfileFieldExternalAccountDataToJson(this);
+}
+
+/// An item in [InitialSnapshot.realmEmoji] or [RealmEmojiUpdateEvent].
+///
+/// For docs, search for "realm_emoji:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiItem {
+  final String id;
+  final String name;
+  final String sourceUrl;
+  final String? stillUrl;
+  final bool deactivated;
+  final int? authorId;
+
+  RealmEmojiItem({
+    required this.id,
+    required this.name,
+    required this.sourceUrl,
+    required this.stillUrl,
+    required this.deactivated,
+    required this.authorId,
+  });
+
+  factory RealmEmojiItem.fromJson(Map<String, dynamic> json) =>
+    _$RealmEmojiItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
 
 /// As in [InitialSnapshot.realmUsers], [InitialSnapshot.realmNonActiveUsers], and [InitialSnapshot.crossRealmBots].
