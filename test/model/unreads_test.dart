@@ -5,6 +5,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
 
 import '../example_data.dart' as eg;
@@ -14,6 +15,7 @@ void main() {
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Unreads model;
+  late PerAccountStore streamStore; // TODO reduce this to StreamStore
   late int notifiedCount;
 
   void checkNotified({required int count}) {
@@ -34,8 +36,10 @@ void main() {
       oldUnreadsMissing: false,
     ),
   }) {
+    streamStore = eg.store();
     notifiedCount = 0;
-    model = Unreads(initial: initial, selfUserId: eg.selfUser.userId)
+    model = Unreads(initial: initial,
+        selfUserId: eg.selfUser.userId, streamStore: streamStore)
       ..addListener(() {
         notifiedCount++;
       });

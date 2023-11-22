@@ -153,6 +153,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required ApiConnection connection,
     required InitialSnapshot initialSnapshot,
   }) {
+    final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       account: account,
       connection: connection,
@@ -162,13 +163,17 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       realmEmoji: initialSnapshot.realmEmoji,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       userSettings: initialSnapshot.userSettings,
-      unreads: Unreads(initial: initialSnapshot.unreadMsgs, selfUserId: account.userId),
+      unreads: Unreads(
+        initial: initialSnapshot.unreadMsgs,
+        selfUserId: account.userId,
+        streamStore: streams,
+      ),
       users: Map.fromEntries(
         initialSnapshot.realmUsers
         .followedBy(initialSnapshot.realmNonActiveUsers)
         .followedBy(initialSnapshot.crossRealmBots)
         .map((user) => MapEntry(user.userId, user))),
-      streams: StreamStoreImpl(initialSnapshot: initialSnapshot),
+      streams: streams,
       recentDmConversationsView: RecentDmConversationsView(
         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
     );

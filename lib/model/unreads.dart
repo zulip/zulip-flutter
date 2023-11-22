@@ -9,6 +9,7 @@ import '../api/model/events.dart';
 import '../log.dart';
 import 'algorithms.dart';
 import 'narrow.dart';
+import 'stream.dart';
 
 /// The view-model for unread messages.
 ///
@@ -39,7 +40,11 @@ import 'narrow.dart';
 // TODO When loading a message list with stream messages, check all the stream
 //   messages and refresh [mentions] (see [mentions] dartdoc).
 class Unreads extends ChangeNotifier {
-  factory Unreads({required UnreadMessagesSnapshot initial, required selfUserId}) {
+  factory Unreads({
+    required UnreadMessagesSnapshot initial,
+    required selfUserId,
+    required StreamStore streamStore,
+  }) {
     final streams = <int, Map<String, QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
@@ -62,6 +67,7 @@ class Unreads extends ChangeNotifier {
     }
 
     return Unreads._(
+      streamStore: streamStore,
       streams: streams,
       dms: dms,
       mentions: mentions,
@@ -71,12 +77,15 @@ class Unreads extends ChangeNotifier {
   }
 
   Unreads._({
+    required this.streamStore,
     required this.streams,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
     required this.selfUserId,
   });
+
+  final StreamStore streamStore;
 
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
