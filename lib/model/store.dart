@@ -148,25 +148,46 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   ///
   /// For a [PerAccountStore] that polls an event queue to keep itself up to
   /// date, use [LivePerAccountStore.fromInitialSnapshot].
-  PerAccountStore.fromInitialSnapshot({
+  factory PerAccountStore.fromInitialSnapshot({
+    required Account account,
+    required ApiConnection connection,
+    required InitialSnapshot initialSnapshot,
+  }) {
+    return PerAccountStore._(
+      account: account,
+      connection: connection,
+      zulipVersion: initialSnapshot.zulipVersion,
+      maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
+      realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
+      realmEmoji: initialSnapshot.realmEmoji,
+      customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
+      userSettings: initialSnapshot.userSettings,
+      unreads: Unreads(initial: initialSnapshot.unreadMsgs, selfUserId: account.userId),
+      users: Map.fromEntries(
+        initialSnapshot.realmUsers
+        .followedBy(initialSnapshot.realmNonActiveUsers)
+        .followedBy(initialSnapshot.crossRealmBots)
+        .map((user) => MapEntry(user.userId, user))),
+      streams: StreamStoreImpl(initialSnapshot: initialSnapshot),
+      recentDmConversationsView: RecentDmConversationsView(
+        initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
+    );
+  }
+
+  PerAccountStore._({
     required this.account,
     required this.connection,
-    required InitialSnapshot initialSnapshot,
-  }) : zulipVersion = initialSnapshot.zulipVersion,
-       maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
-       realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
-       realmEmoji = initialSnapshot.realmEmoji,
-       customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields),
-       userSettings = initialSnapshot.userSettings,
-       unreads = Unreads(initial: initialSnapshot.unreadMsgs, selfUserId: account.userId),
-       users = Map.fromEntries(
-         initialSnapshot.realmUsers
-         .followedBy(initialSnapshot.realmNonActiveUsers)
-         .followedBy(initialSnapshot.crossRealmBots)
-         .map((user) => MapEntry(user.userId, user))),
-       _streams = StreamStoreImpl(initialSnapshot: initialSnapshot),
-       recentDmConversationsView = RecentDmConversationsView(
-         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId);
+    required this.zulipVersion,
+    required this.maxFileUploadSizeMib,
+    required this.realmDefaultExternalAccounts,
+    required this.realmEmoji,
+    required this.customProfileFields,
+    required this.userSettings,
+    required this.unreads,
+    required this.users,
+    required streams,
+    required this.recentDmConversationsView,
+  }) : _streams = streams;
 
   final Account account;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
