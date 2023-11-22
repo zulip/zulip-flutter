@@ -341,12 +341,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: CircularProgressIndicator())); // TODO perhaps a different indicator
           case MessageListRecipientHeaderItem():
-            final header = RecipientHeader(message: data.message);
+            final header = RecipientHeader(message: data.message, narrow: widget.narrow);
             return StickyHeaderItem(allowOverflow: true,
               header: header, child: header);
           case MessageListMessageItem():
+            final header = RecipientHeader(message: data.message, narrow: widget.narrow);
             return MessageItem(
               key: ValueKey(data.message.id),
+              header: header,
               trailingWhitespace: i == 1 ? 8 : 11,
               item: data);
         }
@@ -445,16 +447,17 @@ class MarkAsReadWidget extends StatelessWidget {
 }
 
 class RecipientHeader extends StatelessWidget {
-  const RecipientHeader({super.key, required this.message});
+  const RecipientHeader({super.key, required this.message, required this.narrow});
 
   final Message message;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
-    // TODO recipient headings depend on narrow
     final message = this.message;
     return switch (message) {
-      StreamMessage() => StreamTopicRecipientHeader(message: message),
+      StreamMessage() => StreamMessageRecipientHeader(message: message,
+        showStream: narrow is AllMessagesNarrow),
       DmMessage() => DmRecipientHeader(message: message),
     };
   }
@@ -464,10 +467,12 @@ class MessageItem extends StatelessWidget {
   const MessageItem({
     super.key,
     required this.item,
+    required this.header,
     this.trailingWhitespace,
   });
 
   final MessageListMessageItem item;
+  final Widget header;
   final double? trailingWhitespace;
 
   @override
@@ -475,7 +480,7 @@ class MessageItem extends StatelessWidget {
     final message = item.message;
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
-      header: RecipientHeader(message: message),
+      header: header,
       child: _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
         child: ColoredBox(
@@ -528,17 +533,23 @@ class _UnreadMarker extends StatelessWidget {
   }
 }
 
-class StreamTopicRecipientHeader extends StatelessWidget {
-  const StreamTopicRecipientHeader({super.key, required this.message});
+class StreamMessageRecipientHeader extends StatelessWidget {
+  const StreamMessageRecipientHeader({
+    super.key,
+    required this.message,
+    required this.showStream,
+  });
 
   final StreamMessage message;
+  final bool showStream;
 
   @override
   Widget build(BuildContext context) {
+    // For design specs, see:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
+    //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
 
-    final stream = store.streams[message.streamId];
-    final streamName = stream?.name ?? message.displayRecipient; // TODO(log) if missing
     final topic = message.subject;
 
     final subscription = store.subscriptions[message.streamId];
@@ -548,6 +559,24 @@ class StreamTopicRecipientHeader extends StatelessWidget {
         ? Colors.white
         : Colors.black;
 
+    final Widget streamWidget;
+    if (!showStream) {
+      streamWidget = const SizedBox.shrink();
+    } else {
+      final stream = store.streams[message.streamId];
+      final streamName = stream?.name ?? message.displayRecipient; // TODO(log) if missing
+
+      streamWidget = GestureDetector(
+        onTap: () => Navigator.push(context,
+          MessageListPage.buildRoute(context: context,
+            narrow: StreamNarrow(message.streamId))),
+        child: RecipientHeaderChevronContainer(
+          color: streamColor,
+          // TODO globe/lock icons for web-public and private streams
+          child: Text(streamName,
+            style: TextStyle(color: contrastingColor))));
+    }
+
     return GestureDetector(
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
@@ -556,14 +585,7 @@ class StreamTopicRecipientHeader extends StatelessWidget {
         color: _kStreamMessageBorderColor,
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           // TODO(#282): Long stream name will break layout; find a fix.
-          GestureDetector(
-            onTap: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: StreamNarrow(message.streamId))),
-            child: RecipientHeaderChevronContainer(
-              color: streamColor,
-              // TODO globe/lock icons for web-public and private streams
-              child: Text(streamName, style: TextStyle(color: contrastingColor)))),
+          streamWidget,
           Expanded(
             child: Padding(
               // Web has padding 9, 3, 3, 2 here; but 5px is the chevron.

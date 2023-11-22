@@ -40,10 +40,12 @@ void main() {
     bool foundOldest = true,
     int? messageCount,
     List<Message>? messages,
+    List<ZulipStream>? streams,
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(unreadMsgs: unreadMsgs));
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+      streams: streams, unreadMsgs: unreadMsgs));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
@@ -194,22 +196,65 @@ void main() {
   });
 
   group('recipient headers', () {
+    group('StreamMessageRecipientHeader', () {
+      final stream = eg.stream(name: 'stream name');
+      final message = eg.streamMessage(stream: stream, topic: 'topic name');
+
+      FinderResult findInMessageList(String text) {
+        // Stream name shows up in [AppBar] so need to avoid matching that
+        return find.descendant(
+          of: find.byType(MessageList),
+          matching: find.text(text)).evaluate();
+      }
+
+      testWidgets('show stream name in AllMessagesNarrow', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const AllMessagesNarrow(),
+          messages: [message], streams: [stream]);
+        await tester.pump();
+        check(findInMessageList('stream name')).length.equals(1);
+        check(findInMessageList('topic name')).length.equals(1);
+      });
+
+      testWidgets('do not show stream name in StreamNarrow', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: StreamNarrow(stream.streamId),
+          messages: [message], streams: [stream]);
+        await tester.pump();
+        check(findInMessageList('stream name')).length.equals(0);
+        check(findInMessageList('topic name')).length.equals(1);
+      });
+
+      testWidgets('do not show stream name in TopicNarrow', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          messages: [message], streams: [stream]);
+        await tester.pump();
+        check(findInMessageList('stream name')).length.equals(0);
+        check(findInMessageList('topic name')).length.equals(1);
+      });
+    });
+
     testWidgets('show stream name from message when stream unknown', (tester) async {
       // This can perfectly well happen, because message fetches can race
       // with events.
       final stream = eg.stream(name: 'stream name');
-      await setupMessageListPage(tester, messages: [
-        eg.streamMessage(stream: stream),
-      ]);
+      await setupMessageListPage(tester,
+        narrow: const AllMessagesNarrow(),
+        messages: [
+          eg.streamMessage(stream: stream),
+        ]);
       await tester.pump();
       tester.widget(find.text('stream name'));
     });
 
     testWidgets('show stream name from stream data when known', (tester) async {
       final stream = eg.stream(name: 'old stream name');
-      await setupMessageListPage(tester, messages: [
-        eg.streamMessage(stream: stream),
-      ]);
+      await setupMessageListPage(tester,
+        narrow: const AllMessagesNarrow(),
+        messages: [
+          eg.streamMessage(stream: stream),
+        ]);
       // TODO(#182) this test would be more realistic using a StreamUpdateEvent
       store.handleEvent(StreamCreateEvent(id: stream.streamId, streams: [
         ZulipStream.fromJson({
