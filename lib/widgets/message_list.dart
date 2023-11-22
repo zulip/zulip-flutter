@@ -561,7 +561,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 
     final Widget streamWidget;
     if (!showStream) {
-      streamWidget = const SizedBox.shrink();
+      streamWidget = const SizedBox(width: 16);
     } else {
       final stream = store.streams[message.streamId];
       final streamName = stream?.name ?? message.displayRecipient; // TODO(log) if missing
@@ -653,7 +653,7 @@ class RecipientHeaderDate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
       child: Text(
         style: _kRecipientHeaderDateStyle,
         _kRecipientHeaderDateFormat.format(
@@ -687,7 +687,7 @@ class RecipientHeaderChevronContainer extends StatelessWidget {
       decoration: ShapeDecoration(color: color, shape: recipientBorderShape),
       padding: const EdgeInsets.only(right: chevronLength),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(6, 4, 6, 3), child: child));
+        padding: const EdgeInsets.fromLTRB(16, 4, 6, 3), child: child));
   }
 }
 
@@ -738,7 +738,7 @@ class MessageWithPossibleSender extends StatelessWidget {
               ])),
           Container(
             width: 80,
-            padding: const EdgeInsets.only(top: 4, right: 2),
+            padding: const EdgeInsets.only(top: 4, right: 16 - 8),
             alignment: Alignment.topRight,
             child: Text(time, style: _kMessageTimestampStyle)),
         ])));
