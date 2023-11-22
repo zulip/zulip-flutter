@@ -418,8 +418,9 @@ class LiveGlobalStore extends GlobalStore {
   final AppDatabase _db;
 
   @override
-  Future<PerAccountStore> loadPerAccount(Account account) {
-    return LivePerAccountStore.load(account);
+  Future<PerAccountStore> loadPerAccount(Account account) async {
+    final updateMachine = await UpdateMachine.load(account);
+    return updateMachine.store;
   }
 
   @override
@@ -436,26 +437,24 @@ class LiveGlobalStore extends GlobalStore {
   }
 }
 
-/// A [PerAccountStore] which polls an event queue to stay up to date.
+/// A [PerAccountStore] plus an event-polling loop to stay up to date.
 // TODO decouple "live"ness from polling and registerNotificationToken;
 //   the latter are made up of testable internal logic, not external integration
-class LivePerAccountStore extends PerAccountStore {
-  LivePerAccountStore.fromInitialSnapshot({
-    required super.account,
-    required super.connection,
-    required super.initialSnapshot,
+class UpdateMachine {
+  UpdateMachine.fromInitialSnapshot({
+    required this.store,
+    required InitialSnapshot initialSnapshot,
   }) : queueId = initialSnapshot.queueId ?? (() {
          // The queueId is optional in the type, but should only be missing in the
          // case of unauthenticated access to a web-public realm.  We authenticated.
          throw Exception("bad initial snapshot: missing queueId");
        })(),
-       lastEventId = initialSnapshot.lastEventId,
-       super.fromInitialSnapshot();
+       lastEventId = initialSnapshot.lastEventId;
 
   /// Load the user's data from the server, and start an event queue going.
   ///
   /// In the future this might load an old snapshot from local storage first.
-  static Future<PerAccountStore> load(Account account) async {
+  static Future<UpdateMachine> load(Account account) async {
     final connection = ApiConnection.live(
       realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
       email: account.email, apiKey: account.apiKey);
@@ -466,30 +465,33 @@ class LivePerAccountStore extends PerAccountStore {
     // TODO log the time better
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
 
-    final store = LivePerAccountStore.fromInitialSnapshot(
+    final store = PerAccountStore.fromInitialSnapshot(
       account: account,
       connection: connection,
       initialSnapshot: initialSnapshot,
     );
-    store.poll();
+    final updateMachine = UpdateMachine.fromInitialSnapshot(
+      store: store, initialSnapshot: initialSnapshot);
+    updateMachine.poll();
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
-    store.registerNotificationToken();
-    return store;
+    updateMachine.registerNotificationToken();
+    return updateMachine;
   }
 
+  final PerAccountStore store;
   final String queueId;
   int lastEventId;
 
   void poll() async {
     while (true) {
-      final result = await getEvents(connection,
+      final result = await getEvents(store.connection,
         queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
       // TODO abort long-poll and close ApiConnection on [dispose]
       final events = result.events;
       for (final event in events) {
-        handleEvent(event);
+        store.handleEvent(event);
       }
       if (events.isNotEmpty) {
         lastEventId = events.last.id;
@@ -513,6 +515,6 @@ class LivePerAccountStore extends PerAccountStore {
   Future<void> _registerNotificationToken() async {
     final token = NotificationService.instance.token.value;
     if (token == null) return;
-    await NotificationService.registerToken(connection, token: token);
+    await NotificationService.registerToken(store.connection, token: token);
   }
 }

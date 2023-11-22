@@ -108,13 +108,13 @@ void main() {
     check(completers(1)).length.equals(1);
   });
 
-  group('PerAccountStore.registerNotificationToken', () {
-    late LivePerAccountStore store;
+  group('UpdateMachine.registerNotificationToken', () {
+    late UpdateMachine updateMachine;
     late FakeApiConnection connection;
 
     void prepareStore() {
-      store = eg.liveStore();
-      connection = store.connection as FakeApiConnection;
+      updateMachine = eg.updateMachine();
+      connection = updateMachine.store.connection as FakeApiConnection;
     }
 
     void checkLastRequestApns({required String token, required String appid}) {
@@ -143,7 +143,7 @@ void main() {
       // On store startup, send the token.
       prepareStore();
       connection.prepare(json: {});
-      await store.registerNotificationToken();
+      await updateMachine.registerNotificationToken();
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
@@ -177,7 +177,7 @@ void main() {
 
       // On store startup, send nothing (because we have nothing to send).
       prepareStore();
-      await store.registerNotificationToken();
+      await updateMachine.registerNotificationToken();
       check(connection.lastRequest).isNull();
 
       // When the token later appears, send it.

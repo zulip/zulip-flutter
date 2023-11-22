@@ -473,11 +473,11 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }
+const _store = store;
 
-LivePerAccountStore liveStore({Account? account, InitialSnapshot? initialSnapshot}) {
-  return LivePerAccountStore.fromInitialSnapshot(
-    account: account ?? selfAccount,
-    connection: FakeApiConnection.fromAccount(account ?? selfAccount),
-    initialSnapshot: initialSnapshot ?? _initialSnapshot(),
-  );
+UpdateMachine updateMachine({Account? account, InitialSnapshot? initialSnapshot}) {
+  initialSnapshot ??= _initialSnapshot();
+  final store = _store(account: account, initialSnapshot: initialSnapshot);
+  return UpdateMachine.fromInitialSnapshot(
+    store: store, initialSnapshot: initialSnapshot);
 }
