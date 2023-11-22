@@ -82,24 +82,28 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
 
     return Scaffold(
       appBar: AppBar(title: const Text("Streams")),
-      body: CustomScrollView(
-        slivers: [
-          if (pinned.isEmpty && unpinned.isEmpty)
-            const _NoSubscriptionsItem(),
-          if (pinned.isNotEmpty) ...[
-            const _SubscriptionListHeader(label: "Pinned"),
-            _SubscriptionList(unreadsModel: unreadsModel, subscriptions: pinned),
-          ],
-          if (unpinned.isNotEmpty) ...[
-            const _SubscriptionListHeader(label: "Unpinned"),
-            _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
-          ],
+      body: SafeArea(
+        // Don't pad the bottom here; we want the list content to do that.
+        bottom: false,
+        child: CustomScrollView(
+          slivers: [
+            if (pinned.isEmpty && unpinned.isEmpty)
+              const _NoSubscriptionsItem(),
+            if (pinned.isNotEmpty) ...[
+              const _SubscriptionListHeader(label: "Pinned"),
+              _SubscriptionList(unreadsModel: unreadsModel, subscriptions: pinned),
+            ],
+            if (unpinned.isNotEmpty) ...[
+              const _SubscriptionListHeader(label: "Unpinned"),
+              _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
+            ],
 
-          // TODO(#188): add button leading to "All Streams" page with ability to subscribe
+            // TODO(#188): add button leading to "All Streams" page with ability to subscribe
 
-          // This ensures last item in scrollable can settle in an unobstructed area.
-          const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
-        ]));
+            // This ensures last item in scrollable can settle in an unobstructed area.
+            const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
+          ]),
+      ));
   }
 }
 
