@@ -18,6 +18,7 @@ import 'autocomplete.dart';
 import 'database.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
+import 'stream.dart';
 import 'unreads.dart';
 
 export 'package:drift/drift.dart' show Value;
@@ -142,7 +143,7 @@ abstract class GlobalStore extends ChangeNotifier {
 /// An instance directly of this class will not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see the subclass
 /// [LivePerAccountStore].
-class PerAccountStore extends ChangeNotifier {
+class PerAccountStore extends ChangeNotifier with StreamStore {
   /// Create a per-account data store that does not automatically stay up to date.
   ///
   /// For a [PerAccountStore] that polls an event queue to keep itself up to
@@ -163,12 +164,7 @@ class PerAccountStore extends ChangeNotifier {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
-       streams = Map.fromEntries(initialSnapshot.streams.map(
-         (stream) => MapEntry(stream.streamId, stream))),
-       streamsByName = Map.fromEntries(initialSnapshot.streams.map(
-         (stream) => MapEntry(stream.name, stream))),
-       subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
-         (subscription) => MapEntry(subscription.streamId, subscription))),
+       _streams = StreamStoreImpl(initialSnapshot: initialSnapshot),
        recentDmConversationsView = RecentDmConversationsView(
          initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId);
 
@@ -192,9 +188,14 @@ class PerAccountStore extends ChangeNotifier {
   final Map<int, User> users;
 
   // Streams, topics, and stuff about them.
-  final Map<int, ZulipStream> streams;
-  final Map<String, ZulipStream> streamsByName;
-  final Map<int, Subscription> subscriptions;
+
+  @override
+  Map<int, ZulipStream> get streams => _streams.streams;
+  @override
+  Map<String, ZulipStream> get streamsByName => _streams.streamsByName;
+  @override
+  Map<int, Subscription> get subscriptions => _streams.subscriptions;
+  final StreamStoreImpl _streams;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 
@@ -295,67 +296,14 @@ class PerAccountStore extends ChangeNotifier {
       }
       autocompleteViewManager.handleRealmUserUpdateEvent(event);
       notifyListeners();
-    } else if (event is StreamCreateEvent) {
-      assert(debugLog("server event: stream/create"));
-      streams.addEntries(event.streams.map((stream) => MapEntry(stream.streamId, stream)));
-      streamsByName.addEntries(event.streams.map((stream) => MapEntry(stream.name, stream)));
-      // (Don't touch `subscriptions`. If the user is subscribed to the stream,
-      // details will come in a later `subscription` event.)
+    } else if (event is StreamEvent) {
+      assert(debugLog("server event: stream/${event.op}"));
+      _streams.handleStreamEvent(event);
       notifyListeners();
-    } else if (event is StreamDeleteEvent) {
-      assert(debugLog("server event: stream/delete"));
-      for (final stream in event.streams) {
-        streams.remove(stream.streamId);
-        streamsByName.remove(stream.name);
-        subscriptions.remove(stream.streamId);
-      }
+    } else if (event is SubscriptionEvent) {
+      assert(debugLog("server event: subscription/${event.op}"));
+      _streams.handleSubscriptionEvent(event);
       notifyListeners();
-    } else if (event is SubscriptionAddEvent) {
-      assert(debugLog("server event: subscription/add"));
-      for (final subscription in event.subscriptions) {
-        subscriptions[subscription.streamId] = subscription;
-      }
-      notifyListeners();
-    } else if (event is SubscriptionRemoveEvent) {
-      assert(debugLog("server event: subscription/remove"));
-      for (final streamId in event.streamIds) {
-        subscriptions.remove(streamId);
-      }
-      notifyListeners();
-    } else if (event is SubscriptionUpdateEvent) {
-      assert(debugLog("server event: subscription/update"));
-      final subscription = subscriptions[event.streamId];
-      if (subscription == null) return; // TODO(log)
-      switch (event.property) {
-        case SubscriptionProperty.color:
-          subscription.color                  = event.value as int;
-        case SubscriptionProperty.isMuted:
-          subscription.isMuted                = event.value as bool;
-        case SubscriptionProperty.inHomeView:
-          subscription.isMuted                = !(event.value as bool);
-        case SubscriptionProperty.pinToTop:
-          subscription.pinToTop               = event.value as bool;
-        case SubscriptionProperty.desktopNotifications:
-          subscription.desktopNotifications   = event.value as bool;
-        case SubscriptionProperty.audibleNotifications:
-          subscription.audibleNotifications   = event.value as bool;
-        case SubscriptionProperty.pushNotifications:
-          subscription.pushNotifications      = event.value as bool;
-        case SubscriptionProperty.emailNotifications:
-          subscription.emailNotifications     = event.value as bool;
-        case SubscriptionProperty.wildcardMentionsNotify:
-          subscription.wildcardMentionsNotify = event.value as bool;
-        case SubscriptionProperty.unknown:
-          // unrecognized property; do nothing
-          return;
-      }
-      notifyListeners();
-    } else if (event is SubscriptionPeerAddEvent) {
-      assert(debugLog("server event: subscription/peer_add"));
-      // TODO(#374): handle event
-    } else if (event is SubscriptionPeerRemoveEvent) {
-      assert(debugLog("server event: subscription/peer_remove"));
-      // TODO(#374): handle event
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
       recentDmConversationsView.handleMessageEvent(event);
