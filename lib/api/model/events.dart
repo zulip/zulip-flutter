@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import 'initial_snapshot.dart';
 import 'model.dart';
 
 part 'events.g.dart';

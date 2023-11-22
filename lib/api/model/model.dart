@@ -139,6 +139,48 @@ class RealmEmojiItem {
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
 
+
+/// The name of a user setting that has a property in [UserSettings].
+///
+/// In Zulip event-handling code (for [UserSettingsUpdateEvent]),
+/// we switch exhaustively on a value of this type
+/// to ensure that every setting in [UserSettings] responds to the event.
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum UserSettingName {
+  twentyFourHourTime,
+  displayEmojiReactionUsers,
+  emojiset;
+
+  /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
+  ///
+  /// Example:
+  ///   'display_emoji_reaction_users' -> UserSettingName.displayEmojiReactionUsers
+  static UserSettingName? fromRawString(String raw) => _byRawString[raw];
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
+  static final _byRawString = _$UserSettingNameEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
+/// As in [UserSettings.emojiset].
+@JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
+enum Emojiset {
+  google,
+  googleBlob,
+  twitter,
+  text;
+
+  /// Get an [Emojiset] from a raw string. Throws if the string is unrecognized.
+  ///
+  /// Example:
+  ///   'google-blob' -> Emojiset.googleBlob
+  static Emojiset fromRawString(String raw) => _byRawString[raw]!;
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.kebab`
+  static final _byRawString = _$EmojisetEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
 /// As in [InitialSnapshot.realmUsers], [InitialSnapshot.realmNonActiveUsers], and [InitialSnapshot.crossRealmBots].
 ///
 /// In the Zulip API, the items in realm_users, realm_non_active_users, and

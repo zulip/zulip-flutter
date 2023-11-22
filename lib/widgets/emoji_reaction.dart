@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/content.dart';

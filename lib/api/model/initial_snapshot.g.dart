@@ -220,9 +220,3 @@ Map<String, dynamic> _$UnreadHuddleSnapshotToJson(
       'user_ids_string': instance.userIdsString,
       'unread_message_ids': instance.unreadMessageIds,
     };
-
-const _$UserSettingNameEnumMap = {
-  UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
-  UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
-  UserSettingName.emojiset: 'emojiset',
-};

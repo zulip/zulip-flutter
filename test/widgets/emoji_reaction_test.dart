@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
-import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';

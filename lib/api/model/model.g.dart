@@ -363,6 +363,19 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
           const DmRecipientListConverter().toJson(instance.displayRecipient),
     };
 
+const _$UserSettingNameEnumMap = {
+  UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
+  UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
+  UserSettingName.emojiset: 'emojiset',
+};
+
+const _$EmojisetEnumMap = {
+  Emojiset.google: 'google',
+  Emojiset.googleBlob: 'google-blob',
+  Emojiset.twitter: 'twitter',
+  Emojiset.text: 'text',
+};
+
 const _$MessageFlagEnumMap = {
   MessageFlag.read: 'read',
   MessageFlag.starred: 'starred',
