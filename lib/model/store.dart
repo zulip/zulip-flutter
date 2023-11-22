@@ -195,7 +195,14 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   Map<String, ZulipStream> get streamsByName => _streams.streamsByName;
   @override
   Map<int, Subscription> get subscriptions => _streams.subscriptions;
+  @override
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
+    _streams.topicVisibilityPolicy(streamId, topic);
+
   final StreamStoreImpl _streams;
+
+  @visibleForTesting
+  StreamStoreImpl get debugStreamStore => _streams;
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 
@@ -303,6 +310,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     } else if (event is SubscriptionEvent) {
       assert(debugLog("server event: subscription/${event.op}"));
       _streams.handleSubscriptionEvent(event);
+      notifyListeners();
+    } else if (event is UserTopicEvent) {
+      assert(debugLog("server event: user_topic"));
+      _streams.handleUserTopicEvent(event);
       notifyListeners();
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));

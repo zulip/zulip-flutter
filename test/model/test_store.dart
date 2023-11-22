@@ -84,4 +84,14 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   void addSubscriptions(List<Subscription> subscriptions) {
     handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
   }
+
+  void addUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
+    handleEvent(UserTopicEvent(
+      id: 1,
+      streamId: stream.streamId,
+      topicName: topic,
+      lastUpdated: 1234567890,
+      visibilityPolicy: visibilityPolicy,
+    ));
+  }
 }

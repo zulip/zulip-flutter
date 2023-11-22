@@ -12,8 +12,59 @@ mixin StreamStore {
   Map<int, ZulipStream> get streams;
   Map<String, ZulipStream> get streamsByName;
   Map<int, Subscription> get subscriptions;
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic);
 
-  // (This mixin will make a useful home for nontrivial getter implementations.)
+  /// Whether this topic should appear when already focusing on its stream.
+  ///
+  /// This is determined purely by the user's visibility policy for the topic.
+  ///
+  /// This function is appropriate for muting calculations in UI contexts that
+  /// are already specific to a stream: for example the stream's unread count,
+  /// or the message list in the stream's narrow.
+  ///
+  /// For UI contexts that are not specific to a particular stream, see
+  /// [isTopicVisible].
+  bool isTopicVisibleInStream(int streamId, String topic) {
+    switch (topicVisibilityPolicy(streamId, topic)) {
+      case UserTopicVisibilityPolicy.none:
+        return true;
+      case UserTopicVisibilityPolicy.muted:
+        return false;
+      case UserTopicVisibilityPolicy.unmuted:
+      case UserTopicVisibilityPolicy.followed:
+        return true;
+      case UserTopicVisibilityPolicy.unknown:
+        assert(false);
+        return true;
+    }
+  }
+
+  /// Whether this topic should appear when not specifically focusing
+  /// on this stream.
+  ///
+  /// This takes into account the user's visibility policy for the stream
+  /// overall, as well as their policy for this topic.
+  ///
+  /// For UI contexts that are specific to a particular stream, see
+  /// [isTopicVisibleInStream].
+  bool isTopicVisible(int streamId, String topic) {
+    switch (topicVisibilityPolicy(streamId, topic)) {
+      case UserTopicVisibilityPolicy.none:
+        switch (subscriptions[streamId]?.isMuted) {
+          case false: return true;
+          case true:  return false;
+          case null:  return false; // not subscribed; treat like muted
+        }
+      case UserTopicVisibilityPolicy.muted:
+        return false;
+      case UserTopicVisibilityPolicy.unmuted:
+      case UserTopicVisibilityPolicy.followed:
+        return true;
+      case UserTopicVisibilityPolicy.unknown:
+        assert(false);
+        return true;
+    }
+  }
 }
 
 /// The implementation of [StreamStore] that does the work.
@@ -31,15 +82,30 @@ class StreamStoreImpl with StreamStore {
       streams.putIfAbsent(stream.streamId, () => stream);
     }
 
-    final streamsByName = streams.map(
-      (_, stream) => MapEntry(stream.name, stream));
+    final topicVisibility = <int, Map<String, UserTopicVisibilityPolicy>>{};
+    for (final item in initialSnapshot.userTopics ?? const <UserTopicItem>[]) {
+      if (_warnInvalidVisibilityPolicy(item.visibilityPolicy)) {
+        // Not a value we expect. Keep it out of our data structures. // TODO(log)
+        continue;
+      }
+      final forStream = topicVisibility.putIfAbsent(item.streamId, () => {});
+      forStream[item.topicName] = item.visibilityPolicy;
+    }
 
-    return StreamStoreImpl._(streams: streams, streamsByName: streamsByName,
-      subscriptions: subscriptions);
+    return StreamStoreImpl._(
+      streams: streams,
+      streamsByName: streams.map((_, stream) => MapEntry(stream.name, stream)),
+      subscriptions: subscriptions,
+      topicVisibility: topicVisibility,
+    );
   }
 
-  StreamStoreImpl._({required this.streams, required this.streamsByName,
-    required this.subscriptions});
+  StreamStoreImpl._({
+    required this.streams,
+    required this.streamsByName,
+    required this.subscriptions,
+    required this.topicVisibility,
+  });
 
   @override
   final Map<int, ZulipStream> streams;
@@ -47,6 +113,21 @@ class StreamStoreImpl with StreamStore {
   final Map<String, ZulipStream> streamsByName;
   @override
   final Map<int, Subscription> subscriptions;
+
+  final Map<int, Map<String, UserTopicVisibilityPolicy>> topicVisibility;
+
+  @override
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) {
+    return topicVisibility[streamId]?[topic] ?? UserTopicVisibilityPolicy.none;
+  }
+
+  static bool _warnInvalidVisibilityPolicy(UserTopicVisibilityPolicy visibilityPolicy) {
+    if (visibilityPolicy == UserTopicVisibilityPolicy.unknown) {
+      // Not a value we expect. Keep it out of our data structures. // TODO(log)
+      return true;
+    }
+    return false;
+  }
 
   void handleStreamEvent(StreamEvent event) {
     switch (event) {
@@ -122,6 +203,26 @@ class StreamStoreImpl with StreamStore {
       case SubscriptionPeerAddEvent():
       case SubscriptionPeerRemoveEvent():
         // We don't currently store the data these would update; that's #374.
+    }
+  }
+
+  void handleUserTopicEvent(UserTopicEvent event) {
+    UserTopicVisibilityPolicy visibilityPolicy = event.visibilityPolicy;
+    if (_warnInvalidVisibilityPolicy(visibilityPolicy)) {
+      visibilityPolicy = UserTopicVisibilityPolicy.none;
+    }
+    if (visibilityPolicy == UserTopicVisibilityPolicy.none) {
+      // This is the "zero value" for this type, which our data structure
+      // represents by leaving the topic out entirely.
+      final forStream = topicVisibility[event.streamId];
+      if (forStream == null) return;
+      forStream.remove(event.topicName);
+      if (forStream.isEmpty) {
+        topicVisibility.remove(event.streamId);
+      }
+    } else {
+      final forStream = topicVisibility.putIfAbsent(event.streamId, () => {});
+      forStream[event.topicName] = visibilityPolicy;
     }
   }
 }
