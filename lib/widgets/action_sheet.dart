@@ -17,15 +17,27 @@ import 'store.dart';
 ///
 /// Must have a [MessageListPage] ancestor.
 void showMessageActionSheet({required BuildContext context, required Message message}) {
+  final store = PerAccountStoreWidget.of(context);
+
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc). But currently it will be constant through the life of
   // any message list, so that's fine.
   final isComposeBoxOffered = MessageListPage.composeBoxControllerOf(context) != null;
+
+  final selfUserId = store.account.userId;
+  final hasThumbsUpReactionVote = message.reactions
+    ?.aggregated.any((reactionWithVotes) =>
+      reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+      && reactionWithVotes.emojiCode == '1f44d'
+      && reactionWithVotes.userIds.contains(selfUserId))
+    ?? false;
+
   showDraggableScrollableModalBottomSheet(
     context: context,
     builder: (BuildContext _) {
       return Column(children: [
+        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
         ShareButton(message: message, messageListContext: context),
         if (isComposeBoxOffered) QuoteAndReplyButton(
           message: message,
@@ -58,6 +70,49 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
       onPressed: () => onPressed(context),
       child: Text(label(zulipLocalizations)));
   }
+}
+
+// This button is very temporary, to complete #125 before we have a way to
+// choose an arbitrary reaction (#388). So, skipping i18n.
+class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
+  AddThumbsUpButton({
+    super.key,
+    required super.message,
+    required super.messageListContext,
+  });
+
+  @override get icon => Icons.add_reaction_outlined;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return 'React with 👍'; // TODO(i18n) skip translation for now
+  }
+
+  @override get onPressed => (BuildContext context) async {
+    Navigator.of(context).pop();
+    String? errorMessage;
+    try {
+      await addReaction(PerAccountStoreWidget.of(messageListContext).connection,
+        messageId: message.id,
+        reactionType: ReactionType.unicodeEmoji,
+        emojiCode: '1f44d',
+        emojiName: '+1',
+      );
+    } catch (e) {
+      if (!messageListContext.mounted) return;
+
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      await showErrorDialog(context: context,
+        title: 'Adding reaction failed', message: errorMessage);
+    }
+  };
 }
 
 class ShareButton extends MessageActionSheetMenuItemButton {

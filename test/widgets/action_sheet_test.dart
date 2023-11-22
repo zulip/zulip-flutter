@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/compose.dart';
@@ -19,6 +20,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
 import '../test_share_plus.dart';
 import 'compose_box_checks.dart';
@@ -90,6 +92,54 @@ void main() {
     };
     (store.connection as FakeApiConnection).prepare(httpStatus: 400, json: fakeResponseJson);
   }
+
+  group('AddThumbsUpButton', () {
+    Future<void> tapButton(WidgetTester tester) async {
+      await tester.ensureVisible(find.byIcon(Icons.add_reaction_outlined, skipOffstage: false));
+      await tester.tap(find.byIcon(Icons.add_reaction_outlined));
+      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+    }
+
+    testWidgets('success', (WidgetTester tester) async {
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(json: {});
+      await tapButton(tester);
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': 'unicode_emoji',
+            'emoji_code': '1f44d',
+            'emoji_name': '+1',
+          });
+    });
+
+    testWidgets('request has an error', (WidgetTester tester) async {
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      final connection = store.connection as FakeApiConnection;
+
+      connection.prepare(httpStatus: 400, json: {
+        'code': 'BAD_REQUEST',
+        'msg': 'Invalid message(s)',
+        'result': 'error',
+      });
+      await tapButton(tester);
+      await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Adding reaction failed',
+        expectedMessage: 'Invalid message(s)')));
+    });
+  });
 
   group('ShareButton', () {
     // Tests should call this.
@@ -169,6 +219,7 @@ void main() {
     ///
     /// Checks that there is a quote-and-reply button.
     Future<void> tapQuoteAndReplyButton(WidgetTester tester) async {
+      await tester.ensureVisible(find.byIcon(Icons.format_quote_outlined, skipOffstage: false));
       final quoteAndReplyButton = findQuoteAndReplyButton(tester);
       check(quoteAndReplyButton).isNotNull();
       await tester.tap(find.byWidget(quoteAndReplyButton!));
