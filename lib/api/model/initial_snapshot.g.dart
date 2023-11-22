@@ -41,6 +41,9 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
           ? null
           : UserSettings.fromJson(
               json['user_settings'] as Map<String, dynamic>),
+      userTopics: (json['user_topics'] as List<dynamic>?)
+          ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
       realmDefaultExternalAccounts:
           (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(
@@ -77,6 +80,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'unread_msgs': instance.unreadMsgs,
       'streams': instance.streams,
       'user_settings': instance.userSettings,
+      'user_topics': instance.userTopics,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'realm_users': instance.realmUsers,
@@ -141,6 +145,32 @@ const _$EmojisetEnumMap = {
   Emojiset.googleBlob: 'google-blob',
   Emojiset.twitter: 'twitter',
   Emojiset.text: 'text',
+};
+
+UserTopicItem _$UserTopicItemFromJson(Map<String, dynamic> json) =>
+    UserTopicItem(
+      streamId: json['stream_id'] as int,
+      topicName: json['topic_name'] as String,
+      lastUpdated: json['last_updated'] as int,
+      visibilityPolicy: $enumDecode(
+          _$UserTopicVisibilityPolicyEnumMap, json['visibility_policy'],
+          unknownValue: UserTopicVisibilityPolicy.unknown),
+    );
+
+Map<String, dynamic> _$UserTopicItemToJson(UserTopicItem instance) =>
+    <String, dynamic>{
+      'stream_id': instance.streamId,
+      'topic_name': instance.topicName,
+      'last_updated': instance.lastUpdated,
+      'visibility_policy': instance.visibilityPolicy,
+    };
+
+const _$UserTopicVisibilityPolicyEnumMap = {
+  UserTopicVisibilityPolicy.none: 0,
+  UserTopicVisibilityPolicy.muted: 1,
+  UserTopicVisibilityPolicy.unmuted: 2,
+  UserTopicVisibilityPolicy.followed: 3,
+  UserTopicVisibilityPolicy.unknown: null,
 };
 
 UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(

@@ -315,6 +315,34 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
       'user_ids': instance.userIds,
     };
 
+UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
+    UserTopicEvent(
+      id: json['id'] as int,
+      streamId: json['stream_id'] as int,
+      topicName: json['topic_name'] as String,
+      lastUpdated: json['last_updated'] as int,
+      visibilityPolicy: $enumDecode(
+          _$UserTopicVisibilityPolicyEnumMap, json['visibility_policy']),
+    );
+
+Map<String, dynamic> _$UserTopicEventToJson(UserTopicEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'stream_id': instance.streamId,
+      'topic_name': instance.topicName,
+      'last_updated': instance.lastUpdated,
+      'visibility_policy': instance.visibilityPolicy,
+    };
+
+const _$UserTopicVisibilityPolicyEnumMap = {
+  UserTopicVisibilityPolicy.none: 0,
+  UserTopicVisibilityPolicy.muted: 1,
+  UserTopicVisibilityPolicy.unmuted: 2,
+  UserTopicVisibilityPolicy.followed: 3,
+  UserTopicVisibilityPolicy.unknown: null,
+};
+
 UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
     UpdateMessageEvent(
       id: json['id'] as int,

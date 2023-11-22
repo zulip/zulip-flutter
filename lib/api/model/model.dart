@@ -545,6 +545,21 @@ enum _StreamColorVariant {
   barBackground,
 }
 
+@JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
+enum UserTopicVisibilityPolicy {
+  none(apiValue: 0),
+  muted(apiValue: 1),
+  unmuted(apiValue: 2), // TODO(server-7) newly added
+  followed(apiValue: 3), // TODO(server-8) newly added
+  unknown(apiValue: null);
+
+  const UserTopicVisibilityPolicy({required this.apiValue});
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+}
+
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response

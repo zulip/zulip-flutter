@@ -24,6 +24,8 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  // final List<…> mutedTopics; // TODO(#422) we ignore this feature on older servers
+
   final Map<String, RealmEmojiItem> realmEmoji;
 
   final List<RecentDmConversation> recentPrivateConversations;
@@ -41,6 +43,8 @@ class InitialSnapshot {
   // even at the expense of functionality with pre-5.0 servers.
   // TODO(server-5) remove pre-5.0 comment
   final UserSettings? userSettings; // TODO(server-5)
+
+  final List<UserTopicItem>? userTopics; // TODO(server-6)
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
@@ -88,6 +92,7 @@ class InitialSnapshot {
     required this.unreadMsgs,
     required this.streams,
     required this.userSettings,
+    required this.userTopics,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.realmUsers,
@@ -175,6 +180,31 @@ class UserSettings {
   // _$…FieldMap is thanks to `createFieldMap: true`
   @visibleForTesting
   static final Iterable<String> debugKnownNames = _$UserSettingsFieldMap.keys;
+}
+
+/// An item in the `user_topics` snapshot.
+///
+/// For docs, search for "user_topics:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserTopicItem {
+  final int streamId;
+  final String topicName;
+  final int lastUpdated;
+  @JsonKey(unknownEnumValue: UserTopicVisibilityPolicy.unknown)
+  final UserTopicVisibilityPolicy visibilityPolicy;
+
+  UserTopicItem({
+    required this.streamId,
+    required this.topicName,
+    required this.lastUpdated,
+    required this.visibilityPolicy,
+  });
+
+  factory UserTopicItem.fromJson(Map<String, dynamic> json) =>
+    _$UserTopicItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserTopicItemToJson(this);
 }
 
 /// The `unread_msgs` snapshot.

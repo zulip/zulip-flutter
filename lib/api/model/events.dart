@@ -50,6 +50,8 @@ sealed class Event {
           case 'peer_remove': return SubscriptionPeerRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      // case 'muted_topics': … // TODO(#422) we ignore this feature on older servers
+      case 'user_topic': return UserTopicEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
       case 'update_message': return UpdateMessageEvent.fromJson(json);
       case 'delete_message': return DeleteMessageEvent.fromJson(json);
@@ -540,6 +542,33 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionPeerRemoveEventToJson(this);
+}
+
+/// A Zulip event of type `user_topic`: https://zulip.com/api/get-events#user_topic
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserTopicEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_topic';
+
+  final int streamId;
+  final String topicName;
+  final int lastUpdated;
+  final UserTopicVisibilityPolicy visibilityPolicy;
+
+  UserTopicEvent({
+    required super.id,
+    required this.streamId,
+    required this.topicName,
+    required this.lastUpdated,
+    required this.visibilityPolicy,
+  });
+
+  factory UserTopicEvent.fromJson(Map<String, dynamic> json) =>
+    _$UserTopicEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserTopicEventToJson(this);
 }
 
 /// A Zulip event of type `message`: https://zulip.com/api/get-events#message
