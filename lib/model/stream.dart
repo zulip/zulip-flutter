@@ -23,12 +23,17 @@ mixin StreamStore {
 /// or through the mixin [StreamStore] which describes its interface.
 class StreamStoreImpl with StreamStore {
   factory StreamStoreImpl({required InitialSnapshot initialSnapshot}) {
-    final streams = Map.fromEntries(initialSnapshot.streams.map(
-      (stream) => MapEntry(stream.streamId, stream)));
-    final streamsByName = Map.fromEntries(initialSnapshot.streams.map(
-      (stream) => MapEntry(stream.name, stream)));
     final subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
       (subscription) => MapEntry(subscription.streamId, subscription)));
+
+    final streams = Map<int, ZulipStream>.of(subscriptions);
+    for (final stream in initialSnapshot.streams) {
+      streams.putIfAbsent(stream.streamId, () => stream);
+    }
+
+    final streamsByName = streams.map(
+      (_, stream) => MapEntry(stream.name, stream));
+
     return StreamStoreImpl._(streams: streams, streamsByName: streamsByName,
       subscriptions: subscriptions);
   }
@@ -56,6 +61,9 @@ class StreamStoreImpl with StreamStore {
 
       case StreamDeleteEvent():
         for (final stream in event.streams) {
+          assert(identical(streams[stream.streamId], streamsByName[stream.name]));
+          assert(subscriptions[stream.streamId] == null
+            || identical(subscriptions[stream.streamId], streams[stream.streamId]));
           streams.remove(stream.streamId);
           streamsByName.remove(stream.name);
           subscriptions.remove(stream.streamId);
@@ -67,7 +75,13 @@ class StreamStoreImpl with StreamStore {
     switch (event) {
       case SubscriptionAddEvent():
         for (final subscription in event.subscriptions) {
+          assert(streams.containsKey(subscription.streamId)
+            && streams[subscription.streamId] is! Subscription);
+          assert(streamsByName.containsKey(subscription.name)
+            && streamsByName[subscription.name] is! Subscription);
           assert(!subscriptions.containsKey(subscription.streamId));
+          streams[subscription.streamId] = subscription;
+          streamsByName[subscription.name] = subscription;
           subscriptions[subscription.streamId] = subscription;
         }
 
@@ -79,6 +93,8 @@ class StreamStoreImpl with StreamStore {
       case SubscriptionUpdateEvent():
         final subscription = subscriptions[event.streamId];
         if (subscription == null) return; // TODO(log)
+        assert(identical(streams[event.streamId], subscription));
+        assert(identical(streamsByName[subscription.name], subscription));
         switch (event.property) {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;
