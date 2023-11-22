@@ -135,6 +135,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       final topicItems = <(String, int, int)>[];
       int countInStream = 0;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
+        if (!store.isTopicVisible(streamId, topic)) continue;
         final countInTopic = messageIds.length;
         topicItems.add((topic, countInTopic, messageIds.last));
         countInStream += countInTopic;
@@ -149,9 +150,6 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       });
       sections.add(_StreamSectionData(streamId, countInStream, topicItems));
     }
-
-    // TODO(#346) Filter out muted messages.
-    //   (Eventually let the user toggle that filtering?)
 
     return Scaffold(
       appBar: AppBar(title: const Text('Inbox')),

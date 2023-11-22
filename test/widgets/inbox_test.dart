@@ -140,6 +140,52 @@ void main() {
     // TODO test that tapping a conversation row opens the message list
     //   for the conversation
 
+    group('muting', () { // aka topic visibility
+      testWidgets('baseline', (tester) async {
+        final stream = eg.stream();
+        final subscription = eg.subscription(stream);
+        await setupPage(tester,
+          streams: [stream],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+        check(tester.widgetList(find.text('lunch'))).length.equals(1);
+      });
+
+      testWidgets('muted topic', (tester) async {
+        final stream = eg.stream();
+        final subscription = eg.subscription(stream);
+        await setupPage(tester,
+          streams: [stream],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+        store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
+        await tester.pump();
+        check(tester.widgetList(find.text('lunch'))).length.equals(0);
+      });
+
+      testWidgets('muted stream', (tester) async {
+        final stream = eg.stream();
+        final subscription = eg.subscription(stream, isMuted: true);
+        await setupPage(tester,
+          streams: [stream],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+        check(tester.widgetList(find.text('lunch'))).length.equals(0);
+      });
+
+      testWidgets('unmuted topic in muted stream', (tester) async {
+        final stream = eg.stream();
+        final subscription = eg.subscription(stream, isMuted: true);
+        await setupPage(tester,
+          streams: [stream],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+        store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
+        await tester.pump();
+        check(tester.widgetList(find.text('lunch'))).length.equals(1);
+      });
+    });
+
     group('collapsing', () {
       Icon findHeaderCollapseIcon(WidgetTester tester, Widget headerRow) {
         return tester.widget(
