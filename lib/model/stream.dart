@@ -180,6 +180,7 @@ class StreamStoreImpl with StreamStore {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;
           case SubscriptionProperty.isMuted:
+            // TODO(#421) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
           case SubscriptionProperty.inHomeView:
             subscription.isMuted                = !(event.value as bool);
@@ -211,6 +212,7 @@ class StreamStoreImpl with StreamStore {
     if (_warnInvalidVisibilityPolicy(visibilityPolicy)) {
       visibilityPolicy = UserTopicVisibilityPolicy.none;
     }
+    // TODO(#421) update [MessageListView] if affected
     if (visibilityPolicy == UserTopicVisibilityPolicy.none) {
       // This is the "zero value" for this type, which our data structure
       // represents by leaving the topic out entirely.

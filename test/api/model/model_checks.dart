@@ -16,6 +16,7 @@ extension StreamColorSwatchChecks on Subject<StreamColorSwatch> {
 }
 
 extension MessageChecks on Subject<Message> {
+  Subject<int> get id => has((e) => e.id, 'id');
   Subject<String> get content => has((e) => e.content, 'content');
   Subject<bool> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');
   Subject<int?> get lastEditTimestamp => has((e) => e.lastEditTimestamp, 'lastEditTimestamp');

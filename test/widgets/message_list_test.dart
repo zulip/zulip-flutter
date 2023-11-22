@@ -214,7 +214,7 @@ void main() {
       testWidgets('show stream name in AllMessagesNarrow', (tester) async {
         await setupMessageListPage(tester,
           narrow: const AllMessagesNarrow(),
-          messages: [message], streams: [stream]);
+          messages: [message], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(1);
         check(findInMessageList('topic name')).length.equals(1);
@@ -268,7 +268,7 @@ void main() {
         final stream = eg.stream(isWebPublic: false, inviteOnly: false);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: stream)],
-          streams: [stream]);
+          subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(find.descendant(
           of: find.byType(StreamMessageRecipientHeader),
@@ -280,7 +280,7 @@ void main() {
         final stream = eg.stream(isWebPublic: true);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: stream)],
-          streams: [stream]);
+          subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(find.descendant(
           of: find.byType(StreamMessageRecipientHeader),
@@ -292,7 +292,7 @@ void main() {
         final stream = eg.stream(inviteOnly: true);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: stream)],
-          streams: [stream]);
+          subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(find.descendant(
           of: find.byType(StreamMessageRecipientHeader),
@@ -304,6 +304,9 @@ void main() {
     testWidgets('show stream name from message when stream unknown', (tester) async {
       // This can perfectly well happen, because message fetches can race
       // with events.
+      // … Though not actually with AllMessagesNarrow, because that shows
+      // stream messages only in subscribed streams, hence only known streams.
+      // See skip comment below.
       final stream = eg.stream(name: 'stream name');
       await setupMessageListPage(tester,
         narrow: const AllMessagesNarrow(),
@@ -313,7 +316,7 @@ void main() {
         ]);
       await tester.pump();
       tester.widget(find.text('stream name'));
-    });
+    }, skip: true); // TODO(#252) could repro this with search narrows, once we have those
 
     testWidgets('show stream name from stream data when known', (tester) async {
       final streamBefore = eg.stream(name: 'old stream name');

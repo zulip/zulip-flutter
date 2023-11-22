@@ -11,8 +11,14 @@ sealed class Narrow {
   /// This const constructor allows subclasses to have const constructors.
   const Narrow();
 
-  // TODO implement muting; will need containsMessage to take more params
-  //   This means stream muting, topic un/muting, and user muting.
+  /// Whether this message satisfies the filters of this narrow.
+  ///
+  /// This is true just when the server would be expected to include the message
+  /// in a [getMessages] request for this narrow, given appropriate anchor etc.
+  ///
+  /// This does not necessarily mean the message list would show this message
+  /// when navigated to this narrow; in particular it does not address the
+  /// question of whether the stream or topic, or the sending user, is muted.
   bool containsMessage(Message message);
 
   /// This narrow, expressed as an [ApiNarrow].

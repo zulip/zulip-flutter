@@ -37,7 +37,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   store.addUser(eg.user(userId: message.senderId));
   if (message is StreamMessage) {
-    store.addStream(eg.stream(streamId: message.streamId));
+    final stream = eg.stream(streamId: message.streamId);
+    store..addStream(stream)..addSubscription(eg.subscription(stream));
   }
   final connection = store.connection as FakeApiConnection;
 

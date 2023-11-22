@@ -17,10 +17,12 @@ import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
 import 'content_checks.dart';
+import 'test_store.dart';
 
 void main() async {
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
+  late Subscription subscription;
   late PerAccountStore store;
   late FakeApiConnection connection;
   late MessageListView model;
@@ -35,7 +37,10 @@ void main() async {
 
   /// Initialize [model] and the rest of the test state.
   void prepare({Narrow narrow = const AllMessagesNarrow()}) {
-    store = eg.store();
+    final stream = eg.stream();
+    subscription = eg.subscription(stream);
+    store = eg.store()
+      ..addStream(stream)..addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     model = MessageListView.init(store: store, narrow: narrow)
@@ -548,6 +553,141 @@ void main() async {
     check(model.contents[0]).equalsNode(correctContent);
   });
 
+  group('stream/topic muting', () {
+    test('in AllMessagesNarrow', () async {
+      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
+      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+      prepare(narrow: const AllMessagesNarrow());
+      store.addStreams([stream1, stream2]);
+      store.addSubscription(eg.subscription(stream1));
+      store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
+      store.addSubscription(eg.subscription(stream2, isMuted: true));
+      store.addUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
+
+      // Check filtering on fetchInitial…
+      await prepareMessages(foundOldest: false, messages: [
+        eg.streamMessage(id: 201, stream: stream1, topic: 'A'),
+        eg.streamMessage(id: 202, stream: stream1, topic: 'B'),
+        eg.streamMessage(id: 203, stream: stream2, topic: 'C'),
+        eg.streamMessage(id: 204, stream: stream2, topic: 'D'),
+        eg.dmMessage(    id: 205, from: eg.otherUser, to: [eg.selfUser]),
+      ]);
+      final expected = <int>[];
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..addAll([201, 203, 205]));
+
+      // … and on fetchOlder…
+      connection.prepare(json: olderResult(
+        anchor: 201, foundOldest: true, messages: [
+          eg.streamMessage(id: 101, stream: stream1, topic: 'A'),
+          eg.streamMessage(id: 102, stream: stream1, topic: 'B'),
+          eg.streamMessage(id: 103, stream: stream2, topic: 'C'),
+          eg.streamMessage(id: 104, stream: stream2, topic: 'D'),
+          eg.dmMessage(    id: 105, from: eg.otherUser, to: [eg.selfUser]),
+        ]).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..insertAll(0, [101, 103, 105]));
+
+      // … and on maybeAddMessage.
+      model.maybeAddMessage(eg.streamMessage(id: 301, stream: stream1, topic: 'A'));
+      checkNotifiedOnce();
+      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+
+      model.maybeAddMessage(eg.streamMessage(id: 302, stream: stream1, topic: 'B'));
+      checkNotNotified();
+      check(model.messages.map((m) => m.id)).deepEquals(expected);
+
+      model.maybeAddMessage(eg.streamMessage(id: 303, stream: stream2, topic: 'C'));
+      checkNotifiedOnce();
+      check(model.messages.map((m) => m.id)).deepEquals(expected..add(303));
+
+      model.maybeAddMessage(eg.streamMessage(id: 304, stream: stream2, topic: 'D'));
+      checkNotNotified();
+      check(model.messages.map((m) => m.id)).deepEquals(expected);
+
+      model.maybeAddMessage(eg.dmMessage(id: 305, from: eg.otherUser, to: [eg.selfUser]));
+      checkNotifiedOnce();
+      check(model.messages.map((m) => m.id)).deepEquals(expected..add(305));
+    });
+
+    test('in StreamNarrow', () async {
+      final stream = eg.stream(streamId: 1, name: 'stream 1');
+      prepare(narrow: StreamNarrow(stream.streamId));
+      store.addStream(stream);
+      store.addSubscription(eg.subscription(stream, isMuted: true));
+      store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
+      store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
+
+      // Check filtering on fetchInitial…
+      await prepareMessages(foundOldest: false, messages: [
+        eg.streamMessage(id: 201, stream: stream, topic: 'A'),
+        eg.streamMessage(id: 202, stream: stream, topic: 'B'),
+        eg.streamMessage(id: 203, stream: stream, topic: 'C'),
+      ]);
+      final expected = <int>[];
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..addAll([201, 202]));
+
+      // … and on fetchOlder…
+      connection.prepare(json: olderResult(
+        anchor: 201, foundOldest: true, messages: [
+          eg.streamMessage(id: 101, stream: stream, topic: 'A'),
+          eg.streamMessage(id: 102, stream: stream, topic: 'B'),
+          eg.streamMessage(id: 103, stream: stream, topic: 'C'),
+        ]).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..insertAll(0, [101, 102]));
+
+      // … and on maybeAddMessage.
+      model.maybeAddMessage(eg.streamMessage(id: 301, stream: stream, topic: 'A'));
+      checkNotifiedOnce();
+      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+
+      model.maybeAddMessage(eg.streamMessage(id: 302, stream: stream, topic: 'B'));
+      checkNotifiedOnce();
+      check(model.messages.map((m) => m.id)).deepEquals(expected..add(302));
+
+      model.maybeAddMessage(eg.streamMessage(id: 303, stream: stream, topic: 'C'));
+      checkNotNotified();
+      check(model.messages.map((m) => m.id)).deepEquals(expected);
+    });
+
+    test('in TopicNarrow', () async {
+      final stream = eg.stream(streamId: 1, name: 'stream 1');
+      prepare(narrow: TopicNarrow(stream.streamId, 'A'));
+      store.addStream(stream);
+      store.addSubscription(eg.subscription(stream, isMuted: true));
+      store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
+
+      // Check filtering on fetchInitial…
+      await prepareMessages(foundOldest: false, messages: [
+        eg.streamMessage(id: 201, stream: stream, topic: 'A'),
+      ]);
+      final expected = <int>[];
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..addAll([201]));
+
+      // … and on fetchOlder…
+      connection.prepare(json: olderResult(
+        anchor: 201, foundOldest: true, messages: [
+          eg.streamMessage(id: 101, stream: stream, topic: 'A'),
+        ]).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..insertAll(0, [101]));
+
+      // … and on maybeAddMessage.
+      model.maybeAddMessage(eg.streamMessage(id: 301, stream: stream, topic: 'A'));
+      checkNotifiedOnce();
+      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+    });
+  });
+
   test('recipient headers are maintained consistently', () async {
     // This tests the code that maintains the invariant that recipient headers
     // are present just where [canShareRecipientHeader] requires them.
@@ -770,6 +910,22 @@ void checkInvariants(MessageListView model) {
   }
   if (model.haveOldest) {
     check(model).fetchingOlder.isFalse();
+  }
+
+  for (final message in model.messages) {
+    check(model.narrow.containsMessage(message)).isTrue();
+
+    if (message is! StreamMessage) continue;
+    switch (model.narrow) {
+      case AllMessagesNarrow():
+        check(model.store.isTopicVisible(message.streamId, message.subject))
+          .isTrue();
+      case StreamNarrow():
+        check(model.store.isTopicVisibleInStream(message.streamId, message.subject))
+          .isTrue();
+      case TopicNarrow():
+      case DmNarrow():
+    }
   }
 
   for (int i = 0; i < model.messages.length - 1; i++) {

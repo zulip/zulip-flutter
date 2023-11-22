@@ -307,6 +307,31 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   final PerAccountStore store;
   final Narrow narrow;
 
+  /// Whether [message] should actually appear in this message list,
+  /// given that it does belong to the narrow.
+  ///
+  /// This depends in particular on whether the message is muted in
+  /// one way or another.
+  bool _messageVisible(Message message) {
+    switch (narrow) {
+      case AllMessagesNarrow():
+        return switch (message) {
+          StreamMessage() =>
+            store.isTopicVisible(message.streamId, message.subject),
+          DmMessage() => true,
+        };
+
+      case StreamNarrow(:final streamId):
+        assert(message is StreamMessage && message.streamId == streamId);
+        if (message is! StreamMessage) return false;
+        return store.isTopicVisibleInStream(streamId, message.subject);
+
+      case TopicNarrow():
+      case DmNarrow():
+        return true;
+    }
+  }
+
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
@@ -321,7 +346,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: 0,
     );
     for (final message in result.messages) {
-      _addMessage(message);
+      if (_messageVisible(message)) {
+        _addMessage(message);
+      }
     }
     _fetched = true;
     _haveOldest = result.foundOldest;
@@ -353,7 +380,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         result.messages.removeLast();
       }
 
-      _insertAllMessages(0, result.messages);
+      _insertAllMessages(0, result.messages.where(_messageVisible));
       _haveOldest = result.foundOldest;
     } finally {
       _fetchingOlder = false;
@@ -366,7 +393,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   ///
   /// Called in particular when we get a [MessageEvent].
   void maybeAddMessage(Message message) {
-    if (!narrow.containsMessage(message)) {
+    if (!narrow.containsMessage(message) || !_messageVisible(message)) {
       return;
     }
     if (!_fetched) {
