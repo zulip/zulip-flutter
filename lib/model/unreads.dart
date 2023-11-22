@@ -132,34 +132,64 @@ class Unreads extends ChangeNotifier {
 
   final int selfUserId;
 
-  // TODO(#346): account for muted topics and streams
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInAllMessagesNarrow() {
     int c = 0;
     for (final messageIds in dms.values) {
       c = c + messageIds.length;
     }
-    for (final topics in streams.values) {
-      for (final messageIds in topics.values) {
-        c = c + messageIds.length;
+    for (final MapEntry(key: streamId, value: topics) in streams.entries) {
+      for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
+        if (streamStore.isTopicVisible(streamId, topic)) {
+          c = c + messageIds.length;
+        }
       }
     }
     return c;
   }
 
-  // TODO(#346): account for muted topics and streams
+  /// The "strict" unread count for this stream,
+  /// using [StreamStore.isTopicVisible].
+  ///
+  /// If the stream is muted, this will count only topics that are
+  /// actively unmuted.
+  ///
+  /// For a count that's appropriate in UI contexts that are focused
+  /// specifically on this stream, see [countInStreamNarrow].
+  // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
+  int countInStream(int streamId) {
+    final topics = streams[streamId];
+    if (topics == null) return 0;
+    int c = 0;
+    for (final entry in topics.entries) {
+      if (streamStore.isTopicVisible(streamId, entry.key)) {
+        c = c + entry.value.length;
+      }
+    }
+    return c;
+  }
+
+  /// The "broad" unread count for this stream,
+  /// using [StreamStore.isTopicVisibleInStream].
+  ///
+  /// This includes topics that have no visibility policy of their own,
+  /// even if the stream itself is muted.
+  ///
+  /// For a count that's appropriate in UI contexts that are not already
+  /// focused on this stream, see [countInStream].
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInStreamNarrow(int streamId) {
     final topics = streams[streamId];
     if (topics == null) return 0;
     int c = 0;
-    for (final messageIds in topics.values) {
-      c = c + messageIds.length;
+    for (final entry in topics.entries) {
+      if (streamStore.isTopicVisibleInStream(streamId, entry.key)) {
+        c = c + entry.value.length;
+      }
     }
     return c;
   }
 
-  // TODO(#346): account for muted topics and streams
   int countInTopicNarrow(int streamId, String topic) {
     final topics = streams[streamId];
     return topics?[topic]?.length ?? 0;

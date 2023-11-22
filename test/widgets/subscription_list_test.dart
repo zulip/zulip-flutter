@@ -7,6 +7,7 @@ import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
+import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
 
@@ -15,12 +16,14 @@ void main() {
 
   Future<void> setupStreamListPage(WidgetTester tester, {
     required List<Subscription> subscriptions,
+    List<UserTopicItem> userTopics = const [],
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
     addTearDown(testBinding.reset);
     final initialSnapshot = eg.initialSnapshot(
       subscriptions: subscriptions,
       streams: subscriptions.toList(),
+      userTopics: userTopics,
       unreadMsgs: unreadMsgs,
     );
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
@@ -109,6 +112,26 @@ void main() {
       eg.subscription(stream),
     ], unreadMsgs: unreadMsgs);
     check(find.byType(UnreadCountBadge).evaluate()).length.equals(1);
+  });
+
+  testWidgets('unread badge counts unmuted only', (tester) async {
+    final stream = eg.stream();
+    final unreadMsgs = eg.unreadMsgs(streams: [
+      UnreadStreamSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      UnreadStreamSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [eg.subscription(stream, isMuted: true)],
+        userTopics: [UserTopicItem(
+          streamId: stream.streamId,
+          topicName: 'b',
+          lastUpdated: 1234567890,
+          visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
+        )],
+        unreadMsgs: unreadMsgs);
+    check(tester.widget<Text>(find.descendant(
+        of: find.byType(UnreadCountBadge), matching: find.byType(Text))))
+      .data.equals('1');
   });
 
   testWidgets('unread badge does not show with no unreads', (tester) async {

@@ -47,7 +47,7 @@ void main() {
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
     addTearDown(testBinding.reset);
-    streams ??= subscriptions;
+    streams ??= subscriptions ??= [eg.subscription(eg.stream())];
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
       streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -307,6 +307,7 @@ void main() {
       final stream = eg.stream(name: 'stream name');
       await setupMessageListPage(tester,
         narrow: const AllMessagesNarrow(),
+        subscriptions: [],
         messages: [
           eg.streamMessage(stream: stream),
         ]);
@@ -323,7 +324,7 @@ void main() {
       });
       await setupMessageListPage(tester,
         narrow: const AllMessagesNarrow(),
-        streams: [streamAfter],
+        subscriptions: [eg.subscription(streamAfter)],
         messages: [
           eg.streamMessage(stream: streamBefore),
         ]);

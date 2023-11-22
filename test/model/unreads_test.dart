@@ -9,6 +9,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
 
 import '../example_data.dart' as eg;
+import 'test_store.dart';
 import 'unreads_checks.dart';
 
 void main() {
@@ -152,30 +153,48 @@ void main() {
 
   group('count helpers', () {
     test('countInAllMessagesNarrow', () {
-      final stream1 = eg.stream();
-      final stream2 = eg.stream();
+      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
+      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+      final stream3 = eg.stream(streamId: 3, name: 'stream 3');
       prepare();
+      streamStore.addStreams([stream1, stream2, stream3]);
+      streamStore.addSubscription(eg.subscription(stream1));
+      streamStore.addSubscription(eg.subscription(stream2));
+      streamStore.addSubscription(eg.subscription(stream3, isMuted: true));
+      streamStore.addUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
         eg.streamMessage(stream: stream2, topic: 'c', flags: []),
+        eg.streamMessage(stream: stream3, topic: 'd', flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
       ]);
-      check(model.countInAllMessagesNarrow()).equals(6);
+      check(model.countInAllMessagesNarrow()).equals(5);
     });
 
-    test('countInStreamNarrow', () {
+    test('countInStream/Narrow', () {
       final stream = eg.stream();
       prepare();
+      streamStore.addStream(stream);
+      streamStore.addSubscription(eg.subscription(stream));
+      streamStore.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
+      streamStore.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'b', flags: []),
         eg.streamMessage(stream: stream, topic: 'b', flags: []),
         eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'c', flags: []),
       ]);
+      check(model.countInStream      (stream.streamId)).equals(5);
+      check(model.countInStreamNarrow(stream.streamId)).equals(5);
+
+      streamStore.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: stream.streamId,
+        property: SubscriptionProperty.isMuted, value: true));
+      check(model.countInStream      (stream.streamId)).equals(2);
       check(model.countInStreamNarrow(stream.streamId)).equals(5);
     });
 

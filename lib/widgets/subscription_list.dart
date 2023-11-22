@@ -176,7 +176,8 @@ class _SubscriptionList extends StatelessWidget {
       itemCount: subscriptions.length,
       itemBuilder: (BuildContext context, int index) {
         final subscription = subscriptions[index];
-        final unreadCount = unreadsModel!.countInStreamNarrow(subscription.streamId);
+        final unreadCount = unreadsModel!.countInStream(subscription.streamId);
+        // TODO(#346): if stream muted, show a dot for unreads
         return SubscriptionItem(subscription: subscription, unreadCount: unreadCount);
     });
   }
