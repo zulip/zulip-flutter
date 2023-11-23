@@ -16,6 +16,10 @@ extension ClipboardDataChecks on Subject<ClipboardData> {
   Subject<String?> get text => has((d) => d.text, 'text');
 }
 
+extension ColoredBoxChecks on Subject<ColoredBox> {
+  Subject<Color?> get color => has((d) => d.color, 'color');
+}
+
 extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<T>> {
   Subject<BuildContext?> get currentContext => has((k) => k.currentContext, 'currentContext');
   Subject<Widget?> get currentWidget => has((k) => k.currentWidget, 'currentWidget');

@@ -41,11 +41,13 @@ void main() {
     int? messageCount,
     List<Message>? messages,
     List<ZulipStream>? streams,
+    List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
     addTearDown(testBinding.reset);
+    streams ??= subscriptions;
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
-      streams: streams, unreadMsgs: unreadMsgs));
+      streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
@@ -232,6 +234,20 @@ void main() {
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(0);
         check(findInMessageList('topic name')).length.equals(1);
+      });
+
+      testWidgets('color of recipient header background', (tester) async {
+        final subscription = eg.subscription(stream, color: Colors.red.value);
+        final swatch = subscription.colorSwatch();
+        await setupMessageListPage(tester,
+          messages: [eg.streamMessage(stream: subscription)],
+          subscriptions: [subscription]);
+        await tester.pump();
+        check(tester.widget<ColoredBox>(
+          find.descendant(
+            of: find.byType(StreamMessageRecipientHeader),
+            matching: find.byType(ColoredBox),
+        ))).color.equals(swatch.barBackground);
       });
     });
 

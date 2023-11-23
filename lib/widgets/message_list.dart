@@ -554,11 +554,19 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final topic = message.subject;
 
     final subscription = store.subscriptions[message.streamId];
-    final streamColor = Color(subscription?.color ?? 0x00c2c2c2);
-    final contrastingColor =
-      ThemeData.estimateBrightnessForColor(streamColor) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+    final Color backgroundColor;
+    final Color contrastingColor;
+    if (subscription != null) {
+      final swatch = subscription.colorSwatch();
+      backgroundColor = swatch.barBackground;
+      contrastingColor =
+        (ThemeData.estimateBrightnessForColor(swatch.barBackground) == Brightness.dark)
+          ? Colors.white
+          : Colors.black;
+    } else {
+      backgroundColor = _kFallbackStreamColor;
+      contrastingColor = Colors.black;
+    }
     final textStyle = TextStyle(
       color: contrastingColor,
     );
@@ -593,7 +601,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         MessageListPage.buildRoute(context: context,
           narrow: TopicNarrow.ofMessage(message))),
       child: ColoredBox(
-        color: _kStreamMessageBorderColor,
+        color: backgroundColor,
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           // TODO(#282): Long stream name will break layout; find a fix.
           streamWidget,
@@ -609,12 +617,10 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           // TODO topic links?
           // Then web also has edit/resolve/mute buttons. Skip those for mobile.
           RecipientHeaderDate(message: message,
-            color: _kRecipientHeaderDateColor),
+            color: contrastingColor.withOpacity(0.4)),
         ])));
   }
 }
-
-final _kStreamMessageBorderColor = const HSLColor.fromAHSL(1, 0, 0, 0.88).toColor();
 
 class DmRecipientHeader extends StatelessWidget {
   const DmRecipientHeader({super.key, required this.message});
