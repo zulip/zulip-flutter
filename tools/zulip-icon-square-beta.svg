@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24">
+<image xlink:href="../../zulip/static/images/logo/zulip-icon-square.svg" width="24" height="24"/>
+<g>
+<rect x="4" y="17" rx="2.5" ry="2.5" width="16" height="5" fill="#ff5050"/>
+<text x="5.5" y="21.25" font-family="Verdana" font-size="4.5" letter-spacing="0.5" fill="#fff">BETA</text>
+</g>
+</svg>
