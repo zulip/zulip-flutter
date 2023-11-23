@@ -2,7 +2,7 @@
     package="com.zulip.flutter">
    <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="zulip"
+        android:label="Zulip beta"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
