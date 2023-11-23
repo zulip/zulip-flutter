@@ -95,7 +95,7 @@ BEGIN
             VALUE "InternalName", "zulip" "\0"
             VALUE "LegalCopyright", "Copyright © 2022 Kandra Labs, Inc., and contributors. Licensed under the Apache License, Version 2.0." "\0"
             VALUE "OriginalFilename", "zulip.exe" "\0"
-            VALUE "ProductName", "zulip" "\0"
+            VALUE "ProductName", "Zulip" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
