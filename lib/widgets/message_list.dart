@@ -556,6 +556,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final subscription = store.subscriptions[message.streamId];
     final Color backgroundColor;
     final Color contrastingColor;
+    final Color iconColor;
     if (subscription != null) {
       final swatch = subscription.colorSwatch();
       backgroundColor = swatch.barBackground;
@@ -563,9 +564,11 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         (ThemeData.estimateBrightnessForColor(swatch.barBackground) == Brightness.dark)
           ? Colors.white
           : Colors.black;
+      iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = _kFallbackStreamColor;
       contrastingColor = Colors.black;
+      iconColor = Colors.black;
     }
     final textStyle = TextStyle(
       color: contrastingColor,
@@ -589,8 +592,16 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(width: 16),
-            // TODO globe/lock icons for web-public and private streams
+            Padding(
+              // Figma specifies 5px horizontal spacing around an icon that's
+              // 18x18 and includes 1px padding.  The icon SVG is flush with
+              // the edges, so make it 16x16 with 6px horizontal padding.
+              // Bottom padding added here to shift icon up to
+              // match alignment with text visually.
+              padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
+              child: Icon(size: 16, color: iconColor,
+                // A null [Icon.icon] makes a blank space.
+                (stream != null) ? iconDataForStream(stream) : null)),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 11),
               child: Text(streamName,

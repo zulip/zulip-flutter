@@ -14,6 +14,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/sticky_header.dart';
 import 'package:zulip/widgets/store.dart';
@@ -248,6 +249,54 @@ void main() {
             of: find.byType(StreamMessageRecipientHeader),
             matching: find.byType(ColoredBox),
         ))).color.equals(swatch.barBackground);
+      });
+
+      testWidgets('color of stream icon', (tester) async {
+        final stream = eg.stream(isWebPublic: true);
+        final subscription = eg.subscription(stream, color: Colors.red.value);
+        final swatch = subscription.colorSwatch();
+        await setupMessageListPage(tester,
+          messages: [eg.streamMessage(stream: subscription)],
+          subscriptions: [subscription]);
+        await tester.pump();
+        check(tester.widget<Icon>(find.byIcon(ZulipIcons.globe)))
+          .color.equals(swatch.iconOnBarBackground);
+      });
+
+      testWidgets('normal streams show hash icon', (tester) async {
+        final stream = eg.stream(isWebPublic: false, inviteOnly: false);
+        await setupMessageListPage(tester,
+          messages: [eg.streamMessage(stream: stream)],
+          streams: [stream]);
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.byIcon(ZulipIcons.hash_sign),
+        ).evaluate()).length.equals(1);
+      });
+
+      testWidgets('public streams show globe icon', (tester) async {
+        final stream = eg.stream(isWebPublic: true);
+        await setupMessageListPage(tester,
+          messages: [eg.streamMessage(stream: stream)],
+          streams: [stream]);
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.byIcon(ZulipIcons.globe),
+        ).evaluate()).length.equals(1);
+      });
+
+      testWidgets('private streams show lock icon', (tester) async {
+        final stream = eg.stream(inviteOnly: true);
+        await setupMessageListPage(tester,
+          messages: [eg.streamMessage(stream: stream)],
+          streams: [stream]);
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.byIcon(ZulipIcons.lock),
+        ).evaluate()).length.equals(1);
       });
     });
 
