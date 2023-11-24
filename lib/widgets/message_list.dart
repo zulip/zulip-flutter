@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -597,7 +598,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600)))),
           // TODO topic links?
           // Then web also has edit/resolve/mute buttons. Skip those for mobile.
-          RecipientHeaderDate(message: message),
+          RecipientHeaderDate(message: message,
+            color: _kRecipientHeaderDateColor),
         ])));
   }
 }
@@ -638,7 +640,8 @@ class DmRecipientHeader extends StatelessWidget {
             color: _kDmRecipientHeaderColor,
             child: Text(style: const TextStyle(color: Colors.white),
               title)),
-          RecipientHeaderDate(message: message),
+          RecipientHeaderDate(message: message,
+            color: _kRecipientHeaderDateColor),
         ])));
   }
 }
@@ -646,25 +649,31 @@ class DmRecipientHeader extends StatelessWidget {
 final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor();
 
 class RecipientHeaderDate extends StatelessWidget {
-  const RecipientHeaderDate({super.key, required this.message});
+  const RecipientHeaderDate({super.key, required this.message, required this.color});
 
   final Message message;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
       child: Text(
-        style: _kRecipientHeaderDateStyle,
+        style: TextStyle(
+          color: color,
+          fontFamily: 'Source Sans 3',
+          fontSize: 16,
+          height: (19 / 16),
+          // This is equivalent to css `all-small-caps`, see:
+          //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
+          fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+        ).merge(weightVariableTextStyle(context)),
         _kRecipientHeaderDateFormat.format(
           DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000))));
   }
 }
 
-final _kRecipientHeaderDateStyle = TextStyle(
-  fontWeight: FontWeight.w600,
-  color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
-);
+final _kRecipientHeaderDateColor = const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor();
 
 final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(#278)
 
