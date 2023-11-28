@@ -364,6 +364,14 @@
   "@errorMarkAsReadFailedTitle": {
     "description": "Error title when mark as read action failed."
   },
+  "today": "Today",
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "yesterday": "Yesterday",
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
   "userRoleOwner": "Owner",
   "@userRoleOwner": {
     "description": "Label for UserRole.owner"

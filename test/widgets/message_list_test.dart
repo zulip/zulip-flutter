@@ -366,7 +366,7 @@ void main() {
     testWidgets('show dates', (tester) async {
       await setupMessageListPage(tester, messages: [
         eg.streamMessage(timestamp: 1671409088),
-        eg.dmMessage(timestamp: 1692755322, from: eg.selfUser, to: []),
+        eg.dmMessage(timestamp: 1661219322, from: eg.selfUser, to: []),
       ]);
       // We show the dates in the user's timezone.  Dart's standard library
       // doesn't give us a way to control which timezone is used — only to
@@ -377,9 +377,32 @@ void main() {
       //   https://github.com/dart-lang/sdk/issues/28985 (about DateTime.now, not timezone)
       //   https://github.com/dart-lang/sdk/issues/44928 (about the Dart implementation's own internal tests)
       // For this test, just accept outputs corresponding to any possible timezone.
-      tester.widget(find.textContaining(RegExp("2022-12-1[89]")));
-      tester.widget(find.textContaining(RegExp("2023-08-2[23]")));
+      tester.widget(find.textContaining(RegExp("Dec 1[89], 2022")));
+      tester.widget(find.textContaining(RegExp("Aug 2[23], 2022")));
     });
+  });
+
+  group('formatHeaderDate', () {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    final now = DateTime.parse("2023-01-10 12:00");
+    final testCases = [
+      ("2023-01-10 12:00", zulipLocalizations.today),
+      ("2023-01-10 00:00", zulipLocalizations.today),
+      ("2023-01-10 23:59", zulipLocalizations.today),
+      ("2023-01-09 23:59", zulipLocalizations.yesterday),
+      ("2023-01-09 00:00", zulipLocalizations.yesterday),
+      ("2023-01-08 00:00", "Jan 8"),
+      ("2022-12-31 00:00", "Dec 31, 2022"),
+      // Future times
+      ("2023-01-10 19:00", zulipLocalizations.today),
+      ("2023-01-11 00:00", "Jan 11, 2023"),
+    ];
+    for (final (dateTime, expected) in testCases) {
+      test('$dateTime returns $expected', () {
+        check(formatHeaderDate(zulipLocalizations, DateTime.parse(dateTime), now: now))
+          .equals(expected);
+      });
+    }
   });
 
   group('MessageWithPossibleSender', () {

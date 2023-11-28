@@ -710,6 +710,7 @@ class RecipientHeaderDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
       child: Text(
@@ -725,12 +726,48 @@ class RecipientHeaderDate extends StatelessWidget {
           //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
           fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
         ).merge(weightVariableTextStyle(context)),
-        _kRecipientHeaderDateFormat.format(
-          DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000))));
+        formatHeaderDate(
+          zulipLocalizations,
+          DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000),
+          now: DateTime.now())));
   }
 }
 
-final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(#278)
+@visibleForTesting
+String formatHeaderDate(
+  ZulipLocalizations zulipLocalizations,
+  DateTime dateTime, {
+  required DateTime now,
+}) {
+  assert(!dateTime.isUtc && !now.isUtc,
+    '`dateTime` and `now` need to be in local time.');
+
+  if (dateTime.year == now.year &&
+      dateTime.month == now.month &&
+      dateTime.day == now.day) {
+    return zulipLocalizations.today;
+  }
+
+  final yesterday = now
+    .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0)
+    .add(const Duration(days: -1));
+  if (dateTime.year == yesterday.year &&
+      dateTime.month == yesterday.month &&
+      dateTime.day == yesterday.day) {
+    return zulipLocalizations.yesterday;
+  }
+
+  // If it is Dec 1 and you see a label that says `Dec 2`
+  // it could be misinterpreted as Dec 2 of the previous
+  // year. For times in the future, those still on the
+  // current day will show as today (handled above) and
+  // any dates beyond that show up with the year.
+  if (dateTime.year == now.year && dateTime.isBefore(now)) {
+    return DateFormat.MMMd().format(dateTime);
+  } else {
+    return DateFormat.yMMMd().format(dateTime);
+  }
+}
 
 /// A Zulip message, showing the sender's name and avatar if specified.
 class MessageWithPossibleSender extends StatelessWidget {
