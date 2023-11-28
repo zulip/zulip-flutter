@@ -312,6 +312,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   ///
   /// This depends in particular on whether the message is muted in
   /// one way or another.
+  ///
+  /// See also [_allMessagesVisible].
   bool _messageVisible(Message message) {
     switch (narrow) {
       case AllMessagesNarrow():
@@ -325,6 +327,21 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         assert(message is StreamMessage && message.streamId == streamId);
         if (message is! StreamMessage) return false;
         return store.isTopicVisibleInStream(streamId, message.subject);
+
+      case TopicNarrow():
+      case DmNarrow():
+        return true;
+    }
+  }
+
+  /// Whether [_messageVisible] is true for all possible messages.
+  ///
+  /// This is useful for an optimization.
+  bool get _allMessagesVisible {
+    switch (narrow) {
+      case AllMessagesNarrow():
+      case StreamNarrow():
+        return false;
 
       case TopicNarrow():
       case DmNarrow():
@@ -380,7 +397,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         result.messages.removeLast();
       }
 
-      _insertAllMessages(0, result.messages.where(_messageVisible));
+      final fetchedMessages = _allMessagesVisible
+        ? result.messages // Avoid unnecessarily copying the list.
+        : result.messages.where(_messageVisible);
+
+      _insertAllMessages(0, fetchedMessages);
       _haveOldest = result.foundOldest;
     } finally {
       _fetchingOlder = false;
