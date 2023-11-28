@@ -46,6 +46,9 @@ class StreamStoreImpl with StreamStore {
   void handleStreamEvent(StreamEvent event) {
     switch (event) {
       case StreamCreateEvent():
+        assert(event.streams.every((stream) =>
+          !streams.containsKey(stream.streamId)
+          && !streamsByName.containsKey(stream.name)));
         streams.addEntries(event.streams.map((stream) => MapEntry(stream.streamId, stream)));
         streamsByName.addEntries(event.streams.map((stream) => MapEntry(stream.name, stream)));
         // (Don't touch `subscriptions`. If the user is subscribed to the stream,
@@ -64,6 +67,7 @@ class StreamStoreImpl with StreamStore {
     switch (event) {
       case SubscriptionAddEvent():
         for (final subscription in event.subscriptions) {
+          assert(!subscriptions.containsKey(subscription.streamId));
           subscriptions[subscription.streamId] = subscription;
         }
 

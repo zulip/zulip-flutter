@@ -53,9 +53,9 @@ void main() {
 
   /// Set up an inbox view with lots of interesting content.
   Future<void> setupVarious(WidgetTester tester) async {
-    final stream1 = eg.stream(streamId: 1);
+    final stream1 = eg.stream(streamId: 1, name: 'stream 1');
     final sub1 = eg.subscription(stream1);
-    final stream2 = eg.stream(streamId: 2);
+    final stream2 = eg.stream(streamId: 2, name: 'stream 2');
     final sub2 = eg.subscription(stream2);
 
     await setupPage(tester,
