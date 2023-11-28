@@ -670,18 +670,28 @@ class DmRecipientHeader extends StatelessWidget {
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: DmNarrow.ofMessage(message, selfUserId: store.account.userId))),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: _kDmRecipientHeaderColor)),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          RecipientHeaderChevronContainer(
-            color: _kDmRecipientHeaderColor,
-            child: Text(style: const TextStyle(color: Colors.white),
-              title)),
-          RecipientHeaderDate(message: message,
-            color: _kDmRecipientHeaderDateColor),
-        ])));
+      child: ColoredBox(
+        color: _kDmRecipientHeaderColor,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                child: Icon(size: 16, ZulipIcons.user)),
+              Expanded(
+                child: Text(title,
+                  style: const TextStyle(
+                    fontFamily: 'Source Sans 3',
+                    fontSize: 16,
+                    letterSpacing: 0.02 * 16,
+                    height: (18 / 16),
+                  ).merge(weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)),
+                  overflow: TextOverflow.ellipsis)),
+              RecipientHeaderDate(message: message,
+                color: _kDmRecipientHeaderDateColor),
+            ]))));
   }
 }
 
@@ -720,29 +730,6 @@ class RecipientHeaderDate extends StatelessWidget {
 }
 
 final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(#278)
-
-/// A widget with the distinctive chevron-tailed shape in Zulip recipient headers.
-class RecipientHeaderChevronContainer extends StatelessWidget {
-  const RecipientHeaderChevronContainer(
-    {super.key, required this.color, required this.child});
-
-  final Color color;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    const chevronLength = 5.0;
-    const recipientBorderShape = BeveledRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topRight: Radius.elliptical(chevronLength, double.infinity),
-        bottomRight: Radius.elliptical(chevronLength, double.infinity)));
-    return Container(
-      decoration: ShapeDecoration(color: color, shape: recipientBorderShape),
-      padding: const EdgeInsets.only(right: chevronLength),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 6, 3), child: child));
-  }
-}
 
 /// A Zulip message, showing the sender's name and avatar if specified.
 class MessageWithPossibleSender extends StatelessWidget {
