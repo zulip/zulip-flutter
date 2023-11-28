@@ -103,6 +103,14 @@ make_ios_app_icon() {
     make_one_ios_app_icon 76 2 ipad
     make_one_ios_app_icon 1024 1 ios-marketing
 
+    # For the App Store logo, it's required to not have transparency.
+    # We already don't have any intentional transparency, so just
+    # cut out the alpha channel.
+    mv "${iconset}"/Icon-1024x1024@1x{,.1}.png
+    convert "${iconset}"/Icon-1024x1024@1x.1.png \
+      -alpha deactivate "${iconset}"/Icon-1024x1024@1x.png
+    rm -f "${iconset}"/Icon-1024x1024@1x.1.png
+
     # From "Spotlight, Settings, and Notification Icons"
     # in the same iOS doc
     make_one_ios_app_icon 40 3 iphone
