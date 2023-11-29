@@ -824,13 +824,13 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
   int responseCount = 0;
   int updatedCount = 0;
 
-  final apiNarrow = switch (narrow) {
-    // Since there's a database index on is:unread, it's a fast
-    // search query and thus worth using as an optimization
-    // when processing all messages.
-    AllMessagesNarrow() => [ApiNarrowIsUnread()],
-    _                   => narrow.apiEncode(),
-  };
+  // Include `is:unread` in the narrow.  That has a database index, so
+  // this can be an important optimization in narrows with a lot of history.
+  // The server applies the same optimization within the (deprecated)
+  // specialized endpoints for marking messages as read; see
+  // `do_mark_stream_messages_as_read` in `zulip:zerver/actions/message_flags.py`.
+  final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+
   while (true) {
     final result = await updateMessageFlagsForNarrow(connection,
       anchor: anchor,

@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -589,6 +590,7 @@ void main() {
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -597,7 +599,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(narrow.apiEncode()),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -647,6 +649,7 @@ void main() {
           firstProcessedId: 1, lastProcessedId: 1989,
           foundOldest: true, foundNewest: false).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -655,7 +658,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(narrow.apiEncode()),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -674,7 +677,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(narrow.apiEncode()),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -693,6 +696,7 @@ void main() {
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: false).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -701,7 +705,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(narrow.apiEncode()),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
