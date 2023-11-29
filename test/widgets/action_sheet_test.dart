@@ -102,10 +102,6 @@ void main() {
       return mock;
     }
 
-    tearDown(() async {
-      testBinding.reset();
-    });
-
     Future<void> tapShareButton(WidgetTester tester) async {
       await tester.ensureVisible(find.byIcon(Icons.adaptive.share, skipOffstage: false));
       await tester.tap(find.byIcon(Icons.adaptive.share));
@@ -304,10 +300,6 @@ void main() {
         SystemChannels.platform,
         MockClipboard().handleMethodCall,
       );
-    });
-
-    tearDown(() async {
-      testBinding.reset();
     });
 
     Future<void> tapCopyButton(WidgetTester tester) async {
