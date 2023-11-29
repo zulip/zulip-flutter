@@ -652,17 +652,18 @@ class DmRecipientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final String title;
     if (message.allRecipientIds.length > 1) {
-      final otherNames = message.allRecipientIds
+      title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
         .where((id) => id != store.account.userId)
-        .map((id) => store.users[id]?.fullName ?? '(unknown user)')
+        .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
         .sorted()
-        .join(", ");
-      title = 'You and $otherNames';
+        .join(", "));
     } else {
-      title = 'You with yourself'; // TODO pick string; web has glitchy "You and $yourname"
+      // TODO pick string; web has glitchy "You and $yourname"
+      title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 
     return GestureDetector(

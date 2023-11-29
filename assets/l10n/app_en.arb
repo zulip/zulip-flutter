@@ -194,6 +194,21 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "unknownUserName": "(unknown user)",
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "messageListGroupYouAndOthers": "You and {others}",
+  "@messageListGroupYouAndOthers": {
+    "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {"type": "String", "example": "Alice, Bob"}
+    }
+  },
+  "messageListGroupYouWithYourself": "You with yourself",
+  "@messageListGroupYouWithYourself": {
+    "description": "Message list recipient header for a DM group that only includes yourself."
+  },
   "contentValidationErrorTooLong": "Message length shouldn't be greater than 10000 characters.",
   "@contentValidationErrorTooLong": {
     "description": "Content validation error message when the message is too long."

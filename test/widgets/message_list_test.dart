@@ -333,6 +333,7 @@ void main() {
     });
 
     testWidgets('show names on DMs', (tester) async {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await setupMessageListPage(tester, messages: [
         eg.dmMessage(from: eg.selfUser, to: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
@@ -341,20 +342,25 @@ void main() {
       store.addUser(eg.otherUser);
       store.addUser(eg.thirdUser);
       await tester.pump();
-      tester.widget(find.text("You with yourself"));
-      tester.widget(find.text("You and ${eg.otherUser.fullName}"));
-      tester.widget(find.text("You and ${eg.otherUser.fullName}, ${eg.thirdUser.fullName}"));
+      tester.widget(find.text(zulipLocalizations.messageListGroupYouWithYourself));
+      tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
+        eg.otherUser.fullName)));
+      tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
+        "${eg.otherUser.fullName}, ${eg.thirdUser.fullName}")));
     });
 
     testWidgets('show names on DMs: smoothly handle unknown users', (tester) async {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await setupMessageListPage(tester, messages: [
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]),
       ]);
       store.addUser(eg.thirdUser);
       await tester.pump();
-      tester.widget(find.text("You and (unknown user)"));
-      tester.widget(find.text("You and (unknown user), ${eg.thirdUser.fullName}"));
+      tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
+        zulipLocalizations.unknownUserName)));
+      tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
+        "${zulipLocalizations.unknownUserName}, ${eg.thirdUser.fullName}")));
     });
 
     testWidgets('show dates', (tester) async {
