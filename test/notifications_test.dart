@@ -261,11 +261,13 @@ void main() {
     testWidgets('find account among several', (tester) async {
       final realmUrlA = Uri.parse('https://a-chat.example/');
       final realmUrlB = Uri.parse('https://chat-b.example/');
+      final user1 = eg.user();
+      final user2 = eg.user();
       final accounts = [
-        eg.account(id: 1001, realmUrl: realmUrlA, user: eg.user(userId: 123)),
-        eg.account(id: 1002, realmUrl: realmUrlA, user: eg.user(userId: 234)),
-        eg.account(id: 1003, realmUrl: realmUrlB, user: eg.user(userId: 123)),
-        eg.account(id: 1004, realmUrl: realmUrlB, user: eg.user(userId: 234)),
+        eg.account(id: 1001, realmUrl: realmUrlA, user: user1),
+        eg.account(id: 1002, realmUrl: realmUrlA, user: user2),
+        eg.account(id: 1003, realmUrl: realmUrlB, user: user1),
+        eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
       ];
       for (final account in accounts) {
         testBinding.globalStore.insertAccount(account.toCompanion(false));

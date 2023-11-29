@@ -24,6 +24,17 @@ const int futureZulipFeatureLevel = 9999;
 // Users and accounts.
 //
 
+/// A fresh user ID, from a random but always strictly increasing sequence.
+int _nextUserId() => (_lastUserId += 1 + Random().nextInt(100));
+int _lastUserId = 1000;
+
+/// Construct an example user.
+///
+/// If user ID `userId` is not given, it will be generated from a random
+/// but increasing sequence.
+/// Use an explicit `userId` only if the ID needs to correspond to some
+/// other data in the test, or if the IDs need to increase in a different order
+/// from the calls to [user].
 User user({
   int? userId,
   String? email,
@@ -32,7 +43,7 @@ User user({
   Map<int, ProfileFieldUserData>? profileData,
 }) {
   return User(
-    userId: userId ?? 123, // TODO generate example IDs
+    userId: userId ?? _nextUserId(),
     deliveryEmailStaleDoNotUse: 'name@example.com',
     email: email ?? 'name@example.com', // TODO generate example emails
     fullName: fullName ?? 'A user', // TODO generate example names
@@ -72,21 +83,21 @@ Account account({
   );
 }
 
-final User selfUser = user(fullName: 'Self User', email: 'self@example', userId: 123);
+final User selfUser = user(fullName: 'Self User', email: 'self@example');
 final Account selfAccount = account(
   id: 1001,
   user: selfUser,
   apiKey: 'asdfqwer',
 );
 
-final User otherUser = user(fullName: 'Other User', email: 'other@example', userId: 234);
+final User otherUser = user(fullName: 'Other User', email: 'other@example');
 final Account otherAccount = account(
   id: 1002,
   user: otherUser,
   apiKey: 'sdfgwert',
 );
 
-final User thirdUser = user(fullName: 'Third User', email: 'third@example', userId: 345);
+final User thirdUser = user(fullName: 'Third User', email: 'third@example');
 
 ////////////////////////////////////////////////////////////////
 // Streams and subscriptions.
