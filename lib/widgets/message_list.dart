@@ -680,12 +680,16 @@ class DmRecipientHeader extends StatelessWidget {
             child: Text(style: const TextStyle(color: Colors.white),
               title)),
           RecipientHeaderDate(message: message,
-            color: _kRecipientHeaderDateColor),
+            color: _kDmRecipientHeaderDateColor),
         ])));
   }
 }
 
-final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor();
+// TODO(#95): web uses different color in dark mode
+// Header color from `color-background-private-message-header`
+//   in zulip:web/styles/zulip.css .
+final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
+final _kDmRecipientHeaderDateColor = Colors.black.withOpacity(0.4);
 
 class RecipientHeaderDate extends StatelessWidget {
   const RecipientHeaderDate({super.key, required this.message, required this.color});
@@ -714,8 +718,6 @@ class RecipientHeaderDate extends StatelessWidget {
           DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000))));
   }
 }
-
-final _kRecipientHeaderDateColor = const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor();
 
 final _kRecipientHeaderDateFormat = DateFormat('y-MM-dd', 'en_US'); // TODO(#278)
 
