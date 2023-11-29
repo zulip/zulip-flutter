@@ -69,6 +69,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  TestWidgetsFlutterBinding.ensureInitialized();
 
   void prepareRawContentResponseSuccess(PerAccountStore store, {
     required Message message,
@@ -91,12 +92,7 @@ void main() {
   }
 
   group('ShareButton', () {
-    // Tests should call setupMockSharePlus.
-    setUp(() async {
-      TestZulipBinding.ensureInitialized();
-      TestWidgetsFlutterBinding.ensureInitialized();
-    });
-
+    // Tests should call this.
     MockSharePlus setupMockSharePlus() {
       final mock = MockSharePlus();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -304,8 +300,6 @@ void main() {
 
   group('CopyButton', () {
     setUp(() async {
-      TestZulipBinding.ensureInitialized();
-      TestWidgetsFlutterBinding.ensureInitialized();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,
         MockClipboard().handleMethodCall,
