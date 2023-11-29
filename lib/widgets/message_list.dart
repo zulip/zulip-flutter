@@ -666,7 +666,6 @@ class DmRecipientHeader extends StatelessWidget {
     }
 
     return GestureDetector(
-      behavior: HitTestBehavior.translucent,
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: DmNarrow.ofMessage(message, selfUserId: store.account.userId))),
