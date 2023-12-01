@@ -98,6 +98,12 @@ class Paragraph extends StatelessWidget {
 
   final ParagraphNode node;
 
+  static TextStyle getTextStyle(BuildContext context) => const TextStyle(
+    fontFamily: 'Source Sans 3',
+    fontSize: 14,
+    height: (17 / 14),
+  ).merge(weightVariableTextStyle(context));
+
   @override
   Widget build(BuildContext context) {
     // Empty paragraph winds up with zero height.
@@ -106,11 +112,7 @@ class Paragraph extends StatelessWidget {
 
     final text = _buildBlockInlineContainer(
       node: node,
-      style: const TextStyle(
-        fontFamily: 'Source Sans 3',
-        fontSize: 14,
-        height: (17 / 14),
-      ).merge(weightVariableTextStyle(context)),
+      style: getTextStyle(context),
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
@@ -594,7 +596,7 @@ class UserMention extends StatelessWidget {
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
-        style: null,
+        style: Paragraph.getTextStyle(context),
         nodes: node.nodes));
   }
 
