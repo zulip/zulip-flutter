@@ -230,6 +230,7 @@ class HomePage extends StatelessWidget {
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(
+            textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 18),
             child: Column(children: [
               const Text('🚧 Under construction 🚧'),
