@@ -455,6 +455,20 @@ void main() {
     });
   });
 
+  group('Starred messages', () {
+    testWidgets('unstarred message', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      await setupMessageListPage(tester, messages: [message]);
+      check(find.byIcon(ZulipIcons.star_filled).evaluate()).isEmpty();
+    });
+
+    testWidgets('starred message', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      await setupMessageListPage(tester, messages: [message]);
+      check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
+    });
+  });
+
   group('_UnreadMarker animations', () {
     // TODO: Improve animation state testing so it is less tied to
     //   implementation details and more focused on output, see:

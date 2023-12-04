@@ -849,6 +849,8 @@ class MessageWithPossibleSender extends StatelessWidget {
 
   final MessageListMessageItem item;
 
+  static final _starColor = const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor();
+
   @override
   Widget build(BuildContext context) {
     final message = item.message;
@@ -913,7 +915,14 @@ class MessageWithPossibleSender extends StatelessWidget {
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!)
                 ])),
-            const SizedBox(width: 16),
+            SizedBox(width: 16,
+              child: message.flags.contains(MessageFlag.starred)
+                // TODO(#157): fix how star marker aligns with message content
+                // Design from Figma at:
+                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
+                ? Padding(padding: const EdgeInsets.only(top: 4),
+                    child: Icon(ZulipIcons.star_filled, size: 16, color: _starColor))
+                : null),
           ]),
         ])));
   }
