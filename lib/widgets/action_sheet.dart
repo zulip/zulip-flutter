@@ -10,6 +10,7 @@ import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
 import 'draggable_scrollable_modal_bottom_sheet.dart';
+import 'icons.dart';
 import 'message_list.dart';
 import 'store.dart';
 
@@ -38,6 +39,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     builder: (BuildContext _) {
       return Column(children: [
         if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
+        StarButton(message: message, messageListContext: context),
         ShareButton(message: message, messageListContext: context),
         if (isComposeBoxOffered) QuoteAndReplyButton(
           message: message,
@@ -111,6 +113,54 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
 
       await showErrorDialog(context: context,
         title: 'Adding reaction failed', message: errorMessage);
+    }
+  };
+}
+
+class StarButton extends MessageActionSheetMenuItemButton {
+  StarButton({
+    super.key,
+    required super.message,
+    required super.messageListContext,
+  });
+
+  @override get icon => ZulipIcons.star_filled;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return message.flags.contains(MessageFlag.starred)
+      ? zulipLocalizations.actionSheetOptionUnstarMessage
+      : zulipLocalizations.actionSheetOptionStarMessage;
+  }
+
+  @override get onPressed => (BuildContext context) async {
+    Navigator.of(context).pop();
+    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+    final op = message.flags.contains(MessageFlag.starred)
+      ? UpdateMessageFlagsOp.remove
+      : UpdateMessageFlagsOp.add;
+
+    try {
+      final connection = PerAccountStoreWidget.of(messageListContext).connection;
+      await updateMessageFlags(connection, messages: [message.id],
+        op: op, flag: MessageFlag.starred);
+    } catch (e) {
+      if (!messageListContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      await showErrorDialog(context: messageListContext,
+        title: switch(op) {
+          UpdateMessageFlagsOp.remove => zulipLocalizations.errorUnstarMessageFailedTitle,
+          UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
+        }, message: errorMessage);
     }
   };
 }

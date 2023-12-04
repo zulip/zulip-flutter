@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,10 +9,12 @@ import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/compose.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
@@ -138,6 +142,102 @@ void main() {
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: 'Adding reaction failed',
+        expectedMessage: 'Invalid message(s)')));
+    });
+  });
+
+  group('StarButton', () {
+    Future<void> tapButton(WidgetTester tester) async {
+      // Starred messages include the same icon so we need to
+      // match only by descendants of [BottomSheet].
+      await tester.ensureVisible(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byIcon(ZulipIcons.star_filled, skipOffstage: false)));
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byIcon(ZulipIcons.star_filled)));
+      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+    }
+
+    testWidgets('star success', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(json: {});
+      await tapButton(tester);
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags')
+        ..bodyFields.deepEquals({
+          'messages': jsonEncode([message.id]),
+          'op': 'add',
+          'flag': 'starred',
+        });
+    });
+
+    testWidgets('unstar success', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(json: {});
+      await tapButton(tester);
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags')
+        ..bodyFields.deepEquals({
+          'messages': jsonEncode([message.id]),
+          'op': 'remove',
+          'flag': 'starred',
+        });
+    });
+
+    testWidgets('star request has an error', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+      final connection = store.connection as FakeApiConnection;
+
+      connection.prepare(httpStatus: 400, json: {
+        'code': 'BAD_REQUEST',
+        'msg': 'Invalid message(s)',
+        'result': 'error',
+      });
+      await tapButton(tester);
+      await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorStarMessageFailedTitle,
+        expectedMessage: 'Invalid message(s)')));
+    });
+
+    testWidgets('unstar request has an error', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+      final connection = store.connection as FakeApiConnection;
+
+      connection.prepare(httpStatus: 400, json: {
+        'code': 'BAD_REQUEST',
+        'msg': 'Invalid message(s)',
+        'result': 'error',
+      });
+      await tapButton(tester);
+      await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorUnstarMessageFailedTitle,
         expectedMessage: 'Invalid message(s)')));
     });
   });

@@ -55,6 +55,14 @@
   "@actionSheetOptionQuoteAndReply":  {
     "description": "Label for Quote and reply button on action sheet."
   },
+  "actionSheetOptionStarMessage": "Star message",
+  "@actionSheetOptionStarMessage":  {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "Unstar message",
+  "@actionSheetOptionUnstarMessage":  {
+    "description": "Label for unstar button on action sheet."
+  },
   "errorCouldNotFetchMessageSource": "Could not fetch message source",
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
@@ -127,6 +135,14 @@
   "errorSharingFailed": "Sharing failed",
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "errorStarMessageFailedTitle": "Failed to star message",
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "errorUnstarMessageFailedTitle": "Failed to unstar message",
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
   },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
