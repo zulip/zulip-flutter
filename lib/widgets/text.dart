@@ -79,7 +79,7 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
     // and indeed it doesn't seem updated to be aware of variable fonts at all.
     value = wghtIfPlatformRequestsBold ?? FontWeight.bold.value.toDouble();
   }
-  assert(value >= 1 && value <= 1000); // https://fonts.google.com/variablefonts#axis-definitions
+  assert(value >= kWghtMin && value <= kWghtMax);
 
   return TextStyle(
     fontVariations: [FontVariation('wght', value)],
@@ -91,6 +91,16 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
 
     inherit: true);
 }
+
+/// The minimum that a [FontVariation] "wght" value can be.
+///
+/// See <https://fonts.google.com/variablefonts#axis-definitions>.
+const kWghtMin = 1.0;
+
+/// The maximum that a [FontVariation] "wght" value can be.
+///
+/// See <https://fonts.google.com/variablefonts#axis-definitions>.
+const kWghtMax = 1000.0;
 
 /// Find the nearest [FontWeight] constant for a variable-font "wght"-axis value.
 ///
