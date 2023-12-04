@@ -56,8 +56,8 @@ void main() {
       expectedFontVariations: const [FontVariation('wght', 475)],
       expectedFontWeight: FontWeight.w500);
     testWeights('specific values; platform requests bold',
-      platformRequestsBold: true,
       styleBuilder: (context) => weightVariableTextStyle(context, wght: 475, wghtIfPlatformRequestsBold: 675),
+      platformRequestsBold: true,
       expectedFontVariations: const [FontVariation('wght', 675)],
       expectedFontWeight: FontWeight.w700);
   });
