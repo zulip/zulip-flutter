@@ -7,6 +7,63 @@ import 'package:zulip/widgets/text.dart';
 import '../flutter_checks.dart';
 
 void main() {
+  group('zulipTypography', () {
+    Future<Typography> getZulipTypography(WidgetTester tester, {
+      required bool platformRequestsBold,
+    }) async {
+      late final Typography result;
+      await tester.pumpWidget(
+        MediaQuery(data: MediaQueryData(boldText: platformRequestsBold),
+          child: Builder(builder: (context) {
+            result = zulipTypography(context);
+            return const SizedBox.shrink();
+          })));
+      return result;
+    }
+
+    matchesFontFamilies(Subject<TextStyle> it) => it
+      ..fontFamily.equals(kDefaultFontFamily)
+      ..fontFamilyFallback.isNotNull().deepEquals(defaultFontFamilyFallback);
+
+    matchesWeight(FontWeight weight) => (Subject<TextStyle> it) => it
+      ..fontWeight.equals(weight)
+      ..fontVariations.isNotNull().contains(
+          FontVariation('wght', wghtFromFontWeight(weight)));
+
+    for (final platformRequestsBold in [false, true]) {
+      final description = platformRequestsBold
+        ? 'platform requests bold'
+        : 'platform does not request bold';
+      testWidgets(description, (tester) async {
+        check(await getZulipTypography(tester, platformRequestsBold: platformRequestsBold))
+          ..black.bodyMedium.isNotNull().which(matchesFontFamilies)
+          ..white.bodyMedium.isNotNull().which(matchesFontFamilies)
+          ..englishLike.bodyMedium.isNotNull().which(
+              matchesWeight(platformRequestsBold ? FontWeight.w700 : FontWeight.w400))
+          ..dense.bodyMedium.isNotNull().which(
+              matchesWeight(platformRequestsBold ? FontWeight.w700 : FontWeight.w400))
+          ..tall.bodyMedium.isNotNull().which(
+              matchesWeight(platformRequestsBold ? FontWeight.w700 : FontWeight.w400));
+      });
+    }
+
+    test('Typography has the assumed fields', () {
+      check(Typography().toDiagnosticsNode().getProperties().map((n) => n.name).toList())
+        .unorderedEquals(['black', 'white', 'englishLike', 'dense', 'tall']);
+    });
+  });
+
+  test('_convertTextTheme: TextTheme has the assumed fields', () {
+    check(const TextTheme().toDiagnosticsNode().getProperties().map((n) => n.name).toList())
+      .unorderedEquals([
+        'displayLarge',  'displayMedium',  'displaySmall',
+        'headlineLarge', 'headlineMedium', 'headlineSmall',
+        'titleLarge',    'titleMedium',    'titleSmall',
+        'bodyLarge',     'bodyMedium',     'bodySmall',
+        'labelLarge',    'labelMedium',    'labelSmall',
+      ]);
+  });
+
   group('weightVariableTextStyle', () {
     Future<void> testWeights(
       String description, {

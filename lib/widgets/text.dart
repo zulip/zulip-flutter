@@ -1,6 +1,113 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
+/// An app-wide [Typography] for Zulip, customized from the Material default.
+///
+/// Include this in the app-wide [MaterialApp.theme].
+///
+/// We expect these text styles to be the basis of all the styles chosen by the
+/// Material library's widgets, such as the default styling of
+/// an [AppBar]'s title, of an [ElevatedButton]'s label, and so on.
+///
+/// Applies [kDefaultFontFamily] and [kDefaultFontFamilyFallback],
+/// being faithful to the Material-default font weights
+/// by running them through [weightVariableTextStyle].
+/// (That is needed because [kDefaultFontFamily] is a variable-weight font).
+///
+/// When building on top of these [TextStyles], callers that wish to specify
+/// a different font weight are still responsible for reprocessing the style
+/// with [weightVariableTextStyle] before passing it to a [Text].
+/// (Widgets in the Material library won't do this; they aren't yet equipped
+/// to set font weights on variable-weight fonts. If this causes visible bugs,
+/// we should investigate and fix, but such bugs should become less likely as
+/// we transition from Material's widgets to our own bespoke ones.)
+Typography zulipTypography(BuildContext context) {
+  final typography = Theme.of(context).typography;
+
+  Typography result = typography.copyWith(
+    black: typography.black.apply(
+      fontFamily: kDefaultFontFamily,
+      fontFamilyFallback: defaultFontFamilyFallback),
+    white: typography.white.apply(
+      fontFamily: kDefaultFontFamily,
+      fontFamilyFallback: defaultFontFamilyFallback),
+
+    dense:       _weightVariableTextTheme(context, typography.dense),
+    englishLike: _weightVariableTextTheme(context, typography.englishLike),
+    tall:        _weightVariableTextTheme(context, typography.tall),
+  );
+
+  assert(() {
+    // Set [TextStyle.debugLabel] for all styles, like:
+    //   "zulipTypography black titleMedium"
+
+    mkAddLabel(String debugTextThemeLabel)
+      => (TextStyle? maybeInputStyle, String debugStyleLabel)
+      => maybeInputStyle?.copyWith(debugLabel: '$debugTextThemeLabel $debugStyleLabel');
+
+    result = result.copyWith(
+      black:       _convertTextTheme(result.black,       mkAddLabel('zulipTypography black')),
+      white:       _convertTextTheme(result.white,       mkAddLabel('zulipTypography white')),
+      englishLike: _convertTextTheme(result.englishLike, mkAddLabel('zulipTypography englishLike')),
+      dense:       _convertTextTheme(result.dense,       mkAddLabel('zulipTypography dense')),
+      tall:        _convertTextTheme(result.tall,        mkAddLabel('zulipTypography tall')),
+    );
+    return true;
+  }());
+
+  return result;
+}
+
+/// Convert a geometry [TextTheme] to one that works with "wght"-variable fonts.
+///
+/// A "geometry [TextTheme]" is a [TextTheme] that's meant to specify
+/// font weight and other parameters about shape, size, distance, etc.
+/// See [Typography].
+///
+/// This looks at each of the [TextStyle]s found on the input [TextTheme]
+/// (such as [TextTheme.bodyMedium]),
+/// and uses [weightVariableTextStyle] to adjust the [TextStyle].
+/// Fields that are null in the input [TextTheme] remain null in the output.
+///
+/// For each input [TextStyle], the `wght` value passed
+/// to [weightVariableTextStyle] is based on the input's [TextStyle.fontWeight].
+/// A null [TextStyle.fontWeight] is interpreted as the normal font weight.
+TextTheme _weightVariableTextTheme(BuildContext context, TextTheme input) {
+  TextStyle? convert(TextStyle? maybeInputStyle, _) {
+    if (maybeInputStyle == null) {
+      return null;
+    }
+    final inputFontWeight = maybeInputStyle.fontWeight;
+    return maybeInputStyle.merge(weightVariableTextStyle(context,
+      wght: inputFontWeight != null
+        ? wghtFromFontWeight(inputFontWeight)
+        : null));
+  }
+
+  return _convertTextTheme(input, convert);
+}
+
+TextTheme _convertTextTheme(
+  TextTheme input,
+  TextStyle? Function(TextStyle?, String debugStyleLabel) converter,
+) => TextTheme(
+  displayLarge:   converter(input.displayLarge,   'displayLarge'),
+  displayMedium:  converter(input.displayMedium,  'displayMedium'),
+  displaySmall:   converter(input.displaySmall,   'displaySmall'),
+  headlineLarge:  converter(input.headlineLarge,  'headlineLarge'),
+  headlineMedium: converter(input.headlineMedium, 'headlineMedium'),
+  headlineSmall:  converter(input.headlineSmall,  'headlineSmall'),
+  titleLarge:     converter(input.titleLarge,     'titleLarge'),
+  titleMedium:    converter(input.titleMedium,    'titleMedium'),
+  titleSmall:     converter(input.titleSmall,     'titleSmall'),
+  bodyLarge:      converter(input.bodyLarge,      'bodyLarge'),
+  bodyMedium:     converter(input.bodyMedium,     'bodyMedium'),
+  bodySmall:      converter(input.bodySmall,      'bodySmall'),
+  labelLarge:     converter(input.labelLarge,     'labelLarge'),
+  labelMedium:    converter(input.labelMedium,    'labelMedium'),
+  labelSmall:     converter(input.labelSmall,     'labelSmall'),
+);
 
 /// The [TextStyle.fontFamily] to use in most of the app.
 ///
@@ -145,3 +252,12 @@ FontWeight clampVariableFontWeight(double wght) {
     }
   }
 }
+
+/// A good guess at a font's "wght" value to match a given [FontWeight].
+///
+/// Returns [FontWeight.value] as a double.
+///
+/// This might not be exactly where the font designer would land on their
+/// font's own custom-defined "wght" axis. But it's a great guess,
+/// at least without knowledge of the particular font.
+double wghtFromFontWeight(FontWeight fontWeight) => fontWeight.value.toDouble();

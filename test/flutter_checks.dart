@@ -54,8 +54,37 @@ extension TextFieldChecks on Subject<TextField> {
 
 extension TextStyleChecks on Subject<TextStyle> {
   Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
-  Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
   Subject<FontWeight?> get fontWeight => has((t) => t.fontWeight, 'fontWeight');
+  Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
+  Subject<String?> get fontFamily => has((t) => t.fontFamily, 'fontFamily');
+  Subject<List<String>?> get fontFamilyFallback => has((t) => t.fontFamilyFallback, 'fontFamilyFallback');
 
   // TODO others
+}
+
+
+extension TextThemeChecks on Subject<TextTheme> {
+  Subject<TextStyle?> get displayLarge => has((t) => t.displayLarge, 'displayLarge');
+  Subject<TextStyle?> get displayMedium => has((t) => t.displayMedium, 'displayMedium');
+  Subject<TextStyle?> get displaySmall => has((t) => t.displaySmall, 'displaySmall');
+  Subject<TextStyle?> get headlineLarge => has((t) => t.headlineLarge, 'headlineLarge');
+  Subject<TextStyle?> get headlineMedium => has((t) => t.headlineMedium, 'headlineMedium');
+  Subject<TextStyle?> get headlineSmall => has((t) => t.headlineSmall, 'headlineSmall');
+  Subject<TextStyle?> get titleLarge => has((t) => t.titleLarge, 'titleLarge');
+  Subject<TextStyle?> get titleMedium => has((t) => t.titleMedium, 'titleMedium');
+  Subject<TextStyle?> get titleSmall => has((t) => t.titleSmall, 'titleSmall');
+  Subject<TextStyle?> get bodyLarge => has((t) => t.bodyLarge, 'bodyLarge');
+  Subject<TextStyle?> get bodyMedium => has((t) => t.bodyMedium, 'bodyMedium');
+  Subject<TextStyle?> get bodySmall => has((t) => t.bodySmall, 'bodySmall');
+  Subject<TextStyle?> get labelLarge => has((t) => t.labelLarge, 'labelLarge');
+  Subject<TextStyle?> get labelMedium => has((t) => t.labelMedium, 'labelMedium');
+  Subject<TextStyle?> get labelSmall => has((t) => t.labelSmall, 'labelSmall');
+}
+
+extension TypographyChecks on Subject<Typography> {
+  Subject<TextTheme> get black => has((t) => t.black, 'black');
+  Subject<TextTheme> get white => has((t) => t.white, 'white');
+  Subject<TextTheme> get englishLike => has((t) => t.englishLike, 'englishLike');
+  Subject<TextTheme> get dense => has((t) => t.dense, 'dense');
+  Subject<TextTheme> get tall => has((t) => t.tall, 'tall');
 }

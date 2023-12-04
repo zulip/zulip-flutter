@@ -15,6 +15,7 @@ import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
+import 'text.dart';
 
 class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -81,6 +82,7 @@ class ZulipApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ThemeData(
+      typography: zulipTypography(context),
       appBarTheme: const AppBarTheme(
         // This prevents an elevation change in [AppBar]s so they stop turning
         // darker if there is something scrolled underneath it. See docs:
