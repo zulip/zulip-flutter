@@ -103,8 +103,8 @@ class Paragraph extends StatelessWidget {
   static TextStyle getTextStyle(BuildContext context) => TextStyle(
     fontFamily: kDefaultFontFamily,
     fontFamilyFallback: defaultFontFamilyFallback,
-    fontSize: 14,
-    height: (17 / 14),
+    fontSize: kBaseFontSize,
+    height: (17 / kBaseFontSize),
   ).merge(weightVariableTextStyle(context));
 
   @override
