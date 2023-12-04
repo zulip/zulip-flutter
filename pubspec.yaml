@@ -107,10 +107,27 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/Noto_Color_Emoji/LICENSE
     - assets/Source_Code_Pro/LICENSE.md
     - assets/Source_Sans_3/LICENSE.md
 
   fonts:
+    # Google's emoji font. (Web uses these emoji for the "Google" emojiset.)
+    #
+    # This should not be used on iOS.
+    # iOS doesn't support any of the formats this font is available in,
+    # and if we use it on iOS (whether as a primary font or a fallback)
+    # we'll get blank spaces where we could have had Apple-style emojis.
+    #
+    # Also, in text that might contain non-emoji glyphs, this should
+    # always come after a non-emoji font in the chain of font-family
+    # fallbacks. Letting this font handle e.g. space characters will
+    # make text look weird.
+    # TODO don't bundle this on iOS; it wastes several MB because it's unused.
+    - family: Noto Color Emoji
+      fonts:
+        - asset: assets/Noto_Color_Emoji/Noto-COLRv1.ttf
+
     - family: Source Code Pro
       fonts:
         - asset: assets/Source_Code_Pro/SourceCodeVF-Upright.otf

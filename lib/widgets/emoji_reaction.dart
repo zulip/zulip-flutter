@@ -198,7 +198,7 @@ const _squareEmojiSize = 17.0;
 ///
 /// Determined experimentally:
 ///   <https://github.com/zulip/zulip-flutter/pull/410#discussion_r1402808701>
-// TODO(#404) Actually bundle Noto Color Emoji with the app. Some Android
+// TODO Actually use Noto Color Emoji. Some Android
 //   phones use Noto Color Emoji automatically, and some don't; e.g., Samsung
 //   has its own emoji font:
 //     <https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408403111>
