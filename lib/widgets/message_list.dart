@@ -637,7 +637,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       fontSize: 16,
       letterSpacing: 0.02 * 16,
       height: (18 / 16),
-    ).merge(weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900));
+    ).merge(weightVariableTextStyle(context, wght: 600));
 
     final Widget streamWidget;
     if (!showStream) {
@@ -749,7 +749,7 @@ class DmRecipientHeader extends StatelessWidget {
                     fontSize: 16,
                     letterSpacing: 0.02 * 16,
                     height: (18 / 16),
-                  ).merge(weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)),
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
                   overflow: TextOverflow.ellipsis)),
               RecipientHeaderDate(message: message,
                 color: _kDmRecipientHeaderDateColor),

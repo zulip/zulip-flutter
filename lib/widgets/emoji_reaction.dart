@@ -178,9 +178,8 @@ class ReactionChip extends StatelessWidget {
                             fontSize: (14 * 0.90),
                             height: 13 / (14 * 0.90),
                             color: labelColor,
-                          ).merge(selfVoted
-                            ? weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)
-                            : weightVariableTextStyle(context)),
+                          ).merge(weightVariableTextStyle(context,
+                              wght: selfVoted ? 600 : null)),
                           label),
                       )),
                   ]);
@@ -358,9 +357,8 @@ class _TextEmoji extends StatelessWidget {
         fontSize: 14 * 0.8,
         height: 1, // to be denser when we have to wrap
         color: selected ? _textColorSelected : _textColorUnselected,
-      ).merge(selected
-        ? weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)
-        : weightVariableTextStyle(context)),
+      ).merge(weightVariableTextStyle(context,
+          wght: selected ? 600 : null)),
       // Encourage line breaks before "_" (common in these), but try not
       // to leave a colon alone on a line. See:
       //   <https://github.com/flutter/flutter/issues/61081#issuecomment-1103330522>

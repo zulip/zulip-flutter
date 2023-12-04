@@ -50,6 +50,7 @@ void main() {
       platformRequestsBold: true,
       expectedFontVariations: const [FontVariation('wght', 700)],
       expectedFontWeight: FontWeight.bold);
+
     testWeights('specific values; platform does not request bold',
       styleBuilder: (context) => weightVariableTextStyle(context, wght: 475, wghtIfPlatformRequestsBold: 675),
       platformRequestsBold: false,
@@ -60,6 +61,35 @@ void main() {
       platformRequestsBold: true,
       expectedFontVariations: const [FontVariation('wght', 675)],
       expectedFontWeight: FontWeight.w700);
+
+    testWeights('specific `wght`, default `wghtIfPlatformRequestsBold`; platform does not request bold',
+      styleBuilder: (context) => weightVariableTextStyle(context, wght: 475),
+      platformRequestsBold: false,
+      expectedFontVariations: const [FontVariation('wght', 475)],
+      expectedFontWeight: FontWeight.w500);
+    testWeights('specific `wght`, default `wghtIfPlatformRequestsBold`; platform requests bold',
+      styleBuilder: (context) => weightVariableTextStyle(context, wght: 475),
+      platformRequestsBold: true,
+      expectedFontVariations: const [FontVariation('wght', 775)],
+      expectedFontWeight: FontWeight.w800);
+
+    testWeights('default `wght`, specific `wghtIfPlatformRequestsBold`; platform does not request bold',
+      styleBuilder: (context) => weightVariableTextStyle(context, wghtIfPlatformRequestsBold: 775),
+      platformRequestsBold: false,
+      expectedFontVariations: const [FontVariation('wght', 400)],
+      expectedFontWeight: FontWeight.normal);
+    testWeights('default `wght`, specific `wghtIfPlatformRequestsBold`; platform requests bold',
+      styleBuilder: (context) => weightVariableTextStyle(context, wghtIfPlatformRequestsBold: 775),
+      platformRequestsBold: true,
+      expectedFontVariations: const [FontVariation('wght', 775)],
+      expectedFontWeight: FontWeight.w800);
+  });
+
+  test('bolderWght', () {
+    check(bolderWght(1)).equals(301);
+    check(bolderWght(400)).equals(700);
+    check(bolderWght(600)).equals(900);
+    check(bolderWght(900)).equals(1000);
   });
 
   test('clampVariableFontWeight: FontWeight has the assumed list of values', () {

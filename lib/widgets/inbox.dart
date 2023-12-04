@@ -243,7 +243,7 @@ abstract class _HeaderItem extends StatelessWidget {
                 fontSize: 17,
                 height: (20 / 17),
                 color: const Color(0xFF222222),
-              ).merge(weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)),
+              ).merge(weightVariableTextStyle(context, wght: 600)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               title))),

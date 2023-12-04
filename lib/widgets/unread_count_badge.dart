@@ -50,9 +50,8 @@ class UnreadCountBadge extends StatelessWidget {
             height: (18 / 16),
             fontFeatures: const [FontFeature.enable('smcp')], // small caps
             color: const Color(0xFF222222),
-          ).merge(bold
-            ? weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)
-            : weightVariableTextStyle(context)),
+          ).merge(weightVariableTextStyle(context,
+              wght: bold ? 600 : null)),
           count.toString())));
   }
 }

@@ -228,9 +228,8 @@ class SubscriptionItem extends StatelessWidget {
                   fontSize: 18,
                   height: (20 / 18),
                   color: const Color(0xFF262626),
-                ).merge(hasUnreads
-                  ? weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)
-                  : weightVariableTextStyle(context)),
+                ).merge(weightVariableTextStyle(context,
+                    wght: hasUnreads ? 600 : null)),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 subscription.name))),

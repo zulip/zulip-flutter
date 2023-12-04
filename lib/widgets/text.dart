@@ -70,14 +70,13 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
   double? wght,
   double? wghtIfPlatformRequestsBold,
 }) {
-  assert((wght != null) == (wghtIfPlatformRequestsBold != null));
   double value = wght ?? FontWeight.normal.value.toDouble();
   if (context != null && MediaQuery.boldTextOf(context)) {
     // The framework has a condition on [MediaQueryData.boldText]
     // in the [Text] widget, but that only affects `fontWeight`.
     // [Text] doesn't know where to land on the chosen font's "wght" axis if any,
     // and indeed it doesn't seem updated to be aware of variable fonts at all.
-    value = wghtIfPlatformRequestsBold ?? FontWeight.bold.value.toDouble();
+    value = wghtIfPlatformRequestsBold ?? bolderWght(value);
   }
   assert(value >= kWghtMin && value <= kWghtMax);
 
@@ -101,6 +100,12 @@ const kWghtMin = 1.0;
 ///
 /// See <https://fonts.google.com/variablefonts#axis-definitions>.
 const kWghtMax = 1000.0;
+
+/// A [FontVariation] "wght" value that's 300 above a given, clamped to [kWghtMax].
+double bolderWght(double baseWght) {
+  assert(kWghtMin <= baseWght && baseWght <= kWghtMax);
+  return clampDouble(baseWght + 300, kWghtMin, kWghtMax);
+}
 
 /// Find the nearest [FontWeight] constant for a variable-font "wght"-axis value.
 ///
