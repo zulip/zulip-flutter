@@ -198,10 +198,6 @@ const _squareEmojiSize = 17.0;
 ///
 /// Determined experimentally:
 ///   <https://github.com/zulip/zulip-flutter/pull/410#discussion_r1402808701>
-// TODO Actually use Noto Color Emoji. Some Android
-//   phones use Noto Color Emoji automatically, and some don't; e.g., Samsung
-//   has its own emoji font:
-//     <https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408403111>
 const _notoColorEmojiTextSize = 14.5;
 
 /// A [TextScaler] that limits Unicode and image emojis' max scale factor,
@@ -249,7 +245,10 @@ class _UnicodeEmoji extends StatelessWidget {
       case TargetPlatform.windows:
         return Text(
           textScaler: _squareEmojiScalerClamped(context),
-          style: const TextStyle(fontSize: _notoColorEmojiTextSize),
+          style: const TextStyle(
+            fontFamily: 'Noto Color Emoji',
+            fontSize: _notoColorEmojiTextSize,
+          ),
           strutStyle: const StrutStyle(fontSize: _notoColorEmojiTextSize, forceStrutHeight: true),
           parsed);
       case TargetPlatform.iOS:
