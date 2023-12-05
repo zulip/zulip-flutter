@@ -342,12 +342,9 @@
   "@serverUrlValidationErrorUnsupportedScheme": {
     "description": "Error message when URL has an unsupported scheme."
   },
-  "markAsReadLabel": "Mark {num, plural, =1{1 message} other{{num} messages}} as read",
-  "@markAsReadLabel": {
-    "description": "Button text to mark messages as read.",
-    "placeholders": {
-      "num": {"type": "int", "example": "4"}
-    }
+  "markAllAsReadLabel": "Mark all messages as read",
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
   },
   "markAsReadComplete": "Marked {num, plural, =1{1 message} other{{num} messages}} as read.",
   "@markAsReadComplete": {
