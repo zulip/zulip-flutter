@@ -72,7 +72,7 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
 }) {
   assert((wght != null) == (wghtIfPlatformRequestsBold != null));
   double value = wght ?? FontWeight.normal.value.toDouble();
-  if (context != null && MediaQuery.of(context).boldText) {
+  if (context != null && MediaQuery.boldTextOf(context)) {
     // The framework has a condition on [MediaQueryData.boldText]
     // in the [Text] widget, but that only affects `fontWeight`.
     // [Text] doesn't know where to land on the chosen font's "wght" axis if any,
