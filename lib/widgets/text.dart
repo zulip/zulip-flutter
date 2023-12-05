@@ -10,6 +10,12 @@ import 'package:flutter/material.dart';
 /// Material library's widgets, such as the default styling of
 /// an [AppBar]'s title, of an [ElevatedButton]'s label, and so on.
 ///
+/// As of writing, it turns out that these styles also flow naturally into
+/// most of our own widgets' text styles.
+/// We often see this in the child of a [Material], for example,
+/// since by default [Material] applies an [AnimatedDefaultTextStyle]
+/// with the [TextTheme.bodyMedium] that gets its value from here.
+///
 /// Applies [kDefaultFontFamily] and [kDefaultFontFamilyFallback],
 /// being faithful to the Material-default font weights
 /// by running them through [weightVariableTextStyle].
@@ -22,6 +28,9 @@ import 'package:flutter/material.dart';
 /// to set font weights on variable-weight fonts. If this causes visible bugs,
 /// we should investigate and fix, but such bugs should become less likely as
 /// we transition from Material's widgets to our own bespoke ones.)
+// TODO decide if we like this data flow for our own widgets' text styles.
+//   Does our design fit well with the fields of a [TextTheme]?
+//   (That's [TextTheme.titleLarge], [TextTheme.bodyMedium], etc.)
 Typography zulipTypography(BuildContext context) {
   final typography = Theme.of(context).typography;
 

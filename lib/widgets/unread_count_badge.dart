@@ -43,13 +43,11 @@ class UnreadCountBadge extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 1),
         child: Text(
-          style: TextStyle(
-            fontFamily: kDefaultFontFamily,
-            fontFamilyFallback: defaultFontFamilyFallback,
+          style: const TextStyle(
             fontSize: 16,
             height: (18 / 16),
-            fontFeatures: const [FontFeature.enable('smcp')], // small caps
-            color: const Color(0xFF222222),
+            fontFeatures: [FontFeature.enable('smcp')], // small caps
+            color: Color(0xFF222222),
           ).merge(weightVariableTextStyle(context,
               wght: bold ? 600 : null)),
           count.toString())));

@@ -119,11 +119,9 @@ class _NoSubscriptionsItem extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-            fontFamily: kDefaultFontFamily,
-            fontFamilyFallback: defaultFontFamilyFallback,
             fontSize: 18,
             height: (20 / 18),
-          ).merge(weightVariableTextStyle(context)))));
+          ))));
   }
 }
 
@@ -149,12 +147,10 @@ class _SubscriptionListHeader extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-                  fontFamily: kDefaultFontFamily,
-                  fontFamilyFallback: defaultFontFamilyFallback,
                   fontSize: 14,
                   letterSpacing: 0.04 * 14,
                   height: (16 / 14),
-                ).merge(weightVariableTextStyle(context)))),
+                ))),
             const SizedBox(width: 8),
             Expanded(child: Divider(
               color: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor())),
@@ -222,12 +218,10 @@ class SubscriptionItem extends StatelessWidget {
               //   or only those with unreads:
               //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
               child: Text(
-                style: TextStyle(
-                  fontFamily: kDefaultFontFamily,
-                  fontFamilyFallback: defaultFontFamilyFallback,
+                style: const TextStyle(
                   fontSize: 18,
                   height: (20 / 18),
-                  color: const Color(0xFF262626),
+                  color: Color(0xFF262626),
                 ).merge(weightVariableTextStyle(context,
                     wght: hasUnreads ? 600 : null)),
                 maxLines: 1,

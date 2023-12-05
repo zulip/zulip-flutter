@@ -449,12 +449,15 @@ class MarkAsReadWidget extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: _UnreadMarker.color,
               minimumSize: const Size.fromHeight(38),
-              textStyle: TextStyle(
-                fontFamily: kDefaultFontFamily,
-                fontFamilyFallback: defaultFontFamilyFallback,
-                fontSize: 18,
-                height: (23 / 18),
-              ).merge(weightVariableTextStyle(context)),
+              textStyle:
+                // Restate [FilledButton]'s default, which inherits from
+                // [zulipTypography]…
+                Theme.of(context).textTheme.labelLarge!
+                // …then clobber some attributes to follow Figma:
+                .merge(const TextStyle(
+                  fontSize: 18,
+                  height: (23 / 18))
+                .merge(weightVariableTextStyle(context, wght: 400))),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
             ),
             onPressed: () => _handlePress(context),
@@ -632,8 +635,6 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     }
     final textStyle = TextStyle(
       color: contrastingColor,
-      fontFamily: kDefaultFontFamily,
-      fontFamilyFallback: defaultFontFamilyFallback,
       fontSize: 16,
       letterSpacing: 0.02 * 16,
       height: (18 / 16),
@@ -743,9 +744,7 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(size: 16, ZulipIcons.user)),
               Expanded(
                 child: Text(title,
-                  style: TextStyle(
-                    fontFamily: kDefaultFontFamily,
-                    fontFamilyFallback: defaultFontFamilyFallback,
+                  style: const TextStyle(
                     fontSize: 16,
                     letterSpacing: 0.02 * 16,
                     height: (18 / 16),
@@ -804,14 +803,12 @@ class DateText extends StatelessWidget {
     return Text(
       style: TextStyle(
         color: color,
-        fontFamily: kDefaultFontFamily,
-        fontFamilyFallback: defaultFontFamilyFallback,
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:
         //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
         fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-      ).merge(weightVariableTextStyle(context)),
+      ),
       formatHeaderDate(
         zulipLocalizations,
         DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),

@@ -8,7 +8,6 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
-import 'text.dart';
 import 'unread_count_badge.dart';
 
 class RecentDmConversationsPage extends StatefulWidget {
@@ -126,13 +125,11 @@ class RecentDmConversationsItem extends StatelessWidget {
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
-                style: TextStyle(
-                  fontFamily: kDefaultFontFamily,
-                  fontFamilyFallback: defaultFontFamilyFallback,
+                style: const TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
-                  color: const Color(0xFF222222),
-                ).merge(weightVariableTextStyle(context)),
+                  color: Color(0xFF222222),
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 title))),
