@@ -1,6 +1,12 @@
 import 'dart:io';
 import 'package:flutter/widgets.dart';
 
+/// The [TextStyle.fontFamily] to use in most of the app.
+///
+/// This is a variable-weight font, so any [TextStyle] that uses this should be
+/// merged with the result of calling [weightVariableTextStyle].
+const kDefaultFontFamily = 'Source Sans 3';
+
 /// A mergeable [TextStyle] with 'Source Code Pro' and platform-aware fallbacks.
 ///
 /// Callers should also call [weightVariableTextStyle] and merge that in too,

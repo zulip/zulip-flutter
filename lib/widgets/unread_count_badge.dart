@@ -44,7 +44,7 @@ class UnreadCountBadge extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 1),
         child: Text(
           style: const TextStyle(
-            fontFamily: 'Source Sans 3',
+            fontFamily: kDefaultFontFamily,
             fontSize: 16,
             height: (18 / 16),
             fontFeatures: [FontFeature.enable('smcp')], // small caps

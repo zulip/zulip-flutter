@@ -450,7 +450,7 @@ class MarkAsReadWidget extends StatelessWidget {
               backgroundColor: _UnreadMarker.color,
               minimumSize: const Size.fromHeight(38),
               textStyle: const TextStyle(
-                fontFamily: 'Source Sans 3',
+                fontFamily: kDefaultFontFamily,
                 fontSize: 18,
                 height: (23 / 18),
               ).merge(weightVariableTextStyle(context)),
@@ -631,7 +631,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     }
     final textStyle = TextStyle(
       color: contrastingColor,
-      fontFamily: 'Source Sans 3',
+      fontFamily: kDefaultFontFamily,
       fontSize: 16,
       letterSpacing: 0.02 * 16,
       height: (18 / 16),
@@ -742,7 +742,7 @@ class DmRecipientHeader extends StatelessWidget {
               Expanded(
                 child: Text(title,
                   style: const TextStyle(
-                    fontFamily: 'Source Sans 3',
+                    fontFamily: kDefaultFontFamily,
                     fontSize: 16,
                     letterSpacing: 0.02 * 16,
                     height: (18 / 16),
@@ -801,7 +801,7 @@ class DateText extends StatelessWidget {
     return Text(
       style: TextStyle(
         color: color,
-        fontFamily: 'Source Sans 3',
+        fontFamily: kDefaultFontFamily,
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:

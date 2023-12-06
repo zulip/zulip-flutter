@@ -119,7 +119,7 @@ class _NoSubscriptionsItem extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-            fontFamily: 'Source Sans 3',
+            fontFamily: kDefaultFontFamily,
             fontSize: 18,
             height: (20 / 18),
           ).merge(weightVariableTextStyle(context)))));
@@ -148,7 +148,7 @@ class _SubscriptionListHeader extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-                  fontFamily: 'Source Sans 3',
+                  fontFamily: kDefaultFontFamily,
                   fontSize: 14,
                   letterSpacing: 0.04 * 14,
                   height: (16 / 14),
@@ -221,7 +221,7 @@ class SubscriptionItem extends StatelessWidget {
               //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
               child: Text(
                 style: const TextStyle(
-                  fontFamily: 'Source Sans 3',
+                  fontFamily: kDefaultFontFamily,
                   fontSize: 18,
                   height: (20 / 18),
                   color: Color(0xFF262626),

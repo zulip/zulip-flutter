@@ -127,7 +127,7 @@ class RecentDmConversationsItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
                 style: const TextStyle(
-                  fontFamily: 'Source Sans 3',
+                  fontFamily: kDefaultFontFamily,
                   fontSize: 17,
                   height: (20 / 17),
                   color: Color(0xFF222222),
