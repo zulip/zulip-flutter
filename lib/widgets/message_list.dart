@@ -841,6 +841,9 @@ String formatHeaderDate(
 }
 
 /// A Zulip message, showing the sender's name and avatar if specified.
+// Design referenced from:
+//   - https://github.com/zulip/zulip-mobile/issues/5511
+//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
 class MessageWithPossibleSender extends StatelessWidget {
   const MessageWithPossibleSender({super.key, required this.item});
 
@@ -855,7 +858,6 @@ class MessageWithPossibleSender extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
-      // TODO clean up this layout, by less precisely imitating web
       child: Padding(
         padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -880,7 +882,12 @@ class MessageWithPossibleSender extends StatelessWidget {
                       ProfilePage.buildRoute(context: context,
                         userId: message.senderId)),
                     child: Text(message.senderFullName, // TODO get from user data
-                      style: const TextStyle(fontWeight: FontWeight.bold))),
+                      style: const TextStyle(
+                        fontFamily: 'Source Sans 3',
+                        fontSize: 18,
+                        height: (22 / 18),
+                      ).merge(weightVariableTextStyle(context, wght: 600,
+                                wghtIfPlatformRequestsBold: 900)))),
                   const SizedBox(height: 4),
                 ],
                 MessageContent(message: message, content: item.content),
@@ -891,7 +898,14 @@ class MessageWithPossibleSender extends StatelessWidget {
             width: 80,
             padding: const EdgeInsets.only(top: 4, right: 16 - 8),
             alignment: Alignment.topRight,
-            child: Text(time, style: _kMessageTimestampStyle)),
+            child: Text(time,
+              style: TextStyle(
+                color: _kMessageTimestampColor,
+                fontFamily: 'Source Sans 3',
+                fontSize: 16,
+                height: (18 / 16),
+                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+              ).merge(weightVariableTextStyle(context)))),
         ])));
   }
 }
@@ -899,11 +913,7 @@ class MessageWithPossibleSender extends StatelessWidget {
 // TODO web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
-// TODO this seems to come out lighter than on web
-final _kMessageTimestampStyle = TextStyle(
-  fontSize: 12,
-  fontWeight: FontWeight.w400,
-  color: const HSLColor.fromAHSL(0.4, 0, 0, 0.2).toColor());
+final _kMessageTimestampColor = const HSLColor.fromAHSL(1, 0, 0, 0.5).toColor();
 
 Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
   final store = PerAccountStoreWidget.of(context);
