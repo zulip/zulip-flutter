@@ -350,6 +350,7 @@ class _TextEmoji extends StatelessWidget {
     return Text(
       textAlign: TextAlign.end,
       textScaler: _textEmojiScalerClamped(context),
+      textWidthBasis: TextWidthBasis.longestLine,
       style: TextStyle(
         fontFamily: 'Source Sans 3',
         fontSize: 14 * 0.8,
