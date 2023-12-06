@@ -174,6 +174,7 @@ class ReactionChip extends StatelessWidget {
                           textScaler: _labelTextScalerClamped(context),
                           style: TextStyle(
                             fontFamily: kDefaultFontFamily,
+                            fontFamilyFallback: defaultFontFamilyFallback,
                             fontSize: (14 * 0.90),
                             height: 13 / (14 * 0.90),
                             color: labelColor,
@@ -353,6 +354,7 @@ class _TextEmoji extends StatelessWidget {
       textWidthBasis: TextWidthBasis.longestLine,
       style: TextStyle(
         fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
         fontSize: 14 * 0.8,
         height: 1, // to be denser when we have to wrap
         color: selected ? _textColorSelected : _textColorUnselected,

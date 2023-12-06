@@ -1,11 +1,23 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// The [TextStyle.fontFamily] to use in most of the app.
 ///
+/// The same [TextStyle] should also specify [defaultFontFamilyFallback]
+/// for [TextStyle.fontFamilyFallback].
+///
 /// This is a variable-weight font, so any [TextStyle] that uses this should be
 /// merged with the result of calling [weightVariableTextStyle].
 const kDefaultFontFamily = 'Source Sans 3';
+
+/// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
+List<String> get defaultFontFamilyFallback => [
+  // iOS doesn't support any of the formats this font is available in.
+  // If we use it on iOS, we'll get blank spaces where we could have had Apple-
+  // style emojis.
+  if (defaultTargetPlatform == TargetPlatform.android) 'Noto Color Emoji',
+];
 
 /// A mergeable [TextStyle] with 'Source Code Pro' and platform-aware fallbacks.
 ///

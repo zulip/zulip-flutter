@@ -126,11 +126,12 @@ class RecentDmConversationsItem extends StatelessWidget {
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: kDefaultFontFamily,
+                  fontFamilyFallback: defaultFontFamilyFallback,
                   fontSize: 17,
                   height: (20 / 17),
-                  color: Color(0xFF222222),
+                  color: const Color(0xFF222222),
                 ).merge(weightVariableTextStyle(context)),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

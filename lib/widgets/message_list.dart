@@ -449,8 +449,9 @@ class MarkAsReadWidget extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: _UnreadMarker.color,
               minimumSize: const Size.fromHeight(38),
-              textStyle: const TextStyle(
+              textStyle: TextStyle(
                 fontFamily: kDefaultFontFamily,
+                fontFamilyFallback: defaultFontFamilyFallback,
                 fontSize: 18,
                 height: (23 / 18),
               ).merge(weightVariableTextStyle(context)),
@@ -632,6 +633,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final textStyle = TextStyle(
       color: contrastingColor,
       fontFamily: kDefaultFontFamily,
+      fontFamilyFallback: defaultFontFamilyFallback,
       fontSize: 16,
       letterSpacing: 0.02 * 16,
       height: (18 / 16),
@@ -741,8 +743,9 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(size: 16, ZulipIcons.user)),
               Expanded(
                 child: Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: kDefaultFontFamily,
+                    fontFamilyFallback: defaultFontFamilyFallback,
                     fontSize: 16,
                     letterSpacing: 0.02 * 16,
                     height: (18 / 16),
@@ -802,6 +805,7 @@ class DateText extends StatelessWidget {
       style: TextStyle(
         color: color,
         fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:

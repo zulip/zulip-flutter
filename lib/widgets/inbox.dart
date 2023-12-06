@@ -237,11 +237,12 @@ abstract class _HeaderItem extends StatelessWidget {
           Expanded(child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Text(
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: kDefaultFontFamily,
+                fontFamilyFallback: defaultFontFamilyFallback,
                 fontSize: 17,
                 height: (20 / 17),
-                color: Color(0xFF222222),
+                color: const Color(0xFF222222),
               ).merge(weightVariableTextStyle(context, wght: 600, wghtIfPlatformRequestsBold: 900)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -358,11 +359,12 @@ class _DmItem extends StatelessWidget {
               Expanded(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: kDefaultFontFamily,
+                    fontFamilyFallback: defaultFontFamilyFallback,
                     fontSize: 17,
                     height: (20 / 17),
-                    color: Color(0xFF222222),
+                    color: const Color(0xFF222222),
                   ).merge(weightVariableTextStyle(context)),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -484,11 +486,12 @@ class _TopicItem extends StatelessWidget {
               Expanded(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: kDefaultFontFamily,
+                    fontFamilyFallback: defaultFontFamilyFallback,
                     fontSize: 17,
                     height: (20 / 17),
-                    color: Color(0xFF222222),
+                    color: const Color(0xFF222222),
                   ).merge(weightVariableTextStyle(context)),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
