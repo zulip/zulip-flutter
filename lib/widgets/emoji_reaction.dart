@@ -160,7 +160,8 @@ class ReactionChip extends StatelessWidget {
                   children: [
                     // So text-emoji chips are at least as tall as square-emoji
                     // ones (probably a good thing).
-                    SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize)),
+                    // 2 is for the `vertical: 1` padding around `emoji`.
+                    SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize) + 2),
                     Flexible( // [Flexible] to let text emojis expand if they can
                       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                         child: emoji)),
