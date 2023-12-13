@@ -80,6 +80,7 @@ class ApiConnection {
     assert(debugLog("${request.method} ${request.url}"));
 
     addAuth(request);
+    request.headers.addAll(userAgentHeader());
 
     final http.StreamedResponse response;
     try {
@@ -195,6 +196,13 @@ String _authHeaderValue({required String email, required String apiKey}) {
 Map<String, String> authHeader({required String email, required String apiKey}) {
   return {
     'Authorization': _authHeaderValue(email: email, apiKey: apiKey),
+  };
+}
+
+// TODO(#453): Create real User-Agent string
+Map<String, String> userAgentHeader() {
+  return {
+    'User-Agent': 'ZulipMobile/?.?.? (Android 14)',
   };
 }
 
