@@ -22,7 +22,10 @@ void main() {
         check(connection.lastRequest!).isA<http.Request>()
           ..method.equals('GET')
           ..url.asString.equals('${eg.realmUrl.origin}$expectedRelativeUrl')
-          ..headers.deepEquals(authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey))
+          ..headers.deepEquals({
+            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+            ...userAgentHeader(),
+          })
           ..body.equals('');
       });
     }
@@ -52,6 +55,7 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
           ..headers.deepEquals({
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+            ...userAgentHeader(),
             if (expectContentType)
               'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
           })
@@ -82,7 +86,10 @@ void main() {
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
-          ..headers.deepEquals(authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey))
+          ..headers.deepEquals({
+            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+            ...userAgentHeader(),
+          })
           ..fields.deepEquals({})
           ..files.single.which((it) => it
             ..field.equals('file')
@@ -114,6 +121,7 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
           ..headers.deepEquals({
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+            ...userAgentHeader(),
             if (expectContentType)
               'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
           })

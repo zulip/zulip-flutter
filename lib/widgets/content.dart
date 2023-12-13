@@ -853,6 +853,7 @@ class RealmContentNetworkImage extends StatelessWidget {
         if (src.origin == account.realmUrl.origin) ...authHeader(
           email: account.email, apiKey: account.apiKey,
         ),
+        ...userAgentHeader(),
       },
       cacheWidth: cacheWidth,
       cacheHeight: cacheHeight,

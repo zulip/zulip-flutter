@@ -306,13 +306,16 @@ void main() {
 
     testWidgets('includes auth header if `src` on-realm', (tester) async {
       check(await actualHeaders(tester, Uri.parse('https://chat.example/image.png')))
-        .deepEquals({'Authorization': [authHeaders['Authorization']!]});
+        .deepEquals({
+          'Authorization': [authHeaders['Authorization']!],
+          'User-Agent': [userAgentHeader()['User-Agent']!],
+        });
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('excludes auth header if `src` off-realm', (tester) async {
       check(await actualHeaders(tester, Uri.parse('https://other.example/image.png')))
-        .deepEquals({});
+        .deepEquals({'User-Agent': [userAgentHeader()['User-Agent']!]});
       debugNetworkImageHttpClientProvider = null;
     });
 

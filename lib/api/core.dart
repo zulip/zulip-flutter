@@ -80,6 +80,7 @@ class ApiConnection {
     assert(debugLog("${request.method} ${request.url}"));
 
     addAuth(request);
+    request.headers.addAll(userAgentHeader());
 
     final http.StreamedResponse response;
     try {
@@ -198,6 +199,13 @@ String _authHeaderValue({required String email, required String apiKey}) {
 Map<String, String> authHeader({required String email, required String apiKey}) {
   return {
     'Authorization': _authHeaderValue(email: email, apiKey: apiKey),
+  };
+}
+
+Map<String, String> userAgentHeader() {
+  return {
+    // TODO(#467) include platform, platform version, and app version
+    'User-Agent': 'ZulipFlutter',
   };
 }
 
