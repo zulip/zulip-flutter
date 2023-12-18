@@ -252,6 +252,77 @@ void main() {
     tester.widget(find.textContaining(RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$')));
   });
 
+  group('MessageImages', () {
+    final message = eg.streamMessage();
+
+    Future<void> prepareContent(WidgetTester tester, String html) async {
+      addTearDown(testBinding.reset);
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final httpClient = FakeImageHttpClient();
+
+      debugNetworkImageHttpClientProvider = () => httpClient;
+      httpClient.request.response
+        ..statusCode = HttpStatus.ok
+        ..content = kSolidBlueAvatar;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.ltr,
+            child: GlobalStoreWidget(
+              child: PerAccountStoreWidget(
+                accountId: eg.selfAccount.id,
+                child: MessageContent(
+                  message: message,
+                  content: parseContent(html)))))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+      debugNetworkImageHttpClientProvider = null;
+    }
+
+    testWidgets('single image', (tester) async {
+      const example = ContentExample.imageSingle;
+      await prepareContent(tester, example.html);
+      final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
+
+    testWidgets('multiple images', (tester) async {
+      const example = ContentExample.imageCluster;
+      await prepareContent(tester, example.html);
+      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
+
+    testWidgets('content after image cluster', (tester) async {
+      const example = ContentExample.imageClusterThenContent;
+      await prepareContent(tester, example.html);
+      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
+
+    testWidgets('multiple clusters of images', (tester) async {
+      const example = ContentExample.imageMultipleClusters;
+      await prepareContent(tester, example.html);
+      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images
+        + (example.expectedNodes[4] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
+  });
+
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 

@@ -256,6 +256,115 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
+
+  static const imageSingle = ContentExample(
+    'single image',
+    "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3",
+    '<div class="message_inline_image">'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
+        '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"></a></div>', [
+    ImageNodeList([
+      ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
+    ]),
+  ]);
+
+  static const imageCluster = ContentExample(
+    'multiple images',
+    "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3\nhttps://chat.zulip.org/user_avatars/2/realm/icon.png?version=4",
+    '<p>'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3</a><br>\n'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4">https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4</a></p>\n'
+    '<div class="message_inline_image">'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
+        '<img src="https://uploads.zulipusercontent.net/f535ba07f95b99a83aa48e44fd62bbb6c6cf6615/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d33"></a></div>'
+    '<div class="message_inline_image">'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4">'
+        '<img src="https://uploads.zulipusercontent.net/8f63bc2632a0e41be3f457d86c077e61b4a03e7e/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d34"></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3', nodes: [TextNode('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3')]),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4', nodes: [TextNode('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4')]),
+    ]),
+    ImageNodeList([
+      ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/f535ba07f95b99a83aa48e44fd62bbb6c6cf6615/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d33'),
+      ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/8f63bc2632a0e41be3f457d86c077e61b4a03e7e/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d34'),
+    ]),
+  ]);
+
+  static const imageClusterThenContent = ContentExample(
+    'content after image cluster',
+    "https://chat.zulip.org/user_avatars/2/realm/icon.png\nhttps://chat.zulip.org/user_avatars/2/realm/icon.png?version=2\n\nmore content",
+    '<p>content '
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png">icon.png</a> '
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2">icon.png</a></p>\n'
+    '<div class="message_inline_image">'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png" title="icon.png">'
+        '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div>'
+    '<div class="message_inline_image">'
+      '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2" title="icon.png">'
+        '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2"></a></div>'
+    '<p>more content</p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('content '),
+      LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png', nodes: [TextNode('icon.png')]),
+      TextNode(' '),
+      LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2', nodes: [TextNode('icon.png')]),
+    ]),
+    ImageNodeList([
+      ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+      ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2'),
+    ]),
+    ParagraphNode(links: null, nodes: [
+      TextNode('more content'),
+    ]),
+  ]);
+
+  static const imageMultipleClusters = ContentExample(
+    'multiple clusters of images',
+    "https://en.wikipedia.org/static/images/icons/wikipedia.png\nhttps://en.wikipedia.org/static/images/icons/wikipedia.png?v=1\n\nTest\n\nhttps://en.wikipedia.org/static/images/icons/wikipedia.png?v=2\nhttps://en.wikipedia.org/static/images/icons/wikipedia.png?v=3",
+    '<p>'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png">https://en.wikipedia.org/static/images/icons/wikipedia.png</a><br>\n' '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1">https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1</a></p>\n'
+    '<div class="message_inline_image">'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png">'
+        '<img src="https://uploads.zulipusercontent.net/34b2695ca83af76204b0b25a8f2019ee35ec38fa/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e67"></a></div>'
+    '<div class="message_inline_image">'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1">'
+        '<img src="https://uploads.zulipusercontent.net/d200fb112aaccbff9df767373a201fa59601f362/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d31"></a></div>'
+    '<p>Test</p>\n'
+    '<p>'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png?v=2">https://en.wikipedia.org/static/images/icons/wikipedia.png?v=2</a><br>\n'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3">https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3</a></p>\n'
+    '<div class="message_inline_image">'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png?v=2">'
+        '<img src="https://uploads.zulipusercontent.net/c4db87e81348dac94eacaa966b46d968b34029cc/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d32"></a></div>'
+    '<div class="message_inline_image">'
+      '<a href="https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3">'
+        '<img src="https://uploads.zulipusercontent.net/51b70540cf6a5b3c8a0b919c893b8abddd447e88/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d33"></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://en.wikipedia.org/static/images/icons/wikipedia.png', nodes: [TextNode('https://en.wikipedia.org/static/images/icons/wikipedia.png')]),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      LinkNode(url: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1', nodes: [TextNode('https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1')]),
+    ]),
+    ImageNodeList([
+      ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/34b2695ca83af76204b0b25a8f2019ee35ec38fa/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e67'),
+      ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/d200fb112aaccbff9df767373a201fa59601f362/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d31'),
+    ]),
+    ParagraphNode(links: null, nodes: [
+      TextNode('Test'),
+    ]),
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=2', nodes: [TextNode('https://en.wikipedia.org/static/images/icons/wikipedia.png?v=2')]),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      LinkNode(url: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3', nodes: [TextNode('https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3')]),
+    ]),
+    ImageNodeList([
+      ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/c4db87e81348dac94eacaa966b46d968b34029cc/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d32'),
+      ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/51b70540cf6a5b3c8a0b919c893b8abddd447e88/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d33'),
+    ]),
+  ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -576,14 +685,10 @@ void main() {
   testParseExample(ContentExample.mathBlock);
   testParseExample(ContentExample.mathBlockInQuote);
 
-  testParse('parse image',
-    // "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"
-    '<div class="message_inline_image">'
-        '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
-        '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
-        '</a></div>', const [
-      ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
-    ]);
+  testParseExample(ContentExample.imageSingle);
+  testParseExample(ContentExample.imageCluster);
+  testParseExample(ContentExample.imageClusterThenContent);
+  testParseExample(ContentExample.imageMultipleClusters);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"
