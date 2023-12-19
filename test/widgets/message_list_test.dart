@@ -315,19 +315,18 @@ void main() {
     });
 
     testWidgets('show stream name from stream data when known', (tester) async {
-      final stream = eg.stream(name: 'old stream name');
+      final streamBefore = eg.stream(name: 'old stream name');
+      // TODO(#182) this test would be more realistic using a StreamUpdateEvent
+      final streamAfter = ZulipStream.fromJson({
+        ...(deepToJson(streamBefore) as Map<String, dynamic>),
+        'name': 'new stream name',
+      });
       await setupMessageListPage(tester,
         narrow: const AllMessagesNarrow(),
+        streams: [streamAfter],
         messages: [
-          eg.streamMessage(stream: stream),
+          eg.streamMessage(stream: streamBefore),
         ]);
-      // TODO(#182) this test would be more realistic using a StreamUpdateEvent
-      store.handleEvent(StreamCreateEvent(id: stream.streamId, streams: [
-        ZulipStream.fromJson({
-          ...(deepToJson(stream) as Map<String, dynamic>),
-          'name': 'new stream name',
-        }),
-      ]));
       await tester.pump();
       tester.widget(find.text('new stream name'));
     });
