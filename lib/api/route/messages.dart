@@ -177,6 +177,7 @@ Future<SendMessageResult> sendMessage(
   required String content,
   String? queueId,
   String? localId,
+  bool? readBySender,
 }) {
   final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
@@ -193,6 +194,7 @@ Future<SendMessageResult> sendMessage(
     'content': RawParameter(content),
     if (queueId != null) 'queue_id': queueId, // TODO should this use RawParameter?
     if (localId != null) 'local_id': localId, // TODO should this use RawParameter?
+    if (readBySender != null) 'read_by_sender': readBySender,
   });
 }
 

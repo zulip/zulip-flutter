@@ -302,12 +302,13 @@ void main() {
       required String content,
       String? queueId,
       String? localId,
+      bool? readBySender,
       required Map<String, String> expectedBodyFields,
     }) async {
       connection.prepare(json: SendMessageResult(id: 42).toJson());
       final result = await sendMessage(connection,
         destination: destination, content: content,
-        queueId: queueId, localId: localId);
+        queueId: queueId, localId: localId, readBySender: readBySender);
       check(result).id.equals(42);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -321,6 +322,7 @@ void main() {
           destination: StreamDestination(streamId, topic), content: content,
           queueId: 'abc:123',
           localId: '456',
+          readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
             'to': streamId.toString(),
@@ -328,6 +330,7 @@ void main() {
             'content': content,
             'queue_id': '"abc:123"',
             'local_id': '"456"',
+            'read_by_sender': 'true',
           });
       });
     });
