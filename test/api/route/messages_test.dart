@@ -300,17 +300,37 @@ void main() {
       FakeApiConnection connection, {
       required MessageDestination destination,
       required String content,
+      String? queueId,
+      String? localId,
       required Map<String, String> expectedBodyFields,
     }) async {
       connection.prepare(json: SendMessageResult(id: 42).toJson());
       final result = await sendMessage(connection,
-        destination: destination, content: content);
+        destination: destination, content: content,
+        queueId: queueId, localId: localId);
       check(result).id.equals(42);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals(expectedBodyFields);
     }
+
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkSendMessage(connection,
+          destination: StreamDestination(streamId, topic), content: content,
+          queueId: 'abc:123',
+          localId: '456',
+          expectedBodyFields: {
+            'type': 'stream',
+            'to': streamId.toString(),
+            'topic': topic,
+            'content': content,
+            'queue_id': '"abc:123"',
+            'local_id': '"456"',
+          });
+      });
+    });
 
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {

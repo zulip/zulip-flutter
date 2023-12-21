@@ -191,8 +191,8 @@ Future<SendMessageResult> sendMessage(
       throw Exception('impossible destination') // TODO(dart-3) show this statically
     ),
     'content': RawParameter(content),
-    if (queueId != null) 'queue_id': queueId,
-    if (localId != null) 'local_id': localId,
+    if (queueId != null) 'queue_id': queueId, // TODO should this use RawParameter?
+    if (localId != null) 'local_id': localId, // TODO should this use RawParameter?
   });
 }
 
