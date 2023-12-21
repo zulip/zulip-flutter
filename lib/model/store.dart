@@ -377,13 +377,13 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     }
   }
 
-  Future<void> sendMessage({required MessageDestination destination, required String content, bool? readBySender}) {
+  Future<void> sendMessage({required MessageDestination destination, required String content}) {
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
     return _apiSendMessage(connection,
       destination: destination,
       content: content,
-      readBySender: readBySender,
+      readBySender: true,
     );
   }
 

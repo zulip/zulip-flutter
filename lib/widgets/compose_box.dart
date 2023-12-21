@@ -733,7 +733,7 @@ class _SendButtonState extends State<_SendButton> {
 
     final store = PerAccountStoreWidget.of(context);
     final content = widget.contentController.textNormalized;
-    store.sendMessage(destination: widget.getDestination(), content: content, readBySender: true);
+    store.sendMessage(destination: widget.getDestination(), content: content);
 
     widget.contentController.clear();
   }

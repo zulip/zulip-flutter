@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications.dart';
 
@@ -106,6 +107,28 @@ void main() {
     check(globalStore.perAccountSync(1)).identicalTo(store1);
     check(await globalStore.perAccount(1)).identicalTo(store1);
     check(completers(1)).length.equals(1);
+  });
+
+  group('PerAccountStore.sendMessage', () {
+    test('smoke', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
+      final stream = eg.stream();
+      connection.prepare(json: SendMessageResult(id: 12345).toJson());
+      await store.sendMessage(
+        destination: StreamDestination(stream.streamId, 'world'),
+        content: 'hello');
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': stream.streamId.toString(),
+          'topic': 'world',
+          'content': 'hello',
+          'read_by_sender': 'true',
+        });
+    });
   });
 
   group('UpdateMachine.registerNotificationToken', () {
