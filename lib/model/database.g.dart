@@ -206,8 +206,8 @@ class Account extends DataClass implements Insertable<Account> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     {
-      final converter = $AccountsTable.$converterrealmUrl;
-      map['realm_url'] = Variable<String>(converter.toSql(realmUrl));
+      map['realm_url'] =
+          Variable<String>($AccountsTable.$converterrealmUrl.toSql(realmUrl));
     }
     map['user_id'] = Variable<int>(userId);
     map['email'] = Variable<String>(email);
@@ -420,9 +420,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       map['id'] = Variable<int>(id.value);
     }
     if (realmUrl.present) {
-      final converter = $AccountsTable.$converterrealmUrl;
-
-      map['realm_url'] = Variable<String>(converter.toSql(realmUrl.value));
+      map['realm_url'] = Variable<String>(
+          $AccountsTable.$converterrealmUrl.toSql(realmUrl.value));
     }
     if (userId.present) {
       map['user_id'] = Variable<int>(userId.value);
