@@ -1,7 +1,4 @@
-# Releasing alpha versions
-
-This is a prototype, so we make releases only to an alpha channel.
-
+# Making releases
 
 ## Prepare source tree
 
@@ -22,7 +19,7 @@ This is a prototype, so we make releases only to an alpha channel.
 * Push the tag to our central repo: `git push origin main v0.0.NNN`
 
 
-## Build and upload: Android
+## Build and upload alpha: Android
 
 * Decrypt the upload key temporarily:
 
@@ -37,15 +34,17 @@ This is a prototype, so we make releases only to an alpha channel.
   ```
 
 * Upload to the "Zulip (Flutter prototype)" app on the Play Console,
-  at [Release -> Testing -> Internal testing][play-internaltesting],
+  at [Release > Testing > Internal testing][play-internaltesting],
   using the "Create new release" button there.
 
-  * Don't worry about release notes; "An alpha release." is plenty.
+  * Write something for release notes.  Consider copying the previous
+    version's, to say it's a beta and where to send feedback
+    without enumerating changes.
 
 [play-internaltesting]: https://play.google.com/console/developers/8060868091387311598/app/4972181690507348330/tracks/internal-testing
 
 
-## Build and upload: iOS
+## Build and upload alpha: iOS
 
 * Build an app archive:
 
@@ -70,12 +69,43 @@ This is a prototype, so we make releases only to an alpha channel.
   provided all goes well with the "processing" step.
 
 
+## Promote to beta
+
+* Android via Play Store:
+
+  * Go to [Release > Testing > Internal testing][play-internaltesting]
+    in the Google Play Console.  (If you just uploaded the alpha, that
+    took you here already.)
+
+  * Under the release you want to promote, choose "Promote release >
+    Open testing".
+
+  * Confirm and send to Google for review.
+
+
+* iOS via TestFlight:
+
+  * After the build reaches alpha, you can add it to TestFlight so it
+    goes to our beta users.  Go in App Store Connect to [TestFlight >
+    Testers & Groups > External Testers][asc-external],
+    and hit the "+" icon at the top of the list of builds to enter a
+    modal dialog.
+
+    * For the "What to Test" notes, see remark above about release notes.
+
+  * The same External Testers page should now show the build in status
+    "Waiting for Review".  This typically comes back the next morning,
+    California time.  If successful, the app is out in beta!
+
+[asc-external]: https://appstoreconnect.apple.com/apps/1672696023/testflight/groups/87223480-4e5d-4007-a3a1-542cd410546c
+
+
 ## Announce
 
-* Announce the updated alpha in
-  [#mobile-team > zulip-flutter releases][releases-thread].
+* Announce the updated beta in
+  [#announce > mobile beta][releases-thread].
 
-[releases-thread]: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/zulip-flutter.20releases
+[releases-thread]: https://chat.zulip.org/#narrow/stream/1-announce/topic/mobile.20beta
 
 
 ## One-time or annual setup
