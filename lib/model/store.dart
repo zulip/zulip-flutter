@@ -241,7 +241,6 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   // TODO lots more data.  When adding, be sure to update handleEvent too.
 
-  // TODO call [RecentDmConversationsView.dispose] in [dispose]
   final RecentDmConversationsView recentDmConversationsView;
 
   final Set<MessageListView> _messageListViews = {};
@@ -267,6 +266,16 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       view.reassemble();
     }
     autocompleteViewManager.reassemble();
+  }
+
+  @override
+  void dispose() {
+    unreads.dispose();
+    recentDmConversationsView.dispose();
+    for (final view in _messageListViews.toList()) {
+      view.dispose();
+    }
+    super.dispose();
   }
 
   void handleEvent(Event event) {
