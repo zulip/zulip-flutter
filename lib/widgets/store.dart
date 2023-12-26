@@ -192,10 +192,8 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
     if (store != null) {
       _setStore(store);
     } else {
-      // If we don't already have data, wait for it.
-      (() async {
-        _setStore(await globalStore.perAccount(widget.accountId));
-      })();
+      // If we don't already have data, request it.
+      globalStore.perAccount(widget.accountId);
     }
   }
 
