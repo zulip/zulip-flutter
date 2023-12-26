@@ -140,16 +140,24 @@ void main() {
   });
 
   group('UpdateMachine.poll', () {
+    late TestGlobalStore globalStore;
     late UpdateMachine updateMachine;
     late PerAccountStore store;
     late FakeApiConnection connection;
 
-    void prepareStore({int? lastEventId}) {
-      updateMachine = eg.updateMachine(initialSnapshot: eg.initialSnapshot(
-        lastEventId: lastEventId,
-      ));
+    void updateFromGlobalStore() {
+      updateMachine = globalStore.updateMachines[eg.selfAccount.id]!;
       store = updateMachine.store;
+      assert(identical(store, globalStore.perAccountSync(eg.selfAccount.id)));
       connection = store.connection as FakeApiConnection;
+    }
+
+    Future<void> prepareStore({int? lastEventId}) async {
+      globalStore = TestGlobalStore(accounts: []);
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        lastEventId: lastEventId));
+      await globalStore.perAccount(eg.selfAccount.id);
+      updateFromGlobalStore();
     }
 
     void checkLastRequest({required int lastEventId}) {
@@ -163,7 +171,7 @@ void main() {
     }
 
     test('loops on success', () async {
-      prepareStore(lastEventId: 1);
+      await prepareStore(lastEventId: 1);
       check(updateMachine.lastEventId).equals(1);
 
       updateMachine.debugPauseLoop();
@@ -191,11 +199,45 @@ void main() {
     });
 
     test('handles events', () async {
-      prepareStore();
+      await prepareStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
 
       // Pick some arbitrary event and check it gets processed on the store.
+      check(store.userSettings!.twentyFourHourTime).isFalse();
+      connection.prepare(json: GetEventsResult(events: [
+        UserSettingsUpdateEvent(id: 2,
+          property: UserSettingName.twentyFourHourTime, value: true),
+      ], queueId: null).toJson());
+      updateMachine.debugAdvanceLoop();
+      await null;
+      await Future.delayed(Duration.zero);
+      check(store.userSettings!.twentyFourHourTime).isTrue();
+    });
+
+    test('handles expired queue', () async {
+      await prepareStore();
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+      check(globalStore.perAccountSync(store.account.id)).identicalTo(store);
+
+      // Let the server expire the event queue.
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
+        'queue_id': updateMachine.queueId,
+        'msg': 'Bad event queue ID: ${updateMachine.queueId}',
+      });
+      updateMachine.debugAdvanceLoop();
+      await null;
+      await Future.delayed(Duration.zero);
+
+      // The global store has a new store.
+      check(globalStore.perAccountSync(store.account.id)).not(it()..identicalTo(store));
+      updateFromGlobalStore();
+
+      // The new UpdateMachine updates the new store.
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
       check(store.userSettings!.twentyFourHourTime).isFalse();
       connection.prepare(json: GetEventsResult(events: [
         UserSettingsUpdateEvent(id: 2,

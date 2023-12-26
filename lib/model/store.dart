@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../api/core.dart';
+import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -96,10 +97,24 @@ abstract class GlobalStore extends ChangeNotifier {
     future = loadPerAccount(account!);
     _perAccountStoresLoading[accountId] = future;
     store = await future;
-    _perAccountStores[accountId] = store;
+    _setPerAccount(accountId, store);
     _perAccountStoresLoading.remove(accountId);
-    notifyListeners();
     return store;
+  }
+
+  Future<void> _reloadPerAccount(Account account) async {
+    assert(identical(_accounts[account.id], account));
+    assert(_perAccountStores.containsKey(account.id));
+    assert(!_perAccountStoresLoading.containsKey(account.id));
+    final store = await loadPerAccount(account);
+    _setPerAccount(account.id, store);
+  }
+
+  void _setPerAccount(int accountId, PerAccountStore store) {
+    final oldStore = _perAccountStores[accountId];
+    _perAccountStores[accountId] = store;
+    notifyListeners();
+    oldStore?.dispose();
   }
 
   /// Load per-account data for the given account, unconditionally.
@@ -199,8 +214,6 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   }) : _globalStore = globalStore,
        _streams = streams;
 
-  // We'll use this in an upcoming commit.
-  // ignore: unused_field
   final GlobalStore _globalStore;
 
   final Account account;
@@ -569,9 +582,26 @@ class UpdateMachine {
         }());
       }
 
-      final result = await getEvents(store.connection,
-        queueId: queueId, lastEventId: lastEventId);
-      // TODO handle errors on get-events; retry with backoff
+      final GetEventsResult result;
+      try {
+        result = await getEvents(store.connection,
+          queueId: queueId, lastEventId: lastEventId);
+      } catch (e) {
+        switch (e) {
+          case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+            assert(debugLog('Lost event queue for $store.  Replacing…'));
+            await store._globalStore._reloadPerAccount(store.account);
+            dispose();
+            debugLog('… Event queue replaced.');
+            return;
+
+          default:
+            assert(debugLog('Error polling event queue for $store: $e'));
+            // TODO(#184) handle errors on get-events; retry with backoff
+            rethrow;
+        }
+      }
+
       final events = result.events;
       for (final event in events) {
         store.handleEvent(event);

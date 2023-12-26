@@ -135,14 +135,17 @@ class PerAccountStoreWidget extends StatefulWidget {
   /// use [State.didChangeDependencies] instead.  For discussion, see
   /// [BuildContext.dependOnInheritedWidgetOfExactType].
   ///
+  /// A [State] that calls this method in [State.didChangeDependencies]
+  /// should typically also mix in [PerAccountStoreAwareStateMixin],
+  /// in order to handle the store itself being replaced with a new store.
+  /// This happens in particular if the old store's event queue expires
+  /// on the server.
+  ///
   /// See also:
   ///  * [accountIdOf], for the account ID corresponding to the same data.
   ///  * [GlobalStoreWidget.of], for the app's data beyond that of a
   ///    particular account.
   ///  * [InheritedNotifier], which provides the "dependency" mechanism.
-  // TODO(#185): Explain in dartdoc that the returned [PerAccountStore] might
-  //   differ from one call to the next, and to handle that with
-  //   [PerAccountStoreAwareStateMixin].
   static PerAccountStore of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
     assert(widget != null, 'No PerAccountStoreWidget ancestor');
@@ -253,13 +256,11 @@ class LoadingPage extends StatelessWidget {
 /// The ambient [PerAccountStore] can be replaced in some circumstances,
 /// such as when an event queue expires. See [PerAccountStoreWidget.of].
 /// When that happens, stateful widgets should
-/// - remove listeners on the old [PerAccountStore], and
+/// - stop using the old [PerAccountStore], which will already have
+///   been disposed;
 /// - add listeners on the new one.
 ///
 /// Use this mixin, overriding [onNewStore], to do that concisely.
-// TODO(#185): Until #185, I think [PerAccountStoreWidget.of] never actually
-//   returns a different [PerAccountStore] from one call to the next.
-//   But it will, and when it does, we want our [StatefulWidgets] to handle it.
 mixin PerAccountStoreAwareStateMixin<T extends StatefulWidget> on State<T> {
   PerAccountStore? _store;
 
@@ -270,8 +271,9 @@ mixin PerAccountStoreAwareStateMixin<T extends StatefulWidget> on State<T> {
   /// and again whenever dependencies change so that [PerAccountStoreWidget.of]
   /// would return a different store from previously.
   ///
-  /// In this, remove any listeners on the old store
-  /// and add them on the new store.
+  /// In this, add any needed listeners on the new store
+  /// and drop any references to the old store, which will already
+  /// have been disposed.
   void onNewStore();
 
   @override
