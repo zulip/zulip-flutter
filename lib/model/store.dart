@@ -134,6 +134,9 @@ abstract class GlobalStore extends ChangeNotifier {
 
   // More mutators as needed:
   // Future<void> updateAccount...
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
 }
 
 /// Store for the user's data for a given Zulip account.
@@ -398,6 +401,9 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     final nonDisplayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary != true);
     return displayFields.followedBy(nonDisplayFields).toList();
   }
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'PerAccountStore')}#${shortHash(this)}';
 }
 
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
@@ -462,6 +468,9 @@ class LiveGlobalStore extends GlobalStore {
       ..where((a) => a.id.equals(accountId))
     ).getSingle();
   }
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'LiveGlobalStore')}#${shortHash(this)}';
 }
 
 /// A [PerAccountStore] plus an event-polling loop to stay up to date.
@@ -573,4 +582,7 @@ class UpdateMachine {
     if (token == null) return;
     await NotificationService.registerToken(store.connection, token: token);
   }
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
 }
