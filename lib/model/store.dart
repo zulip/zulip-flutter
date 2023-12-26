@@ -140,14 +140,10 @@ abstract class GlobalStore extends ChangeNotifier {
 /// This should always have a consistent snapshot of the state on the server,
 /// as provided by the Zulip event system.
 ///
-/// An instance directly of this class will not attempt to poll an event queue
-/// to keep the data up to date.  For that behavior, see the subclass
-/// [LivePerAccountStore].
+/// This class does not attempt to poll an event queue
+/// to keep the data up to date.  For that behavior, see
+/// [UpdateMachine].
 class PerAccountStore extends ChangeNotifier with StreamStore {
-  /// Create a per-account data store that does not automatically stay up to date.
-  ///
-  /// For a [PerAccountStore] that polls an event queue to keep itself up to
-  /// date, use [LivePerAccountStore.fromInitialSnapshot].
   factory PerAccountStore.fromInitialSnapshot({
     required Account account,
     required ApiConnection connection,
@@ -410,8 +406,8 @@ const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https:/
 /// The underlying data store is an [AppDatabase] corresponding to a SQLite
 /// database file in the app's persistent storage on the device.
 ///
-/// The per-account stores will be instances of [LivePerAccountStore],
-/// with data loaded through a live [ApiConnection].
+/// The per-account stores will use a live [ApiConnection],
+/// and will have an associated [UpdateMachine].
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
     required AppDatabase db,
