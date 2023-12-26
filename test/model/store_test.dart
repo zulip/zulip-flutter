@@ -31,6 +31,7 @@ void main() {
 
     final future1 = globalStore.perAccount(1);
     final store1 = PerAccountStore.fromInitialSnapshot(
+      globalStore: globalStore,
       account: account1,
       connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot(),
@@ -42,6 +43,7 @@ void main() {
 
     final future2 = globalStore.perAccount(2);
     final store2 = PerAccountStore.fromInitialSnapshot(
+      globalStore: globalStore,
       account: account2,
       connection: FakeApiConnection.fromAccount(account2),
       initialSnapshot: eg.initialSnapshot(),
@@ -69,11 +71,13 @@ void main() {
 
     final future2 = globalStore.perAccount(2);
     final store1 = PerAccountStore.fromInitialSnapshot(
+      globalStore: globalStore,
       account: account1,
       connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot(),
     );
     final store2 = PerAccountStore.fromInitialSnapshot(
+      globalStore: globalStore,
       account: account2,
       connection: FakeApiConnection.fromAccount(account2),
       initialSnapshot: eg.initialSnapshot(),
@@ -99,6 +103,7 @@ void main() {
     final future1 = globalStore.perAccount(1);
     check(globalStore.perAccountSync(1)).isNull();
     final store1 = PerAccountStore.fromInitialSnapshot(
+      globalStore: globalStore,
       account: account1,
       connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot(),

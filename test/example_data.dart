@@ -7,6 +7,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import 'api/fake_api.dart';
+import 'model/test_store.dart';
 import 'stdlib_checks.dart';
 
 ////////////////////////////////////////////////////////////////
@@ -414,8 +415,12 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
 }
 
 ////////////////////////////////////////////////////////////////
-// The entire per-account state.
+// The entire per-account or global state.
 //
+
+GlobalStore globalStore({List<Account> accounts = const []}) {
+  return TestGlobalStore(accounts: accounts);
+}
 
 InitialSnapshot initialSnapshot({
   String? queueId,
@@ -467,9 +472,11 @@ InitialSnapshot initialSnapshot({
 const _initialSnapshot = initialSnapshot;
 
 PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
+  final effectiveAccount = account ?? selfAccount;
   return PerAccountStore.fromInitialSnapshot(
-    account: account ?? selfAccount,
-    connection: FakeApiConnection.fromAccount(account ?? selfAccount),
+    globalStore: globalStore(accounts: [effectiveAccount]),
+    account: effectiveAccount,
+    connection: FakeApiConnection.fromAccount(effectiveAccount),
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }

@@ -150,12 +150,14 @@ abstract class GlobalStore extends ChangeNotifier {
 /// [UpdateMachine].
 class PerAccountStore extends ChangeNotifier with StreamStore {
   factory PerAccountStore.fromInitialSnapshot({
+    required GlobalStore globalStore,
     required Account account,
     required ApiConnection connection,
     required InitialSnapshot initialSnapshot,
   }) {
     final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
+      globalStore: globalStore,
       account: account,
       connection: connection,
       zulipVersion: initialSnapshot.zulipVersion,
@@ -181,6 +183,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   }
 
   PerAccountStore._({
+    required GlobalStore globalStore,
     required this.account,
     required this.connection,
     required this.zulipVersion,
@@ -193,7 +196,12 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required this.users,
     required streams,
     required this.recentDmConversationsView,
-  }) : _streams = streams;
+  }) : _globalStore = globalStore,
+       _streams = streams;
+
+  // We'll use this in an upcoming commit.
+  // ignore: unused_field
+  final GlobalStore _globalStore;
 
   final Account account;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
@@ -453,7 +461,7 @@ class LiveGlobalStore extends GlobalStore {
 
   @override
   Future<PerAccountStore> loadPerAccount(Account account) async {
-    final updateMachine = await UpdateMachine.load(account);
+    final updateMachine = await UpdateMachine.load(this, account);
     return updateMachine.store;
   }
 
@@ -491,7 +499,7 @@ class UpdateMachine {
   /// Load the user's data from the server, and start an event queue going.
   ///
   /// In the future this might load an old snapshot from local storage first.
-  static Future<UpdateMachine> load(Account account) async {
+  static Future<UpdateMachine> load(GlobalStore globalStore, Account account) async {
     final connection = ApiConnection.live(
       realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
       email: account.email, apiKey: account.apiKey);
@@ -503,6 +511,7 @@ class UpdateMachine {
     if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
 
     final store = PerAccountStore.fromInitialSnapshot(
+      globalStore: globalStore,
       account: account,
       connection: connection,
       initialSnapshot: initialSnapshot,

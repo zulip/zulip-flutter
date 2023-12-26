@@ -51,6 +51,7 @@ class TestGlobalStore extends GlobalStore {
   @override
   Future<PerAccountStore> loadPerAccount(Account account) {
     return Future.value(PerAccountStore.fromInitialSnapshot(
+      globalStore: this,
       account: account,
       connection: FakeApiConnection.fromAccount(account),
       initialSnapshot: _initialSnapshots[account.id]!,
