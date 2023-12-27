@@ -572,7 +572,6 @@ class UpdateMachine {
       final result = await getEvents(store.connection,
         queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
-      // TODO abort long-poll and close ApiConnection on [dispose]
       final events = result.events;
       for (final event in events) {
         store.handleEvent(event);
@@ -591,7 +590,6 @@ class UpdateMachine {
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the registerFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
-    // TODO call removeListener on [dispose]
     NotificationService.instance.token.addListener(_registerNotificationToken);
     await _registerNotificationToken();
   }
@@ -600,6 +598,10 @@ class UpdateMachine {
     final token = NotificationService.instance.token.value;
     if (token == null) return;
     await NotificationService.registerToken(store.connection, token: token);
+  }
+
+  void dispose() { // TODO abort long-poll and close ApiConnection
+    NotificationService.instance.token.removeListener(_registerNotificationToken);
   }
 
   @override
