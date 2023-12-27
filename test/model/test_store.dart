@@ -13,9 +13,18 @@ import '../api/fake_api.dart';
 ///
 /// The per-account stores will use [FakeApiConnection].
 ///
+/// Unlike with [LiveGlobalStore] and the associated [UpdateMachine.load],
+/// there is no automatic event-polling loop or other automated requests.
+/// For each account loaded, there is a corresponding [UpdateMachine]
+/// in [updateMachines], which tests can use for invoking that logic
+/// explicitly when desired.
+///
 /// See also [TestZulipBinding.globalStore], which provides one of these.
 class TestGlobalStore extends GlobalStore {
   TestGlobalStore({required super.accounts});
+
+  /// A corresponding [UpdateMachine] for each loaded account.
+  final Map<int, UpdateMachine> updateMachines = {};
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
 
@@ -50,12 +59,16 @@ class TestGlobalStore extends GlobalStore {
 
   @override
   Future<PerAccountStore> loadPerAccount(Account account) {
-    return Future.value(PerAccountStore.fromInitialSnapshot(
+    final initialSnapshot = _initialSnapshots[account.id]!;
+    final store = PerAccountStore.fromInitialSnapshot(
       globalStore: this,
       account: account,
       connection: FakeApiConnection.fromAccount(account),
-      initialSnapshot: _initialSnapshots[account.id]!,
-    ));
+      initialSnapshot: initialSnapshot,
+    );
+    updateMachines[account.id] = UpdateMachine.fromInitialSnapshot(
+      store: store, initialSnapshot: initialSnapshot);
+    return Future.value(store);
   }
 }
 
