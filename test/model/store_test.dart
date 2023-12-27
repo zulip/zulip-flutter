@@ -4,6 +4,9 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications.dart';
@@ -128,6 +131,75 @@ void main() {
           'content': 'hello',
           'read_by_sender': 'true',
         });
+    });
+  });
+
+  group('UpdateMachine.poll', () {
+    late UpdateMachine updateMachine;
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    void prepareStore({int? lastEventId}) {
+      updateMachine = eg.updateMachine(initialSnapshot: eg.initialSnapshot(
+        lastEventId: lastEventId,
+      ));
+      store = updateMachine.store;
+      connection = store.connection as FakeApiConnection;
+    }
+
+    void checkLastRequest({required int lastEventId}) {
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/events')
+        ..url.queryParameters.deepEquals({
+          'queue_id': updateMachine.queueId,
+          'last_event_id': lastEventId.toString(),
+        });
+    }
+
+    test('loops on success', () async {
+      prepareStore(lastEventId: 1);
+      check(updateMachine.lastEventId).equals(1);
+
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+
+      // Loop makes first request, and processes result.
+      connection.prepare(json: GetEventsResult(events: [
+        HeartbeatEvent(id: 2),
+      ], queueId: null).toJson());
+      updateMachine.debugAdvanceLoop();
+      await null;
+      checkLastRequest(lastEventId: 1);
+      await Future.delayed(Duration.zero);
+      check(updateMachine.lastEventId).equals(2);
+
+      // Loop makes second request, and processes result.
+      connection.prepare(json: GetEventsResult(events: [
+        HeartbeatEvent(id: 3),
+      ], queueId: null).toJson());
+      updateMachine.debugAdvanceLoop();
+      await null;
+      checkLastRequest(lastEventId: 2);
+      await Future.delayed(Duration.zero);
+      check(updateMachine.lastEventId).equals(3);
+    });
+
+    test('handles events', () async {
+      prepareStore();
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+
+      // Pick some arbitrary event and check it gets processed on the store.
+      check(store.userSettings!.twentyFourHourTime).isFalse();
+      connection.prepare(json: GetEventsResult(events: [
+        UserSettingsUpdateEvent(id: 2,
+          property: UserSettingName.twentyFourHourTime, value: true),
+      ], queueId: null).toJson());
+      updateMachine.debugAdvanceLoop();
+      await null;
+      await Future.delayed(Duration.zero);
+      check(store.userSettings!.twentyFourHourTime).isTrue();
     });
   });
 
