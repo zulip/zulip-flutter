@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -509,8 +510,37 @@ class UpdateMachine {
   final String queueId;
   int lastEventId;
 
+  Completer<void>? _debugLoopSignal;
+
+  /// In debug mode, causes the polling loop to pause before the next
+  /// request and wait for [debugAdvanceLoop] to be called.
+  void debugPauseLoop() {
+    assert((){
+      assert(_debugLoopSignal == null);
+      _debugLoopSignal = Completer();
+      return true;
+    }());
+  }
+
+  /// In debug mode, after a call to [debugPauseLoop], causes the
+  /// polling loop to make one more request and then pause again.
+  void debugAdvanceLoop() {
+    assert((){
+      _debugLoopSignal!.complete();
+      return true;
+    }());
+  }
+
   void poll() async {
     while (true) {
+      if (_debugLoopSignal != null) {
+        await _debugLoopSignal!.future;
+        assert(() {
+          _debugLoopSignal = Completer();
+          return true;
+        }());
+      }
+
       final result = await getEvents(store.connection,
         queueId: queueId, lastEventId: lastEventId);
       // TODO handle errors on get-events; retry with backoff
