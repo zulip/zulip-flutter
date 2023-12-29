@@ -285,7 +285,7 @@ void main() {
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
-    Future<String?> actualAuthHeader(WidgetTester tester, Uri src) async {
+    Future<Map<String, List<String>>> actualHeaders(WidgetTester tester, Uri src) async {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       addTearDown(testBinding.reset);
 
@@ -301,20 +301,18 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      final headers = httpClient.request.headers.values;
-      check(authHeaders.keys).deepEquals(['Authorization']);
-      return headers['Authorization']?.single;
+      return httpClient.request.headers.values;
     }
 
     testWidgets('includes auth header if `src` on-realm', (tester) async {
-      check(await actualAuthHeader(tester, Uri.parse('https://chat.example/image.png')))
-        .isNotNull().equals(authHeaders['Authorization']!);
+      check(await actualHeaders(tester, Uri.parse('https://chat.example/image.png')))
+        .deepEquals({'Authorization': [authHeaders['Authorization']!]});
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('excludes auth header if `src` off-realm', (tester) async {
-      check(await actualAuthHeader(tester, Uri.parse('https://other.example/image.png')))
-        .isNull();
+      check(await actualHeaders(tester, Uri.parse('https://other.example/image.png')))
+        .deepEquals({});
       debugNetworkImageHttpClientProvider = null;
     });
 
