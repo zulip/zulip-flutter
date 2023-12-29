@@ -848,12 +848,12 @@ class RealmContentNetworkImage extends StatelessWidget {
       gaplessPlayback: gaplessPlayback,
       filterQuality: filterQuality,
       isAntiAlias: isAntiAlias,
-
-      // Only send the auth header to the server `auth` belongs to.
-      headers: src.origin == account.realmUrl.origin
-        ? authHeader(email: account.email, apiKey: account.apiKey)
-        : null,
-
+      headers: {
+        // Only send the auth header to the server `auth` belongs to.
+        if (src.origin == account.realmUrl.origin) ...authHeader(
+          email: account.email, apiKey: account.apiKey,
+        ),
+      },
       cacheWidth: cacheWidth,
       cacheHeight: cacheHeight,
     );
