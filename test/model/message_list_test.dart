@@ -948,11 +948,13 @@ void checkInvariants(MessageListView model) {
   for (int j = 0; j < model.messages.length; j++) {
     bool isFirstInBlock = false;
     if (j == 0
-        || !haveSameRecipient(model.messages[j-1], model.messages[j])
-        || !messagesSameDay(model.messages[j-1], model.messages[j])) {
+        || !haveSameRecipient(model.messages[j-1], model.messages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(model.messages[j]);
       isFirstInBlock = true;
+    } else if (!messagesSameDay(model.messages[j-1], model.messages[j])) {
+      check(model.items[i++]).isA<MessageListDateSeparatorItem>()
+        .message.identicalTo(model.messages[j]);
     }
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
@@ -966,6 +968,10 @@ void checkInvariants(MessageListView model) {
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
+  Subject<Message> get message => has((x) => x.message, 'message');
+}
+
+extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparatorItem> {
   Subject<Message> get message => has((x) => x.message, 'message');
 }
 

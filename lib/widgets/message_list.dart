@@ -344,6 +344,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
             final header = RecipientHeader(message: data.message, narrow: widget.narrow);
             return StickyHeaderItem(allowOverflow: true,
               header: header, child: header);
+          case MessageListDateSeparatorItem():
+            final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+            return StickyHeaderItem(allowOverflow: true,
+              header: header,
+              child: DateSeparator(message: data.message));
           case MessageListMessageItem():
             final header = RecipientHeader(message: data.message, narrow: widget.narrow);
             return MessageItem(
@@ -460,6 +465,50 @@ class RecipientHeader extends StatelessWidget {
         showStream: narrow is AllMessagesNarrow),
       DmMessage() => DmRecipientHeader(message: message),
     };
+  }
+}
+
+class DateSeparator extends StatelessWidget {
+  const DateSeparator({super.key, required this.message});
+
+  final Message message;
+
+  // This color matches recipient headers.  TODO(design) is that what we want?
+  static final _textColor = Colors.black.withOpacity(0.4);
+
+  @override
+  Widget build(BuildContext context) {
+    // This makes the small-caps text vertically centered,
+    // to align with the vertically centered divider lines.
+    const textBottomPadding = 2.0;
+
+    return ColoredBox(color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        child: Row(children: [
+          const Expanded(
+            child: SizedBox(height: 0,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 0,
+                      color: Colors.black)))))),
+          Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
+            child: DateText(
+              color: _textColor,
+              fontSize: 16,
+              height: (16 / 16),
+              timestamp: message.timestamp)),
+          const SizedBox(height: 0, width: 12,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    width: 0,
+                    color: Colors.black)))))
+        ])),
+    );
   }
 }
 

@@ -25,6 +25,12 @@ class MessageListRecipientHeaderItem extends MessageListItem {
   MessageListRecipientHeaderItem(this.message);
 }
 
+class MessageListDateSeparatorItem extends MessageListItem {
+  final Message message;
+
+  MessageListDateSeparatorItem(this.message);
+}
+
 /// A message to show in the message list.
 class MessageListMessageItem extends MessageListItem {
   final Message message;
@@ -118,6 +124,7 @@ mixin _MessageSequence {
           case MessageListDirection.older:       return -1;
         }
       case MessageListRecipientHeaderItem(:var message):
+      case MessageListDateSeparatorItem(:var message):
         return (message.id <= messageId) ? -1 : 1;
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
     }
@@ -181,18 +188,19 @@ mixin _MessageSequence {
     final message = messages[index];
     final content = contents[index];
     bool canShareSender;
-    if (index > 0
-        && haveSameRecipient(messages[index - 1], message)
-        && messagesSameDay(messages[index - 1], message)) {
+    if (index == 0 || !haveSameRecipient(messages[index - 1], message)) {
+      items.add(MessageListRecipientHeaderItem(message));
+      canShareSender = false;
+    } else if (!messagesSameDay(messages[index - 1], message)) {
+      items.add(MessageListDateSeparatorItem(message));
+      canShareSender = false;
+    } else {
       assert(items.last is MessageListMessageItem);
       final prevMessageItem = items.last as MessageListMessageItem;
       assert(identical(prevMessageItem.message, messages[index - 1]));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
       canShareSender = (prevMessageItem.message.senderId == message.senderId);
-    } else {
-      items.add(MessageListRecipientHeaderItem(message));
-      canShareSender = false;
     }
     items.add(MessageListMessageItem(message, content,
       showSender: !canShareSender, isLastInBlock: true));
