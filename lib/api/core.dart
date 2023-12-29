@@ -112,9 +112,12 @@ class ApiConnection {
 
     try {
       return fromJson(json);
-    } catch (e) {
-      throw MalformedServerResponseException(
-        routeName: routeName, httpStatus: httpStatus, data: json);
+    } catch (exception, stackTrace) { // TODO(log)
+      Error.throwWithStackTrace(
+        MalformedServerResponseException(
+          routeName: routeName, httpStatus: httpStatus, data: json,
+          causeException: exception),
+        stackTrace);
     }
   }
 

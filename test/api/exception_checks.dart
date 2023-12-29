@@ -26,5 +26,5 @@ extension Server5xxExceptionChecks on Subject<Server5xxException> {
 }
 
 extension MalformedServerResponseExceptionChecks on Subject<MalformedServerResponseException> {
-  // no properties not on ServerException
+  Subject<Object?> get causeException => has((e) => e.causeException, 'causeException');
 }
