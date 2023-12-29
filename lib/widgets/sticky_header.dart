@@ -592,11 +592,8 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     assert(child != null);
     assert(geometry!.hitTestExtent > 0.0);
     if (header != null) {
-      final headerParentData = (header!.parentData as SliverPhysicalParentData);
-      final headerOffset = headerParentData.paintOffset
-        .inDirection(constraints.axisDirection);
       if (hitTestBoxChild(BoxHitTestResult.wrap(result), header!,
-            mainAxisPosition: mainAxisPosition - headerOffset,
+            mainAxisPosition: mainAxisPosition,
             crossAxisPosition: crossAxisPosition)) {
         return true;
       }
@@ -609,8 +606,17 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
   double childMainAxisPosition(RenderObject child) {
     if (child == this.child) return 0.0;
     assert(child == header);
+    // We use Sliver*Physical*ParentData, so the header's position is stored in
+    // physical coordinates.  To meet the spec of `childMainAxisPosition`, we
+    // need to convert to the sliver's coordinate system.
     final headerParentData = (header!.parentData as SliverPhysicalParentData);
-    return headerParentData.paintOffset.inDirection(constraints.axisDirection);
+    final paintOffset = headerParentData.paintOffset;
+    return switch (constraints.axisDirection) {
+      AxisDirection.right => paintOffset.dx,
+      AxisDirection.left  => geometry!.layoutExtent - header!.size.width  - paintOffset.dx,
+      AxisDirection.down  => paintOffset.dy,
+      AxisDirection.up    => geometry!.layoutExtent - header!.size.height - paintOffset.dy,
+    };
   }
 
   @override
