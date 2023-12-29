@@ -319,6 +319,14 @@
       "httpStatus": {"type": "int", "example": "200"}
     }
   },
+  "errorMalformedResponseWithCause": "Server gave malformed response; HTTP status {httpStatus}; {details}",
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "httpStatus": {"type": "int", "example": "200"},
+      "details": {"type": "String", "example": "type 'Null' is not a subtype of type 'String' in type cast"}
+    }
+  },
   "errorRequestFailed": "Network request failed: HTTP status {httpStatus}",
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",

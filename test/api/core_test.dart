@@ -279,6 +279,31 @@ void main() {
     await checkMalformed(  json: {},         fromJson: (json) => json['x'] as String);
     await checkMalformed(  json: {'x': 3},   fromJson: (json) => json['x'] as String);
   });
+
+  test('malformed API success responses: exception preserves details', () async {
+    int distinctivelyNamedFromJson(Map<String, dynamic> json) {
+      throw DistinctiveError("something is wrong");
+    }
+
+    try {
+      await tryRequest(json: {}, fromJson: distinctivelyNamedFromJson);
+      assert(false);
+    } catch (e, st) {
+      check(e).isA<MalformedServerResponseException>()
+        ..causeException.isA<DistinctiveError>()
+        ..message.contains("something is wrong");
+      check(st.toString()).contains("distinctivelyNamedFromJson");
+    }
+  });
+}
+
+class DistinctiveError extends Error {
+  final String message;
+
+  DistinctiveError(this.message);
+
+  @override
+  String toString() => message;
 }
 
 Future<T> tryRequest<T>({

@@ -112,10 +112,22 @@ class Server5xxException extends ServerException {
 ///
 /// See docs: https://zulip.com/api/rest-error-handling
 class MalformedServerResponseException extends ServerException {
+  /// The underlying exception from trying to parse the response, when applicable.
+  ///
+  /// This should be paired with the use of [Error.throwWithStackTrace]
+  /// in order to preserve the underlying exception's stack trace, which
+  /// may be more informative than the exception object itself.
+  final Object? causeException;
+
   MalformedServerResponseException({
     required super.routeName,
     required super.httpStatus,
     required super.data,
-  }) : super(message: GlobalLocalizations.zulipLocalizations
-         .errorMalformedResponse(httpStatus));
+    this.causeException,
+  }) : super(message: causeException == null
+         ? GlobalLocalizations.zulipLocalizations
+            .errorMalformedResponse(httpStatus)
+         : GlobalLocalizations.zulipLocalizations
+            .errorMalformedResponseWithCause(
+              httpStatus, causeException.toString()));
 }
