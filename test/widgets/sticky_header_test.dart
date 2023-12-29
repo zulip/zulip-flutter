@@ -132,8 +132,16 @@ Future<void> _checkSequence(
         header: _Header(i, height: 20),
         child: _Item(i, height: 100))))));
 
-  final extent = tester.getSize(find.byType(StickyHeaderListView)).onAxis(axis);
+  final overallSize = tester.getSize(find.byType(StickyHeaderListView));
+  final extent = overallSize.onAxis(axis);
   assert(extent % 100 == 0);
+
+  // A position `inset` from the center of the edge the header is found on.
+  Offset headerInset(double inset) {
+    return overallSize.center(Offset.zero)
+      + offsetInDirection(axis.coordinateDirection,
+          (extent / 2 - inset) * (headerAtCoordinateEnd ? 1 : -1));
+  }
 
   final first = !(reverse ^ reverseHeader);
 
@@ -145,7 +153,8 @@ Future<void> _checkSequence(
       : tester.getBottomRight(finder).inDirection(axis.coordinateDirection);
   }
 
-  void checkState() {
+  Future<void> checkState() async {
+    // Check the header comes from the expected item.
     final scrollOffset = controller.position.pixels;
     final expectedHeaderIndex = first
       ? (scrollOffset / 100).floor()
@@ -153,20 +162,30 @@ Future<void> _checkSequence(
     check(tester.widget<_Item>(itemFinder).index).equals(expectedHeaderIndex);
     check(_headerIndex(tester)).equals(expectedHeaderIndex);
 
+    // Check the layout of the header and item.
     final expectedItemInsetExtent =
       100 - (first ? scrollOffset % 100 : (-scrollOffset) % 100);
+    final double expectedHeaderInsetExtent =
+      allowOverflow ? 20 : math.min(20, expectedItemInsetExtent);
     check(insetExtent(itemFinder)).equals(expectedItemInsetExtent);
-    check(insetExtent(find.byType(_Header))).equals(
-      allowOverflow ? 20 : math.min(20, expectedItemInsetExtent));
+    check(insetExtent(find.byType(_Header))).equals(expectedHeaderInsetExtent);
+
+    // Check the header gets hit when it should, and not when it shouldn't.
+    await tester.tapAt(headerInset(1));
+    await tester.tapAt(headerInset(expectedHeaderInsetExtent - 1));
+    check(_Header.takeTapCount()).equals(2);
+    await tester.tapAt(headerInset(extent - 1));
+    await tester.tapAt(headerInset(extent - (expectedHeaderInsetExtent - 1)));
+    check(_Header.takeTapCount()).equals(0);
   }
 
   Future<void> jumpAndCheck(double position) async {
     controller.jumpTo(position);
     await tester.pump();
-    checkState();
+    await checkState();
   }
 
-  checkState();
+  await checkState();
   await jumpAndCheck(5);
   await jumpAndCheck(10);
   await jumpAndCheck(20);
@@ -210,12 +229,21 @@ class _Header extends StatelessWidget {
   final int index;
   final double height;
 
+  static int takeTapCount() {
+    final result = _tapCount;
+    _tapCount = 0;
+    return result;
+  }
+  static int _tapCount = 0;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
       width: height, // TODO clean up
-      child: Text("Header $index"));
+      child: GestureDetector(
+        onTap: () => _tapCount++,
+        child: Text("Header $index")));
   }
 }
 
