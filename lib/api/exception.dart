@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 
 import '../model/localizations.dart';
 
@@ -52,6 +55,18 @@ class ZulipApiException extends ApiRequestException {
     required this.data,
     required super.message,
   }) : assert(400 <= httpStatus && httpStatus <= 499);
+
+  @override
+  String toString() {
+    final sb = StringBuffer();
+    sb.write('${objectRuntimeType(this, 'ZulipApiException')}:');
+    if (httpStatus != 400) sb.write(" $httpStatus");
+    if (code != 'BAD_REQUEST') sb.write(" $code");
+    if (data.isNotEmpty) sb.write(" ${jsonEncode(data)}");
+    sb.write(" $routeName");
+    sb.write(": $message");
+    return sb.toString();
+  }
 }
 
 /// A network-level error that prevented even getting an HTTP response.
