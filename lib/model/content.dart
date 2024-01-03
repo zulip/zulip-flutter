@@ -289,6 +289,26 @@ class CodeBlockSpanNode extends InlineContentNode {
   }
 }
 
+class MathBlockNode extends BlockContentNode {
+  const MathBlockNode({super.debugHtmlNode, required this.texSource});
+
+  final String texSource;
+
+  @override
+  bool operator ==(Object other) {
+    return other is MathBlockNode && other.texSource == texSource;
+  }
+
+  @override
+  int get hashCode => Object.hash('MathBlockNode', texSource);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('texSource', texSource));
+  }
+}
+
 class ImageNode extends BlockContentNode {
   const ImageNode({super.debugHtmlNode, required this.srcUrl});
 
@@ -493,6 +513,26 @@ class ImageEmojiNode extends EmojiNode {
   }
 }
 
+class MathInlineNode extends InlineContentNode {
+  const MathInlineNode({super.debugHtmlNode, required this.texSource});
+
+  final String texSource;
+
+  @override
+  bool operator ==(Object other) {
+    return other is MathInlineNode && other.texSource == texSource;
+  }
+
+  @override
+  int get hashCode => Object.hash('MathInlineNode', texSource);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('texSource', texSource));
+  }
+}
+
 ////////////////////////////////////////////////////////////////
 
 // Ported from https://github.com/zulip/zulip-mobile/blob/c979530d6804db33310ed7d14a4ac62017432944/src/emoji/data.js#L108-L112
@@ -531,6 +571,60 @@ class _ZulipContentParser {
   /// This exists for the sake of debug-mode checks,
   /// and should be read or updated only inside an assertion.
   _ParserContext _debugParserContext = _ParserContext.block;
+
+  String? parseMath(dom.Element element, {required bool block}) {
+    assert(block == (_debugParserContext == _ParserContext.block));
+
+    final dom.Element katexElement;
+    if (!block) {
+      assert(element.localName == 'span'
+          && element.classes.length == 1
+          && element.classes.contains('katex'));
+
+      katexElement = element;
+    } else {
+      assert(element.localName == 'span'
+          && element.classes.length == 1
+          && element.classes.contains('katex-display'));
+
+      if (element.nodes.length != 1) return null;
+      final child = element.nodes.single;
+      if (child is! dom.Element) return null;
+      if (child.localName != 'span') return null;
+      if (child.classes.length != 1) return null;
+      if (!child.classes.contains('katex')) return null;
+      katexElement = child;
+    }
+
+    // Expect two children span.katex-mathml, span.katex-html .
+    // For now we only care about the .katex-mathml .
+    if (katexElement.nodes.isEmpty) return null;
+    final child = katexElement.nodes.first;
+    if (child is! dom.Element) return null;
+    if (child.localName != 'span') return null;
+    if (child.classes.length != 1) return null;
+    if (!child.classes.contains('katex-mathml')) return null;
+
+    if (child.nodes.length != 1) return null;
+    final grandchild = child.nodes.single;
+    if (grandchild is! dom.Element) return null;
+    if (grandchild.localName != 'math') return null;
+    if (grandchild.attributes['display'] != (block ? 'block' : null)) return null;
+    if (grandchild.namespaceUri != 'http://www.w3.org/1998/Math/MathML') return null;
+
+    if (grandchild.nodes.length != 1) return null;
+    final greatgrand = grandchild.nodes.single;
+    if (greatgrand is! dom.Element) return null;
+    if (greatgrand.localName != 'semantics') return null;
+
+    if (greatgrand.nodes.isEmpty) return null;
+    final descendant4 = greatgrand.nodes.last;
+    if (descendant4 is! dom.Element) return null;
+    if (descendant4.localName != 'annotation') return null;
+    if (descendant4.attributes['encoding'] != 'application/x-tex') return null;
+
+    return descendant4.text.trim();
+  }
 
   /// The links found so far in the current block inline container.
   ///
@@ -621,6 +715,14 @@ class _ZulipContentParser {
       final src = element.attributes['src'];
       if (src == null) return unimplemented();
       return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+    }
+
+    if (localName == 'span'
+        && classes.length == 1
+        && classes.contains('katex')) {
+      final texSource = parseMath(element, block: false);
+      if (texSource == null) return unimplemented();
+      return MathInlineNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
     }
 
     // TODO more types of node
@@ -792,6 +894,24 @@ class _ZulipContentParser {
     }
 
     if (localName == 'p' && classes.isEmpty) {
+      // Oddly, the way a math block gets encoded in Zulip HTML is inside a <p>.
+      if (element.nodes case [dom.Element(localName: 'span') && var child, ...]) {
+        if (child.classes.length == 1
+            && child.classes.contains('katex-display')) {
+          if (element.nodes case [_]
+                              || [_, dom.Element(localName: 'br'),
+                                     dom.Text(text: "\n")]) {
+            // This might be too specific; we'll find out when we do #190.
+            // The case with the `<br>\n` can happen when at the end of a quote;
+            // it seems like a glitch in the server's Markdown processing,
+            // so hopefully there just aren't any further such glitches.
+            final texSource = parseMath(child, block: true);
+            if (texSource == null) return UnimplementedBlockContentNode(htmlNode: node);
+            return MathBlockNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
+          }
+        }
+      }
+
       final parsed = parseBlockInline(element.nodes);
       return ParagraphNode(debugHtmlNode: debugHtmlNode,
         links: parsed.links,

@@ -168,6 +168,14 @@ void main() {
     const ImageEmojiNode(
       src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
 
+  testParseInline('parse inline math',
+    // "$$ \\lambda $$"
+    '<p><span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+        '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
+    const MathInlineNode(texSource: r'\lambda'));
+
   //
   // Block content.
   //
@@ -389,6 +397,29 @@ void main() {
         '<span></span><code><span class="unknown">class</span>'
         '\n</code></pre></div>'),
     ]);
+
+  testParse('parse math block',
+    // "```math\n\\lambda\n```"
+    '<p><span class="katex-display"><span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
+        '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
+    [const MathBlockNode(texSource: r'\lambda')]);
+
+  testParse('parse math block in quote',
+    // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
+    // encloses the math block.  In particular this happens when the math block
+    // is the last thing in the quote; though not in a doubly-nested quote;
+    // and there might be further wrinkles yet to be found.  Some experiments:
+    //   https://chat.zulip.org/#narrow/stream/7-test-here/topic/content/near/1715732
+    // "````quote\n```math\n\\lambda\n```\n````"
+    '<blockquote>\n<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
+          '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
+      '<br>\n</p>\n</blockquote>',
+    [const QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
 
   testParse('parse image',
     // "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"
