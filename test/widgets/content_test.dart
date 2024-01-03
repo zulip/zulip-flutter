@@ -62,6 +62,17 @@ void main() {
     });
   });
 
+  testWidgets('MathBlock', (tester) async {
+    // "```math\n\\lambda\n```"
+    await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
+      '<p><span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
+          '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
+    ).nodes)));
+    tester.widget(find.text(r'\lambda'));
+  });
+
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
     final height = tester.getSize(textFinder).height;
     final target = tester.getTopLeft(textFinder)
@@ -238,6 +249,17 @@ void main() {
         '<p>\u{1fabf}</p>');
       tester.widget(find.text('\u{1fabf}')); // "🪿"
     });
+  });
+
+  testWidgets('MathInlineNode', (tester) async {
+    // "$$ \\lambda $$"
+    await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
+      '<p><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
+    ).nodes)));
+    tester.widget(find.text(r'\lambda'));
   });
 
   group('RealmContentNetworkImage', () {

@@ -80,6 +80,8 @@ class BlockContentList extends StatelessWidget {
           return ListNodeWidget(node: node);
         } else if (node is CodeBlockNode) {
           return CodeBlock(node: node);
+        } else if (node is MathBlockNode) {
+          return MathBlock(node: node);
         } else if (node is ImageNode) {
           return MessageImage(node: node);
         } else if (node is UnimplementedBlockContentNode) {
@@ -265,20 +267,13 @@ class CodeBlock extends StatelessWidget {
 
   final CodeBlockNode node;
 
+  static final _borderColor = const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(
-          width: 1,
-          color: const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor()),
-        borderRadius: BorderRadius.circular(4)),
-      child: SingleChildScrollViewWithScrollbar(
-        scrollDirection: Axis.horizontal,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
-          child: Text.rich(_buildNodes(node.spans)))));
+    return _CodeBlockContainer(
+      borderColor: _borderColor,
+      child: Text.rich(_buildNodes(node.spans)));
   }
 
   InlineSpan _buildNodes(List<CodeBlockSpanNode> nodes) {
@@ -289,6 +284,29 @@ class CodeBlock extends StatelessWidget {
 
   InlineSpan _buildNode(CodeBlockSpanNode node) {
     return TextSpan(text: node.text, style: codeBlockTextStyle(node.type));
+  }
+}
+
+class _CodeBlockContainer extends StatelessWidget {
+  const _CodeBlockContainer({required this.borderColor, required this.child});
+
+  final Color borderColor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          width: 1,
+          color: borderColor),
+        borderRadius: BorderRadius.circular(4)),
+      child: SingleChildScrollViewWithScrollbar(
+        scrollDirection: Axis.horizontal,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
+          child: child)));
   }
 }
 
@@ -316,6 +334,23 @@ class _SingleChildScrollViewWithScrollbarState
         controller: controller,
         scrollDirection: widget.scrollDirection,
         child: widget.child));
+  }
+}
+
+class MathBlock extends StatelessWidget {
+  const MathBlock({super.key, required this.node});
+
+  final MathBlockNode node;
+
+  static final _borderColor = const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor();
+
+  @override
+  Widget build(BuildContext context) {
+    return _CodeBlockContainer(
+      borderColor: _borderColor,
+      child: Text.rich(TextSpan(
+        style: _kCodeBlockStyle,
+        children: [TextSpan(text: node.texSource)])));
   }
 }
 
@@ -475,6 +510,9 @@ class _InlineContentBuilder {
     } else if (node is ImageEmojiNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
         child: MessageImageEmoji(node: node));
+    } else if (node is MathInlineNode) {
+      return TextSpan(style: _kInlineMathStyle,
+        children: [TextSpan(text: node.texSource)]);
     } else if (node is UnimplementedInlineContentNode) {
       return _errorUnimplemented(node);
     } else {
@@ -543,6 +581,9 @@ class _InlineContentBuilder {
     // ]);
   }
 }
+
+final _kInlineMathStyle = _kInlineCodeStyle.merge(TextStyle(
+  backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.93).toColor()));
 
 final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(const TextStyle(
