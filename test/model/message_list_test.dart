@@ -810,38 +810,38 @@ void main() async {
     ]);
   });
 
-  group('canShareRecipientHeader', () {
-    test('stream messages vs DMs, no share', () {
+  group('haveSameRecipient', () {
+    test('stream messages vs DMs, no match', () {
       final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
-      final streamMessage = eg.streamMessage(timestamp: dmMessage.timestamp);
-      check(canShareRecipientHeader(streamMessage, dmMessage)).isFalse();
-      check(canShareRecipientHeader(dmMessage, streamMessage)).isFalse();
+      final streamMessage = eg.streamMessage();
+      check(haveSameRecipient(streamMessage, dmMessage)).isFalse();
+      check(haveSameRecipient(dmMessage, streamMessage)).isFalse();
     });
 
-    test('stream messages of same day share just if same stream/topic', () {
+    test('stream messages match just if same stream/topic', () {
       final stream0 = eg.stream(streamId: 123);
       final stream1 = eg.stream(streamId: 234);
       final messageAB = eg.streamMessage(stream: stream0, topic: 'foo');
-      final messageXB = eg.streamMessage(stream: stream1, topic: 'foo', timestamp: messageAB.timestamp);
-      final messageAX = eg.streamMessage(stream: stream0, topic: 'bar', timestamp: messageAB.timestamp);
-      check(canShareRecipientHeader(messageAB, messageAB)).isTrue();
-      check(canShareRecipientHeader(messageAB, messageXB)).isFalse();
-      check(canShareRecipientHeader(messageXB, messageAB)).isFalse();
-      check(canShareRecipientHeader(messageAB, messageAX)).isFalse();
-      check(canShareRecipientHeader(messageAX, messageAB)).isFalse();
-      check(canShareRecipientHeader(messageAX, messageXB)).isFalse();
-      check(canShareRecipientHeader(messageXB, messageAX)).isFalse();
+      final messageXB = eg.streamMessage(stream: stream1, topic: 'foo');
+      final messageAX = eg.streamMessage(stream: stream0, topic: 'bar');
+      check(haveSameRecipient(messageAB, messageAB)).isTrue();
+      check(haveSameRecipient(messageAB, messageXB)).isFalse();
+      check(haveSameRecipient(messageXB, messageAB)).isFalse();
+      check(haveSameRecipient(messageAB, messageAX)).isFalse();
+      check(haveSameRecipient(messageAX, messageAB)).isFalse();
+      check(haveSameRecipient(messageAX, messageXB)).isFalse();
+      check(haveSameRecipient(messageXB, messageAX)).isFalse();
     });
 
-    test('DMs of same day share just if same recipients', () {
+    test('DMs match just if same recipients', () {
       final message0 = eg.dmMessage(from: eg.selfUser, to: []);
-      final message01 = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser], timestamp: message0.timestamp);
-      final message10 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], timestamp: message0.timestamp);
-      final message02 = eg.dmMessage(from: eg.selfUser, to: [eg.thirdUser], timestamp: message0.timestamp);
-      final message20 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], timestamp: message0.timestamp);
-      final message012 = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser, eg.thirdUser], timestamp: message0.timestamp);
-      final message102 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], timestamp: message0.timestamp);
-      final message201 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser], timestamp: message0.timestamp);
+      final message01 = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      final message10 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+      final message02 = eg.dmMessage(from: eg.selfUser, to: [eg.thirdUser]);
+      final message20 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser]);
+      final message012 = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser, eg.thirdUser]);
+      final message102 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser]);
+      final message201 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
       final groups = [[message0], [message01, message10],
         [message02, message20], [message012, message102, message201]];
       for (int i0 = 0; i0 < groups.length; i0++) {
@@ -852,52 +852,52 @@ void main() async {
               final message1 = groups[i1][j1];
               check(
                 because: 'recipients ${message0.allRecipientIds} vs ${message1.allRecipientIds}',
-                canShareRecipientHeader(message0, message1),
+                haveSameRecipient(message0, message1),
               ).equals(i0 == i1);
             }
           }
         }
       }
     });
+  });
 
-    test('messages to same recipient share just if same day', () {
-      // These timestamps will differ depending on the timezone of the
-      // environment where the tests are run, in order to give the same results
-      // in the code under test which is also based on the ambient timezone.
-      // TODO(dart): It'd be great if tests could control the ambient timezone,
-      //   so as to exercise cases like where local time falls back across midnight.
-      int timestampFromLocalTime(String date) => DateTime.parse(date).millisecondsSinceEpoch ~/ 1000;
+  test('messagesSameDay', () {
+    // These timestamps will differ depending on the timezone of the
+    // environment where the tests are run, in order to give the same results
+    // in the code under test which is also based on the ambient timezone.
+    // TODO(dart): It'd be great if tests could control the ambient timezone,
+    //   so as to exercise cases like where local time falls back across midnight.
+    int timestampFromLocalTime(String date) => DateTime.parse(date).millisecondsSinceEpoch ~/ 1000;
 
-      const t111a = '2021-01-01 00:00:00';
-      const t111b = '2021-01-01 12:00:00';
-      const t111c = '2021-01-01 23:59:58';
-      const t111d = '2021-01-01 23:59:59';
-      const t112a = '2021-01-02 00:00:00';
-      const t112b = '2021-01-02 00:00:01';
-      const t121 = '2021-02-01 00:00:00';
-      const t211 = '2022-01-01 00:00:00';
-      final groups = [[t111a, t111b, t111c, t111d], [t112a, t112b], [t121], [t211]];
+    const t111a = '2021-01-01 00:00:00';
+    const t111b = '2021-01-01 12:00:00';
+    const t111c = '2021-01-01 23:59:58';
+    const t111d = '2021-01-01 23:59:59';
+    const t112a = '2021-01-02 00:00:00';
+    const t112b = '2021-01-02 00:00:01';
+    const t121 = '2021-02-01 00:00:00';
+    const t211 = '2022-01-01 00:00:00';
+    final groups = [[t111a, t111b, t111c, t111d], [t112a, t112b], [t121], [t211]];
 
-      final stream = eg.stream();
-      for (int i0 = 0; i0 < groups.length; i0++) {
-        for (int i1 = i0; i1 < groups.length; i1++) {
-          for (int j0 = 0; j0 < groups[i0].length; j0++) {
-            for (int j1 = (i0 == i1) ? j0 : 0; j1 < groups[i1].length; j1++) {
-              final time0 = groups[i0][j0];
-              final time1 = groups[i1][j1];
-              check(because: 'times $time0, $time1', canShareRecipientHeader(
-                eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time0)),
-                eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time1)),
-              )).equals(i0 == i1);
-              check(because: 'times $time0, $time1', canShareRecipientHeader(
-                eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time0)),
-                eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time1)),
-              )).equals(i0 == i1);
-            }
+    final stream = eg.stream();
+    for (int i0 = 0; i0 < groups.length; i0++) {
+      for (int i1 = i0; i1 < groups.length; i1++) {
+        for (int j0 = 0; j0 < groups[i0].length; j0++) {
+          for (int j1 = (i0 == i1) ? j0 : 0; j1 < groups[i1].length; j1++) {
+            final time0 = groups[i0][j0];
+            final time1 = groups[i1][j1];
+            check(because: 'times $time0, $time1', messagesSameDay(
+              eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time0)),
+              eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time1)),
+            )).equals(i0 == i1);
+            check(because: 'times $time0, $time1', messagesSameDay(
+              eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time0)),
+              eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time1)),
+            )).equals(i0 == i1);
           }
         }
       }
-    });
+    }
   });
 }
 
@@ -948,7 +948,8 @@ void checkInvariants(MessageListView model) {
   for (int j = 0; j < model.messages.length; j++) {
     bool isFirstInBlock = false;
     if (j == 0
-        || !canShareRecipientHeader(model.messages[j-1], model.messages[j])) {
+        || !haveSameRecipient(model.messages[j-1], model.messages[j])
+        || !messagesSameDay(model.messages[j-1], model.messages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(model.messages[j]);
       isFirstInBlock = true;

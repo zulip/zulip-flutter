@@ -181,7 +181,9 @@ mixin _MessageSequence {
     final message = messages[index];
     final content = contents[index];
     bool canShareSender;
-    if (index > 0 && canShareRecipientHeader(messages[index - 1], message)) {
+    if (index > 0
+        && haveSameRecipient(messages[index - 1], message)
+        && messagesSameDay(messages[index - 1], message)) {
       assert(items.last is MessageListMessageItem);
       final prevMessageItem = items.last as MessageListMessageItem;
       assert(identical(prevMessageItem.message, messages[index - 1]));
@@ -228,7 +230,7 @@ mixin _MessageSequence {
 }
 
 @visibleForTesting
-bool canShareRecipientHeader(Message prevMessage, Message message) {
+bool haveSameRecipient(Message prevMessage, Message message) {
   if (prevMessage is StreamMessage && message is StreamMessage) {
     if (prevMessage.streamId != message.streamId) return false;
     if (prevMessage.subject != message.subject) return false;
@@ -239,6 +241,7 @@ bool canShareRecipientHeader(Message prevMessage, Message message) {
   } else {
     return false;
   }
+  return true;
 
   // switch ((prevMessage, message)) {
   //   case (StreamMessage(), StreamMessage()):
@@ -248,12 +251,14 @@ bool canShareRecipientHeader(Message prevMessage, Message message) {
   //   default:
   //     return false;
   // }
+}
 
+@visibleForTesting
+bool messagesSameDay(Message prevMessage, Message message) {
   // TODO memoize [DateTime]s... also use memoized for showing date/time in msglist
   final prevTime = DateTime.fromMillisecondsSinceEpoch(prevMessage.timestamp * 1000);
   final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
   if (!_sameDay(prevTime, time)) return false;
-
   return true;
 }
 
