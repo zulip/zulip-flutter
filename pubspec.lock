@@ -664,26 +664,26 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: e45c31f458d01fd9ef4a214feb2e153b72d5b1907435f4332b1637a2f348c021
+      sha256: "78eb209deea09858f5269f5a5b02be4049535f568c07b275096836f01ea323fa"
       url: "https://pub.dev"
     source: hosted
-    version: "9.0.18"
+    version: "10.0.0"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
       name: leak_tracker_flutter_testing
-      sha256: "54808cfcfa87dbc0d74c61ac063d624adf1bd5c0407301f32b06c783c60dc4ca"
+      sha256: b46c5e37c19120a8a01918cfaf293547f47269f7cb4b0058f21531c2465d6ef0
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   leak_tracker_testing:
     dependency: transitive
     description:
       name: leak_tracker_testing
-      sha256: "7e71be3c161472f6c9158ac8875dd8de575060d60b5d159ebca3600ea32c9116"
+      sha256: a597f72a664dbd293f3bfc51f9ba69816f84dcd403cdac7066cb3f6003f3ab47
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6"
+    version: "2.0.1"
   lints:
     dependency: transitive
     description:
@@ -1290,5 +1290,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.3.0-244.0.dev <4.0.0"
-  flutter: ">=3.18.0-18.0.pre.10"
+  dart: ">=3.3.0-276.0.dev <4.0.0"
+  flutter: ">=3.18.0-18.0.pre.98"
