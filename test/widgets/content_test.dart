@@ -62,6 +62,13 @@ void main() {
     });
   });
 
+  Future<void> tapText(WidgetTester tester, Finder textFinder) async {
+    final height = tester.getSize(textFinder).height;
+    final target = tester.getTopLeft(textFinder)
+      .translate(height/4, height/2); // aim for middle of first letter
+    await tester.tapAt(target);
+  }
+
   group('LinkNode interactions', () {
     // The Flutter test font uses square glyphs, so width equals height:
     //   https://github.com/flutter/flutter/wiki/Flutter-Test-Fonts
@@ -85,7 +92,7 @@ void main() {
       await prepareContent(tester,
         '<p><a href="https://example/">hello</a></p>');
 
-      await tester.tap(find.text('hello'));
+      await tapText(tester, find.text('hello'));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://example/'), mode: LaunchMode.platformDefault));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
@@ -111,7 +118,7 @@ void main() {
     testWidgets('link nested in other spans', (tester) async {
       await prepareContent(tester,
         '<p><strong><em><a href="https://a/">word</a></em></strong></p>');
-      await tester.tap(find.text('word'));
+      await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
     });
@@ -134,7 +141,7 @@ void main() {
     testWidgets('relative links are resolved', (tester) async {
       await prepareContent(tester,
         '<p><a href="/a/b?c#d">word</a></p>');
-      await tester.tap(find.text('word'));
+      await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('${eg.realmUrl}a/b?c#d'), mode: LaunchMode.platformDefault));
     });
@@ -142,7 +149,7 @@ void main() {
     testWidgets('link inside HeadingNode', (tester) async {
       await prepareContent(tester,
         '<h6><a href="https://a/">word</a></h6>');
-      await tester.tap(find.text('word'));
+      await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
     });
@@ -151,7 +158,7 @@ void main() {
       await prepareContent(tester,
         '<p><a href="file:///etc/bad">word</a></p>');
       testBinding.launchUrlResult = false;
-      await tester.tap(find.text('word'));
+      await tapText(tester, find.text('word'));
       await tester.pump();
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('file:///etc/bad'), mode: LaunchMode.platformDefault));
@@ -187,7 +194,7 @@ void main() {
       final pushedRoutes = await prepareContent(tester,
         html: '<p><a href="/#narrow/stream/1-check">stream</a></p>');
 
-      await tester.tap(find.text('stream'));
+      await tapText(tester, find.text('stream'));
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
       check(pushedRoutes).single.isA<WidgetRoute>()
         .page.isA<MessageListPage>().narrow.equals(const StreamNarrow(1));
@@ -198,7 +205,7 @@ void main() {
       final pushedRoutes = await prepareContent(tester,
         html: '<p><a href="/#narrow/stream/1-check/topic">invalid</a></p>');
 
-      await tester.tap(find.text('invalid'));
+      await tapText(tester, find.text('invalid'));
       final expectedUrl = eg.realmUrl.resolve('/#narrow/stream/1-check/topic');
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: expectedUrl, mode: LaunchMode.platformDefault));
