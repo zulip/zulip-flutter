@@ -708,26 +708,50 @@ class RecipientHeaderDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
-      child: Text(
-        style: TextStyle(
-          color: color,
-          fontFamily: 'Source Sans 3',
-          fontSize: 16,
-          // In Figma this has a line-height of 19, but using 18
-          // here to match the stream/topic text widgets helps
-          // to align all the text to the same baseline.
-          height: (18 / 16),
-          // This is equivalent to css `all-small-caps`, see:
-          //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
-          fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-        ).merge(weightVariableTextStyle(context)),
-        formatHeaderDate(
-          zulipLocalizations,
-          DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000),
-          now: DateTime.now())));
+      child: DateText(
+        color: color,
+        fontSize: 16,
+        // In Figma this has a line-height of 19, but using 18
+        // here to match the stream/topic text widgets helps
+        // to align all the text to the same baseline.
+        height: (18 / 16),
+        timestamp: message.timestamp));
+  }
+}
+
+class DateText extends StatelessWidget {
+  const DateText({
+    super.key,
+    required this.color,
+    required this.fontSize,
+    required this.height,
+    required this.timestamp,
+  });
+
+  final Color color;
+  final double fontSize;
+  final double height;
+  final int timestamp;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Text(
+      style: TextStyle(
+        color: color,
+        fontFamily: 'Source Sans 3',
+        fontSize: fontSize,
+        height: height,
+        // This is equivalent to css `all-small-caps`, see:
+        //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
+        fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+      ).merge(weightVariableTextStyle(context)),
+      formatHeaderDate(
+        zulipLocalizations,
+        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
+        now: DateTime.now()));
   }
 }
 
