@@ -100,7 +100,7 @@ class Paragraph extends StatelessWidget {
 
   final ParagraphNode node;
 
-  static TextStyle getTextStyle(BuildContext context) => const TextStyle(
+  static const textStyle = TextStyle(
     fontSize: kBaseFontSize,
     height: (17 / kBaseFontSize),
   );
@@ -113,7 +113,7 @@ class Paragraph extends StatelessWidget {
 
     final text = _buildBlockInlineContainer(
       node: node,
-      style: getTextStyle(context),
+      style: textStyle,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
@@ -646,7 +646,7 @@ class UserMention extends StatelessWidget {
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
-        style: Paragraph.getTextStyle(context),
+        style: Paragraph.textStyle,
         nodes: node.nodes));
   }
 
