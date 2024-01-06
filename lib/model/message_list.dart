@@ -191,16 +191,19 @@ mixin _MessageSequence {
     if (index == 0 || !haveSameRecipient(messages[index - 1], message)) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
-    } else if (!messagesSameDay(messages[index - 1], message)) {
-      items.add(MessageListDateSeparatorItem(message));
-      canShareSender = false;
     } else {
       assert(items.last is MessageListMessageItem);
       final prevMessageItem = items.last as MessageListMessageItem;
       assert(identical(prevMessageItem.message, messages[index - 1]));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
-      canShareSender = (prevMessageItem.message.senderId == message.senderId);
+
+      if (!messagesSameDay(prevMessageItem.message, message)) {
+        items.add(MessageListDateSeparatorItem(message));
+        canShareSender = false;
+      } else {
+        canShareSender = (prevMessageItem.message.senderId == message.senderId);
+      }
     }
     items.add(MessageListMessageItem(message, content,
       showSender: !canShareSender, isLastInBlock: true));

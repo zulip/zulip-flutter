@@ -967,7 +967,13 @@ void checkInvariants(MessageListView model) {
       ..showSender.equals(
         forcedShowSender || model.messages[j].senderId != model.messages[j-1].senderId)
       ..isLastInBlock.equals(
-        i == model.items.length || model.items[i] is! MessageListMessageItem);
+        i == model.items.length || switch (model.items[i]) {
+          MessageListMessageItem()
+          || MessageListDateSeparatorItem() => false,
+          MessageListRecipientHeaderItem()
+          || MessageListHistoryStartItem()
+          || MessageListLoadingItem()       => true,
+        });
   }
   check(model.items).length.equals(i);
 }
