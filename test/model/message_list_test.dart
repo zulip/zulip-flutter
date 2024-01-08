@@ -689,16 +689,17 @@ void main() async {
   });
 
   test('recipient headers are maintained consistently', () async {
+    // TODO test date separators are maintained consistently too
     // This tests the code that maintains the invariant that recipient headers
-    // are present just where [canShareRecipientHeader] requires them.
+    // are present just where they're required.
     // In [checkInvariants] we check the current state against that invariant,
     // so here we just need to exercise that code through all the relevant cases.
     // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants] call
     // (in the listener that increments [notifiedCount]).
     //
-    // A separate unit test covers [canShareRecipientHeader] itself.
-    // So this test just needs messages that can share, and messages that can't,
-    // and doesn't need to exercise the different reasons that messages can't.
+    // A separate unit test covers [haveSameRecipient] itself.  So this test
+    // just needs messages that have the same recipient, and that don't, and
+    // doesn't need to exercise the different reasons that messages don't.
 
     const timestamp = 1693602618;
     final stream = eg.stream();
