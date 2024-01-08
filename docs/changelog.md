@@ -4,13 +4,13 @@
 
 ### Highlights for users
 
+* The message list shows date separators. (#173, #479)
+* Messages with math in TeX now show the TeX source. (#359)
 * Fixed issue where touching the bottom of the message list
   effectively touched the sticky header at the top instead. (#327)
 * We now set up a fresh supply of new messages and other
   updated data from the server if our old supply expires. (#185)
 * (Android) User-added certificate authorities are now trusted. (#461)
-* The message list has date separators. (#173, #479)
-* Messages with math in TeX now show the TeX source. (#359)
 
 
 ### Highlights for developers
