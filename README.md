@@ -1,13 +1,13 @@
-# Zulip Flutter (prototype)
+# Zulip Flutter (beta)
 
 A Zulip client for Android and iOS, using Flutter.
 
-This is a prototype, currently [in alpha][].
+This app is currently [in beta][].
 When it's ready, it [will become the new][] official mobile Zulip client.
 To see what work is planned before that launch,
 see the [milestones][] and the [project board][].
 
-[in alpha]: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/zulip-flutter.20releases/near/1626608
+[in beta]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1708728
 [will become the new]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1582367
 [milestones]: https://github.com/zulip/zulip-flutter/milestones?direction=asc&sort=title
 [project board]: https://github.com/orgs/zulip/projects/5/views/4
@@ -20,7 +20,7 @@ To use Zulip on iOS or Android, install the [official mobile Zulip client][].
 [official mobile Zulip client]: https://github.com/zulip/zulip-mobile#readme
 
 
-## Getting started in developing this prototype
+## Getting started in developing this beta app
 
 ### Setting up
 
@@ -45,7 +45,7 @@ Specific resources include:
 
 ### Flutter version
 
-While in the prototype phase, we use the latest Flutter from Flutter's
+While in the beta phase, we use the latest Flutter from Flutter's
 main branch.  Use `flutter channel main` and `flutter upgrade`.
 
 We don't pin a specific version, because Flutter itself doesn't offer

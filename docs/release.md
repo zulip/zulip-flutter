@@ -33,7 +33,7 @@
   flutter build appbundle -Psigned
   ```
 
-* Upload to the "Zulip (Flutter prototype)" app on the Play Console,
+* Upload to the "Zulip (Flutter beta)" app on the Play Console,
   at [Release > Testing > Internal testing][play-internaltesting],
   using the "Create new release" button there.
 

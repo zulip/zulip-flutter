@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.0.8+8
 
 environment:
-  # We use a development version of Flutter while developing a prototype,
+  # We use a development version of Flutter while in beta,
   # and the corresponding dev version of the Dart SDK.  The hope is
   # that by the time we want to release, these will have become stable.
   # TODO: Before general release, switch to stable Flutter and Dart versions,
