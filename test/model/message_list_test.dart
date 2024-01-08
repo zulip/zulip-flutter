@@ -780,21 +780,23 @@ void main() async {
     // whether the sender should be shown, but the difference between
     // fetchInitial and maybeAddMessage etc. doesn't matter.
 
-    const timestamp = 1693602618;
+    const t1 = 1693602618;
+    const t2 = t1 + 86400;
     final stream = eg.stream();
-    Message streamMessage(int id, User sender) =>
+    Message streamMessage(int id, int timestamp, User sender) =>
       eg.streamMessage(id: id, sender: sender,
         stream: stream, topic: 'foo', timestamp: timestamp);
-    Message dmMessage(int id, User sender) =>
+    Message dmMessage(int id, int timestamp, User sender) =>
       eg.dmMessage(id: id, from: sender, timestamp: timestamp,
         to: [sender.userId == eg.selfUser.userId ? eg.otherUser : eg.selfUser]);
 
     prepare();
     await prepareMessages(foundOldest: true, messages: [
-      streamMessage(1, eg.selfUser),  // first message, so show sender
-      streamMessage(2, eg.selfUser),  // hide sender
-      streamMessage(3, eg.otherUser), // no recipient header, but new sender
-      dmMessage(4,     eg.otherUser), // same sender, but recipient header
+      streamMessage(1, t1, eg.selfUser),  // first message, so show sender
+      streamMessage(2, t1, eg.selfUser),  // hide sender
+      streamMessage(3, t1, eg.otherUser), // no recipient header, but new sender
+      dmMessage(4,     t1, eg.otherUser), // same sender, but new recipient
+      dmMessage(5,     t2, eg.otherUser), // same sender/recipient, but new day
     ]);
 
     // We check showSender has the right values in [checkInvariants],
@@ -806,6 +808,8 @@ void main() async {
       it()..isA<MessageListMessageItem>().showSender.isFalse(),
       it()..isA<MessageListMessageItem>().showSender.isTrue(),
       it()..isA<MessageListRecipientHeaderItem>(),
+      it()..isA<MessageListMessageItem>().showSender.isTrue(),
+      it()..isA<MessageListDateSeparatorItem>(),
       it()..isA<MessageListMessageItem>().showSender.isTrue(),
     ]);
   });
@@ -946,21 +950,22 @@ void checkInvariants(MessageListView model) {
     check(model.items[i++]).isA<MessageListLoadingItem>();
   }
   for (int j = 0; j < model.messages.length; j++) {
-    bool isFirstInBlock = false;
+    bool forcedShowSender = false;
     if (j == 0
         || !haveSameRecipient(model.messages[j-1], model.messages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(model.messages[j]);
-      isFirstInBlock = true;
+      forcedShowSender = true;
     } else if (!messagesSameDay(model.messages[j-1], model.messages[j])) {
       check(model.items[i++]).isA<MessageListDateSeparatorItem>()
         .message.identicalTo(model.messages[j]);
+      forcedShowSender = true;
     }
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
       ..content.identicalTo(model.contents[j])
       ..showSender.equals(
-        isFirstInBlock || model.messages[j].senderId != model.messages[j-1].senderId)
+        forcedShowSender || model.messages[j].senderId != model.messages[j-1].senderId)
       ..isLastInBlock.equals(
         i == model.items.length || model.items[i] is! MessageListMessageItem);
   }
