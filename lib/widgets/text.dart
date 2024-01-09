@@ -80,7 +80,7 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
   }
   assert(value >= kWghtMin && value <= kWghtMax);
 
-  return TextStyle(
+  TextStyle result = TextStyle(
     fontVariations: [FontVariation('wght', value)],
 
     // This use of `fontWeight` shouldn't affect glyphs in the preferred,
@@ -89,6 +89,18 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
     fontWeight: clampVariableFontWeight(value),
 
     inherit: true);
+
+  assert(() {
+    final attributes = [
+      if (wght != null) 'wght: $wght',
+      if (wghtIfPlatformRequestsBold != null) 'wghtIfPlatformRequestsBold: $wghtIfPlatformRequestsBold',
+    ];
+    result = result.copyWith(
+      debugLabel: 'weightVariableTextStyle(${attributes.join(', ')})');
+    return true;
+  }());
+
+  return result;
 }
 
 /// The minimum that a [FontVariation] "wght" value can be.
