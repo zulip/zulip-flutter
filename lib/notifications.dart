@@ -158,6 +158,7 @@ class NotificationService {
     _onRemoteMessage(message);
   }
 
+  @pragma('vm:entry-point')
   static Future<void> _onBackgroundMessage(FirebaseRemoteMessage message) async {
     // This callback will run in a separate isolate from the rest of the app.
     // See docs:
