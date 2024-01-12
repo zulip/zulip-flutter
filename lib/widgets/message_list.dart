@@ -857,60 +857,64 @@ class MessageWithPossibleSender extends StatelessWidget {
 
     Widget? senderRow;
     if (item.showSender) {
-      senderRow = GestureDetector(
-        onTap: () => Navigator.push(context,
-          ProfilePage.buildRoute(context: context,
-            userId: message.senderId)),
-        child: Text(message.senderFullName, // TODO get from user data
-          style: const TextStyle(
-            fontFamily: 'Source Sans 3',
-            fontSize: 18,
-            height: (22 / 18),
-          ).merge(weightVariableTextStyle(context, wght: 600,
-                    wghtIfPlatformRequestsBold: 900))));
+      senderRow = Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Flexible(
+            child: GestureDetector(
+              onTap: () => Navigator.push(context,
+                ProfilePage.buildRoute(context: context,
+                  userId: message.senderId)),
+              child: Row(
+                children: [
+                  Avatar(size: 32, borderRadius: 3,
+                    userId: message.senderId),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(message.senderFullName, // TODO get from user data
+                      style: const TextStyle(
+                        fontFamily: 'Source Sans 3',
+                        fontSize: 18,
+                        height: (22 / 18),
+                      ).merge(weightVariableTextStyle(context, wght: 600,
+                                wghtIfPlatformRequestsBold: 900)),
+                      overflow: TextOverflow.ellipsis)),
+                ]))),
+          const SizedBox(width: 4),
+          Text(time,
+            style: TextStyle(
+              color: _kMessageTimestampColor,
+              fontFamily: 'Source Sans 3',
+              fontSize: 16,
+              height: (18 / 16),
+              fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+            ).merge(weightVariableTextStyle(context))),
+        ]);
     }
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
-        padding: const EdgeInsets.only(top: 2, bottom: 3, left: 8, right: 8),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          item.showSender
-            ? Padding(
-                padding: const EdgeInsets.fromLTRB(3, 6, 11, 0),
-                child: GestureDetector(
-                  onTap: () => Navigator.push(context,
-                    ProfilePage.buildRoute(context: context,
-                      userId: message.senderId)),
-                  child: Avatar(size: 35, borderRadius: 4,
-                    userId: message.senderId)))
-            : const SizedBox(width: 3 + 35 + 11),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (item.showSender) ...[
-                  const SizedBox(height: 3),
-                  senderRow!,
+                if (senderRow != null) ...[
+                  const SizedBox(height: 2),
+                  senderRow,
                   const SizedBox(height: 4),
                 ],
                 MessageContent(message: message, content: item.content),
                 if ((message.reactions?.total ?? 0) > 0)
                   ReactionChipsList(messageId: message.id, reactions: message.reactions!)
               ])),
-          Container(
-            width: 80,
-            padding: const EdgeInsets.only(top: 4, right: 16 - 8),
-            alignment: Alignment.topRight,
-            child: Text(time,
-              style: TextStyle(
-                color: _kMessageTimestampColor,
-                fontFamily: 'Source Sans 3',
-                fontSize: 16,
-                height: (18 / 16),
-                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-              ).merge(weightVariableTextStyle(context)))),
+          const SizedBox(width: 16),
         ])));
   }
 }
