@@ -899,22 +899,22 @@ class MessageWithPossibleSender extends StatelessWidget {
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (senderRow != null) ...[
-                  const SizedBox(height: 2),
-                  senderRow,
-                  const SizedBox(height: 4),
-                ],
-                MessageContent(message: message, content: item.content),
-                if ((message.reactions?.total ?? 0) > 0)
-                  ReactionChipsList(messageId: message.id, reactions: message.reactions!)
-              ])),
-          const SizedBox(width: 16),
+        child: Column(children: [
+          if (senderRow != null)
+            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
+              child: senderRow),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  MessageContent(message: message, content: item.content),
+                  if ((message.reactions?.total ?? 0) > 0)
+                    ReactionChipsList(messageId: message.id, reactions: message.reactions!)
+                ])),
+            const SizedBox(width: 16),
+          ]),
         ])));
   }
 }
