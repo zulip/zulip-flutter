@@ -2,8 +2,8 @@
 library;
 
 import 'package:checks/checks.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 extension AnimationChecks<T> on Subject<Animation<T>> {
   Subject<AnimationStatus> get status => has((d) => d.status, 'status');
@@ -46,6 +46,10 @@ extension ValueNotifierChecks<T> on Subject<ValueNotifier<T>> {
 
 extension TextChecks on Subject<Text> {
   Subject<String?> get data => has((t) => t.data, 'data');
+}
+
+extension TextFieldChecks on Subject<TextField> {
+  Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
 }
 
 extension TextStyleChecks on Subject<TextStyle> {

@@ -302,6 +302,7 @@ class _ContentInput extends StatelessWidget {
               style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration.collapsed(hintText: hintText),
               maxLines: null,
+              textCapitalization: TextCapitalization.sentences,
             );
           }),
         ));
