@@ -180,6 +180,7 @@ Future<SendMessageResult> sendMessage(
   bool? readBySender,
 }) {
   final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
+  final supportsReadBySender = connection.zulipFeatureLevel! >= 236; // TODO(server-8)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     if (destination is StreamDestination) ...{
       'type': RawParameter('stream'),
@@ -195,6 +196,23 @@ Future<SendMessageResult> sendMessage(
     if (queueId != null) 'queue_id': queueId, // TODO should this use RawParameter?
     if (localId != null) 'local_id': localId, // TODO should this use RawParameter?
     if (readBySender != null) 'read_by_sender': readBySender,
+  },
+  overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
+    // Old servers use the user agent to decide if we're a UI client
+    // and so whether the message should be marked as read for its author
+    // (see #440). We are a UI client; so, use a value those servers will
+    // interpret correctly. With newer servers, passing `readBySender: true`
+    // gives the same result.
+    // TODO(#467) include platform, platform version, and app version
+    (false, _   ) => 'ZulipMobile/flutter',
+
+    // According to the doc, a user-agent heuristic is still used in this case:
+    //   https://zulip.com/api/send-message#parameter-read_by_sender
+    // TODO find out if our default user agent would work with that.
+    // TODO(#467) include platform, platform version, and app version
+    (true,  null) => 'ZulipMobile/flutter',
+
+    _             => null,
   });
 }
 

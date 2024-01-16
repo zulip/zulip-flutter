@@ -74,13 +74,16 @@ class ApiConnection {
   bool _isOpen = true;
 
   Future<T> send<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      http.BaseRequest request) async {
+      http.BaseRequest request, {String? overrideUserAgent}) async {
     assert(_isOpen);
 
     assert(debugLog("${request.method} ${request.url}"));
 
     addAuth(request);
     request.headers.addAll(userAgentHeader());
+    if (overrideUserAgent != null) {
+      request.headers['User-Agent'] = overrideUserAgent;
+    }
 
     final http.StreamedResponse response;
     try {
@@ -137,13 +140,13 @@ class ApiConnection {
   }
 
   Future<T> post<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      String path, Map<String, dynamic>? params) async {
+      String path, Map<String, dynamic>? params, {String? overrideUserAgent}) async {
     final url = realmUrl.replace(path: "/api/v1/$path");
     final request = http.Request('POST', url);
     if (params != null) {
       request.bodyFields = encodeParameters(params)!;
     }
-    return send(routeName, fromJson, request);
+    return send(routeName, fromJson, request, overrideUserAgent: overrideUserAgent);
   }
 
   Future<T> postFileFromStream<T>(String routeName, T Function(Map<String, dynamic>) fromJson,

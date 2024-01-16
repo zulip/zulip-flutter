@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -304,6 +305,7 @@ void main() {
       String? localId,
       bool? readBySender,
       required Map<String, String> expectedBodyFields,
+      String? expectedUserAgent,
     }) async {
       connection.prepare(json: SendMessageResult(id: 42).toJson());
       final result = await sendMessage(connection,
@@ -313,7 +315,8 @@ void main() {
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
-        ..bodyFields.deepEquals(expectedBodyFields);
+        ..bodyFields.deepEquals(expectedBodyFields)
+        ..headers['User-Agent'].equals(expectedUserAgent ?? userAgentHeader()['User-Agent']!);
     }
 
     test('smoke', () {
@@ -374,7 +377,39 @@ void main() {
             'to': jsonEncode(userIds),
             'content': content,
             'read_by_sender': 'true',
-          });
+          },
+          expectedUserAgent: 'ZulipMobile/flutter');
+      });
+    });
+
+    test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkSendMessage(connection,
+          destination: StreamDestination(streamId, topic), content: content,
+          readBySender: null,
+          expectedBodyFields: {
+            'type': 'stream',
+            'to': streamId.toString(),
+            'topic': topic,
+            'content': content,
+          },
+          expectedUserAgent: 'ZulipMobile/flutter');
+      });
+    });
+
+    test('legacy: when server does not support readBySender, sends a User-Agent the server will recognize', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 235, (connection) async {
+        await checkSendMessage(connection,
+          destination: StreamDestination(streamId, topic), content: content,
+          readBySender: true,
+          expectedBodyFields: {
+            'type': 'stream',
+            'to': streamId.toString(),
+            'topic': topic,
+            'content': content,
+            'read_by_sender': 'true',
+          },
+          expectedUserAgent: 'ZulipMobile/flutter');
       });
     });
   });
