@@ -339,11 +339,13 @@ void main() {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
           destination: StreamDestination(streamId, topic), content: content,
+          readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
+            'read_by_sender': 'true',
           });
       });
     });
@@ -352,10 +354,12 @@ void main() {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
           destination: DmDestination(userIds: userIds), content: content,
+          readBySender: true,
           expectedBodyFields: {
             'type': 'direct',
             'to': jsonEncode(userIds),
             'content': content,
+            'read_by_sender': 'true',
           });
       });
     });
@@ -364,10 +368,12 @@ void main() {
       return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) async {
         await checkSendMessage(connection,
           destination: DmDestination(userIds: userIds), content: content,
+          readBySender: true,
           expectedBodyFields: {
             'type': 'private',
             'to': jsonEncode(userIds),
             'content': content,
+            'read_by_sender': 'true',
           });
       });
     });
