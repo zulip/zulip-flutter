@@ -580,11 +580,20 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildListView(BuildContext context) {
-    final numItems = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    Widget sliver = SliverStickyHeaderList(
+    // The list has two slivers: a top sliver growing upward,
+    // and a bottom sliver growing downward.
+    // Each sliver has some of the items from `model!.items`.
+    const maxBottomItems = 1;
+    final totalItems = model!.items.length;
+    final bottomItems = totalItems <= maxBottomItems ? totalItems : maxBottomItems;
+    final topItems = totalItems - bottomItems;
+
+    // The top sliver has its child 0 as the item just before the
+    // sliver boundary, child 1 as the item before that, and so on.
+    final topSliver = SliverStickyHeaderList(
       headerPlacement: HeaderPlacement.scrollingStart,
       delegate: SliverChildBuilderDelegate(
         // To preserve state across rebuilds for individual [MessageItem]
@@ -606,20 +615,59 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           final messageId = (key as ValueKey<int>).value;
           final itemIndex = model!.findItemWithMessageId(messageId);
           if (itemIndex == -1) return null;
-          final childIndex = numItems - 1 - (itemIndex - 3);
+          final childIndex = totalItems - 1 - (itemIndex + bottomItems);
+          if (childIndex < 0) return null;
           return childIndex;
         },
-        childCount: numItems + 3,
+        childCount: topItems,
+        (context, childIndex) {
+          final itemIndex = totalItems - 1 - (childIndex + bottomItems);
+          final data = model!.items[itemIndex];
+          final item = _buildItem(zulipLocalizations, data);
+          return item;
+        }));
+
+    // The bottom sliver has its child 0 as the item just after the
+    // sliver boundary (just after child 0 of the top sliver),
+    // its child 1 as the next item after that, and so on.
+    Widget bottomSliver = SliverStickyHeaderList(
+      key: centerSliverKey,
+      headerPlacement: HeaderPlacement.scrollingStart,
+      delegate: SliverChildBuilderDelegate(
+        // To preserve state across rebuilds for individual [MessageItem]
+        // widgets as the size of [MessageListView.items] changes we need
+        // to match old widgets by their key to their new position in
+        // the list.
+        //
+        // The keys are of type [ValueKey] with a value of [Message.id]
+        // and here we use a O(log n) binary search method. This could
+        // be improved but for now it only triggers for materialized
+        // widgets. As a simple test, flinging through All Messages in
+        // CZO on a Pixel 5, this only runs about 10 times per rebuild
+        // and the timing for each call is <100 microseconds.
+        //
+        // Non-message items (e.g., start and end markers) that do not
+        // have state that needs to be preserved have not been given keys
+        // and will not trigger this callback.
+        findChildIndexCallback: (Key key) {
+          final messageId = (key as ValueKey<int>).value;
+          final itemIndex = model!.findItemWithMessageId(messageId);
+          if (itemIndex == -1) return null;
+          final childIndex = itemIndex - topItems;
+          if (childIndex < 0) return null;
+          return childIndex;
+        },
+        childCount: bottomItems + 3,
         (context, childIndex) {
           // To reinforce that the end of the feed has been reached:
           //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-          if (childIndex == 0) return const SizedBox(height: 36);
+          if (childIndex == bottomItems + 2) return const SizedBox(height: 36);
 
-          if (childIndex == 1) return MarkAsReadWidget(narrow: widget.narrow);
+          if (childIndex == bottomItems + 1) return MarkAsReadWidget(narrow: widget.narrow);
 
-          if (childIndex == 2) return TypingStatusWidget(narrow: widget.narrow);
+          if (childIndex == bottomItems) return TypingStatusWidget(narrow: widget.narrow);
 
-          final itemIndex = numItems - 1 - (childIndex - 3);
+          final itemIndex = topItems + childIndex;
           final data = model!.items[itemIndex];
           return _buildItem(zulipLocalizations, data);
         }));
@@ -627,7 +675,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
       // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
       //   and this can be removed; also remove mention in MessageList dartdoc
-      sliver = SliverSafeArea(sliver: sliver);
+      bottomSliver = SliverSafeArea(key: bottomSliver.key, sliver: bottomSliver);
     }
 
     return MessageListScrollView(
@@ -643,17 +691,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       },
 
       controller: scrollController,
-      semanticChildCount: numItems, // TODO(#537): what's the right value for this?
+      semanticChildCount: totalItems, // TODO(#537): what's the right value for this?
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 
       slivers: [
-        sliver,
-
-        // This is a trivial placeholder that occupies no space.  Its purpose is
-        // to have the key that's passed to [ScrollView.center], and so to cause
-        // the above [SliverStickyHeaderList] to run from bottom to top.
-        const SliverToBoxAdapter(key: centerSliverKey),
+        topSliver,
+        bottomSliver,
       ]);
   }
 

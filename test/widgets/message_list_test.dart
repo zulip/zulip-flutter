@@ -453,6 +453,31 @@ void main() {
     });
   });
 
+  group('scroll position', () {
+    // The scrolling behavior is tested in more detail in the tests of
+    // [MessageListScrollView], in scrolling_test.dart .
+
+    testWidgets('sticks to end upon new message', (tester) async {
+      await setupMessageListPage(tester,
+        messages: List.generate(10, (_) => eg.streamMessage(content: '<p>a</p>')));
+      final controller = findMessageListScrollController(tester)!;
+
+      // Starts at end, and with room to scroll up.
+      check(controller.position)
+        ..extentAfter.equals(0)
+        ..extentBefore.isGreaterThan(0);
+      final oldPosition = controller.position.pixels;
+
+      // On new message, position remains at end…
+      await store.addMessage(eg.streamMessage(content: '<p>a</p><p>b</p>'));
+      await tester.pump();
+      check(controller.position)
+        ..extentAfter.equals(0)
+        // … even though that means a bigger number now.
+        ..pixels.isGreaterThan(oldPosition);
+    });
+  });
+
   group('ScrollToBottomButton interactions', () {
     bool isButtonVisible(WidgetTester tester) {
       return tester.any(find.descendant(
@@ -1490,8 +1515,15 @@ void main() {
       // as the number of items changes in MessageList. See
       // `findChildIndexCallback` passed into [SliverStickyHeaderList]
       // at [_MessageListState._buildListView].
+
+      // TODO(#82): Cut paddingMessage.  It's there to paper over a glitch:
+      //   the _UnreadMarker animation *does* get interrupted in the case where
+      //   the message gets pushed from one sliver to the other.  See:
+      //     https://github.com/zulip/zulip-flutter/pull/1436#issuecomment-2756738779
+      //   That case will no longer exist when #82 is complete.
       final message = eg.streamMessage(flags: []);
-      await setupMessageListPage(tester, messages: [message]);
+      final paddingMessage = eg.streamMessage();
+      await setupMessageListPage(tester, messages: [message, paddingMessage]);
       check(getAnimation(tester, message.id))
         ..value.equals(1.0)
         ..status.equals(AnimationStatus.dismissed);
@@ -1515,10 +1547,11 @@ void main() {
         ..status.equals(AnimationStatus.forward);
 
       // introduce new message
+      check(find.byType(MessageItem)).findsExactly(2);
       final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
       await store.addMessage(newMessage);
       await tester.pump(); // process handleEvent
-      check(find.byType(MessageItem).evaluate()).length.equals(2);
+      check(find.byType(MessageItem)).findsExactly(3);
       check(getAnimation(tester, message.id))
         ..value.isGreaterThan(0.0)
         ..value.isLessThan(1.0)
