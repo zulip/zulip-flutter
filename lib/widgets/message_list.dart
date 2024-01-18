@@ -279,7 +279,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   Widget _buildListView(context) {
     final length = model!.items.length;
-    return StickyHeaderListView.builder(
+    return CustomScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
@@ -291,46 +291,54 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         _ => ScrollViewKeyboardDismissBehavior.manual,
       },
 
-      // To preserve state across rebuilds for individual [MessageItem]
-      // widgets as the size of [MessageListView.items] changes we need
-      // to match old widgets by their key to their new position in
-      // the list.
-      //
-      // The keys are of type [ValueKey] with a value of [Message.id]
-      // and here we use a O(log n) binary search method. This could
-      // be improved but for now it only triggers for materialized
-      // widgets. As a simple test, flinging through All Messages in
-      // CZO on a Pixel 5, this only runs about 10 times per rebuild
-      // and the timing for each call is <100 microseconds.
-      //
-      // Non-message items (e.g., start and end markers) that do not
-      // have state that needs to be preserved have not been given keys
-      // and will not trigger this callback.
-      findChildIndexCallback: (Key key) {
-        final valueKey = key as ValueKey;
-        final index = model!.findItemWithMessageId(valueKey.value);
-        if (index == -1) return null;
-        return length - 1 - (index - 2);
-      },
       controller: scrollController,
-      itemCount: length + 2,
+      semanticChildCount: length + 2,
+
       // Setting reverse: true means the scroll starts at the bottom.
-      // Flipping the indexes (in itemBuilder) means the start/bottom
-      // has the latest messages.
+      // Flipping the indexes (in the SliverChildBuilderDelegate callback)
+      // means the start/bottom has the latest messages.
       // This works great when we want to start from the latest.
       // TODO handle scroll starting at first unread, or link anchor
       // TODO on new message when scrolled up, anchor scroll to what's in view
       reverse: true,
-      itemBuilder: (context, i) {
-        // To reinforce that the end of the feed has been reached:
-        //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-        if (i == 0) return const SizedBox(height: 36);
 
-        if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
+      slivers: [
+        SliverStickyHeaderList(
+          headerPlacement: HeaderPlacement.scrollingEnd,
+          delegate: SliverChildBuilderDelegate(
+            // To preserve state across rebuilds for individual [MessageItem]
+            // widgets as the size of [MessageListView.items] changes we need
+            // to match old widgets by their key to their new position in
+            // the list.
+            //
+            // The keys are of type [ValueKey] with a value of [Message.id]
+            // and here we use a O(log n) binary search method. This could
+            // be improved but for now it only triggers for materialized
+            // widgets. As a simple test, flinging through All Messages in
+            // CZO on a Pixel 5, this only runs about 10 times per rebuild
+            // and the timing for each call is <100 microseconds.
+            //
+            // Non-message items (e.g., start and end markers) that do not
+            // have state that needs to be preserved have not been given keys
+            // and will not trigger this callback.
+            findChildIndexCallback: (Key key) {
+              final valueKey = key as ValueKey;
+              final index = model!.findItemWithMessageId(valueKey.value);
+              if (index == -1) return null;
+              return length - 1 - (index - 2);
+            },
+            childCount: length + 2,
+            (context, i) {
+              // To reinforce that the end of the feed has been reached:
+              //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
+              if (i == 0) return const SizedBox(height: 36);
 
-        final data = model!.items[length - 1 - (i - 2)];
-        return _buildItem(data, i);
-      });
+              if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
+
+              final data = model!.items[length - 1 - (i - 2)];
+              return _buildItem(data, i);
+            })),
+      ]);
   }
 
   Widget _buildItem(MessageListItem data, int i) {
