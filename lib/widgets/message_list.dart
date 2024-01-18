@@ -329,35 +329,39 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
 
         final data = model!.items[length - 1 - (i - 2)];
-        switch (data) {
-          case MessageListHistoryStartItem():
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Text("No earlier messages."))); // TODO use an icon
-          case MessageListLoadingItem():
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: CircularProgressIndicator())); // TODO perhaps a different indicator
-          case MessageListRecipientHeaderItem():
-            final header = RecipientHeader(message: data.message, narrow: widget.narrow);
-            return StickyHeaderItem(allowOverflow: true,
-              header: header, child: header);
-          case MessageListDateSeparatorItem():
-            final header = RecipientHeader(message: data.message, narrow: widget.narrow);
-            return StickyHeaderItem(allowOverflow: true,
-              header: header,
-              child: DateSeparator(message: data.message));
-          case MessageListMessageItem():
-            final header = RecipientHeader(message: data.message, narrow: widget.narrow);
-            return MessageItem(
-              key: ValueKey(data.message.id),
-              header: header,
-              trailingWhitespace: i == 1 ? 8 : 11,
-              item: data);
-        }
+        return _buildItem(data, i);
       });
+  }
+
+  Widget _buildItem(MessageListItem data, int i) {
+    switch (data) {
+      case MessageListHistoryStartItem():
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Text("No earlier messages."))); // TODO use an icon
+      case MessageListLoadingItem():
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: CircularProgressIndicator())); // TODO perhaps a different indicator
+      case MessageListRecipientHeaderItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return StickyHeaderItem(allowOverflow: true,
+          header: header, child: header);
+      case MessageListDateSeparatorItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return StickyHeaderItem(allowOverflow: true,
+          header: header,
+          child: DateSeparator(message: data.message));
+      case MessageListMessageItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return MessageItem(
+          key: ValueKey(data.message.id),
+          header: header,
+          trailingWhitespace: i == 1 ? 8 : 11,
+          item: data);
+    }
   }
 }
 
