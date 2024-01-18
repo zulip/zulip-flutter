@@ -17,7 +17,6 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/sticky_header.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
@@ -76,13 +75,13 @@ void main() {
   }
 
   ScrollController? findMessageListScrollController(WidgetTester tester) {
-    final stickyHeaderListView = tester.widget<StickyHeaderListView>(find.byType(StickyHeaderListView));
-    return stickyHeaderListView.controller;
+    final scrollView = tester.widget<CustomScrollView>(find.byType(CustomScrollView));
+    return scrollView.controller;
   }
 
   group('fetch older messages on scroll', () {
     int? itemCount(WidgetTester tester) =>
-      tester.widget<StickyHeaderListView>(find.byType(StickyHeaderListView)).semanticChildCount;
+      tester.widget<CustomScrollView>(find.byType(CustomScrollView)).semanticChildCount;
 
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
@@ -527,7 +526,7 @@ void main() {
     testWidgets('animation state persistence', (WidgetTester tester) async {
       // Check that _UnreadMarker maintains its in-progress animation
       // as the number of items changes in MessageList. See
-      // `findChildIndexCallback` passed into [StickyHeaderListView.builder]
+      // `findChildIndexCallback` passed into [SliverStickyHeaderList]
       // at [_MessageListState._buildListView].
       final message = eg.streamMessage(flags: []);
       await setupMessageListPage(tester, messages: [message]);
