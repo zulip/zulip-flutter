@@ -153,6 +153,70 @@ void main() {
     // will get placed at zero rather than properly extend up off screen.
     check(tester.getTopLeft(find.text("Item 0"))).equals(Offset(0, -200));
   });
+
+  testWidgets('sliver only part of viewport, header at end', (tester) async {
+    const centerKey = ValueKey('center');
+    final controller = ScrollController();
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
+      child: CustomScrollView(
+        controller: controller,
+        anchor: 0.5,
+        center: centerKey,
+        slivers: [
+          SliverStickyHeaderList(
+            headerPlacement: HeaderPlacement.scrollingStart,
+            delegate: SliverChildListDelegate(
+              List.generate(100, (i) => StickyHeaderItem(
+                header: _Header(99 - i, height: 20),
+                child: _Item(99 - i, height: 100))))),
+          SliverStickyHeaderList(
+            key: centerKey,
+            headerPlacement: HeaderPlacement.scrollingStart,
+            delegate: SliverChildListDelegate(
+              List.generate(100, (i) => StickyHeaderItem(
+                header: _Header(100 + i, height: 20),
+                child: _Item(100 + i, height: 100))))),
+        ])));
+
+    final overallSize = tester.getSize(find.byType(CustomScrollView));
+    final extent = overallSize.onAxis(Axis.vertical);
+    assert(extent == 600);
+
+    void checkState(int index, {required double item, required double header}) {
+      final itemElement = tester.firstElement(find.byElementPredicate((element) {
+        if (element.widget is! _Item) return false;
+        final renderObject = element.renderObject as RenderBox;
+        return (renderObject.size.contains(renderObject.globalToLocal(
+            Offset(overallSize.width / 2, 1)
+        )));
+      }));
+      final itemWidget = itemElement.widget as _Item;
+      check(itemWidget.index).equals(index);
+      // TODO the `.first` calls should be unnecessary; that's another bug
+      // check(_headerIndex(tester)).equals(index);
+      check(tester.widget<_Header>(find.byType(_Header).first).index)
+        .equals(index);
+      check((itemElement.renderObject as RenderBox).localToGlobal(Offset(0, 0)))
+        .equals(Offset(0, item));
+      check(tester.getTopLeft(find.byType(_Header).first))
+        .equals(Offset(0, header));
+    }
+
+    check(controller.offset).equals(0);
+    checkState( 97, item:   0, header:   0);
+
+    controller.jumpTo(-5);
+    await tester.pump();
+    checkState( 96, item: -95, header: -15);
+
+    controller.jumpTo(-600);
+    await tester.pump();
+    checkState( 91, item:   0, header:   0);
+
+    controller.jumpTo(600);
+    await tester.pump();
+    checkState(103, item:   0, header:   0);
+  });
 }
 
 Future<void> _checkSequence(

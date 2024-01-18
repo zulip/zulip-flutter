@@ -741,7 +741,10 @@ class _RenderSliverStickyHeaderListInner extends RenderSliverList {
   ///
   /// This means (child start) < (viewport end) <= (child end).
   RenderBox? _findChildAtEnd() {
-    final endOffset = constraints.scrollOffset + constraints.viewportMainAxisExtent;
+    /// The end of the visible area available to this sliver,
+    /// in this sliver's "scroll offset" coordinates.
+    final endOffset = constraints.scrollOffset
+      + constraints.remainingPaintExtent;
 
     RenderBox? child;
     for (child = lastChild; ; child = childBefore(child)) {
