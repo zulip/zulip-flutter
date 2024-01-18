@@ -260,7 +260,7 @@ class StickyHeaderListView extends BoxScrollView {
 
   @override
   Widget buildChildLayout(BuildContext context) {
-    return _SliverStickyHeaderList(
+    return SliverStickyHeaderList(
       headerPlacement: (reverseHeader ^ reverse)
         ? HeaderPlacement.scrollingEnd : HeaderPlacement.scrollingStart,
       delegate: childrenDelegate);
@@ -274,23 +274,24 @@ class StickyHeaderListView extends BoxScrollView {
 /// the ambient [Directionality] is RTL or LTR.
 enum HeaderPlacement { scrollingStart, scrollingEnd }
 
-class _SliverStickyHeaderList extends RenderObjectWidget {
-  _SliverStickyHeaderList({
+class SliverStickyHeaderList extends RenderObjectWidget {
+  SliverStickyHeaderList({
+    super.key,
     required this.headerPlacement,
     required SliverChildDelegate delegate,
-  }) : child = _SliverStickyHeaderListInner(
+  }) : _child = _SliverStickyHeaderListInner(
     headerPlacement: headerPlacement,
     delegate: delegate,
   );
 
   final HeaderPlacement headerPlacement;
-  final _SliverStickyHeaderListInner child;
+  final _SliverStickyHeaderListInner _child;
 
   @override
-  _SliverStickyHeaderListElement createElement() => _SliverStickyHeaderListElement(this);
+  RenderObjectElement createElement() => _SliverStickyHeaderListElement(this);
 
   @override
-  _RenderSliverStickyHeaderList createRenderObject(BuildContext context) {
+  RenderSliver createRenderObject(BuildContext context) {
     final element = context as _SliverStickyHeaderListElement;
     return _RenderSliverStickyHeaderList(element: element);
   }
@@ -299,10 +300,10 @@ class _SliverStickyHeaderList extends RenderObjectWidget {
 enum _SliverStickyHeaderListSlot { header, list }
 
 class _SliverStickyHeaderListElement extends RenderObjectElement {
-  _SliverStickyHeaderListElement(_SliverStickyHeaderList super.widget);
+  _SliverStickyHeaderListElement(SliverStickyHeaderList super.widget);
 
   @override
-  _SliverStickyHeaderList get widget => super.widget as _SliverStickyHeaderList;
+  SliverStickyHeaderList get widget => super.widget as SliverStickyHeaderList;
 
   @override
   _RenderSliverStickyHeaderList get renderObject => super.renderObject as _RenderSliverStickyHeaderList;
@@ -334,14 +335,14 @@ class _SliverStickyHeaderListElement extends RenderObjectElement {
   @override
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
-    _child = updateChild(_child, widget.child, _SliverStickyHeaderListSlot.list);
+    _child = updateChild(_child, widget._child, _SliverStickyHeaderListSlot.list);
   }
 
   @override
-  void update(_SliverStickyHeaderList newWidget) {
+  void update(SliverStickyHeaderList newWidget) {
     super.update(newWidget);
     assert(widget == newWidget);
-    _child = updateChild(_child, widget.child, _SliverStickyHeaderListSlot.list);
+    _child = updateChild(_child, widget._child, _SliverStickyHeaderListSlot.list);
     renderObject.child!.markHeaderNeedsRebuild();
   }
 
