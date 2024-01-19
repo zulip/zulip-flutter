@@ -11,7 +11,7 @@ PODS:
   - firebase_core (2.24.2):
     - Firebase/CoreOnly (~> 10.18.0)
     - FlutterMacOS
-  - firebase_messaging (14.7.9):
+  - firebase_messaging (14.7.10):
     - Firebase/CoreOnly (~> 10.18.0)
     - Firebase/Messaging (~> 10.18.0)
     - firebase_core
@@ -73,18 +73,18 @@ PODS:
   - PromisesObjC (2.3.1)
   - share_plus (0.0.1):
     - FlutterMacOS
-  - sqlite3 (3.44.0):
-    - sqlite3/common (= 3.44.0)
-  - sqlite3/common (3.44.0)
-  - sqlite3/fts5 (3.44.0):
+  - sqlite3 (3.45.0):
+    - sqlite3/common (= 3.45.0)
+  - sqlite3/common (3.45.0)
+  - sqlite3/fts5 (3.45.0):
     - sqlite3/common
-  - sqlite3/perf-threadsafe (3.44.0):
+  - sqlite3/perf-threadsafe (3.45.0):
     - sqlite3/common
-  - sqlite3/rtree (3.44.0):
+  - sqlite3/rtree (3.45.0):
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - FlutterMacOS
-    - sqlite3 (~> 3.44.0)
+    - sqlite3 (~> 3.45.0)
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -146,7 +146,7 @@ SPEC CHECKSUMS:
   file_selector_macos: 468fb6b81fac7c0e88d71317f3eec34c3b008ff9
   Firebase: 414ad272f8d02dfbf12662a9d43f4bba9bec2a06
   firebase_core: a74ee8b3ab5f91ae6b73f4913eaca996c24458b6
-  firebase_messaging: 9b0d7d31d572ae63f1202c1136081be33443d9c0
+  firebase_messaging: 1298099739b30786ab5be9fdbfe00b2019065745
   FirebaseCore: 2322423314d92f946219c8791674d2f3345b598f
   FirebaseCoreInternal: 8eb002e564b533bdcf1ba011f33f2b5c10e2ed4a
   FirebaseInstallations: e842042ec6ac1fd2e37d7706363ebe7f662afea4
@@ -157,11 +157,11 @@ SPEC CHECKSUMS:
   GoogleUtilities: 0759d1a57ebb953965c2dfe0ba4c82e95ccc2e34
   nanopb: d4d75c12cd1316f4a64e3c6963f879ecd4b5e0d5
   package_info_plus: 02d7a575e80f194102bef286361c6c326e4c29ce
-  path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
+  path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
-  sqlite3: 6e2d4a4879854d0ec86b476bf3c3e30870bac273
-  sqlite3_flutter_libs: a25f3a0f522fdcd8fef6a4a50a3d681dd43d8dea
+  sqlite3: f307b6291c4db7b5086c38d6237446b98a738581
+  sqlite3_flutter_libs: 6b9913d8fbb718e5ebf23658aa6934a0fb509c0f
   url_launcher_macos: d2691c7dd33ed713bf3544850a623080ec693d95
 
 PODFILE CHECKSUM: 353c8bcc5d5b0994e508d035b5431cfe18c1dea7

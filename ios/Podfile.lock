@@ -45,7 +45,7 @@ PODS:
   - firebase_core (2.24.2):
     - Firebase/CoreOnly (= 10.18.0)
     - Flutter
-  - firebase_messaging (14.7.9):
+  - firebase_messaging (14.7.10):
     - Firebase/Messaging (= 10.18.0)
     - firebase_core
     - Flutter
@@ -113,18 +113,18 @@ PODS:
   - SDWebImage/Core (5.15.5)
   - share_plus (0.0.1):
     - Flutter
-  - sqlite3 (3.44.0):
-    - sqlite3/common (= 3.44.0)
-  - sqlite3/common (3.44.0)
-  - sqlite3/fts5 (3.44.0):
+  - sqlite3 (3.45.0):
+    - sqlite3/common (= 3.45.0)
+  - sqlite3/common (3.45.0)
+  - sqlite3/fts5 (3.45.0):
     - sqlite3/common
-  - sqlite3/perf-threadsafe (3.44.0):
+  - sqlite3/perf-threadsafe (3.45.0):
     - sqlite3/common
-  - sqlite3/rtree (3.44.0):
+  - sqlite3/rtree (3.45.0):
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
-    - sqlite3 (~> 3.44.0)
+    - sqlite3 (~> 3.45.0)
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -203,7 +203,7 @@ SPEC CHECKSUMS:
   file_picker: 15fd9539e4eb735dc54bae8c0534a7a9511a03de
   Firebase: 414ad272f8d02dfbf12662a9d43f4bba9bec2a06
   firebase_core: 0af4a2b24f62071f9bf283691c0ee41556dcb3f5
-  firebase_messaging: 875385354f623750aa03204a028d640108bc3412
+  firebase_messaging: 90e8a6db84b6e1e876cebce4f30f01dc495e7014
   FirebaseCore: 2322423314d92f946219c8791674d2f3345b598f
   FirebaseCoreInternal: 8eb002e564b533bdcf1ba011f33f2b5c10e2ed4a
   FirebaseInstallations: e842042ec6ac1fd2e37d7706363ebe7f662afea4
@@ -212,18 +212,18 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   GoogleDataTransport: 54dee9d48d14580407f8f5fbf2f496e92437a2f2
   GoogleUtilities: 0759d1a57ebb953965c2dfe0ba4c82e95ccc2e34
-  image_picker_ios: 4a8aadfbb6dc30ad5141a2ce3832af9214a705b5
+  image_picker_ios: 99dfe1854b4fa34d0364e74a78448a0151025425
   integration_test: 13825b8a9334a850581300559b8839134b124670
   nanopb: d4d75c12cd1316f4a64e3c6963f879ecd4b5e0d5
   package_info_plus: 115f4ad11e0698c8c1c5d8a689390df880f47e85
-  path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
+  path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   SDWebImage: fd7e1a22f00303e058058278639bf6196ee431fe
   share_plus: c3fef564749587fc939ef86ffb283ceac0baf9f5
-  sqlite3: 6e2d4a4879854d0ec86b476bf3c3e30870bac273
-  sqlite3_flutter_libs: eb769059df0356dc52ddda040f09cacc9391a7cf
+  sqlite3: f307b6291c4db7b5086c38d6237446b98a738581
+  sqlite3_flutter_libs: aeb4d37509853dfa79d9b59386a2dac5dd079428
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
-  url_launcher_ios: bf5ce03e0e2088bad9cc378ea97fa0ed5b49673b
+  url_launcher_ios: bbd758c6e7f9fd7b5b1d4cde34d2b95fcce5e812
 
 PODFILE CHECKSUM: 6998435987a000fdec9b2e1b5b1eef6d54bdba77
 
