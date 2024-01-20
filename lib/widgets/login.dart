@@ -260,7 +260,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
   Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
     final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
     final connection = ApiConnection.live( // TODO make this widget testable
-      realmUrl: widget.serverSettings.realmUri,
+      realmUrl: widget.serverSettings.realmUrl,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
       email: email, apiKey: apiKey);
     return (await getOwnUser(connection)).userId;
@@ -268,7 +268,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
 
   void _submit() async {
     final context = _usernameKey.currentContext!;
-    final realmUrl = widget.serverSettings.realmUri;
+    final realmUrl = widget.serverSettings.realmUrl;
     final usernameFieldState = _usernameKey.currentState!;
     final passwordFieldState = _passwordKey.currentState!;
     final usernameValid = usernameFieldState.validate(); // Side effect: on-field error text

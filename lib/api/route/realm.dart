@@ -42,7 +42,10 @@ class GetServerSettingsResult {
 
   final bool emailAuthEnabled;
   final bool requireEmailFormatUsernames;
-  final Uri realmUri;
+
+  @JsonKey(name: 'realm_uri')
+  final Uri realmUrl;
+
   final String realmName;
   final String realmIcon;
   final String realmDescription;
@@ -58,7 +61,7 @@ class GetServerSettingsResult {
     required this.isIncompatible,
     required this.emailAuthEnabled,
     required this.requireEmailFormatUsernames,
-    required this.realmUri,
+    required this.realmUrl,
     required this.realmName,
     required this.realmIcon,
     required this.realmDescription,

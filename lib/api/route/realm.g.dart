@@ -26,7 +26,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
       emailAuthEnabled: json['email_auth_enabled'] as bool,
       requireEmailFormatUsernames:
           json['require_email_format_usernames'] as bool,
-      realmUri: Uri.parse(json['realm_uri'] as String),
+      realmUrl: Uri.parse(json['realm_uri'] as String),
       realmName: json['realm_name'] as String,
       realmIcon: json['realm_icon'] as String,
       realmDescription: json['realm_description'] as String,
@@ -46,7 +46,7 @@ Map<String, dynamic> _$GetServerSettingsResultToJson(
       'is_incompatible': instance.isIncompatible,
       'email_auth_enabled': instance.emailAuthEnabled,
       'require_email_format_usernames': instance.requireEmailFormatUsernames,
-      'realm_uri': instance.realmUri.toString(),
+      'realm_uri': instance.realmUrl.toString(),
       'realm_name': instance.realmName,
       'realm_icon': instance.realmIcon,
       'realm_description': instance.realmDescription,
