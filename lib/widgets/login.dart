@@ -245,6 +245,73 @@ class PasswordLoginPage extends StatefulWidget {
 }
 
 class _PasswordLoginPageState extends State<PasswordLoginPage> {
+  bool _inProgress = false;
+
+  Future<void> _tryInsertAccountAndNavigate({
+    required String email,
+    required String apiKey,
+    required int userId,
+  }) async {
+    final globalStore = GlobalStoreWidget.of(context);
+    // TODO(#108): give feedback to user on SQL exception, like dupe realm+user
+    final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
+      realmUrl: widget.serverSettings.realmUrl,
+      email: email,
+      apiKey: apiKey,
+      userId: userId,
+      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+      zulipVersion: widget.serverSettings.zulipVersion,
+      zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+    ));
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      HomePage.buildRoute(accountId: accountId),
+      (route) => (route is! _LoginSequenceRoute),
+    );
+  }
+
+  Future<int> _getUserId(String email, apiKey) async {
+    final connection = ApiConnection.live( // TODO make this widget testable
+      realmUrl: widget.serverSettings.realmUrl,
+      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+      email: email, apiKey: apiKey);
+    return (await getOwnUser(connection)).userId;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
+        bottom: _inProgress
+          ? const PreferredSize(preferredSize: Size.fromHeight(4),
+              child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
+          : null),
+      body: SafeArea(
+        minimum: const EdgeInsets.all(8),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: _UsernamePasswordForm(loginPageState: this)))));
+  }
+}
+
+class _UsernamePasswordForm extends StatefulWidget {
+  const _UsernamePasswordForm({required this.loginPageState});
+
+  final _PasswordLoginPageState loginPageState;
+
+  @override
+  State<_UsernamePasswordForm> createState() => _UsernamePasswordFormState();
+}
+
+class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
   final GlobalKey<FormFieldState<String>> _usernameKey = GlobalKey();
   final GlobalKey<FormFieldState<String>> _passwordKey = GlobalKey();
 
@@ -255,19 +322,11 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
     });
   }
 
-  bool _inProgress = false;
-
-  Future<int> _getUserId(String email, apiKey) async {
-    final connection = ApiConnection.live( // TODO make this widget testable
-      realmUrl: widget.serverSettings.realmUrl,
-      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-      email: email, apiKey: apiKey);
-    return (await getOwnUser(connection)).userId;
-  }
-
   void _submit() async {
+    final serverSettings = widget.loginPageState.widget.serverSettings;
+
     final context = _usernameKey.currentContext!;
-    final realmUrl = widget.serverSettings.realmUrl;
+    final realmUrl = serverSettings.realmUrl;
     final usernameFieldState = _usernameKey.currentState!;
     final passwordFieldState = _passwordKey.currentState!;
     final usernameValid = usernameFieldState.validate(); // Side effect: on-field error text
@@ -278,15 +337,15 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
     final String username = usernameFieldState.value!;
     final String password = passwordFieldState.value!;
 
-    setState(() {
-      _inProgress = true;
+    widget.loginPageState.setState(() {
+      widget.loginPageState._inProgress = true;
     });
     try {
       final FetchApiKeyResult result;
       try {
         result = await fetchApiKey(
           realmUrl: realmUrl,
-          zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+          zulipFeatureLevel: serverSettings.zulipFeatureLevel,
           username: username, password: password);
       } on ApiRequestException catch (e) {
         if (!context.mounted) return;
@@ -304,37 +363,22 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       }
 
       // TODO(server-7): Rely on user_id from fetchApiKey.
-      final int userId = result.userId ?? await _getUserId(result.email, result.apiKey);
+      final int userId = result.userId
+        ?? await widget.loginPageState._getUserId(result.email, result.apiKey);
       // https://github.com/dart-lang/linter/issues/4007
       // ignore: use_build_context_synchronously
       if (!context.mounted) {
         return;
       }
 
-      final globalStore = GlobalStoreWidget.of(context);
-      // TODO(#108): give feedback to user on SQL exception, like dupe realm+user
-      final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-        realmUrl: realmUrl,
+      await widget.loginPageState._tryInsertAccountAndNavigate(
         email: result.email,
         apiKey: result.apiKey,
         userId: userId,
-        zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-        zulipVersion: widget.serverSettings.zulipVersion,
-        zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
-      ));
-      // https://github.com/dart-lang/linter/issues/4007
-      // ignore: use_build_context_synchronously
-      if (!context.mounted) {
-        return;
-      }
-
-      Navigator.of(context).pushAndRemoveUntil(
-        HomePage.buildRoute(accountId: accountId),
-        (route) => (route is! _LoginSequenceRoute),
       );
     } finally {
-      setState(() {
-        _inProgress = false;
+      widget.loginPageState.setState(() {
+        widget.loginPageState._inProgress = false;
       });
     }
   }
@@ -342,8 +386,9 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final serverSettings = widget.loginPageState.widget.serverSettings;
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final requireEmailFormatUsernames = widget.serverSettings.requireEmailFormatUsernames;
+    final requireEmailFormatUsernames = serverSettings.requireEmailFormatUsernames;
 
     final usernameField = TextFormField(
       key: _usernameKey,
@@ -399,28 +444,17 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
           selectedIcon: const Icon(Icons.visibility_off),
         )));
 
-    return Scaffold(
-      appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
-        bottom: _inProgress
-          ? const PreferredSize(preferredSize: Size.fromHeight(4),
-              child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
-          : null),
-      body: SafeArea(
-        minimum: const EdgeInsets.all(8),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
-              child: AutofillGroup(
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  usernameField,
-                  const SizedBox(height: 8),
-                  passwordField,
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _inProgress ? null : _submit,
-                    child: Text(zulipLocalizations.loginFormSubmitLabel)),
-                ])))))));
+    return Form(
+      // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
+      child: AutofillGroup(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          usernameField,
+          const SizedBox(height: 8),
+          passwordField,
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: widget.loginPageState._inProgress ? null : _submit,
+            child: Text(zulipLocalizations.loginFormSubmitLabel)),
+        ])));
   }
 }
