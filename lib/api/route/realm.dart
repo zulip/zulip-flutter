@@ -30,7 +30,15 @@ Future<GetServerSettingsResult> getServerSettings({
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetServerSettingsResult {
+  // This is marked as deprecated, but we still need it to answer some
+  // questions:
+  // - Do we offer dev login? (Yes if it has `dev: true`.)
+  // - Do we offer password login? (Yes if it has `password: true` or `ldap: true`.)
+  // - Do we offer a "Log in with SSO" button? (Yes if it has `remoteuser: true`.)
+  //
+  // Discussion: https://chat.zulip.org/#narrow/stream/378-api-design/topic/.60authentication_methods.60.20in.20server.20settings/near/1722986
   final Map<String, bool> authenticationMethods;
+
   final List<ExternalAuthenticationMethod> externalAuthenticationMethods;
 
   final int zulipFeatureLevel;
