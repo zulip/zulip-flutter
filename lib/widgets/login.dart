@@ -257,8 +257,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
 
   bool _inProgress = false;
 
-  Future<int> _getUserId(FetchApiKeyResult fetchApiKeyResult) async {
-    final FetchApiKeyResult(:email, :apiKey) = fetchApiKeyResult;
+  Future<int> _getUserId(String email, apiKey) async {
     final connection = ApiConnection.live( // TODO make this widget testable
       realmUrl: widget.serverSettings.realmUrl,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
@@ -305,7 +304,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       }
 
       // TODO(server-7): Rely on user_id from fetchApiKey.
-      final int userId = result.userId ?? await _getUserId(result);
+      final int userId = result.userId ?? await _getUserId(result.email, result.apiKey);
       // https://github.com/dart-lang/linter/issues/4007
       // ignore: use_build_context_synchronously
       if (!context.mounted) {
