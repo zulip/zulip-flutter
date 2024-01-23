@@ -855,6 +855,21 @@ class MessageWithPossibleSender extends StatelessWidget {
     final time = _kMessageTimestampFormat
       .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
 
+    Widget? senderRow;
+    if (item.showSender) {
+      senderRow = GestureDetector(
+        onTap: () => Navigator.push(context,
+          ProfilePage.buildRoute(context: context,
+            userId: message.senderId)),
+        child: Text(message.senderFullName, // TODO get from user data
+          style: const TextStyle(
+            fontFamily: 'Source Sans 3',
+            fontSize: 18,
+            height: (22 / 18),
+          ).merge(weightVariableTextStyle(context, wght: 600,
+                    wghtIfPlatformRequestsBold: 900))));
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
@@ -877,17 +892,7 @@ class MessageWithPossibleSender extends StatelessWidget {
               children: [
                 if (item.showSender) ...[
                   const SizedBox(height: 3),
-                  GestureDetector(
-                    onTap: () => Navigator.push(context,
-                      ProfilePage.buildRoute(context: context,
-                        userId: message.senderId)),
-                    child: Text(message.senderFullName, // TODO get from user data
-                      style: const TextStyle(
-                        fontFamily: 'Source Sans 3',
-                        fontSize: 18,
-                        height: (22 / 18),
-                      ).merge(weightVariableTextStyle(context, wght: 600,
-                                wghtIfPlatformRequestsBold: 900)))),
+                  senderRow!,
                   const SizedBox(height: 4),
                 ],
                 MessageContent(message: message, content: item.content),
