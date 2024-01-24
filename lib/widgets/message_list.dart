@@ -852,11 +852,11 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = item.message;
-    final time = _kMessageTimestampFormat
-      .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
 
     Widget? senderRow;
     if (item.showSender) {
+      final time = _kMessageTimestampFormat
+        .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
       senderRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
