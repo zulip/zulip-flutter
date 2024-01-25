@@ -2,13 +2,10 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 
-import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -119,26 +116,13 @@ void main() {
   });
 
   group('ComposeBox textCapitalization', () {
-    final message = eg.streamMessage();
+    late GlobalKey<ComposeBoxController> controllerKey;
 
     Future<void> prepareComposeBox(WidgetTester tester, Narrow narrow) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
-        streams: [eg.stream(streamId: message.streamId)],
-      ));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      final connection = store.connection as FakeApiConnection;
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
-      // prepare message list data
-      connection.prepare(json: GetMessagesResult(
-        anchor: message.id,
-        foundNewest: true,
-        foundOldest: true,
-        foundAnchor: true,
-        historyLimited: false,
-        messages: [message],
-      ).toJson());
-
+      controllerKey = GlobalKey();
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
@@ -146,15 +130,12 @@ void main() {
           home: GlobalStoreWidget(
             child: PerAccountStoreWidget(
               accountId: eg.selfAccount.id,
-              child: MessageListPage(narrow: narrow)))));
-
-      // global store, per-account store, and message list get loaded
+              child: ComposeBox(controllerKey: controllerKey, narrow: narrow)))));
       await tester.pumpAndSettle();
     }
 
     void checkComposeBoxTextFields(WidgetTester tester, {required bool expectTopicTextField}) {
-      final composeBoxController = tester.widget<ComposeBox>(find.byType(ComposeBox))
-        .controllerKey!.currentState!;
+      final composeBoxController = controllerKey.currentState!;
 
       final topicTextField = tester.widgetList<TextField>(find.byWidgetPredicate(
         (widget) => widget is TextField
@@ -174,12 +155,12 @@ void main() {
     }
 
     testWidgets('_StreamComposeBox', (tester) async {
-      await prepareComposeBox(tester, StreamNarrow(message.streamId));
+      await prepareComposeBox(tester, StreamNarrow(eg.stream().streamId));
       checkComposeBoxTextFields(tester, expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
-      await prepareComposeBox(tester, TopicNarrow.ofMessage(message));
+      await prepareComposeBox(tester, TopicNarrow.ofMessage(eg.streamMessage()));
       checkComposeBoxTextFields(tester, expectTopicTextField: false);
     });
   });
