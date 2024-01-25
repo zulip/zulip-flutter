@@ -15,7 +15,6 @@ import '../model/binding.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
-  TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ComposeContentController', () {
     group('insertPadded', () {
@@ -122,7 +121,7 @@ void main() {
   group('ComposeBox textCapitalization', () {
     final message = eg.streamMessage();
 
-    Future<void> setupToComposeBox(WidgetTester tester, Narrow narrow) async {
+    Future<void> prepareComposeBox(WidgetTester tester, Narrow narrow) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
         streams: [eg.stream(streamId: message.streamId)],
@@ -157,30 +156,30 @@ void main() {
       final composeBoxController = tester.widget<ComposeBox>(find.byType(ComposeBox))
         .controllerKey!.currentState!;
 
-      final topicTextField = tester.widgetList(find.byWidgetPredicate(
+      final topicTextField = tester.widgetList<TextField>(find.byWidgetPredicate(
         (widget) => widget is TextField
           && widget.controller == composeBoxController.topicController)).singleOrNull;
       if (expectTopicTextField) {
-        check(topicTextField).isA<TextField>()
+        check(topicTextField).isNotNull()
           .textCapitalization.equals(TextCapitalization.none);
       } else {
         check(topicTextField).isNull();
       }
 
-      final contentTextField = tester.widget(find.byWidgetPredicate(
+      final contentTextField = tester.widget<TextField>(find.byWidgetPredicate(
         (widget) => widget is TextField
           && widget.controller == composeBoxController.contentController));
-      check(contentTextField).isA<TextField>()
+      check(contentTextField)
         .textCapitalization.equals(TextCapitalization.sentences);
     }
 
     testWidgets('_StreamComposeBox', (tester) async {
-      await setupToComposeBox(tester, StreamNarrow(message.streamId));
+      await prepareComposeBox(tester, StreamNarrow(message.streamId));
       checkComposeBoxTextFields(tester, expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
-      await setupToComposeBox(tester, TopicNarrow.ofMessage(message));
+      await prepareComposeBox(tester, TopicNarrow.ofMessage(message));
       checkComposeBoxTextFields(tester, expectTopicTextField: false);
     });
   });
