@@ -256,20 +256,20 @@ class MessageImage extends StatelessWidget {
         child: Padding(
           // TODO clean up this padding by imitating web less precisely;
           //   in particular, avoid adding loose whitespace at end of message.
-          // The corresponding element on web has a 5px two-sided margin…
-          // and then a 1px transparent border all around.
-          padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
+          padding: const EdgeInsets.only(right: 5, bottom: 5),
           child: ColoredBox(
             color: const Color.fromRGBO(0, 0, 0, 0.03),
-            child: SizedBox(
-              height: 100,
-              width: 150,
-              child: LightboxHero(
-                message: message,
-                src: resolvedSrc,
-                child: RealmContentNetworkImage(
-                  resolvedSrc,
-                  filterQuality: FilterQuality.medium)))))));
+            child: Padding(
+              padding: const EdgeInsets.all(1),
+              child: SizedBox(
+                height: 100,
+                width: 150,
+                child: LightboxHero(
+                  message: message,
+                  src: resolvedSrc,
+                  child: RealmContentNetworkImage(
+                    resolvedSrc,
+                    filterQuality: FilterQuality.medium))))))));
   }
 }
 
