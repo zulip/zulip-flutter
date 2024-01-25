@@ -259,16 +259,17 @@ class MessageImage extends StatelessWidget {
           // The corresponding element on web has a 5px two-sided margin…
           // and then a 1px transparent border all around.
           padding: const EdgeInsets.fromLTRB(1, 1, 6, 6),
-          child: Container(
-            height: 100,
-            width: 150,
+          child: ColoredBox(
             color: const Color.fromRGBO(0, 0, 0, 0.03),
-            child: LightboxHero(
-              message: message,
-              src: resolvedSrc,
-              child: RealmContentNetworkImage(
-                resolvedSrc,
-                filterQuality: FilterQuality.medium))))));
+            child: SizedBox(
+              height: 100,
+              width: 150,
+              child: LightboxHero(
+                message: message,
+                src: resolvedSrc,
+                child: RealmContentNetworkImage(
+                  resolvedSrc,
+                  filterQuality: FilterQuality.medium)))))));
   }
 }
 
