@@ -262,7 +262,6 @@ class MessageImage extends StatelessWidget {
           child: Container(
             height: 100,
             width: 150,
-            alignment: Alignment.center,
             color: const Color.fromRGBO(0, 0, 0, 0.03),
             child: LightboxHero(
               message: message,
