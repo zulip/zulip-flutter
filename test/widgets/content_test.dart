@@ -321,6 +321,28 @@ void main() {
       check(images.map((i) => i.src.toString()).toList())
         .deepEquals(expectedImages.map((n) => n.srcUrl));
     });
+
+    testWidgets('image as immediate child in implicit paragraph', (tester) async {
+      const example = ContentExample.imageInImplicitParagraph;
+      await prepareContent(tester, example.html);
+      final expectedImages = ((example.expectedNodes[0] as ListNode)
+        .items[0][0] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
+
+    testWidgets('image cluster in implicit paragraph', (tester) async {
+      const example = ContentExample.imageClusterInImplicitParagraph;
+      await prepareContent(tester, example.html);
+      final expectedImages = ((example.expectedNodes[0] as ListNode)
+        .items[0][1] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
   });
 
   group('RealmContentNetworkImage', () {

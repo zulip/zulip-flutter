@@ -365,6 +365,71 @@ class ContentExample {
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/51b70540cf6a5b3c8a0b919c893b8abddd447e88/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d33'),
     ]),
   ]);
+
+  static const imageInImplicitParagraph = ContentExample(
+    'image as immediate child in implicit paragraph',
+    "* https://chat.zulip.org/user_avatars/2/realm/icon.png",
+    '<ul>\n'
+      '<li>'
+        '<div class="message_inline_image">'
+          '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png">'
+            '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div></li>\n</ul>', [
+    ListNode(ListStyle.unordered, [[
+      ImageNodeList([
+        ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+      ]),
+    ]]),
+  ]);
+
+  static const imageClusterInImplicitParagraph = ContentExample(
+    'image cluster in implicit paragraph',
+    "* [icon.png](https://chat.zulip.org/user_avatars/2/realm/icon.png) [icon.png](https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2)",
+    '<ul>\n'
+      '<li>'
+        '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png">icon.png</a> '
+        '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2">icon.png</a>'
+        '<div class="message_inline_image">'
+          '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png" title="icon.png">'
+            '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div>'
+        '<div class="message_inline_image">'
+          '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2" title="icon.png">'
+            '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2"></a></div></li>\n</ul>', [
+    ListNode(ListStyle.unordered, [[
+      ParagraphNode(wasImplicit: true, links: null, nodes: [
+        LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png', nodes: [TextNode('icon.png')]),
+        TextNode(' '),
+        LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2', nodes: [TextNode('icon.png')]),
+      ]),
+      ImageNodeList([
+        ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+        ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2'),
+      ]),
+    ]]),
+  ]);
+
+  static final imageClusterInImplicitParagraphThenContent = ContentExample(
+    'impossible content after image cluster in implicit paragraph',
+    // Image previews are always inserted at the end of the paragraph
+    //  so it would be impossible to have content after.
+    null,
+    '<ul>\n'
+      '<li>'
+        '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png">icon.png</a> '
+        '<div class="message_inline_image">'
+          '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png" title="icon.png">'
+            '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div>'
+        'more text</li>\n</ul>', [
+    ListNode(ListStyle.unordered, [[
+      const ParagraphNode(wasImplicit: true, links: null, nodes: [
+        LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png', nodes: [TextNode('icon.png')]),
+        TextNode(' '),
+      ]),
+      const ImageNodeList([
+        ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+      ]),
+      blockUnimplemented('more text'),
+    ]]),
+  ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -689,6 +754,9 @@ void main() {
   testParseExample(ContentExample.imageCluster);
   testParseExample(ContentExample.imageClusterThenContent);
   testParseExample(ContentExample.imageMultipleClusters);
+  testParseExample(ContentExample.imageInImplicitParagraph);
+  testParseExample(ContentExample.imageClusterInImplicitParagraph);
+  testParseExample(ContentExample.imageClusterInImplicitParagraphThenContent);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"

@@ -1016,6 +1016,7 @@ class _ZulipContentParser {
     assert(_debugParserContext == _ParserContext.block);
     final List<BlockContentNode> result = [];
     final List<dom.Node> currentParagraph = [];
+    List<ImageNode> imageNodes = [];
     void consumeParagraph() {
       final parsed = parseBlockInline(currentParagraph);
       result.add(ParagraphNode(
@@ -1029,13 +1030,31 @@ class _ZulipContentParser {
       if (node is dom.Text && (node.text == '\n')) continue;
 
       if (_isPossibleInlineNode(node)) {
+        if (imageNodes.isNotEmpty) {
+          result.add(ImageNodeList(imageNodes));
+          imageNodes = [];
+          // In a context where paragraphs are implicit it should be impossible
+          // to have more paragraph content after image previews.
+          result.add(UnimplementedBlockContentNode(htmlNode: node));
+          continue;
+        }
         currentParagraph.add(node);
         continue;
       }
       if (currentParagraph.isNotEmpty) consumeParagraph();
-      result.add(parseBlockContent(node));
+      final block = parseBlockContent(node);
+      if (block is ImageNode) {
+        imageNodes.add(block);
+        continue;
+      }
+      if (imageNodes.isNotEmpty) {
+        result.add(ImageNodeList(imageNodes));
+        imageNodes = [];
+      }
+      result.add(block);
     }
     if (currentParagraph.isNotEmpty) consumeParagraph();
+    if (imageNodes.isNotEmpty) result.add(ImageNodeList(imageNodes));
 
     return result;
   }

@@ -87,6 +87,10 @@ class BlockContentList extends StatelessWidget {
         } else if (node is ImageNodeList) {
           return MessageImageList(node: node);
         } else if (node is ImageNode) {
+          assert(false,
+            "[ImageNode] not allowed in [BlockContentList]. "
+            "It should be wrapped in [ImageNodeList]."
+          );
           return MessageImage(node: node);
         } else if (node is UnimplementedBlockContentNode) {
           return Text.rich(_errorUnimplemented(node));
