@@ -192,14 +192,10 @@ void main() {
       }));
       final itemWidget = itemElement.widget as _Item;
       check(itemWidget.index).equals(index);
-      // TODO the `.first` calls should be unnecessary; that's another bug
-      // check(_headerIndex(tester)).equals(index);
-      check(tester.widget<_Header>(find.byType(_Header).first).index)
-        .equals(index);
+      check(_headerIndex(tester)).equals(index);
       check((itemElement.renderObject as RenderBox).localToGlobal(Offset(0, 0)))
         .equals(Offset(0, item));
-      check(tester.getTopLeft(find.byType(_Header).first))
-        .equals(Offset(0, header));
+      check(tester.getTopLeft(find.byType(_Header))).equals(Offset(0, header));
     }
 
     check(controller.offset).equals(0);
