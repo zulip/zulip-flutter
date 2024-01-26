@@ -272,7 +272,29 @@ class StickyHeaderListView extends BoxScrollView {
 /// For example if the list scrolls to the left, then
 /// [scrollingStart] means the right edge of the list, regardless of whether
 /// the ambient [Directionality] is RTL or LTR.
-enum HeaderPlacement { scrollingStart, scrollingEnd }
+enum HeaderPlacement {
+  scrollingStart,
+  scrollingEnd;
+
+  _HeaderGrowthPlacement _byGrowth(GrowthDirection growthDirection) {
+    return switch ((growthDirection, this)) {
+      (GrowthDirection.forward, scrollingStart) => _HeaderGrowthPlacement.growthStart,
+      (GrowthDirection.forward, scrollingEnd)   => _HeaderGrowthPlacement.growthEnd,
+      (GrowthDirection.reverse, scrollingStart) => _HeaderGrowthPlacement.growthEnd,
+      (GrowthDirection.reverse, scrollingEnd)   => _HeaderGrowthPlacement.growthStart,
+    };
+  }
+}
+
+/// Where a header goes, in terms of the list sliver's growth direction.
+///
+/// This will agree with the [HeaderPlacement] value if the growth direction
+/// is [GrowthDirection.forward], but contrast with it if the growth direction
+/// is [GrowthDirection.reverse].  See [HeaderPlacement._byGrowth].
+enum _HeaderGrowthPlacement {
+  growthStart,
+  growthEnd
+}
 
 class SliverStickyHeaderList extends RenderObjectWidget {
   SliverStickyHeaderList({
@@ -427,10 +449,10 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     double? endBound;
     if (item != null && !item.allowOverflow) {
       final childParentData = listChild!.parentData! as SliverMultiBoxAdaptorParentData;
-      endBound = switch (_widget.headerPlacement) {
-        HeaderPlacement.scrollingStart =>
+      endBound = switch (_widget.headerPlacement._byGrowth(constraints.growthDirection)) {
+        _HeaderGrowthPlacement.growthStart =>
           childParentData.layoutOffset! + listChild.size.onAxis(constraints.axis),
-        HeaderPlacement.scrollingEnd =>
+        _HeaderGrowthPlacement.growthEnd =>
           childParentData.layoutOffset!,
       };
     }
@@ -562,7 +584,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
       } else {
         // The limiting edge of the header's item,
         // in the outer, non-scrolling coordinates.
-        final endBoundAbsolute = axisDirectionIsReversed(constraints.axisDirection)
+        final endBoundAbsolute = axisDirectionIsReversed(constraints.growthAxisDirection)
           ? geometry.layoutExtent - (_headerEndBound! - constraints.scrollOffset)
           : _headerEndBound! - constraints.scrollOffset;
 
@@ -614,7 +636,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     // need to convert to the sliver's coordinate system.
     final headerParentData = (header!.parentData as SliverPhysicalParentData);
     final paintOffset = headerParentData.paintOffset;
-    return switch (constraints.axisDirection) {
+    return switch (constraints.growthAxisDirection) {
       AxisDirection.right => paintOffset.dx,
       AxisDirection.left  => geometry!.layoutExtent - header!.size.width  - paintOffset.dx,
       AxisDirection.down  => paintOffset.dy,
@@ -710,16 +732,34 @@ class _RenderSliverStickyHeaderListInner extends RenderSliverList {
 
   @override
   void performLayout() {
-    assert(constraints.growthDirection == GrowthDirection.forward); // TODO dir
-
     super.performLayout();
 
-    final child = switch (widget.headerPlacement) {
-      HeaderPlacement.scrollingStart => _findChildAtStart(),
-      HeaderPlacement.scrollingEnd   => _findChildAtEnd(),
-    };
+    final RenderBox? child;
+    switch (widget.headerPlacement._byGrowth(constraints.growthDirection)) {
+      case _HeaderGrowthPlacement.growthEnd:
+        child = _findChildAtEnd();
+      case _HeaderGrowthPlacement.growthStart:
+        child = _findChildAtStart();
+    }
+
     (parent! as _RenderSliverStickyHeaderList)._rebuildHeader(child);
   }
+}
+
+extension SliverConstraintsGrowthAxisDirection on SliverConstraints {
+  AxisDirection get growthAxisDirection => switch (growthDirection) {
+    GrowthDirection.forward => axisDirection,
+    GrowthDirection.reverse => axisDirection.reversed,
+  };
+}
+
+extension AxisDirectionReversed on AxisDirection {
+  AxisDirection get reversed => switch (this) {
+    AxisDirection.down => AxisDirection.up,
+    AxisDirection.up => AxisDirection.down,
+    AxisDirection.right => AxisDirection.left,
+    AxisDirection.left => AxisDirection.right,
+  };
 }
 
 extension AxisCoordinateDirection on Axis {
