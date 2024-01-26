@@ -399,6 +399,8 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
   final _SliverStickyHeaderListElement _element;
 
+  SliverStickyHeaderList get _widget => _element.widget;
+
   Widget? _headerWidget;
 
   /// The limiting edge (if any) of the header's item,
@@ -425,7 +427,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     double? endBound;
     if (item != null && !item.allowOverflow) {
       final childParentData = listChild!.parentData! as SliverMultiBoxAdaptorParentData;
-      endBound = switch (_element.widget.headerPlacement) {
+      endBound = switch (_widget.headerPlacement) {
         HeaderPlacement.scrollingStart =>
           childParentData.layoutOffset! + listChild.size.onAxis(constraints.axis),
         HeaderPlacement.scrollingEnd =>
@@ -523,7 +525,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
   bool _headerAtCoordinateEnd() {
     return axisDirectionIsReversed(constraints.axisDirection)
-      ^ (_element.widget.headerPlacement == HeaderPlacement.scrollingEnd);
+      ^ (_widget.headerPlacement == HeaderPlacement.scrollingEnd);
   }
 
   @override
