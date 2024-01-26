@@ -236,6 +236,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   bool _handleScrollMetricsNotification(ScrollMetricsNotification notification) {
+    if (notification.depth > 0) {
+      // This notification came from some Viewport nested more deeply than the
+      // one for the message list itself (e.g., from a CodeBlock).  Ignore it.
+      return true;
+    }
+
     _handleScrollMetrics(notification.metrics);
     return true;
   }

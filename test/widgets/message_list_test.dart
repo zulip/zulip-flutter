@@ -131,6 +131,37 @@ void main() {
       check(itemCount(tester)).equals(301);
     }, skip: true); // TODO this still reproduces manually, still needs debugging,
                     // but has become harder to reproduce in a test.
+
+    testWidgets("avoid getting distracted by nested viewports' metrics", (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/507
+      await setupMessageListPage(tester, foundOldest: false, messages: [
+        ...List.generate(300, (i) => eg.streamMessage(id: 1000 + i)),
+        eg.streamMessage(id: 1301, content: '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>'),
+        ...List.generate(100, (i) => eg.streamMessage(id: 1302 + i)),
+      ]);
+      final lastRequest = connection.lastRequest;
+      check(itemCount(tester)).equals(404);
+
+      // Fling-scroll upward...
+      await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
+      await tester.pump();
+
+      // ... in particular past the message with a [CodeBlockNode]...
+      bool sawCodeBlock = false;
+      for (int i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (tester.widgetList(find.byType(CodeBlock)).isNotEmpty) {
+          sawCodeBlock = true;
+          break;
+        }
+      }
+      check(sawCodeBlock).isTrue();
+
+      // ... and we should attempt no fetches.  (This check isn't strictly
+      // necessary; a request would have thrown, as we prepared no response.)
+      await tester.pump();
+      check(connection.lastRequest).identicalTo(lastRequest);
+    });
   });
 
   group('ScrollToBottomButton interactions', () {
