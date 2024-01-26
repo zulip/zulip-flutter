@@ -774,10 +774,23 @@ class _RenderSliverStickyHeaderListInner extends RenderSliverList {
 
     final RenderBox? child;
     switch (widget.headerPlacement._byGrowth(constraints.growthDirection)) {
-      case _HeaderGrowthPlacement.growthEnd:
-        child = _findChildAtEnd();
       case _HeaderGrowthPlacement.growthStart:
-        child = _findChildAtStart();
+        if (constraints.remainingPaintExtent < constraints.viewportMainAxisExtent) {
+          // Part of the viewport is occupied already by other slivers.  The way
+          // a RenderViewport does layout means that the already-occupied part is
+          // the part that's before this sliver in the growth direction.
+          // Which means that's the place where the header would go.
+          child = null;
+        } else {
+          child = _findChildAtStart();
+        }
+      case _HeaderGrowthPlacement.growthEnd:
+        // The edge this sliver wants to place a header at is the one where
+        // this sliver is free to run all the way to the viewport's edge; any
+        // further slivers in that direction will be laid out after this one.
+        // So if this sliver placed a child there, it's at the edge of the
+        // whole viewport and should determine a header.
+        child = _findChildAtEnd();
     }
 
     (parent! as _RenderSliverStickyHeaderList)._rebuildHeader(child);
