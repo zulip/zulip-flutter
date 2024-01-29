@@ -219,14 +219,14 @@ void main() {
         ParagraphNode(links: null, nodes: [TextNode('text')]),
       ]);
 
-    testParse('h1, h2, h3, h4, h5 unimplemented',
+    testParse('h1, h2, h3, h4, h5',
       // "# one\n## two\n### three\n#### four\n##### five"
-      '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>', [
-        blockUnimplemented('<h1>one</h1>'),
-        blockUnimplemented('<h2>two</h2>'),
-        blockUnimplemented('<h3>three</h3>'),
-        blockUnimplemented('<h4>four</h4>'),
-        blockUnimplemented('<h5>five</h5>'),
+      '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>', const [
+        HeadingNode(level: HeadingLevel.h1, links: null, nodes: [TextNode('one')]),
+        HeadingNode(level: HeadingLevel.h2, links: null, nodes: [TextNode('two')]),
+        HeadingNode(level: HeadingLevel.h3, links: null, nodes: [TextNode('three')]),
+        HeadingNode(level: HeadingLevel.h4, links: null, nodes: [TextNode('four')]),
+        HeadingNode(level: HeadingLevel.h5, links: null, nodes: [TextNode('five')]),
       ]);
   });
 

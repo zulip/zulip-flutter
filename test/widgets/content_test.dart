@@ -24,6 +24,26 @@ import 'page_checks.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group('Heading', () {
+    Future<void> prepareContent(WidgetTester tester, String html) async {
+      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
+    }
+
+    testWidgets('plain h6', (tester) async {
+      await prepareContent(tester,
+        // "###### six"
+        '<h6>six</h6>');
+      tester.widget(find.text('six'));
+    });
+
+    testWidgets('smoke test for h1, h2, h3, h4, h5', (tester) async {
+      await prepareContent(tester,
+        // "# one\n## two\n### three\n#### four\n##### five"
+        '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>');
+      check(find.byType(Heading).evaluate()).length.equals(5);
+    });
+  });
+
   group("CodeBlock", () {
     Future<void> prepareContent(WidgetTester tester, String html) async {
       await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));

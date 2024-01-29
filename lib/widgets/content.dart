@@ -136,12 +136,22 @@ class Heading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO(#192) h1, h2, h3, h4, h5 -- same as h6 except font size
-    assert(node.level == HeadingLevel.h6);
+    // Em-heights taken from zulip:web/styles/rendered_markdown.css .
+    final emHeight = switch(node.level) {
+      HeadingLevel.h1 => 1.4,
+      HeadingLevel.h2 => 1.3,
+      HeadingLevel.h3 => 1.2,
+      HeadingLevel.h4 => 1.1,
+      HeadingLevel.h5 => 1.05,
+      HeadingLevel.h6 => 1.0,
+    };
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
       child: _buildBlockInlineContainer(
-        style: const TextStyle(fontWeight: FontWeight.w600, height: 1.4),
+        style: TextStyle(
+          fontSize: kBaseFontSize * emHeight,
+          fontWeight: FontWeight.w600,
+          height: 1.4),
         node: node));
   }
 }

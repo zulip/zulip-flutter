@@ -927,11 +927,10 @@ class _ZulipContentParser {
       case 'h5': headingLevel = HeadingLevel.h5; break;
       case 'h6': headingLevel = HeadingLevel.h6; break;
     }
-    if (headingLevel == HeadingLevel.h6 && classes.isEmpty) {
-      // TODO(#192) handle h1, h2, h3, h4, h5
+    if (headingLevel != null && classes.isEmpty) {
       final parsed = parseBlockInline(element.nodes);
       return HeadingNode(debugHtmlNode: debugHtmlNode,
-        level: headingLevel!,
+        level: headingLevel,
         links: parsed.links,
         nodes: parsed.nodes);
     }
