@@ -887,7 +887,6 @@ class _ZulipContentParser {
     final element = node;
     final localName = element.localName;
     final classes = element.classes;
-    List<BlockContentNode> blockNodes() => parseBlockContentList(element.nodes);
 
     if (localName == 'br' && classes.isEmpty) {
       return LineBreakNode(debugHtmlNode: debugHtmlNode);
@@ -940,7 +939,8 @@ class _ZulipContentParser {
     }
 
     if (localName == 'blockquote' && classes.isEmpty) {
-      return QuotationNode(blockNodes(), debugHtmlNode: debugHtmlNode);
+      return QuotationNode(debugHtmlNode: debugHtmlNode,
+        parseBlockContentList(element.nodes));
     }
 
     if (localName == 'div'
