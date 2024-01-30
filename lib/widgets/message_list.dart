@@ -212,13 +212,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _adjustButtonVisibility(ScrollMetrics scrollMetrics) {
-    if (scrollMetrics.extentBefore == 0) {
+    if (scrollMetrics.extentAfter == 0) {
       _scrollToBottomVisibleValue.value = false;
     } else {
       _scrollToBottomVisibleValue.value = true;
     }
 
-    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+    if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
       // TODO: This ends up firing a second time shortly after we fetch a batch.
       //   The result is that each time we decide to fetch a batch, we end up
       //   fetching two batches in quick succession.  This is basically harmless
@@ -278,6 +278,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   Widget _buildListView(context) {
     final length = model!.items.length;
+    const centerSliverKey = ValueKey('center sliver');
     return CustomScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
@@ -292,18 +293,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
       controller: scrollController,
       semanticChildCount: length + 2,
-
-      // Setting reverse: true means the scroll starts at the bottom.
-      // Flipping the indexes (in the SliverChildBuilderDelegate callback)
-      // means the start/bottom has the latest messages.
-      // This works great when we want to start from the latest.
-      // TODO handle scroll starting at first unread, or link anchor
-      // TODO on new message when scrolled up, anchor scroll to what's in view
-      reverse: true,
+      anchor: 1.0,
+      center: centerSliverKey,
 
       slivers: [
         SliverStickyHeaderList(
-          headerPlacement: HeaderPlacement.scrollingEnd,
+          headerPlacement: HeaderPlacement.scrollingStart,
           delegate: SliverChildBuilderDelegate(
             // To preserve state across rebuilds for individual [MessageItem]
             // widgets as the size of [MessageListView.items] changes we need
@@ -337,6 +332,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
               final data = model!.items[length - 1 - (i - 2)];
               return _buildItem(data, i);
             })),
+
+        // This is a trivial placeholder that occupies no space.  Its purpose is
+        // to have the key that's passed to [ScrollView.center], and so to cause
+        // the above [SliverStickyHeaderList] to run from bottom to top.
+        const SliverToBoxAdapter(key: centerSliverKey),
       ]);
   }
 

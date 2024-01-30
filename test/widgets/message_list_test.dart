@@ -148,7 +148,7 @@ void main() {
       // Initial state should be not visible, as the message list renders with latest message in view
       check(isButtonVisible(tester)).equals(false);
 
-      scrollController.jumpTo(600);
+      scrollController.jumpTo(-600);
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
@@ -165,7 +165,7 @@ void main() {
       // Initial state should be not visible, as the message list renders with latest message in view
       check(isButtonVisible(tester)).equals(false);
 
-      scrollController.jumpTo(600);
+      scrollController.jumpTo(-600);
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
@@ -187,7 +187,7 @@ void main() {
       // Initial state should be not visible, as the message list renders with latest message in view
       check(isButtonVisible(tester)).equals(false);
 
-      scrollController.jumpTo(600);
+      scrollController.jumpTo(-600);
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
