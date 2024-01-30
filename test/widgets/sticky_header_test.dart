@@ -174,7 +174,6 @@ Future<void> _checkSequence(
     final expectedHeaderIndex = first
       ? (scrollOffset / 100).floor()
       : (extent ~/ 100 - 1) + (scrollOffset / 100).ceil();
-    // print("$scrollOffset, $extent, $expectedHeaderIndex");
     check(tester.widget<_Item>(itemFinder).index).equals(expectedHeaderIndex);
     check(_headerIndex(tester)).equals(expectedHeaderIndex);
 
