@@ -35,6 +35,10 @@ extension RouteChecks<T> on Subject<Route<T>> {
   Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
 }
 
+extension PageRouteChecks on Subject<PageRoute> {
+  Subject<bool> get fullscreenDialog => has((x) => x.fullscreenDialog, 'fullscreenDialog');
+}
+
 extension RouteSettingsChecks<T> on Subject<RouteSettings> {
   Subject<String?> get name => has((s) => s.name, 'name');
   Subject<Object?> get arguments => has((s) => s.arguments, 'arguments');

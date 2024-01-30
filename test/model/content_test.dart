@@ -125,6 +125,79 @@ class ContentExample {
     const ImageEmojiNode(
       src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
 
+  static const spoilerDefaultHeader = ContentExample(
+    'spoiler with default header',
+    '```spoiler\nhello world\n```',
+    expectedText: 'Spoiler', // or a translation
+    '<div class="spoiler-block"><div class="spoiler-header">\n'
+        '</div><div class="spoiler-content" aria-hidden="true">\n'
+        '<p>hello world</p>\n'
+        '</div></div>',
+    [SpoilerNode(
+      header: [],
+      content: [ParagraphNode(links: null, nodes: [TextNode('hello world')])],
+    )]);
+
+  static const spoilerPlainCustomHeader = ContentExample(
+    'spoiler with plain custom header',
+    '```spoiler hello\nworld\n```',
+    expectedText: 'hello',
+    '<div class="spoiler-block"><div class="spoiler-header">\n'
+        '<p>hello</p>\n'
+        '</div><div class="spoiler-content" aria-hidden="true">\n'
+        '<p>world</p>\n'
+        '</div></div>',
+    [SpoilerNode(
+      header: [ParagraphNode(links: null, nodes: [TextNode('hello')])],
+      content: [ParagraphNode(links: null, nodes: [TextNode('world')])],
+    )]);
+
+  static const spoilerRichHeaderAndContent = ContentExample(
+    'spoiler with rich header and content',
+    '```spoiler 1. * ## hello\n*italic* [zulip](https://zulip.com/)\n```',
+    expectedText: 'hello',
+    '<div class="spoiler-block"><div class="spoiler-header">\n'
+        '<ol>\n<li>\n<ul>\n<li>\n<h2>hello</h2>\n</li>\n</ul>\n</li>\n</ol>\n</div>'
+        '<div class="spoiler-content" aria-hidden="true">\n'
+        '<p><em>italic</em> <a href="https://zulip.com/">zulip</a></p>\n'
+        '</div></div>',
+    [SpoilerNode(
+      header: [ListNode(ListStyle.ordered, [
+        [ListNode(ListStyle.unordered, [
+          [HeadingNode(level: HeadingLevel.h2, links: null, nodes: [
+            TextNode('hello'),
+          ])]
+        ])],
+      ])],
+      content: [ParagraphNode(links: null, nodes: [
+        EmphasisNode(nodes: [TextNode('italic')]),
+        TextNode(' '),
+        LinkNode(url: 'https://zulip.com/', nodes: [TextNode('zulip')])
+      ])],
+    )]);
+
+  static const spoilerHeaderHasImage = ContentExample(
+    'spoiler a header that has an image in it',
+    '```spoiler [image](https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3)\nhello world\n```',
+    '<div class="spoiler-block"><div class="spoiler-header">\n'
+      '<p><a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">image</a></p>\n'
+      '<div class="message_inline_image"><a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3" title="image"><img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"></a></div></div>'
+      '<div class="spoiler-content" aria-hidden="true">\n'
+      '<p>hello world</p>\n'
+      '</div></div>\n',
+    [SpoilerNode(
+      header: [
+        ParagraphNode(links: null, nodes: [
+          LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
+            nodes: [TextNode('image')]),
+        ]),
+        ImageNodeList([
+          ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
+        ]),
+      ],
+      content: [ParagraphNode(links: null, nodes: [TextNode('hello world')])],
+    )]);
+
   static const quotation = ContentExample(
     'quotation',
     "```quote\nwords\n```",
@@ -725,6 +798,11 @@ void main() {
         ]),
       ]);
   });
+
+  testParseExample(ContentExample.spoilerDefaultHeader);
+  testParseExample(ContentExample.spoilerPlainCustomHeader);
+  testParseExample(ContentExample.spoilerRichHeaderAndContent);
+  testParseExample(ContentExample.spoilerHeaderHasImage);
 
   group('track links inside block-inline containers', () {
     testParse('multiple links in paragraph',

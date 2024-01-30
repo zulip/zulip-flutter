@@ -258,6 +258,21 @@ class QuotationNode extends BlockContentNode {
   }
 }
 
+class SpoilerNode extends BlockContentNode {
+  const SpoilerNode({super.debugHtmlNode, required this.header, required this.content});
+
+  final List<BlockContentNode> header;
+  final List<BlockContentNode> content;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return [
+      _BlockContentListNode(header).toDiagnosticsNode(name: 'header'),
+      _BlockContentListNode(content).toDiagnosticsNode(name: 'content'),
+    ];
+  }
+}
+
 class CodeBlockNode extends BlockContentNode {
   const CodeBlockNode(this.spans, {super.debugHtmlNode});
 
@@ -809,6 +824,26 @@ class _ZulipContentParser {
     return ListNode(listStyle!, items, debugHtmlNode: debugHtmlNode);
   }
 
+  BlockContentNode parseSpoilerNode(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(divElement.localName == 'div'
+        && divElement.className == 'spoiler-block');
+
+    if (divElement.nodes case [
+      dom.Element(
+        localName: 'div', className: 'spoiler-header', nodes: var headerNodes),
+      dom.Element(
+        localName: 'div', className: 'spoiler-content', nodes: var contentNodes),
+    ]) {
+      return SpoilerNode(
+        header: parseBlockContentList(headerNodes),
+        content: parseBlockContentList(contentNodes),
+      );
+    } else {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+  }
+
   BlockContentNode parseCodeBlock(dom.Element divElement) {
     assert(_debugParserContext == _ParserContext.block);
     final mainElement = () {
@@ -975,6 +1010,10 @@ class _ZulipContentParser {
     if (localName == 'blockquote' && className.isEmpty) {
       return QuotationNode(debugHtmlNode: debugHtmlNode,
         parseBlockContentList(element.nodes));
+    }
+
+    if (localName == 'div' && className == 'spoiler-block') {
+      return parseSpoilerNode(element);
     }
 
     if (localName == 'div' && className == 'codehilite') {

@@ -366,6 +366,10 @@
   "@serverUrlValidationErrorUnsupportedScheme": {
     "description": "Error message when URL has an unsupported scheme."
   },
+  "spoilerDefaultHeaderText": "Spoiler",
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
   "markAllAsReadLabel": "Mark all messages as read",
   "@markAllAsReadLabel": {
     "description": "Button text to mark messages as read."

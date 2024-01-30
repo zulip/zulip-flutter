@@ -15,6 +15,7 @@ import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
+import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/content_test.dart';
 import '../model/test_store.dart';
@@ -90,6 +91,97 @@ void main() {
         // "# one\n## two\n### three\n#### four\n##### five"
         '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>');
       check(find.byType(Heading).evaluate()).length.equals(5);
+    });
+  });
+
+  group('Spoiler', () {
+    testContentSmoke(ContentExample.spoilerDefaultHeader);
+    testContentSmoke(ContentExample.spoilerPlainCustomHeader);
+    testContentSmoke(ContentExample.spoilerRichHeaderAndContent);
+
+    group('interactions: spoiler with tappable content (an image) in the header', () {
+      Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        prepareBoringImageHttpClient();
+
+        final pushedRoutes = <Route<dynamic>>[];
+        final testNavObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+        await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          supportedLocales: ZulipLocalizations.supportedLocales,
+          navigatorObservers: [testNavObserver],
+          home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+            child: MessageContent(
+              message: eg.streamMessage(content: html),
+              content: parseContent(html))))));
+        await tester.pump(); // global store
+        await tester.pump(); // per-account store
+        debugNetworkImageHttpClientProvider = null;
+
+        // `tester.pumpWidget` introduces an initial route;
+        // remove it so consumers only have newly pushed routes.
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.removeLast();
+        return pushedRoutes;
+      }
+
+      void checkIsExpanded(WidgetTester tester,
+        bool expected, {
+        Finder? contentFinder,
+      }) {
+        final sizeTransition = tester.widget<SizeTransition>(find.ancestor(
+          of: contentFinder ?? find.text('hello world'),
+          matching: find.byType(SizeTransition),
+        ));
+        check(sizeTransition.sizeFactor)
+          ..value.equals(expected ? 1 : 0)
+          ..status.equals(expected ? AnimationStatus.completed : AnimationStatus.dismissed);
+      }
+
+      const example = ContentExample.spoilerHeaderHasImage;
+
+      testWidgets('tap image', (tester) async {
+        final pushedRoutes = await prepareContent(tester, example.html);
+
+        await tester.tap(find.byType(RealmContentNetworkImage));
+        check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
+          .fullscreenDialog.isTrue(); // recognize the lightbox
+      });
+
+      testWidgets('tap header on expand/collapse icon', (tester) async {
+        final pushedRoutes = await prepareContent(tester, example.html);
+        checkIsExpanded(tester, false);
+
+        await tester.tap(find.byIcon(Icons.expand_more));
+        await tester.pumpAndSettle();
+        check(pushedRoutes).isEmpty(); // no lightbox
+        checkIsExpanded(tester, true);
+
+        await tester.tap(find.byIcon(Icons.expand_more));
+        await tester.pumpAndSettle();
+        check(pushedRoutes).isEmpty(); // no lightbox
+        checkIsExpanded(tester, false);
+      });
+
+      testWidgets('tap header away from expand/collapse icon (and image)', (tester) async {
+        final pushedRoutes = await prepareContent(tester, example.html);
+        checkIsExpanded(tester, false);
+
+        await tester.tapAt(
+          tester.getTopRight(find.byType(RealmContentNetworkImage)) + const Offset(10, 0));
+        await tester.pumpAndSettle();
+        check(pushedRoutes).isEmpty(); // no lightbox
+        checkIsExpanded(tester, true);
+
+        await tester.tapAt(
+          tester.getTopRight(find.byType(RealmContentNetworkImage)) + const Offset(10, 0));
+        await tester.pumpAndSettle();
+        check(pushedRoutes).isEmpty(); // no lightbox
+        checkIsExpanded(tester, false);
+      });
     });
   });
 
