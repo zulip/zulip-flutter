@@ -577,22 +577,17 @@ class _ZulipContentParser {
 
     final dom.Element katexElement;
     if (!block) {
-      assert(element.localName == 'span'
-          && element.classes.length == 1
-          && element.classes.contains('katex'));
+      assert(element.localName == 'span' && element.className == 'katex');
 
       katexElement = element;
     } else {
-      assert(element.localName == 'span'
-          && element.classes.length == 1
-          && element.classes.contains('katex-display'));
+      assert(element.localName == 'span' && element.className == 'katex-display');
 
       if (element.nodes.length != 1) return null;
       final child = element.nodes.single;
       if (child is! dom.Element) return null;
       if (child.localName != 'span') return null;
-      if (child.classes.length != 1) return null;
-      if (!child.classes.contains('katex')) return null;
+      if (child.className != 'katex') return null;
       katexElement = child;
     }
 
@@ -602,8 +597,7 @@ class _ZulipContentParser {
     final child = katexElement.nodes.first;
     if (child is! dom.Element) return null;
     if (child.localName != 'span') return null;
-    if (child.classes.length != 1) return null;
-    if (!child.classes.contains('katex-mathml')) return null;
+    if (child.className != 'katex-mathml') return null;
 
     if (child.nodes.length != 1) return null;
     final grandchild = child.nodes.single;
@@ -655,6 +649,7 @@ class _ZulipContentParser {
     final element = node;
     final localName = element.localName;
     final classes = element.classes;
+    final className = element.className;
     List<InlineContentNode> nodes() => parseInlineContentList(element.nodes);
 
     if (localName == 'br' && classes.isEmpty) {
@@ -672,9 +667,7 @@ class _ZulipContentParser {
 
     if (localName == 'a'
         && (classes.isEmpty
-            || (classes.length == 1
-                && (classes.contains('stream-topic')
-                    || classes.contains('stream'))))) {
+            || (className == 'stream-topic' || className == 'stream'))) {
       final href = element.attributes['href'];
       if (href == null) return unimplemented();
       final link = LinkNode(nodes: nodes(), url: href, debugHtmlNode: debugHtmlNode);
@@ -707,9 +700,7 @@ class _ZulipContentParser {
       return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
     }
 
-    if (localName == 'img'
-        && classes.contains('emoji')
-        && classes.length == 1) {
+    if (localName == 'img' && className == 'emoji') {
       final alt = element.attributes['alt'];
       if (alt == null) return unimplemented();
       final src = element.attributes['src'];
@@ -717,9 +708,7 @@ class _ZulipContentParser {
       return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
     }
 
-    if (localName == 'span'
-        && classes.length == 1
-        && classes.contains('katex')) {
+    if (localName == 'span' && className == 'katex') {
       final texSource = parseMath(element, block: false);
       if (texSource == null) return unimplemented();
       return MathInlineNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
@@ -775,8 +764,7 @@ class _ZulipContentParser {
     assert(_debugParserContext == _ParserContext.block);
     final mainElement = () {
       assert(divElement.localName == 'div'
-          && divElement.classes.length == 1
-          && divElement.classes.contains("codehilite"));
+          && divElement.className == "codehilite");
 
       if (divElement.nodes.length != 1) return null;
       final child = divElement.nodes[0];
@@ -848,8 +836,7 @@ class _ZulipContentParser {
     assert(_debugParserContext == _ParserContext.block);
     final imgElement = () {
       assert(divElement.localName == 'div'
-          && divElement.classes.length == 1
-          && divElement.classes.contains('message_inline_image'));
+          && divElement.className == 'message_inline_image');
 
       if (divElement.nodes.length != 1) return null;
       final child = divElement.nodes[0];
@@ -886,6 +873,7 @@ class _ZulipContentParser {
     }
     final element = node;
     final localName = element.localName;
+    final className = element.className;
     final classes = element.classes;
 
     if (localName == 'br' && classes.isEmpty) {
@@ -895,8 +883,7 @@ class _ZulipContentParser {
     if (localName == 'p' && classes.isEmpty) {
       // Oddly, the way a math block gets encoded in Zulip HTML is inside a <p>.
       if (element.nodes case [dom.Element(localName: 'span') && var child, ...]) {
-        if (child.classes.length == 1
-            && child.classes.contains('katex-display')) {
+        if (child.className == 'katex-display') {
           if (element.nodes case [_]
                               || [_, dom.Element(localName: 'br'),
                                      dom.Text(text: "\n")]) {
@@ -943,13 +930,11 @@ class _ZulipContentParser {
         parseBlockContentList(element.nodes));
     }
 
-    if (localName == 'div'
-        && classes.length == 1 && classes.contains('codehilite')) {
+    if (localName == 'div' && className == 'codehilite') {
       return parseCodeBlock(element);
     }
 
-    if (localName == 'div'
-        && classes.length == 1 && classes.contains('message_inline_image')) {
+    if (localName == 'div' && className == 'message_inline_image') {
       return parseImageNode(element);
     }
 
