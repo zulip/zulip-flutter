@@ -454,7 +454,7 @@ class InlineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(_builder.build());
+    return Text.rich(_builder.build(context));
   }
 }
 
@@ -463,14 +463,20 @@ class _InlineContentBuilder {
 
   final InlineContent widget;
 
-  InlineSpan build() {
+  InlineSpan build(BuildContext context) {
+    assert(_context == null);
+    _context = context;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
     final result = _buildNodes(widget.nodes, style: widget.style);
+    assert(identical(_context, context));
+    _context = null;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
     return result;
   }
+
+  BuildContext? _context;
 
   // Why do we have to track `recognizer` here, rather than apply it
   // once at the top of the affected span?  Because the events don't bubble
@@ -531,7 +537,7 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
-    style: const TextStyle(fontWeight: FontWeight.w600));
+    style: weightVariableTextStyle(_context, wght: 600, wghtIfPlatformRequestsBold: 900));
 
   InlineSpan _buildEmphasis(EmphasisNode node) => _buildNodes(node.nodes,
     style: const TextStyle(fontStyle: FontStyle.italic));
