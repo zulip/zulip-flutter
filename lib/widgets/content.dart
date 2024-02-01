@@ -600,9 +600,18 @@ class _InlineContentBuilder {
 final _kInlineMathStyle = _kInlineCodeStyle.merge(TextStyle(
   backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.93).toColor()));
 
+// Even though [kMonospaceTextStyle] is a variable-weight font,
+// it's acceptable to skip [weightVariableTextStyle] here,
+// assuming the text gets the effect of [weightVariableTextStyle]
+// through inheritance, e.g., from a [DefaultTextStyle].
 final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(const TextStyle(
     backgroundColor: Color(0xffeeeeee),
+    fontSize: 0.825 * kBaseFontSize));
+
+final _kCodeBlockStyle = kMonospaceTextStyle
+  .merge(const TextStyle(
+    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
     fontSize: 0.825 * kBaseFontSize))
   .merge(
     // TODO(a11y) pass a BuildContext, to handle platform request for bold text.
@@ -610,14 +619,6 @@ final _kInlineCodeStyle = kMonospaceTextStyle
     //   we get at the end) could live on one [InheritedWidget], at the
     //   MessageList or higher, so the computation doesn't get repeated
     //   frequently. Then consumers can just look it up on the InheritedWidget.
-    weightVariableTextStyle(null));
-
-final _kCodeBlockStyle = kMonospaceTextStyle
-  .merge(const TextStyle(
-    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-    fontSize: 0.825 * kBaseFontSize))
-  .merge(
-    // TODO(a11y) pass a BuildContext; see comment in _kInlineCodeStyle above.
     weightVariableTextStyle(null));
 
 // const _kInlineCodeLeftBracket = '⸤';
