@@ -200,8 +200,9 @@ TextStyle weightVariableTextStyle(BuildContext? context, {
     fontVariations: [FontVariation('wght', value)],
 
     // This use of `fontWeight` shouldn't affect glyphs in the preferred,
-    // "wght"-axis font. If it does, see for debugging:
-    //   https://github.com/zulip/zulip-flutter/issues/65#issuecomment-1550666764
+    // "wght"-axis font. But it can; see upstream bug:
+    //   https://github.com/flutter/flutter/issues/136779
+    // TODO(#500) await/send upstream bugfix?
     fontWeight: clampVariableFontWeight(value),
 
     inherit: true);
