@@ -807,9 +807,8 @@ class _ZulipContentParser {
           }
           span = CodeBlockSpanNode(text: text, type: CodeBlockSpanType.text);
 
-        case dom.Element(localName: 'span', :final text, :final classes)
-            when classes.length == 1:
-          final CodeBlockSpanType type = codeBlockSpanTypeFromClassName(classes.first);
+        case dom.Element(localName: 'span', :final text, :final className):
+          final CodeBlockSpanType type = codeBlockSpanTypeFromClassName(className);
           switch (type) {
             case CodeBlockSpanType.unknown:
               // TODO(#194): Show these as un-syntax-highlighted code, in production.
