@@ -174,7 +174,6 @@ enum CodeBlockSpanType {
 
 CodeBlockSpanType codeBlockSpanTypeFromClassName(String className) {
   return switch (className) {
-    '' => CodeBlockSpanType.text,
     'hll' => CodeBlockSpanType.highlightedLines,
     'w' => CodeBlockSpanType.whitespace,
     'esc' => CodeBlockSpanType.escape,
