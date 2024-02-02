@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
+import 'package:intl/intl.dart';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
@@ -11,6 +12,7 @@ import '../model/internal_link.dart';
 import '../model/store.dart';
 import 'code_block.dart';
 import 'dialog.dart';
+import 'icons.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'store.dart';
@@ -528,6 +530,9 @@ class _InlineContentBuilder {
     } else if (node is MathInlineNode) {
       return TextSpan(style: _kInlineMathStyle,
         children: [TextSpan(text: node.texSource)]);
+    } else if (node is GlobalTimeNode) {
+      return WidgetSpan(alignment: PlaceholderAlignment.middle,
+        child: GlobalTime(node: node));
     } else if (node is UnimplementedInlineContentNode) {
       return _errorUnimplemented(node);
     } else {
@@ -715,6 +720,41 @@ class MessageImageEmoji extends StatelessWidget {
             height: size,
           )),
       ]);
+  }
+}
+
+class GlobalTime extends StatelessWidget {
+  const GlobalTime({super.key, required this.node});
+
+  final GlobalTimeNode node;
+
+  static final _backgroundColor = const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor();
+  static final _borderColor = const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor();
+  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(intl): localize date
+
+  @override
+  Widget build(BuildContext context) {
+    // Design taken from css for `.rendered_markdown & time` in web,
+    //   see zulip:web/styles/rendered_markdown.css .
+    final text = _dateFormat.format(node.datetime.toLocal());
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: _backgroundColor,
+          border: Border.all(width: 1, color: _borderColor),
+          borderRadius: BorderRadius.circular(3)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(ZulipIcons.clock, size: kBaseFontSize),
+              // Ad-hoc spacing adjustment per feedback:
+              //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345
+              const SizedBox(width: 1),
+              Text(text, style: Paragraph.textStyle),
+            ]))));
   }
 }
 

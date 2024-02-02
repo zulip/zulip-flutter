@@ -533,6 +533,27 @@ class MathInlineNode extends InlineContentNode {
   }
 }
 
+class GlobalTimeNode extends InlineContentNode {
+  const GlobalTimeNode({super.debugHtmlNode, required this.datetime});
+
+  /// Always in UTC, enforced in [_ZulipContentParser.parseInlineContent].
+  final DateTime datetime;
+
+  @override
+  bool operator ==(Object other) {
+    return other is GlobalTimeNode && other.datetime == datetime;
+  }
+
+  @override
+  int get hashCode => Object.hash('GlobalTimeNode', datetime);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<DateTime>('datetime', datetime));
+  }
+}
+
 ////////////////////////////////////////////////////////////////
 
 // Ported from https://github.com/zulip/zulip-mobile/blob/c979530d6804db33310ed7d14a4ac62017432944/src/emoji/data.js#L108-L112
@@ -708,6 +729,19 @@ class _ZulipContentParser {
       final src = element.attributes['src'];
       if (src == null) return unimplemented();
       return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+    }
+
+    if (localName == 'time' && className.isEmpty) {
+      final dateTimeAttr = element.attributes['datetime'];
+      if (dateTimeAttr == null) return unimplemented();
+
+      // This attribute is always in ISO 8601 format with a Z suffix;
+      // see `Timestamp` in zulip:zerver/lib/markdown/__init__.py .
+      final datetime = DateTime.tryParse(dateTimeAttr);
+      if (datetime == null) return unimplemented();
+      if (!datetime.isUtc) return unimplemented();
+
+      return GlobalTimeNode(datetime: datetime, debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'span' && className == 'katex') {

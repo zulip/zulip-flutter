@@ -201,6 +201,32 @@ void main() {
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
     const MathInlineNode(texSource: r'\lambda'));
 
+  group('global times', () {
+    testParseInline('smoke',
+      // "<time:2024-01-30T17:33:00Z>"
+      '<p><time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time></p>',
+      GlobalTimeNode(datetime: DateTime.parse('2024-01-30T17:33Z')),
+    );
+
+    testParseInline('handles missing attribute',
+      // No markdown, this is unexpected response
+      '<p><time>2024-01-30T17:33:00Z</time></p>',
+      inlineUnimplemented('<time>2024-01-30T17:33:00Z</time>'),
+    );
+
+    testParseInline('handles DateTime.parse failure',
+      // No markdown, this is unexpected response
+      '<p><time datetime="2024">2024-01-30T17:33:00Z</time></p>',
+      inlineUnimplemented('<time datetime="2024">2024-01-30T17:33:00Z</time>'),
+    );
+
+    testParseInline('handles unexpected timezone',
+      // No markdown, this is unexpected response
+      '<p><time datetime="2024-01-30T17:33:00">2024-01-30T17:33:00</time></p>',
+      inlineUnimplemented('<time datetime="2024-01-30T17:33:00">2024-01-30T17:33:00</time>'),
+    );
+  });
+
   //
   // Block content.
   //
