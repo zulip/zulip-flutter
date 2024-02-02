@@ -639,7 +639,11 @@ class _ZulipContentParser {
     return RegExp("^(?:$mentionClass(?: silent)?|silent $mentionClass)\$");
   }();
 
-  static final _emojiClassRegexp = RegExp(r"^emoji(?:-[0-9a-f]+)*$");
+  static final _emojiClassNameRegexp = () {
+    const specificEmoji = r"emoji(?:-[0-9a-f]+)+";
+    return RegExp("^(?:emoji $specificEmoji|$specificEmoji emoji)\$");
+  }();
+  static final _emojiCodeFromClassNameRegexp = RegExp(r"emoji-([^ ]+)");
 
   InlineContentNode parseInlineContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.inline);
@@ -655,7 +659,6 @@ class _ZulipContentParser {
 
     final element = node;
     final localName = element.localName;
-    final classes = element.classes;
     final className = element.className;
     List<InlineContentNode> nodes() => parseInlineContentList(element.nodes);
 
@@ -691,14 +694,9 @@ class _ZulipContentParser {
     }
 
     if (localName == 'span'
-        && classes.length == 2
-        && classes.contains('emoji')
-        && classes.every(_emojiClassRegexp.hasMatch)) {
-      final emojiCode = classes
-        .firstWhere((className) => className.startsWith('emoji-'))
-        .replaceFirst('emoji-', '');
-      assert(emojiCode.isNotEmpty);
-
+        && _emojiClassNameRegexp.hasMatch(className)) {
+      final emojiCode = _emojiCodeFromClassNameRegexp.firstMatch(className)!
+        .group(1)!;
       final unicode = tryParseEmojiCodeToUnicode(emojiCode);
       if (unicode == null) return unimplemented();
       return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
