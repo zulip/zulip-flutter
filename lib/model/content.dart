@@ -639,7 +639,7 @@ class _ZulipContentParser {
     return RegExp("^(?:$mentionClass(?: silent)?|silent $mentionClass)\$");
   }();
 
-  static final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)*$");
+  static final _emojiClassRegexp = RegExp(r"^emoji(?:-[0-9a-f]+)*$");
 
   InlineContentNode parseInlineContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.inline);
