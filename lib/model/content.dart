@@ -652,21 +652,21 @@ class _ZulipContentParser {
     final className = element.className;
     List<InlineContentNode> nodes() => parseInlineContentList(element.nodes);
 
-    if (localName == 'br' && classes.isEmpty) {
+    if (localName == 'br' && className.isEmpty) {
       return LineBreakInlineNode(debugHtmlNode: debugHtmlNode);
     }
-    if (localName == 'strong' && classes.isEmpty) {
+    if (localName == 'strong' && className.isEmpty) {
       return StrongNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
-    if (localName == 'em' && classes.isEmpty) {
+    if (localName == 'em' && className.isEmpty) {
       return EmphasisNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
-    if (localName == 'code' && classes.isEmpty) {
+    if (localName == 'code' && className.isEmpty) {
       return InlineCodeNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'a'
-        && (classes.isEmpty
+        && (className.isEmpty
             || (className == 'stream-topic' || className == 'stream'))) {
       final href = element.attributes['href'];
       if (href == null) return unimplemented();
@@ -745,13 +745,13 @@ class _ZulipContentParser {
       case 'ul': listStyle = ListStyle.unordered; break;
     }
     assert(listStyle != null);
-    assert(element.classes.isEmpty);
+    assert(element.className.isEmpty);
 
     final debugHtmlNode = kDebugMode ? element : null;
     final List<List<BlockContentNode>> items = [];
     for (final item in element.nodes) {
       if (item is dom.Text && item.text == '\n') continue;
-      if (item is! dom.Element || item.localName != 'li' || item.classes.isNotEmpty) {
+      if (item is! dom.Element || item.localName != 'li' || item.className.isNotEmpty) {
         items.add([UnimplementedBlockContentNode(htmlNode: item)]);
       }
       items.add(parseImplicitParagraphBlockContentList(item.nodes));
@@ -842,13 +842,13 @@ class _ZulipContentParser {
       final child = divElement.nodes[0];
       if (child is! dom.Element) return null;
       if (child.localName != 'a') return null;
-      if (child.classes.isNotEmpty) return null;
+      if (child.className.isNotEmpty) return null;
 
       if (child.nodes.length != 1) return null;
       final grandchild = child.nodes[0];
       if (grandchild is! dom.Element) return null;
       if (grandchild.localName != 'img') return null;
-      if (grandchild.classes.isNotEmpty) return null;
+      if (grandchild.className.isNotEmpty) return null;
       return grandchild;
     }();
 
@@ -874,13 +874,12 @@ class _ZulipContentParser {
     final element = node;
     final localName = element.localName;
     final className = element.className;
-    final classes = element.classes;
 
-    if (localName == 'br' && classes.isEmpty) {
+    if (localName == 'br' && className.isEmpty) {
       return LineBreakNode(debugHtmlNode: debugHtmlNode);
     }
 
-    if (localName == 'p' && classes.isEmpty) {
+    if (localName == 'p' && className.isEmpty) {
       // Oddly, the way a math block gets encoded in Zulip HTML is inside a <p>.
       if (element.nodes case [dom.Element(localName: 'span') && var child, ...]) {
         if (child.className == 'katex-display') {
@@ -913,7 +912,7 @@ class _ZulipContentParser {
       case 'h5': headingLevel = HeadingLevel.h5; break;
       case 'h6': headingLevel = HeadingLevel.h6; break;
     }
-    if (headingLevel != null && classes.isEmpty) {
+    if (headingLevel != null && className.isEmpty) {
       final parsed = parseBlockInline(element.nodes);
       return HeadingNode(debugHtmlNode: debugHtmlNode,
         level: headingLevel,
@@ -921,11 +920,11 @@ class _ZulipContentParser {
         nodes: parsed.nodes);
     }
 
-    if ((localName == 'ol' || localName == 'ul') && classes.isEmpty) {
+    if ((localName == 'ol' || localName == 'ul') && className.isEmpty) {
       return parseListNode(element);
     }
 
-    if (localName == 'blockquote' && classes.isEmpty) {
+    if (localName == 'blockquote' && className.isEmpty) {
       return QuotationNode(debugHtmlNode: debugHtmlNode,
         parseBlockContentList(element.nodes));
     }
