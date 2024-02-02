@@ -632,6 +632,13 @@ class _ZulipContentParser {
     return result;
   }
 
+  static final _userMentionClassNameRegexp = () {
+    // This matches a class `user-mention` or `user-group-mention`,
+    // plus an optional class `silent`, appearing in either order.
+    const mentionClass = r"user(?:-group)?-mention";
+    return RegExp("^(?:$mentionClass(?: silent)?|silent $mentionClass)\$");
+  }();
+
   static final _emojiClassRegexp = RegExp(r"^emoji(-[0-9a-f]+)*$");
 
   InlineContentNode parseInlineContent(dom.Node node) {
@@ -676,10 +683,7 @@ class _ZulipContentParser {
     }
 
     if (localName == 'span'
-        && (classes.contains('user-mention')
-            || classes.contains('user-group-mention'))
-        && (classes.length == 1
-            || (classes.length == 2 && classes.contains('silent')))) {
+        && _userMentionClassNameRegexp.hasMatch(className)) {
       // TODO assert UserMentionNode can't contain LinkNode;
       //   either a debug-mode check, or perhaps we can make expectations much
       //   tighter on a UserMentionNode's contents overall.
