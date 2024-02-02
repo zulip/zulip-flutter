@@ -138,7 +138,27 @@ void main() {
       '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>',
       const UserMentionNode(nodes: [TextNode('Greg Price')]));
 
-    // TODO test group mentions and wildcard mentions
+    testParseInline('silent user @-mention, class order reversed',
+      // "@_**Greg Price**" (hypothetical server variation)
+      '<p><span class="silent user-mention" data-user-id="2187">Greg Price</span></p>',
+      const UserMentionNode(nodes: [TextNode('Greg Price')]));
+
+    testParseInline('plain group @-mention',
+      // "@*test-empty*"
+      '<p><span class="user-group-mention" data-user-group-id="186">@test-empty</span></p>',
+      const UserMentionNode(nodes: [TextNode('@test-empty')]));
+
+    testParseInline('silent group @-mention',
+      // "@_*test-empty*"
+      '<p><span class="user-group-mention silent" data-user-group-id="186">test-empty</span></p>',
+      const UserMentionNode(nodes: [TextNode('test-empty')]));
+
+    testParseInline('silent group @-mention, class order reversed',
+      // "@_*test-empty*" (hypothetical server variation)
+      '<p><span class="silent user-group-mention" data-user-group-id="186">test-empty</span></p>',
+      const UserMentionNode(nodes: [TextNode('test-empty')]));
+
+    // TODO test wildcard mentions
   });
 
   testParseInline('parse Unicode emoji, encoded in span element',
