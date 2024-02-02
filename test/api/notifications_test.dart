@@ -76,7 +76,7 @@ void main() {
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
         ..senderFullName.equals(streamJson['sender_full_name']!)
         ..zulipMessageId.equals(12345)
-        ..recipient.isA<FcmMessageStreamRecipient>().which(it()
+        ..recipient.isA<FcmMessageStreamRecipient>().which((it) => it
           ..streamId.equals(42)
           ..streamName.equals(streamJson['stream']!)
           ..topic.equals(streamJson['topic']!))
@@ -94,7 +94,7 @@ void main() {
 
     test('optional fields missing cause no error', () {
       check(parse({ ...streamJson }..remove('stream')))
-        .recipient.isA<FcmMessageStreamRecipient>().which(it()
+        .recipient.isA<FcmMessageStreamRecipient>().which((it) => it
           ..streamId.equals(42)
           ..streamName.isNull());
     });

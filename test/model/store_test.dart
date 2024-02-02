@@ -232,7 +232,7 @@ void main() {
       await Future.delayed(Duration.zero);
 
       // The global store has a new store.
-      check(globalStore.perAccountSync(store.account.id)).not(it()..identicalTo(store));
+      check(globalStore.perAccountSync(store.account.id)).not((it) => it.identicalTo(store));
       updateFromGlobalStore();
 
       // The new UpdateMachine updates the new store.

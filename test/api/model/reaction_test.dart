@@ -1,5 +1,4 @@
 import 'package:checks/checks.dart';
-import 'package:checks/context.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/reaction.dart';
 
@@ -8,8 +7,8 @@ import 'model_checks.dart';
 void main() {
   group('Reactions', () {
     // helper to cut out "it()..isA<ReactionWithVotes>()" goo for callers
-    ConditionSubject matchesReactions(List<Reaction> reactions) {
-      return it()..isA<ReactionWithVotes>().matchesReactions(reactions);
+    matchesReactions(List<Reaction> reactions) {
+      return (Subject<Object?> it) => it.isA<ReactionWithVotes>().matchesReactions(reactions);
     }
 
     test('fromJson', () {

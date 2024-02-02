@@ -142,7 +142,7 @@ void main() {
 
     // (... even one that really is separate, with its own fresh state node ...)
     check(tester.state(find.byType(PerAccountStoreWidget)))
-      .not(it()..identicalTo(oldState));
+      .not((it) => it.identicalTo(oldState));
 
     // ... then its child appears immediately, without waiting to load.
     check(tester.any(find.textContaining('found store'))).isTrue();

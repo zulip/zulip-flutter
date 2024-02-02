@@ -50,7 +50,7 @@ extension ReactionWithVotesChecks on Subject<ReactionWithVotes> {
     // No double-votes from one person (we don't expect this from servers)
     assert(userIds.length == reactions.length);
 
-    return which(it()
+    return which((it) => it
       ..reactionType.equals(first.reactionType)
       ..emojiCode.equals(first.emojiCode)
       ..userIds.deepEquals(userIds)

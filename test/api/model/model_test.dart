@@ -56,7 +56,7 @@ void main() {
       check(mkUser({'profile_data': <String, dynamic>{}}).profileData).isNull();
       check(mkUser({'profile_data': null}).profileData).isNull();
       check(mkUser({'profile_data': {'1': {'value': 'foo'}}}).profileData)
-        .isNotNull().deepEquals({1: it()});
+        .isNotNull().deepEquals({1: (it) => it});
     });
 
     test('is_system_bot', () {

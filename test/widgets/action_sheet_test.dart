@@ -352,7 +352,7 @@ void main() {
         builder.selection = TextSelection.collapsed(offset: builder.text.length);
       }
       check(contentController).value.equals(builder.value);
-      check(contentController).not(it()..validationErrors.contains(ContentValidationError.quoteAndReplyInProgress));
+      check(contentController).not((it) => it.validationErrors.contains(ContentValidationError.quoteAndReplyInProgress));
     }
 
     testWidgets('in stream narrow', (WidgetTester tester) async {

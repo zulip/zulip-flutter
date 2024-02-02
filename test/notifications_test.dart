@@ -123,7 +123,7 @@ void main() {
         ..title.equals(expectedTitle)
         ..body.equals(data.content)
         ..payload.equals(jsonEncode(data.toJson()))
-        ..notificationDetails.isNotNull().android.isNotNull().which(it()
+        ..notificationDetails.isNotNull().android.isNotNull().which((it) => it
           ..channelId.equals(NotificationChannelManager.kChannelId)
           ..tag.equals(expectedTag)
           ..color.equals(kZulipBrandColor)

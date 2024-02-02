@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
-import 'package:checks/context.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
@@ -85,12 +84,12 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
           ..headers.deepEquals(authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey))
           ..fields.deepEquals({})
-          ..files.single.which(it()
+          ..files.single.which((it) => it
             ..field.equals('file')
             ..length.equals(length)
             ..filename.equals(filename)
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
-              .completes(it()..deepEquals(content.expand((l) => l)))
+              .completes((it) => it.deepEquals(content.expand((l) => l)))
           );
       });
     }
@@ -148,16 +147,16 @@ void main() {
     Future<void> checkRequest<T extends Object>(
         T exception, Condition<NetworkException> condition) {
       return check(tryRequest(exception: exception))
-        .throws<NetworkException>(it()
+        .throws<NetworkException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..cause.equals(exception)
           ..which(condition));
     }
 
     final zulipLocalizations = lookupZulipLocalizations(ZulipLocalizations.supportedLocales.first);
-    checkRequest(http.ClientException('Oops'), it()..message.equals('Oops'));
-    checkRequest(const TlsException('Oops'), it()..message.equals('Oops'));
-    checkRequest((foo: 'bar'), it()
+    checkRequest(http.ClientException('Oops'), (it) => it.message.equals('Oops'));
+    checkRequest(const TlsException('Oops'), (it) => it.message.equals('Oops'));
+    checkRequest((foo: 'bar'), (it) => it
       ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
   });
 
@@ -176,7 +175,7 @@ void main() {
         ...data,
       };
       await check(tryRequest(httpStatus: httpStatus, json: json))
-        .throws<ZulipApiException>(it()
+        .throws<ZulipApiException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(httpStatus)
           ..code.equals(expectedCode ?? code!)
@@ -197,7 +196,7 @@ void main() {
         int httpStatus = 400, Map<String, dynamic>? json, String? body}) async {
       assert((json == null) != (body == null));
       await check(tryRequest(httpStatus: httpStatus, json: json, body: body))
-        .throws<MalformedServerResponseException>(it()
+        .throws<MalformedServerResponseException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(httpStatus)
           ..data.deepEquals(json));
@@ -224,7 +223,7 @@ void main() {
     Future<void> check5xx({
         required int httpStatus, Map<String, dynamic>? json, String? body}) {
       return check(tryRequest(httpStatus: httpStatus, json: json, body: body))
-        .throws<Server5xxException>(it()
+        .throws<Server5xxException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(httpStatus)
           ..data.deepEquals(json));
@@ -241,7 +240,7 @@ void main() {
     Future<void> checkMalformed({
         required int httpStatus, Map<String, dynamic>? json, String? body}) {
       return check(tryRequest(httpStatus: httpStatus, json: json, body: body))
-        .throws<MalformedServerResponseException>(it()
+        .throws<MalformedServerResponseException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(httpStatus)
           ..data.deepEquals(json));
@@ -260,13 +259,13 @@ void main() {
       Object? Function(Map<String, dynamic>)? fromJson,
     }) {
       return check(tryRequest(json: json, body: body, fromJson: fromJson))
-        .throws<MalformedServerResponseException>(it()
+        .throws<MalformedServerResponseException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(200)
           ..data.deepEquals(json));
     }
 
-    await check(tryRequest<Map>(json: {})).completes(it()..deepEquals({}));
+    await check(tryRequest<Map>(json: {})).completes((it) => it.deepEquals({}));
 
     await checkMalformed(body: jsonEncode([]));
     await checkMalformed(body: jsonEncode(null));
@@ -275,7 +274,7 @@ void main() {
     await checkMalformed(body: 'not JSON');
 
     await check(tryRequest(json: {'x': 'y'}, fromJson: (json) => json['x'] as String))
-      .completes(it()..equals('y'));
+      .completes((it) => it.equals('y'));
     await checkMalformed(  json: {},         fromJson: (json) => json['x'] as String);
     await checkMalformed(  json: {'x': 3},   fromJson: (json) => json['x'] as String);
   });

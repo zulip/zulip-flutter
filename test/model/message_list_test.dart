@@ -281,10 +281,10 @@ void main() async {
 
       final message = model.messages.single;
       check(message)
-        ..content.not(it()..equals(updateEvent.renderedContent!))
+        ..content.not((it) => it.equals(updateEvent.renderedContent!))
         ..lastEditTimestamp.isNull()
-        ..flags.not(it()..deepEquals(updateEvent.flags))
-        ..isMeMessage.not(it()..equals(updateEvent.isMeMessage!));
+        ..flags.not((it) => it.deepEquals(updateEvent.flags))
+        ..isMeMessage.not((it) => it.equals(updateEvent.isMeMessage!));
 
       model.maybeUpdateMessage(updateEvent);
       checkNotifiedOnce();
@@ -310,7 +310,7 @@ void main() async {
       checkNotNotified();
       check(model).messages.single
         ..content.equals(originalMessage.content)
-        ..content.not(it()..equals(updateEvent.renderedContent!));
+        ..content.not((it) => it.equals(updateEvent.renderedContent!));
     });
 
     // TODO(server-5): Cut legacy case for rendering-only message update
@@ -336,7 +336,7 @@ void main() async {
         ..content.equals(updateEvent.renderedContent!)
         // ... edit timestamp is not.
         ..lastEditTimestamp.equals(originalMessage.lastEditTimestamp)
-        ..lastEditTimestamp.not(it()..equals(updateEvent.editTimestamp));
+        ..lastEditTimestamp.not((it) => it.equals(updateEvent.editTimestamp));
     }
 
     test('rendering-only update does not change timestamp', () async {
@@ -545,7 +545,7 @@ void main() async {
     model.contents[0] = const ZulipContent(nodes: [
       ParagraphNode(links: null, nodes: [TextNode('something outdated')])
     ]);
-    check(model.contents[0]).not(it()..equalsNode(correctContent));
+    check(model.contents[0]).not((it) => it.equalsNode(correctContent));
 
     model.reassemble();
     checkNotifiedOnce();
@@ -802,16 +802,16 @@ void main() async {
 
     // We check showSender has the right values in [checkInvariants],
     // but to make this test explicit:
-    check(model.items).deepEquals([
-      it()..isA<MessageListHistoryStartItem>(),
-      it()..isA<MessageListRecipientHeaderItem>(),
-      it()..isA<MessageListMessageItem>().showSender.isTrue(),
-      it()..isA<MessageListMessageItem>().showSender.isFalse(),
-      it()..isA<MessageListMessageItem>().showSender.isTrue(),
-      it()..isA<MessageListRecipientHeaderItem>(),
-      it()..isA<MessageListMessageItem>().showSender.isTrue(),
-      it()..isA<MessageListDateSeparatorItem>(),
-      it()..isA<MessageListMessageItem>().showSender.isTrue(),
+    check(model.items).deepEquals(<void Function(Subject<Object?>)>[
+      (it) => it.isA<MessageListHistoryStartItem>(),
+      (it) => it.isA<MessageListRecipientHeaderItem>(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isFalse(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
+      (it) => it.isA<MessageListRecipientHeaderItem>(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
+      (it) => it.isA<MessageListDateSeparatorItem>(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
     ]);
   });
 
