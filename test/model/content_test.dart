@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:checks/checks.dart';
 import 'package:html/parser.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
@@ -547,4 +550,24 @@ void main() {
         ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
       ]]),
     ]);
+
+  test('all content examples are tested', () {
+    // Check that every ContentExample defined above has a corresponding
+    // actual test case that runs on it.  If you've added a new example
+    // and this test breaks, remember to add a `testParseExample` call for it.
+
+    // This implementation is a bit of a hack; it'd be cleaner to get the
+    // actual Dart parse tree using package:analyzer.  Unfortunately that
+    // approach takes several seconds just to load the parser library, enough
+    // to add noticeably to the runtime of our whole test suite.
+    final thisFilename = Trace.current().frames[0].uri.path;
+    final source = File(thisFilename).readAsStringSync();
+    final declaredExamples = RegExp(multiLine: true,
+      r'^\s*static\s+(?:const|final)\s+(\w+)\s*=\s*ContentExample\s*(?:\.\s*inline\s*)?\(',
+    ).allMatches(source).map((m) => m.group(1));
+    final testedExamples = RegExp(multiLine: true,
+      r'^\s*testParseExample\s*\(\s*ContentExample\s*\.\s*(\w+)\);',
+    ).allMatches(source).map((m) => m.group(1));
+    check(testedExamples).unorderedEquals(declaredExamples);
+  });
 }
