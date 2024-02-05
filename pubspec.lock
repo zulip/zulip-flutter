@@ -1018,7 +1018,7 @@ packages:
     source: hosted
     version: "0.34.0"
   stack_trace:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: stack_trace
       sha256: "73713990125a6d93122541237550ee3352a2d84baad52d375a4cad2eb9b7ce0b"
