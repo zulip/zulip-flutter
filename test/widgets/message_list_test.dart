@@ -22,6 +22,7 @@ import 'package:zulip/widgets/store.dart';
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../flutter_checks.dart';
@@ -136,7 +137,7 @@ void main() {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/507
       await setupMessageListPage(tester, foundOldest: false, messages: [
         ...List.generate(300, (i) => eg.streamMessage(id: 1000 + i)),
-        eg.streamMessage(id: 1301, content: '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>'),
+        eg.streamMessage(id: 1301, content: ContentExample.codeBlockPlain.html),
         ...List.generate(100, (i) => eg.streamMessage(id: 1302 + i)),
       ]);
       final lastRequest = connection.lastRequest;

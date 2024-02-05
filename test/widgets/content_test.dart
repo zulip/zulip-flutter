@@ -15,6 +15,7 @@ import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
@@ -26,6 +27,21 @@ void main() {
 
   Future<void> prepareContentBare(WidgetTester tester, String html) async {
     await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
+  }
+
+  /// Test that the given content example renders without throwing an exception.
+  ///
+  /// This requires [ContentExample.expectedText] to be non-null in order to
+  /// check that the content has actually rendered.  For examples where there's
+  /// no suitable value for [ContentExample.expectedText], use [prepareContentBare]
+  /// and write an appropriate content-has-rendered check directly.
+  void testContentSmoke(ContentExample example) {
+    testWidgets('smoke: ${example.description}', (tester) async {
+      await prepareContentBare(tester, example.html);
+      assert(example.expectedText != null,
+        'testContentExample requires expectedText');
+      tester.widget(find.text(example.expectedText!));
+    });
   }
 
   group('Heading', () {
@@ -45,37 +61,9 @@ void main() {
   });
 
   group("CodeBlock", () {
-    testWidgets('without syntax highlighting', (WidgetTester tester) async {
-      // "```\nverb\natim\n```"
-      await prepareContentBare(tester,
-        '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>');
-      tester.widget(find.text('verb\natim'));
-    });
-
-    testWidgets('with syntax highlighting', (WidgetTester tester) async {
-      // "```dart\nclass A {}\n```"
-      await prepareContentBare(tester,
-        '<div class="codehilite" data-code-language="Dart"><pre>'
-          '<span></span><code><span class="kd">class</span><span class="w"> </span>'
-          '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
-          '\n</code></pre></div>');
-      tester.widget(find.text('class A {}'));
-    });
-
-    testWidgets('multiline, with syntax highlighting', (WidgetTester tester) async {
-      // '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```'
-      await prepareContentBare(tester,
-        '<div class="codehilite" data-code-language="Rust"><pre>'
-            '<span></span><code><span class="k">fn</span> <span class="nf">main</span>'
-            '<span class="p">()</span><span class="w"> </span><span class="p">{</span>\n'
-            '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
-            '<span class="s">"Hello "</span><span class="p">);</span>\n\n'
-            '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
-            '<span class="s">"world!</span><span class="se">\\n</span><span class="s">"</span>'
-            '<span class="p">);</span>\n<span class="p">}</span>\n'
-            '</code></pre></div>');
-      tester.widget(find.text('fn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}'));
-    });
+    testContentSmoke(ContentExample.codeBlockPlain);
+    testContentSmoke(ContentExample.codeBlockHighlightedShort);
+    testContentSmoke(ContentExample.codeBlockHighlightedMultiline);
   });
 
   testWidgets('MathBlock', (tester) async {
