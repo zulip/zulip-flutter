@@ -66,16 +66,7 @@ void main() {
     testContentSmoke(ContentExample.codeBlockHighlightedMultiline);
   });
 
-  testWidgets('MathBlock', (tester) async {
-    // "```math\n\\lambda\n```"
-    await prepareContentBare(tester,
-      '<p><span class="katex-display"><span class="katex">'
-        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
-          '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    );
-    tester.widget(find.text(r'\lambda'));
-  });
+  testContentSmoke(ContentExample.mathBlock);
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
     final height = tester.getSize(textFinder).height;
@@ -251,16 +242,7 @@ void main() {
     });
   });
 
-  testWidgets('MathInlineNode', (tester) async {
-    // "$$ \\lambda $$"
-    await prepareContentBare(tester,
-      '<p><span class="katex">'
-        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
-          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    );
-    tester.widget(find.text(r'\lambda'));
-  });
+  testContentSmoke(ContentExample.mathInline);
 
   testWidgets('GlobalTime smoke', (tester) async {
     // "<time:2024-01-30T17:33:00Z>"
