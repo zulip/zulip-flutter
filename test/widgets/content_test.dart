@@ -24,20 +24,20 @@ import 'page_checks.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('Heading', () {
-    Future<void> prepareContent(WidgetTester tester, String html) async {
-      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
-    }
+  Future<void> prepareContentBare(WidgetTester tester, String html) async {
+    await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
+  }
 
+  group('Heading', () {
     testWidgets('plain h6', (tester) async {
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         // "###### six"
         '<h6>six</h6>');
       tester.widget(find.text('six'));
     });
 
     testWidgets('smoke test for h1, h2, h3, h4, h5', (tester) async {
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         // "# one\n## two\n### three\n#### four\n##### five"
         '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>');
       check(find.byType(Heading).evaluate()).length.equals(5);
@@ -45,20 +45,16 @@ void main() {
   });
 
   group("CodeBlock", () {
-    Future<void> prepareContent(WidgetTester tester, String html) async {
-      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
-    }
-
     testWidgets('without syntax highlighting', (WidgetTester tester) async {
       // "```\nverb\natim\n```"
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>');
       tester.widget(find.text('verb\natim'));
     });
 
     testWidgets('with syntax highlighting', (WidgetTester tester) async {
       // "```dart\nclass A {}\n```"
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         '<div class="codehilite" data-code-language="Dart"><pre>'
           '<span></span><code><span class="kd">class</span><span class="w"> </span>'
           '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
@@ -68,7 +64,7 @@ void main() {
 
     testWidgets('multiline, with syntax highlighting', (WidgetTester tester) async {
       // '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```'
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         '<div class="codehilite" data-code-language="Rust"><pre>'
             '<span></span><code><span class="k">fn</span> <span class="nf">main</span>'
             '<span class="p">()</span><span class="w"> </span><span class="p">{</span>\n'
@@ -84,12 +80,12 @@ void main() {
 
   testWidgets('MathBlock', (tester) async {
     // "```math\n\\lambda\n```"
-    await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
+    await prepareContentBare(tester,
       '<p><span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
           '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    ).nodes)));
+    );
     tester.widget(find.text(r'\lambda'));
   });
 
@@ -245,26 +241,22 @@ void main() {
   });
 
   group('UnicodeEmoji', () {
-    Future<void> prepareContent(WidgetTester tester, String html) async {
-      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(html).nodes)));
-    }
-
     testWidgets('encoded emoji span', (tester) async {
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         // ":thumbs_up:"
         '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>');
       tester.widget(find.text('\u{1f44d}')); // "👍"
     });
 
     testWidgets('encoded emoji span, with multiple codepoints', (tester) async {
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         // ":transgender_flag:"
         '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>');
       tester.widget(find.text('\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}')); // "🏳️‍⚧️"
     });
 
     testWidgets('non encoded emoji', (tester) async {
-      await prepareContent(tester,
+      await prepareContentBare(tester,
         // "\u{1fabf}"
         '<p>\u{1fabf}</p>');
       tester.widget(find.text('\u{1fabf}')); // "🪿"
@@ -273,12 +265,12 @@ void main() {
 
   testWidgets('MathInlineNode', (tester) async {
     // "$$ \\lambda $$"
-    await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
+    await prepareContentBare(tester,
       '<p><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
           '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    ).nodes)));
+    );
     tester.widget(find.text(r'\lambda'));
   });
 
