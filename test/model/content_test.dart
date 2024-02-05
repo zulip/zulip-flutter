@@ -23,6 +23,54 @@ UnimplementedInlineContentNode inlineUnimplemented(String html) {
   return UnimplementedInlineContentNode(htmlNode: fragment.nodes.single);
 }
 
+/// An example of Zulip content for test cases.
+class ContentExample {
+  const ContentExample(this.description, this.markdown, this.html,
+    this.expectedNodes, {this.expectedText});
+
+  ContentExample.inline(this.description, this.markdown, this.html,
+      InlineContentNode parsed, {this.expectedText})
+    : expectedNodes = [ParagraphNode(links: null, nodes: [parsed])];
+
+  /// A description string, for use in names of tests.
+  final String description;
+
+  /// The Zulip Markdown source, if any, that the server renders as [html].
+  ///
+  /// This is useful for reproducing the example content for live use in the
+  /// app, and as a starting point for variations on it.
+  ///
+  /// Currently the test suite does not verify the relationship between
+  /// [markdown] and [html].
+  ///
+  /// If there is no known Markdown that a Zulip server can render as [html],
+  /// then this should be null and a comment should explain why the test uses
+  /// such an example.
+  final String? markdown;
+
+  /// A fragment of Zulip HTML, to be parsed as a [ZulipContent].
+  ///
+  /// Generally this should be actual HTML emitted by a Zulip server.
+  /// See the example `curl` command in comments in this file for help in
+  /// conveniently getting such HTML.
+  final String html;
+
+  /// The [ZulipContent.nodes] expected from parsing [html].
+  final List<BlockContentNode> expectedNodes;
+
+  /// The text, if applicable, of a text widget expected from
+  /// rendering [expectedNodes].
+  ///
+  /// Strictly this belongs to the widget tests, not the model tests, as it
+  /// encodes choices about how the content widgets work.  But it's convenient
+  /// to have it defined for each test case right next to [html] and [expectedNodes].
+  final String? expectedText;
+}
+
+void testParseExample(ContentExample example) {
+  testParse('parse ${example.description}', example.html, example.expectedNodes);
+}
+
 void main() {
   // When writing test cases in this file:
   //
