@@ -70,14 +70,10 @@ void main() {
       ]);
   }
 
-  /// Find an all-DMs header element.
-  // Why "an" all-DMs header element? Because there might be two: one that
-  // floats at the top of the screen to give the "sticky header" effect, and one
-  // that scrolls normally, the way it would in a regular [ListView].
-  // TODO we'll need to find both and run checks on them, knowing which is which.
-  Widget? findAllDmsHeaderRow(WidgetTester tester) {
+  /// Find a row with the given label.
+  Widget? findRowByLabel(WidgetTester tester, String label) {
     final rowLabel = tester.widgetList(
-      find.text('Direct messages'),
+      find.text(label),
     ).firstOrNull;
     if (rowLabel == null) {
       return null;
@@ -89,6 +85,15 @@ void main() {
         matching: find.byType(Row)));
   }
 
+  /// Find an all-DMs header element.
+  // Why "an" all-DMs header element? Because there might be two: one that
+  // floats at the top of the screen to give the "sticky header" effect, and one
+  // that scrolls normally, the way it would in a regular [ListView].
+  // TODO we'll need to find both and run checks on them, knowing which is which.
+  Widget? findAllDmsHeaderRow(WidgetTester tester) {
+    return findRowByLabel(tester, 'Direct messages');
+  }
+
   /// For the given stream ID, find a stream header element.
   // Why "an" all-DMs header element? Because there might be two: one that
   // floats at the top of the screen to give the "sticky header" effect, and one
@@ -96,15 +101,7 @@ void main() {
   // TODO we'll need to find both and run checks on them, knowing which is which.
   Widget? findStreamHeaderRow(WidgetTester tester, int streamId) {
     final stream = store.streams[streamId]!;
-    final rowLabel = tester.widgetList(find.text(stream.name)).firstOrNull;
-    if (rowLabel == null) {
-      return null;
-    }
-
-    return tester.widget(
-      find.ancestor(
-        of: find.byWidget(rowLabel),
-        matching: find.byType(Row)));
+    return findRowByLabel(tester, stream.name);
   }
 
   IconData expectedStreamHeaderIcon(int streamId) {
