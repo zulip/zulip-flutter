@@ -94,18 +94,22 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     // TODO efficiently include DM conversations that aren't recent enough
     //   to appear in recentDmConversationsView, but still have unreads in
     //   unreadsModel.
-    final dmItems = <(DmNarrow, int)>[];
+    final dmItems = <(DmNarrow, int, bool)>[];
     int allDmsCount = 0;
+    bool allDmsHasMention = false;
     for (final dmNarrow in recentDmConversationsModel!.sorted) {
       final countInNarrow = unreadsModel!.countInDmNarrow(dmNarrow);
       if (countInNarrow == 0) {
         continue;
       }
-      dmItems.add((dmNarrow, countInNarrow));
+      final hasMention = unreadsModel!.dms[dmNarrow]!.any(
+        (messageId) => unreadsModel!.mentions.contains(messageId));
+      if (hasMention) allDmsHasMention = true;
+      dmItems.add((dmNarrow, countInNarrow, hasMention));
       allDmsCount += countInNarrow;
     }
     if (allDmsCount > 0) {
-      sections.add(_AllDmsSectionData(allDmsCount, dmItems));
+      sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
     }
 
     final sortedUnreadStreams = unreadsModel!.streams.entries
@@ -184,9 +188,10 @@ sealed class _InboxSectionData {
 
 class _AllDmsSectionData extends _InboxSectionData {
   final int count;
-  final List<(DmNarrow, int)> items;
+  final bool hasMention;
+  final List<(DmNarrow, int, bool)> items;
 
-  const _AllDmsSectionData(this.count, this.items);
+  const _AllDmsSectionData(this.count, this.hasMention, this.items);
 }
 
 class _StreamSectionData extends _InboxSectionData {
@@ -296,7 +301,7 @@ class _AllDmsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final header = _AllDmsHeaderItem(
       count: data.count,
-      hasMention: false,
+      hasMention: data.hasMention,
       collapsed: collapsed,
       pageState: pageState,
     );
@@ -305,10 +310,11 @@ class _AllDmsSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          final (narrow, count) = item;
+          final (narrow, count, hasMention) = item;
           return _DmItem(
             narrow: narrow,
             count: count,
+            hasMention: hasMention,
           );
         }),
       ]));
@@ -319,10 +325,12 @@ class _DmItem extends StatelessWidget {
   const _DmItem({
     required this.narrow,
     required this.count,
+    required this.hasMention,
   });
 
   final DmNarrow narrow;
   final int count;
+  final bool hasMention;
 
   @override
   Widget build(BuildContext context) {
@@ -361,6 +369,7 @@ class _DmItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 title))),
             const SizedBox(width: 12),
+            if (hasMention) const  _AtMentionMarker(),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(backgroundColor: null,
                 count: count)),

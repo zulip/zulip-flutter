@@ -219,6 +219,26 @@ void main() {
           .isFalse();
         check(hasAtSign(tester, findRowByLabel(tester, topic))).isFalse();
       });
+
+      testWidgets('dm with a mention', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
+            flags: [MessageFlag.mentioned])]);
+
+        check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isTrue();
+        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isTrue();
+      });
+
+      testWidgets('dm without mention', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
+            flags: [])]);
+
+        check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isFalse();
+        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
+      });
     });
 
     group('collapsing', () {
