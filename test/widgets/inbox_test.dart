@@ -183,6 +183,44 @@ void main() {
       });
     });
 
+    group('mentions', () {
+      final stream = eg.stream();
+      final subscription = eg.subscription(stream);
+      const topic = 'lunch';
+
+      bool hasAtSign(WidgetTester tester, Widget? parent) {
+        check(parent).isNotNull();
+        return tester.widgetList(find.descendant(
+          of: find.byWidget(parent!),
+          matching: find.byIcon(ZulipIcons.at_sign),
+        )).isNotEmpty;
+      }
+
+      testWidgets('topic with a mention', (tester) async {
+        await setupPage(tester,
+          streams: [stream],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
+            flags: [MessageFlag.mentioned])]);
+
+        check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
+          .isTrue();
+        check(hasAtSign(tester, findRowByLabel(tester, topic))).isTrue();
+      });
+
+      testWidgets('topic without a mention', (tester) async {
+        await setupPage(tester,
+          streams: [stream],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
+            flags: [])]);
+
+        check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
+          .isFalse();
+        check(hasAtSign(tester, findRowByLabel(tester, topic))).isFalse();
+      });
+    });
+
     group('collapsing', () {
       Icon findHeaderCollapseIcon(WidgetTester tester, Widget headerRow) {
         return tester.widget(

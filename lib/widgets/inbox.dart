@@ -132,23 +132,26 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <(String, int, int)>[];
+      final topicItems = <(String, int, bool, int)>[];
       int countInStream = 0;
+      bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         if (!store.isTopicVisible(streamId, topic)) continue;
         final countInTopic = messageIds.length;
-        topicItems.add((topic, countInTopic, messageIds.last));
+        final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
+        if (hasMention) streamHasMention = true;
+        topicItems.add((topic, countInTopic, hasMention, messageIds.last));
         countInStream += countInTopic;
       }
       if (countInStream == 0) {
         continue;
       }
       topicItems.sort((a, b) {
-        final (_, _, aLastUnreadId) = a;
-        final (_, _, bLastUnreadId) = b;
+        final (_, _, _, aLastUnreadId) = a;
+        final (_, _, _, bLastUnreadId) = b;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      sections.add(_StreamSectionData(streamId, countInStream, topicItems));
+      sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
 
     return Scaffold(
@@ -189,20 +192,23 @@ class _AllDmsSectionData extends _InboxSectionData {
 class _StreamSectionData extends _InboxSectionData {
   final int streamId;
   final int count;
-  final List<(String, int, int)> items;
+  final bool hasMention;
+  final List<(String, int, bool, int)> items;
 
-  const _StreamSectionData(this.streamId, this.count, this.items);
+  const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
 }
 
 abstract class _HeaderItem extends StatelessWidget {
   final bool collapsed;
   final _InboxPageState pageState;
   final int count;
+  final bool hasMention;
 
   const _HeaderItem({
     required this.collapsed,
     required this.pageState,
     required this.count,
+    required this.hasMention,
   });
 
   String get title;
@@ -246,7 +252,7 @@ abstract class _HeaderItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               title))),
           const SizedBox(width: 12),
-          // TODO(#384) for streams, show @-mention indicator when it applies
+          if (hasMention) const _AtMentionMarker(),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: UnreadCountBadge(backgroundColor: unreadCountBadgeBackgroundColor, bold: true,
               count: count)),
@@ -259,6 +265,7 @@ class _AllDmsHeaderItem extends _HeaderItem {
     required super.collapsed,
     required super.pageState,
     required super.count,
+    required super.hasMention,
   });
 
   @override get title => 'Direct messages'; // TODO(i18n)
@@ -289,6 +296,7 @@ class _AllDmsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final header = _AllDmsHeaderItem(
       count: data.count,
+      hasMention: false,
       collapsed: collapsed,
       pageState: pageState,
     );
@@ -368,6 +376,7 @@ class _StreamHeaderItem extends _HeaderItem {
     required super.collapsed,
     required super.pageState,
     required super.count,
+    required super.hasMention,
   });
 
   @override get title => subscription.name;
@@ -406,6 +415,7 @@ class _StreamSection extends StatelessWidget {
     final header = _StreamHeaderItem(
       subscription: subscription,
       count: data.count,
+      hasMention: data.hasMention,
       collapsed: collapsed,
       pageState: pageState,
     );
@@ -414,11 +424,12 @@ class _StreamSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          final (topic, count, _) = item;
+          final (topic, count, hasMention, _) = item;
           return _TopicItem(
             streamId: data.streamId,
             topic: topic,
             count: count,
+            hasMention: hasMention,
           );
         }),
       ]));
@@ -430,11 +441,13 @@ class _TopicItem extends StatelessWidget {
     required this.streamId,
     required this.topic,
     required this.count,
+    required this.hasMention,
   });
 
   final int streamId;
   final String topic;
   final int count;
+  final bool hasMention;
 
   @override
   Widget build(BuildContext context) {
@@ -464,10 +477,25 @@ class _TopicItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 topic))),
             const SizedBox(width: 12),
-            // TODO(#384) show @-mention indicator when it applies
+            if (hasMention) const _AtMentionMarker(),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(backgroundColor: subscription.colorSwatch(),
                 count: count)),
           ]))));
+  }
+}
+
+class _AtMentionMarker extends StatelessWidget {
+  const _AtMentionMarker();
+
+  static final markerColor = const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor();
+
+  @override
+  Widget build(BuildContext context) {
+    // Design for at-mention marker based on Figma screen:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 4),
+      child: Icon(ZulipIcons.at_sign, size: 14, color: markerColor));
   }
 }
