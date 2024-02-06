@@ -430,7 +430,6 @@ void main() {
       }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
-        final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId, avatarUrl: avatarUrl));
         await tester.pump();
       }
@@ -629,7 +628,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.prepare(json: UpdateMessageFlagsForNarrowResult(
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
@@ -658,7 +656,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.prepare(json: UpdateMessageFlagsForNarrowResult(
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
@@ -688,7 +685,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.prepare(json: UpdateMessageFlagsForNarrowResult(
           processedCount: 1000, updatedCount: 890,
           firstProcessedId: 1, lastProcessedId: 1989,
@@ -735,7 +731,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.prepare(json: UpdateMessageFlagsForNarrowResult(
           processedCount: 1000, updatedCount: 0,
           firstProcessedId: null, lastProcessedId: null,
@@ -767,7 +762,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.zulipFeatureLevel = 154;
         connection.prepare(json: {});
         await tester.tap(find.byType(MarkAsReadWidget));
@@ -785,7 +779,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.zulipFeatureLevel = 154;
         connection.prepare(json: {});
         await tester.tap(find.byType(MarkAsReadWidget));
@@ -805,7 +798,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.zulipFeatureLevel = 154;
         connection.prepare(json: {});
         await tester.tap(find.byType(MarkAsReadWidget));
@@ -831,7 +823,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.zulipFeatureLevel = 154;
         connection.prepare(json:
           UpdateMessageFlagsResult(messages: [message.id]).toJson());
@@ -855,7 +846,6 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        final connection = store.connection as FakeApiConnection;
         connection.prepare(exception: http.ClientException('Oops'));
         await tester.tap(find.byType(MarkAsReadWidget));
         await tester.pumpAndSettle();
