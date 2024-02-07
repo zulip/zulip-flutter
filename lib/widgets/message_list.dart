@@ -213,7 +213,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     });
   }
 
-  void _adjustButtonVisibility(ScrollMetrics scrollMetrics) {
+  void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
     if (scrollMetrics.extentAfter == 0) {
       _scrollToBottomVisibleValue.value = false;
     } else {
@@ -232,11 +232,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _scrollChanged() {
-    _adjustButtonVisibility(scrollController.position);
+    _handleScrollMetrics(scrollController.position);
   }
 
-  bool _metricsChanged(ScrollMetricsNotification scrollMetricsNotification) {
-    _adjustButtonVisibility(scrollMetricsNotification.metrics);
+  bool _handleScrollMetricsNotification(ScrollMetricsNotification notification) {
+    _handleScrollMetrics(notification.metrics);
     return true;
   }
 
@@ -262,7 +262,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
             child: NotificationListener<ScrollMetricsNotification>(
-              onNotification: _metricsChanged,
+              onNotification: _handleScrollMetricsNotification,
               child: Stack(
                 children: <Widget>[
                   _buildListView(context),
