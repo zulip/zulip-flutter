@@ -6,6 +6,8 @@
   Flutter and packages dependencies, do that first.
   For details of how, see our README.
 
+* Add an entry in `docs/changelog.md`.  Commit that change.
+
 * Increment the version number in `pubspec.yaml`:
 
   Take the line near the top that looks like `version: 0.0.42+42`,
@@ -37,9 +39,9 @@
   at [Release > Testing > Internal testing][play-internaltesting],
   using the "Create new release" button there.
 
-  * Write something for release notes.  Consider copying the previous
-    version's, to say it's a beta and where to send feedback
-    without enumerating changes.
+  * For the release notes, start with `tools/format-changelog user`.
+    Edit as needed to resolve "(Android)" and "(iOS)" labels
+    and for formatting.
 
 [play-internaltesting]: https://play.google.com/console/developers/8060868091387311598/app/4972181690507348330/tracks/internal-testing
 
@@ -105,7 +107,15 @@
 * Announce the updated beta in
   [#announce > mobile beta][releases-thread].
 
+  For release notes, use `tools/format-changelog czo`.
+
 [releases-thread]: https://chat.zulip.org/#narrow/stream/1-announce/topic/mobile.20beta
+
+* For any fixed issues that were tagged "beta feedback", or otherwise
+  had people outside the mobile team specifically interested in them,
+  follow up with the requesters: post on the relevant thread (in
+  GitHub or Zulip) and @-mention the individuals who asked for the
+  change.
 
 
 ## One-time or annual setup
