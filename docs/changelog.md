@@ -4,17 +4,16 @@
 
 ### Highlights for users
 
-* The message list has a new layout, to better use the full width of
-  the screen. (#446, toward #157)
-* You can now star and unstar messages. (#170)
-* The keyboard when typing a message now auto-capitalizes
-  sentences. (#487)
+* New layout for message list, to better use the width of
+  the screen. (#446)
+* Starring and unstarring messages. (#170)
+* Auto-capitalization when typing a message. (#487)
 * Headings like `# this` are now rendered in messages. (#192)
 * Bold code (like **`this`**) is once again bold. (#498)
-* (Android) Unicode emoji now use a consistent set of emoji glyphs
+* (Android) Unicode emoji now have a consistent appearance
   across all Android devices. (#438)
-* We now set a user-agent string in requests to the server,
-  making login notifications more informative. (#406, #460)
+* Login notification emails are more informative, as we now
+  send the server a more helpful user-agent string. (#406, #460)
 
 
 ### Highlights for developers
