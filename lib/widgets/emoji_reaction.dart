@@ -178,8 +178,7 @@ class ReactionChip extends StatelessWidget {
                             color: labelColor,
                           ).merge(weightVariableTextStyle(context,
                               wght: selfVoted ? 600 : null)),
-                          label),
-                      )),
+                          label))),
                   ]);
                 })))));
   }
