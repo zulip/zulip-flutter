@@ -301,8 +301,6 @@ class _AllDmsSection extends StatelessWidget {
           return _DmItem(
             narrow: narrow,
             count: count,
-            allDmsCount: data.count,
-            pageState: pageState,
           );
         }),
       ]));
@@ -313,14 +311,10 @@ class _DmItem extends StatelessWidget {
   const _DmItem({
     required this.narrow,
     required this.count,
-    required this.allDmsCount,
-    required this.pageState
   });
 
   final DmNarrow narrow;
   final int count;
-  final int allDmsCount;
-  final _InboxPageState pageState;
 
   @override
   Widget build(BuildContext context) {
@@ -337,39 +331,32 @@ class _DmItem extends StatelessWidget {
       _ => narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', '),
     };
 
-    return StickyHeaderItem(
-      header: _AllDmsHeaderItem(
-        count: allDmsCount,
-        collapsed: false,
-        pageState: pageState,
-      ),
-      allowOverflow: true,
-      child: Material(
-        color: Colors.white,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(context,
-              MessageListPage.buildRoute(context: context, narrow: narrow));
-          },
-          child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              const SizedBox(width: 63),
-              Expanded(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  style: const TextStyle(
-                    fontSize: 17,
-                    height: (20 / 17),
-                    color: Color(0xFF222222),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  title))),
-              const SizedBox(width: 12),
-              Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-                child: UnreadCountBadge(backgroundColor: null,
-                  count: count)),
-            ])))));
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(context,
+            MessageListPage.buildRoute(context: context, narrow: narrow));
+        },
+        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            const SizedBox(width: 63),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                style: const TextStyle(
+                  fontSize: 17,
+                  height: (20 / 17),
+                  color: Color(0xFF222222),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                title))),
+            const SizedBox(width: 12),
+            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+              child: UnreadCountBadge(backgroundColor: null,
+                count: count)),
+          ]))));
   }
 }
 
@@ -432,8 +419,6 @@ class _StreamSection extends StatelessWidget {
             streamId: data.streamId,
             topic: topic,
             count: count,
-            streamCount: data.count,
-            pageState: pageState,
           );
         }),
       ]));
@@ -445,56 +430,44 @@ class _TopicItem extends StatelessWidget {
     required this.streamId,
     required this.topic,
     required this.count,
-    required this.streamCount,
-    required this.pageState,
   });
 
   final int streamId;
   final String topic;
   final int count;
-  final int streamCount;
-  final _InboxPageState pageState;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[streamId]!;
 
-    return StickyHeaderItem(
-      header: _StreamHeaderItem(
-        subscription: subscription,
-        count: streamCount,
-        collapsed: false,
-        pageState: pageState,
-      ),
-      allowOverflow: true,
-      child: Material(
-        color: Colors.white,
-        child: InkWell(
-          onTap: () {
-            final narrow = TopicNarrow(streamId, topic);
-            Navigator.push(context,
-              MessageListPage.buildRoute(context: context, narrow: narrow));
-          },
-          child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              const SizedBox(width: 63),
-              Expanded(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  style: const TextStyle(
-                    fontSize: 17,
-                    height: (20 / 17),
-                    color: Color(0xFF222222),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  topic))),
-              const SizedBox(width: 12),
-              // TODO(#384) show @-mention indicator when it applies
-              Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-                child: UnreadCountBadge(backgroundColor: subscription.colorSwatch(),
-                  count: count)),
-            ])))));
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
+          final narrow = TopicNarrow(streamId, topic);
+          Navigator.push(context,
+            MessageListPage.buildRoute(context: context, narrow: narrow));
+        },
+        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            const SizedBox(width: 63),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                style: const TextStyle(
+                  fontSize: 17,
+                  height: (20 / 17),
+                  color: Color(0xFF222222),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                topic))),
+            const SizedBox(width: 12),
+            // TODO(#384) show @-mention indicator when it applies
+            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+              child: UnreadCountBadge(backgroundColor: subscription.colorSwatch(),
+                count: count)),
+          ]))));
   }
 }
