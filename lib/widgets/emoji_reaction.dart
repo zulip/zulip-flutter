@@ -138,7 +138,7 @@ class ReactionChip extends StatelessWidget {
           child: Padding(
             // 1px of this padding accounts for the border, which Flutter
             // just paints without changing size.
-            padding: const EdgeInsetsDirectional.fromSTEB(4, 2, 5, 2),
+            padding: const EdgeInsetsDirectional.fromSTEB(4, 3, 5, 3),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final maxRowWidth = constraints.maxWidth;
@@ -160,14 +160,11 @@ class ReactionChip extends StatelessWidget {
                   children: [
                     // So text-emoji chips are at least as tall as square-emoji
                     // ones (probably a good thing).
-                    // 2 is for the `vertical: 1` padding around `emoji`.
-                    SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize) + 2),
+                    SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize)),
                     Flexible( // [Flexible] to let text emojis expand if they can
-                      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
                         child: emoji)),
-                    // Added vertical: 1 to give some space when the label is
-                    // taller than the emoji (e.g. because it needs multiple lines)
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: Container(
                         constraints: BoxConstraints(maxWidth: maxLabelWidth),
                         child: Text(
