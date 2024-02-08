@@ -69,6 +69,48 @@ class ContentExample {
   /// to have it defined for each test case right next to [html] and [expectedNodes].
   final String? expectedText;
 
+  static final emojiUnicode = ContentExample.inline(
+    'Unicode emoji, encoded in span element',
+    ":thumbs_up:",
+    expectedText: '\u{1f44d}', // "👍"
+    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+
+  static final emojiUnicodeClassesFlipped = ContentExample.inline(
+    'Unicode emoji, encoded in span element, class order reversed',
+    null, // ":thumbs_up:" (hypothetical server variation)
+    expectedText: '\u{1f44d}', // "👍"
+    '<p><span aria-label="thumbs up" class="emoji-1f44d emoji" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+
+  static final emojiUnicodeMultiCodepoint = ContentExample.inline(
+    'Unicode emoji, encoded in span element, multiple codepoints',
+    ":transgender_flag:",
+    expectedText: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}', // "🏳️‍⚧️"
+    '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}'));
+
+  static final emojiUnicodeLiteral = ContentExample.inline(
+    'Unicode emoji, not encoded in span element',
+    "\u{1fabf}",
+    expectedText: '\u{1fabf}', // "🪿"
+    '<p>\u{1fabf}</p>',
+    const TextNode('\u{1fabf}'));
+
+  static final emojiCustom = ContentExample.inline(
+    'custom emoji',
+    ":flutter:",
+    '<p><img alt=":flutter:" class="emoji" src="/user_avatars/2/emoji/images/204.png" title="flutter"></p>',
+    const ImageEmojiNode(
+      src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:'));
+
+  static final emojiZulipExtra = ContentExample.inline(
+    'Zulip extra emoji',
+    ":zulip:",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    const ImageEmojiNode(
+      src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
+
   static const codeBlockPlain = ContentExample(
     'code block without syntax highlighting',
     "```\nverb\natim\n```",
@@ -343,37 +385,12 @@ void main() {
     // TODO test wildcard mentions
   });
 
-  testParseInline('parse Unicode emoji, encoded in span element',
-    // ":thumbs_up:"
-    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')); // "👍"
-
-  testParseInline('parse Unicode emoji, encoded in span element, class order reversed',
-    // ":thumbs_up:" (hypothetical server variation)
-    '<p><span aria-label="thumbs up" class="emoji-1f44d emoji" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')); // "👍"
-
-  testParseInline('parse Unicode emoji, encoded in span element, multiple codepoints',
-    // ":transgender_flag:"
-    '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}')); // "🏳️‍⚧️"
-
-  testParseInline('parse Unicode emoji, not encoded in span element',
-    // "\u{1fabf}"
-    '<p>\u{1fabf}</p>',
-    const TextNode('\u{1fabf}')); // "🪿"
-
-  testParseInline('parse custom emoji',
-    // ":flutter:"
-    '<p><img alt=":flutter:" class="emoji" src="/user_avatars/2/emoji/images/204.png" title="flutter"></p>',
-    const ImageEmojiNode(
-      src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:'));
-
-  testParseInline('parse Zulip extra emoji',
-    // ":zulip:"
-    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
-    const ImageEmojiNode(
-      src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
+  testParseExample(ContentExample.emojiUnicode);
+  testParseExample(ContentExample.emojiUnicodeClassesFlipped);
+  testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
+  testParseExample(ContentExample.emojiUnicodeLiteral);
+  testParseExample(ContentExample.emojiCustom);
+  testParseExample(ContentExample.emojiZulipExtra);
 
   testParseExample(ContentExample.mathInline);
 

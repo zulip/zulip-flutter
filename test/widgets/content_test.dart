@@ -220,26 +220,9 @@ void main() {
   });
 
   group('UnicodeEmoji', () {
-    testWidgets('encoded emoji span', (tester) async {
-      await prepareContentBare(tester,
-        // ":thumbs_up:"
-        '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>');
-      tester.widget(find.text('\u{1f44d}')); // "👍"
-    });
-
-    testWidgets('encoded emoji span, with multiple codepoints', (tester) async {
-      await prepareContentBare(tester,
-        // ":transgender_flag:"
-        '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>');
-      tester.widget(find.text('\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}')); // "🏳️‍⚧️"
-    });
-
-    testWidgets('non encoded emoji', (tester) async {
-      await prepareContentBare(tester,
-        // "\u{1fabf}"
-        '<p>\u{1fabf}</p>');
-      tester.widget(find.text('\u{1fabf}')); // "🪿"
-    });
+    testContentSmoke(ContentExample.emojiUnicode);
+    testContentSmoke(ContentExample.emojiUnicodeMultiCodepoint);
+    testContentSmoke(ContentExample.emojiUnicodeLiteral);
   });
 
   testContentSmoke(ContentExample.mathInline);
