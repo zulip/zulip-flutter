@@ -23,6 +23,17 @@ import 'message_list_checks.dart';
 import 'page_checks.dart';
 
 void main() {
+  // For testing a new content feature:
+  //
+  //  * Start by writing parsing tests using [ContentExample].
+  //    Then use [testContentSmoke] here to smoke-test the widgets.
+  //
+  //  * If the widgets have any interactive behavior, test that here too.
+  //    Those tests might not use [ContentExample], because they're often
+  //    clearest if the HTML text is visible directly in the test source code
+  //    to compare with the other details of the test.
+  //    For examples, see the "LinkNode interactions" group below.
+
   TestZulipBinding.ensureInitialized();
 
   Future<void> prepareContentBare(WidgetTester tester, String html) async {
