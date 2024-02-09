@@ -9,23 +9,6 @@ import 'package:zulip/model/content.dart';
 
 import 'content_checks.dart';
 
-void testParse(String name, String html, List<BlockContentNode> nodes) {
-  test(name, () {
-    check(parseContent(html))
-      .equalsNode(ZulipContent(nodes: nodes));
-  });
-}
-
-UnimplementedBlockContentNode blockUnimplemented(String html) {
-  var fragment = HtmlParser(html, parseMeta: false).parseFragment();
-  return UnimplementedBlockContentNode(htmlNode: fragment.nodes.single);
-}
-
-UnimplementedInlineContentNode inlineUnimplemented(String html) {
-  var fragment = HtmlParser(html, parseMeta: false).parseFragment();
-  return UnimplementedInlineContentNode(htmlNode: fragment.nodes.single);
-}
-
 /// An example of Zulip content for test cases.
 class ContentExample {
   const ContentExample(this.description, this.markdown, this.html,
@@ -241,6 +224,23 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
+}
+
+UnimplementedBlockContentNode blockUnimplemented(String html) {
+  var fragment = HtmlParser(html, parseMeta: false).parseFragment();
+  return UnimplementedBlockContentNode(htmlNode: fragment.nodes.single);
+}
+
+UnimplementedInlineContentNode inlineUnimplemented(String html) {
+  var fragment = HtmlParser(html, parseMeta: false).parseFragment();
+  return UnimplementedInlineContentNode(htmlNode: fragment.nodes.single);
+}
+
+void testParse(String name, String html, List<BlockContentNode> nodes) {
+  test(name, () {
+    check(parseContent(html))
+      .equalsNode(ZulipContent(nodes: nodes));
+  });
 }
 
 void testParseExample(ContentExample example) {
