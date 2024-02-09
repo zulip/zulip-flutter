@@ -10,6 +10,30 @@ import 'package:zulip/model/content.dart';
 import 'content_checks.dart';
 
 /// An example of Zulip content for test cases.
+//
+// When writing examples:
+//
+//  * Try to use actual HTML emitted by a Zulip server for [html].
+//    Record the corresponding Markdown source in [markdown].
+//
+//  * Here's a handy `curl` command for getting the server's HTML.
+//    First, as one-time setup, create a file with a test account's
+//    Zulip credentials in "netrc" format, meaning one line that looks like:
+//       machine HOSTNAME login EMAIL password API_KEY
+//
+//  * Then send some test messages, and fetch with a command like this.
+//    (Change "sender" operand to your user ID, and "topic" etc. as desired.)
+/*    $ curl -sS --netrc-file ../.netrc -G https://chat.zulip.org/api/v1/messages \
+          --data-urlencode 'narrow=[{"operator":"sender", "operand":2187},
+                                    {"operator":"stream", "operand":"test here"},
+                                    {"operator":"topic",  "operand":"content"}]' \
+          --data-urlencode anchor=newest --data-urlencode num_before=10 --data-urlencode num_after=0 \
+          --data-urlencode apply_markdown=true \
+        | jq '.messages[] | .content'
+ */
+//
+//  * To get the corresponding Markdown source, use the same command
+//    with `apply_markdown` changed to `false`.
 class ContentExample {
   const ContentExample(this.description, this.markdown, this.html,
     this.expectedNodes, {this.expectedText});
@@ -37,7 +61,7 @@ class ContentExample {
   /// A fragment of Zulip HTML, to be parsed as a [ZulipContent].
   ///
   /// Generally this should be actual HTML emitted by a Zulip server.
-  /// See the example `curl` command in comments in this file for help in
+  /// See the example `curl` command in comments on this class for help in
   /// conveniently getting such HTML.
   final String html;
 
@@ -250,27 +274,11 @@ void testParseExample(ContentExample example) {
 void main() {
   // When writing test cases in this file:
   //
-  //  * Try to use actual HTML emitted by a Zulip server.
-  //    Record the corresponding Markdown source in a comment.
+  //  * Prefer to add a [ContentExample] static and use [testParseExample].
+  //    Then add one line of code to `test/widgets/content_test.dart`,
+  //    calling `testContentSmoke`, for a widgets test on the same example.
   //
-  //  * Here's a handy `curl` command for getting the server's HTML.
-  //    First, as one-time setup, create a file with a test account's
-  //    Zulip credentials in "netrc" format, meaning one line that looks like:
-  //       machine HOSTNAME login EMAIL password API_KEY
-  //
-  //  * Then send some test messages, and fetch with a command like this.
-  //    (Change "sender" operand to your user ID, and "topic" etc. as desired.)
-  /*    $ curl -sS --netrc-file ../.netrc -G https://chat.zulip.org/api/v1/messages \
-            --data-urlencode 'narrow=[{"operator":"sender", "operand":2187},
-                                      {"operator":"stream", "operand":"test here"},
-                                      {"operator":"topic",  "operand":"content"}]' \
-            --data-urlencode anchor=newest --data-urlencode num_before=10 --data-urlencode num_after=0 \
-            --data-urlencode apply_markdown=true \
-          | jq '.messages[] | .content'
-   */
-  //
-  //  * To get the corresponding Markdown source, use the same command
-  //    with `apply_markdown` changed to `false`.
+  //  * To write the example, see comment at top of [ContentExample].
 
   //
   // Inline content.
