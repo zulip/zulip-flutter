@@ -23,30 +23,28 @@ void main() {
       100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, 10000,
     ].map((ms) => Duration(milliseconds: ms)).toList();
 
-    final trialResults = <List<Duration>>[];
-    for (int i = 0; i < numTrials; i++) {
-      final resultsForThisTrial = <Duration>[];
+    final trialResults = List.generate(numTrials, (_) =>
       awaitFakeAsync((async) async {
         final backoffMachine = BackoffMachine();
-        for (int j = 0; j < expectedMaxDurations.length; j++) {
+        final results = <Duration>[];
+        for (int i = 0; i < expectedMaxDurations.length; i++) {
           final duration = await measureWait(backoffMachine.wait());
-          resultsForThisTrial.add(duration);
+          results.add(duration);
         }
         check(async.pendingTimers).isEmpty();
-      });
-      trialResults.add(resultsForThisTrial);
-    }
+        return results;
+      }));
 
-    for (int j = 0; j < expectedMaxDurations.length; j++) {
-      Duration maxFromAllTrials = trialResults[0][j];
-      Duration minFromAllTrials = trialResults[0][j];
+    for (int i = 0; i < expectedMaxDurations.length; i++) {
+      Duration maxFromAllTrials = trialResults[0][i];
+      Duration minFromAllTrials = trialResults[0][i];
       for (final singleTrial in trialResults.skip(1)) {
-        final t = singleTrial[j];
+        final t = singleTrial[i];
         maxFromAllTrials = t > maxFromAllTrials ? t : maxFromAllTrials;
         minFromAllTrials = t < minFromAllTrials ? t : minFromAllTrials;
       }
 
-      final expectedMax = expectedMaxDurations[j];
+      final expectedMax = expectedMaxDurations[i];
       // Each of these assertions has a failure probability of:
       //     pow(0.75, numTrials) = pow(0.75, 100) < 1e-12
       check(minFromAllTrials).isLessThan(   expectedMax * 0.25);
