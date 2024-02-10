@@ -13,6 +13,7 @@ import 'package:zulip/notifications.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'binding.dart';
 import 'test_store.dart';
@@ -170,7 +171,7 @@ void main() {
         });
     }
 
-    test('loops on success', () async {
+    test('loops on success', () => awaitFakeAsync((async) async {
       await prepareStore(lastEventId: 1);
       check(updateMachine.lastEventId).equals(1);
 
@@ -182,7 +183,7 @@ void main() {
         HeartbeatEvent(id: 2),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
-      await null;
+      async.flushMicrotasks();
       checkLastRequest(lastEventId: 1);
       await Future.delayed(Duration.zero);
       check(updateMachine.lastEventId).equals(2);
@@ -192,13 +193,13 @@ void main() {
         HeartbeatEvent(id: 3),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
-      await null;
+      async.flushMicrotasks();
       checkLastRequest(lastEventId: 2);
       await Future.delayed(Duration.zero);
       check(updateMachine.lastEventId).equals(3);
-    });
+    }));
 
-    test('handles events', () async {
+    test('handles events', () => awaitFakeAsync((async) async {
       await prepareStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
@@ -210,12 +211,12 @@ void main() {
           property: UserSettingName.twentyFourHourTime, value: true),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
-      await null;
+      async.flushMicrotasks();
       await Future.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
-    });
+    }));
 
-    test('handles expired queue', () async {
+    test('handles expired queue', () => awaitFakeAsync((async) async {
       await prepareStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
@@ -228,7 +229,7 @@ void main() {
         'msg': 'Bad event queue ID: ${updateMachine.queueId}',
       });
       updateMachine.debugAdvanceLoop();
-      await null;
+      async.flushMicrotasks();
       await Future.delayed(Duration.zero);
 
       // The global store has a new store.
@@ -244,10 +245,10 @@ void main() {
           property: UserSettingName.twentyFourHourTime, value: true),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
-      await null;
+      async.flushMicrotasks();
       await Future.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
-    });
+    }));
   });
 
   group('UpdateMachine.registerNotificationToken', () {
@@ -273,7 +274,7 @@ void main() {
         ..bodyFields.deepEquals({'token': token});
     }
 
-    testAndroidIos('token already known', () async {
+    testAndroidIos('token already known', () => awaitFakeAsync((async) async {
       // This tests the case where [NotificationService.start] has already
       // learned the token before the store is created.
       // (This is probably the common case.)
@@ -296,12 +297,12 @@ void main() {
         // If the token changes, send it again.
         testBinding.firebaseMessaging.setToken('456def');
         connection.prepare(json: {});
-        await null; // Run microtasks.  TODO use FakeAsync for these tests.
+        async.flushMicrotasks();
         checkLastRequestFcm(token: '456def');
       }
-    });
+    }));
 
-    testAndroidIos('token initially unknown', () async {
+    testAndroidIos('token initially unknown', () => awaitFakeAsync((async) async {
       // This tests the case where the store is created while our
       // request for the token is still pending.
       addTearDown(testBinding.reset);
@@ -335,10 +336,10 @@ void main() {
         // If the token subsequently changes, send it again.
         testBinding.firebaseMessaging.setToken('456def');
         connection.prepare(json: {});
-        await null; // Run microtasks.  TODO use FakeAsync for these tests.
+        async.flushMicrotasks();
         checkLastRequestFcm(token: '456def');
       }
-    });
+    }));
   });
 }
 
