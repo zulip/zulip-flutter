@@ -224,12 +224,12 @@ void main() {
       check(pushedRoutes).isEmpty();
     }
 
-    Future<void> openNotification(Account account, Message message) async {
+    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
       final fcmMessage = messageFcmMessage(message, account: account);
       testBinding.notifications.receiveNotificationResponse(NotificationResponse(
         notificationResponseType: NotificationResponseType.selectedNotification,
         payload: jsonEncode(fcmMessage)));
-      await null; // let _navigateForNotification find navigator
+      await tester.idle(); // let _navigateForNotification find navigator
     }
 
     void matchesNavigation(Subject<Route> route, Account account, Message message) {
@@ -240,8 +240,8 @@ void main() {
             selfUserId: account.userId));
     }
 
-    Future<void> checkOpenNotification(Account account, Message message) async {
-      await openNotification(account, message);
+    Future<void> checkOpenNotification(WidgetTester tester, Account account, Message message) async {
+      await openNotification(tester, account, message);
       matchesNavigation(check(pushedRoutes).single, account, message);
       pushedRoutes.clear();
     }
@@ -249,26 +249,26 @@ void main() {
     testWidgets('stream message', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
-      await checkOpenNotification(eg.selfAccount, eg.streamMessage());
+      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     });
 
     testWidgets('direct message', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
-      await checkOpenNotification(eg.selfAccount,
+      await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
     });
 
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
-      await openNotification(eg.selfAccount, eg.streamMessage());
+      await openNotification(tester, eg.selfAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
     });
 
     testWidgets('mismatching account', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
-      await openNotification(eg.otherAccount, eg.streamMessage());
+      await openNotification(tester, eg.otherAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
     });
 
@@ -288,17 +288,17 @@ void main() {
       }
       await prepare(tester);
 
-      await checkOpenNotification(accounts[0], eg.streamMessage());
-      await checkOpenNotification(accounts[1], eg.streamMessage());
-      await checkOpenNotification(accounts[2], eg.streamMessage());
-      await checkOpenNotification(accounts[3], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[0], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[1], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[2], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[3], eg.streamMessage());
     });
 
     testWidgets('wait for app to become ready', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester, early: true);
       final message = eg.streamMessage();
-      await openNotification(eg.selfAccount, message);
+      await openNotification(tester, eg.selfAccount, message);
       // The app should still not be ready (or else this test won't work right).
       check(ZulipApp.ready.value).isFalse();
       check(ZulipApp.navigatorKey.currentState).isNull();
