@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
@@ -113,6 +114,20 @@ class UnimplementedBlockContentNode extends BlockContentNode
   // No ==/hashCode, because htmlNode is a whole subtree.
 }
 
+class _BlockContentListNode extends DiagnosticableTree {
+  const _BlockContentListNode(this.nodes);
+
+  final List<BlockContentNode> nodes;
+
+  @override
+  String toStringShort() => 'BlockContentNode list';
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
 /// A block content node whose children are inline content nodes.
 ///
 /// A node of this type expects a block layout context from its parent,
@@ -226,22 +241,9 @@ class ListNode extends BlockContentNode {
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     return items
-      .map((nodes) => _ListItemDiagnosticableNode(nodes).toDiagnosticsNode())
+      .mapIndexed((i, nodes) =>
+        _BlockContentListNode(nodes).toDiagnosticsNode(name: 'item $i'))
       .toList();
-  }
-}
-
-class _ListItemDiagnosticableNode extends DiagnosticableTree {
-  _ListItemDiagnosticableNode(this.nodes);
-
-  final List<BlockContentNode> nodes;
-
-  @override
-  String toStringShort() => 'list item';
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return nodes.map((node) => node.toDiagnosticsNode()).toList();
   }
 }
 
