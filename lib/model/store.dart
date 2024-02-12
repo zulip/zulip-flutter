@@ -14,6 +14,7 @@ import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
+import '../api/backoff.dart';
 import '../log.dart';
 import '../notifications.dart';
 import 'autocomplete.dart';
@@ -573,6 +574,8 @@ class UpdateMachine {
   }
 
   void poll() async {
+    final backoffMachine = BackoffMachine();
+
     while (true) {
       if (_debugLoopSignal != null) {
         await _debugLoopSignal!.future;
@@ -595,10 +598,22 @@ class UpdateMachine {
             debugLog('… Event queue replaced.');
             return;
 
+          case Server5xxException() || NetworkException():
+            assert(debugLog('Transient error polling event queue for $store: $e\n'
+                'Backing off, then will retry…'));
+            // TODO tell user if transient polling errors persist
+            // TODO reset to short backoff eventually
+            await backoffMachine.wait();
+            assert(debugLog('… Backoff wait complete, retrying poll.'));
+            continue;
+
           default:
-            assert(debugLog('Error polling event queue for $store: $e'));
-            // TODO(#184) handle errors on get-events; retry with backoff
-            rethrow;
+            assert(debugLog('Error polling event queue for $store: $e\n'
+                'Backing off and retrying even though may be hopeless…'));
+            // TODO tell user on non-transient error in polling
+            await backoffMachine.wait();
+            assert(debugLog('… Backoff wait complete, retrying poll.'));
+            continue;
         }
       }
 
