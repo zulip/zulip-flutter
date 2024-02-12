@@ -68,9 +68,9 @@ class FakeHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
+    lastRequest = request;
     final response = _nextResponse!;
     _nextResponse = null;
-    lastRequest = request;
     switch (response) {
       case _PreparedException(:var exception):
         return Future(() => throw exception);
