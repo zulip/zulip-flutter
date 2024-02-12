@@ -27,6 +27,12 @@ class FakeHttpClient extends http.BaseClient {
 
   http.BaseRequest? lastRequest;
 
+  http.BaseRequest? takeLastRequest() {
+    final result = lastRequest;
+    lastRequest = null;
+    return result;
+  }
+
   _PreparedResponse? _nextResponse;
 
   // Please add more features to this mocking API as needed.  For example:
@@ -141,6 +147,8 @@ class FakeApiConnection extends ApiConnection {
   }
 
   http.BaseRequest? get lastRequest => client.lastRequest;
+
+  http.BaseRequest? takeLastRequest() => client.takeLastRequest();
 
   /// Prepare the response for the next request.
   ///
