@@ -127,7 +127,7 @@ void main() {
       await store.sendMessage(
         destination: StreamDestination(stream.streamId, 'world'),
         content: 'hello');
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeLastRequest()).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
@@ -162,7 +162,7 @@ void main() {
     }
 
     void checkLastRequest({required int lastEventId}) {
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeLastRequest()).isA<http.Request>()
         ..method.equals('GET')
         ..url.path.equals('/api/v1/events')
         ..url.queryParameters.deepEquals({
@@ -261,14 +261,14 @@ void main() {
     }
 
     void checkLastRequestApns({required String token, required String appid}) {
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeLastRequest()).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/users/me/apns_device_token')
         ..bodyFields.deepEquals({'token': token, 'appid': appid});
     }
 
     void checkLastRequestFcm({required String token}) {
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeLastRequest()).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/users/me/android_gcm_reg_id')
         ..bodyFields.deepEquals({'token': token});
