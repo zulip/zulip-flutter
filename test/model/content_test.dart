@@ -118,6 +118,14 @@ class ContentExample {
     const ImageEmojiNode(
       src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
 
+  static const quotation = ContentExample(
+    'quotation',
+    "```quote\nwords\n```",
+    expectedText: 'words',
+    '<blockquote>\n<p>words</p>\n</blockquote>', [
+      QuotationNode([ParagraphNode(links: null, nodes: [TextNode('words')])])
+    ]);
+
   static const codeBlockPlain = ContentExample(
     'code block without syntax highlighting',
     "```\nverb\natim\n```",
@@ -557,11 +565,7 @@ void main() {
         ])]);
   });
 
-  testParse('parse quotations',
-    // "```quote\nwords\n```"
-    '<blockquote>\n<p>words</p>\n</blockquote>', const [
-      QuotationNode([ParagraphNode(links: null, nodes: [TextNode('words')])]),
-    ]);
+  testParseExample(ContentExample.quotation);
 
   testParseExample(ContentExample.codeBlockPlain);
   testParseExample(ContentExample.codeBlockHighlightedShort);

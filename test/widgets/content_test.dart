@@ -71,6 +71,8 @@ void main() {
     });
   });
 
+  testContentSmoke(ContentExample.quotation);
+
   group("CodeBlock", () {
     testContentSmoke(ContentExample.codeBlockPlain);
     testContentSmoke(ContentExample.codeBlockHighlightedShort);
