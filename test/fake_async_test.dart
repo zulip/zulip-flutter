@@ -17,16 +17,26 @@ void main() {
       })).equals(duration);
     });
 
+    int someFunction() => throw _TestException();
+
     test('propagates error from future returned by callback', () {
-      check(() => awaitFakeAsync((async) async {
-        throw _TestException();
-      })).throws().isA<_TestException>();
+      try {
+        awaitFakeAsync((async) async => someFunction());
+        assert(false);
+      } catch (e, s) {
+        check(e).isA<_TestException>();
+        check(s.toString()).contains('someFunction');
+      }
     });
 
     test('propagates error from callback itself', () {
-      check(() => awaitFakeAsync((async) {
-        throw _TestException();
-      })).throws().isA<_TestException>();
+      try {
+        awaitFakeAsync((async) => Future.value(someFunction()));
+        assert(false);
+      } catch (e, s) {
+        check(e).isA<_TestException>();
+        check(s.toString()).contains('someFunction');
+      }
     });
 
     test('TimeoutException on deadlocked callback', () {

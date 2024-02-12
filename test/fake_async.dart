@@ -19,11 +19,12 @@ T awaitFakeAsync<T>(Future<T> Function(FakeAsync async) callback,
     {DateTime? initialTime}) {
   late final T value;
   Object? error;
+  StackTrace? stackTrace;
   bool completed = false;
   FakeAsync(initialTime: initialTime)
     ..run((async) {
-        callback(async).then<void>((v) { value = v; completed = true; })
-                       .catchError((e) { error = e; completed = true; });
+        callback(async).then<void>((v) { value = v; completed = true; },
+          onError: (e, s) { error = e; stackTrace = s; completed = true; });
       })
     ..flushTimers();
 
@@ -32,7 +33,7 @@ T awaitFakeAsync<T>(Future<T> Function(FakeAsync async) callback,
       'A callback passed to awaitFakeAsync returned a Future that '
       'did not complete even after calling FakeAsync.flushTimers.');
   } else if (error != null) {
-    throw error!;
+    Error.throwWithStackTrace(error!, stackTrace!);
   } else {
     return value;
   }
