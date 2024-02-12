@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message;
@@ -16,6 +17,7 @@ import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 
+import 'fake_async.dart';
 import 'model/binding.dart';
 import 'example_data.dart' as eg;
 import 'test_navigation.dart';
@@ -129,64 +131,64 @@ void main() {
         );
     }
 
-    Future<void> checkNotifications(MessageFcmMessage data, {
+    Future<void> checkNotifications(FakeAsync async, MessageFcmMessage data, {
       required String expectedTitle,
       required String expectedTagComponent,
     }) async {
       testBinding.firebaseMessaging.onMessage.add(
         RemoteMessage(data: data.toJson()));
-      await null;
+      async.flushMicrotasks();
       checkNotification(data, expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
       testBinding.firebaseMessaging.onBackgroundMessage.add(
         RemoteMessage(data: data.toJson()));
-      await null;
+      async.flushMicrotasks();
       checkNotification(data, expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
     }
 
-    test('stream message', () async {
+    test('stream message', () => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotifications(messageFcmMessage(message, streamName: stream.name),
+      await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
         expectedTitle: '${stream.name} > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
-    });
+    }));
 
-    test('stream message, stream name omitted', () async {
+    test('stream message, stream name omitted', () => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotifications(messageFcmMessage(message, streamName: null),
+      await checkNotifications(async, messageFcmMessage(message, streamName: null),
         expectedTitle: '(unknown stream) > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
-    });
+    }));
 
-    test('group DM', () async {
+    test('group DM', () => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
-      await checkNotifications(messageFcmMessage(message),
+      await checkNotifications(async, messageFcmMessage(message),
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    });
+    }));
 
-    test('1:1 DM', () async {
+    test('1:1 DM', () => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      await checkNotifications(messageFcmMessage(message),
+      await checkNotifications(async, messageFcmMessage(message),
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    });
+    }));
 
-    test('self-DM', () async {
+    test('self-DM', () => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.selfUser, to: []);
-      await checkNotifications(messageFcmMessage(message),
+      await checkNotifications(async, messageFcmMessage(message),
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    });
+    }));
   });
 
   group('NotificationDisplayManager open', () {
