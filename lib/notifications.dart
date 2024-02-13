@@ -174,6 +174,12 @@ class NotificationService {
     _onRemoteMessage(message);
   }
 
+  // This pragma `vm:entry-point` is needed in release mode, when this method
+  // is needed at all (i.e. on Android):
+  //   https://firebase.google.com/docs/cloud-messaging/flutter/receive#background_messages
+  //   https://github.com/firebase/flutterfire/issues/9446#issuecomment-1240554285
+  //   https://github.com/zulip/zulip-flutter/issues/528#issuecomment-1960646800
+  @pragma('vm:entry-point')
   static Future<void> _onBackgroundMessage(FirebaseRemoteMessage message) async {
     // This callback will run in a separate isolate from the rest of the app.
     // See docs:
