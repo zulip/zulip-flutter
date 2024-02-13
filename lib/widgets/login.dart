@@ -323,6 +323,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
   }
 
   void _submit() async {
+
     final serverSettings = widget.loginPageState.widget.serverSettings;
 
     final context = _usernameKey.currentContext!;
@@ -334,8 +335,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
     if (!usernameValid || !passwordValid) {
       return;
     }
-    final String username = usernameFieldState.value!;
-    final String password = passwordFieldState.value!;
+    final String username = usernameFieldState.value!.trim();
+    final String password = passwordFieldState.value!.trim();
 
     widget.loginPageState.setState(() {
       widget.loginPageState._inProgress = true;
