@@ -82,11 +82,11 @@ void main() {
   }
 
   group('permissions', () {
-    testWidgets('on iOS request permission', (tester) async {
+    testWidgets('request permission', (tester) async {
       await init();
       check(testBinding.firebaseMessaging.takeRequestPermissionCalls())
         .length.equals(1);
-    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('NotificationChannelManager', () {
