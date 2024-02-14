@@ -5,22 +5,14 @@ import '../core.dart';
 part 'account.g.dart';
 
 /// https://zulip.com/api/fetch-api-key
-Future<FetchApiKeyResult> fetchApiKey({
-  required Uri realmUrl,
-  required int? zulipFeatureLevel,
+Future<FetchApiKeyResult> fetchApiKey(ApiConnection connection, {
   required String username,
   required String password,
-}) async {
-  // TODO make this function testable by taking ApiConnection from caller
-  final connection = ApiConnection.live(realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel);
-  try {
-    return await connection.post('fetchApiKey', FetchApiKeyResult.fromJson, 'fetch_api_key', {
-      'username': RawParameter(username),
-      'password': RawParameter(password),
-    });
-  } finally {
-    connection.close();
-  }
+}) {
+  return connection.post('fetchApiKey', FetchApiKeyResult.fromJson, 'fetch_api_key', {
+    'username': RawParameter(username),
+    'password': RawParameter(password),
+  });
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

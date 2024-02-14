@@ -153,7 +153,13 @@ class _AddAccountPageState extends State<AddAccountPage> {
     try {
       final GetServerSettingsResult serverSettings;
       try {
-        serverSettings = await getServerSettings(realmUrl: url!, zulipFeatureLevel: null);
+        // TODO make this function testable by controlling ApiConnection
+        final connection = ApiConnection.live(realmUrl: url!, zulipFeatureLevel: null);
+        try {
+          serverSettings = await getServerSettings(connection);
+        } finally {
+          connection.close();
+        }
       } catch (e) {
         if (!context.mounted) {
           return;
@@ -343,10 +349,15 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
     try {
       final FetchApiKeyResult result;
       try {
-        result = await fetchApiKey(
-          realmUrl: realmUrl,
-          zulipFeatureLevel: serverSettings.zulipFeatureLevel,
-          username: username, password: password);
+        // TODO make this function testable by controlling ApiConnection
+        final connection = ApiConnection.live(realmUrl: realmUrl,
+          zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+        try {
+          result = await fetchApiKey(connection,
+            username: username, password: password);
+        } finally {
+          connection.close();
+        }
       } on ApiRequestException catch (e) {
         if (!context.mounted) return;
         // TODO(#105) give more helpful feedback. The RN app is
