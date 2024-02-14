@@ -527,8 +527,6 @@ class LiveGlobalStore extends GlobalStore {
 }
 
 /// A [PerAccountStore] plus an event-polling loop to stay up to date.
-// TODO decouple "live"ness from polling and registerNotificationToken;
-//   the latter are made up of testable internal logic, not external integration
 class UpdateMachine {
   UpdateMachine.fromInitialSnapshot({
     required this.store,
@@ -544,7 +542,8 @@ class UpdateMachine {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, Account account) async {
-    final connection = ApiConnection.live(
+    // TODO test UpdateMachine.load, now that it uses [GlobalStore.apiConnection]
+    final connection = globalStore.apiConnection(
       realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
       email: account.email, apiKey: account.apiKey);
 
