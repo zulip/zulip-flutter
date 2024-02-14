@@ -62,8 +62,6 @@ class NotificationService {
   Future<void> start() async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        // TODO(#324) defer notif setup if user not logged into any accounts
-        //   (in order to avoid calling for permissions)
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsAndroid);
 
@@ -72,6 +70,14 @@ class NotificationService {
           .listen(_onForegroundMessage);
         ZulipBinding.instance.firebaseMessagingOnBackgroundMessage(
           _onBackgroundMessage);
+
+        await _requestPermission(); // TODO(#324): defer if not logged into any accounts
+        // On Android, the notification permission is only about showing
+        // notifications in the UI, not about getting notification data in the
+        // background.  Even if the app lacks permission to show notifications
+        // in the UI, it's useful to get the token and enable the user's Zulip
+        // servers to send notification data to the client, because it means if
+        // the user later enables notifications, they'll promptly start working.
 
         // Get the FCM registration token, now and upon changes.  See FCM API docs:
         //   https://firebase.google.com/docs/cloud-messaging/android/client#sample-register
