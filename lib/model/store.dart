@@ -53,6 +53,18 @@ abstract class GlobalStore extends ChangeNotifier {
   // TODO settings (those that are per-device rather than per-account)
   // TODO push token, and other data corresponding to GlobalSessionState
 
+  /// Construct a new [ApiConnection], real or fake as appropriate.
+  ///
+  /// Where a per-account store is available, use [PerAccountStore.connection].
+  /// This method is for use before a per-account store exists, such as in
+  /// the login flow.
+  ApiConnection apiConnection({
+    required Uri realmUrl,
+    required int? zulipFeatureLevel, // required even though nullable; see [ApiConnection.zulipFeatureLevel]
+    String? email,
+    String? apiKey,
+  });
+
   final Map<int, PerAccountStore> _perAccountStores = {};
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
@@ -452,6 +464,15 @@ class LiveGlobalStore extends GlobalStore {
     required AppDatabase db,
     required super.accounts,
   }) : _db = db;
+
+  @override
+  ApiConnection apiConnection({
+      required Uri realmUrl, required int? zulipFeatureLevel,
+      String? email, String? apiKey}) {
+    return ApiConnection.live(
+      realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
+      email: email, apiKey: apiKey);
+  }
 
   // We keep the API simple and synchronous for the bulk of the app's code
   // by doing this loading up front before constructing a [GlobalStore].
