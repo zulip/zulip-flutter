@@ -83,16 +83,11 @@ class NotificationService {
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsIos);
 
-        // Docs on this API: https://firebase.flutter.dev/docs/messaging/permissions/
-        final settings = await ZulipBinding.instance.firebaseMessaging
-          .requestPermission();
-        assert(debugLog('notif settings: $settings'));
-        switch (settings.authorizationStatus) {
-          case AuthorizationStatus.denied:
-            return;
-          case AuthorizationStatus.authorized:
-          case AuthorizationStatus.provisional:
-          case AuthorizationStatus.notDetermined:
+        if (!await _requestPermission()) {
+          // TODO(#324): request only "provisional" permission at this stage:
+          //   https://github.com/zulip/zulip-flutter/issues/324#issuecomment-1771400325
+          //   then proceed to get and use the token just like on Android
+          return;
         }
 
         await _getApnsToken();
@@ -104,6 +99,21 @@ class NotificationService {
       case TargetPlatform.fuchsia:
         // Do nothing; we don't offer notifications on these platforms.
         break;
+    }
+  }
+
+  Future<bool> _requestPermission() async {
+    // Docs on this API: https://firebase.flutter.dev/docs/messaging/permissions/
+    final settings = await ZulipBinding.instance.firebaseMessaging
+      .requestPermission();
+    assert(debugLog('notif authorization: ${settings.authorizationStatus}'));
+    switch (settings.authorizationStatus) {
+      case AuthorizationStatus.denied:
+        return false;
+      case AuthorizationStatus.authorized:
+      case AuthorizationStatus.provisional:
+      case AuthorizationStatus.notDetermined:
+        return true;
     }
   }
 
