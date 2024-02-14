@@ -15,17 +15,8 @@ part 'realm.g.dart';
 // TODO(#107): Perhaps detect realmless root domain, for more specific onboarding feedback.
 //   See thread, and the zulip-mobile code and chat thread it links to:
 //     https://github.com/zulip/zulip-flutter/pull/55#discussion_r1160267577
-Future<GetServerSettingsResult> getServerSettings({
-  required Uri realmUrl,
-  required int? zulipFeatureLevel,
-}) async {
-  // TODO make this function testable by taking ApiConnection from caller
-  final connection = ApiConnection.live(realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel);
-  try {
-    return await connection.get('getServerSettings', GetServerSettingsResult.fromJson, 'server_settings', null);
-  } finally {
-    connection.close();
-  }
+Future<GetServerSettingsResult> getServerSettings(ApiConnection connection) {
+  return connection.get('getServerSettings', GetServerSettingsResult.fromJson, 'server_settings', null);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
