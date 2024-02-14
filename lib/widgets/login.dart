@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
-import '../api/core.dart';
 import '../api/exception.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
@@ -153,8 +152,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
     try {
       final GetServerSettingsResult serverSettings;
       try {
-        // TODO make this function testable by controlling ApiConnection
-        final connection = ApiConnection.live(realmUrl: url!, zulipFeatureLevel: null);
+        final globalStore = GlobalStoreWidget.of(context);
+        final connection = globalStore.apiConnection(realmUrl: url!, zulipFeatureLevel: null);
         try {
           serverSettings = await getServerSettings(connection);
         } finally {
@@ -281,7 +280,8 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
   }
 
   Future<int> _getUserId(String email, apiKey) async {
-    final connection = ApiConnection.live( // TODO make this widget testable
+    final globalStore = GlobalStoreWidget.of(context);
+    final connection = globalStore.apiConnection(
       realmUrl: widget.serverSettings.realmUrl,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
       email: email, apiKey: apiKey);
@@ -353,8 +353,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
     try {
       final FetchApiKeyResult result;
       try {
-        // TODO make this function testable by controlling ApiConnection
-        final connection = ApiConnection.live(realmUrl: realmUrl,
+        final globalStore = GlobalStoreWidget.of(context);
+        final connection = globalStore.apiConnection(realmUrl: realmUrl,
           zulipFeatureLevel: serverSettings.zulipFeatureLevel);
         try {
           result = await fetchApiKey(connection,
