@@ -96,20 +96,25 @@ class FakeApiConnection extends ApiConnection {
   /// which causes route bindings to behave as they would for the
   /// latest Zulip server versions.
   /// To set `zulipFeatureLevel` to null, pass null explicitly.
-  FakeApiConnection({Uri? realmUrl, int? zulipFeatureLevel = eg.futureZulipFeatureLevel})
-    : this._(
-        realmUrl: realmUrl ?? eg.realmUrl,
-        zulipFeatureLevel: zulipFeatureLevel,
-        client: FakeHttpClient(),
-      );
+  FakeApiConnection({
+    Uri? realmUrl,
+    int? zulipFeatureLevel = eg.futureZulipFeatureLevel,
+    String? email,
+    String? apiKey,
+  }) : this._(
+         realmUrl: realmUrl ?? eg.realmUrl,
+         zulipFeatureLevel: zulipFeatureLevel,
+         email: email,
+         apiKey: apiKey,
+         client: FakeHttpClient(),
+       );
 
   FakeApiConnection.fromAccount(Account account)
-    : this._(
+    : this(
         realmUrl: account.realmUrl,
         zulipFeatureLevel: account.zulipFeatureLevel,
         email: account.email,
-        apiKey: account.apiKey,
-        client: FakeHttpClient());
+        apiKey: account.apiKey);
 
   FakeApiConnection._({
     required super.realmUrl,
