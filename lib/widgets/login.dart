@@ -346,7 +346,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       return;
     }
     final String username = usernameFieldState.value!.trim();
-    final String password = passwordFieldState.value!.trim();
+    final String password = passwordFieldState.value!;
 
     widget.loginPageState.setState(() {
       widget.loginPageState._inProgress = true;
