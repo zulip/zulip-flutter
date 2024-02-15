@@ -8,5 +8,5 @@
 run_visibly () {
     set -x
     "$@"
-    { set +x; } 2>&-
+    { set +x; } 2>/dev/null
 }
