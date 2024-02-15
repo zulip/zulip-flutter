@@ -64,6 +64,12 @@ abstract class GlobalStore extends ChangeNotifier {
     String? apiKey,
   });
 
+  ApiConnection apiConnectionFromAccount(Account account) {
+    return apiConnection(
+      realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
+      email: account.email, apiKey: account.apiKey);
+  }
+
   final Map<int, PerAccountStore> _perAccountStores = {};
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
@@ -542,9 +548,7 @@ class UpdateMachine {
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, Account account) async {
     // TODO test UpdateMachine.load, now that it uses [GlobalStore.apiConnection]
-    final connection = globalStore.apiConnection(
-      realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
-      email: account.email, apiKey: account.apiKey);
+    final connection = globalStore.apiConnectionFromAccount(account);
 
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(connection); // TODO retry
