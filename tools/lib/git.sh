@@ -4,6 +4,11 @@
 
 no_uncommitted_changes()
 {
+    # This line ensures the checks below are working from up-to-date data.
+    # Empirically it seems rarely if ever necessary on Linux,
+    # but does come up on macOS and Windows.
+    git update-index -q --refresh || return
+
     if ! git diff-index --quiet --cached HEAD -- "$@"; then
         # Index differs from HEAD.
         return 1
