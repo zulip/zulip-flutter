@@ -285,7 +285,11 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
       realmUrl: widget.serverSettings.realmUrl,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
       email: email, apiKey: apiKey);
-    return (await getOwnUser(connection)).userId;
+    try {
+      return (await getOwnUser(connection)).userId;
+    } finally {
+      connection.close();
+    }
   }
 
   @override
