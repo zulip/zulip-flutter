@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
@@ -19,6 +20,25 @@ Uri get _realmUrl => realmUrl;
 const String recentZulipVersion = '8.0';
 const int recentZulipFeatureLevel = 185;
 const int futureZulipFeatureLevel = 9999;
+
+GetServerSettingsResult serverSettings() {
+  return GetServerSettingsResult(
+    authenticationMethods: {},
+    externalAuthenticationMethods: [],
+    zulipFeatureLevel: recentZulipFeatureLevel,
+    zulipVersion: recentZulipVersion,
+    zulipMergeBase: recentZulipVersion,
+    pushNotificationsEnabled: true,
+    isIncompatible: false,
+    emailAuthEnabled: true,
+    requireEmailFormatUsernames: true,
+    realmUrl: realmUrl,
+    realmName: 'Example Zulip organization',
+    realmIcon: '$realmUrl/icon.png',
+    realmDescription: 'An example Zulip organization',
+    realmWebPublicAccessEnabled: false,
+  );
+}
 
 ////////////////////////////////////////////////////////////////
 // Users and accounts.
