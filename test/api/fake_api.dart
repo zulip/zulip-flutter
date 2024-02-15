@@ -145,6 +145,19 @@ class FakeApiConnection extends ApiConnection {
     }
   }
 
+  /// True just if [close] has never been called on this connection.
+  // In principle this could live on [ApiConnection]... but [http.Client]
+  // offers no way to tell if [http.Client.close] has been called,
+  // so we follow that library's lead on this point of API design.
+  bool get isOpen => _isOpen;
+  bool _isOpen = true;
+
+  @override
+  void close() {
+    _isOpen = false;
+    super.close();
+  }
+
   http.BaseRequest? get lastRequest => client.lastRequest;
 
   /// Prepare the response for the next request.
