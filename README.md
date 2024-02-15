@@ -161,10 +161,20 @@ To update the version bounds:
 When adding or upgrading dependencies, try to keep our generated files
 updated atomically with them.
 
-In particular the files `ios/Podfile.lock` and `macos/Podfile.lock`
+In particular the CocoaPods lockfiles
+`ios/Podfile.lock` and `macos/Podfile.lock`
 frequently need an update when dependencies change.
-To update those, run (on a Mac) the commands
-`flutter build ios --config-only && flutter build macos --config-only`.
+This can only be done in a macOS development environment.
+
+If you have access to a Mac,
+then for upgrading dependencies, use the script `tools/upgrade`.
+Or after adding a new dependency, run the commands
+`(cd ios && pod update) && (cd macos && pod update)`
+to apply any needed updates to the CocoaPods lockfiles.
+
+If you don't have convenient access to a Mac, then just mention
+clearly in your PR that the upgrade needs syncing for CocoaPods,
+and someone else can do it before merging the PR.
 
 (Ideally we would validate these automatically in CI: [#329][].
 Several other kinds of generated files are already validated in CI.)

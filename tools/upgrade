@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+this_dir=${BASH_SOURCE[0]%/*}
+
+# shellcheck source=tools/lib/git.sh
+. "${this_dir}"/lib/git.sh
+
+# shellcheck source=tools/lib/cli.sh
+. "${this_dir}"/lib/cli.sh
+
+
+## CLI PARSING
+
+default_steps=(pod pub pub-major)
+
+usage() {
+    cat <<EOF
+usage: tools/upgrade [OPTION]... [STEP]...
+
+Upgrade our dependencies.
+
+By default, run all upgrade steps:
+  ${default_steps[*]}
+
+Each step produces a Git commit if there were any changes.
+
+The steps are:
+
+  pod         Upgrade CocoaPods pods.
+
+  pub         Upgrade pub packages within the constraints expressed
+              in pubspec.yaml, then upgrade pods to match.
+
+  pub-major   Upgrade pub packages to latest, editing pubspec.yaml,
+              then upgrade pods to match.  If there are any changes
+              here, the resulting commit is only a draft and requires
+              human editing and review.
+EOF
+}
+
+opt_steps=()
+while (( $# )); do
+    case "$1" in
+        pod|pub|pub-major)
+            opt_steps+=("$1"); shift;;
+        --help) usage; exit 0;;
+        *) usage >&2; exit 2;;
+    esac
+done
+
+if (( ! "${#opt_steps[@]}" )); then
+    opt_steps=( "${default_steps[@]}" )
+fi
+
+
+## EXECUTION
+
+rootdir=$(git rev-parse --show-toplevel)
+cd "$rootdir"
+
+check_have_cocoapods() {
+    if ! type pod >/dev/null; then
+        echo >&2 "No \`pod\` command found."
+        echo >&2
+        echo >&2 "This script requires CocoaPods, in order to keep"
+        echo >&2 "the CocoaPods lockfiles in sync with our \`pubspec.lock\`."
+        echo >&2 "Try running it in a development environment on macOS."
+        return 1
+    fi
+}
+
+# Memoized result of check_pub_get_clean.
+#
+# (Useful because `flutter pub get` takes a couple of seconds to run.)
+pub_get_known_clean=
+
+# Check there are no changes that would be snuck in by the
+# locally-installed Flutter version.
+# TODO automate upgrading Flutter, too
+check_pub_get_clean() {
+    if [ -n "${pub_get_known_clean}" ]; then
+        return 0
+    fi
+
+    run_visibly flutter pub get
+    if ! no_uncommitted_changes; then
+        echo >&2 "There were changes caused by running \`flutter pub get\`:"
+        echo >&2
+        git_status_short
+        echo >&2
+        echo >&2 "Typically this means your local Flutter install is newer"
+        echo >&2 "than the version reflected in our \`pubspec.lock\`."
+        echo >&2 "Follow the \"Upgrading Flutter\" steps in our README,"
+        echo >&2 "and then try \`tools/upgrade\` again."
+        return 1
+    fi
+
+    pub_get_known_clean=1
+}
+
+just_pod_update() {
+    run_visibly pod update --project-directory=ios/
+    run_visibly pod update --project-directory=macos/
+}
+
+upgrade_pod() {
+    check_no_uncommitted_or_untracked
+    check_pub_get_clean
+
+    just_pod_update
+    if no_uncommitted_changes; then
+        echo >&2 "pod update: No changes."
+        return
+    fi
+
+    git commit -a -m "\
+deps: Update CocoaPods pods (tools/upgrade pod)
+"
+}
+
+upgrade_pub() {
+    check_no_uncommitted_or_untracked
+    check_pub_get_clean
+
+    run_visibly flutter pub upgrade
+    if no_uncommitted_changes; then
+        echo >&2 "flutter pub upgrade: No changes."
+        return
+    fi
+
+    just_pod_update
+
+    # Some upgrades also cause various "generated_plugin_registrant"
+    # or "generated_plugins" files to get updated: see commits
+    # bf09824bd and b8b72723a.  From the latter, it sounds like those
+    # changes are made automatically by `flutter pub upgrade`, though,
+    # so no action needed here.
+
+    # TODO rerun build_runner, at least if Drift was updated;
+    #   cf commits db7932244, 9400c8561, and 5dbf1e635.
+    #   If that does change anything, probably flag for closer human review.
+
+    git commit -a -m "\
+deps: Upgrade packages within constraints (tools/upgrade pub)
+"
+}
+
+upgrade_pub_major() {
+    check_no_uncommitted_or_untracked
+    check_pub_get_clean
+
+    run_visibly flutter pub upgrade --major-versions
+    if no_uncommitted_changes; then
+        echo >&2 "flutter pub upgrade --major-versions: No changes."
+        return
+    fi
+
+    just_pod_update
+
+    # TODO rerun build_runner; see upgrade_pub
+
+    git commit -a -m "\
+WIP deps: Upgrade packages to latest, namely TODO:(which packages?)
+
+This is the result of \`tools/upgrade pod-major\`, and
+TODO:(describe any other changes you had to make).
+
+Changelogs:
+  TODO:(link https://pub.dev/packages/PACKAGE_NAME/changelog)
+"
+
+    cat <<EOF
+There were upgrades beyond the constraints we had in \`pubspec.yaml\`.
+This typically means the package maintainers identified the changes
+as potentially breaking.
+
+The \`tools/upgrade\` script created a draft commit, but this type
+of upgrade cannot be fully automated because it requires review.
+To finish the upgrade:
+
+ * Identify which packages were updated.
+ * Locate their changelogs: https://pub.dev/packages/PACKAGE_NAME/changelog .
+ * Review the changelogs and determine if any of the breaking changes
+   look like they could affect us.
+ * Test any relevant areas of the app, and make any changes needed
+   for our code to go along with the updates.
+ * Amend the commit, and fill in the TODO items in the commit message.
+
+If several unrelated packages were upgraded, and any of them require
+changes in our code, consider upgrading them in separate commits.
+EOF
+}
+
+check_have_cocoapods
+
+divider_line='================================================================'
+
+for step in "${opt_steps[@]}"; do
+    echo
+    echo "${divider_line}"
+    echo "======== tools/upgrade ${step}"
+    case "${step}" in
+        pod)       upgrade_pod ;;
+        pub)       upgrade_pub ;;
+        pub-major) upgrade_pub_major ;;
+        *)   echo >&2 "Internal error: unknown step ${step}" ;;
+    esac
+done

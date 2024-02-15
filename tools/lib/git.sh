@@ -34,6 +34,7 @@ git_status_short()
     git status --short --untracked-files=normal -- "$@"
 }
 
+# shellcheck disable=SC2120  # parameters are all optional
 check_no_uncommitted_or_untracked()
 {
     local problem=""
