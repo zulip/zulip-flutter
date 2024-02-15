@@ -33,7 +33,6 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       account: account1,
-      connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot(),
     );
     completers(1).single.complete(store1);
@@ -45,7 +44,6 @@ void main() {
     final store2 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       account: account2,
-      connection: FakeApiConnection.fromAccount(account2),
       initialSnapshot: eg.initialSnapshot(),
     );
     completers(2).single.complete(store2);
@@ -73,13 +71,11 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       account: account1,
-      connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot(),
     );
     final store2 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       account: account2,
-      connection: FakeApiConnection.fromAccount(account2),
       initialSnapshot: eg.initialSnapshot(),
     );
     completers(1).single.complete(store1);
@@ -105,7 +101,6 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       account: account1,
-      connection: FakeApiConnection.fromAccount(account1),
       initialSnapshot: eg.initialSnapshot(),
     );
     completers(1).single.complete(store1);
