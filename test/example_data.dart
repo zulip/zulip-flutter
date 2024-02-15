@@ -6,7 +6,6 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
-import 'api/fake_api.dart';
 import 'model/test_store.dart';
 import 'stdlib_checks.dart';
 
@@ -476,7 +475,6 @@ PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
   return PerAccountStore.fromInitialSnapshot(
     globalStore: globalStore(accounts: [effectiveAccount]),
     account: effectiveAccount,
-    connection: FakeApiConnection.fromAccount(effectiveAccount),
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }

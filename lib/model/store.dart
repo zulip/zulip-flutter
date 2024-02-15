@@ -183,12 +183,19 @@ abstract class GlobalStore extends ChangeNotifier {
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
 class PerAccountStore extends ChangeNotifier with StreamStore {
+  /// Construct a store for the user's data, starting from the given snapshot.
+  ///
+  /// If the [connection] parameter is omitted, it defaults
+  /// to `globalStore.apiConnectionFromAccount(account)`.
+  /// When present, it should be a connection that came from that method call,
+  /// but it may have already been used for other requests.
   factory PerAccountStore.fromInitialSnapshot({
     required GlobalStore globalStore,
     required Account account,
-    required ApiConnection connection,
+    ApiConnection? connection,
     required InitialSnapshot initialSnapshot,
   }) {
+    connection ??= globalStore.apiConnectionFromAccount(account);
     final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,

@@ -95,7 +95,6 @@ class TestGlobalStore extends GlobalStore {
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: this,
       account: account,
-      connection: FakeApiConnection.fromAccount(account),
       initialSnapshot: initialSnapshot,
     );
     updateMachines[account.id] = UpdateMachine.fromInitialSnapshot(
