@@ -37,20 +37,23 @@ void main() {
       });
     }
 
-    expectUrlFromText('https://chat.zulip.org',   'https://chat.zulip.org');
-    expectUrlFromText('https://chat.zulip.org/',  'https://chat.zulip.org/');
+    expectUrlFromText('https://chat.zulip.org', 'https://chat.zulip.org');
+    expectUrlFromText('https://chat.zulip.org/', 'https://chat.zulip.org/');
     expectUrlFromText(' https://chat.zulip.org ', 'https://chat.zulip.org');
-    expectUrlFromText('http://chat.zulip.org',    'http://chat.zulip.org');
-    expectUrlFromText('chat.zulip.org',           'https://chat.zulip.org');
-    expectUrlFromText('192.168.1.21:9991',        'https://192.168.1.21:9991');
+    expectUrlFromText('http://chat.zulip.org', 'http://chat.zulip.org');
+    expectUrlFromText('chat.zulip.org', 'https://chat.zulip.org');
+    expectUrlFromText('192.168.1.21:9991', 'https://192.168.1.21:9991');
     expectUrlFromText('http://192.168.1.21:9991', 'http://192.168.1.21:9991');
 
-    expectErrorFromText('',                  ServerUrlValidationError.empty);
-    expectErrorFromText(' ',                 ServerUrlValidationError.empty);
-    expectErrorFromText('zulip://foo',       ServerUrlValidationError.unsupportedSchemeZulip);
-    expectErrorFromText('ftp://foo',         ServerUrlValidationError.unsupportedSchemeOther);
-    expectErrorFromText('!@#*asd;l4fkj',     ServerUrlValidationError.invalidUrl);
-    expectErrorFromText('email@example.com', ServerUrlValidationError.noUseEmail);
+    expectErrorFromText('', ServerUrlValidationError.empty);
+    expectErrorFromText(' ', ServerUrlValidationError.empty);
+    expectErrorFromText(
+        'zulip://foo', ServerUrlValidationError.unsupportedSchemeZulip);
+    expectErrorFromText(
+        'ftp://foo', ServerUrlValidationError.unsupportedSchemeOther);
+    expectErrorFromText('!@#*asd;l4fkj', ServerUrlValidationError.invalidUrl);
+    expectErrorFromText(
+        'email@example.com', ServerUrlValidationError.noUseEmail);
   });
 
   // TODO test AddAccountPage
@@ -58,32 +61,32 @@ void main() {
   group('PasswordLoginPage', () {
     late FakeApiConnection connection;
 
-    Future<void> prepare(WidgetTester tester,
-        GetServerSettingsResult serverSettings) async {
+    Future<void> prepare(
+        WidgetTester tester, GetServerSettingsResult serverSettings) async {
       addTearDown(testBinding.reset);
 
       connection = testBinding.globalStore.apiConnection(
-        realmUrl: serverSettings.realmUrl,
-        zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+          realmUrl: serverSettings.realmUrl,
+          zulipFeatureLevel: serverSettings.zulipFeatureLevel);
 
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(MaterialApp(
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           home: GlobalStoreWidget(
-            child: PasswordLoginPage(serverSettings: serverSettings))));
+              child: PasswordLoginPage(serverSettings: serverSettings))));
       await tester.pump(); // load global store
     }
 
     final findUsernameInput = find.byWidgetPredicate((widget) =>
-      widget is TextField
-      && (widget.autofillHints ?? []).contains(AutofillHints.email));
+        widget is TextField &&
+        (widget.autofillHints ?? []).contains(AutofillHints.email));
     final findPasswordInput = find.byWidgetPredicate((widget) =>
-      widget is TextField
-      && (widget.autofillHints ?? []).contains(AutofillHints.password));
+        widget is TextField &&
+        (widget.autofillHints ?? []).contains(AutofillHints.password));
     final findSubmitButton = find.widgetWithText(ElevatedButton, 'Log in');
 
-    void checkFetchApiKey({required String username, required String password}) {
+    void checkFetchApiKey(
+        {required String username, required String password}) {
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/fetch_api_key')
@@ -100,7 +103,8 @@ void main() {
 
       await tester.enterText(findUsernameInput, eg.selfAccount.email);
       await tester.enterText(findPasswordInput, 'p455w0rd');
-      connection.prepare(json: FetchApiKeyResult(
+      connection.prepare(
+          json: FetchApiKeyResult(
         apiKey: eg.selfAccount.apiKey,
         email: eg.selfAccount.email,
         userId: eg.selfAccount.userId,
@@ -108,11 +112,33 @@ void main() {
       await tester.tap(findSubmitButton);
       checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
       await tester.idle();
-      check(testBinding.globalStore.accounts).single
-        .equals(eg.selfAccount.copyWith(
-          id: testBinding.globalStore.accounts.single.id));
+      check(testBinding.globalStore.accounts).single.equals(eg.selfAccount
+          .copyWith(id: testBinding.globalStore.accounts.single.id));
     });
 
+    testWidgets('test case with trimming logic', (tester) async {
+      final serverSettings = eg.serverSettings();
+      await prepare(tester, serverSettings);
+      check(testBinding.globalStore.accounts).isEmpty();
+
+      final emailWithTrailingSpaces = '${eg.selfAccount.email}    ';
+      await tester.enterText(findUsernameInput, emailWithTrailingSpaces);
+      await tester.enterText(findPasswordInput, 'p455w0rd');
+      connection.prepare(
+        json: FetchApiKeyResult(
+          apiKey: eg.selfAccount.apiKey,
+          email: eg.selfAccount.email,
+          userId: eg.selfAccount.userId,
+        ).toJson(),
+      );
+
+      await tester.tap(findSubmitButton);
+      checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
+      await tester.idle();
+
+      check(testBinding.globalStore.accounts).single.equals(eg.selfAccount
+          .copyWith(id: testBinding.globalStore.accounts.single.id));
+    });
     // TODO test validators on the TextFormField widgets
     // TODO test navigation, i.e. the call to pushAndRemoveUntil
     // TODO test _getUserId case
