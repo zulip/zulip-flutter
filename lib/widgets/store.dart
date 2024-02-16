@@ -12,8 +12,13 @@ import '../model/store.dart';
 ///  * [PerAccountStoreWidget], for the user's data associated with a
 ///    particular Zulip account.
 class GlobalStoreWidget extends StatefulWidget {
-  const GlobalStoreWidget({super.key, required this.child});
+  const GlobalStoreWidget({
+    super.key,
+    this.placeholder = const LoadingPlaceholder(),
+    required this.child,
+  });
 
+  final Widget placeholder;
   final Widget child;
 
   /// The app's global data store.
@@ -65,8 +70,7 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   @override
   Widget build(BuildContext context) {
     final store = this.store;
-    // TODO: factor out the use of LoadingPlaceholder to be configured by the widget, like [widget.child] is
-    if (store == null) return const LoadingPlaceholder();
+    if (store == null) return widget.placeholder;
     return _GlobalStoreInheritedWidget(store: store, child: widget.child);
   }
 }
@@ -107,10 +111,12 @@ class PerAccountStoreWidget extends StatefulWidget {
   const PerAccountStoreWidget({
     super.key,
     required this.accountId,
+    this.placeholder = const LoadingPlaceholder(),
     required this.child,
   });
 
   final int accountId;
+  final Widget placeholder;
   final Widget child;
 
   /// The user's data for the relevant Zulip account for this widget.
@@ -220,8 +226,7 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: factor out the use of LoadingPlaceholder to be configured by the widget, like [widget.child] is
-    if (store == null) return const LoadingPlaceholder();
+    if (store == null) return widget.placeholder;
     return _PerAccountStoreInheritedWidget(store: store!, child: widget.child);
   }
 }
