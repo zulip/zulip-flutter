@@ -14,7 +14,6 @@ import 'package:zulip/notifications.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/store.dart';
 
 import 'flutter_checks.dart';
 import 'model/binding.dart';
@@ -22,7 +21,6 @@ import 'example_data.dart' as eg;
 import 'test_navigation.dart';
 import 'widgets/message_list_checks.dart';
 import 'widgets/page_checks.dart';
-import 'widgets/store_checks.dart';
 
 FakeAndroidFlutterLocalNotificationsPlugin get notifAndroid =>
   testBinding.notifications
@@ -218,12 +216,11 @@ void main() {
     }
 
     void matchesNavigation(Subject<Route> route, Account account, Message message) {
-      route.isA<WidgetRoute>().page
-        .isA<PerAccountStoreWidget>()
+      route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
-        ..child.isA<MessageListPage>()
-            .narrow.equals(SendableNarrow.ofMessage(message,
-              selfUserId: account.userId));
+        ..page.isA<MessageListPage>()
+          .narrow.equals(SendableNarrow.ofMessage(message,
+            selfUserId: account.userId));
     }
 
     Future<void> checkOpenNotification(Account account, Message message) async {

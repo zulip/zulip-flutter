@@ -389,11 +389,9 @@ class NotificationDisplayManager {
 
     assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
-    navigator.push(MaterialWidgetRoute(
-      page: PerAccountStoreWidget(accountId: account.id,
-        placeholder: const LoadingPlaceholderPage(),
-        // TODO(#82): Open at specific message, not just conversation
-        child: MessageListPage(narrow: narrow))));
+    navigator.push(MaterialAccountWidgetRoute(accountId: account.id,
+      // TODO(#82): Open at specific message, not just conversation
+      page: MessageListPage(narrow: narrow)));
     return;
   }
 }

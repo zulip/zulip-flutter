@@ -211,10 +211,8 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   static Route<void> buildRoute({required int accountId}) {
-    return MaterialWidgetRoute(
-      page: PerAccountStoreWidget(accountId: accountId,
-        placeholder: const LoadingPlaceholderPage(),
-        child: const HomePage()));
+    return MaterialAccountWidgetRoute(accountId: accountId,
+      page: const HomePage());
   }
 
   @override
