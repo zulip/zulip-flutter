@@ -127,7 +127,12 @@ class ZulipApp extends StatelessWidget {
           GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
           return child!;
         },
-        home: const ChooseAccountPage()));
+        onGenerateRoute: (settings) {
+          return settings.name == Navigator.defaultRouteName
+            ? MaterialWidgetRoute(
+                settings: settings, page: const ChooseAccountPage())
+            : null;
+        }));
   }
 }
 
