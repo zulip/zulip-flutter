@@ -140,9 +140,7 @@ class ZulipApp extends StatelessWidget {
 
         onGenerateInitialRoutes: (_) {
           return [
-            MaterialWidgetRoute(
-              settings: const RouteSettings(name: Navigator.defaultRouteName),
-              page: const ChooseAccountPage()),
+            MaterialWidgetRoute(page: const ChooseAccountPage()),
           ];
         }));
   }

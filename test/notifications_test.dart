@@ -15,7 +15,6 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 
-import 'flutter_checks.dart';
 import 'model/binding.dart';
 import 'example_data.dart' as eg;
 import 'test_navigation.dart';
@@ -290,9 +289,9 @@ void main() {
 
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
-      // The navigator first pushes the home route…
+      // The navigator first pushes the starting route…
       check(pushedRoutes).length.equals(2);
-      check(pushedRoutes[0]).settings.name.equals("/");
+      check(pushedRoutes[0]).isA<WidgetRoute>().page.isA<ChooseAccountPage>();
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes[1]), eg.selfAccount, message);
     });
@@ -315,7 +314,7 @@ void main() {
       // Once the app is ready, we navigate to the conversation.
       await tester.pump();
       check(pushedRoutes).length.equals(2);
-      check(pushedRoutes[0]).settings.name.equals("/");
+      check(pushedRoutes[0]).isA<WidgetRoute>().page.isA<ChooseAccountPage>();
       matchesNavigation(check(pushedRoutes[1]), account, message);
     });
   });
