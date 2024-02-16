@@ -111,37 +111,40 @@ class ZulipApp extends StatelessWidget {
       // a finger or thumb than the area above.
       tooltipTheme: const TooltipThemeData(preferBelow: false),
     );
+
     return GlobalStoreWidget(
-      child: MaterialApp(
-        title: 'Zulip',
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        theme: theme,
+      child: Builder(builder: (context) {
+        return MaterialApp(
+          title: 'Zulip',
+          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          supportedLocales: ZulipLocalizations.supportedLocales,
+          theme: theme,
 
-        navigatorKey: navigatorKey,
-        navigatorObservers: navigatorObservers ?? const [],
-        builder: (BuildContext context, Widget? child) {
-          if (!ready.value) {
-            SchedulerBinding.instance.addPostFrameCallback(
-              (_) => _declareReady());
-          }
-          GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-          return child!;
-        },
+          navigatorKey: navigatorKey,
+          navigatorObservers: navigatorObservers ?? const [],
+          builder: (BuildContext context, Widget? child) {
+            if (!ready.value) {
+              SchedulerBinding.instance.addPostFrameCallback(
+                (_) => _declareReady());
+            }
+            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+            return child!;
+          },
 
-        // We use onGenerateInitialRoutes for the real work of specifying the
-        // initial nav state.  To do that we need [MaterialApp] to decide to
-        // build a [Navigator]... which means specifying either `home`, `routes`,
-        // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-        // It never actually gets called, though: `onGenerateInitialRoutes`
-        // handles startup, and then we always push whole routes with methods
-        // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-        onGenerateRoute: (_) => null,
+          // We use onGenerateInitialRoutes for the real work of specifying the
+          // initial nav state.  To do that we need [MaterialApp] to decide to
+          // build a [Navigator]... which means specifying either `home`, `routes`,
+          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+          // It never actually gets called, though: `onGenerateInitialRoutes`
+          // handles startup, and then we always push whole routes with methods
+          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+          onGenerateRoute: (_) => null,
 
-        onGenerateInitialRoutes: (_) {
-          return [
-            MaterialWidgetRoute(page: const ChooseAccountPage()),
-          ];
+          onGenerateInitialRoutes: (_) {
+            return [
+              MaterialWidgetRoute(page: const ChooseAccountPage()),
+            ];
+          });
         }));
   }
 }
