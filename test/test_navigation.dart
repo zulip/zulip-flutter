@@ -11,6 +11,7 @@ class TestNavigatorObserver extends NavigatorObserver {
   void Function(Route<dynamic> route, Route<dynamic>? previousRoute)? onRemoved;
   void Function(Route<dynamic>? route, Route<dynamic>? previousRoute)? onReplaced;
   void Function(Route<dynamic> route, Route<dynamic>? previousRoute)? onStartUserGesture;
+  void Function()? onStopUserGesture;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
@@ -35,5 +36,10 @@ class TestNavigatorObserver extends NavigatorObserver {
   @override
   void didStartUserGesture(Route<dynamic> route, Route<dynamic>? previousRoute) {
     onStartUserGesture?.call(route, previousRoute);
+  }
+
+  @override
+  void didStopUserGesture() {
+    onStopUserGesture?.call();
   }
 }
