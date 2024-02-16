@@ -114,6 +114,9 @@ class ZulipApp extends StatelessWidget {
 
     return GlobalStoreWidget(
       child: Builder(builder: (context) {
+        final globalStore = GlobalStoreWidget.of(context);
+        // TODO(#524) choose initial account as last one used
+        final initialAccountId = globalStore.accounts.firstOrNull?.id;
         return MaterialApp(
           title: 'Zulip',
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
@@ -143,6 +146,9 @@ class ZulipApp extends StatelessWidget {
           onGenerateInitialRoutes: (_) {
             return [
               MaterialWidgetRoute(page: const ChooseAccountPage()),
+              if (initialAccountId != null) ...[
+                HomePage.buildRoute(accountId: initialAccountId),
+              ],
             ];
           });
         }));

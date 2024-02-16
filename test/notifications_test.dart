@@ -191,15 +191,21 @@ void main() {
   group('NotificationDisplayManager open', () {
     late List<Route<dynamic>> pushedRoutes;
 
-    void takeStartingRoutes() {
+    void takeStartingRoutes({bool withAccount = true}) {
       final expected = [
         (Subject it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        if (withAccount) ...[
+          (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+            ..accountId.equals(eg.selfAccount.id)
+            ..page.isA<HomePage>(),
+        ],
       ];
       check(pushedRoutes.take(expected.length)).deepEquals(expected);
       pushedRoutes.removeRange(0, expected.length);
     }
 
-    Future<void> prepare(WidgetTester tester, {bool early = false}) async {
+    Future<void> prepare(WidgetTester tester,
+        {bool early = false, bool withAccount = true}) async {
       await init();
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
@@ -210,7 +216,7 @@ void main() {
         return;
       }
       await tester.pump();
-      takeStartingRoutes();
+      takeStartingRoutes(withAccount: withAccount);
       check(pushedRoutes).isEmpty();
     }
 
@@ -250,7 +256,7 @@ void main() {
     });
 
     testWidgets('no accounts', (tester) async {
-      await prepare(tester);
+      await prepare(tester, withAccount: false);
       await openNotification(eg.selfAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
     });
