@@ -117,6 +117,7 @@ class ZulipApp extends StatelessWidget {
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         theme: theme,
+
         navigatorKey: navigatorKey,
         navigatorObservers: navigatorObservers ?? const [],
         builder: (BuildContext context, Widget? child) {
@@ -127,11 +128,22 @@ class ZulipApp extends StatelessWidget {
           GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
           return child!;
         },
-        onGenerateRoute: (settings) {
-          return settings.name == Navigator.defaultRouteName
-            ? MaterialWidgetRoute(
-                settings: settings, page: const ChooseAccountPage())
-            : null;
+
+        // We use onGenerateInitialRoutes for the real work of specifying the
+        // initial nav state.  To do that we need [MaterialApp] to decide to
+        // build a [Navigator]... which means specifying either `home`, `routes`,
+        // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+        // It never actually gets called, though: `onGenerateInitialRoutes`
+        // handles startup, and then we always push whole routes with methods
+        // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+        onGenerateRoute: (_) => null,
+
+        onGenerateInitialRoutes: (_) {
+          return [
+            MaterialWidgetRoute(
+              settings: const RouteSettings(name: Navigator.defaultRouteName),
+              page: const ChooseAccountPage()),
+          ];
         }));
   }
 }
