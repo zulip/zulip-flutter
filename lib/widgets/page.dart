@@ -39,6 +39,7 @@ mixin AccountPageRouteMixin<T> on PageRoute<T> {
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     return PerAccountStoreWidget(
       accountId: accountId,
+      placeholder: const LoadingPlaceholderPage(),
       child: super.buildPage(context, animation, secondaryAnimation));
   }
 }
@@ -117,4 +118,16 @@ class AccountPageRouteBuilder<T> extends PageRouteBuilder<T> with AccountPageRou
 
   @override
   final int accountId;
+}
+
+class LoadingPlaceholderPage extends StatelessWidget {
+  const LoadingPlaceholderPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: const LoadingPlaceholder(),
+    );
+  }
 }

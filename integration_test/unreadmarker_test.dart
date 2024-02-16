@@ -7,6 +7,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../test/api/fake_api.dart';
@@ -38,6 +39,7 @@ void main() {
         home: GlobalStoreWidget(
           child: PerAccountStoreWidget(
             accountId: eg.selfAccount.id,
+            placeholder: const LoadingPlaceholderPage(),
             child: const MessageListPage(narrow: AllMessagesNarrow())))));
     await tester.pumpAndSettle();
     return messages;
