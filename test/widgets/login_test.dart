@@ -116,12 +116,12 @@ void main() {
           .copyWith(id: testBinding.globalStore.accounts.single.id));
     });
 
-    testWidgets('test case with trimming logic', (tester) async {
+    testWidgets('trims whitespace on username', (tester) async {
       final serverSettings = eg.serverSettings();
       await prepare(tester, serverSettings);
       check(testBinding.globalStore.accounts).isEmpty();
 
-      final emailWithTrailingSpaces = '${eg.selfAccount.email}    ';
+      final emailWithTrailingSpaces = '  ${eg.selfAccount.email}    ';
       await tester.enterText(findUsernameInput, emailWithTrailingSpaces);
       await tester.enterText(findPasswordInput, 'p455w0rd');
       connection.prepare(
