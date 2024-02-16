@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
@@ -31,7 +32,7 @@ void main() {
       ]);
     });
 
-    testWidgets('when have accounts, go to home page for first account', (tester) async {
+    testWidgets('when have accounts, go to inbox for first account', (tester) async {
       addTearDown(testBinding.reset);
 
       // We'll need per-account data for the account that a page will be opened
@@ -44,6 +45,9 @@ void main() {
         (Subject it) => it.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(eg.selfAccount.id)
           ..page.isA<HomePage>(),
+        (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(eg.selfAccount.id)
+          ..page.isA<InboxPage>(),
       ]);
     });
   });

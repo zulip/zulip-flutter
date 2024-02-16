@@ -12,6 +12,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 
@@ -198,6 +199,9 @@ void main() {
           (Subject it) => it.isA<MaterialAccountWidgetRoute>()
             ..accountId.equals(eg.selfAccount.id)
             ..page.isA<HomePage>(),
+          (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+            ..accountId.equals(eg.selfAccount.id)
+            ..page.isA<InboxPage>(),
         ],
       ];
       check(pushedRoutes.take(expected.length)).deepEquals(expected);
