@@ -26,8 +26,9 @@ import 'text.dart';
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
-  static Route<void> buildRoute({required BuildContext context, required Narrow narrow}) {
-    return MaterialAccountWidgetRoute(context: context,
+  static Route<void> buildRoute({int? accountId, BuildContext? context,
+      required Narrow narrow}) {
+    return MaterialAccountWidgetRoute(accountId: accountId, context: context,
       page: MessageListPage(narrow: narrow));
   }
 

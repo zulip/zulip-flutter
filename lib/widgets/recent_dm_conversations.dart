@@ -14,8 +14,8 @@ import 'unread_count_badge.dart';
 class RecentDmConversationsPage extends StatefulWidget {
   const RecentDmConversationsPage({super.key});
 
-  static Route<void> buildRoute({required BuildContext context}) {
-    return MaterialAccountWidgetRoute(context: context,
+  static Route<void> buildRoute({int? accountId, BuildContext? context}) {
+    return MaterialAccountWidgetRoute(accountId: accountId, context: context,
       page: const RecentDmConversationsPage());
   }
 

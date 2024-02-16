@@ -16,7 +16,7 @@ abstract class WidgetRoute<T> extends PageRoute<T> {
 /// This is useful for making the route more transparent for a test to inspect.
 ///
 /// See also:
-///  * [MaterialAccountWidgetRoute], a subclass which automates reusing a
+///  * [MaterialAccountWidgetRoute], a subclass which automates providing a
 ///    per-account store on the new route.
 class MaterialWidgetRoute<T> extends MaterialPageRoute<T> implements WidgetRoute<T> {
   MaterialWidgetRoute({
@@ -44,10 +44,7 @@ mixin AccountPageRouteMixin<T> on PageRoute<T> {
   }
 }
 
-/// A [MaterialPageRoute] that reuses the given context's per-account store.
-///
-/// This reuse is the desired behavior for any navigation that's meant to stay
-/// within a given account.
+/// A [MaterialPageRoute] providing a per-account store for a given account.
 ///
 /// See also:
 ///  * [MaterialAccountWidgetRoute], a subclass which is more transparent
@@ -55,36 +52,58 @@ mixin AccountPageRouteMixin<T> on PageRoute<T> {
 ///  * [AccountPageRouteBuilder], for defining one-off page routes
 ///    in terms of callbacks.
 class MaterialAccountPageRoute<T> extends MaterialPageRoute<T> with AccountPageRouteMixin<T> {
+  /// Construct a [MaterialAccountPageRoute] using either the given account ID,
+  /// or the ambient one from the given context.
+  ///
+  /// The account ID used is [accountId] if specified,
+  /// else the ambient account ID from [context].
+  /// One of those parameters must be specified, and not both.
+  ///
+  /// Generally most navigation in the app is within a given account,
+  /// and should use [context].  Using [accountId] is appropriate for
+  /// navigating across accounts, or navigating into an account from contexts
+  /// (like login or the choose-account page) that don't have an ambient account.
   MaterialAccountPageRoute({
-    required BuildContext context,
+    int? accountId,
+    BuildContext? context,
     required super.builder,
     super.settings,
     super.maintainState,
     super.fullscreenDialog,
     super.allowSnapshotting,
-  }) : accountId = PerAccountStoreWidget.accountIdOf(context);
+  }) : assert((accountId != null) ^ (context != null),
+         "exactly one of accountId or context must be specified"),
+       accountId = accountId ?? PerAccountStoreWidget.accountIdOf(context!);
 
   @override
   final int accountId;
 }
 
-/// A [MaterialPageRoute] that reuses the given context's per-account store
+/// A [MaterialPageRoute] that provides a per-account store for a given account
 /// and always builds the same widget.
 ///
 /// This is the [PageRoute] subclass to use for most navigation in the app.
-///
-/// The reuse of the per-account store is the desired behavior for any
-/// navigation that's meant to stay within a given account.
 ///
 /// Always building the same widget is useful for making the route
 /// more transparent for a test to inspect.
 ///
 /// See also:
-///  * [MaterialWidgetRoute], for routes that need no per-account store
-///    or a different per-account store.
+///  * [MaterialWidgetRoute], for routes that need no per-account store.
 class MaterialAccountWidgetRoute<T> extends MaterialAccountPageRoute<T> implements WidgetRoute<T> {
+  /// Construct a [MaterialAccountWidgetRoute] using either the given account ID,
+  /// or the ambient one from the given context.
+  ///
+  /// The account ID used is [accountId] if specified,
+  /// else the ambient account ID from [context].
+  /// One of those parameters must be specified, and not both.
+  ///
+  /// Generally most navigation in the app is within a given account,
+  /// and should use [context].  Using [accountId] is appropriate for
+  /// navigating across accounts, or navigating into an account from contexts
+  /// (like login or the choose-account page) that don't have an ambient account.
   MaterialAccountWidgetRoute({
-    required super.context,
+    super.accountId,
+    super.context,
     required this.page,
     super.settings,
     super.maintainState,
@@ -96,12 +115,24 @@ class MaterialAccountWidgetRoute<T> extends MaterialAccountPageRoute<T> implemen
   final Widget page;
 }
 
-/// A [PageRouteBuilder] that reuses the given context's per-account store.
+/// A [PageRouteBuilder] providing a per-account store for a given account.
 ///
 /// This is the [PageRouteBuilder] analogue of [MaterialAccountPageRoute].
 class AccountPageRouteBuilder<T> extends PageRouteBuilder<T> with AccountPageRouteMixin<T> {
+  /// Construct an [AccountPageRouteBuilder] using either the given account ID,
+  /// or the ambient one from the given context.
+  ///
+  /// The account ID used is [accountId] if specified,
+  /// else the ambient account ID from [context].
+  /// One of those parameters must be specified, and not both.
+  ///
+  /// Generally most navigation in the app is within a given account,
+  /// and should use [context].  Using [accountId] is appropriate for
+  /// navigating across accounts, or navigating into an account from contexts
+  /// (like login or the choose-account page) that don't have an ambient account.
   AccountPageRouteBuilder({
-    required BuildContext context,
+    int? accountId,
+    BuildContext? context,
     super.settings,
     required super.pageBuilder,
     super.transitionsBuilder,
@@ -114,7 +145,9 @@ class AccountPageRouteBuilder<T> extends PageRouteBuilder<T> with AccountPageRou
     super.maintainState,
     super.fullscreenDialog,
     super.allowSnapshotting,
-  }) : accountId = PerAccountStoreWidget.accountIdOf(context);
+  }) : assert((accountId != null) ^ (context != null),
+         "exactly one of accountId or context must be specified"),
+       accountId = accountId ?? PerAccountStoreWidget.accountIdOf(context!);
 
   @override
   final int accountId;

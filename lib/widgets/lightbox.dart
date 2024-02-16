@@ -208,11 +208,13 @@ class _LightboxPageState extends State<_LightboxPage> {
 }
 
 Route getLightboxRoute({
-  required BuildContext context,
+  int? accountId,
+  BuildContext? context,
   required Message message,
   required Uri src,
 }) {
   return AccountPageRouteBuilder(
+    accountId: accountId,
     context: context,
     fullscreenDialog: true,
     pageBuilder: (
