@@ -65,8 +65,8 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   @override
   Widget build(BuildContext context) {
     final store = this.store;
-    // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
-    if (store == null) return const LoadingPage();
+    // TODO: factor out the use of LoadingPlaceholder to be configured by the widget, like [widget.child] is
+    if (store == null) return const LoadingPlaceholder();
     return _GlobalStoreInheritedWidget(store: store, child: widget.child);
   }
 }
@@ -220,8 +220,8 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: factor out the use of LoadingPage to be configured by the widget, like [widget.child] is
-    if (store == null) return const LoadingPage();
+    // TODO: factor out the use of LoadingPlaceholder to be configured by the widget, like [widget.child] is
+    if (store == null) return const LoadingPlaceholder();
     return _PerAccountStoreInheritedWidget(store: store!, child: widget.child);
   }
 }
@@ -242,8 +242,8 @@ class _PerAccountStoreInheritedWidget extends InheritedNotifier<PerAccountStore>
     store != oldWidget.store;
 }
 
-class LoadingPage extends StatelessWidget {
-  const LoadingPage({super.key});
+class LoadingPlaceholder extends StatelessWidget {
+  const LoadingPlaceholder({super.key});
 
   @override
   Widget build(BuildContext context) {
