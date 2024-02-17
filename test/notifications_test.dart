@@ -191,6 +191,14 @@ void main() {
   group('NotificationDisplayManager open', () {
     late List<Route<dynamic>> pushedRoutes;
 
+    void takeStartingRoutes() {
+      final expected = [
+        (Subject it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+      ];
+      check(pushedRoutes.take(expected.length)).deepEquals(expected);
+      pushedRoutes.removeRange(0, expected.length);
+    }
+
     Future<void> prepare(WidgetTester tester, {bool early = false}) async {
       await init();
       pushedRoutes = [];
@@ -202,8 +210,8 @@ void main() {
         return;
       }
       await tester.pump();
-      check(pushedRoutes).length.equals(1);
-      pushedRoutes.clear();
+      takeStartingRoutes();
+      check(pushedRoutes).isEmpty();
     }
 
     Future<void> openNotification(Account account, Message message) async {
@@ -289,11 +297,10 @@ void main() {
 
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
-      // The navigator first pushes the starting route…
-      check(pushedRoutes).length.equals(2);
-      check(pushedRoutes[0]).isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+      // The navigator first pushes the starting routes…
+      takeStartingRoutes();
       // … and then the one the notification leads to.
-      matchesNavigation(check(pushedRoutes[1]), eg.selfAccount, message);
+      matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
     });
 
     testWidgets('at app launch', (tester) async {
@@ -313,9 +320,8 @@ void main() {
 
       // Once the app is ready, we navigate to the conversation.
       await tester.pump();
-      check(pushedRoutes).length.equals(2);
-      check(pushedRoutes[0]).isA<WidgetRoute>().page.isA<ChooseAccountPage>();
-      matchesNavigation(check(pushedRoutes[1]), account, message);
+      takeStartingRoutes();
+      matchesNavigation(check(pushedRoutes).single, account, message);
     });
   });
 }
