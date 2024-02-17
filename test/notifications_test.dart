@@ -229,13 +229,13 @@ void main() {
     }
 
     testWidgets('stream message', (tester) async {
-      testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(eg.selfAccount, eg.streamMessage());
     });
 
     testWidgets('direct message', (tester) async {
-      testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
@@ -248,7 +248,7 @@ void main() {
     });
 
     testWidgets('mismatching account', (tester) async {
-      testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await openNotification(eg.otherAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
@@ -266,7 +266,7 @@ void main() {
         eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
       ];
       for (final account in accounts) {
-        testBinding.globalStore.insertAccount(account.toCompanion(false));
+        testBinding.globalStore.add(account, eg.initialSnapshot());
       }
       await prepare(tester);
 
@@ -277,7 +277,7 @@ void main() {
     });
 
     testWidgets('wait for app to become ready', (tester) async {
-      testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester, early: true);
       final message = eg.streamMessage();
       await openNotification(eg.selfAccount, message);
@@ -307,7 +307,7 @@ void main() {
         NotificationAppLaunchDetails(true, notificationResponse: response);
 
       // Now start the app.
-      testBinding.globalStore.insertAccount(account.toCompanion(false));
+      testBinding.globalStore.add(account, eg.initialSnapshot());
       await prepare(tester, early: true);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
