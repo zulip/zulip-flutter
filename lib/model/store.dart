@@ -119,12 +119,11 @@ abstract class GlobalStore extends ChangeNotifier {
     return store;
   }
 
-  Future<void> _reloadPerAccount(Account account) async {
-    assert(identical(_accounts[account.id], account));
-    assert(_perAccountStores.containsKey(account.id));
-    assert(!_perAccountStoresLoading.containsKey(account.id));
-    final store = await loadPerAccount(account.id);
-    _setPerAccount(account.id, store);
+  Future<void> _reloadPerAccount(int accountId) async {
+    assert(_perAccountStores.containsKey(accountId));
+    assert(!_perAccountStoresLoading.containsKey(accountId));
+    final store = await loadPerAccount(accountId);
+    _setPerAccount(accountId, store);
   }
 
   void _setPerAccount(int accountId, PerAccountStore store) {
@@ -672,7 +671,7 @@ class UpdateMachine {
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
-            await store._globalStore._reloadPerAccount(store.account);
+            await store._globalStore._reloadPerAccount(store.accountId);
             dispose();
             debugLog('… Event queue replaced.');
             return;
