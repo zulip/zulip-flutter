@@ -111,9 +111,7 @@ abstract class GlobalStore extends ChangeNotifier {
     }
 
     // It's up to us.  Start loading.
-    final account = getAccount(accountId);
-    assert(account != null, 'Account not found on global store');
-    future = loadPerAccount(account!);
+    future = loadPerAccount(accountId);
     _perAccountStoresLoading[accountId] = future;
     store = await future;
     _setPerAccount(accountId, store);
@@ -125,7 +123,7 @@ abstract class GlobalStore extends ChangeNotifier {
     assert(identical(_accounts[account.id], account));
     assert(_perAccountStores.containsKey(account.id));
     assert(!_perAccountStoresLoading.containsKey(account.id));
-    final store = await loadPerAccount(account);
+    final store = await loadPerAccount(account.id);
     _setPerAccount(account.id, store);
   }
 
@@ -141,7 +139,7 @@ abstract class GlobalStore extends ChangeNotifier {
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
-  Future<PerAccountStore> loadPerAccount(Account account);
+  Future<PerAccountStore> loadPerAccount(int accountId);
 
   // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -517,8 +515,8 @@ class LiveGlobalStore extends GlobalStore {
   final AppDatabase _db;
 
   @override
-  Future<PerAccountStore> loadPerAccount(Account account) async {
-    final updateMachine = await UpdateMachine.load(this, account);
+  Future<PerAccountStore> loadPerAccount(int accountId) async {
+    final updateMachine = await UpdateMachine.load(this, accountId);
     return updateMachine.store;
   }
 
@@ -554,7 +552,8 @@ class UpdateMachine {
   /// Load the user's data from the server, and start an event queue going.
   ///
   /// In the future this might load an old snapshot from local storage first.
-  static Future<UpdateMachine> load(GlobalStore globalStore, Account account) async {
+  static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
+    final account = globalStore.getAccount(accountId)!;
     // TODO test UpdateMachine.load, now that it uses [GlobalStore.apiConnection]
     final connection = globalStore.apiConnectionFromAccount(account);
 

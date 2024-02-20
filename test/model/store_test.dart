@@ -28,7 +28,7 @@ void main() {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accounts[accountId - 1]]!;
+      globalStore.completers[accountId]!;
 
     final future1 = globalStore.perAccount(1);
     final store1 = PerAccountStore.fromInitialSnapshot(
@@ -61,7 +61,7 @@ void main() {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accounts[accountId - 1]]!;
+      globalStore.completers[accountId]!;
 
     final future1a = globalStore.perAccount(1);
     final future1b = globalStore.perAccount(1);
@@ -94,7 +94,7 @@ void main() {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accounts[accountId - 1]]!;
+      globalStore.completers[accountId]!;
 
     check(globalStore.perAccountSync(1)).isNull();
     final future1 = globalStore.perAccount(1);
@@ -388,12 +388,12 @@ void main() {
 class LoadingTestGlobalStore extends TestGlobalStore {
   LoadingTestGlobalStore({required super.accounts});
 
-  Map<Account, List<Completer<PerAccountStore>>> completers = {};
+  Map<int, List<Completer<PerAccountStore>>> completers = {};
 
   @override
-  Future<PerAccountStore> loadPerAccount(Account account) {
+  Future<PerAccountStore> loadPerAccount(int accountId) {
     final completer = Completer<PerAccountStore>();
-    (completers[account] ??= []).add(completer);
+    (completers[accountId] ??= []).add(completer);
     return completer.future;
   }
 }
