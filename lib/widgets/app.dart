@@ -99,11 +99,8 @@ class ZulipApp extends StatelessWidget {
       //   https://m3.material.io/theme-builder#/custom
       colorScheme: ColorScheme.fromSeed(
         seedColor: kZulipBrandColor,
-
-        // Used in the Figma for surfaces underneath scrollable content, e.g.:
-        //   <https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=341%3A12362&mode=dev>
-        background: const Color(0xfff6f6f6),
       ),
+      scaffoldBackgroundColor: const Color(0xfff6f6f6),
       // `preferBelow: false` seems like a better default for mobile;
       // the area below a long-press target seems more likely to be hidden by
       // a finger or thumb than the area above.
