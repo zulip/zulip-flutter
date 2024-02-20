@@ -197,7 +197,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
 
   if (dmElement != null) {
     if (streamElement != null || topicElement != null) return null;
-    return DmNarrow.withUsers(dmElement.operand, selfUserId: store.account.userId);
+    return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
   } else if (streamElement != null) {
     final streamId = streamElement.operand;
     if (topicElement != null) {

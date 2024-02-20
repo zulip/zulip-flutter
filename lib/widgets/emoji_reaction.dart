@@ -73,14 +73,13 @@ class ReactionChip extends StatelessWidget {
 
     final emojiset = store.userSettings?.emojiset ?? Emojiset.google;
 
-    final selfUserId = store.account.userId;
-    final selfVoted = userIds.contains(selfUserId);
+    final selfVoted = userIds.contains(store.selfUserId);
     final label = showName
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
       //   // 'Chris、Greg、Alya、Shu'
       ? userIds.map((id) {
-          return id == selfUserId
+          return id == store.selfUserId
             ? 'You'
             : store.users[id]?.fullName ?? '(unknown user)'; // TODO(i18n)
         }).join(', ')

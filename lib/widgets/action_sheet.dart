@@ -26,12 +26,11 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   // any message list, so that's fine.
   final isComposeBoxOffered = MessageListPage.composeBoxControllerOf(context) != null;
 
-  final selfUserId = store.account.userId;
   final hasThumbsUpReactionVote = message.reactions
     ?.aggregated.any((reactionWithVotes) =>
       reactionWithVotes.reactionType == ReactionType.unicodeEmoji
       && reactionWithVotes.emojiCode == '1f44d'
-      && reactionWithVotes.userIds.contains(selfUserId))
+      && reactionWithVotes.userIds.contains(store.selfUserId))
     ?? false;
 
   showDraggableScrollableModalBottomSheet(

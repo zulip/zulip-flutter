@@ -57,7 +57,7 @@ class ProfilePage extends StatelessWidget {
       FilledButton.icon(
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: DmNarrow.withUser(userId, selfUserId: store.account.userId))),
+            narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
         icon: const Icon(Icons.email),
         label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
     ];

@@ -142,7 +142,7 @@ String quoteAndReplyPlaceholder(PerAccountStore store, {
   final sender = store.users[message.senderId];
   assert(sender != null);
   final url = narrowLink(store,
-    SendableNarrow.ofMessage(message, selfUserId: store.account.userId),
+    SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
   // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
   return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
@@ -164,7 +164,7 @@ String quoteAndReply(PerAccountStore store, {
   final sender = store.users[message.senderId];
   assert(sender != null);
   final url = narrowLink(store,
-    SendableNarrow.ofMessage(message, selfUserId: store.account.userId),
+    SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
     // Could ask `mention` to omit the |<id> part unless the mention is ambiguous…
     // but that would mean a linear scan through all users, and the extra noise

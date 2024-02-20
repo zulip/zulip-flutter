@@ -745,7 +745,7 @@ class DmRecipientHeader extends StatelessWidget {
     final String title;
     if (message.allRecipientIds.length > 1) {
       title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
-        .where((id) => id != store.account.userId)
+        .where((id) => id != store.selfUserId)
         .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
         .sorted()
         .join(", "));
@@ -757,7 +757,7 @@ class DmRecipientHeader extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
-          narrow: DmNarrow.ofMessage(message, selfUserId: store.account.userId))),
+          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
       child: ColoredBox(
         color: _kDmRecipientHeaderColor,
         child: Padding(

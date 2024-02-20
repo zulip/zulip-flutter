@@ -87,7 +87,7 @@ class RecentDmConversationsItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.account.userId]!;
+    final selfUser = store.users[store.selfUserId]!;
 
     final String title;
     final Widget avatar;

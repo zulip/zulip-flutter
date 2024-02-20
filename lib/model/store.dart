@@ -205,6 +205,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       realmEmoji: initialSnapshot.realmEmoji,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       accountId: accountId,
+      selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
       users: Map.fromEntries(
         initialSnapshot.realmUsers
@@ -231,12 +232,14 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required this.realmEmoji,
     required this.customProfileFields,
     required this.accountId,
+    required this.selfUserId,
     required this.userSettings,
     required this.users,
     required streams,
     required this.unreads,
     required this.recentDmConversationsView,
-  }) : _globalStore = globalStore,
+  }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
+       _globalStore = globalStore,
        _streams = streams;
 
   ////////////////////////////////////////////////////////////////
@@ -262,6 +265,9 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   final int accountId;
   Account get account => _globalStore.getAccount(accountId)!;
+
+  /// Always equal to `account.userId`.
+  final int selfUserId;
 
   final UserSettings? userSettings; // TODO(server-5)
 

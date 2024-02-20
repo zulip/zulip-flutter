@@ -335,7 +335,7 @@ class _DmItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.account.userId]!;
+    final selfUser = store.users[store.selfUserId]!;
 
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
       [] => selfUser.fullName,
