@@ -35,7 +35,7 @@ class MyWidgetWithMixinState extends State<MyWidgetWithMixin> with PerAccountSto
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final accountId = PerAccountStoreWidget.of(context).account.id;
+    final accountId = PerAccountStoreWidget.of(context).accountId;
     return Text('brightness: $brightness; accountId: $accountId');
   }
 }
@@ -87,7 +87,7 @@ void main() {
             child: Builder(
               builder: (context) {
                 final store = PerAccountStoreWidget.of(context);
-                return Text('found store, account: ${store.account.id}');
+                return Text('found store, account: ${store.accountId}');
               })))));
     await tester.pump();
     await tester.pump();
@@ -109,7 +109,7 @@ void main() {
             child: Builder(
               builder: (context) {
                 final store = PerAccountStoreWidget.of(context);
-                return Text('found store, account: ${store.account.id}');
+                return Text('found store, account: ${store.accountId}');
               })))));
 
     // First, the global store has to load.
@@ -137,7 +137,7 @@ void main() {
             child: Builder(
               builder: (context) {
                 final store = PerAccountStoreWidget.of(context);
-                return Text('found store, account: ${store.account.id}');
+                return Text('found store, account: ${store.accountId}');
               })))));
 
     // (... even one that really is separate, with its own fresh state node ...)

@@ -215,7 +215,7 @@ void main() {
       await prepareStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
-      check(globalStore.perAccountSync(store.account.id)).identicalTo(store);
+      check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
 
       // Let the server expire the event queue.
       connection.prepare(httpStatus: 400, json: {
@@ -228,7 +228,7 @@ void main() {
       await Future.delayed(Duration.zero);
 
       // The global store has a new store.
-      check(globalStore.perAccountSync(store.account.id)).not((it) => it.identicalTo(store));
+      check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
       updateFromGlobalStore();
 
       // The new UpdateMachine updates the new store.
