@@ -198,25 +198,25 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
-      accountId: accountId,
       connection: connection,
       zulipVersion: initialSnapshot.zulipVersion,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       realmEmoji: initialSnapshot.realmEmoji,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
+      accountId: accountId,
       userSettings: initialSnapshot.userSettings,
-      unreads: Unreads(
-        initial: initialSnapshot.unreadMsgs,
-        selfUserId: account.userId,
-        streamStore: streams,
-      ),
       users: Map.fromEntries(
         initialSnapshot.realmUsers
         .followedBy(initialSnapshot.realmNonActiveUsers)
         .followedBy(initialSnapshot.crossRealmBots)
         .map((user) => MapEntry(user.userId, user))),
       streams: streams,
+      unreads: Unreads(
+        initial: initialSnapshot.unreadMsgs,
+        selfUserId: account.userId,
+        streamStore: streams,
+      ),
       recentDmConversationsView: RecentDmConversationsView(
         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
     );
@@ -224,44 +224,53 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   PerAccountStore._({
     required GlobalStore globalStore,
-    required this.accountId,
     required this.connection,
     required this.zulipVersion,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
     required this.realmEmoji,
     required this.customProfileFields,
+    required this.accountId,
     required this.userSettings,
-    required this.unreads,
     required this.users,
     required streams,
+    required this.unreads,
     required this.recentDmConversationsView,
   }) : _globalStore = globalStore,
        _streams = streams;
 
+  ////////////////////////////////////////////////////////////////
+  // Data.
+
+  ////////////////////////////////
+  // Where data comes from in the first place.
+
   final GlobalStore _globalStore;
-
-  final int accountId;
-  Account get account => _globalStore.getAccount(accountId)!;
-
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
-  // TODO(#135): Keep all this data updated by handling Zulip events from the server.
-
+  ////////////////////////////////
   // Data attached to the realm or the server.
+
   final String zulipVersion; // TODO get from account; update there on initial snapshot
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   Map<String, RealmEmojiItem> realmEmoji;
   List<CustomProfileField> customProfileFields;
 
+  ////////////////////////////////
   // Data attached to the self-account on the realm.
-  final UserSettings? userSettings; // TODO(server-5)
-  final Unreads unreads;
 
+  final int accountId;
+  Account get account => _globalStore.getAccount(accountId)!;
+
+  final UserSettings? userSettings; // TODO(server-5)
+
+  ////////////////////////////////
   // Users and data about them.
+
   final Map<int, User> users;
 
+  ////////////////////////////////
   // Streams, topics, and stuff about them.
 
   @override
@@ -279,7 +288,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   @visibleForTesting
   StreamStoreImpl get debugStreamStore => _streams;
 
-  // TODO lots more data.  When adding, be sure to update handleEvent too.
+  ////////////////////////////////
+  // Messages, and summaries of messages.
+
+  final Unreads unreads;
 
   final RecentDmConversationsView recentDmConversationsView;
 
@@ -295,7 +307,13 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     assert(removed);
   }
 
+  ////////////////////////////////
+  // Other digests of data.
+
   final AutocompleteViewManager autocompleteViewManager = AutocompleteViewManager();
+
+  // End of data.
+  ////////////////////////////////////////////////////////////////
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
