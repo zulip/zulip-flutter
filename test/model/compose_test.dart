@@ -225,9 +225,9 @@ hello
     test('AllMessagesNarrow', () {
       final store = eg.store();
       check(narrowLink(store, const AllMessagesNarrow()))
-        .equals(store.account.realmUrl.resolve('#narrow'));
+        .equals(store.realmUrl.resolve('#narrow'));
       check(narrowLink(store, const AllMessagesNarrow(), nearMessageId: 1))
-        .equals(store.account.realmUrl.resolve('#narrow/near/1'));
+        .equals(store.realmUrl.resolve('#narrow/near/1'));
     });
 
     test('StreamNarrow / TopicNarrow', () {
@@ -244,7 +244,7 @@ hello
           ? StreamNarrow(streamId)
           : TopicNarrow(streamId, topic);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
-          .equals(store.account.realmUrl.resolve(expectedFragment));
+          .equals(store.realmUrl.resolve(expectedFragment));
       }
 
       checkNarrow(streamId: 1,   name: 'announce',       '#narrow/stream/1-announce');
@@ -275,10 +275,10 @@ hello
         final store = eg.store();
         final narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: selfUserId);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
-          .equals(store.account.realmUrl.resolve(expectedFragment));
+          .equals(store.realmUrl.resolve(expectedFragment));
         store.connection.zulipFeatureLevel = 176;
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
-          .equals(store.account.realmUrl.resolve(legacyExpectedFragment));
+          .equals(store.realmUrl.resolve(legacyExpectedFragment));
       }
 
       checkNarrow(allRecipientIds: [1], selfUserId: 1,

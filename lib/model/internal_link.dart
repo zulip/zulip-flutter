@@ -95,7 +95,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
     fragment.write('/near/$nearMessageId');
   }
 
-  return store.account.realmUrl.replace(fragment: fragment.toString());
+  return store.realmUrl.replace(fragment: fragment.toString());
 }
 
 /// Create a new `Uri` object in relation to a given realmUrl.
@@ -124,7 +124,7 @@ Uri? tryResolveOnRealmUrl(String urlString, Uri realmUrl) {
 ///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
 // TODO(#252): handle all valid narrow links, returning a search narrow
 Narrow? parseInternalLink(Uri url, PerAccountStore store) {
-  if (!_isInternalLink(url, store.account.realmUrl)) return null;
+  if (!_isInternalLink(url, store.realmUrl)) return null;
 
   final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
   switch (category) {

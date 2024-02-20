@@ -319,7 +319,7 @@ class _ImageEmoji extends StatelessWidget {
     if (parsedSrc == null) { // TODO(log)
       return _textFallback;
     }
-    final resolved = store.account.realmUrl.resolveUri(parsedSrc);
+    final resolved = store.realmUrl.resolveUri(parsedSrc);
 
     // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
     final size = _squareEmojiScalerClamped(context).scale(_squareEmojiSize);

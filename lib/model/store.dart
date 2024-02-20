@@ -199,6 +199,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
+      realmUrl: account.realmUrl,
       zulipVersion: initialSnapshot.zulipVersion,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
@@ -226,6 +227,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   PerAccountStore._({
     required GlobalStore globalStore,
     required this.connection,
+    required this.realmUrl,
     required this.zulipVersion,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
@@ -239,6 +241,8 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required this.unreads,
     required this.recentDmConversationsView,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
+       assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
+       assert(realmUrl == connection.realmUrl),
        _globalStore = globalStore,
        _streams = streams;
 
@@ -253,6 +257,9 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   ////////////////////////////////
   // Data attached to the realm or the server.
+
+  /// Always equal to `account.realmUrl` and `connection.realmUrl`.
+  final Uri realmUrl;
 
   final String zulipVersion; // TODO get from account; update there on initial snapshot
   final int maxFileUploadSizeMib; // No event for this.

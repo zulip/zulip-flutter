@@ -265,7 +265,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 12),
               Text.rich(TextSpan(
                 text: 'Connected to: ',
-                children: [bold(store.account.realmUrl.toString())])),
+                children: [bold(store.realmUrl.toString())])),
               Text.rich(TextSpan(
                 text: 'Zulip server version: ',
                 children: [bold(store.zulipVersion)])),
