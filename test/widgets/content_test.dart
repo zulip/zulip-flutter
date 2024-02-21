@@ -74,8 +74,6 @@ void main() {
   testContentSmoke(ContentExample.quotation);
 
   group('MessageImage, MessageImageList', () {
-    final message = eg.streamMessage();
-
     Future<void> prepareContent(WidgetTester tester, String html) async {
       addTearDown(testBinding.reset);
 
@@ -87,16 +85,11 @@ void main() {
         ..statusCode = HttpStatus.ok
         ..content = kSolidBlueAvatar;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Directionality(
-            textDirection: TextDirection.ltr,
-            child: GlobalStoreWidget(
-              child: PerAccountStoreWidget(
-                accountId: eg.selfAccount.id,
-                child: MessageContent(
-                  message: message,
-                  content: parseContent(html)))))));
+      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: MessageContent(
+            message: eg.streamMessage(content: html),
+            content: parseContent(html))))));
       await tester.pump(); // global store
       await tester.pump(); // per-account store
       debugNetworkImageHttpClientProvider = null;
