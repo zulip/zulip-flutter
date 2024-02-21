@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -16,6 +17,8 @@ import 'package:zulip/widgets/store.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/content_test.dart';
+import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
@@ -410,6 +413,43 @@ void main() {
       await tester.pumpWidget(
         RealmContentNetworkImage(Uri.parse('https://zulip.invalid/path/to/image.png'), filterQuality: FilterQuality.medium));
       check(tester.takeException()).isA<AssertionError>();
+    });
+  });
+
+  group('AvatarImage', () {
+    late PerAccountStore store;
+
+    Future<Uri?> actualUrl(WidgetTester tester, String avatarUrl) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final user = eg.user(avatarUrl: avatarUrl);
+      store.addUser(user);
+
+      prepareBoringImageHttpClient();
+      await tester.pumpWidget(GlobalStoreWidget(
+        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId))));
+      await tester.pump();
+      await tester.pump();
+      tester.widget(find.byType(AvatarImage));
+      final widgets = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      return widgets.firstOrNull?.src;
+    }
+
+    testWidgets('smoke with absolute URL', (tester) async {
+      const avatarUrl = 'https://example/avatar.png';
+      check(await actualUrl(tester, avatarUrl)).isNotNull()
+        .asString.equals(avatarUrl);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke with relative URL', (tester) async {
+      const avatarUrl = '/avatar.png';
+      check(await actualUrl(tester, avatarUrl))
+        .equals(store.tryResolveUrl(avatarUrl)!);
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 }
