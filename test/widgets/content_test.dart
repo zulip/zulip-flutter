@@ -347,6 +347,32 @@ void main() {
     tester.widget(find.textContaining(RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$')));
   });
 
+  group('MessageImageEmoji', () {
+    Future<void> prepareContent(WidgetTester tester, String html) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      prepareBoringImageHttpClient();
+
+      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: BlockContentList(nodes: parseContent(html).nodes)))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+    }
+
+    testWidgets('smoke: custom emoji', (tester) async {
+      await prepareContent(tester, ContentExample.emojiCustom.html);
+      tester.widget(find.byType(MessageImageEmoji));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: Zulip extra emoji', (tester) async {
+      await prepareContent(tester, ContentExample.emojiZulipExtra.html);
+      tester.widget(find.byType(MessageImageEmoji));
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
