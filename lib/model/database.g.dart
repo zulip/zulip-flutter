@@ -182,8 +182,23 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
 }
 
 class Account extends DataClass implements Insertable<Account> {
+  /// The ID of this account in the app's local database.
+  ///
+  /// This uniquely identifies the account within this install of the app,
+  /// and never changes for a given account.  It has no meaning to the server,
+  /// though, or anywhere else outside this install of the app.
   final int id;
+
+  /// The URL of the Zulip realm this account is on.
+  ///
+  /// This corresponds to [GetServerSettingsResult.realmUrl].
+  /// It never changes for a given account.
   final Uri realmUrl;
+
+  /// The Zulip user ID of this account.
+  ///
+  /// This is the identifier the server uses for the account.
+  /// It never changes for a given account.
   final int userId;
   final String email;
   final String apiKey;
