@@ -56,10 +56,10 @@ class _MessageListPageState extends State<MessageListPage> {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
 
-    final Color backgroundColor;
+    final Color? backgroundColor;
     switch(widget.narrow) {
       case AllMessagesNarrow():
-        backgroundColor = _kFallbackStreamColor;
+        backgroundColor = null; // i.e., inherit
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
