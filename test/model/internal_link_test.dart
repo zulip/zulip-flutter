@@ -38,7 +38,7 @@ void main() {
     store ??= setupStore(realmUrl: realmUrl, streams: streams, users: users);
     for (final testCase in testCases) {
       final String urlString = testCase.$1;
-      final Uri url = tryResolveOnRealmUrl(urlString, realmUrl)!;
+      final Uri url = store.tryResolveUrl(urlString)!;
       final Narrow? expected = testCase.$2;
       test(urlString, () {
         check(parseInternalLink(url, store!)).equals(expected);
@@ -134,7 +134,7 @@ void main() {
       final Uri realmUrl = testCase.$4;
       test('${expected ? 'accepts': 'rejects'} $description: $urlString', () {
         final store = setupStore(realmUrl: realmUrl, streams: streams);
-        final url = tryResolveOnRealmUrl(urlString, realmUrl)!;
+        final url = store.tryResolveUrl(urlString)!;
         final result = parseInternalLink(url, store);
         check(result != null).equals(expected);
       });

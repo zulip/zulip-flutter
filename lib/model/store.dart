@@ -261,6 +261,11 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
   final Uri realmUrl;
 
+  /// Resolve [reference] as a URL relative to [realmUrl].
+  ///
+  /// This returns null if [reference] fails to parse as a URL.
+  Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
+
   final String zulipVersion; // TODO get from account; update there on initial snapshot
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
@@ -496,6 +501,16 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 }
 
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
+const _tryResolveUrl = tryResolveUrl;
+
+/// Like [Uri.resolve], but on failure return null instead of throwing.
+Uri? tryResolveUrl(Uri baseUrl, String reference) {
+  try {
+    return baseUrl.resolve(reference);
+  } on FormatException {
+    return null;
+  }
+}
 
 /// A [GlobalStore] that uses a live server and live, persistent local database.
 ///

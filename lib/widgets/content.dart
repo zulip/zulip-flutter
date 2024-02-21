@@ -786,7 +786,7 @@ void _launchUrl(BuildContext context, String urlString) async {
   }
 
   final store = PerAccountStoreWidget.of(context);
-  final url = tryResolveOnRealmUrl(urlString, store.realmUrl);
+  final url = store.tryResolveUrl(urlString);
   if (url == null) { // TODO(log)
     await showError(context, null);
     return;
