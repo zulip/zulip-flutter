@@ -812,7 +812,7 @@ class _ComposeBoxLayout extends StatelessWidget {
     );
 
     return Material(
-      color: colorScheme.surfaceVariant,
+      color: colorScheme.surfaceContainerHighest,
       child: SafeArea(
         minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
         child: Padding(
