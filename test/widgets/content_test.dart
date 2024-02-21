@@ -55,6 +55,21 @@ void main() {
     });
   }
 
+  /// Set [debugNetworkImageHttpClientProvider] to return a constant image.
+  ///
+  /// Returns the [FakeImageHttpClient] that handles the requests.
+  ///
+  /// The caller must set [debugNetworkImageHttpClientProvider] back to null
+  /// before the end of the test.
+  FakeImageHttpClient prepareBoringImageHttpClient() {
+    final httpClient = FakeImageHttpClient();
+    debugNetworkImageHttpClientProvider = () => httpClient;
+    httpClient.request.response
+      ..statusCode = HttpStatus.ok
+      ..content = kSolidBlueAvatar;
+    return httpClient;
+  }
+
   group('Heading', () {
     testWidgets('plain h6', (tester) async {
       await prepareContentBare(tester,
@@ -76,14 +91,8 @@ void main() {
   group('MessageImage, MessageImageList', () {
     Future<void> prepareContent(WidgetTester tester, String html) async {
       addTearDown(testBinding.reset);
-
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      final httpClient = FakeImageHttpClient();
-
-      debugNetworkImageHttpClientProvider = () => httpClient;
-      httpClient.request.response
-        ..statusCode = HttpStatus.ok
-        ..content = kSolidBlueAvatar;
+      prepareBoringImageHttpClient();
 
       await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
         home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
@@ -342,14 +351,10 @@ void main() {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
     Future<Map<String, List<String>>> actualHeaders(WidgetTester tester, Uri src) async {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
-      final httpClient = FakeImageHttpClient();
-      debugNetworkImageHttpClientProvider = () => httpClient;
-      httpClient.request.response
-        ..statusCode = HttpStatus.ok
-        ..content = kSolidBlueAvatar;
+      final httpClient = prepareBoringImageHttpClient();
 
       await tester.pumpWidget(GlobalStoreWidget(
         child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
