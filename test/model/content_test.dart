@@ -111,6 +111,13 @@ class ContentExample {
     const ImageEmojiNode(
       src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:'));
 
+  static final emojiCustomInvalidUrl = ContentExample.inline(
+    'custom emoji with invalid URL',
+    null, // hypothetical, to test for a risk of crashing
+    '<p><img alt=":invalid:" class="emoji" src="::not a URL::" title="invalid"></p>',
+    const ImageEmojiNode(
+      src: '::not a URL::', alt: ':invalid:'));
+
   static final emojiZulipExtra = ContentExample.inline(
     'Zulip extra emoji',
     ":zulip:",
@@ -265,6 +272,17 @@ class ContentExample {
         '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"></a></div>', [
     ImageNodeList([
       ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
+    ]),
+  ]);
+
+  static const imageInvalidUrl = ContentExample(
+    'single image with invalid URL',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="::not a URL::">'
+        '<img src="::not a URL::"></a></div>', [
+    ImageNodeList([
+      ImageNode(srcUrl: '::not a URL::'),
     ]),
   ]);
 
@@ -580,6 +598,7 @@ void main() {
   testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
   testParseExample(ContentExample.emojiUnicodeLiteral);
   testParseExample(ContentExample.emojiCustom);
+  testParseExample(ContentExample.emojiCustomInvalidUrl);
   testParseExample(ContentExample.emojiZulipExtra);
 
   testParseExample(ContentExample.mathInline);
@@ -751,6 +770,7 @@ void main() {
   testParseExample(ContentExample.mathBlockInQuote);
 
   testParseExample(ContentExample.imageSingle);
+  testParseExample(ContentExample.imageInvalidUrl);
   testParseExample(ContentExample.imageCluster);
   testParseExample(ContentExample.imageClusterThenContent);
   testParseExample(ContentExample.imageMultipleClusters);

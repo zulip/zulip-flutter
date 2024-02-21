@@ -117,6 +117,18 @@ void main() {
         .deepEquals(expectedImages.map((n) => n.srcUrl));
     });
 
+    testWidgets('image with invalid src URL', (tester) async {
+      const example = ContentExample.imageInvalidUrl;
+      await prepareContent(tester, example.html);
+      // The image indeed has an invalid URL.
+      final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
+      check(() => Uri.parse(expectedImages.single.srcUrl)).throws();
+      check(tryResolveUrl(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
+      // The MessageImage has shown up, but it doesn't attempt a RealmContentNetworkImage.
+      check(tester.widgetList(find.byType(MessageImage))).isNotEmpty();
+      check(tester.widgetList(find.byType(RealmContentNetworkImage))).isEmpty();
+    });
+
     testWidgets('multiple images', (tester) async {
       const example = ContentExample.imageCluster;
       await prepareContent(tester, example.html);
@@ -369,6 +381,13 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('smoke: custom emoji with invalid URL', (tester) async {
+      await prepareContent(tester, ContentExample.emojiCustomInvalidUrl.html);
+      final url = tester.widget<MessageImageEmoji>(find.byType(MessageImageEmoji)).node.src;
+      check(() => Uri.parse(url)).throws();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('smoke: Zulip extra emoji', (tester) async {
       await prepareContent(tester, ContentExample.emojiZulipExtra.html);
       tester.widget(find.byType(MessageImageEmoji));
@@ -449,6 +468,12 @@ void main() {
       const avatarUrl = '/avatar.png';
       check(await actualUrl(tester, avatarUrl))
         .equals(store.tryResolveUrl(avatarUrl)!);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke with invalid URL', (tester) async {
+      const avatarUrl = '::not a URL::';
+      check(await actualUrl(tester, avatarUrl)).isNull();
       debugNetworkImageHttpClientProvider = null;
     });
   });

@@ -9,7 +9,6 @@ import '../api/model/model.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
-import '../model/store.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -261,10 +260,11 @@ class MessageImage extends StatelessWidget {
     final src = node.srcUrl;
 
     final store = PerAccountStoreWidget.of(context);
-    final resolvedSrc = resolveUrl(src, store.account);
+    final resolvedSrc = store.tryResolveUrl(src);
+    // TODO if src fails to parse, show an explicit "broken image"
 
     return GestureDetector(
-      onTap: () {
+      onTap: resolvedSrc == null ? null : () { // TODO(log)
         Navigator.of(context).push(getLightboxRoute(
           context: context, message: message, src: resolvedSrc));
       },
@@ -281,7 +281,7 @@ class MessageImage extends StatelessWidget {
               child: SizedBox(
                 height: 100,
                 width: 150,
-                child: LightboxHero(
+                child: resolvedSrc == null ? null : LightboxHero(
                   message: message,
                   src: resolvedSrc,
                   child: RealmContentNetworkImage(
@@ -717,7 +717,7 @@ class MessageImageEmoji extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final resolvedSrc = resolveUrl(node.src, store.account);
+    final resolvedSrc = store.tryResolveUrl(node.src);
 
     const size = 20.0;
 
@@ -730,12 +730,13 @@ class MessageImageEmoji extends StatelessWidget {
           // Web's css makes this seem like it should be -0.5, but that looks
           // too low.
           top: -1.5,
-          child: RealmContentNetworkImage(
-            resolvedSrc,
-            filterQuality: FilterQuality.medium,
-            width: size,
-            height: size,
-          )),
+          child: resolvedSrc == null ? const SizedBox.shrink() // TODO(log)
+            : RealmContentNetworkImage(
+                resolvedSrc,
+                filterQuality: FilterQuality.medium,
+                width: size,
+                height: size,
+              )),
       ]);
   }
 }
@@ -964,7 +965,7 @@ class AvatarImage extends StatelessWidget {
 
     final resolvedUrl = switch (user.avatarUrl) {
       null          => null, // TODO(#255): handle computing gravatars
-      var avatarUrl => resolveUrl(avatarUrl, store.account),
+      var avatarUrl => store.tryResolveUrl(avatarUrl),
     };
     return (resolvedUrl == null)
       ? const SizedBox.shrink()
@@ -999,14 +1000,6 @@ class AvatarShape extends StatelessWidget {
 //
 // Small helpers.
 //
-
-/// Resolve `url` to `account`'s realm, if relative
-// This may dissolve when we start passing around URLs as [Uri] objects instead
-// of strings.
-Uri resolveUrl(String url, Account account) {
-  final realmUrl = account.realmUrl;
-  return realmUrl.resolve(url); // TODO handle if fails to parse
-}
 
 InlineSpan _errorUnimplemented(UnimplementedNode node) {
   // For now this shows error-styled HTML code even in release mode,

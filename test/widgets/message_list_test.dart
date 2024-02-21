@@ -458,7 +458,7 @@ void main() {
           check(findAvatarImageWidget(tester)).isNull();
         } else {
           check(findAvatarImageWidget(tester)).isNotNull()
-            .src.equals(resolveUrl(avatarUrl, eg.selfAccount));
+            .src.equals(eg.selfAccount.realmUrl.resolve(avatarUrl));
         }
       }
 
