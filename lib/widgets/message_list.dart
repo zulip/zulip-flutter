@@ -47,7 +47,8 @@ class MessageListPage extends StatefulWidget {
   State<MessageListPage> createState() => _MessageListPageState();
 }
 
-const _kFallbackStreamColor = Color(0xfff5f5f5);
+// TODO(design) this seems ad-hoc; is there a better color?
+const _kUnsubscribedStreamRecipientHeaderColor = Color(0xfff5f5f5);
 
 class _MessageListPageState extends State<MessageListPage> {
   final GlobalKey<ComposeBoxController> _composeBoxKey = GlobalKey();
@@ -63,7 +64,7 @@ class _MessageListPageState extends State<MessageListPage> {
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
-          ?? _kFallbackStreamColor;
+          ?? _kUnsubscribedStreamRecipientHeaderColor;
       case DmNarrow():
         backgroundColor = _kDmRecipientHeaderColor;
     }
@@ -640,7 +641,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           : Colors.black;
       iconColor = swatch.iconOnBarBackground;
     } else {
-      backgroundColor = _kFallbackStreamColor;
+      backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
       contrastingColor = Colors.black;
       iconColor = Colors.black;
     }
