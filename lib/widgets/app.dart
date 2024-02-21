@@ -91,6 +91,8 @@ class ZulipApp extends StatelessWidget {
         // ColorScheme.surface otherwise, and those are different colors.
         scrolledUnderElevation: 0,
         backgroundColor: Color(0xfff5f5f5),
+
+        shape: Border(bottom: BorderSide(color: Color(0xffcccccc))),
       ),
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.

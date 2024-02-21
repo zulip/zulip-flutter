@@ -58,20 +58,33 @@ class _MessageListPageState extends State<MessageListPage> {
     final store = PerAccountStoreWidget.of(context);
 
     final Color? backgroundColor;
+    bool removeAppBarBottomBorder = false;
     switch(widget.narrow) {
       case AllMessagesNarrow():
         backgroundColor = null; // i.e., inherit
+
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
           ?? _kUnsubscribedStreamRecipientHeaderColor;
+        // All recipient headers will match this color; remove distracting line
+        // (but are recipient headers even needed for topic narrows?)
+        removeAppBarBottomBorder = true;
+
       case DmNarrow():
         backgroundColor = _kDmRecipientHeaderColor;
+        // All recipient headers will match this color; remove distracting line
+        // (but are recipient headers even needed?)
+        removeAppBarBottomBorder = true;
     }
 
     return Scaffold(
       appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow),
-        backgroundColor: backgroundColor),
+        backgroundColor: backgroundColor,
+        shape: removeAppBarBottomBorder
+          ? const Border()
+          : null, // i.e., inherit
+      ),
       // TODO question for Vlad: for a stream view, should we set
       //   [backgroundColor] based on stream color, as in this frame:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
