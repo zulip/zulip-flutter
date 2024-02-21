@@ -84,10 +84,13 @@ class ZulipApp extends StatelessWidget {
     final theme = ThemeData(
       typography: zulipTypography(context),
       appBarTheme: const AppBarTheme(
-        // This prevents an elevation change in [AppBar]s so they stop turning
-        // darker if there is something scrolled underneath it. See docs:
-        //   https://api.flutter.dev/flutter/material/AppBar/elevation.html
+        // Set these two fields to prevent a color change in [AppBar]s when
+        // there is something scrolled under it. If an app bar hasn't been
+        // given a backgroundColor directly or by theme, it uses
+        // ColorScheme.surfaceContainer for the scrolled-under state and
+        // ColorScheme.surface otherwise, and those are different colors.
         scrolledUnderElevation: 0,
+        backgroundColor: Color(0xfff5f5f5),
       ),
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.
