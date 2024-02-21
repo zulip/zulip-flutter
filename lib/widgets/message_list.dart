@@ -65,7 +65,7 @@ class _MessageListPageState extends State<MessageListPage> {
         backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
           ?? _kFallbackStreamColor;
       case DmNarrow():
-        backgroundColor = _kFallbackStreamColor;
+        backgroundColor = _kDmRecipientHeaderColor;
     }
 
     return Scaffold(
