@@ -107,6 +107,10 @@ Account account({
   Uri? realmUrl,
   required User user,
   String? apiKey,
+  int? zulipFeatureLevel,
+  String? zulipVersion,
+  String? zulipMergeBase,
+  String? ackedPushToken,
 }) {
   return Account(
     id: id ?? 1000, // TODO generate example IDs
@@ -114,9 +118,10 @@ Account account({
     email: user.email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
-    zulipFeatureLevel: recentZulipFeatureLevel,
-    zulipVersion: recentZulipVersion,
-    zulipMergeBase: recentZulipVersion,
+    zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
+    zulipVersion: zulipVersion ?? recentZulipVersion,
+    zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
+    ackedPushToken: ackedPushToken,
   );
 }
 
