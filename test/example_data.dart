@@ -456,7 +456,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
 // The entire per-account or global state.
 //
 
-GlobalStore globalStore({List<Account> accounts = const []}) {
+TestGlobalStore globalStore({List<Account> accounts = const []}) {
   return TestGlobalStore(accounts: accounts);
 }
 
