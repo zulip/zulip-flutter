@@ -322,7 +322,8 @@ class NotificationDisplayManager {
         '(Zulip internal error)', // TODO never implicitly create channel: https://github.com/MaikuB/flutter_local_notifications/issues/2135
         tag: conversationKey,
         color: kZulipBrandColor,
-        icon: 'zulip_notification', // TODO vary for debug
+        // TODO vary notification icon for debug
+        icon: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
         // TODO(#128) inbox-style
 
         // TODO plugin sets PendingIntent.FLAG_UPDATE_CURRENT; is that OK?
