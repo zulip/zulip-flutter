@@ -20,6 +20,8 @@ try {
 }
 
 android {
+    namespace "com.zulip.flutter"
+
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
