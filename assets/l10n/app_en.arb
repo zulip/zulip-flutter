@@ -424,5 +424,17 @@
   "allMessagesPageTitle": "All messages",
   "@allMessagesPageTitle": {
     "description": "Title for the page of all messages"
+  },
+  "lightboxShareImageTooltip": "Share image",
+  "@lightboxShareImageTooltip": {
+    "description": "Tooltip in lightbox for the share image action."
+  },
+  "errorCouldNotFetchImage": "Could not fetch image",
+  "@errorCouldNotFetchImage": {
+    "description": "Error message when an image could not be fetched."
+  },
+  "errorCouldNotConnectToInternet": "Could not connect to internet",
+  "@errorCouldNotConnectToInternet": {
+    "description": "Error message when the app could not connect to the internet."
   }
 }

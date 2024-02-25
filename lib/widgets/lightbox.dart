@@ -7,6 +7,7 @@ import '../api/model/model.dart';
 import 'content.dart';
 import 'page.dart';
 import 'clipboard.dart';
+import 'share_image.dart';
 import 'store.dart';
 
 // TODO(#44): Add index of the image preview in the message, to not break if
@@ -79,6 +80,23 @@ class _CopyLinkButton extends StatelessWidget {
         copyWithPopup(context: context,
           successContent: Text(zulipLocalizations.successLinkCopied),
           data: ClipboardData(text: url.toString()));
+      });
+  }
+}
+
+class _ShareImageButton extends StatelessWidget {
+  const _ShareImageButton({required this.url});
+
+  final Uri url;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return IconButton(
+      tooltip: zulipLocalizations.lightboxShareImageTooltip,
+      icon:  Icon(Icons.adaptive.share),
+      onPressed: () async {
+       shareImageFromUrl(url: url, context: context);
       });
   }
 }
@@ -173,6 +191,7 @@ class _LightboxPageState extends State<_LightboxPage> {
         child: Row(children: [
           _CopyLinkButton(url: widget.src),
           // TODO(#43): Share image
+          _ShareImageButton(url: widget.src),
           // TODO(#42): Download image
         ]));
     }
