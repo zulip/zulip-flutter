@@ -89,8 +89,22 @@ class FakeHttpClient extends http.BaseClient {
 }
 
 /// An [ApiConnection] that accepts and replays canned responses, for testing.
+///
+/// This is the [ApiConnection] subclass used by [TestGlobalStore].
+/// In tests that use a store (including most of our widget tests),
+/// one typically uses [PerAccountStore.connection] to get
+/// the relevant instance of this class.
+///
+/// Tests that don't use a store (in particular our API-binding tests)
+/// typically use [FakeApiConnection.with_] to obtain an instance of this class.
 class FakeApiConnection extends ApiConnection {
   /// Construct an [ApiConnection] that accepts and replays canned responses, for testing.
+  ///
+  /// Typically a test does not call this constructor directly.  Instead:
+  ///  * when a test store is being used, invoke [PerAccountStore.connection]
+  ///    to get the [FakeApiConnection] used by the relevant store;
+  ///  * otherwise, call [FakeApiConnection.with_] to make a fresh
+  ///    [FakeApiConnection] and cleanly close it.
   ///
   /// If `zulipFeatureLevel` is omitted, it defaults to [eg.futureZulipFeatureLevel],
   /// which causes route bindings to behave as they would for the
