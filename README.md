@@ -20,6 +20,72 @@ To use Zulip on iOS or Android, install the [official mobile Zulip client][].
 [official mobile Zulip client]: https://github.com/zulip/zulip-mobile#readme
 
 
+## Contributing
+
+Contributions to this app are welcome.
+
+If you're looking to participate in Google Summer of Code with Zulip,
+this is one of the projects we're [accepting GSoC 2024 applications][]
+for.
+
+[accepting GSoC 2024 applications]: https://zulip.readthedocs.io/en/latest/outreach/gsoc.html#mobile-app
+
+
+### Picking an issue to work on
+
+First, see the Zulip project guide to [your first codebase contribution][].
+Follow the instructions there for joining the Zulip community server,
+reading about [what makes a great Zulip contributor][],
+browsing through recent commits and the codebase,
+and the Zulip guide to Git.
+
+To find possible issues to work on, see our [project board][].
+Look for issues up through the "Launch" milestone,
+and that aren't already assigned.
+
+Follow the Zulip guide to [picking an issue to work on][],
+trying several issues until you find one you're confident
+you'll be able to take on effectively.
+
+*After you've done that*, claim the issue by posting a comment
+on the issue thread, saying you'd like to work on it
+and describing your progress.
+
+[your first codebase contribution]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#your-first-codebase-contribution
+[what makes a great Zulip contributor]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#what-makes-a-great-zulip-contributor
+[picking an issue to work on]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#picking-an-issue-to-work-on
+
+
+### Submitting a pull request
+
+Follow the Zulip project's guide to your first codebase contribution
+for [working on an issue][] and [submitting a pull request][].
+It's important to take the time to make your work as
+easy as possible for others to review.
+
+Two specific points to expand on:
+
+ * Before we can review your PR in detail, your changes will need
+   tests.  See ["Writing tests"](#writing-tests) below.
+
+   It will also need all new and existing tests to be passing.
+   See ["Tests"](#tests) below about running the tests.
+
+ * Your changes will need to be organized into
+   [clear and coherent commits][commit-style],
+   following [Zulip's commit style guide][commit-style].
+
+   This is always required before we can merge your PR.  Depending on
+   your changes' complexity, it may also be required before we can
+   review it in detail.  (The main exception is that if the change
+   should be a single commit, we can review it even with a messier
+   commit structure.)
+
+[working on an issue]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#working-on-an-issue
+[submitting a pull request]: https://zulip.readthedocs.io/en/latest/contributing/review-process.html
+[commit-style]: https://zulip.readthedocs.io/en/latest/contributing/commit-discipline.html
+
+
 ## Getting started in developing this beta app
 
 ### Setting up
@@ -30,17 +96,6 @@ To use Zulip on iOS or Android, install the [official mobile Zulip client][].
    and `flutter upgrade` (see [Flutter version](#flutter-version) below).
 3. Ensure Flutter is correctly configured by running `flutter doctor`.
 4. Start the app with `flutter run`, or from your IDE.
-
-
-### Flutter help
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-Specific resources include:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
 
 ### Flutter version
@@ -92,7 +147,45 @@ See [upstream docs on `flutter test`][flutter-cookbook-unit-tests].
 
 ### Writing tests
 
-For unit tests, we use [the `checks` package][package-checks].
+We write tests for all changes to the Dart code in the app.
+Because Flutter and Dart have excellent facilities for testing,
+we're able to efficiently write tests even for kinds of code
+that often go untested: UI code, and code that makes network
+requests or calls external APIs.
+
+You may sometimes find code that doesn't have tests.
+This is generally code from the early prototype phase;
+when we make changes to it, we write tests for the changes,
+and often take the opportunity to write tests for the
+existing logic too.
+
+When it's time to write a test, look around at existing tests in the
+same test file or at our existing tests for similar code, and follow
+the patterns we use there.  Notes on specific kinds of tests:
+
+ * For UI code, we use Flutter's standard `testWidgets` function.
+   Many widgets will interact with the user's data; see docs on
+   our `TestZulipBinding` and `TestGlobalStore`, and existing
+   tests that use `testBinding.globalStore`, for how to manipulate
+   test data there.
+
+ * For code that makes Zulip API requests, use `FakeApiConnection`;
+   see its docs and the existing tests that use it.
+
+ * For code that makes other network requests, look for similar
+   existing tests; or see our `FakeHttpClient`, and use
+   `withHttpClient` from `package:http` to cause the code under test
+   to use it.
+
+ * For code that invokes Flutter plugins or otherwise calls external
+   APIs, see our `ZulipBinding` class.  If there isn't an existing
+   member of that class that wraps the API you're using, then you'll
+   need to add one; follow the existing examples.
+
+
+#### `check` vs. `expect`
+
+For our tests, we use [the `checks` package][package-checks].
 This is a new package from the Dart team, currently in preview,
 which is [intended to replace][package-checks-migration] the
 old `matcher` package.
@@ -180,6 +273,30 @@ and someone else can do it before merging the PR.
 Several other kinds of generated files are already validated in CI.)
 
 [#329]: https://github.com/zulip/zulip-flutter/issues/329
+
+
+### Code formatting
+
+Like the [upstream Flutter project itself][flutter-no-dartfmt],
+we [don't use `dart format`][zulip-no-dartfmt]
+or other auto-formatters.
+Instead, follow the style you see in the existing code.
+
+It's OK if in your first few PRs you haven't yet picked up all the
+nuances of our style.  Reviewers will point out nits as they see them.
+
+If your editor or IDE automatically reformats the existing code,
+you'll want to turn that off.  Please also mention it in Zulip
+on chat.zulip.org and describe what editor you were using;
+we'd like to include such configuration directly in the repo
+so it's automatic for the next person.  We already have that
+[for VS Code][vscode-disable-reformat], and it seems to be the
+default for Android Studio / IntelliJ, but when there are cases
+we haven't covered we'd like to know about them.
+
+[flutter-no-dartfmt]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#formatting
+[zulip-no-dartfmt]: https://github.com/zulip/zulip-flutter/issues/229#issuecomment-1642807019
+[vscode-disable-reformat]: https://github.com/zulip/zulip-flutter/pull/230
 
 
 ### Translations and i18n
