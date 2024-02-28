@@ -1137,8 +1137,9 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
   }
 }
 
-const errorStyle = TextStyle(fontWeight: FontWeight.bold, color: Colors.red);
+const errorStyle = TextStyle(
+  fontSize: kBaseFontSize, fontWeight: FontWeight.bold, color: Colors.red);
 
 final errorCodeStyle = kMonospaceTextStyle
-  .merge(const TextStyle(color: Colors.red))
+  .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red))
   .merge(weightVariableTextStyle(null)); // TODO(a11y) pass a BuildContext
