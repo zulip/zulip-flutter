@@ -179,8 +179,9 @@ class Heading extends StatelessWidget {
       child: _buildBlockInlineContainer(
         style: TextStyle(
           fontSize: kBaseFontSize * emHeight,
-          fontWeight: FontWeight.w600,
-          height: 1.4),
+          height: 1.4,
+        )
+          .merge(weightVariableTextStyle(context, wght: 600)),
         node: node));
   }
 }
