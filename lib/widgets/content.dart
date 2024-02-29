@@ -637,7 +637,10 @@ class _InlineContentBuilder {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
         child: MessageImageEmoji(node: node));
     } else if (node is MathInlineNode) {
-      return TextSpan(style: _kInlineMathStyle,
+      return TextSpan(
+        style: surroundingSpanStyle
+          .merge(_kInlineMathStyle)
+          .apply(fontSizeFactor: _kInlineCodeFontSizeFactor),
         children: [TextSpan(text: node.texSource)]);
     } else if (node is GlobalTimeNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -691,7 +694,11 @@ class _InlineContentBuilder {
     // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
     // Use a light gray background, instead of a border.
-    return _buildNodes(style: _kInlineCodeStyle, node.nodes);
+    return _buildNodes(
+      style: surroundingSpanStyle
+        .merge(_kInlineCodeStyle)
+        .apply(fontSizeFactor: _kInlineCodeFontSizeFactor),
+      node.nodes);
 
     // Another fun solution -- we can in fact have a border!  Like so:
     //   TextStyle(
@@ -711,17 +718,27 @@ class _InlineContentBuilder {
   }
 }
 
+/// The [TextStyle] for inline math, excluding font-size adjustment.
+///
+/// Inline math should use this and also apply [_kInlineCodeFontSizeFactor]
+/// to the font size of the surrounding span
+/// (which might be a Paragraph, a Heading, etc.)
 final _kInlineMathStyle = _kInlineCodeStyle.merge(TextStyle(
   backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.93).toColor()));
 
+const _kInlineCodeFontSizeFactor = 0.825;
+
+/// The [TextStyle] for inline code, excluding font-size adjustment.
+///
+/// Inline code should use this and also apply [_kInlineCodeFontSizeFactor]
+/// to the font size of the surrounding span
+/// (which might be a Paragraph, a Heading, etc.)
 // Even though [kMonospaceTextStyle] is a variable-weight font,
 // it's acceptable to skip [weightVariableTextStyle] here,
 // assuming the text gets the effect of [weightVariableTextStyle]
 // through inheritance, e.g., from a [DefaultTextStyle].
 final _kInlineCodeStyle = kMonospaceTextStyle
-  .merge(const TextStyle(
-    backgroundColor: Color(0xffeeeeee),
-    fontSize: 0.825 * kBaseFontSize));
+  .merge(const TextStyle(backgroundColor: Color(0xffeeeeee)));
 
 final _kCodeBlockStyle = kMonospaceTextStyle
   .merge(const TextStyle(
@@ -768,7 +785,7 @@ class UserMention extends StatelessWidget {
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
-        style: Paragraph.textStyle,
+        style: surroundingSpanStyle,
         nodes: node.nodes));
   }
 
@@ -865,7 +882,7 @@ class GlobalTime extends StatelessWidget {
               // Ad-hoc spacing adjustment per feedback:
               //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345
               const SizedBox(width: 1),
-              Text(text, style: Paragraph.textStyle),
+              Text(text, style: surroundingSpanStyle),
             ]))));
   }
 }
