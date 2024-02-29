@@ -497,7 +497,7 @@ class MathBlock extends StatelessWidget {
 //
 
 Widget _buildBlockInlineContainer({
-  required TextStyle? style,
+  required TextStyle style,
   required BlockInlineContainerNode node,
 }) {
   if (node.links == null) {
@@ -513,7 +513,7 @@ class _BlockInlineContainer extends StatefulWidget {
     {required this.links, required this.style, required this.nodes});
 
   final List<LinkNode> links;
-  final TextStyle? style;
+  final TextStyle style;
   final List<InlineContentNode> nodes;
 
   @override
@@ -576,7 +576,7 @@ class InlineContent extends StatelessWidget {
 
   final GestureRecognizer? recognizer;
   final Map<LinkNode, GestureRecognizer>? linkRecognizers;
-  final TextStyle? style;
+  final TextStyle style;
   final List<InlineContentNode> nodes;
 
   late final _InlineContentBuilder _builder;
