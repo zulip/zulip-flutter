@@ -57,6 +57,7 @@ extension ValueNotifierChecks<T> on Subject<ValueNotifier<T>> {
 
 extension TextChecks on Subject<Text> {
   Subject<String?> get data => has((t) => t.data, 'data');
+  Subject<TextStyle?> get style => has((t) => t.style, 'style');
 }
 
 extension TextFieldChecks on Subject<TextField> {
@@ -100,4 +101,8 @@ extension TypographyChecks on Subject<Typography> {
   Subject<TextTheme> get englishLike => has((t) => t.englishLike, 'englishLike');
   Subject<TextTheme> get dense => has((t) => t.dense, 'dense');
   Subject<TextTheme> get tall => has((t) => t.tall, 'tall');
+}
+
+extension InlineSpanChecks on Subject<InlineSpan> {
+  Subject<TextStyle?> get style => has((x) => x.style, 'style');
 }

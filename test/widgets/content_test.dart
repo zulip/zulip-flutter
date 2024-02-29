@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,6 +10,7 @@ import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
@@ -25,6 +27,56 @@ import '../test_navigation.dart';
 import 'dialog_checks.dart';
 import 'message_list_checks.dart';
 import 'page_checks.dart';
+
+/// Simulate a nested "inner" span's style by merging all ancestor-span
+/// styles, starting from the root.
+///
+/// [isInnerSpan] must return true for some descendant of [outerSpan].
+///
+/// This isn't how the style actually gets applied in the code under test
+/// (because that happens inside the engine, in SkParagraph),
+/// but it should hopefully simulate it closely enough.
+TextStyle? mergeSpanStylesOuterToInner(
+  InlineSpan outerSpan,
+  bool Function(InlineSpan) isInnerSpan,
+) {
+  final styles = <TextStyle?>[];
+  bool recurse(InlineSpan span) {
+    if (isInnerSpan(span)) {
+      styles.add(span.style);
+      return false;
+    }
+    final notInSubtree = span.visitDirectChildren(recurse);
+    if (!notInSubtree) {
+      styles.add(span.style);
+    }
+    return notInSubtree;
+  }
+  final recurseResult = recurse(outerSpan);
+  check(recurseResult).isFalse(); // check inner span was actually found
+
+  return styles.reversed.reduce((value, element) => switch ((value, element)) {
+    (TextStyle(), TextStyle()) => value!.merge(element!),
+    (TextStyle(), null)        => value,
+    (null, TextStyle())        => element,
+    (null, null)               => null,
+  });
+}
+
+/// The "merged style" ([mergeSpanStylesOuterToInner]) of a nested span.
+TextStyle? mergedStyleOfSubstring(InlineSpan rootSpan, Pattern substringPattern) {
+  return mergeSpanStylesOuterToInner(rootSpan,
+    (span) {
+      if (span is! TextSpan) return false;
+      final text = span.text;
+      if (text == null) return false;
+      return switch (substringPattern) {
+        String() => text == substringPattern,
+        _ => substringPattern.allMatches(text)
+          .any((match) => match.start == 0 && match.end == text.length),
+      };
+    });
+}
 
 void main() {
   // For testing a new content feature:
@@ -284,12 +336,62 @@ void main() {
 
   testContentSmoke(ContentExample.mathBlock);
 
+  /// Make a [targetFontSizeFinder] for [checkFontSizeRatio],
+  /// from a target [Pattern] (such as a string).
+  mkTargetFontSizeFinderFromPattern(Pattern targetPattern)
+    => (InlineSpan rootSpan)
+    => mergedStyleOfSubstring(rootSpan, targetPattern)!.fontSize!;
+
+  /// Check certain inline spans' font size are in a constant ratio with
+  /// the text around them.
+  ///
+  /// The given `targetHtml` should be a self-contained HTML fragment
+  /// that parses as an [InlineContentNode].
+  ///
+  /// [targetFontSizeFinder] should find some text in the given [InlineSpan]
+  /// and return its size. (Or something text-like, anyway, like the clock icon
+  /// in [GlobalTime].)
+  Future<void> checkFontSizeRatio(WidgetTester tester, {
+    required String targetHtml,
+    required double Function(InlineSpan rootSpan) targetFontSizeFinder,
+  }) async {
+    await prepareContentBare(tester,
+      '<h1>header-plain $targetHtml</h1>\n'
+      '<p>paragraph-plain $targetHtml</p>');
+
+    final headerRootSpan = tester.renderObject<RenderParagraph>(find.textContaining('header')).text;
+    final headerPlainStyle = mergedStyleOfSubstring(headerRootSpan, 'header-plain ');
+    final headerTargetFontSize = targetFontSizeFinder(headerRootSpan);
+
+    final paragraphRootSpan = tester.renderObject<RenderParagraph>(find.textContaining('paragraph')).text;
+    final paragraphPlainStyle = mergedStyleOfSubstring(paragraphRootSpan, 'paragraph-plain ');
+    final paragraphTargetFontSize = targetFontSizeFinder(paragraphRootSpan);
+
+    // Check that the font sizes even differ -- that e.g. the test hasn't grown
+    // some bug where we merge the [TextStyle]s in the wrong order and so get
+    // the same answer for every span.
+    check(headerPlainStyle!.fontSize! / paragraphPlainStyle!.fontSize!)
+      .isGreaterOrEqual(1.1);
+
+    final ratioInHeader = headerTargetFontSize / headerPlainStyle.fontSize!;
+    final ratioInParagraph = paragraphTargetFontSize / paragraphPlainStyle.fontSize!;
+
+    // Empirically we might have e.g. 0.825 and 0.8250000000000001.
+    check((ratioInHeader - ratioInParagraph).abs()).isLessThan(0.001);
+  }
+
   testContentSmoke(ContentExample.strong);
 
   testContentSmoke(ContentExample.emphasis);
 
   group('inline code', () {
     testContentSmoke(ContentExample.inlineCode);
+
+    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+      await checkFontSizeRatio(tester,
+        targetHtml: '<code>code</code>',
+        targetFontSizeFinder: mkTargetFontSizeFinderFromPattern('code'));
+    });
   });
 
   group('UserMention', () {
@@ -297,6 +399,26 @@ void main() {
     testContentSmoke(ContentExample.userMentionSilent);
     testContentSmoke(ContentExample.groupMentionPlain);
     testContentSmoke(ContentExample.groupMentionSilent);
+
+    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+      await checkFontSizeRatio(tester,
+        targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
+        targetFontSizeFinder: (rootSpan) {
+          late final double result;
+          rootSpan.visitChildren((span) {
+            if (span case WidgetSpan(child: UserMention() && var widget)) {
+              final fullNameSpan = tester.renderObject<RenderParagraph>(
+                find.descendant(
+                  of: find.byWidget(widget), matching: find.text('@Chris Bobbe'))
+              ).text;
+              result = mergedStyleOfSubstring(fullNameSpan, '@Chris Bobbe')!.fontSize!;
+              return false;
+            }
+            return true;
+          });
+          return result;
+        });
+    });
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
@@ -465,6 +587,16 @@ void main() {
 
   group('inline math', () {
     testContentSmoke(ContentExample.mathInline);
+
+    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+      const html = '<span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
+      await checkFontSizeRatio(tester,
+        targetHtml: html,
+        targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
+    });
   });
 
   group('GlobalTime', () {
@@ -480,6 +612,41 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes:
         parseContent('<p>$timeSpanHtml</p>').nodes)));
       tester.widget(find.textContaining(renderedTextRegexp));
+    });
+
+    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+      Future<void> doCheck(double Function(GlobalTime widget) sizeFromWidget) async {
+        await checkFontSizeRatio(tester,
+          targetHtml: '<time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time>',
+          targetFontSizeFinder: (rootSpan) {
+            late final double result;
+            rootSpan.visitChildren((span) {
+              if (span case WidgetSpan(child: GlobalTime() && var widget)) {
+                result = sizeFromWidget(widget);
+                return false;
+              }
+              return true;
+            });
+            return result;
+          });
+      }
+
+      // Text is scaled
+      await doCheck((widget) {
+        final textSpan = tester.renderObject<RenderParagraph>(
+          find.descendant(of: find.byWidget(widget),
+            matching: find.textContaining(renderedTextRegexp)
+        )).text;
+        return mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.fontSize!;
+      });
+
+      // Clock icon is scaled
+      await doCheck((widget) {
+        final icon = tester.widget<Icon>(
+          find.descendant(of: find.byWidget(widget),
+            matching: find.byIcon(ZulipIcons.clock)));
+        return icon.size!;
+      });
     });
   });
 
