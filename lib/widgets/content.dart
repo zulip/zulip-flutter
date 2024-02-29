@@ -477,7 +477,7 @@ class MathBlock extends StatelessWidget {
 //
 
 Widget _buildBlockInlineContainer({
-  required TextStyle? style,
+  required TextStyle style,
   required BlockInlineContainerNode node,
 }) {
   if (node.links == null) {
@@ -493,7 +493,7 @@ class _BlockInlineContainer extends StatefulWidget {
     {required this.links, required this.style, required this.nodes});
 
   final List<LinkNode> links;
-  final TextStyle? style;
+  final TextStyle style;
   final List<InlineContentNode> nodes;
 
   @override
@@ -556,7 +556,7 @@ class InlineContent extends StatelessWidget {
 
   final GestureRecognizer? recognizer;
   final Map<LinkNode, GestureRecognizer>? linkRecognizers;
-  final TextStyle? style;
+  final TextStyle style;
   final List<InlineContentNode> nodes;
 
   late final _InlineContentBuilder _builder;
@@ -605,13 +605,15 @@ class _InlineContentBuilder {
     _recognizer = _recognizerStack!.removeLast();
   }
 
-  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
+  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle style}) {
     return TextSpan(
       style: style,
-      children: nodes.map(_buildNode).toList(growable: false));
+      children: nodes
+        .map((node) => _buildNode(node, surroundingSpanStyle: style))
+        .toList(growable: false));
   }
 
-  InlineSpan _buildNode(InlineContentNode node) {
+  InlineSpan _buildNode(InlineContentNode node, {required TextStyle surroundingSpanStyle}) {
     if (node is TextNode) {
       return TextSpan(text: node.text, recognizer: _recognizer);
     } else if (node is LineBreakInlineNode) {
@@ -625,10 +627,10 @@ class _InlineContentBuilder {
     } else if (node is LinkNode) {
       return _buildLink(node);
     } else if (node is InlineCodeNode) {
-      return _buildInlineCode(node);
+      return _buildInlineCode(node, surroundingSpanStyle: surroundingSpanStyle);
     } else if (node is UserMentionNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: UserMention(node: node));
+        child: UserMention(node: node, surroundingSpanStyle: surroundingSpanStyle));
     } else if (node is UnicodeEmojiNode) {
       return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
     } else if (node is ImageEmojiNode) {
@@ -639,7 +641,7 @@ class _InlineContentBuilder {
         children: [TextSpan(text: node.texSource)]);
     } else if (node is GlobalTimeNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: GlobalTime(node: node));
+        child: GlobalTime(node: node, surroundingSpanStyle: surroundingSpanStyle));
     } else if (node is UnimplementedInlineContentNode) {
       return _errorUnimplemented(node);
     } else {
@@ -664,7 +666,7 @@ class _InlineContentBuilder {
     return result;
   }
 
-  InlineSpan _buildInlineCode(InlineCodeNode node) {
+  InlineSpan _buildInlineCode(InlineCodeNode node, {required TextStyle surroundingSpanStyle}) {
     // TODO `code` elements: border, padding -- seems hard
     //
     // Hard because this is an inline span, which we want to be able to break
@@ -750,9 +752,10 @@ final _kCodeBlockStyle = kMonospaceTextStyle
 // const _kInlineCodeRightBracket = '⟩';
 
 class UserMention extends StatelessWidget {
-  const UserMention({super.key, required this.node});
+  const UserMention({super.key, required this.node, required this.surroundingSpanStyle});
 
   final UserMentionNode node;
+  final TextStyle surroundingSpanStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -832,9 +835,10 @@ class MessageImageEmoji extends StatelessWidget {
 }
 
 class GlobalTime extends StatelessWidget {
-  const GlobalTime({super.key, required this.node});
+  const GlobalTime({super.key, required this.node, required this.surroundingSpanStyle});
 
   final GlobalTimeNode node;
+  final TextStyle surroundingSpanStyle;
 
   static final _backgroundColor = const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor();
   static final _borderColor = const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor();
