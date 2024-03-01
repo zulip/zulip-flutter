@@ -23,6 +23,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 
+
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
@@ -892,6 +893,16 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = item.message;
+    bool messageEdited = false, messageMoved = false;
+    if(message.editHistory != null) {
+      if((message.editHistory?[message.editHistory!.length-1].topic !=
+          message.editHistory?[message.editHistory!.length-1].prevTopic) ||
+          (message.editHistory?[message.editHistory!.length-1].topic !=
+          message.editHistory?[message.editHistory!.length-1].prevTopic)){
+            messageMoved = true;}
+      if(message.editHistory?[message.editHistory!.length-1].prevContent!=null){
+        messageEdited = true;
+      }}
 
     Widget? senderRow;
     if (item.showSender) {
@@ -939,7 +950,8 @@ class MessageWithPossibleSender extends StatelessWidget {
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(children: [
+        child: Column(
+          children: [
           if (senderRow != null)
             Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
               child: senderRow),
@@ -950,6 +962,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   MessageContent(message: message, content: item.content),
+                  if(messageMoved || messageEdited) SlidableMarker(messageMoved, messageEdited),
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!)
                 ])),
@@ -965,6 +978,61 @@ class MessageWithPossibleSender extends StatelessWidget {
         ])));
   }
 }
+
+class SlidableMarker extends StatefulWidget {
+  final bool messageMoved;
+  final bool messageEdited;
+  const SlidableMarker(
+    this.messageMoved,
+    this.messageEdited,
+  );
+
+  @override
+  State<SlidableMarker> createState() => _SlidableMarkerState();
+}
+
+class _SlidableMarkerState extends State<SlidableMarker> {
+  double _dragPosition = 20;  //TODO : initialize with icon width
+
+
+  @override
+  Widget build(BuildContext context) {
+    double containerWidth = 20;
+
+    if (_dragPosition >= 20) {
+      if (_dragPosition > 60) {
+        containerWidth = 60;
+      } else {
+        containerWidth = _dragPosition;
+      }
+    }
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        setState(() {
+          _dragPosition += details.delta.dx;
+          });},
+      child: SizedBox(
+        height: 20,
+        width: 30,
+        child: Stack(
+          children: [
+            Container(
+              width: containerWidth,
+              color: Colors.blue[200],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.messageMoved ? 'Moved' : 'Edited',
+                      style: const TextStyle(fontSize: 13, overflow: TextOverflow.clip),
+                    ),
+                  ),
+                  // TODO : Add Zulip icon for moved and edited
+                  widget.messageMoved ? const Icon(Icons.move_down_outlined, size: 18, color: Colors.white) :
+                                        const Icon(Icons.edit, size: 18, color: Colors.white),
+                ]))])));}
+  }
 
 // TODO web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
