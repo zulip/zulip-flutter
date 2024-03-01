@@ -5,11 +5,11 @@
 ### Highlights for users
 
 * The app should now always get back to showing live data once your
-  device is back on the Internet, regardless of any previous lack of
-  connection. (#184)
+  device is back on the Internet. (#184)
 * (Android) Notifications now work, after several fixes.  If they
   don't for you, please report the issue. (#520, #342, #528)
 * The app navigates straight to the inbox upon launch. (#516)
+* Larger font size for reading Zulip messages. (#512)
 * More Zulip message features: global times, spoiler blocks,
   and image thumbnails side by side. (#354, #358, #193)
 * Other fixes and improvements too as usual.
@@ -21,7 +21,7 @@
 * Content tests are easier to write, especially for widgets. (#511)
 
 Resolved: #354, #507, #441, PR #511, #384, #193, #520, #516, PR #523,
-  #184, PR #522, #342, #528, #358
+  #184, PR #522, #342, #528, #358, #512, #513
 
 
 ## 0.0.10 (2024-02-06)
