@@ -941,7 +941,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
           if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
+            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
               child: senderRow),
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const SizedBox(width: 16),
