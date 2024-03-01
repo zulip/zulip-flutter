@@ -64,8 +64,13 @@
 
   * Select the "Distribute App" button, and answer the prompts.
 
-    * When asked, choose "Manually manage app signing".  Choose the
-      only available app provisioning profile.
+    * Start with "Custom".
+
+    * When asked, choose "Manually manage app signing".
+      Choose the only available app provisioning profile.
+
+      (It's not clear why Xcode isn't able to make this same choice
+      when asked to automatically manage app signing.)
 
 * The build will go automatically to the alpha users in a few minutes,
   provided all goes well with the "processing" step.
