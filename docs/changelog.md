@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.0.11 (2024-02-29)
 
 ### Highlights for users
 
