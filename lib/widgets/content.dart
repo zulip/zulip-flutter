@@ -19,7 +19,7 @@ import 'store.dart';
 import 'text.dart';
 
 /// The font size for message content in a plain unstyled paragraph.
-const double kBaseFontSize = 14;
+const double kBaseFontSize = 17;
 
 /// The entire content of a message, aka its body.
 ///
@@ -112,7 +112,7 @@ class Paragraph extends StatelessWidget {
 
   static const textStyle = TextStyle(
     fontSize: kBaseFontSize,
-    height: (17 / kBaseFontSize),
+    height: (22 / kBaseFontSize),
   );
 
   @override
