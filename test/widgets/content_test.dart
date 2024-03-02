@@ -297,7 +297,7 @@ void main() {
   group('LinkNode interactions', () {
     // The Flutter test font uses square glyphs, so width equals height:
     //   https://github.com/flutter/flutter/wiki/Flutter-Test-Fonts
-    const fontSize = 14.0;
+    // We use this to simulate taps on specific glyphs.
 
     Future<void> prepareContent(WidgetTester tester, String html) async {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -323,6 +323,8 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('multiple links in paragraph', (tester) async {
+      final fontSize = Paragraph.textStyle.fontSize!;
+
       await prepareContent(tester,
         '<p><a href="https://a/">foo</a> bar <a href="https://b/">baz</a></p>');
       final base = tester.getTopLeft(find.text('foo bar baz'))
@@ -349,6 +351,8 @@ void main() {
     });
 
     testWidgets('link containing other spans', (tester) async {
+      final fontSize = Paragraph.textStyle.fontSize!;
+
       await prepareContent(tester,
         '<p><a href="https://a/">two <strong><em><code>words</code></em></strong></a></p>');
       final base = tester.getTopLeft(find.text('two words'))
