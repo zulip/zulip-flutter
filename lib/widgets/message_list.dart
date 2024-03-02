@@ -962,7 +962,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   MessageContent(message: message, content: item.content),
-                  if(messageMoved || messageEdited) SlidableMarker(messageMoved, messageEdited),
+                  if(messageMoved || messageEdited) SlidableMarker(messageMoved: messageMoved, messageEdited:  messageEdited),
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!)
                 ])),
@@ -982,17 +982,19 @@ class MessageWithPossibleSender extends StatelessWidget {
 class SlidableMarker extends StatefulWidget {
   final bool messageMoved;
   final bool messageEdited;
-  const SlidableMarker(
-    this.messageMoved,
-    this.messageEdited,
-  );
+
+  const SlidableMarker({
+    super.key,
+    required this.messageMoved,
+    required this.messageEdited,
+  });
 
   @override
   State<SlidableMarker> createState() => _SlidableMarkerState();
 }
 
 class _SlidableMarkerState extends State<SlidableMarker> {
-  double _dragPosition = 12;  //TODO : initialize with icon width
+  double _dragPosition = 12;
 
 
   @override
@@ -1019,13 +1021,12 @@ class _SlidableMarkerState extends State<SlidableMarker> {
           children: [
             Container(
               width: containerWidth,
-              // color: const Color(0xFFDDECF6),
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(2), color : const Color(0xFFDDECF6),),
               child: Row(
                 children: [
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(left: 1),
+                      padding: const EdgeInsets.only(left: 1),
                       child: Text(
                         widget.messageMoved ? 'Moved' : 'Edited',
                         style: const TextStyle(fontSize: 15, overflow: TextOverflow.clip, color: Color(0xFF26516E)),
