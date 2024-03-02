@@ -992,12 +992,12 @@ class SlidableMarker extends StatefulWidget {
 }
 
 class _SlidableMarkerState extends State<SlidableMarker> {
-  double _dragPosition = 20;  //TODO : initialize with icon width
+  double _dragPosition = 12;  //TODO : initialize with icon width
 
 
   @override
   Widget build(BuildContext context) {
-    double containerWidth = 20;
+    double containerWidth = 17;
 
     if (_dragPosition >= 20) {
       if (_dragPosition > 60) {
@@ -1019,18 +1019,24 @@ class _SlidableMarkerState extends State<SlidableMarker> {
           children: [
             Container(
               width: containerWidth,
-              color: Colors.blue[200],
+              // color: const Color(0xFFDDECF6),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(2), color : const Color(0xFFDDECF6),),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      widget.messageMoved ? 'Moved' : 'Edited',
-                      style: const TextStyle(fontSize: 13, overflow: TextOverflow.clip),
-                    ),
-                  ),
-                  // TODO : Add Zulip icon for moved and edited
-                  widget.messageMoved ? const Icon(Icons.move_down_outlined, size: 18, color: Colors.white) :
-                                        const Icon(Icons.edit, size: 18, color: Colors.white),
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 1),
+                      child: Text(
+                        widget.messageMoved ? 'Moved' : 'Edited',
+                        style: const TextStyle(fontSize: 15, overflow: TextOverflow.clip, color: Color(0xFF26516E)),
+                      ),
+                    )),
+                  widget.messageMoved ? const Padding(padding: EdgeInsets.all(1),
+                                                      child :Icon(ZulipIcons.message_moved_icon, size: 14,
+                                                      color: Color(0xFF26516E))) :
+                                        const Padding(padding: EdgeInsets.all(1),
+                                                      child :Icon(ZulipIcons.message_edited_icon, size: 14,
+                                                      color: Color(0xFF26516E)))
                 ]))])));}
   }
 
