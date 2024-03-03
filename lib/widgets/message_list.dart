@@ -897,8 +897,8 @@ class MessageWithPossibleSender extends StatelessWidget {
     if(message.editHistory != null) {
       if((message.editHistory?[message.editHistory!.length-1].topic !=
           message.editHistory?[message.editHistory!.length-1].prevTopic) ||
-          (message.editHistory?[message.editHistory!.length-1].topic !=
-          message.editHistory?[message.editHistory!.length-1].prevTopic)){
+          (message.editHistory?[message.editHistory!.length-1].stream !=
+          message.editHistory?[message.editHistory!.length-1].prevStream)){
             messageMoved = true;}
       if(message.editHistory?[message.editHistory!.length-1].prevContent!=null){
         messageEdited = true;
