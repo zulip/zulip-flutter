@@ -135,6 +135,7 @@ void main() {
       check(testBinding.globalStore.accounts).single.equals(eg.selfAccount
           .copyWith(id: testBinding.globalStore.accounts.single.id));
     });
+    
     // TODO test validators on the TextFormField widgets
     // TODO test navigation, i.e. the call to pushAndRemoveUntil
     // TODO test _getUserId case
