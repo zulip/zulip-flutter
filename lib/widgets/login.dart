@@ -490,7 +490,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
     if (!usernameValid || !passwordValid) {
       return;
     }
-    final String username = usernameFieldState.value!;
+    final String username = usernameFieldState.value!.trim();
     final String password = passwordFieldState.value!;
 
     widget.loginPageState.setState(() {
