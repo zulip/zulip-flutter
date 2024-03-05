@@ -2,12 +2,12 @@
 
 A Zulip client for Android and iOS, using Flutter.
 
-This app is currently [in beta][].
+This app is currently [in beta][beta].
 When it's ready, it [will become the new][] official mobile Zulip client.
 To see what work is planned before that launch,
 see the [milestones][] and the [project board][].
 
-[in beta]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1708728
+[beta]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1708728
 [will become the new]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1582367
 [milestones]: https://github.com/zulip/zulip-flutter/milestones?direction=asc&sort=title
 [project board]: https://github.com/orgs/zulip/projects/5/views/4
@@ -16,6 +16,8 @@ see the [milestones][] and the [project board][].
 ## Using Zulip
 
 To use Zulip on iOS or Android, install the [official mobile Zulip client][].
+
+You can also [try out this beta app][beta].
 
 [official mobile Zulip client]: https://github.com/zulip/zulip-mobile#readme
 
