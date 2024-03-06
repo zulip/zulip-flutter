@@ -538,7 +538,7 @@ void main() {
   group('AvatarImage', () {
     late PerAccountStore store;
 
-    Future<Uri?> actualUrl(WidgetTester tester, String avatarUrl) async {
+    Future<Uri?> actualUrl(WidgetTester tester, String avatarUrl, [double? size]) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -548,7 +548,7 @@ void main() {
       prepareBoringImageHttpClient();
       await tester.pumpWidget(GlobalStoreWidget(
         child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: user.userId))));
+          child: AvatarImage(userId: user.userId, size: size ?? 30))));
       await tester.pump();
       await tester.pump();
       tester.widget(find.byType(AvatarImage));
@@ -568,6 +568,26 @@ void main() {
       const avatarUrl = '/avatar.png';
       check(await actualUrl(tester, avatarUrl))
         .equals(store.tryResolveUrl(avatarUrl)!);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+   testWidgets('absolute URL, larger size', (tester) async {
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const avatarUrl = 'https://example/avatar.png';
+      check(await actualUrl(tester, avatarUrl, 50)).isNotNull()
+        .asString.equals(avatarUrl.replaceAll('.png', '-medium.png'));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('relative URL, larger size', (tester) async {
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const avatarUrl = '/avatar.png';
+      check(await actualUrl(tester, avatarUrl, 50))
+        .equals(store.tryResolveUrl('/avatar-medium.png')!);
       debugNetworkImageHttpClientProvider = null;
     });
 

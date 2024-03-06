@@ -7,6 +7,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
+import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
@@ -1059,9 +1060,19 @@ class AvatarImage extends StatelessWidget {
       null          => null, // TODO(#255): handle computing gravatars
       var avatarUrl => store.tryResolveUrl(avatarUrl),
     };
-    return (resolvedUrl == null)
-      ? const SizedBox.shrink()
-      : RealmContentNetworkImage(resolvedUrl, filterQuality: FilterQuality.medium, fit: BoxFit.cover);
+
+    if (resolvedUrl == null) {
+      return const SizedBox.shrink();
+    }
+
+    final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
+    final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
+
+    return RealmContentNetworkImage(
+      avatarUrl.get(physicalSize),
+      filterQuality: FilterQuality.medium,
+      fit: BoxFit.cover,
+    );
   }
 }
 

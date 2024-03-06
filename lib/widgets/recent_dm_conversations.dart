@@ -81,10 +81,10 @@ class RecentDmConversationsItem extends StatelessWidget {
     required this.unreadCount,
   });
 
-  static const double _avatarSize = 32;
-
   final DmNarrow narrow;
   final int unreadCount;
+
+  static const double _avatarSize = 32;
 
   @override
   Widget build(BuildContext context) {
