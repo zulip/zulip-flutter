@@ -1027,7 +1027,7 @@ class Avatar extends StatelessWidget {
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
-      child: AvatarImage(userId: userId));
+      child: AvatarImage(userId: userId, size: size));
   }
 }
 
@@ -1040,9 +1040,11 @@ class AvatarImage extends StatelessWidget {
   const AvatarImage({
     super.key,
     required this.userId,
+    required this.size,
   });
 
   final int userId;
+  final double size;
 
   @override
   Widget build(BuildContext context) {

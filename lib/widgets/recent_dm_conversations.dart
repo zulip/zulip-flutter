@@ -81,6 +81,8 @@ class RecentDmConversationsItem extends StatelessWidget {
     required this.unreadCount,
   });
 
+  static const double _avatarSize = 32;
+
   final DmNarrow narrow;
   final int unreadCount;
 
@@ -94,14 +96,14 @@ class RecentDmConversationsItem extends StatelessWidget {
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = selfUser.fullName;
-        avatar = AvatarImage(userId: selfUser.userId);
+        avatar = AvatarImage(userId: selfUser.userId, size: _avatarSize);
       case [var otherUserId]:
         // TODO(#296) actually don't show this row if the user is muted?
         //   (should we offer a "spam folder" style summary screen of recent
         //   1:1 DM conversations from muted users?)
         final otherUser = store.users[otherUserId];
         title = otherUser?.fullName ?? '(unknown user)';
-        avatar = AvatarImage(userId: otherUserId);
+        avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
@@ -122,7 +124,7 @@ class RecentDmConversationsItem extends StatelessWidget {
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
-              child: AvatarShape(size: 32, borderRadius: 3, child: avatar)),
+              child: AvatarShape(size: _avatarSize, borderRadius: 3, child: avatar)),
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
