@@ -133,13 +133,13 @@ void main() {
       });
 
       test('unreadCountBadgeBackground', () {
-        void runCheck(int base, Color expected) {
-          check(StreamColorSwatch(base)).unreadCountBadgeBackground.equals(expected);
+        void runCheck(int base, Color checked) {
+          check(StreamColorSwatch(base)).unreadCountBadgeBackground.equals(checked);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS and EXTREME_COLORS
         // in <https://replit.com/@VladKorobov/zulip-sidebar#script.js>.
-        // On how to extract expected results from the replit, see:
+        // On how to extract checked results from the replit, see:
         //   https://github.com/zulip/zulip-flutter/pull/371#discussion_r1393643523
 
         // TODO Fix bug causing our implementation's results to differ from the
@@ -195,14 +195,14 @@ void main() {
       });
 
       test('iconOnPlainBackground', () {
-        void runCheck(int base, Color expected) {
-          check(StreamColorSwatch(base)).iconOnPlainBackground.equals(expected);
+        void runCheck(int base, Color checked) {
+          check(StreamColorSwatch(base)).iconOnPlainBackground.equals(checked);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
         // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
         // (Skipping `streamColors` because there are 100+ of them.)
-        // On how to extract expected results from the replit, see:
+        // On how to extract checked results from the replit, see:
         //   https://github.com/zulip/zulip-flutter/pull/381#discussion_r1399319296
 
         // TODO Fix bug causing our implementation's results to differ from the
@@ -236,14 +236,14 @@ void main() {
       });
 
       test('iconOnBarBackground', () {
-        void runCheck(int base, Color expected) {
-          check(StreamColorSwatch(base)).iconOnBarBackground.equals(expected);
+        void runCheck(int base, Color checked) {
+          check(StreamColorSwatch(base)).iconOnBarBackground.equals(checked);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
         // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
         // (Skipping `streamColors` because there are 100+ of them.)
-        // On how to extract expected results from the replit, see:
+        // On how to extract checked results from the replit, see:
         //   https://github.com/zulip/zulip-flutter/pull/381#discussion_r1399319296
 
         // TODO Fix bug causing our implementation's results to differ from the
@@ -277,14 +277,14 @@ void main() {
       });
 
       test('barBackground', () {
-        void runCheck(int base, Color expected) {
-          check(StreamColorSwatch(base)).barBackground.equals(expected);
+        void runCheck(int base, Color checked) {
+          check(StreamColorSwatch(base)).barBackground.equals(checked);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
         // in <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>.
         // (Skipping `streamColors` because there are 100+ of them.)
-        // On how to extract expected results from the replit, see:
+        // On how to extract checked results from the replit, see:
         //   https://github.com/zulip/zulip-flutter/pull/381#discussion_r1399319296
 
         // TODO Fix bug causing our implementation's results to differ from the
@@ -334,6 +334,62 @@ void main() {
       check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
     });
   });
+
+group('MessageEditHistory', () {
+  test('test MessageEditHistory.fromJson', () {
+
+  final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(
+      eg.editHistory(timestamp: 12369, userId: 123),
+    ) as Map<String, dynamic>);
+
+  MessageEditHistory parse(Map<String, dynamic> specialJson) {
+      return MessageEditHistory.fromJson({ ...baseJson, ...specialJson });
+    }
+
+  final history = parse(
+    {'prev_content': 'Lorem Ipsum', 'timestamp': 12369, 'user_id': 123,
+    'prev_rendered_content': '<p>Lorem Ipsum</p>'});
+  check(history.prevContent).equals('Lorem Ipsum');
+  check(history.prevRenderedContent).equals('<p>Lorem Ipsum</p>');
+  check(history.userId).equals(123);
+  check(history.timestamp).equals(12369);
+  });
+
+  test('streamMessage with editHistory list', () {
+    // Create some example editHistory objects
+    var editHistory1 = eg.editHistory(
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      userId: 123,
+    );
+
+    var editHistory2 = eg.editHistory(
+      prevContent: 'Previous content',
+      prevRenderedContent: 'Previous rendered content',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      userId: 456,
+    );
+
+    User user = eg.user(userId: 1);
+
+    // Create a StreamMessage with a list of editHistory objects
+    var streamMsg = eg.streamMessage(
+      id: 789,
+      sender: user,
+      topic: 'Test topic',
+      content: 'Test content',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      editHistory: [editHistory1, editHistory2],
+    );
+
+    check(streamMsg.editHistory![0].timestamp).equals(editHistory1.timestamp);
+    check(streamMsg.editHistory![0].userId).equals(editHistory1.userId);
+    check(streamMsg.editHistory![1].prevContent).equals(editHistory2.prevContent);
+    check(streamMsg.editHistory![1].prevRenderedContent).equals(editHistory2.prevRenderedContent);
+    
+  });
+
+
+});
 
   group('DmMessage', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(

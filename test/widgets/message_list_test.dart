@@ -910,5 +910,53 @@ void main() {
           expectedMessage: 'Oops');
       });
     });
+    
+    group('SlidableMarker Widget Tests', () {
+    testWidgets('displays correct text when message is moved', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(
+        body:  SlidableMarker(
+          messageMoved: true,
+          messageEdited: false,
+        ))));
+      check(find.text('Moved').evaluate()).isNotEmpty();
+      check(find.text('Edited').evaluate()).isEmpty();
+    });
+
+    testWidgets('displays correct text when message is edited', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(
+        body:  SlidableMarker(
+          messageMoved: false,
+          messageEdited: true,
+        ))));
+      check(find.text('Edited').evaluate()).isNotEmpty();
+      check(find.text('Moved').evaluate()).isEmpty();
+    });
+
+    testWidgets('Marker not go out of bounds', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: SlidableMarker(messageEdited: true, messageMoved: true),
+      ),
+    ));
+
+    Finder containerFinder = find.byType(Container);
+
+    // Check for initial width
+    check(tester.getSize(containerFinder).width).equals(17);
+
+    // Check for maximum width
+    await tester.drag(containerFinder, const Offset(50, 0));
+    await tester.pump();
+    check(tester.getSize(containerFinder).width).equals(60);
+
+    // Check for minimum width
+    await tester.drag(containerFinder, const Offset(-80, 0));
+    await tester.pump();
+    check(tester.getSize(containerFinder).width).equals(17);
+  });
+
+  });
   });
 }

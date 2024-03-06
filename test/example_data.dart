@@ -276,6 +276,7 @@ StreamMessage streamMessage({
   List<Reaction>? reactions,
   int? timestamp,
   List<MessageFlag>? flags,
+  List<MessageEditHistory>? editHistory,
 }) {
   final effectiveStream = stream ?? _stream();
   // The use of JSON here is convenient in order to delegate parts of the data
@@ -296,6 +297,37 @@ StreamMessage streamMessage({
     'subject': topic ?? 'example topic',
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
+    'edit_history': editHistory ?? [],
+  }) as Map<String, dynamic>);
+}
+
+/// Creates a [MessageEditHistory] object with the provided parameters.
+///
+/// The [timestamp] parameter is required and represents the timestamp of the message edit.
+/// The [userId] parameter is required but nullable and represents the user ID of the message editor.
+///
+/// Returns a [MessageEditHistory] object.
+MessageEditHistory editHistory({
+  String? prevContent,
+  String? prevRenderedContent,
+  int? prevRenderedContentVersion,
+  int? prevStream,
+  String? prevTopic,
+  int? stream,
+  required int timestamp,
+  String? topic,
+  required int? userId,
+}) {
+  return MessageEditHistory.fromJson(deepToJson({
+    'prev_content': prevContent ?? 'Base previous content',
+    'prev_rendered_content': prevRenderedContent ?? 'Base previous rendered content',
+    'prev_rendered_content_version': prevRenderedContentVersion ?? 1,
+    'prev_stream': prevStream ?? 0,
+    'prev_topic': prevTopic ?? 'Base previous topic',
+    'stream': stream ?? 0,
+    'timestamp': timestamp,
+    'topic': topic ?? 'Base topic',
+    'user_id': userId,
   }) as Map<String, dynamic>);
 }
 
