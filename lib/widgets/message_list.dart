@@ -994,19 +994,22 @@ class SlidableMarker extends StatefulWidget {
 }
 
 class _SlidableMarkerState extends State<SlidableMarker> {
-  double _dragPosition = 12;
+  double _dragPosition = 17;
 
 
   @override
   Widget build(BuildContext context) {
     double containerWidth = 17;
 
-    if (_dragPosition >= 20) {
+    if (_dragPosition >= 17) {
       if (_dragPosition > 60) {
         containerWidth = 60;
       } else {
         containerWidth = _dragPosition;
       }
+    }
+    else{
+      _dragPosition = 17;
     }
 
     return GestureDetector(
@@ -1016,12 +1019,13 @@ class _SlidableMarkerState extends State<SlidableMarker> {
           });},
       child: SizedBox(
         height: 20,
-        width: 30,
+        // width: 30,
         child: Stack(
           children: [
             Container(
               width: containerWidth,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(2), color : const Color(0xFFDDECF6),),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(2),
+                                        color : const Color(0xFFDDECF6)),
               child: Row(
                 children: [
                   Expanded(
@@ -1030,8 +1034,7 @@ class _SlidableMarkerState extends State<SlidableMarker> {
                       child: Text(
                         widget.messageMoved ? 'Moved' : 'Edited',
                         style: const TextStyle(fontSize: 15, overflow: TextOverflow.clip, color: Color(0xFF26516E)),
-                      ),
-                    )),
+                      ))),
                   widget.messageMoved ? const Padding(padding: EdgeInsets.all(1),
                                                       child :Icon(ZulipIcons.message_moved_icon, size: 14,
                                                       color: Color(0xFF26516E))) :
