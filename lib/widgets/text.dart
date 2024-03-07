@@ -34,6 +34,11 @@ import 'package:flutter/material.dart';
 Typography zulipTypography(BuildContext context) {
   final typography = Theme.of(context).typography;
 
+  convertGeometry(TextTheme inputTextTheme) {
+    TextTheme result = _weightVariableTextTheme(context, inputTextTheme);
+    return result;
+  }
+
   Typography result = typography.copyWith(
     black: typography.black.apply(
       fontFamily: kDefaultFontFamily,
@@ -42,9 +47,9 @@ Typography zulipTypography(BuildContext context) {
       fontFamily: kDefaultFontFamily,
       fontFamilyFallback: defaultFontFamilyFallback),
 
-    dense:       _weightVariableTextTheme(context, typography.dense),
-    englishLike: _weightVariableTextTheme(context, typography.englishLike),
-    tall:        _weightVariableTextTheme(context, typography.tall),
+    dense:       convertGeometry(typography.dense),
+    englishLike: convertGeometry(typography.englishLike),
+    tall:        convertGeometry(typography.tall),
   );
 
   assert(() {
