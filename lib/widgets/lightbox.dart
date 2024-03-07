@@ -147,6 +147,7 @@ class _LightboxPageState extends State<_LightboxPage> {
         centerTitle: false,
         foregroundColor: appBarForegroundColor,
         backgroundColor: appBarBackgroundColor,
+        shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
 
         // TODO(#41): Show message author's avatar
