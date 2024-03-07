@@ -36,6 +36,10 @@ Typography zulipTypography(BuildContext context) {
 
   convertGeometry(TextTheme inputTextTheme) {
     TextTheme result = _weightVariableTextTheme(context, inputTextTheme);
+
+    result = _convertTextTheme(result, (maybeInputStyle, _) =>
+      maybeInputStyle?.merge(const TextStyle(letterSpacing: 0)));
+
     return result;
   }
 

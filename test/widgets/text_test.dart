@@ -47,6 +47,13 @@ void main() {
       });
     }
 
+    testWidgets('zero letter spacing', (tester) async {
+      check(await getZulipTypography(tester, platformRequestsBold: false))
+        ..englishLike.bodyMedium.isNotNull().letterSpacing.equals(0)
+        ..dense.bodyMedium.isNotNull().letterSpacing.equals(0)
+        ..tall.bodyMedium.isNotNull().letterSpacing.equals(0);
+    });
+
     test('Typography has the assumed fields', () {
       check(Typography().toDiagnosticsNode().getProperties().map((n) => n.name).toList())
         .unorderedEquals(['black', 'white', 'englishLike', 'dense', 'tall']);
