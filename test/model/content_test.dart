@@ -125,6 +125,13 @@ class ContentExample {
     const ImageEmojiNode(
       src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
 
+  static final globalTime = ContentExample.inline(
+    'global time',
+    "<time:2024-03-07T15:00:00-08:00>",
+    '<p><time datetime="2024-03-07T23:00:00Z">2024-03-07T15:00:00-08:00</time></p>',
+    GlobalTimeNode(
+      datetime: DateTime.parse("2024-03-07T23:00:00Z")));
+
   static const spoilerDefaultHeader = ContentExample(
     'spoiler with default header',
     '```spoiler\nhello world\n```',
@@ -707,11 +714,7 @@ void main() {
   testParseExample(ContentExample.mathInline);
 
   group('global times', () {
-    testParseInline('smoke',
-      // "<time:2024-01-30T17:33:00Z>"
-      '<p><time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time></p>',
-      GlobalTimeNode(datetime: DateTime.parse('2024-01-30T17:33Z')),
-    );
+    testParseExample(ContentExample.globalTime);
 
     testParseInline('handles missing attribute',
       // No markdown, this is unexpected response
