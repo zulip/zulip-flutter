@@ -182,6 +182,10 @@ class ChooseAccountPage extends StatelessWidget {
         ),
         direction: DismissDirection.endToStart,
         key: ValueKey(accountId),
+        onDismissed: (direction) {
+          final globalStore = GlobalStoreWidget.of(context);
+          globalStore.removeAccount(accountId);
+        },
         child: ListTile(
           title: title,
           subtitle: subtitle,

@@ -106,4 +106,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> createAccount(AccountsCompanion values) {
     return into(accounts).insert(values);
   }
+
+  Future deleteAccount(int accountId) {
+    return (delete(accounts)
+      ..where((tbl) => tbl.id.equals(accountId))
+    ).go();
+  }
 }
