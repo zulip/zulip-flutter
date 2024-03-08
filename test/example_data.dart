@@ -297,7 +297,7 @@ StreamMessage streamMessage({
     'subject': topic ?? 'example topic',
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
-    'edit_history': editHistory ?? [],
+    'edit_history': editHistory,
   }) as Map<String, dynamic>);
 }
 

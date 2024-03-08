@@ -910,8 +910,9 @@ void main() {
           expectedMessage: 'Oops');
       });
     });
-    
-    group('SlidableMarker Widget Tests', () {
+  });
+
+  group('Slidable Marker Tests', (){
     testWidgets('displays correct text when message is moved', (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(
         home: Scaffold(
@@ -955,8 +956,6 @@ void main() {
     await tester.drag(containerFinder, const Offset(-80, 0));
     await tester.pump();
     check(tester.getSize(containerFinder).width).equals(17);
-  });
-
   });
   });
 }

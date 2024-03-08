@@ -1019,7 +1019,6 @@ class _SlidableMarkerState extends State<SlidableMarker> {
           });},
       child: SizedBox(
         height: 20,
-        // width: 30,
         child: Stack(
           children: [
             Container(
