@@ -83,6 +83,13 @@ class ContentExample {
     '<p><strong>bold</strong></p>',
     const StrongNode(nodes: [TextNode('bold')]));
 
+  static final emphasis = ContentExample.inline(
+    'emphasis/italic',
+    '*italic*',
+    expectedText: 'italic',
+    '<p><em>italic</em></p>',
+    const EmphasisNode(nodes: [TextNode('italic')]));
+
   static final emojiUnicode = ContentExample.inline(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
@@ -618,10 +625,7 @@ void main() {
     '<p><del>strike through</del></p>',
     const DeletedNode(nodes: [TextNode('strike through')]));
 
-  testParseInline('parse emphasis/italic',
-    // "*italic*"
-    '<p><em>italic</em></p>',
-    const EmphasisNode(nodes: [TextNode('italic')]));
+  testParseExample(ContentExample.emphasis);
 
   testParseInline('parse inline code',
     // "`inline code`"
