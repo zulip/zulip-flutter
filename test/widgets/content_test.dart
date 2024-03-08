@@ -278,6 +278,8 @@ void main() {
 
   testContentSmoke(ContentExample.mathBlock);
 
+  testContentSmoke(ContentExample.strong);
+
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
     final height = tester.getSize(textFinder).height;
     final target = tester.getTopLeft(textFinder)

@@ -76,6 +76,13 @@ class ContentExample {
   /// to have it defined for each test case right next to [html] and [expectedNodes].
   final String? expectedText;
 
+  static final strong = ContentExample.inline(
+    'strong/bold',
+    '**bold**',
+    expectedText: 'bold',
+    '<p><strong>bold</strong></p>',
+    const StrongNode(nodes: [TextNode('bold')]));
+
   static final emojiUnicode = ContentExample.inline(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
@@ -604,10 +611,7 @@ void main() {
       TextNode('\nb'),
     ])]);
 
-  testParseInline('parse strong/bold',
-    // "**bold**"
-    '<p><strong>bold</strong></p>',
-    const StrongNode(nodes: [TextNode('bold')]));
+  testParseExample(ContentExample.strong);
 
   testParseInline('parse deleted/strike-through',
     // "~~strike through~~"
