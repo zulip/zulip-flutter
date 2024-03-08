@@ -282,6 +282,8 @@ void main() {
 
   testContentSmoke(ContentExample.emphasis);
 
+  testContentSmoke(ContentExample.inlineCode);
+
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
     final height = tester.getSize(textFinder).height;
     final target = tester.getTopLeft(textFinder)

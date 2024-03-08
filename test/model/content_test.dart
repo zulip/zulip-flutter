@@ -90,6 +90,13 @@ class ContentExample {
     '<p><em>italic</em></p>',
     const EmphasisNode(nodes: [TextNode('italic')]));
 
+  static final inlineCode = ContentExample.inline(
+    'inline code',
+    '`inline code`',
+    expectedText: 'inline code',
+    '<p><code>inline code</code></p>',
+    const InlineCodeNode(nodes: [TextNode('inline code')]));
+
   static final emojiUnicode = ContentExample.inline(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
@@ -627,10 +634,7 @@ void main() {
 
   testParseExample(ContentExample.emphasis);
 
-  testParseInline('parse inline code',
-    // "`inline code`"
-    '<p><code>inline code</code></p>',
-    const InlineCodeNode(nodes: [TextNode('inline code')]));
+  testParseExample(ContentExample.inlineCode);
 
   testParseInline('parse nested del, strong, em, code',
     // "~~***`word`***~~"
