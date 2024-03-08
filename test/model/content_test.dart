@@ -97,6 +97,48 @@ class ContentExample {
     '<p><code>inline code</code></p>',
     const InlineCodeNode(nodes: [TextNode('inline code')]));
 
+  static final userMentionPlain = ContentExample.inline(
+    'plain user @-mention',
+    "@**Greg Price**",
+    expectedText: '@Greg Price',
+    '<p><span class="user-mention" data-user-id="2187">@Greg Price</span></p>',
+    const UserMentionNode(nodes: [TextNode('@Greg Price')]));
+
+  static final userMentionSilent = ContentExample.inline(
+    'silent user @-mention',
+    "@_**Greg Price**",
+    expectedText: 'Greg Price',
+    '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>',
+    const UserMentionNode(nodes: [TextNode('Greg Price')]));
+
+  static final userMentionSilentClassOrderReversed = ContentExample.inline(
+    'silent user @-mention, class order reversed',
+    "@_**Greg Price**", // (hypothetical server variation)
+    expectedText: 'Greg Price',
+    '<p><span class="silent user-mention" data-user-id="2187">Greg Price</span></p>',
+    const UserMentionNode(nodes: [TextNode('Greg Price')]));
+
+  static final groupMentionPlain = ContentExample.inline(
+    'plain group @-mention',
+    "@*test-empty*",
+    expectedText: '@test-empty',
+    '<p><span class="user-group-mention" data-user-group-id="186">@test-empty</span></p>',
+    const UserMentionNode(nodes: [TextNode('@test-empty')]));
+
+  static final groupMentionSilent = ContentExample.inline(
+    'silent group @-mention',
+    "@_*test-empty*",
+    expectedText: 'test-empty',
+    '<p><span class="user-group-mention silent" data-user-group-id="186">test-empty</span></p>',
+    const UserMentionNode(nodes: [TextNode('test-empty')]));
+
+  static final groupMentionSilentClassOrderReversed = ContentExample.inline(
+    'silent group @-mention, class order reversed',
+    "@_*test-empty*", // (hypothetical server variation)
+    expectedText: 'test-empty',
+    '<p><span class="silent user-group-mention" data-user-group-id="186">test-empty</span></p>',
+    const UserMentionNode(nodes: [TextNode('test-empty')]));
+
   static final emojiUnicode = ContentExample.inline(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
@@ -682,35 +724,13 @@ void main() {
         nodes: [TextNode('t')])])])]));
 
   group('parse @-mentions', () {
-    testParseInline('plain user @-mention',
-      // "@**Greg Price**"
-      '<p><span class="user-mention" data-user-id="2187">@Greg Price</span></p>',
-      const UserMentionNode(nodes: [TextNode('@Greg Price')]));
+    testParseExample(ContentExample.userMentionPlain);
+    testParseExample(ContentExample.userMentionSilent);
+    testParseExample(ContentExample.userMentionSilentClassOrderReversed);
 
-    testParseInline('silent user @-mention',
-      // "@_**Greg Price**"
-      '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>',
-      const UserMentionNode(nodes: [TextNode('Greg Price')]));
-
-    testParseInline('silent user @-mention, class order reversed',
-      // "@_**Greg Price**" (hypothetical server variation)
-      '<p><span class="silent user-mention" data-user-id="2187">Greg Price</span></p>',
-      const UserMentionNode(nodes: [TextNode('Greg Price')]));
-
-    testParseInline('plain group @-mention',
-      // "@*test-empty*"
-      '<p><span class="user-group-mention" data-user-group-id="186">@test-empty</span></p>',
-      const UserMentionNode(nodes: [TextNode('@test-empty')]));
-
-    testParseInline('silent group @-mention',
-      // "@_*test-empty*"
-      '<p><span class="user-group-mention silent" data-user-group-id="186">test-empty</span></p>',
-      const UserMentionNode(nodes: [TextNode('test-empty')]));
-
-    testParseInline('silent group @-mention, class order reversed',
-      // "@_*test-empty*" (hypothetical server variation)
-      '<p><span class="silent user-group-mention" data-user-group-id="186">test-empty</span></p>',
-      const UserMentionNode(nodes: [TextNode('test-empty')]));
+    testParseExample(ContentExample.groupMentionPlain);
+    testParseExample(ContentExample.groupMentionSilent);
+    testParseExample(ContentExample.groupMentionSilentClassOrderReversed);
 
     // TODO test wildcard mentions
   });
