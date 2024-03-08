@@ -94,6 +94,36 @@ class ZulipApp extends StatelessWidget {
 
         shape: Border(bottom: BorderSide(color: Color(0xffcccccc))),
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        // Apply letter spacing to the text style for elevated buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        // Apply letter spacing to the text style for outlined buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        // Apply letter spacing to the text style for text buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.
       // The Zulip brand color is a starting point, but doesn't end up as
@@ -112,25 +142,24 @@ class ZulipApp extends StatelessWidget {
       tooltipTheme: const TooltipThemeData(preferBelow: false),
     );
 
-    return GlobalStoreWidget(
-      child: Builder(builder: (context) {
-        final globalStore = GlobalStoreWidget.of(context);
-        // TODO(#524) choose initial account as last one used
-        final initialAccountId = globalStore.accounts.firstOrNull?.id;
-        return MaterialApp(
+    return GlobalStoreWidget(child: Builder(builder: (context) {
+      final globalStore = GlobalStoreWidget.of(context);
+      // TODO(#524) choose initial account as last one used
+      final initialAccountId = globalStore.accounts.firstOrNull?.id;
+      return MaterialApp(
           title: 'Zulip',
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           theme: theme,
-
           navigatorKey: navigatorKey,
           navigatorObservers: navigatorObservers ?? const [],
           builder: (BuildContext context, Widget? child) {
             if (!ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => _declareReady());
+              SchedulerBinding.instance
+                  .addPostFrameCallback((_) => _declareReady());
             }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+            GlobalLocalizations.zulipLocalizations =
+                ZulipLocalizations.of(context);
             return child!;
           },
 
@@ -142,7 +171,6 @@ class ZulipApp extends StatelessWidget {
           // handles startup, and then we always push whole routes with methods
           // like [Navigator.push], never mere names as with [Navigator.pushNamed].
           onGenerateRoute: (_) => null,
-
           onGenerateInitialRoutes: (_) {
             return [
               MaterialWidgetRoute(page: const ChooseAccountPage()),
@@ -152,7 +180,7 @@ class ZulipApp extends StatelessWidget {
               ],
             ];
           });
-        }));
+    }));
   }
 }
 
@@ -172,12 +200,12 @@ class ChooseAccountPage extends StatelessWidget {
     Widget? subtitle,
   }) {
     return Card(
-      clipBehavior: Clip.hardEdge,
-      child: ListTile(
-        title: title,
-        subtitle: subtitle,
-        onTap: () => Navigator.push(context,
-          HomePage.buildRoute(accountId: accountId))));
+        clipBehavior: Clip.hardEdge,
+        child: ListTile(
+            title: title,
+            subtitle: subtitle,
+            onTap: () => Navigator.push(
+                context, HomePage.buildRoute(accountId: accountId))));
   }
 
   @override
@@ -186,27 +214,31 @@ class ChooseAccountPage extends StatelessWidget {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(zulipLocalizations.chooseAccountPageTitle),
-        actions: const [ChooseAccountPageOverflowButton()]),
-      body: SafeArea(
-        minimum: const EdgeInsets.all(8),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (final (:accountId, :account) in globalStore.accountEntries)
-                _buildAccountItem(context,
-                  accountId: accountId,
-                  title: Text(account.realmUrl.toString()),
-                  subtitle: Text(account.email)),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => Navigator.push(context,
-                  AddAccountPage.buildRoute()),
-                child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
-            ]))),
-      ));
+        appBar: AppBar(
+            title: Text(zulipLocalizations.chooseAccountPageTitle),
+            actions: const [ChooseAccountPageOverflowButton()]),
+        body: SafeArea(
+          minimum: const EdgeInsets.all(8),
+          child: Center(
+              child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (final (:accountId, :account)
+                            in globalStore.accountEntries)
+                          _buildAccountItem(context,
+                              accountId: accountId,
+                              title: Text(account.realmUrl.toString()),
+                              subtitle: Text(account.email)),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                            onPressed: () => Navigator.push(
+                                context, AddAccountPage.buildRoute()),
+                            child: Text(zulipLocalizations
+                                .chooseAccountButtonAddAnAccount)),
+                      ]))),
+        ));
   }
 }
 
@@ -218,17 +250,17 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<ChooseAccountPageOverflowMenuItem>(
-      itemBuilder: (BuildContext context) => const [
-        PopupMenuItem(
-          value: ChooseAccountPageOverflowMenuItem.aboutZulip,
-          child: Text('About Zulip')),
-      ],
-      onSelected: (item) {
-        switch (item) {
-          case ChooseAccountPageOverflowMenuItem.aboutZulip:
-            Navigator.push(context, AboutZulipPage.buildRoute(context));
-        }
-      });
+        itemBuilder: (BuildContext context) => const [
+              PopupMenuItem(
+                  value: ChooseAccountPageOverflowMenuItem.aboutZulip,
+                  child: Text('About Zulip')),
+            ],
+        onSelected: (item) {
+          switch (item) {
+            case ChooseAccountPageOverflowMenuItem.aboutZulip:
+              Navigator.push(context, AboutZulipPage.buildRoute(context));
+          }
+        });
   }
 }
 
@@ -236,8 +268,8 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   static Route<void> buildRoute({required int accountId}) {
-    return MaterialAccountWidgetRoute(accountId: accountId,
-      page: const HomePage());
+    return MaterialAccountWidgetRoute(
+        accountId: accountId, page: const HomePage());
   }
 
   @override
@@ -246,7 +278,7 @@ class HomePage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     InlineSpan bold(String text) => TextSpan(
-      text: text, style: const TextStyle(fontWeight: FontWeight.bold));
+        text: text, style: const TextStyle(fontWeight: FontWeight.bold));
 
     int? testStreamId;
     if (store.connection.realmUrl.origin == 'https://chat.zulip.org') {
@@ -254,51 +286,55 @@ class HomePage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
-      body: Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        appBar: AppBar(title: const Text("Home")),
+        body: Center(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18),
-            child: Column(children: [
-              const Text('🚧 Under construction 🚧'),
-              const SizedBox(height: 12),
-              Text.rich(TextSpan(
-                text: 'Connected to: ',
-                children: [bold(store.realmUrl.toString())])),
-              Text.rich(TextSpan(
-                text: 'Zulip server version: ',
-                children: [bold(store.zulipVersion)])),
-              Text(zulipLocalizations.subscribedToNStreams(store.subscriptions.length)),
-            ])),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+              child: Column(children: [
+                const Text('🚧 Under construction 🚧'),
+                const SizedBox(height: 12),
+                Text.rich(TextSpan(
+                    text: 'Connected to: ',
+                    children: [bold(store.realmUrl.toString())])),
+                Text.rich(TextSpan(
+                    text: 'Zulip server version: ',
+                    children: [bold(store.zulipVersion)])),
+                Text(zulipLocalizations
+                    .subscribedToNStreams(store.subscriptions.length)),
+              ])),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const AllMessagesNarrow())),
-            child: Text(zulipLocalizations.allMessagesPageTitle)),
+              onPressed: () => Navigator.push(
+                  context,
+                  MessageListPage.buildRoute(
+                      context: context, narrow: const AllMessagesNarrow())),
+              child: Text(zulipLocalizations.allMessagesPageTitle)),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              InboxPage.buildRoute(context: context)),
-            child: const Text("Inbox")), // TODO(i18n)
+              onPressed: () => Navigator.push(
+                  context, InboxPage.buildRoute(context: context)),
+              child: const Text("Inbox")), // TODO(i18n)
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              SubscriptionListPage.buildRoute(context: context)),
-            child: const Text("Subscribed streams")),
+              onPressed: () => Navigator.push(
+                  context, SubscriptionListPage.buildRoute(context: context)),
+              child: const Text("Subscribed streams")),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              RecentDmConversationsPage.buildRoute(context: context)),
-            child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+              onPressed: () => Navigator.push(context,
+                  RecentDmConversationsPage.buildRoute(context: context)),
+              child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
           if (testStreamId != null) ...[
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => Navigator.push(context,
-                MessageListPage.buildRoute(context: context,
-                  narrow: StreamNarrow(testStreamId!))),
-              child: const Text("#test here")), // scaffolding hack, see above
+                onPressed: () => Navigator.push(
+                    context,
+                    MessageListPage.buildRoute(
+                        context: context, narrow: StreamNarrow(testStreamId!))),
+                child: const Text("#test here")), // scaffolding hack, see above
           ],
         ])));
   }
