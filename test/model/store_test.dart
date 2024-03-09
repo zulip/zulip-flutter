@@ -796,8 +796,8 @@ void main() {
       checkRetry(prepareServer5xxException);
     });
 
-    test('retries on MalformedServerResponseException', () {
-      checkRetry(prepareMalformedServerResponseException);
+    test('reloads on MalformedServerResponseException', () {
+      checkReload(prepareMalformedServerResponseException);
     });
 
     test('retries on rate limit: code RATE_LIMIT_HIT', () {
@@ -812,8 +812,8 @@ void main() {
       checkRetry(prepareRateLimitExceptionMalformed);
     });
 
-    test('retries on generic ZulipApiException', () {
-      checkRetry(prepareZulipApiExceptionBadRequest);
+    test('reloads on generic ZulipApiException', () {
+      checkReload(prepareZulipApiExceptionBadRequest);
     });
 
     test('reloads immediately on expired queue', () {

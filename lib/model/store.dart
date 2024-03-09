@@ -1044,48 +1044,46 @@ class UpdateMachine {
           if (_disposed) return;
         } catch (e) {
           if (_disposed) return;
-
           store.isLoading = true;
-          bool isUnexpected;
+
+          if (e is! ApiRequestException) {
+            // Some unexpected error, outside even making the HTTP request.
+            // Definitely a bug in our code.
+            rethrow;
+          }
+
           bool shouldReportToUser;
           switch (e) {
-            case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-              rethrow;
-
             case NetworkException(cause: SocketException()):
               // A [SocketException] is common when the app returns from sleep.
-              isUnexpected = false;
               shouldReportToUser = false;
 
             case NetworkException():
             case Server5xxException():
-              isUnexpected = false;
               shouldReportToUser = true;
 
             case ServerException(httpStatus: 429):
             case ZulipApiException(httpStatus: 429):
             case ZulipApiException(code: 'RATE_LIMIT_HIT'):
               // TODO(#946) handle rate-limit errors more generally, in ApiConnection
-              isUnexpected = false;
               shouldReportToUser = true;
 
-            default:
-              isUnexpected = true;
-              shouldReportToUser = true;
+            case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+              rethrow;
+
+            case ZulipApiException():
+            case MalformedServerResponseException():
+              // Either a 4xx we didn't expect, or a malformed response;
+              // in either case, a mismatch of the client's expectations to the
+              // server's behavior, and therefore a bug in one or the other.
+              // TODO(#1054) handle auth failures specifically
+              rethrow;
           }
 
-          if (isUnexpected) {
-            assert(shouldReportToUser);
-            assert(debugLog('Error polling event queue for $store: $e\n'
-                'Backing off and retrying even though may be hopeless…'));
-            // TODO(#186): Handle unrecoverable failures
-            _reportToUserErrorConnectingToServer(e);
-          } else {
-            assert(debugLog('Transient error polling event queue for $store: $e\n'
-                'Backing off, then will retry…'));
-            if (shouldReportToUser) {
-              maybeReportToUserTransientError(e);
-            }
+          assert(debugLog('Transient error polling event queue for $store: $e\n'
+              'Backing off, then will retry…'));
+          if (shouldReportToUser) {
+            maybeReportToUserTransientError(e);
           }
           await (backoffMachine ??= BackoffMachine()).wait();
           if (_disposed) return;
@@ -1133,7 +1131,7 @@ class UpdateMachine {
     } catch (e) {
       if (_disposed) return;
 
-      // An error occurred, other than the request errors we retry on.
+      // An error occurred, other than the transient request errors we retry on.
       // This means either a lost/expired event queue on the server (which is
       // normal after the app is offline for a period like 10 minutes),
       // or an unexpected exception representing a bug in our code or the server.
@@ -1171,6 +1169,8 @@ class UpdateMachine {
           _reportToUserErrorConnectingToServer(e);
           // Similar story to the _EventHandlingException case;
           // separate only so that that other case can print more context.
+          // The bug here could be in the server if it's an ApiRequestException,
+          // but our remedy is the same either way.
           isUnexpected = true;
       }
 
