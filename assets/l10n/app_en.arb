@@ -188,6 +188,19 @@
       "error": {"type": "String", "example": "Invalid format"}
     }
   },
+  "errorHandlingEventTitle": "Error handling a Zulip event. Retrying connection…",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "errorHandlingEventDetails": "Error handling a Zulip event from {serverUrl}; will retry.\n\nError: {error}\n\nEvent: {event}",
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "serverUrl": {"type":  "String", "example":  "https://chat.example.com"},
+      "error": {"type": "String", "example": "Unexpected null value"},
+      "event": {"type": "String", "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"}
+    }
+  },
   "errorSharingFailed": "Sharing failed",
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."

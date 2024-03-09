@@ -343,6 +343,18 @@ abstract class ZulipLocalizations {
   /// **'Error connecting to Zulip at {serverUrl}. Will retry:\n\n{error}'**
   String errorConnectingToServerDetails(String serverUrl, String error);
 
+  /// Error title on failing to handle a Zulip server event.
+  ///
+  /// In en, this message translates to:
+  /// **'Error handling a Zulip event. Retrying connection…'**
+  String get errorHandlingEventTitle;
+
+  /// Error details on failing to handle a Zulip server event.
+  ///
+  /// In en, this message translates to:
+  /// **'Error handling a Zulip event from {serverUrl}; will retry.\n\nError: {error}\n\nEvent: {event}'**
+  String errorHandlingEventDetails(String serverUrl, String error, String event);
+
   /// Error message when sharing a message failed.
   ///
   /// In en, this message translates to:

@@ -982,10 +982,13 @@ void main() {
         checkNotReported(prepareExpiredEventQueue);
       });
 
-      test('report handleEvent error', () {
-        checkReported(prepareHandleEventError).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+      test('nicely report handleEvent error', () {
+        checkReported(prepareHandleEventError).matchesPattern(RegExp(
+          r"Error handling a Zulip event\. Retrying connection…\n"
+          r"Error handling a Zulip event from \S+; will retry\.\n"
+          r"\n"
+          r"Error: .*channel\.dart.. Failed assertion.*"
+        ));
       });
     });
   });

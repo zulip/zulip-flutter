@@ -158,6 +158,14 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String get errorHandlingEventTitle => 'Error handling a Zulip event. Retrying connection…';
+
+  @override
+  String errorHandlingEventDetails(String serverUrl, String error, String event) {
+    return 'Error handling a Zulip event from $serverUrl; will retry.\n\nError: $error\n\nEvent: $event';
+  }
+
+  @override
   String get errorSharingFailed => 'Sharing failed';
 
   @override

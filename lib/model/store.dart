@@ -1117,8 +1117,14 @@ class UpdateMachine {
 
         final events = result.events;
         for (final event in events) {
-          await store.handleEvent(event);
-          if (_disposed) return;
+          try {
+            await store.handleEvent(event);
+            if (_disposed) return;
+          } catch (e, stackTrace) {
+            if (_disposed) return;
+            Error.throwWithStackTrace(
+              _EventHandlingException(cause: e, event: event), stackTrace);
+          }
         }
         if (events.isNotEmpty) {
           lastEventId = events.last.id;
@@ -1142,10 +1148,14 @@ class UpdateMachine {
           // The old event queue is gone, so we need a new one.  This is normal.
           isUnexpected = false;
 
-        default:
-          assert(debugLog('BUG: Unexpected error in event polling: $e\n' // TODO(log)
+        case _EventHandlingException(:final cause, :final event):
+          assert(debugLog('BUG: Error handling an event: $cause\n' // TODO(log)
+            '  event: $event\n'
             'Replacing event queue…'));
-          _reportToUserErrorConnectingToServer(e);
+          reportErrorToUserBriefly(
+            GlobalLocalizations.zulipLocalizations.errorHandlingEventTitle,
+            details: GlobalLocalizations.zulipLocalizations.errorHandlingEventDetails(
+              store.realmUrl.toString(), cause.toString(), event.toString()));
           // We can't just continue with the next event, because our state
           // may be garbled due to failing to apply this one (and worse,
           // any invariants that were left in a broken state from where
@@ -1153,6 +1163,14 @@ class UpdateMachine {
           // Hopefully (probably?) the bug only affects our implementation of
           // the *change* in state represented by the event, and when we get the
           // new state in a fresh InitialSnapshot we'll handle that just fine.
+          isUnexpected = true;
+
+        default:
+          assert(debugLog('BUG: Unexpected error in event polling: $e\n' // TODO(log)
+            'Replacing event queue…'));
+          _reportToUserErrorConnectingToServer(e);
+          // Similar story to the _EventHandlingException case;
+          // separate only so that that other case can print more context.
           isUnexpected = true;
       }
 
@@ -1256,4 +1274,11 @@ class UpdateMachine {
 
   @override
   String toString() => '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
+}
+
+class _EventHandlingException implements Exception {
+  final Object cause;
+  final Event event;
+
+  _EventHandlingException({required this.cause, required this.event});
 }
