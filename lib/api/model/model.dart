@@ -569,7 +569,7 @@ sealed class Message {
   String content;
   final String contentType;
 
-  final List<MessageEditHistory>? editHistory; // TODO handle
+  final List<MessageEditHistory>? editHistory;
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -663,37 +663,6 @@ enum MessageFlag {
   static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
 
   String toJson() => _$MessageFlagEnumMap[this]!;
-}
-
-@JsonSerializable(fieldRename: FieldRename.snake)
-class MessageEditHistory {
-
-  final String? prevContent;
-  final String? prevRenderedContent;
-  final int? prevRenderedContentVersion;
-  final int? prevStream;
-  final String? prevTopic;
-  final int? stream;
-  final int timestamp;
-  final String? topic;
-  final int? userId;
-
-  MessageEditHistory( {
-    required this.prevContent,
-    required this.prevRenderedContent,
-    required this.prevRenderedContentVersion,
-    required this.prevStream,
-    required this.prevTopic,
-    required this.stream,
-    required this.timestamp,
-    required this.topic,
-    required this.userId,
-  });
-
-  factory MessageEditHistory.fromJson(Map<String, dynamic> json) =>
-      _$MessageEditHistoryFromJson(json);
-
-  Map<String,dynamic> toJson() =>_$MessageEditHistoryToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -835,4 +804,35 @@ class DmMessage extends Message {
 
   @override
   Map<String, dynamic> toJson() => _$DmMessageToJson(this);
+}
+
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class MessageEditHistory {
+  final String? prevContent;
+  final String? prevRenderedContent;
+  final int? prevRenderedContentVersion;
+  final int? prevStream;
+  final String? prevTopic;
+  final int? stream;
+  final int timestamp;
+  final String? topic;
+  final int? userId;
+
+  MessageEditHistory( {
+    required this.prevContent,
+    required this.prevRenderedContent,
+    required this.prevRenderedContentVersion,
+    required this.prevStream,
+    required this.prevTopic,
+    required this.stream,
+    required this.timestamp,
+    required this.topic,
+    required this.userId,
+  });
+
+  factory MessageEditHistory.fromJson(Map<String, dynamic> json) =>
+    _$MessageEditHistoryFromJson(json);
+
+  Map<String,dynamic> toJson() =>_$MessageEditHistoryToJson(this);
 }
