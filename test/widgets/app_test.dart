@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -163,6 +164,38 @@ void main() {
       await tester.pump();
       check(ZulipApp.scaffoldMessenger).isNotNull();
       check(ZulipApp.ready).value.isTrue();
+    });
+
+    testWidgets('reportErrorToUserBriefly shows snack bar', (tester) async {
+      await tester.pumpWidget(const ZulipApp());
+
+      // Prior to app startup, reportErrorToUserBriefly only logs.
+      reportErrorToUserBriefly('test error message');
+      check(ZulipApp.ready).value.isFalse();
+      await tester.pump();
+      check(find.text('test error message').evaluate()).isEmpty();
+      check(ZulipApp.ready).value.isTrue();
+
+      // After app startup, reportErrorToUserBriefly displays a snack bar.
+      reportErrorToUserBriefly('test error message');
+      await tester.pump();
+      check(find.text('test error message').evaluate()).single;
+    });
+
+    testWidgets('reportErrorToUserInDialog shows dialog', (tester) async {
+      await tester.pumpWidget(const ZulipApp());
+
+      // Prior to app startup, reportErrorToUserInDialog only logs.
+      reportErrorToUserInDialog('test error message');
+      check(ZulipApp.ready).value.isFalse();
+      await tester.pump();
+      check(find.text('test error message').evaluate()).isEmpty();
+      check(ZulipApp.ready).value.isTrue();
+
+      // After app startup, reportErrorToUserInDialog displays a dialog.
+      reportErrorToUserInDialog('test error message');
+      await tester.pump();
+      check(find.text('test error message').evaluate()).single;
     });
   });
 }
