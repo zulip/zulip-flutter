@@ -63,6 +63,22 @@ class ZulipApp extends StatefulWidget {
   /// to be mounted.
   static final navigatorKey = GlobalKey<NavigatorState>();
 
+  /// The [ScaffoldMessengerState] for the app.
+  ///
+  /// This is null during the app's early startup, while [ready] is still false.
+  ///
+  /// For code that exists entirely outside the widget tree and has no natural
+  /// [BuildContext] of its own, this enables controlling snack bars.
+  /// Where a relevant [BuildContext] does exist, prefer using that instead,
+  /// with [ScaffoldMessenger.of].
+  static ScaffoldMessengerState? get scaffoldMessenger {
+    final context = navigatorKey.currentContext;
+    if (context == null) return null;
+    // Not maybeOf; we use MaterialApp, which provides ScaffoldMessenger,
+    // so it's a bug if navigatorKey is mounted somewhere lacking that.
+    return ScaffoldMessenger.of(context);
+  }
+
   /// Reset the state of [ZulipApp] statics, for testing.
   ///
   /// TODO refactor this better, perhaps unify with ZulipBinding

@@ -154,4 +154,15 @@ void main() {
         ..bottom.isLessThan(2 / 3 * screenHeight);
     });
   });
+
+  group('scaffoldMessenger', () {
+    testWidgets('scaffoldMessenger becomes non-null after startup', (tester) async {
+      await tester.pumpWidget(const ZulipApp());
+      check(ZulipApp.scaffoldMessenger).isNull();
+      check(ZulipApp.ready).value.isFalse();
+      await tester.pump();
+      check(ZulipApp.scaffoldMessenger).isNotNull();
+      check(ZulipApp.ready).value.isTrue();
+    });
+  });
 }
