@@ -149,7 +149,6 @@ void main() {
       addTearDown(() => UpdateMachine.debugEnableRegisterNotificationToken = true);
     }
 
-    // ignore: unused_element
     void checkLastRequest() {
       check(connection.takeLastRequest()).isA<http.Request>()
         ..method.equals('POST')
@@ -170,6 +169,35 @@ void main() {
       //    clobber the recorded registerQueue request so we can't check it.
       // checkLastRequest();
 
+      check(updateMachine.store.users.values).unorderedMatches(
+        users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
+    }));
+
+    test('retries registerQueue on NetworkError', () => awaitFakeAsync((async) async {
+      await prepareStore();
+
+      // Try to load, inducing an error in the request.
+      connection.prepare(exception: Exception('failed'));
+      final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
+      bool complete = false;
+      future.whenComplete(() => complete = true);
+      async.flushMicrotasks();
+      checkLastRequest();
+      check(complete).isFalse();
+
+      // The retry doesn't happen immediately; there's a timer.
+      check(async.pendingTimers).length.equals(1);
+      async.elapse(Duration.zero);
+      check(connection.lastRequest).isNull();
+      check(async.pendingTimers).length.equals(1);
+
+      // After a timer, we retry.
+      final users = [eg.selfUser, eg.otherUser];
+      connection.prepare(json: eg.initialSnapshot(realmUsers: users).toJson());
+      final updateMachine = await future;
+      updateMachine.debugPauseLoop();
+      check(complete).isTrue();
+      // checkLastRequest(); TODO UpdateMachine.debugPauseLoop was too late; see comment above
       check(updateMachine.store.users.values).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));

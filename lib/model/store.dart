@@ -605,7 +605,7 @@ class UpdateMachine {
     final connection = globalStore.apiConnectionFromAccount(account);
 
     final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await registerQueue(connection); // TODO retry
+    final initialSnapshot = await _registerQueueWithRetry(connection);
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
@@ -627,6 +627,22 @@ class UpdateMachine {
   final PerAccountStore store;
   final String queueId;
   int lastEventId;
+
+  static Future<InitialSnapshot> _registerQueueWithRetry(
+      ApiConnection connection) async {
+    BackoffMachine? backoffMachine;
+    while (true) {
+      try {
+        return await registerQueue(connection);
+      } catch (e) {
+        assert(debugLog('Error fetching initial snapshot: $e\n'
+          'Backing off, then will retry…'));
+        // TODO tell user if initial-fetch errors persist, or look non-transient
+        await (backoffMachine ??= BackoffMachine()).wait();
+        assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
+      }
+    }
+  }
 
   Completer<void>? _debugLoopSignal;
 
