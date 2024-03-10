@@ -1031,7 +1031,7 @@ class _SlidableMarkerState extends State<SlidableMarker> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 1),
                       child: Text(
-                        widget.messageMoved ? 'Moved' : 'Edited',
+                        widget.messageEdited ? 'Edited' : 'Moved',
                         style: const TextStyle(fontSize: 15, overflow: TextOverflow.clip, color: Color(0xFF26516E)),
                       ))),
                   widget.messageMoved ? const Padding(padding: EdgeInsets.all(1),
