@@ -124,6 +124,52 @@ class ZulipApp extends StatelessWidget {
           ),
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        // Apply letter spacing to the text style for filled buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        // Apply letter spacing to the text style for floating action buttons
+       extendedTextStyle: TextStyle(
+          letterSpacing: 0.01,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        // Apply letter spacing to the text style for icon buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        // Apply letter spacing to the text style for menu buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+        // Apply letter spacing to the text style for segmented buttons
+        style: ButtonStyle(
+          textStyle: MaterialStateProperty.all<TextStyle>(
+            const TextStyle(
+              letterSpacing: 0.01,
+            ),
+          ),
+        ),
+      ),
       // This applies Material 3's color system to produce a palette of
       // appropriately matching and contrasting colors for use in a UI.
       // The Zulip brand color is a starting point, but doesn't end up as
