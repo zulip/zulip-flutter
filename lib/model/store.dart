@@ -25,7 +25,7 @@ import 'stream.dart';
 import 'unreads.dart';
 
 export 'package:drift/drift.dart' show Value;
-export 'database.dart' show Account, AccountsCompanion;
+export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException;
 
 /// Store for all the user's data.
 ///

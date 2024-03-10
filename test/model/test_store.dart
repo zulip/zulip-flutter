@@ -76,6 +76,16 @@ class TestGlobalStore extends GlobalStore {
 
   @override
   Future<Account> doInsertAccount(AccountsCompanion data) async {
+    // Check for duplication is typically handled by the database but since
+    // we're not using a real database, this needs to be handled here.
+    // See [AppDatabase.createAccount].
+    if (accounts.any((account) =>
+          data.realmUrl.value == account.realmUrl
+          && (data.userId.value == account.userId
+              || data.email.value == account.email))) {
+      throw AccountAlreadyExistsException();
+    }
+
     final accountId = data.id.present ? data.id.value : _nextAccountId++;
     return Account(
       id: accountId,

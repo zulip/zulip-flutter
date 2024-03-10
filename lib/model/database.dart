@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:drift/remote.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:sqlite3/common.dart';
 
 part 'database.g.dart';
 
@@ -103,7 +105,21 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  Future<int> createAccount(AccountsCompanion values) {
-    return into(accounts).insert(values);
+  Future<int> createAccount(AccountsCompanion values) async {
+    try {
+      return await into(accounts).insert(values);
+    } catch (e) {
+      // Unwrap cause if it's a remote Drift call. On the app, it's running
+      // via a remote, but on local tests, it's running natively so
+      // unwrapping is not required.
+      final cause = (e is DriftRemoteException) ? e.remoteCause : e;
+      if (cause case SqliteException(
+              extendedResultCode: SqlExtendedError.SQLITE_CONSTRAINT_UNIQUE)) {
+        throw AccountAlreadyExistsException();
+      }
+      rethrow;
+    }
   }
 }
+
+class AccountAlreadyExistsException implements Exception {}
