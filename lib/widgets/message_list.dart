@@ -893,14 +893,14 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = item.message;
+    final history = message.editHistory;
     bool messageEdited = false, messageMoved = false;
+
     if(message.editHistory != null) {
-      if((message.editHistory?[message.editHistory!.length-1].topic !=
-          message.editHistory?[message.editHistory!.length-1].prevTopic) ||
-          (message.editHistory?[message.editHistory!.length-1].stream !=
-          message.editHistory?[message.editHistory!.length-1].prevStream)){
+      if((history?.last.topic != history?.last.prevTopic) ||
+        (history?.last.stream != history?.last.prevStream)){
             messageMoved = true;}
-      if(message.editHistory?[message.editHistory!.length-1].prevContent!=null){
+      if(history?.last.prevContent!=null){
         messageEdited = true;
       }}
 
