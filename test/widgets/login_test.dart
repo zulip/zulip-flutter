@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/store.dart';
 
@@ -111,6 +112,28 @@ void main() {
       check(testBinding.globalStore.accounts).single
         .equals(eg.selfAccount.copyWith(
           id: testBinding.globalStore.accounts.single.id));
+    });
+
+    testWidgets('account already exists', (tester) async {
+      final serverSettings = eg.serverSettings();
+      await prepare(tester, serverSettings);
+      check(testBinding.globalStore.accounts).isEmpty();
+      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      await tester.enterText(findUsernameInput, eg.selfAccount.email);
+      await tester.enterText(findPasswordInput, 'p455w0rd');
+      connection.prepare(json: FetchApiKeyResult(
+        apiKey: eg.selfAccount.apiKey,
+        email: eg.selfAccount.email,
+        userId: eg.selfAccount.userId,
+      ).toJson());
+      await tester.tap(findSubmitButton);
+      await tester.pumpAndSettle();
+
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final findAlertDialogWithExistsMessage = find.widgetWithText(
+        AlertDialog, zulipLocalizations.errorAccountLoggedInTitle);
+      check(findAlertDialogWithExistsMessage.evaluate()).isNotEmpty();
     });
 
     // TODO test validators on the TextFormField widgets

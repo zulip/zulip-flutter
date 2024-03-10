@@ -63,6 +63,18 @@
   "@actionSheetOptionUnstarMessage":  {
     "description": "Label for unstar button on action sheet."
   },
+  "errorAccountLoggedInTitle": "Account already logged in",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorAccountLoggedIn": "The account {email} at {server} is already in your list of accounts.",
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {"type": "String", "example": "user@example.com"},
+      "server": {"type": "String", "example": "https://example.com"}
+    }
+  },
   "errorCouldNotFetchMessageSource": "Could not fetch message source",
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."

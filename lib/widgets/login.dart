@@ -258,16 +258,31 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
     required int userId,
   }) async {
     final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#108): give feedback to user on SQL exception, like dupe realm+user
-    final accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-      realmUrl: widget.serverSettings.realmUrl,
-      email: email,
-      apiKey: apiKey,
-      userId: userId,
-      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-      zulipVersion: widget.serverSettings.zulipVersion,
-      zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
-    ));
+    final realmUrl = widget.serverSettings.realmUrl;
+    final int accountId;
+    try {
+      accountId = await globalStore.insertAccount(AccountsCompanion.insert(
+        realmUrl: realmUrl,
+        email: email,
+        apiKey: apiKey,
+        userId: userId,
+        zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+        zulipVersion: widget.serverSettings.zulipVersion,
+        zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+      ));
+      // TODO give feedback to user on other SQL exceptions
+    } on AccountAlreadyExistsException {
+      if (!mounted) {
+        return;
+      }
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(
+        context: context,
+        title: zulipLocalizations.errorAccountLoggedInTitle,
+        message: zulipLocalizations.errorAccountLoggedIn(
+          email, realmUrl.toString()));
+      return;
+    }
 
     if (!mounted) {
       return;
