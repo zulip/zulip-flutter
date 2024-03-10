@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
+import 'package:zulip/model/localizations.dart';
 
 import '../stdlib_checks.dart';
 import 'exception_checks.dart';
@@ -161,7 +161,7 @@ void main() {
           ..which(condition));
     }
 
-    final zulipLocalizations = lookupZulipLocalizations(ZulipLocalizations.supportedLocales.first);
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     checkRequest(http.ClientException('Oops'), (it) => it.message.equals('Oops'));
     checkRequest(const TlsException('Oops'), (it) => it.message.equals('Oops'));
     checkRequest((foo: 'bar'), (it) => it
