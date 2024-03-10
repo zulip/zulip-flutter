@@ -813,11 +813,17 @@ class MessageEditHistory {
   final String? prevRenderedContent;
   final int? prevRenderedContentVersion;
   final int? prevStream;
-  final String? prevTopic;
   final int? stream;
   final int timestamp;
   final String? topic;
   final int? userId;
+
+  @JsonKey(readValue: _readPrevTopic)
+  String? prevTopic;
+
+  static String? _readPrevTopic(Map json, String key) {
+    return json[key] ?? json['prev_subject'];
+  }
 
   MessageEditHistory( {
     required this.prevContent,
