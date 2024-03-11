@@ -335,56 +335,6 @@ void main() {
     });
   });
 
-group('MessageEditHistory', () {
-  test('test MessageEditHistory.fromJson', () {
-
-  final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(
-      eg.editHistory(timestamp: 12369, userId: 123),
-    ) as Map<String, dynamic>);
-
-  MessageEditHistory parse(Map<String, dynamic> specialJson) {
-      return MessageEditHistory.fromJson({ ...baseJson, ...specialJson });
-    }
-
-  final history = parse(
-    {'prev_content': 'Lorem Ipsum', 'timestamp': 12369, 'user_id': 123,
-    'prev_rendered_content': '<p>Lorem Ipsum</p>'});
-  check(history.prevContent).equals('Lorem Ipsum');
-  check(history.prevRenderedContent).equals('<p>Lorem Ipsum</p>');
-  check(history.userId).equals(123);
-  check(history.timestamp).equals(12369);
-  });
-
-  test('streamMessage with editHistory list', () {
-    User user = eg.user();
-
-    var edit1 = eg.editHistory(
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      userId: user.userId,
-    );
-
-    var edit2 = eg.editHistory(
-      prevContent: 'Previous content',
-      prevRenderedContent: 'Previous rendered content',
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      userId: user.userId,
-    );
-
-    var streamMsg = eg.streamMessage(
-      sender: user,
-      topic: 'Test topic',
-      content: 'Test content',
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      editHistory: [edit2, edit1],
-    );
-
-    check(streamMsg.editHistory![0].timestamp).equals(edit2.timestamp);
-    check(streamMsg.editHistory![0].userId).equals(edit2.userId);
-    check(streamMsg.editHistory![1].prevContent).equals(edit1.prevContent);
-    check(streamMsg.editHistory![1].prevRenderedContent).equals(edit1.prevRenderedContent);
-  });
-});
-
   group('DmMessage', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(
       eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
@@ -447,4 +397,54 @@ group('MessageEditHistory', () {
         .deepEquals([2, 3, 11]);
     });
   });
+
+group('MessageEditHistory', () {
+  test('test MessageEditHistory.fromJson', () {
+
+  final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(
+      eg.editHistory(timestamp: 12369, userId: 123),
+    ) as Map<String, dynamic>);
+
+  MessageEditHistory parse(Map<String, dynamic> specialJson) {
+      return MessageEditHistory.fromJson({ ...baseJson, ...specialJson });
+    }
+
+  final history = parse(
+    {'prev_content': 'Lorem Ipsum', 'timestamp': 12369, 'user_id': 123,
+    'prev_rendered_content': '<p>Lorem Ipsum</p>'});
+  check(history.prevContent).equals('Lorem Ipsum');
+  check(history.prevRenderedContent).equals('<p>Lorem Ipsum</p>');
+  check(history.userId).equals(123);
+  check(history.timestamp).equals(12369);
+  });
+
+  test('streamMessage with editHistory list', () {
+    User user = eg.user();
+
+    var edit1 = eg.editHistory(
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      userId: user.userId,
+    );
+
+    var edit2 = eg.editHistory(
+      prevContent: 'Previous content',
+      prevRenderedContent: 'Previous rendered content',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      userId: user.userId,
+    );
+
+    var streamMsg = eg.streamMessage(
+      sender: user,
+      topic: 'Test topic',
+      content: 'Test content',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      editHistory: [edit2, edit1],
+    );
+
+    check(streamMsg.editHistory![0].timestamp).equals(edit2.timestamp);
+    check(streamMsg.editHistory![0].userId).equals(edit2.userId);
+    check(streamMsg.editHistory![1].prevContent).equals(edit1.prevContent);
+    check(streamMsg.editHistory![1].prevRenderedContent).equals(edit1.prevRenderedContent);
+  });
+});
 }
