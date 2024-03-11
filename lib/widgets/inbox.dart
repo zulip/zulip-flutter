@@ -209,11 +209,19 @@ abstract class _HeaderItem extends StatelessWidget {
   final int count;
   final bool hasMention;
 
+  /// A build context within the [_StreamSection] or [_AllDmsSection].
+  ///
+  /// Used to ensure the [_StreamSection] or [_AllDmsSection] that encloses the
+  /// current [_HeaderItem] is visible after being collapsed through this
+  /// [_HeaderItem].
+  final BuildContext sectionContext;
+
   const _HeaderItem({
     required this.collapsed,
     required this.pageState,
     required this.count,
     required this.hasMention,
+    required this.sectionContext,
   });
 
   String get title;
@@ -223,7 +231,15 @@ abstract class _HeaderItem extends StatelessWidget {
   Color get uncollapsedBackgroundColor;
   Color? get unreadCountBadgeBackgroundColor;
 
-  void Function() get onCollapseButtonTap;
+  Future<void> Function() get onCollapseButtonTap => () async {
+    if (!collapsed) {
+      await Scrollable.ensureVisible(
+        sectionContext,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    }
+  };
+
   void Function() get onRowTap;
 
   @override
@@ -271,6 +287,7 @@ class _AllDmsHeaderItem extends _HeaderItem {
     required super.pageState,
     required super.count,
     required super.hasMention,
+    required super.sectionContext,
   });
 
   @override get title => 'Direct messages'; // TODO(i18n)
@@ -280,7 +297,8 @@ class _AllDmsHeaderItem extends _HeaderItem {
   @override get uncollapsedBackgroundColor => const Color(0xFFF3F0E7);
   @override get unreadCountBadgeBackgroundColor => null;
 
-  @override get onCollapseButtonTap => () {
+  @override get onCollapseButtonTap => () async {
+    await super.onCollapseButtonTap();
     pageState.allDmsCollapsed = !collapsed;
   };
   @override get onRowTap => onCollapseButtonTap; // TODO open all-DMs narrow?
@@ -304,6 +322,7 @@ class _AllDmsSection extends StatelessWidget {
       hasMention: data.hasMention,
       collapsed: collapsed,
       pageState: pageState,
+      sectionContext: context,
     );
     return StickyHeaderItem(
       header: header,
@@ -386,6 +405,7 @@ class _StreamHeaderItem extends _HeaderItem {
     required super.pageState,
     required super.count,
     required super.hasMention,
+    required super.sectionContext,
   });
 
   @override get title => subscription.name;
@@ -397,7 +417,8 @@ class _StreamHeaderItem extends _HeaderItem {
   @override get unreadCountBadgeBackgroundColor =>
     subscription.colorSwatch().unreadCountBadgeBackground;
 
-  @override get onCollapseButtonTap => () {
+  @override get onCollapseButtonTap => () async {
+    await super.onCollapseButtonTap();
     if (collapsed) {
       pageState.uncollapseStream(subscription.streamId);
     } else {
@@ -427,6 +448,7 @@ class _StreamSection extends StatelessWidget {
       hasMention: data.hasMention,
       collapsed: collapsed,
       pageState: pageState,
+      sectionContext: context,
     );
     return StickyHeaderItem(
       header: header,

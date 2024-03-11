@@ -119,6 +119,8 @@ final Account otherAccount = account(
 
 final User thirdUser = user(fullName: 'Third User', email: 'third@example');
 
+final User fourthUser  = user(fullName: 'Fourth User', email: 'fourth@example');
+
 ////////////////////////////////////////////////////////////////
 // Streams and subscriptions.
 //

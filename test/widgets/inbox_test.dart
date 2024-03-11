@@ -13,6 +13,38 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 
+/// Repeatedly drags `view` by `moveStep` until `finder` is invisible.
+///
+/// Between each drag, advances the clock by `duration`.
+///
+/// Throws a [StateError] if `finder` is still visible after `maxIteration`
+/// drags.
+///
+/// See also:
+///  * [WidgetController.dragUntilVisible], which does the inverse.
+Future<void> dragUntilInvisible(
+  WidgetTester tester,
+  FinderBase<Element> finder,
+  FinderBase<Element> view,
+  Offset moveStep, {
+  int maxIteration = 50,
+  Duration duration = const Duration(milliseconds: 50),
+}) {
+  return TestAsyncUtils.guard<void>(() async {
+    final iteration = maxIteration;
+    while (maxIteration > 0 && finder.evaluate().isNotEmpty) {
+      await tester.drag(view, moveStep);
+      await tester.pump(duration);
+      maxIteration -= 1;
+    }
+    if (maxIteration <= 0 && finder.evaluate().isNotEmpty) {
+      throw StateError(
+        'Finder is still visible after $iteration iterations.'
+        ' Consider increasing the number of iterations.');
+    }
+  });
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
 
@@ -51,6 +83,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  List<StreamMessage> generateStreamMessages({
+    required ZulipStream stream,
+    required int count,
+    required List<MessageFlag> flags,
+  }) {
+    return List.generate(count, (index) => eg.streamMessage(
+      stream: stream, topic: '${stream.name} topic $index', flags: flags));
+  }
+
   /// Set up an inbox view with lots of interesting content.
   Future<void> setupVarious(WidgetTester tester) async {
     final stream1 = eg.stream(streamId: 1, name: 'stream 1');
@@ -61,12 +102,16 @@ void main() {
     await setupPage(tester,
       streams: [stream1, stream2],
       subscriptions: [sub1, sub2],
-      users: [eg.selfUser, eg.otherUser, eg.thirdUser],
+      users: [eg.selfUser, eg.otherUser, eg.thirdUser, eg.fourthUser],
       unreadMessages: [
         eg.streamMessage(stream: stream1, topic: 'specific topic', flags: []),
+        ...generateStreamMessages(stream: stream1, count: 10, flags: []),
         eg.streamMessage(stream: stream2, flags: []),
+        ...generateStreamMessages(stream: stream2, count: 40, flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: []),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
+        eg.dmMessage(from: eg.fourthUser, to: [eg.selfUser], flags: []),
       ]);
   }
 
@@ -310,6 +355,28 @@ void main() {
           checkAppearsUncollapsed(tester, findSectionContent);
         });
 
+        testWidgets('collapse all-DMs section when partially offscreen: '
+          'header remains sticky at top', (tester) async {
+          await setupVarious(tester);
+
+          final listFinder = find.byType(Scrollable);
+          final dmFinder = find.text(eg.otherUser.fullName).hitTestable();
+
+          // Scroll part of [_AllDmsSection] offscreen.
+          await dragUntilInvisible(
+            tester, dmFinder, listFinder, const Offset(0, -50));
+
+          // Check that the header is present (which must therefore
+          // be as a sticky header).
+          check(findAllDmsHeaderRow(tester)).isNotNull();
+
+          await tapCollapseIcon(tester);
+
+          // Check that the header is still visible even after
+          // collapsing the section.
+          check(findAllDmsHeaderRow(tester)).isNotNull();
+        });
+
         // TODO check it remains collapsed even if you scroll far away and back
 
         // TODO check that it's always uncollapsed when it appears after being
@@ -383,6 +450,52 @@ void main() {
           checkAppearsCollapsed(tester, 1, findSectionContent);
           await tapCollapseIcon(tester, 1);
           checkAppearsUncollapsed(tester, 1, findSectionContent);
+        });
+
+        testWidgets('collapse stream section when partially offscreen: '
+          'header remains sticky at top', (tester) async {
+          await setupVarious(tester);
+
+          final topicFinder = find.text('stream 1 topic 4').hitTestable();
+          final listFinder = find.byType(Scrollable);
+
+          // Scroll part of [_StreamSection] offscreen.
+          await dragUntilInvisible(
+            tester, topicFinder, listFinder, const Offset(0, -50));
+
+          // Check that the header is present (which must therefore
+          // be as a sticky header).
+          check(findStreamHeaderRow(tester, 1)).isNotNull();
+
+          await tapCollapseIcon(tester, 1);
+
+          // Check that the header is still visible even after
+          // collapsing the section.
+          check(findStreamHeaderRow(tester, 1)).isNotNull();
+        });
+
+        testWidgets('collapse stream section in middle of screen: '
+          'header stays fixed', (tester) async {
+          await setupVarious(tester);
+
+          final headerRow = findStreamHeaderRow(tester, 1);
+          // Check that the header is present.
+          check(headerRow).isNotNull();
+
+          final rectBeforeTap = tester.getRect(find.byWidget(headerRow!));
+          final scrollableTop = tester.getRect(find.byType(Scrollable)).top;
+          // Check that the header is somewhere in the middle of the screen.
+          check(rectBeforeTap.top).isGreaterThan(scrollableTop);
+
+          await tapCollapseIcon(tester, 1);
+
+          final headerRowAfterTap = findStreamHeaderRow(tester, 1);
+          final rectAfterTap =
+            tester.getRect(find.byWidget(headerRowAfterTap!));
+
+          // Check that the position of the header before and after
+          // collapsing is the same.
+          check(rectAfterTap).equals(rectBeforeTap);
         });
 
         // TODO check it remains collapsed even if you scroll far away and back
