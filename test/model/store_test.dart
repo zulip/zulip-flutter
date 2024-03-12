@@ -12,6 +12,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications.dart';
 
 import '../api/fake_api.dart';
+import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
@@ -133,6 +134,48 @@ void main() {
           'read_by_sender': 'true',
         });
     });
+  });
+
+  group('UpdateMachine.load', () {
+    late TestGlobalStore globalStore;
+    late FakeApiConnection connection;
+
+    Future<void> prepareStore() async {
+      globalStore = TestGlobalStore(accounts: []);
+      await globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      connection = (globalStore.apiConnectionFromAccount(eg.selfAccount)
+        as FakeApiConnection);
+      UpdateMachine.debugEnableRegisterNotificationToken = false;
+      addTearDown(() => UpdateMachine.debugEnableRegisterNotificationToken = true);
+    }
+
+    // ignore: unused_element
+    void checkLastRequest() {
+      check(connection.takeLastRequest()).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/register');
+    }
+
+    test('smoke', () => awaitFakeAsync((async) async {
+      await prepareStore();
+      final users = [eg.selfUser, eg.otherUser];
+      connection.prepare(json: eg.initialSnapshot(realmUsers: users).toJson());
+      final updateMachine = await UpdateMachine.load(
+        globalStore, eg.selfAccount.id);
+      updateMachine.debugPauseLoop();
+
+      // TODO UpdateMachine.debugPauseLoop is too late to prevent first poll attempt;
+      //    the polling retry catches the resulting NetworkException from lack of
+      //    `connection.prepare`, so that doesn't fail the test, but it does
+      //    clobber the recorded registerQueue request so we can't check it.
+      // checkLastRequest();
+
+      check(updateMachine.store.users.values).unorderedMatches(
+        users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
+    }));
+
+    // TODO test UpdateMachine.load starts polling loop
+    // TODO test UpdateMachine.load calls registerNotificationToken
   });
 
   group('UpdateMachine.poll', () {

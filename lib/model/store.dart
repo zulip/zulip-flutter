@@ -602,7 +602,6 @@ class UpdateMachine {
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
     final account = globalStore.getAccount(accountId)!;
-    // TODO test UpdateMachine.load, now that it uses [GlobalStore.apiConnection]
     final connection = globalStore.apiConnectionFromAccount(account);
 
     final stopwatch = Stopwatch()..start();
