@@ -704,6 +704,26 @@ class UpdateMachine {
     }
   }
 
+  /// In debug mode, controls whether [registerNotificationToken] should
+  /// have its normal effect.
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableRegisterNotificationToken {
+    bool result = true;
+    assert(() {
+      result = _debugEnableRegisterNotificationToken;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableRegisterNotificationToken = true;
+  static set debugEnableRegisterNotificationToken(bool value) {
+    assert(() {
+      _debugEnableRegisterNotificationToken = value;
+      return true;
+    }());
+  }
+
   /// Send this client's notification token to the server, now and if it changes.
   ///
   /// TODO The returned future isn't especially meaningful (it may or may not
@@ -712,6 +732,9 @@ class UpdateMachine {
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the registerFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
+    if (!debugEnableRegisterNotificationToken) {
+      return;
+    }
     NotificationService.instance.token.addListener(_registerNotificationToken);
     await _registerNotificationToken();
   }
