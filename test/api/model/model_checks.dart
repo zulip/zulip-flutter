@@ -3,6 +3,28 @@ import 'dart:ui';
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 
+extension UserChecks on Subject<User> {
+  Subject<int> get userId => has((x) => x.userId, 'userId');
+  Subject<String?> get deliveryEmailStaleDoNotUse => has((x) => x.deliveryEmailStaleDoNotUse, 'deliveryEmailStaleDoNotUse');
+  Subject<String> get email => has((x) => x.email, 'email');
+  Subject<String> get fullName => has((x) => x.fullName, 'fullName');
+  Subject<String> get dateJoined => has((x) => x.dateJoined, 'dateJoined');
+  Subject<bool> get isActive => has((x) => x.isActive, 'isActive');
+  Subject<bool> get isOwner => has((x) => x.isOwner, 'isOwner');
+  Subject<bool> get isAdmin => has((x) => x.isAdmin, 'isAdmin');
+  Subject<bool> get isGuest => has((x) => x.isGuest, 'isGuest');
+  Subject<bool?> get isBillingAdmin => has((x) => x.isBillingAdmin, 'isBillingAdmin');
+  Subject<bool> get isBot => has((x) => x.isBot, 'isBot');
+  Subject<int?> get botType => has((x) => x.botType, 'botType');
+  Subject<int?> get botOwnerId => has((x) => x.botOwnerId, 'botOwnerId');
+  Subject<UserRole> get role => has((x) => x.role, 'role');
+  Subject<String> get timezone => has((x) => x.timezone, 'timezone');
+  Subject<String?> get avatarUrl => has((x) => x.avatarUrl, 'avatarUrl');
+  Subject<int> get avatarVersion => has((x) => x.avatarVersion, 'avatarVersion');
+  Subject<Map<int, ProfileFieldUserData>?> get profileData => has((x) => x.profileData, 'profileData');
+  Subject<bool> get isSystemBot => has((x) => x.isSystemBot, 'isSystemBot');
+}
+
 extension ZulipStreamChecks on Subject<ZulipStream> {
   Subject<int?> get canRemoveSubscribersGroup => has((e) => e.canRemoveSubscribersGroup, 'canRemoveSubscribersGroup');
 }
