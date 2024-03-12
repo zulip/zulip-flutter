@@ -608,8 +608,7 @@ class UpdateMachine {
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await registerQueue(connection); // TODO retry
     final t = (stopwatch..stop()).elapsed;
-    // TODO log the time better
-    if (kDebugMode) print("initial fetch time: ${t.inMilliseconds}ms");
+    assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
