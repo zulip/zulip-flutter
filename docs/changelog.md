@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* The app should now (take 2) always get back to showing live data
+  once your device is back on the Internet. (#556)
+* Adjusted letter spacing to zero, particularly in messages. (#545)
+* Fixed blurry avatars on the profile screen. (#301)
+* Other fixes and improvements too as usual.
+
+
+### Highlights for developers
+
+Resolved: #545, #550, #301, PR #553, #556
+
+
 ## 0.0.11 (2024-02-29)
 
 ### Highlights for users
