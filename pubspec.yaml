@@ -64,6 +64,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.13
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
+  emoji_picker_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_driver:
