@@ -102,41 +102,43 @@ class AddReactionButton extends MessageActionSheetMenuItemButton {
           // apply bottom padding to handle keyboard opening via https://github.com/flutter/flutter/issues/71418
           padding: EdgeInsets.only(bottom: MediaQuery.of(emojiPickerContext).viewInsets.bottom),
           child: EmojiPicker(
-          config: Config(emojiSet: emojiSet),
-          onEmojiSelected: (_, Emoji? emoji) async {
-            if (emoji == null) {
-              // dismiss emoji picker
-              Navigator.of(emojiPickerContext).pop();
-              return;
-            }
-            final emojiName = emoji.name;
-            final emojiCode = getEmojiCode(emoji);
-            String? errorMessage;
-            try {
-              await addReaction(PerAccountStoreWidget.of(messageListContext).connection,
-                messageId: message.id,
-                reactionType: ReactionType.unicodeEmoji,
-                emojiCode: emojiCode,
-                emojiName: emojiName,
-              );
-              if (!emojiPickerContext.mounted) return;
-              Navigator.of(emojiPickerContext).pop();
-            } catch (e) {
-              debugPrint('Error adding reaction: $e');
-              if (!emojiPickerContext.mounted) return;
-
-              switch (e) {
-                case ZulipApiException():
-                  errorMessage = e.message;
-                  // TODO specific messages for common errors, like network errors
-                  //   (support with reusable code)
-                default:
+            config: Config(
+              emojiSet: emojiSet,
+              categoryViewConfig: const CategoryViewConfig(recentTabBehavior: RecentTabBehavior.NONE)),
+            onEmojiSelected: (_, Emoji? emoji) async {
+              if (emoji == null) {
+                // dismiss emoji picker
+                Navigator.of(emojiPickerContext).pop();
+                return;
               }
+              final emojiName = emoji.name;
+              final emojiCode = getEmojiCode(emoji);
+              String? errorMessage;
+              try {
+                await addReaction(PerAccountStoreWidget.of(messageListContext).connection,
+                  messageId: message.id,
+                  reactionType: ReactionType.unicodeEmoji,
+                  emojiCode: emojiCode,
+                  emojiName: emojiName,
+                );
+                if (!emojiPickerContext.mounted) return;
+                Navigator.of(emojiPickerContext).pop();
+              } catch (e) {
+                debugPrint('Error adding reaction: $e');
+                if (!emojiPickerContext.mounted) return;
 
-              await showErrorDialog(context: emojiPickerContext,
-                title: 'Adding reaction failed', message: errorMessage);
-            }
-          }));
+                switch (e) {
+                  case ZulipApiException():
+                    errorMessage = e.message;
+                    // TODO specific messages for common errors, like network errors
+                    //   (support with reusable code)
+                  default:
+                }
+
+                await showErrorDialog(context: emojiPickerContext,
+                  title: 'Adding reaction failed', message: errorMessage);
+              }
+            }));
       });
   };
 }

@@ -98,7 +98,7 @@ void main() {
     (store.connection as FakeApiConnection).prepare(httpStatus: 400, json: fakeResponseJson);
   }
 
-  group('AddThumbsUpButton', () {
+  group('AddReactionButton', () {
     Future<void> tapButton(WidgetTester tester) async {
       await tester.ensureVisible(find.byIcon(Icons.add_reaction_outlined, skipOffstage: false));
       await tester.tap(find.byIcon(Icons.add_reaction_outlined));
@@ -113,6 +113,16 @@ void main() {
       final connection = store.connection as FakeApiConnection;
       connection.prepare(json: {});
       await tapButton(tester);
+      // Wait for bottom modal to appear
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byIcon(Icons.tag_faces, skipOffstage: false));
+      await tester.tap(find.byIcon(Icons.tag_faces));
+      await tester.dragUntilVisible(
+        find.text('👍').hitTestable(),
+        find.byKey(const Key('emojiScrollView')),
+        const Offset(0, -300),
+      );
+      await tester.tap(find.text('👍'));
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
