@@ -43,6 +43,10 @@
   "@permissionsDeniedReadExternalStorage": {
     "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
+  "actionSheetOptionAddReaction": "Add reaction",
+  "@actionSheetOptionAddReaction":  {
+    "description": "Label for add reaction button on action sheet."
+  },
   "actionSheetOptionCopy": "Copy message text",
   "@actionSheetOptionCopy":  {
     "description": "Label for copy message text button on action sheet."
@@ -66,6 +70,10 @@
   "errorCouldNotFetchMessageSource": "Could not fetch message source",
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorAddingReactionFailed": "Adding reaction failed",
+  "@errorAddingReactionFailed": {
+    "description": "Error message when adding a reaction to a message failed."
   },
   "errorCopyingFailed": "Copying failed",
   "@errorCopyingFailed": {

@@ -138,6 +138,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
       final connection = store.connection as FakeApiConnection;
 
@@ -150,7 +151,7 @@ void main() {
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: 'Adding reaction failed',
+        expectedTitle: zulipLocalizations.errorAddingReactionFailed,
         expectedMessage: 'Invalid message(s)')));
     });
   });

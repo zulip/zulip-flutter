@@ -87,7 +87,7 @@ class AddReactionButton extends MessageActionSheetMenuItemButton {
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
-    return 'Add reaction'; // TODO(i18n) skip translation for now
+    return zulipLocalizations.actionSheetOptionAddReaction;
   }
 
   @override get onPressed => (BuildContext context) async {
@@ -135,8 +135,9 @@ class AddReactionButton extends MessageActionSheetMenuItemButton {
                   default:
                 }
 
+                final zulipLocalizations = ZulipLocalizations.of(messageListContext);
                 await showErrorDialog(context: emojiPickerContext,
-                  title: 'Adding reaction failed', message: errorMessage);
+                  title: zulipLocalizations.errorAddingReactionFailed, message: errorMessage);
               }
             }));
       });
