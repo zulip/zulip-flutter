@@ -98,11 +98,20 @@ void main() {
     (store.connection as FakeApiConnection).prepare(httpStatus: 400, json: fakeResponseJson);
   }
 
-  group('AddThumbsUpButton', () {
-    Future<void> tapButton(WidgetTester tester) async {
+  group('AddReactionButton', () {
+    Future<void> tapThumbsUpEmoji(WidgetTester tester) async {
       await tester.ensureVisible(find.byIcon(Icons.add_reaction_outlined, skipOffstage: false));
       await tester.tap(find.byIcon(Icons.add_reaction_outlined));
-      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      await tester.pumpAndSettle(); // Wait for emoji picker to appear
+      await tester.ensureVisible(find.byIcon(Icons.tag_faces));
+      await tester.tap(find.byIcon(Icons.tag_faces));
+      await tester.dragUntilVisible(
+        find.text('👍').hitTestable(),
+        // TODO use a constant imported from emoji_picker_flutter once that's upstreamed.
+        find.byKey(const Key('emojiScrollView')),
+        const Offset(0, -300),
+      );
+      await tester.tap(find.text('👍'));
     }
 
     testWidgets('success', (WidgetTester tester) async {
@@ -112,7 +121,7 @@ void main() {
 
       final connection = store.connection as FakeApiConnection;
       connection.prepare(json: {});
-      await tapButton(tester);
+      await tapThumbsUpEmoji(tester);
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
@@ -129,6 +138,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
       final connection = store.connection as FakeApiConnection;
 
@@ -137,11 +147,11 @@ void main() {
         'msg': 'Invalid message(s)',
         'result': 'error',
       });
-      await tapButton(tester);
+      await tapThumbsUpEmoji(tester);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: 'Adding reaction failed',
+        expectedTitle: zulipLocalizations.errorAddingReactionFailed,
         expectedMessage: 'Invalid message(s)')));
     });
   });

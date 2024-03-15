@@ -1,3 +1,4 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -6,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../emoji.dart';
 import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
@@ -18,26 +20,17 @@ import 'store.dart';
 ///
 /// Must have a [MessageListPage] ancestor.
 void showMessageActionSheet({required BuildContext context, required Message message}) {
-  final store = PerAccountStoreWidget.of(context);
-
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc). But currently it will be constant through the life of
   // any message list, so that's fine.
   final isComposeBoxOffered = MessageListPage.composeBoxControllerOf(context) != null;
 
-  final hasThumbsUpReactionVote = message.reactions
-    ?.aggregated.any((reactionWithVotes) =>
-      reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-      && reactionWithVotes.emojiCode == '1f44d'
-      && reactionWithVotes.userIds.contains(store.selfUserId))
-    ?? false;
-
   showDraggableScrollableModalBottomSheet(
     context: context,
     builder: (BuildContext _) {
       return Column(children: [
-        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
+        AddReactionButton(message: message, messageListContext: context),
         StarButton(message: message, messageListContext: context),
         ShareButton(message: message, messageListContext: context),
         if (isComposeBoxOffered) QuoteAndReplyButton(
@@ -73,10 +66,8 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   }
 }
 
-// This button is very temporary, to complete #125 before we have a way to
-// choose an arbitrary reaction (#388). So, skipping i18n.
-class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
-  AddThumbsUpButton({
+class AddReactionButton extends MessageActionSheetMenuItemButton {
+  AddReactionButton({
     super.key,
     required super.message,
     required super.messageListContext,
@@ -86,34 +77,75 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
-    return 'React with 👍'; // TODO(i18n) skip translation for now
+    return zulipLocalizations.actionSheetOptionAddReaction;
   }
 
   @override get onPressed => (BuildContext context) async {
+    // dismiss action sheet
     Navigator.of(context).pop();
-    String? errorMessage;
-    try {
-      await addReaction(PerAccountStoreWidget.of(messageListContext).connection,
-        messageId: message.id,
-        reactionType: ReactionType.unicodeEmoji,
-        emojiCode: '1f44d',
-        emojiName: '+1',
-      );
-    } catch (e) {
-      if (!messageListContext.mounted) return;
 
-      switch (e) {
-        case ZulipApiException():
-          errorMessage = e.message;
-          // TODO specific messages for common errors, like network errors
-          //   (support with reusable code)
-        default:
-      }
+    await showModalBottomSheet(
+      context: context,
+      clipBehavior: Clip.hardEdge,
+      builder: (BuildContext emojiPickerContext) {
+        return Padding(
+          // apply bottom padding to handle keyboard opening via https://github.com/flutter/flutter/issues/71418
+          padding: EdgeInsets.only(bottom: MediaQuery.of(emojiPickerContext).viewInsets.bottom),
+          child: EmojiPicker(
+            config: Config(
+              checkPlatformCompatibility: false,
+              emojiSet: getEmojiToDisplay(),
+              // TODO figure out why tests fail without RecentTabBehavior.NONE
+              categoryViewConfig: const CategoryViewConfig(recentTabBehavior: RecentTabBehavior.NONE)),
+            onEmojiSelected: (_, Emoji? emoji) async {
+              if (emoji == null) {
+                // dismiss emoji picker
+                Navigator.of(emojiPickerContext).pop();
+                return;
+              }
+              final emojiName = emoji.name;
+              final emojiCode = getEmojiCode(emoji);
+              String? errorMessage;
+              try {
+                await addReaction(PerAccountStoreWidget.of(messageListContext).connection,
+                  messageId: message.id,
+                  reactionType: ReactionType.unicodeEmoji,
+                  emojiCode: emojiCode,
+                  emojiName: emojiName,
+                );
+                if (!emojiPickerContext.mounted) return;
+                Navigator.of(emojiPickerContext).pop();
+              } catch (e) {
+                debugPrint('Error adding reaction: $e');
+                if (!emojiPickerContext.mounted) return;
 
-      await showErrorDialog(context: context,
-        title: 'Adding reaction failed', message: errorMessage);
-    }
+                switch (e) {
+                  case ZulipApiException():
+                    errorMessage = e.message;
+                    // TODO specific messages for common errors, like network errors
+                    //   (support with reusable code)
+                  default:
+                }
+
+                final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+                await showErrorDialog(context: emojiPickerContext,
+                  title: zulipLocalizations.errorAddingReactionFailed, message: errorMessage);
+              }
+            }));
+      });
   };
+
+  /// Returns the emoji set to display in the emoji picker.
+  List<CategoryEmoji> getEmojiToDisplay() {
+    final selfUserId = PerAccountStoreWidget.of(messageListContext).selfUserId;
+    final selfUserUnicodeReactions = message.reactions
+      ?.aggregated.where((reactionWithVotes) =>
+        reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+        && reactionWithVotes.userIds.contains(selfUserId))
+      .map((reactionWithVotes) => reactionWithVotes.emojiName);
+    return selfUserUnicodeReactions != null
+      ? filterUnicodeEmojiSet(emojiSet, selfUserUnicodeReactions) : emojiSet;
+  }
 }
 
 class StarButton extends MessageActionSheetMenuItemButton {
