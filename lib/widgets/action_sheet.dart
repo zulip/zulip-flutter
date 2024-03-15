@@ -20,21 +20,11 @@ import 'store.dart';
 ///
 /// Must have a [MessageListPage] ancestor.
 void showMessageActionSheet({required BuildContext context, required Message message}) {
-  final store = PerAccountStoreWidget.of(context);
-
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc). But currently it will be constant through the life of
   // any message list, so that's fine.
   final isComposeBoxOffered = MessageListPage.composeBoxControllerOf(context) != null;
-
-  // TODO filter away reactions by current user
-  // final hasThumbsUpReactionVote = message.reactions
-  //   ?.aggregated.any((reactionWithVotes) =>
-  //     reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-  //     && reactionWithVotes.emojiCode == '1f44d'
-  //     && reactionWithVotes.userIds.contains(store.selfUserId))
-  //   ?? false;
 
   showDraggableScrollableModalBottomSheet(
     context: context,
@@ -103,7 +93,9 @@ class AddReactionButton extends MessageActionSheetMenuItemButton {
           padding: EdgeInsets.only(bottom: MediaQuery.of(emojiPickerContext).viewInsets.bottom),
           child: EmojiPicker(
             config: Config(
-              emojiSet: emojiSet,
+              checkPlatformCompatibility: false,
+              emojiSet: getEmojiToDisplay(),
+              // TODO figure out why tests fail without RecentTabBehavior.NONE
               categoryViewConfig: const CategoryViewConfig(recentTabBehavior: RecentTabBehavior.NONE)),
             onEmojiSelected: (_, Emoji? emoji) async {
               if (emoji == null) {
@@ -142,6 +134,18 @@ class AddReactionButton extends MessageActionSheetMenuItemButton {
             }));
       });
   };
+
+  /// Returns the emoji set to display in the emoji picker.
+  List<CategoryEmoji> getEmojiToDisplay() {
+    final selfUserId = PerAccountStoreWidget.of(messageListContext).selfUserId;
+    final selfUserUnicodeReactions = message.reactions
+      ?.aggregated.where((reactionWithVotes) =>
+        reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+        && reactionWithVotes.userIds.contains(selfUserId))
+      .map((reactionWithVotes) => reactionWithVotes.emojiName);
+    return selfUserUnicodeReactions != null
+      ? filterUnicodeEmojiSet(emojiSet, selfUserUnicodeReactions) : emojiSet;
+  }
 }
 
 class StarButton extends MessageActionSheetMenuItemButton {

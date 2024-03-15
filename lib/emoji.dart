@@ -8,6 +8,15 @@ final emojiSet = defaultEmojiSet.map((emojiCategory) =>
         .map((emoji) =>
           Emoji(emoji.emoji, getEmojiCanonicalName(emoji), hasSkinTone: emoji.hasSkinTone)).toList())).toList();
 
+List<CategoryEmoji> filterUnicodeEmojiSet(List<CategoryEmoji> emojiSet, Iterable<String> emojiNamesToRemove) {
+  return emojiSet.map((categoryEmoji) =>
+    CategoryEmoji(
+      categoryEmoji.category,
+      categoryEmoji.emoji
+        .where((emoji) => !emojiNamesToRemove.contains(emoji.name))
+        .toList())).toList();
+}
+
 String getEmojiCanonicalName(Emoji emoji) {
   final emojiCode = getEmojiCode(emoji);
   final emojiName = emojiNameMaps[emojiCode];
