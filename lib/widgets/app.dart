@@ -17,7 +17,7 @@ import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
 
-class ZulipApp extends StatelessWidget {
+class ZulipApp extends StatefulWidget {
   const ZulipApp({super.key, this.navigatorObservers});
 
   /// Whether the app's widget tree is ready.
@@ -80,6 +80,11 @@ class ZulipApp extends StatelessWidget {
   }
 
   @override
+  State<ZulipApp> createState() => _ZulipAppState();
+}
+
+class _ZulipAppState extends State<ZulipApp> {
+  @override
   Widget build(BuildContext context) {
     final theme = ThemeData(
       typography: zulipTypography(context),
@@ -123,12 +128,12 @@ class ZulipApp extends StatelessWidget {
           supportedLocales: ZulipLocalizations.supportedLocales,
           theme: theme,
 
-          navigatorKey: navigatorKey,
-          navigatorObservers: navigatorObservers ?? const [],
+          navigatorKey: ZulipApp.navigatorKey,
+          navigatorObservers: widget.navigatorObservers ?? const [],
           builder: (BuildContext context, Widget? child) {
-            if (!ready.value) {
+            if (!ZulipApp.ready.value) {
               SchedulerBinding.instance.addPostFrameCallback(
-                (_) => _declareReady());
+                (_) => widget._declareReady());
             }
             GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
             return child!;
