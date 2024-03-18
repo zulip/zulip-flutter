@@ -764,7 +764,7 @@ class _SendButtonState extends State<_SendButton> {
         tooltip: zulipLocalizations.composeBoxSendTooltip,
         style: const ButtonStyle(
           // Match the height of the content input.
-          minimumSize: MaterialStatePropertyAll(Size.square(_sendButtonSize)),
+          minimumSize: WidgetStatePropertyAll(Size.square(_sendButtonSize)),
           // With the default of [MaterialTapTargetSize.padded], not just the
           // tap target but the visual button would get padded to 48px square.
           // It would be nice if the tap target extended invisibly out from the
