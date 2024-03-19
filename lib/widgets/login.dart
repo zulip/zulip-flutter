@@ -246,10 +246,10 @@ class LoginPage extends StatefulWidget {
   }
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginPage> createState() => LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class LoginPageState extends State<LoginPage> {
   bool _inProgress = false;
 
   Future<void> _tryInsertAccountAndNavigate({
@@ -330,7 +330,7 @@ class _LoginPageState extends State<LoginPage> {
 class _UsernamePasswordForm extends StatefulWidget {
   const _UsernamePasswordForm({required this.loginPageState});
 
-  final _LoginPageState loginPageState;
+  final LoginPageState loginPageState;
 
   @override
   State<_UsernamePasswordForm> createState() => _UsernamePasswordFormState();
