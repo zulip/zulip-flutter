@@ -83,7 +83,30 @@ class ZulipApp extends StatefulWidget {
   State<ZulipApp> createState() => _ZulipAppState();
 }
 
-class _ZulipAppState extends State<ZulipApp> {
+class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
+  @override
+  Future<bool> didPushRouteInformation(routeInformation) async {
+    if (routeInformation case RouteInformation(
+      uri: Uri(scheme: 'zulip', host: 'login') && var url)
+    ) {
+      await LoginPage.handleWebAuthUrl(url);
+      return true;
+    }
+    return super.didPushRouteInformation(routeInformation);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ThemeData(

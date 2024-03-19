@@ -1,16 +1,23 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api/exception.dart';
+import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
 import '../api/route/users.dart';
+import '../log.dart';
+import '../model/binding.dart';
 import '../model/store.dart';
 import 'app.dart';
 import 'dialog.dart';
 import 'input.dart';
 import 'page.dart';
 import 'store.dart';
+import 'text.dart';
 
 class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
   _LoginSequenceRoute({
@@ -176,7 +183,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
         return;
       }
 
-      // TODO(#36): support login methods beyond username/password
       Navigator.push(context,
         LoginPage.buildRoute(serverSettings: serverSettings));
     } finally {
@@ -240,10 +246,22 @@ class LoginPage extends StatefulWidget {
 
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
     return _LoginSequenceRoute(
-      page: LoginPage(serverSettings: serverSettings));
+      page: LoginPage(serverSettings: serverSettings, key: _lastBuiltKey));
   }
 
   final GetServerSettingsResult serverSettings;
+
+  /// Log in using the payload of a web-auth URL like zulip://login?…
+  static Future<void> handleWebAuthUrl(Uri url) async {
+    return _lastBuiltKey.currentState?.handleWebAuthUrl(url);
+  }
+
+  /// A key for the page from the last [buildRoute] call.
+  static final _lastBuiltKey = GlobalKey<_LoginPageState>();
+
+  /// The OTP to use, instead of an app-generated one, for testing.
+  @visibleForTesting
+  static String? debugOtpOverride;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -251,6 +269,84 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _inProgress = false;
+
+  String? get _otp {
+    String? result;
+    assert(() {
+      result = LoginPage.debugOtpOverride;
+      return true;
+    }());
+    return result ?? __otp;
+  }
+  String? __otp;
+
+  Future<void> handleWebAuthUrl(Uri url) async {
+    setState(() {
+      _inProgress = true;
+    });
+    try {
+      await ZulipBinding.instance.closeInAppWebView();
+
+      if (_otp == null) throw Error();
+      final payload = WebAuthPayload.parse(url);
+      if (payload.realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
+      final apiKey = payload.decodeApiKey(_otp!);
+      await _tryInsertAccountAndNavigate(
+        // TODO(server-5): Rely on userId from payload.
+        userId: payload.userId ?? await _getUserId(payload.email, apiKey),
+        email: payload.email,
+        apiKey: apiKey,
+      );
+    } catch (e) {
+      assert(debugLog(e.toString()));
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      // Could show different error messages for different failure modes.
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
+        message: zulipLocalizations.errorWebAuthOperationalError);
+    } finally {
+      setState(() {
+        _inProgress = false;
+        __otp = null;
+      });
+    }
+  }
+
+  Future<void> _beginWebAuth(ExternalAuthenticationMethod method) async {
+    __otp = generateOtp();
+    try {
+      final url = widget.serverSettings.realmUrl.resolve(method.loginUrl)
+        .replace(queryParameters: {'mobile_flow_otp': _otp!});
+
+      // Could set [_inProgress]… but we'd need to unset it if the web-auth
+      // attempt is aborted (by the user closing the browser, for example),
+      // and I don't think we can reliably know when that happens.
+      await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
+    } catch (e) {
+      assert(debugLog(e.toString()));
+
+      if (e is PlatformException
+        && defaultTargetPlatform == TargetPlatform.iOS
+        && e.message != null && e.message!.startsWith('Error while launching')) {
+        // Ignore; I've seen this on my iPhone even when auth succeeds.
+        // Specifically, Apple web auth…which on iOS should be replaced by
+        // Apple native auth; that's #462.
+        // Possibly related:
+        //   https://github.com/flutter/flutter/issues/91660
+        // but in that issue, people report authentication not succeeding.
+        // TODO(#462) remove this?
+        return;
+      }
+
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      // Could show different error messages for different failure modes.
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
+        message: zulipLocalizations.errorWebAuthOperationalError);
+    }
+  }
 
   Future<void> _tryInsertAccountAndNavigate({
     required String email,
@@ -312,6 +408,26 @@ class _LoginPageState extends State<LoginPage> {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
+
+    final loginForm = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      _UsernamePasswordForm(loginPageState: this),
+      if (externalAuthenticationMethods.isNotEmpty) ...[
+        const OrDivider(),
+        ...externalAuthenticationMethods.map((method) {
+          final icon = method.displayIcon;
+          return OutlinedButton.icon(
+            icon: icon != null
+              ? Image.network(icon, width: 24, height: 24)
+              : null,
+            onPressed: !_inProgress
+              ? () => _beginWebAuth(method)
+              : null,
+            label: Text(zulipLocalizations.signInWithFoo(method.displayName)));
+        }),
+      ],
+    ]);
+
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
         bottom: _inProgress
@@ -330,7 +446,7 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: _UsernamePasswordForm(loginPageState: this)))))));
+                child: loginForm))))));
   }
 }
 
@@ -493,5 +609,33 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
             onPressed: widget.loginPageState._inProgress ? null : _submit,
             child: Text(zulipLocalizations.loginFormSubmitLabel)),
         ])));
+  }
+}
+
+// Loosely based on the corresponding element in the web app.
+class OrDivider extends StatelessWidget {
+  const OrDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    const divider = Expanded(
+      child: Divider(color: Color(0xffdedede), thickness: 2));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        divider,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Text(zulipLocalizations.loginMethodDivider,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xff575757),
+              height: 1.5,
+            ).merge(weightVariableTextStyle(context, wght: 600)))),
+        divider,
+      ]));
   }
 }
