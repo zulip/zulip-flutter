@@ -56,7 +56,7 @@ void main() {
 
   // TODO test AddAccountPage
 
-  group('PasswordLoginPage', () {
+  group('LoginPage', () {
     late FakeApiConnection connection;
 
     Future<void> prepare(WidgetTester tester,
@@ -72,7 +72,7 @@ void main() {
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           home: GlobalStoreWidget(
-            child: PasswordLoginPage(serverSettings: serverSettings))));
+            child: LoginPage(serverSettings: serverSettings))));
       await tester.pump(); // load global store
     }
 
