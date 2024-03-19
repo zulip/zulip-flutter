@@ -178,7 +178,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
       // TODO(#36): support login methods beyond username/password
       Navigator.push(context,
-        PasswordLoginPage.buildRoute(serverSettings: serverSettings));
+        LoginPage.buildRoute(serverSettings: serverSettings));
     } finally {
       setState(() {
         _inProgress = false;
@@ -235,21 +235,21 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 }
 
-class PasswordLoginPage extends StatefulWidget {
-  const PasswordLoginPage({super.key, required this.serverSettings});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key, required this.serverSettings});
 
   final GetServerSettingsResult serverSettings;
 
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
     return _LoginSequenceRoute(
-      page: PasswordLoginPage(serverSettings: serverSettings));
+      page: LoginPage(serverSettings: serverSettings));
   }
 
   @override
-  State<PasswordLoginPage> createState() => _PasswordLoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _PasswordLoginPageState extends State<PasswordLoginPage> {
+class _LoginPageState extends State<LoginPage> {
   bool _inProgress = false;
 
   Future<void> _tryInsertAccountAndNavigate({
@@ -330,7 +330,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
 class _UsernamePasswordForm extends StatefulWidget {
   const _UsernamePasswordForm({required this.loginPageState});
 
-  final _PasswordLoginPageState loginPageState;
+  final _LoginPageState loginPageState;
 
   @override
   State<_UsernamePasswordForm> createState() => _UsernamePasswordFormState();
