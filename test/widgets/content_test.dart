@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -318,8 +319,11 @@ void main() {
         '<p><a href="https://example/">hello</a></p>');
 
       await tapText(tester, find.text('hello'));
+
+      final expectedLaunchMode = defaultTargetPlatform == TargetPlatform.iOS ?
+        LaunchMode.externalApplication : LaunchMode.platformDefault;
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://example/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://example/'), mode: expectedLaunchMode));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('multiple links in paragraph', (tester) async {
