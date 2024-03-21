@@ -84,7 +84,7 @@ class NotificationDisplayManager {
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
-      case RemoveFcmMessage(): break; // TODO(#341) handle
+      case RemoveFcmMessage(): _onRemoveFcmMessage(data);
       case UnexpectedFcmMessage(): break; // TODO(log)
     }
   }
@@ -200,6 +200,14 @@ class NotificationDisplayManager {
       // TODO(android-12): cut this autoCancel workaround
       autoCancel: true,
     );
+  }
+
+  static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
+    final api = AndroidNotificationHostApi();
+    final notifs = await api.getActiveNotifications();
+    print('notifs: $notifs');
+
+    // TODO implement
   }
 
   /// A notification ID, derived as a hash of the given string key.
