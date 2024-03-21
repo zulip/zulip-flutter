@@ -205,7 +205,10 @@ class NotificationDisplayManager {
   static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
     final api = AndroidNotificationHostApi();
     final notifs = await api.getActiveNotifications();
-    print('notifs: $notifs');
+    // Sadly we don't get toString on Pigeon data classes: flutter#59027
+    print('notifs: ${notifs.map((n) => n == null ? null
+      : '(id: ${n.id}, tag: ${n.tag}, notification: '
+         '(group: ${n.notification.group}, extras: ${n.notification.extras}))')}');
 
     // TODO implement
   }
