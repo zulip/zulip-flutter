@@ -258,11 +258,40 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'color': instance.color,
     };
 
+MessageEditHistory _$MessageEditHistoryFromJson(Map<String, dynamic> json) =>
+    MessageEditHistory(
+      prevContent: json['prev_content'] as String?,
+      prevRenderedContent: json['prev_rendered_content'] as String?,
+      prevRenderedContentVersion: json['prev_rendered_content_version'] as int?,
+      prevStream: json['prev_stream'] as int?,
+      prevTopic: json['prev_topic'] as String?,
+      stream: json['stream'] as int?,
+      timestamp: json['timestamp'] as int,
+      topic: json['topic'] as String?,
+      userId: json['user_id'] as int?,
+    );
+
+Map<String, dynamic> _$MessageEditHistoryToJson(MessageEditHistory instance) =>
+    <String, dynamic>{
+      'prev_content': instance.prevContent,
+      'prev_rendered_content': instance.prevRenderedContent,
+      'prev_rendered_content_version': instance.prevRenderedContentVersion,
+      'prev_stream': instance.prevStream,
+      'prev_topic': instance.prevTopic,
+      'stream': instance.stream,
+      'timestamp': instance.timestamp,
+      'topic': instance.topic,
+      'user_id': instance.userId,
+    };
+
 StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
     StreamMessage(
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
+      editHistory: (json['edit_history'] as List<dynamic>?)
+          ?.map((e) => MessageEditHistory.fromJson(e as Map<String, dynamic>))
+          .toList(),
       id: json['id'] as int,
       isMeMessage: json['is_me_message'] as bool,
       lastEditTimestamp: json['last_edit_timestamp'] as int?,
@@ -286,6 +315,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'client': instance.client,
       'content': instance.content,
       'content_type': instance.contentType,
+      'edit_history': instance.editHistory,
       'id': instance.id,
       'is_me_message': instance.isMeMessage,
       'last_edit_timestamp': instance.lastEditTimestamp,
@@ -322,6 +352,9 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
+      editHistory: (json['edit_history'] as List<dynamic>?)
+          ?.map((e) => MessageEditHistory.fromJson(e as Map<String, dynamic>))
+          .toList(),
       id: json['id'] as int,
       isMeMessage: json['is_me_message'] as bool,
       lastEditTimestamp: json['last_edit_timestamp'] as int?,
@@ -344,6 +377,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'client': instance.client,
       'content': instance.content,
       'content_type': instance.contentType,
+      'edit_history': instance.editHistory,
       'id': instance.id,
       'is_me_message': instance.isMeMessage,
       'last_edit_timestamp': instance.lastEditTimestamp,

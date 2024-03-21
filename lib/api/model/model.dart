@@ -569,7 +569,7 @@ sealed class Message {
   String content;
   final String contentType;
 
-  // final List<MessageEditHistory> editHistory; // TODO handle
+  final List<MessageEditHistory>? editHistory;
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -612,6 +612,7 @@ sealed class Message {
     required this.client,
     required this.content,
     required this.contentType,
+    required this.editHistory,
     required this.id,
     required this.isMeMessage,
     required this.lastEditTimestamp,
@@ -677,6 +678,7 @@ class StreamMessage extends Message {
     required super.client,
     required super.content,
     required super.contentType,
+    required super.editHistory,
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
@@ -779,6 +781,7 @@ class DmMessage extends Message {
     required super.client,
     required super.content,
     required super.contentType,
+    required super.editHistory,
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
@@ -801,4 +804,41 @@ class DmMessage extends Message {
 
   @override
   Map<String, dynamic> toJson() => _$DmMessageToJson(this);
+}
+
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class MessageEditHistory {
+  final String? prevContent;
+  final String? prevRenderedContent;
+  final int? prevRenderedContentVersion;
+  final int? prevStream;
+  final int? stream;
+  final int timestamp;
+  final String? topic;
+  final int? userId;
+
+  @JsonKey(readValue: _readPrevTopic)
+  String? prevTopic;
+
+  static String? _readPrevTopic(Map json, String key) {
+    return json[key] ?? json['prev_subject'];
+  }
+
+  MessageEditHistory( {
+    required this.prevContent,
+    required this.prevRenderedContent,
+    required this.prevRenderedContentVersion,
+    required this.prevStream,
+    required this.prevTopic,
+    required this.stream,
+    required this.timestamp,
+    required this.topic,
+    required this.userId,
+  });
+
+  factory MessageEditHistory.fromJson(Map<String, dynamic> json) =>
+    _$MessageEditHistoryFromJson(json);
+
+  Map<String,dynamic> toJson() =>_$MessageEditHistoryToJson(this);
 }

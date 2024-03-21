@@ -23,6 +23,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 
+
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
@@ -892,6 +893,16 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = item.message;
+    final history = message.editHistory;
+    bool messageEdited = false, messageMoved = false;
+
+    if(message.editHistory != null) {
+      if((history?.last.topic != history?.last.prevTopic) ||
+        (history?.last.stream != history?.last.prevStream)){
+            messageMoved = true;}
+      if(history?.last.prevContent!=null){
+        messageEdited = true;
+      }}
 
     Widget? senderRow;
     if (item.showSender) {
@@ -939,7 +950,8 @@ class MessageWithPossibleSender extends StatelessWidget {
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(children: [
+        child: Column(
+          children: [
           if (senderRow != null)
             Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
               child: senderRow),
@@ -950,6 +962,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   MessageContent(message: message, content: item.content),
+                  if(messageMoved || messageEdited) SlidableMarker(messageMoved: messageMoved, messageEdited:  messageEdited),
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!)
                 ])),
@@ -965,6 +978,70 @@ class MessageWithPossibleSender extends StatelessWidget {
         ])));
   }
 }
+
+class SlidableMarker extends StatefulWidget {
+  final bool messageMoved;
+  final bool messageEdited;
+
+  const SlidableMarker({
+    super.key,
+    required this.messageMoved,
+    required this.messageEdited,
+  });
+
+  @override
+  State<SlidableMarker> createState() => _SlidableMarkerState();
+}
+
+class _SlidableMarkerState extends State<SlidableMarker> {
+  double _dragPosition = 17;
+
+
+  @override
+  Widget build(BuildContext context) {
+    double containerWidth = 17;
+
+    if (_dragPosition >= 17) {
+      if (_dragPosition > 60) {
+        containerWidth = 60;
+      } else {
+        containerWidth = _dragPosition;
+      }
+    }
+    else{
+      _dragPosition = 17;
+    }
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        setState(() {
+          _dragPosition += details.delta.dx;
+          });},
+      child: SizedBox(
+        height: 20,
+        child: Stack(
+          children: [
+            Container(
+              width: containerWidth,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(2),
+                                        color : const Color(0xFFDDECF6)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 1),
+                      child: Text(
+                        widget.messageEdited ? 'Edited' : 'Moved',
+                        style: const TextStyle(fontSize: 15, overflow: TextOverflow.clip, color: Color(0xFF26516E)),
+                      ))),
+                  widget.messageMoved ? const Padding(padding: EdgeInsets.all(1),
+                                                      child :Icon(ZulipIcons.message_moved_icon, size: 14,
+                                                      color: Color(0xFF26516E))) :
+                                        const Padding(padding: EdgeInsets.all(1),
+                                                      child :Icon(ZulipIcons.message_edited_icon, size: 14,
+                                                      color: Color(0xFF26516E)))
+                ]))])));}
+  }
 
 // TODO web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
