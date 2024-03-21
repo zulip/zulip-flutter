@@ -1,6 +1,7 @@
 package com.zulip.flutter
 
 import android.annotation.SuppressLint
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -11,8 +12,16 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import java.io.Serializable
 
 private const val TAG = "ZulipPlugin"
+
+private fun Bundle.asMap(): Map<String, Serializable?>  {
+    return keySet().associateWith {
+        try { get(it) as Serializable? }
+        catch (e: Throwable) { null }
+    }
+}
 
 fun toAndroidPerson(person: Person): androidx.core.app.Person {
     return androidx.core.app.Person.Builder().apply {
@@ -119,6 +128,20 @@ private class AndroidNotificationHost(val context: Context)
                 it, "drawable", context.packageName)) }
         }.build()
         NotificationManagerCompat.from(context).notify(tag, id.toInt(), notification)
+    }
+
+    override fun getActiveNotifications(): List<StatusBarNotification> {
+        val notificationManager = context.getSystemService(NotificationManager::class.java)!!
+        return notificationManager.activeNotifications.map {
+            StatusBarNotification(
+                id = it.id.toLong(),
+                tag = it.tag,
+                notification = Notification(
+                    group = it.notification.group,
+                    extras = it.notification.extras.asMap() as Map<String?, Any?>,
+                )
+            )
+        }
     }
 
     override fun getActiveNotificationMessagingStyleByTag(tag: String): MessagingStyle? {
