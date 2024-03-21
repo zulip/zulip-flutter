@@ -122,6 +122,37 @@ class MessagingStyle {
   final bool isGroupConversation;
 }
 
+/// Corresponds to `android.app.Notification`.
+///
+/// See: https://developer.android.com/reference/kotlin/android/app/Notification
+class Notification {
+  Notification({required this.group, required this.extras});
+
+  final String? group;
+  final Map<String?, Object?> extras;
+  // Various other properties too; add them if needed.
+}
+
+/// Corresponds to `android.service.notification.StatusBarNotification`.
+///
+/// See: https://developer.android.com/reference/kotlin/android/service/notification/StatusBarNotification
+class StatusBarNotification {
+  StatusBarNotification({required this.id, required this.notification, required this.tag});
+
+  final int id;
+  final Notification notification;
+  final String? tag;
+
+  // Ignore `groupKey` and `key`.  While the `.groupKey` contains the
+  // `.notification.group`, and the `.key` contains the `.id` and `.tag`,
+  // they also have more stuff added on (and their structure doesn't seem to
+  // be documented.)
+  // final String? groupKey;
+  // final String? key;
+
+  // Various other properties too; add them if needed.
+}
+
 @HostApi()
 abstract class AndroidNotificationHostApi {
   /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
@@ -170,6 +201,12 @@ abstract class AndroidNotificationHostApi {
     // NotificationCompat.Builder has lots more methods; add as needed.
     // Keep them alphabetized, for easy comparison with that class's docs.
   });
+
+  /// Corresponds to `android.app.NotificationManager.getActiveNotifications`.
+  ///
+  /// See: https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#getactivenotifications
+  // TODO accept a list of extras to care about
+  List<StatusBarNotification> getActiveNotifications();
 
   /// Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
   /// combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
