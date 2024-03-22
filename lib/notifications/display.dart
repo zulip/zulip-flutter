@@ -156,6 +156,10 @@ class NotificationDisplayManager {
       messagingStyle: messagingStyle,
       number: messagingStyle.messages.length,
 
+      extras: {
+        _extraZulipMessageId: data.zulipMessageId.toString(),
+      },
+
       contentIntent: PendingIntent(
         // TODO make intent URLs distinct, instead of requestCode
         //   (This way is a legacy of flutter_local_notifications.)
@@ -203,6 +207,8 @@ class NotificationDisplayManager {
   }
 
   static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
+    assert(debugLog('notif remove zulipMessageIds: ${data.zulipMessageIds}'));
+
     final api = AndroidNotificationHostApi();
     final notifs = await api.getActiveNotifications();
     // Sadly we don't get toString on Pigeon data classes: flutter#59027
@@ -210,8 +216,21 @@ class NotificationDisplayManager {
       : '(id: ${n.id}, tag: ${n.tag}, notification: '
          '(group: ${n.notification.group}, extras: ${n.notification.extras}))')}');
 
-    // TODO implement
+    for (final statusBarNotification in notifs) {
+      if (statusBarNotification == null) continue;
+      final notification = statusBarNotification.notification;
+
+      final rawZulipMessageId = notification.extras[_extraZulipMessageId] as String;
+      final zulipMessageId = int.parse(rawZulipMessageId, radix: 10);
+      if (data.zulipMessageIds.contains(zulipMessageId)) {
+        // The latest Zulip message in this conversation was read.
+        // That's our cue to cancel the notification for the conversation.
+        print('would cancel: tag ${statusBarNotification.tag}, id ${statusBarNotification.id}'); // TODO actually cancel
+      }
+    }
   }
+
+  static const _extraZulipMessageId = 'zulipMessageId';
 
   /// A notification ID, derived as a hash of the given string key.
   ///
