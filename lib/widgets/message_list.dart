@@ -87,7 +87,6 @@ class _MessageListPageState extends State<MessageListPage> {
           ? const Border()
           : null, // i.e., inherit
       ),
-      bottomNavigationBar: ZulipNavigationBar(selectedPage: MessageList),
       // TODO question for Vlad: for a stream view, should we set
       //   [backgroundColor] based on stream color, as in this frame:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
