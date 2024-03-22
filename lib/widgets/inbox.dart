@@ -13,7 +13,7 @@ import 'store.dart';
 import 'text.dart';
 import 'unread_count_badge.dart';
 
-class InboxPage extends StatefulWidget {
+class InboxPage extends StatelessWidget {
   const InboxPage({super.key});
 
   static Route<void> buildRoute({int? accountId, BuildContext? context}) {
@@ -22,10 +22,44 @@ class InboxPage extends StatefulWidget {
   }
 
   @override
-  State<InboxPage> createState() => _InboxPageState();
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      initialIndex: 0,
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Inbox'),
+          bottom: const TabBar(
+            tabs: <Widget>[
+              Tab(
+                text: 'Streams + Topics',
+              ),
+              Tab(
+                text: 'All Messages',
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: ZulipNavigationBar(selectedPage: InboxPage),
+        body: const SafeArea(child: TabBarView(
+          children: <Widget>[
+            Inbox(),
+            MessageList(narrow: AllMessagesNarrow()),
+          ],
+        )) ,
+      ),
+    );
+  }
 }
 
-class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMixin<InboxPage> {
+class Inbox extends StatefulWidget {
+  const Inbox({super.key});
+
+  @override
+  State<Inbox> createState() => _InboxState();
+}
+
+class _InboxState extends State<Inbox> with PerAccountStoreAwareStateMixin<Inbox> {
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
@@ -159,28 +193,22 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Inbox')),
-      bottomNavigationBar: ZulipNavigationBar(selectedPage: InboxPage),
-      body: SafeArea(
-        // Don't pad the bottom here; we want the list content to do that.
-        bottom: false,
-        child: StickyHeaderListView.builder(
-          itemCount: sections.length,
-          itemBuilder: (context, index) {
-            final section = sections[index];
-            switch (section) {
-              case _AllDmsSectionData():
-                return _AllDmsSection(
-                  data: section,
-                  collapsed: allDmsCollapsed,
-                  pageState: this,
-                );
-              case _StreamSectionData(:var streamId):
-                final collapsed = collapsedStreamIds.contains(streamId);
-                return _StreamSection(data: section, collapsed: collapsed, pageState: this);
-            }
-          })));
+    return StickyHeaderListView.builder(
+      itemCount: sections.length,
+      itemBuilder: (context, index) {
+        final section = sections[index];
+        switch (section) {
+          case _AllDmsSectionData():
+            return _AllDmsSection(
+              data: section,
+              collapsed: allDmsCollapsed,
+              pageState: this,
+            );
+          case _StreamSectionData(:var streamId):
+            final collapsed = collapsedStreamIds.contains(streamId);
+            return _StreamSection(data: section, collapsed: collapsed, pageState: this);
+        }
+      });
   }
 }
 
@@ -207,7 +235,7 @@ class _StreamSectionData extends _InboxSectionData {
 
 abstract class _HeaderItem extends StatelessWidget {
   final bool collapsed;
-  final _InboxPageState pageState;
+  final _InboxState pageState;
   final int count;
   final bool hasMention;
 
@@ -297,7 +325,7 @@ class _AllDmsSection extends StatelessWidget {
 
   final _AllDmsSectionData data;
   final bool collapsed;
-  final _InboxPageState pageState;
+  final _InboxState pageState;
 
   @override
   Widget build(BuildContext context) {
@@ -418,7 +446,7 @@ class _StreamSection extends StatelessWidget {
 
   final _StreamSectionData data;
   final bool collapsed;
-  final _InboxPageState pageState;
+  final _InboxState pageState;
 
   @override
   Widget build(BuildContext context) {

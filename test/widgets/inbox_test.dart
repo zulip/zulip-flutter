@@ -45,7 +45,7 @@ void main() {
           navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
           home: PerAccountStoreWidget(
             accountId: eg.selfAccount.id,
-            child: const InboxPage()))));
+            child: const Inbox()))));
 
     // global store and per-account store get loaded
     await tester.pumpAndSettle();
