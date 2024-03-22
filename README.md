@@ -91,27 +91,50 @@ Two specific points to expand on:
 ## Getting started in developing this beta app
 
 ### Setting up
+> [!NOTE]
+> (Advanced Users) If you want to manage own flutter SDK installation, you can skip step 1-2. See below section on [Flutter version](#flutter-version)
 
-1. Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install)
-   for your platform of choice.
-2. Switch to the latest version of Flutter by running `flutter channel main`
-   and `flutter upgrade` (see [Flutter version](#flutter-version) below).
+1. Install [direnv][direnv] and [fvm][fvm], for most
+users, you can use Homebrew:
+
+  ```sh
+  brew install direnv
+  # Follow instructions for to add the hook https://direnv.net/docs/hook.html
+  brew tap leoafarias/fvm
+  brew install fvm
+  # Close and open a new terminal to ensure that direnv is loaded.
+  # For any changes in the contents of direnv, and first use, you need to call
+  # this.
+  direnv allow
+  ```
+2. Run `fvm use` to setup the flutter version.
 3. Ensure Flutter is correctly configured by running `flutter doctor`.
 4. Start the app with `flutter run`, or from your IDE.
 
 
 ### Flutter version
 
-While in the beta phase, we use the latest Flutter from Flutter's
-main branch.  Use `flutter channel main` and `flutter upgrade`.
+We use [direnv][direnv] and [fvm][fvm] to ensure that the version of flutter SDK
+that you're using matches what has been tested on CI, and across developer
+setups.
+The Flutter version pinned for the current build is in the [.fvmrc](.fvmrc)
+file under the `flutter` key. It can either be a hash like
+[`18340ea16c`](https://github.com/flutter/flutter/commit/18340ea16c) or a
+version number like `3.21.0-11.0.pre`.
 
-We don't pin a specific version, because Flutter itself doesn't offer
-a way to do so.  So far that hasn't been a problem.  When it becomes one,
-we'll figure it out; there are several tools for this in the Flutter
-community.  See [issue #15][].
+However, if you want to manage your own flutter SDK version you can opt out of
+this behavior.
+Do note that if you do this, you need to manually make sure that the flutter SDK
+version matches or is compatible with the pinned version in `.fvmrc`. Otherwise,
+the build can fail as we have not tested the current code with that particular
+flutter SDK version.
 
-[issue #15]: https://github.com/zulip/zulip-flutter/issues/15
+If you want manage your own flutter SDK version, follow the [Flutter
+installation guide](https://docs.flutter.dev/get-started/install) for your
+platform of choice.
 
+[direnv]: https://direnv.net/
+[fvm]: https://fvm.app/
 
 ### Tests
 

@@ -17,4 +17,5 @@
 
   // This much more focused automatic fix is helpful, though.
   "files.trimTrailingWhitespace": true,
+  "dart.flutterSdkPaths": [".fvm/flutter_sdk"],
 }

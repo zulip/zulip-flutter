@@ -8,15 +8,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Clone Flutter SDK
-      # We can't do a depth-1 clone, because we need the most recent tag
-      # so that Flutter knows its version and sees the constraint in our
-      # pubspec is satisfied.  It's uncommon for flutter/flutter to go
-      # more than 100 commits between tags.  Fetch 1000 for good measure.
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
+    - name: Install FVM
       run: |
-        git clone --depth=1000 https://github.com/flutter/flutter ~/flutter
-        TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
-        echo ~/flutter/bin >> "$GITHUB_PATH"
+        brew tap leoafarias/fvm
+        brew install fvm
+
+    - name: Install Flutter SDK
+      run: |
+        fvm install
+        fvm use
+
+    - name: Load direnv (.envrc)
+      uses: HatsuneMiku3939/direnv-action@v1
 
     - name: Download Flutter SDK artifacts (flutter precache)
       run: flutter precache --universal
