@@ -41,7 +41,7 @@ class ZulipNavigationBar extends StatelessWidget {
           //   label: 'Profile'),
           if (testStreamId != null) ...[
             const NavigationDestination(
-              selectedIcon: Icon(Icons.bug_report),
+              selectedIcon: Icon(Icons.bug_report_outlined),
               icon: Icon(Icons.bug_report_outlined),
               label: 'Test Stream'),
           ],
