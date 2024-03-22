@@ -7,6 +7,7 @@ import '../model/unreads.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'navigation_bar.dart';
 import 'page.dart';
 import 'store.dart';
 import 'unread_count_badge.dart';
@@ -58,6 +59,7 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
     final sorted = model!.sorted;
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+      bottomNavigationBar: ZulipNavigationBar(selectedPage: RecentDmConversationsPage),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,

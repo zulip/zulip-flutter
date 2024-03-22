@@ -6,6 +6,7 @@ import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'navigation_bar.dart';
 import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
@@ -160,6 +161,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
 
     return Scaffold(
       appBar: AppBar(title: const Text('Inbox')),
+      bottomNavigationBar: ZulipNavigationBar(selectedPage: InboxPage),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,
