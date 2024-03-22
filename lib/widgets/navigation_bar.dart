@@ -31,8 +31,8 @@ class ZulipNavigationBar extends StatelessWidget {
             icon: Icon(Icons.tag_outlined),
             label: 'Streams'),
           const NavigationDestination(
-            selectedIcon: Icon(Icons.group_outlined),
-            icon: Icon(Icons.group),
+            selectedIcon: Icon(Icons.group),
+            icon: Icon(Icons.group_outlined),
             label: 'Direct Messages'),
           // TODO enable this when it's available
           // NavigationDestination(
