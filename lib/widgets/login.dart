@@ -411,8 +411,9 @@ class LoginPageState extends State<LoginPage> {
         bottom: false,
         child: Center(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 8),
             child: SafeArea(
-              minimum: const EdgeInsets.symmetric(vertical: 8),
+              minimum: const EdgeInsets.only(bottom: 8),
               // TODO also detect vertical scroll gestures that start on the
               //   left or the right of this box
               child: ConstrainedBox(
