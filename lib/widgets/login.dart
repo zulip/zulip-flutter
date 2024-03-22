@@ -319,11 +319,18 @@ class _LoginPageState extends State<LoginPage> {
               child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
           : null),
       body: SafeArea(
-        minimum: const EdgeInsets.all(8),
+        minimum: const EdgeInsets.symmetric(horizontal: 8),
+        top: false,
+        bottom: false,
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: _UsernamePasswordForm(loginPageState: this)))));
+          child: SingleChildScrollView(
+            child: SafeArea(
+              minimum: const EdgeInsets.symmetric(vertical: 8),
+              // TODO also detect vertical scroll gestures that start on the
+              //   left or the right of this box
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: _UsernamePasswordForm(loginPageState: this)))))));
   }
 }
 
