@@ -166,6 +166,11 @@ private class AndroidNotificationHost(val context: Context)
         }
         return null
     }
+
+    override fun cancel(tag: String?, id: Long) {
+        val notificationManager = context.getSystemService(NotificationManager::class.java)!!
+        notificationManager.cancel(tag, id.toInt())
+    }
 }
 
 /** A Flutter plugin for the Zulip app's ad-hoc needs. */

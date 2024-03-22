@@ -225,7 +225,8 @@ class NotificationDisplayManager {
       if (data.zulipMessageIds.contains(zulipMessageId)) {
         // The latest Zulip message in this conversation was read.
         // That's our cue to cancel the notification for the conversation.
-        print('would cancel: tag ${statusBarNotification.tag}, id ${statusBarNotification.id}'); // TODO actually cancel
+        print('  canceling: tag ${statusBarNotification.tag}, id ${statusBarNotification.id}');
+        await api.cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
       }
     }
   }

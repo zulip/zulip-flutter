@@ -220,4 +220,9 @@ abstract class AndroidNotificationHostApi {
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
   MessagingStyle? getActiveNotificationMessagingStyleByTag(String tag);
+
+  /// Corresponds to `android.app.NotificationManager.cancel`.
+  ///
+  /// See: https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#cancel
+  void cancel({String? tag, required int id});
 }
