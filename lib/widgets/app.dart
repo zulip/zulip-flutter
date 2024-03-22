@@ -255,6 +255,52 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Home")),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        destinations: [
+          const NavigationDestination(
+            selectedIcon: Icon(Icons.inbox),
+            icon: Icon(Icons.inbox_outlined),
+            label: 'Inbox'),
+          const NavigationDestination(
+            selectedIcon: Icon(Icons.tag),
+            icon: Icon(Icons.tag_outlined),
+            label: 'Streams'),
+          const NavigationDestination(
+            selectedIcon: Icon(Icons.group_outlined),
+            icon: Icon(Icons.group),
+            label: 'Direct Messages'),
+          // TODO enable this when it's available
+          // NavigationDestination(
+          //   selectedIcon: Icon(Icons.account_circle),
+          //   icon: Icon(Icons.account_circle_outlined),
+          //   label: 'Profile'),
+          if (testStreamId != null) ...[
+            const NavigationDestination(
+              selectedIcon: Icon(Icons.bug_report),
+              icon: Icon(Icons.bug_report_outlined),
+              label: 'Test Stream'),
+          ],
+        ],
+        onDestinationSelected: (int index) {
+          switch (index) {
+            case 0:
+              Navigator.push(context, InboxPage.buildRoute(context: context));
+              break;
+            case 1:
+              Navigator.push(context, SubscriptionListPage.buildRoute(context: context));
+              break;
+            case 2:
+              Navigator.push(context, RecentDmConversationsPage.buildRoute(context: context));
+              break;
+            case 3:
+              Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: StreamNarrow(testStreamId!)));
+              break;
+          }
+        },
+      ),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(
