@@ -211,22 +211,22 @@ class NotificationDisplayManager {
 
     final api = AndroidNotificationHostApi();
     final notifs = await api.getActiveNotifications();
-    // Sadly we don't get toString on Pigeon data classes: flutter#59027
-    print('notifs: ${notifs.map((n) => n == null ? null
-      : '(id: ${n.id}, tag: ${n.tag}, notification: '
-         '(group: ${n.notification.group}, extras: ${n.notification.extras}))')}');
-
     for (final statusBarNotification in notifs) {
-      if (statusBarNotification == null) continue;
+      if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
       final notification = statusBarNotification.notification;
+
+      // Sadly we don't get toString on Pigeon data classes: flutter#59027
+      assert(debugLog('  existing notif'
+        ' id: ${statusBarNotification.id}, tag: ${statusBarNotification.tag},'
+        ' notification: (group: ${notification.group}, extras: ${notification.extras}))'));
 
       final rawZulipMessageId = notification.extras[_extraZulipMessageId] as String;
       final zulipMessageId = int.parse(rawZulipMessageId, radix: 10);
       if (data.zulipMessageIds.contains(zulipMessageId)) {
         // The latest Zulip message in this conversation was read.
         // That's our cue to cancel the notification for the conversation.
-        print('  canceling: tag ${statusBarNotification.tag}, id ${statusBarNotification.id}');
         await api.cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+        assert(debugLog('  … notif cancelled.'));
       }
     }
   }
