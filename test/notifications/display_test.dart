@@ -9,6 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart' hi
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
+import 'package:zulip/host/android_notifications.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
@@ -111,16 +112,21 @@ void main() {
       final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
-      check(testBinding.notifications.takeShowCalls()).single
+      const expectedIntentFlags =
+        PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
+      check(testBinding.androidNotificationHost.takeNotifyCalls()).single
         ..id.equals(expectedId)
-        ..title.equals(expectedTitle)
-        ..body.equals(data.content)
-        ..payload.equals(jsonEncode(data.toJson()))
-        ..notificationDetails.isNotNull().android.isNotNull().which((it) => it
-          ..channelId.equals(NotificationChannelManager.kChannelId)
-          ..tag.equals(expectedTag)
-          ..color.equals(kZulipBrandColor)
-          ..icon.equals('zulip_notification')
+        ..tag.equals(expectedTag)
+        ..channelId.equals(NotificationChannelManager.kChannelId)
+        ..contentTitle.equals(expectedTitle)
+        ..contentText.equals(data.content)
+        ..color.equals(kZulipBrandColor.value)
+        ..smallIconResourceName.equals('zulip_notification')
+        ..extras.isNull()
+        ..contentIntent.which((it) => it.isNotNull()
+          ..requestCode.equals(expectedId)
+          ..flags.equals(expectedIntentFlags)
+          ..intentPayload.equals(jsonEncode(data.toJson()))
         );
     }
 
@@ -356,6 +362,24 @@ extension ShowCallChecks on Subject<FlutterLocalNotificationsPluginShowCall> {
   Subject<String?> get body => has((x) => x.$3, 'body');
   Subject<NotificationDetails?> get notificationDetails => has((x) => x.$4, 'notificationDetails');
   Subject<String?> get payload => has((x) => x.payload, 'payload');
+}
+
+extension on Subject<AndroidNotificationHostApiNotifyCall> {
+  Subject<String?> get tag => has((x) => x.tag, 'tag');
+  Subject<int> get id => has((x) => x.id, 'id');
+  Subject<String> get channelId => has((x) => x.channelId, 'channelId');
+  Subject<int?> get color => has((x) => x.color, 'color');
+  Subject<PendingIntent?> get contentIntent => has((x) => x.contentIntent, 'contentIntent');
+  Subject<String?> get contentText => has((x) => x.contentText, 'contentText');
+  Subject<String?> get contentTitle => has((x) => x.contentTitle, 'contentTitle');
+  Subject<Map<String?, String?>?> get extras => has((x) => x.extras, 'extras');
+  Subject<String?> get smallIconResourceName => has((x) => x.smallIconResourceName, 'smallIconResourceName');
+}
+
+extension on Subject<PendingIntent> {
+  Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
+  Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
+  Subject<int> get flags => has((x) => x.flags, 'flags');
 }
 
 extension NotificationDetailsChecks on Subject<NotificationDetails> {

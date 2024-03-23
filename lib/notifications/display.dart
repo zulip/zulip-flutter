@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../api/notifications.dart';
+import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
@@ -99,40 +100,42 @@ class NotificationDisplayManager {
         data.senderFullName,
     };
     final conversationKey = _conversationKey(data);
-    ZulipBinding.instance.notifications.show(
-      // When creating the PendingIntent for the user to open the notification,
-      // the plugin makes the underlying Intent objects look the same.
-      // They differ in their extras, but that doesn't count:
-      //   https://developer.android.com/reference/android/app/PendingIntent
-      //
-      // This leaves only PendingIntent.requestCode to distinguish one
-      // PendingIntent from another; the plugin sets that to the notification ID.
-      // We need a distinct PendingIntent for each conversation, so that the
-      // notifications can lead to the right conversations when opened.
-      // So, use a hash of the conversation key.
-      notificationIdAsHashOf(conversationKey),
-      title,
-      data.content,
-      payload: jsonEncode(dataJson),
-      NotificationDetails(android: AndroidNotificationDetails(
-        NotificationChannelManager.kChannelId,
-        // This [FlutterLocalNotificationsPlugin.show] call can potentially create
-        // a new channel, if our channel doesn't already exist.  That *shouldn't*
-        // happen; if it does, it won't get the right settings.  Set the channel
-        // name in that case to something that has a chance of warning the user,
-        // and that can serve as a signature to diagnose the situation in support.
-        // But really we should fix flutter_local_notifications to not do that
-        // (see issue linked below), or replace that package entirely (#351).
-        '(Zulip internal error)', // TODO never implicitly create channel: https://github.com/MaikuB/flutter_local_notifications/issues/2135
-        tag: conversationKey,
-        color: kZulipBrandColor,
-        // TODO vary notification icon for debug
-        icon: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
-        // TODO(#128) inbox-style
+    ZulipBinding.instance.androidNotificationHost.notify(
+      // TODO the notification ID can be constant, instead of matching requestCode
+      //   (This is a legacy of `flutter_local_notifications`.)
+      id: notificationIdAsHashOf(conversationKey),
+      tag: conversationKey,
+      channelId: NotificationChannelManager.kChannelId,
 
-        // TODO plugin sets PendingIntent.FLAG_UPDATE_CURRENT; is that OK?
-        // TODO plugin doesn't set our Intent flags; is that OK?
-      )));
+      contentTitle: title,
+      contentText: data.content,
+      color: kZulipBrandColor.value,
+      // TODO vary notification icon for debug
+      smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
+      // TODO(#128) inbox-style
+
+      contentIntent: PendingIntent(
+        // TODO make intent URLs distinct, instead of requestCode
+        //   (This way is a legacy of flutter_local_notifications.)
+        //   The Intent objects we make for different conversations look the same.
+        //   They differ in their extras, but that doesn't count:
+        //     https://developer.android.com/reference/android/app/PendingIntent
+        //
+        //   This leaves only PendingIntent.requestCode to distinguish one
+        //   PendingIntent from another; the plugin sets that to the notification ID.
+        //   We need a distinct PendingIntent for each conversation, so that the
+        //   notifications can lead to the right conversations when opened.
+        //   So, use a hash of the conversation key.
+        requestCode: notificationIdAsHashOf(conversationKey),
+
+        // TODO is setting PendingIntentFlag.updateCurrent OK?
+        //   (That's a legacy of `flutter_local_notifications`.)
+        flags: PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent,
+        intentPayload: jsonEncode(dataJson),
+        // TODO this doesn't set the Intent flags we set in zulip-mobile; is that OK?
+        //   (This is a legacy of `flutter_local_notifications`.)
+        ),
+    );
   }
 
   /// A notification ID, derived as a hash of the given string key.
