@@ -6,17 +6,25 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out repository
+      uses: actions/checkout@v3
+      # We're not using `with: submodules` here because we can't do a
+      # depth=1 clone. See below for more details.
 
-    - name: Clone Flutter SDK
+    - name: Checkout flutter submodule
       # We can't do a depth-1 clone, because we need the most recent tag
       # so that Flutter knows its version and sees the constraint in our
       # pubspec is satisfied.  It's uncommon for flutter/flutter to go
-      # more than 100 commits between tags.  Fetch 1000 for good measure.
+      # more than 100 commits between tags. Fetch 1000 for good measure.
       run: |
-        git clone --depth=1000 https://github.com/flutter/flutter ~/flutter
-        TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
-        echo ~/flutter/bin >> "$GITHUB_PATH"
+        git submodule update --init --depth 1000
+
+    - name: Add vendored flutter to PATH
+      run: |
+        echo vendor/flutter/bin >> "$GITHUB_PATH"
+
+    - name: Run setup
+      run: tools/setup-vendor-flutter
 
     - name: Download Flutter SDK artifacts (flutter precache)
       run: flutter precache --universal

@@ -353,7 +353,7 @@ run_icons() {
 
 run_shellcheck() {
     # Omitted from this check: nothing (nothing known, anyway).
-    files_check tools/ '!*.'{dart,js,json} \
+    files_check tools/ '!*.'{dart,js,json} .envrc \
     || return 0
 
     # Shellcheck is fast, <1s; so if we touched any possible targets at all,
@@ -362,6 +362,7 @@ run_shellcheck() {
     targets=(
         $(git grep -l '#!.*sh\b' -- tools/)
         $(git ls-files -- tools/'*.sh')
+        .envrc
     )
 
     if ! type shellcheck >/dev/null 2>&1; then

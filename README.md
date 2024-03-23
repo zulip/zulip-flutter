@@ -92,26 +92,75 @@ Two specific points to expand on:
 
 ### Setting up
 
-1. Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install)
-   for your platform of choice.
-2. Switch to the latest version of Flutter by running `flutter channel main`
-   and `flutter upgrade` (see [Flutter version](#flutter-version) below).
-3. Ensure Flutter is correctly configured by running `flutter doctor`.
-4. Start the app with `flutter run`, or from your IDE.
+1. Setup the pinned version of flutter.
+
+    1.1. Make sure you have initialized submodule by doing:
+
+    ```sh
+    # Update and initialize submodule
+    git submodule update --init
+    # Run setup-vendor-flutter
+    tools/setup-vendor-flutter
+    ```
+
+    1.2. Install [direnv][direnv], and set up its hook:
+
+    ```sh
+    # On Debian or Ubuntu (bash):
+    sudo apt install direnv && echo 'eval "$(direnv hook bash)"' >>~/.bashrc
+
+    # Or using Homebrew:
+    brew install direnv
+
+    # Or see: https://direnv.net/docs/installation.html
+    # Then: https://direnv.net/docs/hook.html
+
+    # After installing and setting up the hook, run this in the zulip-flutter
+    # directory to allow the .envrc file.
+    direnv allow
+    ```
+
+   1.3. Follow remaining instructions in [Flutter installation guide](https://docs.flutter.dev/get-started/install)
+   for your platform of choice. You can skip the Flutter SDK installation as that is now done.
+
+2. Ensure Flutter is correctly configured by running `flutter doctor`.
+3. Start the app with `flutter run`, or from your IDE.
+   If you're using VSCode, you're set.
+   If you're using Android Studio, please read the next step.
+
+   3.1 For Android Studio users only (unless you are using your own
+       custom version of flutter):
+
+   After you first open, the project, go to:
+     `Settings -> Languages & Frameworks -> Flutter`
+   Under `Flutter SDK Path`, enter `<REPO_DIR>/vendor/flutter` (where
+   `<REPO_DIR>` is the location of the checkout of the repo).
 
 
 ### Flutter version
 
-While in the beta phase, we use the latest Flutter from Flutter's
-main branch.  Use `flutter channel main` and `flutter upgrade`.
+We pin to a particular version of flutter SDK via git submodules in
+[vendor/flutter/](vendor/flutter/).
+If your local checkout of this repository does not have this submodule
+checked out at the same commit, the build may fail.
 
-We don't pin a specific version, because Flutter itself doesn't offer
-a way to do so.  So far that hasn't been a problem.  When it becomes one,
-we'll figure it out; there are several tools for this in the Flutter
-community.  See [issue #15][].
+However, if you want to manage your own flutter SDK version you can
+opt out of this behavior by either of:
+- Skip installing direnv or don't do `direnv allow`.
+- Comment out the lines in `.envrc`.
 
-[issue #15]: https://github.com/zulip/zulip-flutter/issues/15
+Do note that if you do this, you need to manually make sure that the
+flutter SDK version matches or is compatible with the version
+indicated by the submodule commit SHA.
 
+Otherwise, the build can fail as we have not tested the current code
+with that particular flutter SDK version.
+
+If you want manage your own flutter SDK version, follow the [Flutter
+installation guide](https://docs.flutter.dev/get-started/install) for
+your platform of choice.
+
+[direnv]: https://direnv.net/
 
 ### Tests
 
@@ -242,13 +291,16 @@ that's a good prompt to do this.  We also do this when there's a
 new PR merged that we particularly want to take.
 
 To update the version bounds:
+* First, make sure you're on the `main` channel, run:
+  `flutter channel main`.
 * Use `flutter upgrade` to upgrade your local Flutter and Dart.
 * Update the lower bounds at `environment` in `pubspec.yaml`
   to the new versions, as seen in `flutter --version`.
 * Run `flutter pub get`, which will update `pubspec.lock`.
 * Make a quick check that things work: `tools/check`,
   and do a quick smoke-test of the app.
-* Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
+* Commit and push the changes in the submodule `vendor/flutter`,
+  `pubspec.yaml` and `pubspec.lock`.
 
 
 ### Upgrading dependencies
