@@ -211,11 +211,7 @@ class NotificationService {
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) {
     final data = FcmMessage.fromJson(message.data);
-    switch (data) {
-      case MessageFcmMessage(): NotificationDisplayManager._onMessageFcmMessage(data, message.data);
-      case RemoveFcmMessage(): break; // TODO(#341) handle
-      case UnexpectedFcmMessage(): break; // TODO(log)
-    }
+    NotificationDisplayManager._onFcmMessage(data, message.data);
   }
 }
 
@@ -280,6 +276,14 @@ class NotificationDisplayManager {
       _handleNotificationAppLaunch(launchDetails!.notificationResponse);
     }
     await NotificationChannelManager._ensureChannel();
+  }
+
+  static void _onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+    switch (data) {
+      case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
+      case RemoveFcmMessage(): break; // TODO(#341) handle
+      case UnexpectedFcmMessage(): break; // TODO(log)
+    }
   }
 
   static void _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) {
