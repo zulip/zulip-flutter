@@ -9,7 +9,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications.dart';
+import 'package:zulip/notifications/receive.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';

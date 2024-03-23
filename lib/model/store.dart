@@ -16,7 +16,7 @@ import '../api/route/events.dart';
 import '../api/route/messages.dart';
 import '../api/backoff.dart';
 import '../log.dart';
-import '../notifications.dart';
+import '../notifications/receive.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'message_list.dart';

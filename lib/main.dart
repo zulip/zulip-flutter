@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'licenses.dart';
 import 'log.dart';
 import 'model/binding.dart';
-import 'notifications.dart';
+import 'notifications/receive.dart';
 import 'widgets/app.dart';
 
 void main() {

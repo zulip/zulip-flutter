@@ -11,18 +11,19 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications.dart';
+import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 
-import 'fake_async.dart';
-import 'model/binding.dart';
-import 'example_data.dart' as eg;
-import 'test_navigation.dart';
-import 'widgets/message_list_checks.dart';
-import 'widgets/page_checks.dart';
+import '../fake_async.dart';
+import '../model/binding.dart';
+import '../example_data.dart' as eg;
+import '../test_navigation.dart';
+import '../widgets/message_list_checks.dart';
+import '../widgets/page_checks.dart';
 
 FakeAndroidFlutterLocalNotificationsPlugin get notifAndroid =>
   testBinding.notifications
@@ -81,14 +82,6 @@ void main() {
     await NotificationService.instance.start();
   }
 
-  group('permissions', () {
-    testWidgets('request permission', (tester) async {
-      await init();
-      check(testBinding.firebaseMessaging.takeRequestPermissionCalls())
-        .length.equals(1);
-    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
-  });
-
   group('NotificationChannelManager', () {
     test('smoke', () async {
       await init();
@@ -135,6 +128,10 @@ void main() {
       required String expectedTitle,
       required String expectedTagComponent,
     }) async {
+      // We could just call `NotificationDisplayManager.onFcmMessage`.
+      // But this way is cheap, and it provides our test coverage of
+      // the logic in `NotificationService` that listens for these FCM messages.
+
       testBinding.firebaseMessaging.onMessage.add(
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
