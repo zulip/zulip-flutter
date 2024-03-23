@@ -65,7 +65,7 @@ class NotificationService {
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsAndroid);
 
-        await NotificationDisplayManager._init();
+        await NotificationDisplayManager.init();
         ZulipBinding.instance.firebaseMessagingOnMessage
           .listen(_onForegroundMessage);
         ZulipBinding.instance.firebaseMessagingOnBackgroundMessage(
@@ -206,12 +206,12 @@ class NotificationService {
       return true;
     }());
     LiveZulipBinding.ensureInitialized();
-    NotificationDisplayManager._init(); // TODO call this just once per isolate
+    NotificationDisplayManager.init(); // TODO call this just once per isolate
   }
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) {
     final data = FcmMessage.fromJson(message.data);
-    NotificationDisplayManager._onFcmMessage(data, message.data);
+    NotificationDisplayManager.onFcmMessage(data, message.data);
   }
 }
 
@@ -264,7 +264,7 @@ class NotificationChannelManager {
 
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
-  static Future<void> _init() async {
+  static Future<void> init() async {
     await ZulipBinding.instance.notifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('zulip_notification'),
@@ -278,7 +278,7 @@ class NotificationDisplayManager {
     await NotificationChannelManager._ensureChannel();
   }
 
-  static void _onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+  static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
       case RemoveFcmMessage(): break; // TODO(#341) handle
