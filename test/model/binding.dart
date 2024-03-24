@@ -392,24 +392,6 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
     }
   }
 
-  /// Consume the log of calls made to [show].
-  ///
-  /// This returns a list of the arguments to all calls made
-  /// to [show] since the last call to this method.
-  List<FlutterLocalNotificationsPluginShowCall> takeShowCalls() {
-    final result = _showCalls;
-    _showCalls = [];
-    return result;
-  }
-  List<FlutterLocalNotificationsPluginShowCall> _showCalls = [];
-
-  @override
-  Future<void> show(int id, String? title, String? body,
-      NotificationDetails? notificationDetails, {String? payload}) async {
-    assert(initializationSettings != null);
-    _showCalls.add((id, title, body, notificationDetails, payload: payload));
-  }
-
   /// The value to be returned by [getNotificationAppLaunchDetails].
   NotificationAppLaunchDetails? appLaunchDetails;
 
@@ -424,11 +406,6 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
     }
   }
 }
-
-typedef FlutterLocalNotificationsPluginShowCall = (
-  int id, String? title, String? body,
-  NotificationDetails? notificationDetails, {String? payload}
-);
 
 class FakeAndroidFlutterLocalNotificationsPlugin extends Fake implements AndroidFlutterLocalNotificationsPlugin {
   /// Consume the log of calls made to [createNotificationChannel].

@@ -356,14 +356,6 @@ extension AndroidNotificationChannelChecks on Subject<AndroidNotificationChannel
   Subject<bool> get showBadge => has((x) => x.showBadge, 'showBadge');
 }
 
-extension ShowCallChecks on Subject<FlutterLocalNotificationsPluginShowCall> {
-  Subject<int> get id => has((x) => x.$1, 'id');
-  Subject<String?> get title => has((x) => x.$2, 'title');
-  Subject<String?> get body => has((x) => x.$3, 'body');
-  Subject<NotificationDetails?> get notificationDetails => has((x) => x.$4, 'notificationDetails');
-  Subject<String?> get payload => has((x) => x.payload, 'payload');
-}
-
 extension on Subject<AndroidNotificationHostApiNotifyCall> {
   Subject<String?> get tag => has((x) => x.tag, 'tag');
   Subject<int> get id => has((x) => x.id, 'id');
@@ -380,50 +372,4 @@ extension on Subject<PendingIntent> {
   Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
   Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
   Subject<int> get flags => has((x) => x.flags, 'flags');
-}
-
-extension NotificationDetailsChecks on Subject<NotificationDetails> {
-  Subject<AndroidNotificationDetails?> get android => has((x) => x.android, 'android');
-  Subject<DarwinNotificationDetails?> get iOS => has((x) => x.iOS, 'iOS');
-  Subject<DarwinNotificationDetails?> get macOS => has((x) => x.macOS, 'macOS');
-  Subject<LinuxNotificationDetails?> get linux => has((x) => x.linux, 'linux');
-}
-
-extension AndroidNotificationDetailsChecks on Subject<AndroidNotificationDetails> {
-  // The upstream [AndroidNotificationDetails] has many more properties
-  // which only apply to creating a channel, or to notifications before
-  // channels were introduced in Android 8.  We ignore those here.
-  Subject<String?> get icon => has((x) => x.icon, 'icon');
-  Subject<String> get channelId => has((x) => x.channelId, 'channelId');
-  Subject<StyleInformation?> get styleInformation => has((x) => x.styleInformation, 'styleInformation');
-  Subject<String?> get groupKey => has((x) => x.groupKey, 'groupKey');
-  Subject<bool> get setAsGroupSummary => has((x) => x.setAsGroupSummary, 'setAsGroupSummary');
-  Subject<GroupAlertBehavior> get groupAlertBehavior => has((x) => x.groupAlertBehavior, 'groupAlertBehavior');
-  Subject<bool> get autoCancel => has((x) => x.autoCancel, 'autoCancel');
-  Subject<bool> get ongoing => has((x) => x.ongoing, 'ongoing');
-  Subject<Color?> get color => has((x) => x.color, 'color');
-  Subject<AndroidBitmap<Object>?> get largeIcon => has((x) => x.largeIcon, 'largeIcon');
-  Subject<bool> get onlyAlertOnce => has((x) => x.onlyAlertOnce, 'onlyAlertOnce');
-  Subject<bool> get showWhen => has((x) => x.showWhen, 'showWhen');
-  Subject<int?> get when => has((x) => x.when, 'when');
-  Subject<bool> get usesChronometer => has((x) => x.usesChronometer, 'usesChronometer');
-  Subject<bool> get chronometerCountDown => has((x) => x.chronometerCountDown, 'chronometerCountDown');
-  Subject<bool> get showProgress => has((x) => x.showProgress, 'showProgress');
-  Subject<int> get maxProgress => has((x) => x.maxProgress, 'maxProgress');
-  Subject<int> get progress => has((x) => x.progress, 'progress');
-  Subject<bool> get indeterminate => has((x) => x.indeterminate, 'indeterminate');
-  Subject<String?> get ticker => has((x) => x.ticker, 'ticker');
-  Subject<AndroidNotificationChannelAction> get channelAction => has((x) => x.channelAction, 'channelAction');
-  Subject<NotificationVisibility?> get visibility => has((x) => x.visibility, 'visibility');
-  Subject<int?> get timeoutAfter => has((x) => x.timeoutAfter, 'timeoutAfter');
-  Subject<AndroidNotificationCategory?> get category => has((x) => x.category, 'category');
-  Subject<bool> get fullScreenIntent => has((x) => x.fullScreenIntent, 'fullScreenIntent');
-  Subject<String?> get shortcutId => has((x) => x.shortcutId, 'shortcutId');
-  Subject<Int32List?> get additionalFlags => has((x) => x.additionalFlags, 'additionalFlags');
-  Subject<List<AndroidNotificationAction>?> get actions => has((x) => x.actions, 'actions');
-  Subject<String?> get subText => has((x) => x.subText, 'subText');
-  Subject<String?> get tag => has((x) => x.tag, 'tag');
-  Subject<bool> get colorized => has((x) => x.colorized, 'colorized');
-  Subject<int?> get number => has((x) => x.number, 'number');
-  Subject<AudioAttributesUsage> get audioAttributesUsage => has((x) => x.audioAttributesUsage, 'audioAttributesUsage');
 }
