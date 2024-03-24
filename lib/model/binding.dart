@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import '../host/android_notifications.dart';
 import '../widgets/store.dart';
 import 'store.dart';
 
@@ -105,6 +106,9 @@ abstract class ZulipBinding {
 
   /// Wraps the [FlutterLocalNotificationsPlugin] singleton constructor.
   FlutterLocalNotificationsPlugin get notifications;
+
+  /// Wraps the [AndroidNotificationHostApi] constructor.
+  AndroidNotificationHostApi get androidNotificationHost;
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -196,4 +200,7 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   FlutterLocalNotificationsPlugin get notifications => FlutterLocalNotificationsPlugin();
+
+  @override
+  AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
 }

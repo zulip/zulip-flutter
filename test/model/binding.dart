@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:zulip/host/android_notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
@@ -202,6 +203,7 @@ class TestZulipBinding extends ZulipBinding {
 
   void _resetNotifications() {
     _notificationsPlugin = null;
+    _androidNotificationHostApi = null;
   }
 
   FakeFlutterLocalNotificationsPlugin? _notificationsPlugin;
@@ -209,6 +211,13 @@ class TestZulipBinding extends ZulipBinding {
   @override
   FakeFlutterLocalNotificationsPlugin get notifications {
     return (_notificationsPlugin ??= FakeFlutterLocalNotificationsPlugin());
+  }
+
+  FakeAndroidNotificationHostApi? _androidNotificationHostApi;
+
+  @override
+  FakeAndroidNotificationHostApi get androidNotificationHost {
+    return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
   }
 }
 
@@ -441,3 +450,53 @@ class FakeAndroidFlutterLocalNotificationsPlugin extends Fake implements Android
 
 class FakeIOSFlutterLocalNotificationsPlugin extends Fake implements IOSFlutterLocalNotificationsPlugin {
 }
+
+class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
+  /// Consume the log of calls made to [notify].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [notify] since the last call to this method.
+  List<AndroidNotificationHostApiNotifyCall> takeNotifyCalls() {
+    final result = _notifyCalls;
+    _notifyCalls = [];
+    return result;
+  }
+  List<AndroidNotificationHostApiNotifyCall> _notifyCalls = [];
+
+  @override
+  Future<void> notify({
+    String? tag,
+    required int id,
+    required String channelId,
+    int? color,
+    PendingIntent? contentIntent,
+    String? contentText,
+    String? contentTitle,
+    Map<String?, String?>? extras,
+    String? smallIconResourceName,
+  }) async {
+    _notifyCalls.add((
+      tag: tag,
+      id: id,
+      channelId: channelId,
+      color: color,
+      contentIntent: contentIntent,
+      contentText: contentText,
+      contentTitle: contentTitle,
+      extras: extras,
+      smallIconResourceName: smallIconResourceName,
+    ));
+  }
+}
+
+typedef AndroidNotificationHostApiNotifyCall = ({
+  String? tag,
+  int id,
+  String channelId,
+  int? color,
+  PendingIntent? contentIntent,
+  String? contentText,
+  String? contentTitle,
+  Map<String?, String?>? extras,
+  String? smallIconResourceName,
+});
