@@ -97,7 +97,7 @@ world
     test('whitespace around info string', () {
       checkFenceWrap('''
 ````
-``` javascript 
+``` javascript
 // hello world
 ```
 ````
@@ -315,6 +315,13 @@ hello
       store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
       check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
     });
+
+    test('`users` passed; has two users with same fullName but one of them is not active', () {
+      final store = eg.store();
+      store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
+      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
+    });
+
     test('`users` passed; user has unique fullName', () {
       final store = eg.store();
       store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);

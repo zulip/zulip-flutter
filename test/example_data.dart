@@ -60,6 +60,7 @@ User user({
   String? email,
   String? fullName,
   String? avatarUrl,
+  bool? isActive,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
   return User(
@@ -68,7 +69,7 @@ User user({
     email: email ?? 'name@example.com', // TODO generate example emails
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: '2023-04-28',
-    isActive: true,
+    isActive: isActive ?? true,
     isOwner: false,
     isAdmin: false,
     isGuest: false,

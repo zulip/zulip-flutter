@@ -289,6 +289,8 @@ class MentionAutocompleteQuery {
     // TODO(#236) test email too, not just name
     // TODO(#237) test with diacritics stripped, where appropriate
 
+    if (!user.isActive) return false;
+
     final List<String> nameWords = cache.nameWordsForUser(user);
 
     int nameWordsIndex = 0;

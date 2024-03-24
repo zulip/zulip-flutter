@@ -340,5 +340,12 @@ void main() {
     doCheck('Name Four Full Words', eg.user(fullName: 'Full Name Four Words'), false);
     doCheck('F Full', eg.user(fullName: 'Full Name Four Words'), false);
     doCheck('Four F', eg.user(fullName: 'Full Name Four Words'), false);
+
+    // User should always be excluded in case of inactive users
+    doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: false), false);
+    doCheck('Full', eg.user(fullName: 'Full Name', isActive: false), false);
+    // User that are already excluded will still be excluded in case of inactive users
+    doCheck('Fully Named', eg.user(fullName: 'Full Name', isActive: false), false);
+
   });
 }
