@@ -11,13 +11,15 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'unread_count_badge.dart';
+import 'snackbar.dart';
+
 
 class InboxPage extends StatefulWidget {
   const InboxPage({super.key});
 
   static Route<void> buildRoute({int? accountId, BuildContext? context}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: const InboxPage());
+        page: const InboxPage());
   }
 
   @override
@@ -76,7 +78,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       // row's collapsed state when it's cleared of unreads.
       // TODO(perf) handle those updates efficiently
       collapsedStreamIds.removeWhere((streamId) =>
-        !unreadsModel!.streams.containsKey(streamId));
+      !unreadsModel!.streams.containsKey(streamId));
       if (unreadsModel!.dms.isEmpty) {
         allDmsCollapsed = false;
       }
@@ -103,7 +105,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
         continue;
       }
       final hasMention = unreadsModel!.dms[dmNarrow]!.any(
-        (messageId) => unreadsModel!.mentions.contains(messageId));
+              (messageId) => unreadsModel!.mentions.contains(messageId));
       if (hasMention) allDmsHasMention = true;
       dmItems.add((dmNarrow, countInNarrow, hasMention));
       allDmsCount += countInNarrow;
@@ -113,15 +115,15 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     }
 
     final sortedUnreadStreams = unreadsModel!.streams.entries
-      // Filter out any straggling unreads in unsubscribed streams.
-      // There won't normally be any, but it happens with certain infrequent
-      // state changes, typically for less than a few hundred milliseconds.
-      // See [Unreads].
-      //
-      // Also, we want to depend on the subscription data for things like
-      // choosing the stream icon.
-      .where((entry) => subscriptions.containsKey(entry.key))
-      .toList()
+    // Filter out any straggling unreads in unsubscribed streams.
+    // There won't normally be any, but it happens with certain infrequent
+    // state changes, typically for less than a few hundred milliseconds.
+    // See [Unreads].
+    //
+    // Also, we want to depend on the subscription data for things like
+    // choosing the stream icon.
+        .where((entry) => subscriptions.containsKey(entry.key))
+        .toList()
       ..sort((a, b) {
         final subA = subscriptions[a.key]!;
         final subB = subscriptions[b.key]!;
@@ -159,26 +161,35 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Inbox')),
-      body: SafeArea(
-        // Don't pad the bottom here; we want the list content to do that.
-        bottom: false,
-        child: StickyHeaderListView.builder(
-          itemCount: sections.length,
-          itemBuilder: (context, index) {
-            final section = sections[index];
-            switch (section) {
-              case _AllDmsSectionData():
-                return _AllDmsSection(
-                  data: section,
-                  collapsed: allDmsCollapsed,
-                  pageState: this,
-                );
-              case _StreamSectionData(:var streamId):
-                final collapsed = collapsedStreamIds.contains(streamId);
-                return _StreamSection(data: section, collapsed: collapsed, pageState: this);
-            }
-          })));
+        appBar: AppBar(title: const Text('Inbox')),
+
+        body: SafeArea(
+          // Don't pad the bottom here; we want the list content to do that.
+            bottom: false,
+            child: StickyHeaderListView.builder(
+                itemCount: sections.length,
+
+                itemBuilder: (context, index) {
+                  final section = sections[index];
+                  switch (section) {
+                    case _AllDmsSectionData():
+                      return _AllDmsSection(
+                        data: section,
+                        collapsed: allDmsCollapsed,
+                        pageState: this,
+                      );
+
+                    case _StreamSectionData(:var streamId):
+                      final collapsed = collapsedStreamIds.contains(streamId);
+                      return _StreamSection(data: section, collapsed: collapsed, pageState: this);
+
+
+                  }
+
+                }
+            ))
+
+    );
   }
 }
 
@@ -229,39 +240,39 @@ abstract class _HeaderItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: collapsed ? Colors.white : uncollapsedBackgroundColor,
-      child: InkWell(
-        // TODO use onRowTap to handle taps that are not on the collapse button.
-        //   Probably we should give the collapse button a 44px or 48px square
-        //   touch target:
-        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
-        //   But that's in tension with the Figma, which gives these header rows
-        //   40px min height.
-        onTap: onCollapseButtonTap,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: const Color(0x7F1D2E48),
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18, color: collapsed ? collapsedIconColor : uncollapsedIconColor,
-            icon),
-          const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: const TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                color: Color(0xFF222222),
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              title))),
-          const SizedBox(width: 12),
-          if (hasMention) const _AtMentionMarker(),
-          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: UnreadCountBadge(backgroundColor: unreadCountBadgeBackgroundColor, bold: true,
-              count: count)),
-        ])));
+        color: collapsed ? Colors.white : uncollapsedBackgroundColor,
+        child: InkWell(
+          // TODO use onRowTap to handle taps that are not on the collapse button.
+          //   Probably we should give the collapse button a 44px or 48px square
+          //   touch target:
+          //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+          //   But that's in tension with the Figma, which gives these header rows
+          //   40px min height.
+            onTap: onCollapseButtonTap,
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Padding(padding: const EdgeInsets.all(10),
+                  child: Icon(size: 20, color: const Color(0x7F1D2E48),
+                      collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
+              Icon(size: 18, color: collapsed ? collapsedIconColor : uncollapsedIconColor,
+                  icon),
+              const SizedBox(width: 5),
+              Expanded(child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                      style: const TextStyle(
+                        fontSize: 17,
+                        height: (20 / 17),
+                        color: Color(0xFF222222),
+                      ).merge(weightVariableTextStyle(context, wght: 600)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      title))),
+              const SizedBox(width: 12),
+              if (hasMention) const _AtMentionMarker(),
+              Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+                  child: UnreadCountBadge(backgroundColor: unreadCountBadgeBackgroundColor, bold: true,
+                      count: count)),
+            ])));
   }
 }
 
@@ -306,18 +317,18 @@ class _AllDmsSection extends StatelessWidget {
       pageState: pageState,
     );
     return StickyHeaderItem(
-      header: header,
-      child: Column(children: [
-        header,
-        if (!collapsed) ...data.items.map((item) {
-          final (narrow, count, hasMention) = item;
-          return _DmItem(
-            narrow: narrow,
-            count: count,
-            hasMention: hasMention,
-          );
-        }),
-      ]));
+        header: header,
+        child: Column(children: [
+          header,
+          if (!collapsed) ...data.items.map((item) {
+            final (narrow, count, hasMention) = item;
+            return _DmItem(
+              narrow: narrow,
+              count: count,
+              hasMention: hasMention,
+            );
+          }),
+        ]));
   }
 }
 
@@ -341,39 +352,39 @@ class _DmItem extends StatelessWidget {
       [] => selfUser.fullName,
       [var otherUserId] => store.users[otherUserId]?.fullName ?? '(unknown user)',
 
-      // TODO(i18n): List formatting, like you can do in JavaScript:
-      //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
-      //   // 'Chris、Greg、Alya、Shu'
+    // TODO(i18n): List formatting, like you can do in JavaScript:
+    //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
+    //   // 'Chris、Greg、Alya、Shu'
       _ => narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', '),
     };
 
     return Material(
-      color: Colors.white,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
-        },
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: const TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  color: Color(0xFF222222),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
-            const SizedBox(width: 12),
-            if (hasMention) const  _AtMentionMarker(),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(backgroundColor: null,
-                count: count)),
-          ]))));
+        color: Colors.white,
+        child: InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MessageListPage.buildRoute(context: context, narrow: narrow));
+            },
+            child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  const SizedBox(width: 63),
+                  Expanded(child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                          style: const TextStyle(
+                            fontSize: 17,
+                            height: (20 / 17),
+                            color: Color(0xFF222222),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          title))),
+                  const SizedBox(width: 12),
+                  if (hasMention) const  _AtMentionMarker(),
+                  Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+                      child: UnreadCountBadge(backgroundColor: null,
+                          count: count)),
+                ]))));
   }
 }
 
@@ -393,9 +404,9 @@ class _StreamHeaderItem extends _HeaderItem {
   @override get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
   @override get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
   @override get uncollapsedBackgroundColor =>
-    subscription.colorSwatch().barBackground;
+      subscription.colorSwatch().barBackground;
   @override get unreadCountBadgeBackgroundColor =>
-    subscription.colorSwatch().unreadCountBadgeBackground;
+      subscription.colorSwatch().unreadCountBadgeBackground;
 
   @override get onCollapseButtonTap => () {
     if (collapsed) {
@@ -429,19 +440,19 @@ class _StreamSection extends StatelessWidget {
       pageState: pageState,
     );
     return StickyHeaderItem(
-      header: header,
-      child: Column(children: [
-        header,
-        if (!collapsed) ...data.items.map((item) {
-          final (topic, count, hasMention, _) = item;
-          return _TopicItem(
-            streamId: data.streamId,
-            topic: topic,
-            count: count,
-            hasMention: hasMention,
-          );
-        }),
-      ]));
+        header: header,
+        child: Column(children: [
+          header,
+          if (!collapsed) ...data.items.map((item) {
+            final (topic, count, hasMention, _) = item;
+            return _TopicItem(
+              streamId: data.streamId,
+              topic: topic,
+              count: count,
+              hasMention: hasMention,
+            );
+          }),
+        ]));
   }
 }
 
@@ -464,33 +475,33 @@ class _TopicItem extends StatelessWidget {
     final subscription = store.subscriptions[streamId]!;
 
     return Material(
-      color: Colors.white,
-      child: InkWell(
-        onTap: () {
-          final narrow = TopicNarrow(streamId, topic);
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
-        },
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: const TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  color: Color(0xFF222222),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                topic))),
-            const SizedBox(width: 12),
-            if (hasMention) const _AtMentionMarker(),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(backgroundColor: subscription.colorSwatch(),
-                count: count)),
-          ]))));
+        color: Colors.white,
+        child: InkWell(
+            onTap: () {
+              final narrow = TopicNarrow(streamId, topic);
+              Navigator.push(context,
+                  MessageListPage.buildRoute(context: context, narrow: narrow));
+            },
+            child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  const SizedBox(width: 63),
+                  Expanded(child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                          style: const TextStyle(
+                            fontSize: 17,
+                            height: (20 / 17),
+                            color: Color(0xFF222222),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          topic))),
+                  const SizedBox(width: 12),
+                  if (hasMention) const _AtMentionMarker(),
+                  Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+                      child: UnreadCountBadge(backgroundColor: subscription.colorSwatch(),
+                          count: count)),
+                ]))));
   }
 }
 
@@ -504,7 +515,7 @@ class _AtMentionMarker extends StatelessWidget {
     // Design for at-mention marker based on Figma screen:
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
     return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 4),
-      child: Icon(ZulipIcons.at_sign, size: 14, color: markerColor));
+        padding: const EdgeInsetsDirectional.only(end: 4),
+        child: Icon(ZulipIcons.at_sign, size: 14, color: markerColor));
   }
 }
