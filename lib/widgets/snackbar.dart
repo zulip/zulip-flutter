@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 
+
 class SnackBarPage extends StatefulWidget {
   const SnackBarPage({Key? key}) : super(key: key);
 
@@ -11,14 +12,20 @@ class SnackBarPage extends StatefulWidget {
 
 class _SnackBarPageState extends State<SnackBarPage> {
   late ConnectivityResult _connectivityResult;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     // Initialize connectivity status
     _initConnectivity();
-    // Listen for connectivity changes
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to connectivity changes
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
         _connectivityResult = result;
       });
@@ -27,9 +34,14 @@ class _SnackBarPageState extends State<SnackBarPage> {
     });
   }
 
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel(); // Cancel subscription to avoid memory leaks
+    super.dispose();
+  }
+
   Future<void> _initConnectivity() async {
-    final ConnectivityResult connectivityResult =
-    await Connectivity().checkConnectivity();
+    final ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
     setState(() {
       _connectivityResult = connectivityResult;
     });
@@ -39,11 +51,9 @@ class _SnackBarPageState extends State<SnackBarPage> {
 
   void _showSnackBar(ConnectivityResult connectivityResult) {
     final bool isConnected = connectivityResult != ConnectivityResult.none;
-
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     if (isConnected) {
-      // If connected, show a green snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -52,24 +62,23 @@ class _SnackBarPageState extends State<SnackBarPage> {
                 Icons.sync,
                 color: Colors.white,
               ),
-              SizedBox(width: 2),
+              SizedBox(width: 8),
               Text(
                 'Connecting',
                 style: TextStyle(color: Colors.white),
               ),
             ],
           ),
-          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
         ),
       );
     } else {
-      // If not connected, show a red snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               Icon(
-                Icons.signal_wifi_off,
+                Icons.error_outline,
                 color: Colors.white,
               ),
               SizedBox(width: 2),
@@ -79,7 +88,6 @@ class _SnackBarPageState extends State<SnackBarPage> {
               ),
             ],
           ),
-          backgroundColor: Colors.red,
         ),
       );
     }
@@ -88,8 +96,6 @@ class _SnackBarPageState extends State<SnackBarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-
       body: Center(
         child: Text(''),
       ),

@@ -11,7 +11,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'unread_count_badge.dart';
-import 'snackbar.dart';
+
 
 
 class InboxPage extends StatefulWidget {
