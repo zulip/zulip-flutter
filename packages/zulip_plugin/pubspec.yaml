@@ -1,0 +1,55 @@
+name: zulip_plugin
+description: "A shim package to wire up Zulip's internal Flutter plugin."
+version: 0.0.1
+
+# This Dart package is a shim containing a minimum of code.
+# The actual code implementing the Zulip plugin lives alongside
+# the app's main code for the host platforms: so e.g. for Android,
+# in android/app/src/main/kotlin/.
+#
+# This package exists for the sake of the `flutter: plugin: …` block
+# below.  That causes the `flutter` tool to insert the plugin in files
+# like GeneratedPluginRegistrant.java, causing it to be automatically
+# initialized by default whenever the Flutter engine starts.
+#
+# Why do we need the GeneratedPluginRegistrant mechanism?  After all,
+# we could just (on Android) have our `MainActivity` override
+# `configureFlutterEngine` and set up the plugin there, doing the
+# same thing `GeneratedPluginRegistrant` would do.
+#
+# Indeed, if it were just a matter of starting the plugin when the app
+# is running in the foreground, then that would suffice.  But it
+# doesn't, because of notifications.  On Android, when a notification
+# arrives while the app is in the background or not running, the
+# `flutter_firebase` implementation starts a Flutter engine in order
+# to invoke our callback to handle the notification.  That engine has
+# for its context the FlutterFirebaseMessagingReceiver (which is a
+# BroadcastReceiver), not an Activity.  We need that engine to have
+# ZulipPlugin enabled, in order to show a notification.  To do that,
+# we get ZulipPlugin into GeneratedPluginRegistrant, via this shim
+# package.
+#
+# (The discussion above is all about Android, because that's the only
+# platform where we currently ever have a non-foreground engine and
+# therefore a need for this shim package.  When we someday implement
+# fancy notifications for iOS too, we'll presumably have the same need
+# there.)
+
+environment:
+  sdk: '>=3.4.0-256.0.dev <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies: {}
+
+dev_dependencies: {}
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        # We can't refer directly here to the actual ZulipPlugin that
+        # lives in the app code, because the `flutter` tool expects
+        # the class named in `pluginClass` to live within this package.
+        # So we have here a shim plugin that forwards to the real ZulipPlugin.
+        package: com.zulip.flutter
+        pluginClass: ZulipShimPlugin
