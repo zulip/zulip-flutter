@@ -74,6 +74,11 @@ abstract class ZulipBinding {
   /// to a [GlobalStore].
   Future<GlobalStore> loadGlobalStore();
 
+  /// Checks whether the platform can launch [url], via package:url_launcher.
+  ///
+  /// This wraps [url_launcher.canLaunchUrl].
+  Future<bool> canLaunchUrl(Uri url);
+
   /// Pass [url] to the underlying platform, via package:url_launcher.
   ///
   /// This wraps [url_launcher.launchUrl].
@@ -154,6 +159,9 @@ class LiveZulipBinding extends ZulipBinding {
   Future<GlobalStore> loadGlobalStore() {
     return LiveGlobalStore.load();
   }
+
+  @override
+  Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);
 
   @override
   Future<bool> launchUrl(
