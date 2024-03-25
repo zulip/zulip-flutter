@@ -107,10 +107,6 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `widget.controller`)
         replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
-      case WildcardMentionAutocompleteResult():
-        replacementString = '[unimplemented]'; // TODO(#234)
-      case UserGroupMentionAutocompleteResult():
-        replacementString = '[unimplemented]'; // TODO(#233)
     }
 
     widget.controller.value = intent.textEditingValue.replaced(
@@ -128,10 +124,6 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
       case UserMentionAutocompleteResult(:var userId):
         // TODO(#227) avatar
         label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
-      case WildcardMentionAutocompleteResult():
-        label = '[unimplemented]'; // TODO(#234)
-      case UserGroupMentionAutocompleteResult():
-        label = '[unimplemented]'; // TODO(#233)
     }
     return InkWell(
       onTap: () {

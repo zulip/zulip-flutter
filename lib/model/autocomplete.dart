@@ -342,21 +342,6 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   final int userId;
 }
 
-enum WildcardMentionType {
-  all,
-  everyone,
-  stream,
-}
+// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
-class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
-  WildcardMentionAutocompleteResult({required this.type});
-
-  final WildcardMentionType type;
-}
-
-
-class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
-  UserGroupMentionAutocompleteResult({required this.userGroupId});
-
-  final int userGroupId;
-}
+// TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
