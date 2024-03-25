@@ -13,6 +13,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
+import 'dialog_checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -131,9 +132,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      final findAlertDialogWithExistsMessage = find.widgetWithText(
-        AlertDialog, zulipLocalizations.errorAccountLoggedInTitle);
-      check(findAlertDialogWithExistsMessage.evaluate()).isNotEmpty();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorAccountLoggedInTitle)));
     });
 
     // TODO test validators on the TextFormField widgets
