@@ -610,13 +610,10 @@ void main() {
 
   group('MarkAsReadWidget', () {
     bool isMarkAsReadButtonVisible(WidgetTester tester) {
-      // Zero height elements on the edge of a scrolling viewport
-      // are treated as invisible for hit-testing, see
-      // [SliverMultiBoxAdaptorElement.debugVisitOnstageChildren].
-      // Set `skipOffstage: false` here to safely target the
-      // [MarkAsReadWidget] even when it is inactive.
-      return tester.getSize(
-        find.byType(MarkAsReadWidget, skipOffstage: false)).height > 0;
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final finder = find.text(
+        zulipLocalizations.markAllAsReadLabel).hitTestable();
+      return finder.evaluate().isNotEmpty;
     }
 
     testWidgets('from read to unread', (WidgetTester tester) async {
@@ -646,6 +643,31 @@ void main() {
       ));
       await tester.pumpAndSettle();
       check(isMarkAsReadButtonVisible(tester)).isFalse();
+    });
+
+    testWidgets("messages don't shift position", (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      final unreadMsgs = eg.unreadMsgs(streams:[
+        UnreadStreamSnapshot(topic: message.subject, streamId: message.streamId,
+          unreadMessageIds: [message.id])
+      ]);
+      await setupMessageListPage(tester,
+        messages: [message], unreadMsgs: unreadMsgs);
+      check(isMarkAsReadButtonVisible(tester)).isTrue();
+      check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
+      final before = tester.getTopLeft(find.byType(MessageItem)).dy;
+
+      store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: MessageFlag.read,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pumpAndSettle();
+      check(isMarkAsReadButtonVisible(tester)).isFalse();
+      check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
+      final after = tester.getTopLeft(find.byType(MessageItem)).dy;
+      check(after).equals(before);
     });
 
     group('onPressed behavior', () {

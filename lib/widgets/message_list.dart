@@ -461,34 +461,39 @@ class MarkAsReadWidget extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInNarrow(narrow);
-    return AnimatedCrossFade(
-      duration: const Duration(milliseconds: 300),
-      crossFadeState: (unreadCount > 0) ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-      firstChild: const SizedBox.shrink(),
-      secondChild: SizedBox(width: double.infinity,
-        // Design referenced from:
-        //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
-        child: Padding(
-          // vertical padding adjusted for tap target height (48px) of button
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
-          child: FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: _UnreadMarker.color,
-              minimumSize: const Size.fromHeight(38),
-              textStyle:
-                // Restate [FilledButton]'s default, which inherits from
-                // [zulipTypography]…
-                Theme.of(context).textTheme.labelLarge!
-                // …then clobber some attributes to follow Figma:
-                .merge(const TextStyle(
-                  fontSize: 18,
-                  height: (23 / 18))
-                .merge(weightVariableTextStyle(context, wght: 400))),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-            ),
-            onPressed: () => _handlePress(context),
-            icon: const Icon(Icons.playlist_add_check),
-            label: Text(zulipLocalizations.markAllAsReadLabel)))));
+    final areMessagesRead = unreadCount == 0;
+
+    return IgnorePointer(
+      ignoring: areMessagesRead,
+      child: AnimatedOpacity(
+        opacity: areMessagesRead ? 0 : 1,
+        duration: Duration(milliseconds: areMessagesRead ? 2000 : 300),
+        curve: Curves.easeOut,
+        child: SizedBox(width: double.infinity,
+          // Design referenced from:
+          //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
+          child: Padding(
+            // vertical padding adjusted for tap target height (48px) of button
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: _UnreadMarker.color,
+                minimumSize: const Size.fromHeight(38),
+                textStyle:
+                  // Restate [FilledButton]'s default, which inherits from
+                  // [zulipTypography]…
+                  Theme.of(context).textTheme.labelLarge!
+                  // …then clobber some attributes to follow Figma:
+                  .merge(const TextStyle(
+                    fontSize: 18,
+                    height: (23 / 18))
+                  .merge(weightVariableTextStyle(context, wght: 400))),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+              ),
+              onPressed: () => _handlePress(context),
+              icon: const Icon(Icons.playlist_add_check),
+              label: Text(zulipLocalizations.markAllAsReadLabel))))),
+    );
   }
 }
 
