@@ -24,7 +24,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 ## CLI PARSING
 
-default_suites=(analyze test build_runner drift icons)
+default_suites=(analyze test build_runner drift pigeon icons)
 extra_suites=(
     shellcheck  # Requires its own dependency, from outside the pub system.
 )
@@ -77,7 +77,7 @@ while (( $# )); do
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
         --verbose) opt_verbose=1; shift;;
-        analyze|test|build_runner|drift|icons|shellcheck)
+        analyze|test|build_runner|drift|pigeon|icons|shellcheck)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -119,7 +119,10 @@ if_verbose() {
   fi
 }
 
-# True just if $opt_files intersects the given set of paths.
+# usage: files_check [GIT_PATHSPECS...]
+#
+# True just if $opt_files includes any files matching GIT_PATHSPECS.
+# For details on Git pathspecs, see `check_no_changes`.
 #
 # On what paths to include in this check (and more generally, how to write
 # conditions to implement `--diff`): Aim to cover perhaps 95% or 99% of the
@@ -273,6 +276,59 @@ run_drift() {
     check_no_changes "schema updates" "${schema_dir}"
 }
 
+filter_flutter_pub_run_output() {
+    # `flutter pub run` prints this deprecation message...
+    # but then it runs much, much faster than `dart run`.
+    # (The latter prints messages about compiling the library afresh
+    # each time, which might point to the cause of the problem.)
+    # TODO(upstream): Find or file a bug about `flutter pub run` vs. `dart run`.
+
+    # For completeness we give this nice specific grep, but in fact
+    # just `cat` would solve the problem too: it seems that once the
+    # output isn't a terminal, `flutter pub run` skips the deprecation
+    # notice as well as a few chatty other messages.
+
+    # shellcheck disable=SC2016  # yes, the backticks are literal
+    grep -vxF 'Deprecated. Use `dart run` instead.'
+}
+
+run_pigeon() {
+    # Git pathspecs for files our pigeons may emit.
+    local outputs=(
+        lib/host/'*'.g.dart
+        android/'*'.g.kt
+    )
+
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check pigeon/ "${outputs[@]}" \
+    || return 0
+
+    check_no_uncommitted_or_untracked "${outputs[@]}" \
+    || return
+
+    git ls-files pigeon/ \
+    | xargs -rn1 flutter pub run pigeon --input \
+        > >(filter_flutter_pub_run_output) \
+    || return
+
+    # The `flutter pub run` disrupts `.dart_tool/package_config.json`,
+    # removing `flutter_gen`, which causes analysis failures everywhere
+    # that we use localization.  (And `dart run` has the same problem.)
+    # Fix it back, with `flutter pub get`.
+    # TODO(upstream): Find or file a bug for this `pub run` vs. `flutter_gen` issue.
+    if [ -n "${opt_verbose}" ]; then
+        flutter pub get \
+        || return
+    else
+        flutter pub get \
+            >/dev/null \
+        || return
+    fi
+
+    check_no_changes "changes to pigeons" "${outputs[@]}"
+}
+
 run_icons() {
     # Omitted from this check:
     #   pubspec.{yaml,lock} tools/check
@@ -360,6 +416,7 @@ for suite in "${opt_suites[@]}"; do
         test)         run_test ;;
         build_runner) run_build_runner ;;
         drift)        run_drift ;;
+        pigeon)       run_pigeon ;;
         icons)        run_icons ;;
         shellcheck)   run_shellcheck ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
