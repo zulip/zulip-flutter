@@ -117,10 +117,10 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
         trailingIcon: Icon(icon),
         onPressed: () => onPressed(context),
         style: ButtonStyle(
-          padding: const MaterialStatePropertyAll(EdgeInsets.symmetric(vertical:10,horizontal: 15)),
-          backgroundColor: MaterialStatePropertyAll(_kActionSheetMenuItemButtonsColor),
-          iconColor: MaterialStatePropertyAll(_kActionSheetIconColor),
-          shape: MaterialStatePropertyAll(
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical:10,horizontal: 15)),
+          backgroundColor: WidgetStatePropertyAll(_kActionSheetMenuItemButtonsColor),
+          iconColor: WidgetStatePropertyAll(_kActionSheetIconColor),
+          shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               // If the element is the first element we have the border of first element
               // If the element is the last element we have the border of last element
