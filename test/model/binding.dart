@@ -66,6 +66,7 @@ class TestZulipBinding extends ZulipBinding {
   void reset() {
     ZulipApp.debugReset();
     _resetStore();
+    _resetCanLaunchUrl();
     _resetLaunchUrl();
     _resetDeviceInfo();
     _resetFirebase();
@@ -117,6 +118,36 @@ class TestZulipBinding extends ZulipBinding {
       return true;
     }());
     return Future.value(globalStore);
+  }
+
+  /// The value that `ZulipBinding.instance.canLaunchUrl()` should return.
+  ///
+  /// See also [takeCanLaunchUrlCalls].
+  bool canLaunchUrlResult = true;
+
+  void _resetCanLaunchUrl() {
+    canLaunchUrlResult = true;
+    _canLaunchUrlCalls = null;
+  }
+
+  /// Consume the log of calls made to `ZulipBinding.instance.canLaunchUrl()`.
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to `ZulipBinding.instance.canLaunchUrl()` since the last call to
+  /// either this method or [reset].
+  ///
+  /// See also [canLaunchUrlResult].
+  List<Uri> takeCanLaunchUrlCalls() {
+    final result = _canLaunchUrlCalls;
+    _canLaunchUrlCalls = null;
+    return result ?? [];
+  }
+  List<Uri>? _canLaunchUrlCalls;
+
+  @override
+  Future<bool> canLaunchUrl(Uri url) async {
+    (_canLaunchUrlCalls ??= []).add(url);
+    return canLaunchUrlResult;
   }
 
   /// The value that `ZulipBinding.instance.launchUrl()` should return.
