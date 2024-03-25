@@ -120,6 +120,12 @@ class AppDatabase extends _$AppDatabase {
       rethrow;
     }
   }
+
+  Future deleteAccount(int accountId) {
+    return (delete(accounts)
+      ..where((tbl) => tbl.id.equals(accountId))
+    ).go();
+  }
 }
 
 class AccountAlreadyExistsException implements Exception {}
