@@ -90,6 +90,8 @@ class BlockContentList extends StatelessWidget {
           return MathBlock(node: node);
         } else if (node is ImageNodeList) {
           return MessageImageList(node: node);
+        } else if (node is VideoNode) {
+          return Container();
         } else if (node is ImageNode) {
           assert(false,
             "[ImageNode] not allowed in [BlockContentList]. "

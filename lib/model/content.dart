@@ -361,6 +361,34 @@ class ImageNode extends BlockContentNode {
   }
 }
 
+class VideoNode extends BlockContentNode {
+  const VideoNode({
+    super.debugHtmlNode,
+    required this.srcUrl,
+    required this.previewImageUrl,
+  });
+
+  final String srcUrl;
+  final String? previewImageUrl;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VideoNode
+      && other.srcUrl == srcUrl
+      && other.previewImageUrl == previewImageUrl;
+  }
+
+  @override
+  int get hashCode => Object.hash('VideoNode', srcUrl, previewImageUrl);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('srcUrl', srcUrl));
+    properties.add(StringProperty('previewImageUrl', previewImageUrl));
+  }
+}
+
 /// A content node that expects an inline layout context from its parent.
 ///
 /// When rendered into a Flutter widget tree, an inline content node
@@ -948,6 +976,90 @@ class _ZulipContentParser {
     return ImageNode(srcUrl: src, debugHtmlNode: debugHtmlNode);
   }
 
+  static final _videoClassNameRegexp = () {
+    const sourceType = r"(message_inline_video|youtube-video|embed-video)?";
+    return RegExp("^message_inline_image $sourceType|$sourceType message_inline_image\$");
+  }();
+
+  BlockContentNode _parseInlineVideo(dom.Element divElement) {
+    final videoElement = () {
+      if (divElement.nodes.length != 1) return null;
+      final child = divElement.nodes[0];
+      if (child is! dom.Element) return null;
+      if (child.localName != 'a') return null;
+      if (child.className.isNotEmpty) return null;
+
+      if (child.nodes.length != 1) return null;
+      final grandchild = child.nodes[0];
+      if (grandchild is! dom.Element) return null;
+      if (grandchild.localName != 'video') return null;
+      if (grandchild.className.isNotEmpty) return null;
+      return grandchild;
+    }();
+
+    final debugHtmlNode = kDebugMode ? divElement : null;
+    if (videoElement == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    final src = videoElement.attributes['src'];
+    if (src == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    return VideoNode(srcUrl: src, previewImageUrl: null, debugHtmlNode: debugHtmlNode);
+  }
+
+  BlockContentNode _parseEmbedVideoWithPreviewImage(dom.Element divElement) {
+    final result = () {
+      if (divElement.nodes.length != 1) return null;
+      final child = divElement.nodes[0];
+      if (child is! dom.Element) return null;
+      if (child.localName != 'a') return null;
+      if (child.className.isNotEmpty) return null;
+
+      if (child.nodes.length != 1) return null;
+      final grandchild = child.nodes[0];
+      if (grandchild is! dom.Element) return null;
+      if (grandchild.localName != 'img') return null;
+      if (grandchild.className.isNotEmpty) return null;
+      return (child, grandchild);
+    }();
+
+    final debugHtmlNode = kDebugMode ? divElement : null;
+    if (result == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+    final (anchorElement, imgElement) = result;
+
+    final imgSrc = imgElement.attributes['src'];
+    if (imgSrc == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    final href = anchorElement.attributes['href'];
+    if (href == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    return VideoNode(srcUrl: href, previewImageUrl: imgSrc, debugHtmlNode: debugHtmlNode);
+  }
+
+  BlockContentNode parseVideoNode(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(divElement.localName == 'div'
+      && _videoClassNameRegexp.hasMatch(divElement.className));
+
+    final match = _videoClassNameRegexp.firstMatch(divElement.className)!;
+    return switch (match.groups([1, 2])) {
+      ['message_inline_video', null] || [null, 'message_inline_video']
+        => _parseInlineVideo(divElement),
+      ['youtube-video' || 'embed-video', null] || [null, 'youtube-video' || 'embed-video']
+        => _parseEmbedVideoWithPreviewImage(divElement),
+      _ => UnimplementedBlockContentNode(htmlNode: divElement),
+    };
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.block);
     final debugHtmlNode = kDebugMode ? node : null;
@@ -1022,6 +1134,10 @@ class _ZulipContentParser {
 
     if (localName == 'div' && className == 'message_inline_image') {
       return parseImageNode(element);
+    }
+
+    if (localName == 'div' && _videoClassNameRegexp.hasMatch(className)) {
+      return parseVideoNode(element);
     }
 
     // TODO more types of node

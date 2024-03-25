@@ -521,6 +521,125 @@ class ContentExample {
       blockUnimplemented('more text'),
     ]]),
   ]);
+
+  static const videoEmbedYoutube = ContentExample(
+    'video preview for youtube embed with thumbnail',
+    'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+    '<p>'
+      '<a href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">https://www.youtube.com/watch?v=aqz-KE-bpKQ</a>'
+    '</p>\n'
+    '<div class="youtube-video message_inline_image">'
+      '<a data-id="aqz-KE-bpKQ" href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">'
+        '<img src="/external_content/ecb96e8f884f481c4bc0179287a44ab9014aa78f/68747470733a2f2f692e7974696d672e636f6d2f76692f61717a2d4b452d62704b512f64656661756c742e6a7067"></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', nodes: [TextNode('https://www.youtube.com/watch?v=aqz-KE-bpKQ')]),
+    ]),
+    VideoNode(
+      srcUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+      previewImageUrl: '/external_content/ecb96e8f884f481c4bc0179287a44ab9014aa78f/68747470733a2f2f692e7974696d672e636f6d2f76692f61717a2d4b452d62704b512f64656661756c742e6a7067'
+    ),
+  ]);
+
+  static const videoEmbedYoutubeClassesFlipped = ContentExample(
+    'video preview for youtube embed with thumbnail, (hypothetical) class name reorder',
+    'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+    '<p>'
+      '<a href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">https://www.youtube.com/watch?v=aqz-KE-bpKQ</a>'
+    '</p>\n'
+    '<div class="message_inline_image youtube-video">'
+      '<a data-id="aqz-KE-bpKQ" href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">'
+        '<img src="/external_content/ecb96e8f884f481c4bc0179287a44ab9014aa78f/68747470733a2f2f692e7974696d672e636f6d2f76692f61717a2d4b452d62704b512f64656661756c742e6a7067"></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', nodes: [TextNode('https://www.youtube.com/watch?v=aqz-KE-bpKQ')]),
+    ]),
+    VideoNode(
+      srcUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+      previewImageUrl: '/external_content/ecb96e8f884f481c4bc0179287a44ab9014aa78f/68747470733a2f2f692e7974696d672e636f6d2f76692f61717a2d4b452d62704b512f64656661756c742e6a7067'
+    ),
+  ]);
+
+  static const videoEmbedVimeoPreviewDisabled = ContentExample(
+    'video non-preview for attempted vimeo embed with realm link previews disabled',
+    'https://vimeo.com/1084537',
+    '<p>'
+      '<a href="https://vimeo.com/1084537">https://vimeo.com/1084537</a></p>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://vimeo.com/1084537', nodes: [TextNode('https://vimeo.com/1084537')]),
+    ]),
+  ]);
+
+  static const videoEmbedVimeo = ContentExample(
+    'video preview for vimeo embed with realm link previews enabled',
+    'https://vimeo.com/1084537',
+    // Note that the server generates "data-id" attribute with value of a raw HTML,
+    // web client uses this to show Vimeo's video player in a sandbox iframe.
+    // The HTML blob is provided by Vimeo and them changing it wouldn't break the
+    // web client because it relies on this dynamic value.
+    //
+    // Discussion:
+    //  https://chat.zulip.org/#narrow/stream/9-issues/topic/Vimeo.20link.20previews.20HTML.20.22data-id.22.20isn't.20a.20.20Vimeo.20video.20ID/near/1767563
+    '<p>'
+      '<a href="https://vimeo.com/1084537">Vimeo - Big Buck Bunny</a>'
+    '</p>\n'
+    '<div class="embed-video message_inline_image">'
+      '<a data-id="&lt;iframe src=&quot;https://player.vimeo.com/video/1084537?app_id=122963&quot; width=&quot;640&quot; height=&quot;360&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen; picture-in-picture; clipboard-write&quot; title=&quot;Big Buck Bunny&quot;&gt;&lt;/iframe&gt;" href="https://vimeo.com/1084537" title="Big Buck Bunny">'
+        '<img src="https://uploads.zulipusercontent.net/75aed2df4a1e8657176fcd6159fc40876ace4070/68747470733a2f2f692e76696d656f63646e2e636f6d2f766964656f2f32303936333634392d663032383137343536666334386537633331376566346330376261323539636434623430613336343962643865623530613434313862353965633366356166352d645f363430"></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://vimeo.com/1084537', nodes: [TextNode('Vimeo - Big Buck Bunny')]),
+    ]),
+    VideoNode(
+      srcUrl: 'https://vimeo.com/1084537',
+      previewImageUrl: 'https://uploads.zulipusercontent.net/75aed2df4a1e8657176fcd6159fc40876ace4070/68747470733a2f2f692e76696d656f63646e2e636f6d2f766964656f2f32303936333634392d663032383137343536666334386537633331376566346330376261323539636434623430613336343962643865623530613434313862353965633366356166352d645f363430'
+    ),
+  ]);
+
+  static const videoEmbedVimeoClassesFlipped = ContentExample(
+    'video preview for vimeo embed with realm link previews enabled, (hypothetical) class name reorder',
+    'https://vimeo.com/1084537',
+    '<p>'
+      '<a href="https://vimeo.com/1084537">Vimeo - Big Buck Bunny</a>'
+    '</p>\n'
+    '<div class="message_inline_image embed-video">'
+      '<a data-id="&lt;iframe src=&quot;https://player.vimeo.com/video/1084537?app_id=122963&quot; width=&quot;640&quot; height=&quot;360&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen; picture-in-picture; clipboard-write&quot; title=&quot;Big Buck Bunny&quot;&gt;&lt;/iframe&gt;" href="https://vimeo.com/1084537" title="Big Buck Bunny">'
+        '<img src="https://uploads.zulipusercontent.net/75aed2df4a1e8657176fcd6159fc40876ace4070/68747470733a2f2f692e76696d656f63646e2e636f6d2f766964656f2f32303936333634392d663032383137343536666334386537633331376566346330376261323539636434623430613336343962643865623530613434313862353965633366356166352d645f363430"></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: 'https://vimeo.com/1084537', nodes: [TextNode('Vimeo - Big Buck Bunny')]),
+    ]),
+    VideoNode(
+      srcUrl: 'https://vimeo.com/1084537',
+      previewImageUrl: 'https://uploads.zulipusercontent.net/75aed2df4a1e8657176fcd6159fc40876ace4070/68747470733a2f2f692e76696d656f63646e2e636f6d2f766964656f2f32303936333634392d663032383137343536666334386537633331376566346330376261323539636434623430613336343962643865623530613434313862353965633366356166352d645f363430'
+    ),
+  ]);
+
+  static const videoInline = ContentExample(
+    'video preview for user uploaded video',
+    '[Big-Buck-Bunny.webm](/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm)',
+    '<p>'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm">Big-Buck-Bunny.webm</a>'
+    '</p>\n'
+    '<div class="message_inline_image message_inline_video">'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm" title="Big-Buck-Bunny.webm">'
+        '<video preload="metadata" src="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm"></video></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm', nodes: [TextNode('Big-Buck-Bunny.webm')]),
+    ]),
+    VideoNode(srcUrl: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm', previewImageUrl: null),
+  ]);
+
+  static const videoInlineClassesFlipped = ContentExample(
+    'video preview for user uploaded video, (hypothetical) class name reorder',
+    '[Big-Buck-Bunny.webm](/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm)',
+    '<p>'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm">Big-Buck-Bunny.webm</a>'
+    '</p>\n'
+    '<div class="message_inline_video message_inline_image">'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm" title="Big-Buck-Bunny.webm">'
+        '<video preload="metadata" src="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm"></video></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm', nodes: [TextNode('Big-Buck-Bunny.webm')]),
+    ]),
+    VideoNode(srcUrl: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm', previewImageUrl: null),
+  ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -855,6 +974,14 @@ void main() {
   testParseExample(ContentExample.imageInImplicitParagraph);
   testParseExample(ContentExample.imageClusterInImplicitParagraph);
   testParseExample(ContentExample.imageClusterInImplicitParagraphThenContent);
+
+  testParseExample(ContentExample.videoEmbedYoutube);
+  testParseExample(ContentExample.videoEmbedYoutubeClassesFlipped);
+  testParseExample(ContentExample.videoEmbedVimeoPreviewDisabled);
+  testParseExample(ContentExample.videoEmbedVimeo);
+  testParseExample(ContentExample.videoEmbedVimeoClassesFlipped);
+  testParseExample(ContentExample.videoInline);
+  testParseExample(ContentExample.videoInlineClassesFlipped);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"
