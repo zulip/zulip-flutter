@@ -327,6 +327,11 @@ void main() {
     doCheck('full full', eg.user(fullName: 'Full Full Name'), true);
     doCheck('full full', eg.user(fullName: 'Full Name Full'), true);
 
+    // assert that name checking is diacritic insensitive
+    doCheck('fűll ñámé', eg.user(fullName: 'Full Name'), true);
+    doCheck('fűll', eg.user(fullName: 'Full Name'), true);
+    doCheck('ñámé', eg.user(fullName: 'Full Name'), true);
+
     doCheck('F', eg.user(fullName: ''), false); // Unlikely case, but should not crash
     doCheck('Fully Named', eg.user(fullName: 'Full Name'), false);
     doCheck('Full Name', eg.user(fullName: 'Full'), false);

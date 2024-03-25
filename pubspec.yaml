@@ -65,6 +65,7 @@ dependencies:
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
   sqlite3: ^2.4.0
+  diacritic: ^0.1.5
 
 dev_dependencies:
   flutter_driver:
