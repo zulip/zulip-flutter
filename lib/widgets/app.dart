@@ -178,7 +178,7 @@ class ChooseAccountPage extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         onTap: () => Navigator.push(context,
-          HomePage.buildRoute(accountId: accountId))));
+          InboxPage.buildRoute(accountId: accountId))));
   }
 
   @override
