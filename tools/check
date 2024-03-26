@@ -252,6 +252,12 @@ run_build_runner() {
         || return
     fi
 
+    # When run in a fresh worktree -- so in particular in CI --
+    # `build_runner build --delete-conflicting-outputs` will
+    # delete other `*.g.dart` files that don't belong to it.
+    # Put them back.
+    git restore -s @ lib/host/'*'.g.dart
+
     check_no_changes "updates to *.g.dart files" '*.g.dart'
 }
 
