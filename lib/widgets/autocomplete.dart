@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'content.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
@@ -119,10 +120,11 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
 
   Widget _buildItem(BuildContext _, int index) {
     final option = _resultsToDisplay[index];
+    Widget avatar;
     String label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        // TODO(#227) avatar
+        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
         label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
     }
     return InkWell(
@@ -130,8 +132,13 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
         _onTapOption(option);
       },
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(label)));
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          children: [
+            avatar,
+            const SizedBox(width: 8),
+            Text(label),
+          ])));
   }
 
   @override
