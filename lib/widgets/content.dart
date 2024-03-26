@@ -1,13 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
+import '../log.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
@@ -90,14 +93,14 @@ class BlockContentList extends StatelessWidget {
           return MathBlock(node: node);
         } else if (node is ImageNodeList) {
           return MessageImageList(node: node);
-        } else if (node is VideoNode) {
-          return Container();
         } else if (node is ImageNode) {
           assert(false,
             "[ImageNode] not allowed in [BlockContentList]. "
             "It should be wrapped in [ImageNodeList]."
           );
           return MessageImage(node: node);
+        } else if (node is VideoNode) {
+          return MessageVideo(node: node);
         } else if (node is UnimplementedBlockContentNode) {
           return Text.rich(_errorUnimplemented(node));
         } else {
@@ -381,6 +384,188 @@ class MessageImage extends StatelessWidget {
                   child: RealmContentNetworkImage(
                     resolvedSrc,
                     filterQuality: FilterQuality.medium))))))));
+  }
+}
+
+class MessageVideo extends StatelessWidget {
+  const MessageVideo({super.key, required this.node});
+
+  final VideoNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+
+    // For YouTube and Vimeo links, display a widget with a thumbnail.
+    // When the thumbnail is tapped, open the video link in an external browser or
+    // a supported external app.
+    if (node.previewImageUrl != null) {
+      return MessageEmbedVideoPreview(
+        src: node.srcUrl, previewImage: node.previewImageUrl!);
+    }
+
+    final resolvedSrc = store.tryResolveUrl(node.srcUrl);
+    return resolvedSrc != null
+      ? MessageInlineVideoPreview(src: resolvedSrc)
+      : Container();
+  }
+}
+
+class MessageEmbedVideoPreview extends StatelessWidget {
+  const MessageEmbedVideoPreview({
+    super.key,
+    required this.previewImage,
+    required this.src,
+  });
+
+  final String previewImage;
+  final String src;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final previewImageUrl = store.tryResolveUrl(previewImage);
+
+    return GestureDetector(
+      onTap: () {
+        _launchUrl(context, src);
+      },
+      child: UnconstrainedBox(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          // TODO clean up this padding by imitating web less precisely;
+          //   in particular, avoid adding loose whitespace at end of message.
+          padding: const EdgeInsets.only(right: 5, bottom: 5),
+          child: Container(
+            height: 100,
+            width: 150,
+            color: Colors.black,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (previewImageUrl != null) ...[
+                  RealmContentNetworkImage(
+                    previewImageUrl,
+                    filterQuality: FilterQuality.medium),
+                  Container(color: const Color.fromRGBO(0, 0, 0, 0.30)),
+                ],
+                const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 25),
+              ])))));
+  }
+}
+
+class MessageInlineVideoPreview extends StatefulWidget {
+  const MessageInlineVideoPreview({super.key, required this.src});
+
+  final Uri src;
+
+  @override
+  State<MessageInlineVideoPreview> createState() => _MessageInlineVideoPreviewState();
+}
+
+class _MessageInlineVideoPreviewState extends State<MessageInlineVideoPreview> {
+  VideoPlayerController? _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _asyncInitState();
+    });
+    super.initState();
+  }
+
+  Future<void> _asyncInitState() async {
+    try {
+      final store = PerAccountStoreWidget.of(context);
+      assert(debugLog('VideoPlayerController.networkUrl(${widget.src})'));
+      _controller = VideoPlayerController.networkUrl(widget.src, httpHeaders: {
+        if (widget.src.origin == store.account.realmUrl.origin) ...authHeader(
+          email: store.account.email,
+          apiKey: store.account.apiKey,
+        ),
+        ...userAgentHeader()
+      });
+
+      await _controller!.initialize();
+      _controller!.addListener(_handleVideoControllerUpdates);
+    } catch (error) {
+      assert(debugLog("VideoPlayerController.initialize failed: $error"));
+    } finally {
+      if (mounted) {
+        setState(() { _initialized = true; });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_handleVideoControllerUpdates);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _handleVideoControllerUpdates() {
+    assert(debugLog("Video buffered: ${_controller?.value.buffered}"));
+    assert(debugLog("Video max duration: ${_controller?.value.duration}"));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final message = InheritedMessage.of(context);
+
+    return GestureDetector(
+      onTap: !_initialized
+        ? null
+        : () { // TODO(log)
+            if (_controller!.value.hasError) {
+              // TODO use webview instead, to support auth headers
+              _launchUrl(context, widget.src.toString());
+            } else {
+              Navigator.of(context).push(getLightboxRoute(
+                context: context,
+                message: message,
+                src: widget.src,
+                videoController: _controller,
+              ));
+            }
+          },
+      child: UnconstrainedBox(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          // TODO clean up this padding by imitating web less precisely;
+          //   in particular, avoid adding loose whitespace at end of message.
+          padding: const EdgeInsets.only(right: 5, bottom: 5),
+          child: LightboxHero(
+            message: message,
+            src: widget.src,
+            child: Container(
+              height: 100,
+              width: 150,
+              color: Colors.black,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (_initialized && !_controller!.value.hasError) ...[
+                    AspectRatio(
+                      aspectRatio: _controller!.value.aspectRatio,
+                      child: VideoPlayer(_controller!)),
+                    Container(color: const Color.fromRGBO(0, 0, 0, 0.30)),
+                  ],
+                  if (_initialized)
+                    const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 25)
+                  else
+                    const SizedBox(
+                      height: 14,
+                      width: 14,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                ]))))));
   }
 }
 

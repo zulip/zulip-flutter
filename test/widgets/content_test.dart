@@ -282,6 +282,82 @@ void main() {
     });
   });
 
+  group("MessageVideo", () {
+    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      prepareBoringImageHttpClient();
+
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        navigatorObservers: [testNavObserver],
+        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: MessageContent(
+            message: eg.streamMessage(content: html),
+            content: parseContent(html))))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+      debugNetworkImageHttpClientProvider = null;
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.removeLast();
+      return pushedRoutes;
+    }
+
+    testWidgets('video preview for youtube embed', (tester) async {
+      const example = ContentExample.videoEmbedYoutube;
+      await prepareContent(tester, example.html);
+
+      final expectedResolvedPreviewUrl = eg
+        .store()
+        .tryResolveUrl((example.expectedNodes[1] as VideoNode).previewImageUrl!)!;
+      final image = tester.widget<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(image.src)
+        .equals(expectedResolvedPreviewUrl);
+
+      final expectedLaunchUrl = (example.expectedNodes[1] as VideoNode).srcUrl;
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: Uri.parse(expectedLaunchUrl), mode: LaunchMode.platformDefault));
+    });
+
+    testWidgets('video preview for vimeo embed, link previews enabled', (tester) async {
+      const example = ContentExample.videoEmbedVimeo;
+      await prepareContent(tester, example.html);
+
+      final expectedTitle = (((example.expectedNodes[0] as ParagraphNode).nodes[0] as LinkNode).nodes[0] as TextNode).text;
+      await tester.ensureVisible(find.text(expectedTitle));
+
+      final expectedVideo = example.expectedNodes[1] as VideoNode;
+      final expectedResolvedUrl = eg.store().tryResolveUrl(expectedVideo.previewImageUrl!)!;
+      final image = tester.widget<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(image.src)
+        .equals(expectedResolvedUrl);
+
+      final expectedLaunchUrl = (example.expectedNodes[1] as VideoNode).srcUrl;
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: Uri.parse(expectedLaunchUrl), mode: LaunchMode.platformDefault));
+    });
+
+    testWidgets('video preview for inline user uploaded video', (tester) async {
+      const example = ContentExample.videoInline;
+      final pushedRoutes = await prepareContent(tester, example.html);
+
+      tester.widget(find.byType(CircularProgressIndicator));
+      await tester.pumpAndSettle(); // wait for VideoController.initialize
+
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
+        .fullscreenDialog.isTrue(); // opened lightbox
+    });
+  });
+
   group("CodeBlock", () {
     testContentSmoke(ContentExample.codeBlockPlain);
     testContentSmoke(ContentExample.codeBlockHighlightedShort);

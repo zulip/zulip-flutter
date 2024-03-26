@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:video_player/video_player.dart';
 
 import '../api/model/model.dart';
 import 'content.dart';
@@ -83,8 +84,8 @@ class _CopyLinkButton extends StatelessWidget {
   }
 }
 
-class _LightboxPage extends StatefulWidget {
-  const _LightboxPage({
+class _ImageLightboxPage extends StatefulWidget {
+  const _ImageLightboxPage({
     required this.routeEntranceAnimation,
     required this.message,
     required this.src,
@@ -95,10 +96,10 @@ class _LightboxPage extends StatefulWidget {
   final Uri src;
 
   @override
-  State<_LightboxPage> createState() => _LightboxPageState();
+  State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
 }
 
-class _LightboxPageState extends State<_LightboxPage> {
+class _ImageLightboxPageState extends State<_ImageLightboxPage> {
   // TODO(#38): Animate entrance/exit of header and footer
   bool _headerFooterVisible = false;
 
@@ -208,11 +209,195 @@ class _LightboxPageState extends State<_LightboxPage> {
   }
 }
 
+class VideoLightboxPage extends StatefulWidget {
+  const VideoLightboxPage({
+    super.key,
+    required this.routeEntranceAnimation,
+    required this.message,
+    required this.src,
+    required this.controller,
+  });
+
+  final Animation routeEntranceAnimation;
+  final Message message;
+  final Uri src;
+  final VideoPlayerController controller;
+
+  @override
+  State<VideoLightboxPage> createState() => _VideoLightboxPageState();
+}
+
+class _VideoLightboxPageState extends State<VideoLightboxPage> {
+  // TODO(#38): Animate entrance/exit of header and footer
+  bool _headerFooterVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.play();
+    widget.controller.addListener(_handleVideoControllerUpdates);
+    widget.routeEntranceAnimation.addStatusListener(_handleRouteEntranceAnimationStatusChange);
+  }
+
+  @override
+  void dispose() {
+    widget.routeEntranceAnimation.removeStatusListener(_handleRouteEntranceAnimationStatusChange);
+    widget.controller.removeListener(_handleVideoControllerUpdates);
+    widget.controller.pause();
+    super.dispose();
+  }
+
+  void _handleRouteEntranceAnimationStatusChange(AnimationStatus status) {
+    final entranceAnimationComplete = status == AnimationStatus.completed;
+    setState(() {
+      _headerFooterVisible = entranceAnimationComplete;
+    });
+  }
+
+  void _handleTap() {
+    setState(() {
+      _headerFooterVisible = !_headerFooterVisible;
+    });
+  }
+
+  void _handleVideoControllerUpdates() {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+
+    final appBarBackgroundColor = Colors.grey.shade900.withOpacity(0.87);
+    const appBarForegroundColor = Colors.white;
+    const appBarElevation = 0.0;
+
+    PreferredSizeWidget? appBar;
+    if (_headerFooterVisible) {
+      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
+      final timestampText = DateFormat
+        .yMMMd(/* TODO(#278): Pass selected language here, I think? */)
+        .add_Hms()
+        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+
+      appBar = AppBar(
+        centerTitle: false,
+        foregroundColor: appBarForegroundColor,
+        backgroundColor: appBarBackgroundColor,
+        shape: const Border(), // Remove bottom border from [AppBarTheme]
+        elevation: appBarElevation,
+
+        // TODO(#41): Show message author's avatar
+        title: RichText(
+          text: TextSpan(children: [
+            TextSpan(
+              text: '${widget.message.senderFullName}\n',
+
+              // Restate default
+              style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
+            TextSpan(
+              text: timestampText,
+
+              // Make smaller, like a subtitle
+              style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
+          ])));
+    }
+
+    Widget? bottomAppBar;
+    if (_headerFooterVisible) {
+      bottomAppBar = BottomAppBar(
+        height: 150,
+        color: appBarBackgroundColor,
+        elevation: appBarElevation,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+          Row(
+            children: [
+              Text(
+                widget.controller.value.position.formatHHMMSS(),
+                style: const TextStyle(color: Colors.white),
+              ),
+              Expanded(
+                child: Slider(
+                  value: widget.controller.value.position.inSeconds.toDouble(),
+                  max: widget.controller.value.duration.inSeconds.toDouble(),
+                  activeColor: Colors.white,
+                  onChanged: (value) {
+                    widget.controller.seekTo(Duration(seconds: value.toInt()));
+                  },
+                ),
+              ),
+              Text(
+                widget.controller.value.duration.formatHHMMSS(),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          IconButton(
+            onPressed: () {
+              if (widget.controller.value.isPlaying) {
+                widget.controller.pause();
+              } else {
+                widget.controller.play();
+              }
+            },
+            icon: Icon(
+              widget.controller.value.isPlaying
+                ? Icons.pause_circle_rounded
+                : Icons.play_circle_rounded,
+              size: 50,
+            )),
+        ]));
+    }
+
+    return Theme(
+      data: themeData.copyWith(
+        iconTheme: themeData.iconTheme.copyWith(color: appBarForegroundColor)),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        extendBody: true, // For the BottomAppBar
+        extendBodyBehindAppBar: true, // For the AppBar
+        appBar: appBar,
+        bottomNavigationBar: bottomAppBar,
+        body: MediaQuery(
+          // Clobber the MediaQueryData prepared by Scaffold with one that's not
+          // affected by the app bars. On this screen, the app bars are
+          // translucent, dismissible overlays above the pan-zoom layer in the
+          // Z direction, so the pan-zoom layer doesn't need avoid them in the Y
+          // direction.
+          data: MediaQuery.of(context),
+
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _handleTap,
+            child: SafeArea(
+              child: LightboxHero(
+                message: widget.message,
+                src: widget.src,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: widget.controller.value.aspectRatio,
+                    child: VideoPlayer(widget.controller)))))))));
+  }
+}
+
+extension DurationFormatting on Duration {
+  String formatHHMMSS() {
+    final hoursString = inHours.toString().padLeft(2, '0');
+    final minutesString = inMinutes.remainder(60).toString().padLeft(2, '0');
+    final secondsString = inSeconds.remainder(60).toString().padLeft(2, '0');
+
+    return '${hoursString == '00' ? '' : '$hoursString:'}$minutesString:$secondsString';
+  }
+}
+
 Route getLightboxRoute({
   int? accountId,
   BuildContext? context,
   required Message message,
   required Uri src,
+  VideoPlayerController? videoController,
 }) {
   return AccountPageRouteBuilder(
     accountId: accountId,
@@ -224,7 +409,20 @@ Route getLightboxRoute({
       Animation<double> secondaryAnimation,
     ) {
       // TODO(#40): Drag down to close?
-      return _LightboxPage(routeEntranceAnimation: animation, message: message, src: src);
+      return switch (videoController) {
+        null => _ImageLightboxPage(
+          routeEntranceAnimation:
+          animation, message:
+          message,
+          src: src,
+        ),
+        _ => VideoLightboxPage(
+          routeEntranceAnimation: animation,
+          message: message,
+          src: src,
+          controller: videoController,
+        ),
+      };
     },
     transitionsBuilder: (
       BuildContext context,
