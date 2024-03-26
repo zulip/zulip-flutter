@@ -85,61 +85,63 @@ void main() {
       && (widget.autofillHints ?? []).contains(AutofillHints.password));
     final findSubmitButton = find.widgetWithText(ElevatedButton, 'Log in');
 
-    void checkFetchApiKey({required String username, required String password}) {
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/fetch_api_key')
-        ..bodyFields.deepEquals({
-          'username': username,
-          'password': password,
-        });
-    }
+    group('username/password login', () {
+      void checkFetchApiKey({required String username, required String password}) {
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/fetch_api_key')
+          ..bodyFields.deepEquals({
+            'username': username,
+            'password': password,
+          });
+      }
 
-    testWidgets('basic happy case', (tester) async {
-      final serverSettings = eg.serverSettings();
-      await prepare(tester, serverSettings);
-      check(testBinding.globalStore.accounts).isEmpty();
+      testWidgets('basic happy case', (tester) async {
+        final serverSettings = eg.serverSettings();
+        await prepare(tester, serverSettings);
+        check(testBinding.globalStore.accounts).isEmpty();
 
-      await tester.enterText(findUsernameInput, eg.selfAccount.email);
-      await tester.enterText(findPasswordInput, 'p455w0rd');
-      connection.prepare(json: FetchApiKeyResult(
-        apiKey: eg.selfAccount.apiKey,
-        email: eg.selfAccount.email,
-        userId: eg.selfAccount.userId,
-      ).toJson());
-      await tester.tap(findSubmitButton);
-      checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
-      await tester.idle();
-      check(testBinding.globalStore.accounts).single
-        .equals(eg.selfAccount.copyWith(
-          id: testBinding.globalStore.accounts.single.id));
+        await tester.enterText(findUsernameInput, eg.selfAccount.email);
+        await tester.enterText(findPasswordInput, 'p455w0rd');
+        connection.prepare(json: FetchApiKeyResult(
+          apiKey: eg.selfAccount.apiKey,
+          email: eg.selfAccount.email,
+          userId: eg.selfAccount.userId,
+        ).toJson());
+        await tester.tap(findSubmitButton);
+        checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
+        await tester.idle();
+        check(testBinding.globalStore.accounts).single
+          .equals(eg.selfAccount.copyWith(
+            id: testBinding.globalStore.accounts.single.id));
+      });
+
+      testWidgets('account already exists', (tester) async {
+        final serverSettings = eg.serverSettings();
+        await prepare(tester, serverSettings);
+        check(testBinding.globalStore.accounts).isEmpty();
+        testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+        await tester.enterText(findUsernameInput, eg.selfAccount.email);
+        await tester.enterText(findPasswordInput, 'p455w0rd');
+        connection.prepare(json: FetchApiKeyResult(
+          apiKey: eg.selfAccount.apiKey,
+          email: eg.selfAccount.email,
+          userId: eg.selfAccount.userId,
+        ).toJson());
+        await tester.tap(findSubmitButton);
+        await tester.pumpAndSettle();
+
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorAccountLoggedInTitle)));
+      });
+
+      // TODO test validators on the TextFormField widgets
+      // TODO test navigation, i.e. the call to pushAndRemoveUntil
+      // TODO test _getUserId case
+      // TODO test handling failure in fetchApiKey request
+      // TODO test _inProgress logic
     });
-
-    testWidgets('account already exists', (tester) async {
-      final serverSettings = eg.serverSettings();
-      await prepare(tester, serverSettings);
-      check(testBinding.globalStore.accounts).isEmpty();
-      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-
-      await tester.enterText(findUsernameInput, eg.selfAccount.email);
-      await tester.enterText(findPasswordInput, 'p455w0rd');
-      connection.prepare(json: FetchApiKeyResult(
-        apiKey: eg.selfAccount.apiKey,
-        email: eg.selfAccount.email,
-        userId: eg.selfAccount.userId,
-      ).toJson());
-      await tester.tap(findSubmitButton);
-      await tester.pumpAndSettle();
-
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorAccountLoggedInTitle)));
-    });
-
-    // TODO test validators on the TextFormField widgets
-    // TODO test navigation, i.e. the call to pushAndRemoveUntil
-    // TODO test _getUserId case
-    // TODO test handling failure in fetchApiKey request
-    // TODO test _inProgress logic
   });
 }
