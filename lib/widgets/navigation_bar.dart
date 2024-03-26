@@ -21,8 +21,9 @@ class ZulipNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accountId = PerAccountStoreWidget.accountIdOf(context);
+    final selectedIndex = pageToIndex[selectedPage] ?? 0;
     return NavigationBar(
-        selectedIndex: pageToIndex[selectedPage] ?? 0,
+        selectedIndex: selectedIndex,
         destinations: const [
           NavigationDestination(
             selectedIcon: Icon(Icons.inbox),
@@ -47,6 +48,9 @@ class ZulipNavigationBar extends StatelessWidget {
             label: 'Test Page'),
         ],
         onDestinationSelected: (int index) {
+          if (selectedIndex == index) {
+            return;
+          }
           switch (index) {
             case 0:
               Navigator.pushReplacement(context, InboxPage.buildRoute(context: context));
