@@ -35,7 +35,7 @@ class ZulipNavigationBar extends StatelessWidget {
             selectedIcon: Icon(Icons.group),
             icon: Icon(Icons.group_outlined),
             label: 'Direct Messages'),
-          // TODO enable this when it's available
+          // TODO enable this when the profile page is available
           // NavigationDestination(
           //   selectedIcon: Icon(Icons.account_circle),
           //   icon: Icon(Icons.account_circle_outlined),
