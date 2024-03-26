@@ -17,7 +17,6 @@ import 'content.dart';
 import 'dialog.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
-import 'navigation_bar.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'sticky_header.dart';
