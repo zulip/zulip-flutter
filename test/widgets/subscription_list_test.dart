@@ -154,7 +154,9 @@ void main() {
       subscription,
     ], unreadMsgs: unreadMsgs);
     check(getItemCount()).equals(1);
-    check(tester.widget<Icon>(find.byType(Icon)).color)
+    final scaffoldBody = tester.widget<Scaffold>(find.byType(Scaffold)).body;
+    check(tester.widget<Icon>(find.descendant(of:
+      find.byWidget(scaffoldBody!), matching: find.byType(Icon))).color)
       .equals(swatch.iconOnPlainBackground);
     check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
       .equals(swatch);
