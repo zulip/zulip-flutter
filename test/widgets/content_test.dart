@@ -27,6 +27,21 @@ import 'dialog_checks.dart';
 import 'message_list_checks.dart';
 import 'page_checks.dart';
 
+/// Set [debugNetworkImageHttpClientProvider] to return a constant image.
+///
+/// Returns the [FakeImageHttpClient] that handles the requests.
+///
+/// The caller must set [debugNetworkImageHttpClientProvider] back to null
+/// before the end of the test.
+FakeImageHttpClient prepareBoringImageHttpClient() {
+  final httpClient = FakeImageHttpClient();
+  debugNetworkImageHttpClientProvider = () => httpClient;
+  httpClient.request.response
+    ..statusCode = HttpStatus.ok
+    ..content = kSolidBlueAvatar;
+  return httpClient;
+}
+
 void main() {
   // For testing a new content feature:
   //
@@ -62,21 +77,6 @@ void main() {
         'testContentExample requires expectedText');
       tester.widget(find.text(example.expectedText!));
     });
-  }
-
-  /// Set [debugNetworkImageHttpClientProvider] to return a constant image.
-  ///
-  /// Returns the [FakeImageHttpClient] that handles the requests.
-  ///
-  /// The caller must set [debugNetworkImageHttpClientProvider] back to null
-  /// before the end of the test.
-  FakeImageHttpClient prepareBoringImageHttpClient() {
-    final httpClient = FakeImageHttpClient();
-    debugNetworkImageHttpClientProvider = () => httpClient;
-    httpClient.request.response
-      ..statusCode = HttpStatus.ok
-      ..content = kSolidBlueAvatar;
-    return httpClient;
   }
 
   group('Heading', () {
