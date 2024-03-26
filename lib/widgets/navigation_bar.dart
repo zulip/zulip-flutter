@@ -13,6 +13,7 @@ class ZulipNavigationBar extends StatelessWidget {
     InboxPage: 0,
     SubscriptionListPage: 1,
     RecentDmConversationsPage: 2,
+    HomePage: 3,
   };
 
   ZulipNavigationBar({super.key, required this.selectedPage});
