@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../model/narrow.dart';
+import 'app.dart';
 import 'inbox.dart';
-import 'message_list.dart';
 import 'recent_dm_conversations.dart';
+import 'store.dart';
 import 'subscription_list.dart';
 
 class ZulipNavigationBar extends StatelessWidget {
@@ -19,18 +19,19 @@ class ZulipNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accountId = PerAccountStoreWidget.accountIdOf(context);
     return NavigationBar(
         selectedIndex: pageToIndex[selectedPage] ?? 0,
-        destinations: [
-          const NavigationDestination(
+        destinations: const [
+          NavigationDestination(
             selectedIcon: Icon(Icons.inbox),
             icon: Icon(Icons.inbox_outlined),
             label: 'Inbox'),
-          const NavigationDestination(
+          NavigationDestination(
             selectedIcon: Icon(Icons.tag),
             icon: Icon(Icons.tag_outlined),
             label: 'Streams'),
-          const NavigationDestination(
+          NavigationDestination(
             selectedIcon: Icon(Icons.group),
             icon: Icon(Icons.group_outlined),
             label: 'Direct Messages'),
@@ -39,12 +40,10 @@ class ZulipNavigationBar extends StatelessWidget {
           //   selectedIcon: Icon(Icons.account_circle),
           //   icon: Icon(Icons.account_circle_outlined),
           //   label: 'Profile'),
-          if (testStreamId != null) ...[
-            const NavigationDestination(
-              selectedIcon: Icon(Icons.bug_report_outlined),
-              icon: Icon(Icons.bug_report_outlined),
-              label: 'Test Stream'),
-          ],
+          NavigationDestination(
+            selectedIcon: Icon(Icons.bug_report_outlined),
+            icon: Icon(Icons.bug_report_outlined),
+            label: 'Test Page'),
         ],
         onDestinationSelected: (int index) {
           switch (index) {
@@ -59,8 +58,7 @@ class ZulipNavigationBar extends StatelessWidget {
               break;
             case 3:
               Navigator.pushReplacement(context,
-                MessageListPage.buildRoute(context: context,
-                  narrow: StreamNarrow(testStreamId!)));
+                HomePage.buildRoute(accountId: accountId));
               break;
           }
         },
