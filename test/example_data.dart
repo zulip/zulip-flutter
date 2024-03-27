@@ -21,22 +21,37 @@ const String recentZulipVersion = '8.0';
 const int recentZulipFeatureLevel = 185;
 const int futureZulipFeatureLevel = 9999;
 
-GetServerSettingsResult serverSettings() {
+GetServerSettingsResult serverSettings({
+  Map<String, bool>? authenticationMethods,
+  List<ExternalAuthenticationMethod>? externalAuthenticationMethods,
+  int? zulipFeatureLevel,
+  String? zulipVersion,
+  String? zulipMergeBase,
+  bool? pushNotificationsEnabled,
+  bool? isIncompatible,
+  bool? emailAuthEnabled,
+  bool? requireEmailFormatUsernames,
+  Uri? realmUrl,
+  String? realmName,
+  String? realmIcon,
+  String? realmDescription,
+  bool? realmWebPublicAccessEnabled,
+}) {
   return GetServerSettingsResult(
-    authenticationMethods: {},
-    externalAuthenticationMethods: [],
-    zulipFeatureLevel: recentZulipFeatureLevel,
-    zulipVersion: recentZulipVersion,
-    zulipMergeBase: recentZulipVersion,
-    pushNotificationsEnabled: true,
-    isIncompatible: false,
-    emailAuthEnabled: true,
-    requireEmailFormatUsernames: true,
-    realmUrl: realmUrl,
-    realmName: 'Example Zulip organization',
-    realmIcon: '$realmUrl/icon.png',
-    realmDescription: 'An example Zulip organization',
-    realmWebPublicAccessEnabled: false,
+    authenticationMethods: authenticationMethods ?? {},
+    externalAuthenticationMethods: externalAuthenticationMethods ?? [],
+    zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
+    zulipVersion: zulipVersion ?? recentZulipVersion,
+    zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
+    pushNotificationsEnabled: pushNotificationsEnabled ?? true,
+    isIncompatible: isIncompatible ?? false,
+    emailAuthEnabled: emailAuthEnabled ?? true,
+    requireEmailFormatUsernames: requireEmailFormatUsernames ?? true,
+    realmUrl: realmUrl ?? _realmUrl,
+    realmName: realmName ?? 'Example Zulip organization',
+    realmIcon: realmIcon ?? '$realmUrl/icon.png',
+    realmDescription: realmDescription ?? 'An example Zulip organization',
+    realmWebPublicAccessEnabled: realmWebPublicAccessEnabled ?? false,
   );
 }
 
