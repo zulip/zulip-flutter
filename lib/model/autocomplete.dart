@@ -1,3 +1,4 @@
+import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -301,7 +302,7 @@ class MentionAutocompleteQuery {
         return false;
       }
 
-      if (nameWords[nameWordsIndex].startsWith(_lowercaseWords[queryWordsIndex])) {
+      if (nameWords[nameWordsIndex].startsWith(removeDiacritics(_lowercaseWords[queryWordsIndex]))) {
         queryWordsIndex++;
       }
       nameWordsIndex++;
@@ -326,7 +327,7 @@ class AutocompleteDataCache {
   final Map<int, List<String>> _nameWordsByUser = {};
 
   List<String> nameWordsForUser(User user) {
-    return _nameWordsByUser[user.userId] ??= user.fullName.toLowerCase().split(' ');
+    return _nameWordsByUser[user.userId] ??= removeDiacritics(user.fullName.toLowerCase()).split(' ');
   }
 
   void invalidateUser(int userId) {
