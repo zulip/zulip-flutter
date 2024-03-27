@@ -13,6 +13,7 @@ import 'api/route/notifications.dart';
 import 'firebase_options.dart';
 import 'log.dart';
 import 'model/binding.dart';
+import 'model/localizations.dart';
 import 'model/narrow.dart';
 import 'widgets/app.dart';
 import 'widgets/message_list.dart';
@@ -283,6 +284,7 @@ class NotificationDisplayManager {
   }
 
   static void _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     assert(debugLog('notif message content: ${data.content}'));
     final title = switch (data.recipient) {
       FcmMessageStreamRecipient(:var streamName?, :var topic) =>
@@ -290,7 +292,8 @@ class NotificationDisplayManager {
       FcmMessageStreamRecipient(:var topic) =>
         '(unknown stream) > $topic', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
-        '${data.senderFullName} to you and ${allRecipientIds.length - 2} others', // TODO(i18n), also plural; TODO use others' names, from data
+        zulipLocalizations.groupDMNotificationMessage(
+          data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
       FcmMessageDmRecipient() =>
         data.senderFullName,
     };
