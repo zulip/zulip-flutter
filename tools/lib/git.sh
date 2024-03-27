@@ -90,3 +90,13 @@ git_base_commit() {
 git_changed_files() {
     git diff --name-only --diff-filter=d "$@"
 }
+
+# Note that this assumes ONE submodule. If we ever have more than one,
+# we'll need to generalize this.
+submodule_is_clean()
+{
+    # first character of every line status indicates the status of the
+    # submodule. If there is a space, it means the submodule is clean
+    # and initiated.
+    ! git submodule status -- "$@" | grep -q "^[^ ]"
+}
