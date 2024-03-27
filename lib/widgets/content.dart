@@ -1,7 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -9,14 +7,11 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../model/avatar_url.dart';
-import '../model/binding.dart';
 import '../model/content.dart';
-import '../model/internal_link.dart';
 import 'code_block.dart';
-import 'dialog.dart';
 import 'icons.dart';
+import 'launch_url.dart';
 import 'lightbox.dart';
-import 'message_list.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -437,7 +432,7 @@ class MessageEmbedVideo extends StatelessWidget {
     final previewImageSrcUrl = store.tryResolveUrl(node.previewImageSrcUrl);
 
     return MessageMediaContainer(
-      onTap: () => _launchUrl(context, node.hrefUrl),
+      onTap: () => launchUrlWithRealm(context, node.hrefUrl),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -609,7 +604,7 @@ class _BlockInlineContainerState extends State<_BlockInlineContainer> {
 
   void _prepareRecognizers() {
     _recognizers.addEntries(widget.links.map((node) => MapEntry(node,
-      TapGestureRecognizer()..onTap = () => _launchUrl(context, node.url))));
+      TapGestureRecognizer()..onTap = () => launchUrlWithRealm(context, node.url))));
   }
 
   void _disposeRecognizers() {
@@ -998,52 +993,6 @@ class GlobalTime extends StatelessWidget {
               const SizedBox(width: 1),
               Text(text, style: surroundingTextStyle),
             ]))));
-  }
-}
-
-void _launchUrl(BuildContext context, String urlString) async {
-  Future<void> showError(BuildContext context, String? message) {
-    return showErrorDialog(context: context,
-      title: 'Unable to open link',
-      message: [
-        'Link could not be opened: $urlString',
-        if (message != null) message,
-      ].join("\n\n"));
-  }
-
-  final store = PerAccountStoreWidget.of(context);
-  final url = store.tryResolveUrl(urlString);
-  if (url == null) { // TODO(log)
-    await showError(context, null);
-    return;
-  }
-
-  final internalNarrow = parseInternalLink(url, store);
-  if (internalNarrow != null) {
-    Navigator.push(context,
-      MessageListPage.buildRoute(context: context,
-        narrow: internalNarrow));
-    return;
-  }
-
-  bool launched = false;
-  String? errorMessage;
-  try {
-    launched = await ZulipBinding.instance.launchUrl(url,
-      mode: switch (defaultTargetPlatform) {
-        // On iOS we prefer LaunchMode.externalApplication because (for
-        // HTTP URLs) LaunchMode.platformDefault uses SFSafariViewController,
-        // which gives an awkward UX as described here:
-        //  https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser/near/1169118
-        TargetPlatform.iOS => UrlLaunchMode.externalApplication,
-        _ => UrlLaunchMode.platformDefault,
-      });
-  } on PlatformException catch (e) {
-    errorMessage = e.message;
-  }
-  if (!launched) { // TODO(log)
-    if (!context.mounted) return;
-    await showError(context, errorMessage);
   }
 }
 
