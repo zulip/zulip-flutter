@@ -1,13 +1,12 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/login.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -68,13 +67,11 @@ void main() {
         realmUrl: serverSettings.realmUrl,
         zulipFeatureLevel: serverSettings.zulipFeatureLevel);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          home: GlobalStoreWidget(
-            child: LoginPage(serverSettings: serverSettings))));
-      await tester.pump(); // load global store
+      await tester.pumpWidget(const ZulipApp());
+      await tester.pump();
+      final navigator = await ZulipApp.navigator;
+      navigator.push(LoginPage.buildRoute(serverSettings: serverSettings));
+      await tester.pumpAndSettle();
     }
 
     final findUsernameInput = find.byWidgetPredicate((widget) =>
