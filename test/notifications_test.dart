@@ -9,6 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart' hi
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications.dart';
@@ -166,11 +167,24 @@ void main() {
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     }));
 
-    test('group DM', () => awaitFakeAsync((async) async {
+    test('group DM: 2 users', () => awaitFakeAsync((async) async {
       await init();
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
-        expectedTitle: "${eg.thirdUser.fullName} to you and 1 others",
+        expectedTitle: zulipLocalizations.groupDMNotificationMessage(
+          eg.thirdUser.fullName, message.allRecipientIds.length - 2),
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+    }));
+
+    test('group DM: more than 2 users', () => awaitFakeAsync((async) async {
+      await init();
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final message = eg.dmMessage(from: eg.thirdUser,
+        to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
+      await checkNotifications(async, messageFcmMessage(message),
+        expectedTitle: zulipLocalizations.groupDMNotificationMessage(
+          eg.thirdUser.fullName, message.allRecipientIds.length - 2),
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     }));
 

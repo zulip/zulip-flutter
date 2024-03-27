@@ -440,5 +440,13 @@
   "allMessagesPageTitle": "All messages",
   "@allMessagesPageTitle": {
     "description": "Title for the page of all messages"
+  },
+  "groupDMNotificationMessage": "{senderFullName} to you and {num, plural, =1{1 other} other{{num} others}}.",
+  "@groupDMNotificationMessage": {
+    "description": "Notification message for a group DM.",
+    "placeholders": {
+      "senderFullName": {"type": "String", "example": "Alice"},
+      "num": {"type": "int", "example": "4"}
+    }
   }
 }
