@@ -33,6 +33,8 @@ import 'page_checks.dart';
 ///
 /// The caller must set [debugNetworkImageHttpClientProvider] back to null
 /// before the end of the test.
+// TODO(upstream) simplify callers by using addTearDown: https://github.com/flutter/flutter/issues/123189
+//   See also: https://github.com/flutter/flutter/issues/121917
 FakeImageHttpClient prepareBoringImageHttpClient() {
   final httpClient = FakeImageHttpClient();
   debugNetworkImageHttpClientProvider = () => httpClient;
