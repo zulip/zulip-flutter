@@ -14,7 +14,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
-import 'content_test.dart';
+import '../test_images.dart';
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
