@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/exception.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
 import '../api/route/users.dart';
+import '../model/binding.dart';
 import '../model/store.dart';
 import 'app.dart';
 import 'dialog.dart';
@@ -223,7 +225,14 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 decoration: InputDecoration(
                   labelText: zulipLocalizations.loginServerUrlInputLabel,
                   errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
+                  helper: GestureDetector(
+                    onTap: () {
+                      _launchUrl(context, zulipLocalizations);
+                    },
+                    child: Text(
+                      zulipLocalizations.serverURLDocLinkLabel,
+                      style: Theme.of(context).textTheme.bodySmall!
+                        .apply(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()))),
                   hintText: 'your-org.zulipchat.com')),
               const SizedBox(height: 8),
               ElevatedButton(
@@ -232,6 +241,31 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   : null,
                 child: Text(zulipLocalizations.dialogContinue)),
             ])))));
+  }
+}
+
+void _launchUrl(BuildContext context, ZulipLocalizations zulipLocalizations) async {
+  String urlString = 'https://zulip.com/help/logging-in#find-the-zulip-log-in-url';
+  Future<void> showError(BuildContext context, String? message) {
+    return showErrorDialog(
+        context: context,
+        title: zulipLocalizations.errorUnableToOpenLinkTitle,
+        message: [
+          zulipLocalizations.errorLinkCouldNotBeOpened(urlString),
+          if (message != null) message,
+        ].join("\n\n"));
+  }
+
+  bool launched = false;
+  String? errorMessage;
+  try {
+    launched = await ZulipBinding.instance.launchUrl(Uri.parse(urlString));
+  } on PlatformException catch (e) {
+    errorMessage = e.message;
+  }
+  if (!launched) {
+    if (!context.mounted) return;
+    await showError(context, errorMessage);
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/localizations.dart';
@@ -13,6 +14,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
+import 'dialog_checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -141,5 +143,47 @@ void main() {
     // TODO test _getUserId case
     // TODO test handling failure in fetchApiKey request
     // TODO test _inProgress logic
+  });
+
+  group('Server URL Helper Text', () {
+    Future<void> prepareAddAccountPage(WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
+        home: AddAccountPage(),
+      ));
+    }
+
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    const url = 'https://zulip.com/help/logging-in#find-the-zulip-log-in-url';
+
+    Future<Finder> findHelperText(WidgetTester tester) async {
+      return find.byWidgetPredicate((widget) =>
+          widget is GestureDetector &&
+          widget.child is Text &&
+          (widget.child as Text).data == zulipLocalizations.serverURLDocLinkLabel);
+    }
+
+    testWidgets('launches URL when helper text is tapped', (WidgetTester tester) async {
+      await prepareAddAccountPage(tester);
+      final helper = await findHelperText(tester);
+      await tester.tap(helper);
+
+      check(testBinding.takeLaunchUrlCalls())
+          .single
+          .equals((url: Uri.parse(url), mode: LaunchMode.platformDefault));
+    });
+
+    testWidgets('shows error dialog when URL fails to open', (WidgetTester tester) async {
+      await prepareAddAccountPage(tester);
+      testBinding.launchUrlResult = false;
+      final helper = await findHelperText(tester);
+      await tester.tap(helper);
+      await tester.pump();
+
+      checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorUnableToOpenLinkTitle,
+          expectedMessage: zulipLocalizations.errorLinkCouldNotBeOpened(url));
+    });
   });
 }
