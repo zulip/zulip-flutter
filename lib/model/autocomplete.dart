@@ -287,6 +287,11 @@ class MentionAutocompleteQuery {
 
   bool testUser(User user, AutocompleteDataCache cache) {
     // TODO(#236) test email too, not just name
+
+    return _testName(user, cache);
+  }
+
+  bool _testName(User user, AutocompleteDataCache cache) {
     // TODO(#237) test with diacritics stripped, where appropriate
 
     final List<String> nameWords = cache.nameWordsForUser(user);
