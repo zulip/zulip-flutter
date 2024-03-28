@@ -312,6 +312,12 @@ void main() {
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 
+    test('user is always excluded when not active regardless of other criteria', () {
+      doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: false), false);
+      // When active then other criteria will be checked
+      doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: true), true);
+    });
+
     test('user is included if fullname words match the query', () {
       doCheck('', eg.user(fullName: 'Full Name'), true);
       doCheck('', eg.user(fullName: ''), true); // Unlikely case, but should not crash

@@ -288,6 +288,8 @@ class MentionAutocompleteQuery {
   bool testUser(User user, AutocompleteDataCache cache) {
     // TODO(#236) test email too, not just name
 
+    if (!user.isActive) return false;
+
     return _testName(user, cache);
   }
 
