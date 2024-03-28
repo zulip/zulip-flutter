@@ -194,12 +194,15 @@ class ChooseAccountPage extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (final (:accountId, :account) in globalStore.accountEntries)
-                _buildAccountItem(context,
-                  accountId: accountId,
-                  title: Text(account.realmUrl.toString()),
-                  subtitle: Text(account.email)),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Flexible(child: SingleChildScrollView(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  for (final (:accountId, :account) in globalStore.accountEntries)
+                    _buildAccountItem(context,
+                      accountId: accountId,
+                      title: Text(account.realmUrl.toString()),
+                      subtitle: Text(account.email)),
+                ]))),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => Navigator.push(context,
