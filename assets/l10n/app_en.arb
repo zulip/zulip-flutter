@@ -289,6 +289,21 @@
   "@loginServerUrlInputLabel": {
     "description": "Input label in login page for Zulip server URL entry."
   },
+  "serverURLDocLinkLabel": "What's this?",
+  "@serverURLDocLinkLabel": {
+    "description": "Link to doc to help users understand what a server URL is and how to find theirs."
+  },
+  "errorUnableToOpenLinkTitle": "Unable to open link",
+  "@errorUnableToOpenLinkTitle": {
+    "description": "Error title when a link fails to open."
+  },
+  "errorLinkCouldNotBeOpened": "Link could not be opened: {url}",
+  "@errorLinkCouldNotBeOpened": {
+    "description": "Error message when a specific link could not be opened.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://example.com/"}
+    }
+  },
   "loginHidePassword": "Hide password",
   "@loginHidePassword": {
     "description": "Icon label for button to hide password in input form."
