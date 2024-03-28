@@ -316,6 +316,11 @@ hello
       store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
       check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
     });
+    test('`users` passed; has two same-name users but one of them is deactivated', () {
+      final store = eg.store();
+      store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
+      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
+    });
     test('`users` passed; user has unique fullName', () {
       final store = eg.store();
       store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
