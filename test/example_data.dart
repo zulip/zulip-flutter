@@ -122,14 +122,14 @@ final User selfUser = user(fullName: 'Self User', email: 'self@example');
 final Account selfAccount = account(
   id: 1001,
   user: selfUser,
-  apiKey: 'asdfqwer',
+  apiKey: 'dQcEJWTq3LczosDkJnRTwf31zniGvMrO',
 );
 
 final User otherUser = user(fullName: 'Other User', email: 'other@example');
 final Account otherAccount = account(
   id: 1002,
   user: otherUser,
-  apiKey: 'sdfgwert',
+  apiKey: '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY',
 );
 
 final User thirdUser = user(fullName: 'Third User', email: 'third@example');
