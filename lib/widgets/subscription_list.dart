@@ -6,6 +6,7 @@ import '../model/narrow.dart';
 import '../model/unreads.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'navigation_bar.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -82,6 +83,7 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
 
     return Scaffold(
       appBar: AppBar(title: const Text("Streams")),
+      bottomNavigationBar: ZulipNavigationBar(selectedPage: SubscriptionListPage),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,
