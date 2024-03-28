@@ -16,6 +16,7 @@ import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
+import'snackbar.dart';
 
 class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -300,6 +301,11 @@ class HomePage extends StatelessWidget {
                   narrow: StreamNarrow(testStreamId!))),
               child: const Text("#test here")), // scaffolding hack, see above
           ],
+          const SizedBox(
+              height: 40,
+              child:SnackBarPage()
+          )
+
         ])));
   }
 }
