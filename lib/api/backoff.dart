@@ -49,4 +49,10 @@ class BackoffMachine {
 
     _waitsCompleted++;
   }
+
+  /// Reset the machine to its initial state with minimal wait.
+  void reset() {
+    _startTime = null;
+    _waitsCompleted = 0;
+  }
 }
