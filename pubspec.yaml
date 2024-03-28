@@ -38,6 +38,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  connectivity_plus: ^5.0.0
 
   app_settings: ^5.0.0
   collection: ^1.17.2
