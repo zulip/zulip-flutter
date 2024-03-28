@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -33,18 +34,40 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       && reactionWithVotes.userIds.contains(store.selfUserId))
     ?? false;
 
+  List<Widget> actionSheetButtons = [
+    if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
+    StarButton(message: message, messageListContext: context),
+    ShareButton(message: message, messageListContext: context),
+    if (isComposeBoxOffered) QuoteAndReplyButton(message: message,messageListContext: context),
+    CopyButton(message: message, messageListContext: context),
+    const MessageActionSheetCancelButton(),
+  ];
+
   showDraggableScrollableModalBottomSheet(
     context: context,
     builder: (BuildContext _) {
       return Column(children: [
-        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
-        StarButton(message: message, messageListContext: context),
-        ShareButton(message: message, messageListContext: context),
-        if (isComposeBoxOffered) QuoteAndReplyButton(
-          message: message,
-          messageListContext: context,
-        ),
-        CopyButton(message: message, messageListContext: context),
+        ...actionSheetButtons.mapIndexed(
+          (index, element) {
+            if(index == 0){
+              // If element is the first element
+              // set the _isFirst value and unset the _isLast value
+              return (element as MessageActionSheetMenuItemButton)..setIsFirst()..unsetIsLast();
+            }
+            else if (index == actionSheetButtons.length - 2){
+              // If element is the last element of the action Sheet
+              // set the _isLast value and unset the _isFirst value
+              return (element as MessageActionSheetMenuItemButton)..setIsLast()..unsetIsFirst();
+            }
+            else if(index == actionSheetButtons.length - 1){
+              // If the element is the Cancel Button then return as it is.
+              return element;
+            }
+            // If the element is any other element
+            // unset the _isFirst value and unset the _isLast value.
+            return (element as MessageActionSheetMenuItemButton)..unsetIsFirst()..unsetIsLast();
+          },
+      ),
       ]);
     });
 }
@@ -60,16 +83,65 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   String label(ZulipLocalizations zulipLocalizations);
   void Function(BuildContext) get onPressed;
 
+  late final bool _isFirst;
+  late final bool _isLast;
+
+  void setIsFirst(){
+      _isFirst = true;
+  }
+  void setIsLast(){
+      _isLast = true;
+  }
+
+  void unsetIsFirst(){
+      _isFirst = false;
+  }
+  void unsetIsLast(){
+      _isLast = false;
+  }
+
   final Message message;
   final BuildContext messageListContext;
+
+  final Color _kActionSheetIconColor = const Color(0xff666699);
+  final Color _kActionSheetMenuItemButtonsColor = const Color(0xff4040BF).withOpacity(0.08);
+  final Color _kActionSheetMenuItemLabelColor = const Color(0xff262659);
+
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return MenuItemButton(
-      leadingIcon: Icon(icon),
-      onPressed: () => onPressed(context),
-      child: Text(label(zulipLocalizations)));
+    return Padding(
+      padding: const EdgeInsets.only(left:16,right: 16,bottom: 1.5),
+      child: MenuItemButton(
+        trailingIcon: Icon(icon),
+        onPressed: () => onPressed(context),
+        style: ButtonStyle(
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical:10,horizontal: 15)),
+          backgroundColor: WidgetStatePropertyAll(_kActionSheetMenuItemButtonsColor),
+          iconColor: WidgetStatePropertyAll(_kActionSheetIconColor),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              // If the element is the first element we have the border of first element
+              // If the element is the last element we have the border of last element
+              // else the element is rendered with the default borders.
+              borderRadius:
+              (_isFirst)? const BorderRadius.only(
+                topLeft: Radius.circular(7),topRight: Radius.circular(7),)
+                  :(_isLast)?const BorderRadius.only(
+                      bottomRight: Radius.circular(7),bottomLeft: Radius.circular(7),)
+                        :BorderRadius.zero,
+            ),
+          ),
+        ),
+        child: Text(label(zulipLocalizations),style:  TextStyle(
+          color: _kActionSheetMenuItemLabelColor,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          fontFamily: "Source Sans 3",
+        ),),
+      ),
+    );
   }
 }
 
@@ -365,4 +437,35 @@ class CopyButton extends MessageActionSheetMenuItemButton {
       successContent: Text(zulipLocalizations.successMessageCopied),
       data: ClipboardData(text: rawContent));
   };
+}
+
+class MessageActionSheetCancelButton extends StatelessWidget {
+  const MessageActionSheetCancelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0,vertical: 5),
+      child: MaterialButton(
+        onPressed: (){
+          Navigator.of(context).pop();
+        },
+        color: const Color(0xffe3e3e5),
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          return SizedBox(
+              width: constraints.maxWidth,
+              child: const Text("Cancel",style: TextStyle(
+                fontSize: 20,
+                color: Color(0xff222222),
+                fontWeight: FontWeight.w500
+              ),textAlign: TextAlign.center,));
+        },),
+      ),
+    );
+  }
 }
