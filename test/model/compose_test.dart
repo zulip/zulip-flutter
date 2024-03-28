@@ -95,9 +95,10 @@ world
     });
 
     test('whitespace around info string', () {
+      const infoString = ' javascript ';
       checkFenceWrap('''
 ````
-``` javascript 
+```$infoString
 // hello world
 ```
 ````
