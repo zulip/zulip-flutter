@@ -77,8 +77,8 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
       }
     }
     // TODO(i18n): add locale-aware sorting
-    pinned.sortBy((subscription) => subscription.name);
-    unpinned.sortBy((subscription) => subscription.name);
+    pinned.sortBy((subscription) => subscription.name.toLowerCase());
+    unpinned.sortBy((subscription) => subscription.name.toLowerCase());
 
     return Scaffold(
       appBar: AppBar(title: const Text("Streams")),
