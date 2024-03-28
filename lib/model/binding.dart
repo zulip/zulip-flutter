@@ -88,6 +88,16 @@ abstract class ZulipBinding {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   });
 
+  /// Checks whether [closeInAppWebView] is supported, via package:url_launcher.
+  ///
+  /// This wraps [url_launcher.supportsCloseForLaunchMode].
+  Future<bool> supportsCloseForLaunchMode(url_launcher.LaunchMode mode);
+
+  /// Closes the current in-app web view, via package:url_launcher.
+  ///
+  /// This wraps [url_launcher.closeInAppWebView].
+  Future<void> closeInAppWebView();
+
   /// Provides device and operating system information,
   /// via package:device_info_plus.
   ///
@@ -173,6 +183,16 @@ class LiveZulipBinding extends ZulipBinding {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   }) {
     return url_launcher.launchUrl(url, mode: mode);
+  }
+
+  @override
+  Future<bool> supportsCloseForLaunchMode(url_launcher.LaunchMode mode) async {
+    return url_launcher.supportsCloseForLaunchMode(mode);
+  }
+
+  @override
+  Future<void> closeInAppWebView() async {
+    return url_launcher.closeInAppWebView();
   }
 
   @override
