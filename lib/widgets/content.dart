@@ -622,6 +622,8 @@ class _InlineContentBuilder {
       return const TextSpan(text: "");
     } else if (node is StrongNode) {
       return _buildStrong(node);
+    } else if (node is DeletedNode) {
+      return _buildDeleted(node);
     } else if (node is EmphasisNode) {
       return _buildEmphasis(node);
     } else if (node is LinkNode) {
@@ -652,6 +654,9 @@ class _InlineContentBuilder {
 
   InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
     style: weightVariableTextStyle(_context, wght: 600, wghtIfPlatformRequestsBold: 900));
+
+  InlineSpan _buildDeleted(DeletedNode node) => _buildNodes(node.nodes,
+    style: const TextStyle(decoration: TextDecoration.lineThrough));
 
   InlineSpan _buildEmphasis(EmphasisNode node) => _buildNodes(node.nodes,
     style: const TextStyle(fontStyle: FontStyle.italic));
