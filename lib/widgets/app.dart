@@ -218,12 +218,13 @@ class ChooseAccountPage extends StatelessWidget {
         title: Text(zulipLocalizations.chooseAccountPageTitle),
         actions: const [ChooseAccountPageOverflowButton()]),
       body: SafeArea(
-        minimum: const EdgeInsets.all(8),
+        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Flexible(child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 8),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   for (final (:accountId, :account) in globalStore.accountEntries)
                     _buildAccountItem(context,
