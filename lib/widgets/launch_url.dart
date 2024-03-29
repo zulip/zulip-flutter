@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/binding.dart';
 import '../model/internal_link.dart';
@@ -10,11 +11,12 @@ import 'store.dart';
 
 /// Handles showing an error dialog with a customizable message.
 Future<void> _showError(BuildContext context, String? message, String urlString) {
+  final zulipLocalizations = ZulipLocalizations.of(context);
   return showErrorDialog(
     context: context,
-    title: 'Unable to open link',
+    title: zulipLocalizations.errorUnableToOpenLinkTitle,
     message: [
-      'Link could not be opened: $urlString',
+      zulipLocalizations.errorUnableToOpenLinkMessage(urlString),
       if (message != null) message,
     ].join("\n\n"));
 }
