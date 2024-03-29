@@ -896,7 +896,10 @@ class MessageWithPossibleSender extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+
     final message = item.message;
+    final sender = store.users[message.senderId];
 
     Widget? senderRow;
     if (item.showSender) {
@@ -926,6 +929,14 @@ class MessageWithPossibleSender extends StatelessWidget {
                       ).merge(weightVariableTextStyle(context, wght: 600,
                                 wghtIfPlatformRequestsBold: 900)),
                       overflow: TextOverflow.ellipsis)),
+                  if (sender?.isBot ?? false) ...[
+                    const SizedBox(width: 5),
+                    const Icon(
+                      ZulipIcons.bot,
+                      size: 15,
+                      color: Color.fromARGB(255, 159, 173, 173),
+                    ),
+                  ],
                 ]))),
           const SizedBox(width: 4),
           Text(time,

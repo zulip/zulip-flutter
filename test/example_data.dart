@@ -75,6 +75,7 @@ User user({
   String? email,
   String? fullName,
   bool? isActive,
+  bool? isBot,
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
@@ -89,7 +90,7 @@ User user({
     isAdmin: false,
     isGuest: false,
     isBillingAdmin: false,
-    isBot: false,
+    isBot: isBot ?? false,
     botType: null,
     botOwnerId: null,
     role: UserRole.member,

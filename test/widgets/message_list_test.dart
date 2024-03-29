@@ -43,6 +43,7 @@ void main() {
     int? messageCount,
     List<Message>? messages,
     List<ZulipStream>? streams,
+    List<User>? users,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
@@ -55,6 +56,7 @@ void main() {
 
     // prepare message list data
     store.addUser(eg.selfUser);
+    store.addUsers(users ?? []);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
       return eg.streamMessage(sender: eg.selfUser);
@@ -476,6 +478,49 @@ void main() {
 
       await handleNewAvatarEventAndPump(tester, '/bar.jpg');
       checkResultForSender('/bar.jpg');
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('Bot user is distinguished by showing an icon', (tester) async {
+      // When using this function, provide only one bot user
+      // to [PerAccountStore] through [setupMessageListPage] function.
+      void checkUser(User user, {required bool isBot}) {
+        final nameFinder = find.text(user.fullName);
+        final botFinder = find.byIcon(ZulipIcons.bot);
+
+        check(nameFinder.evaluate().singleOrNull).isNotNull();
+        check(botFinder.evaluate().singleOrNull).isNotNull();
+
+        final userFinder = find.ancestor(
+          of: nameFinder,
+          matching: find.ancestor(
+            of: botFinder,
+            matching: find.byType(Row),
+          ));
+
+        isBot
+          ? check(userFinder.evaluate()).isNotEmpty()
+          : check(userFinder.evaluate()).isEmpty();
+      }
+
+      prepareBoringImageHttpClient();
+
+      final users = [
+        eg.user(fullName: 'User 1', isBot: true),
+        eg.user(fullName: 'User 2', isBot: false),
+        eg.user(fullName: 'User 3', isBot: false),
+      ];
+
+      await setupMessageListPage(
+        tester,
+        messages: users.map((user) => eg.streamMessage(sender: user)).toList(),
+        users: users,
+      );
+
+      checkUser(users[0], isBot: true);
+      checkUser(users[1], isBot: false);
+      checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
     });
