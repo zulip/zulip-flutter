@@ -120,6 +120,18 @@ void main() {
       ]);
       check(listedStreamIds(tester)).deepEquals([2, 3, 1]);
     });
+
+    testWidgets('subscriptions sorting is case insensitive', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'a'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 2, name: 'B'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'c'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 4, name: 'D'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 5, name: 'e'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 6, name: 'F'), pinToTop: false),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([1, 2, 3, 4, 5, 6]);
+    });
   });
 
   testWidgets('unread badge shows with unreads', (tester) async {
