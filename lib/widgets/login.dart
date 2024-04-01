@@ -238,12 +238,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.serverSettings});
 
-  final GetServerSettingsResult serverSettings;
-
   static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
     return _LoginSequenceRoute(
       page: LoginPage(serverSettings: serverSettings));
   }
+
+  final GetServerSettingsResult serverSettings;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
