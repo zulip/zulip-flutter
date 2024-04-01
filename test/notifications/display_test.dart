@@ -169,11 +169,20 @@ void main() {
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     }));
 
-    test('group DM', () => awaitFakeAsync((async) async {
+    test('group DM: 3 users', () => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
-        expectedTitle: "${eg.thirdUser.fullName} to you and 1 others",
+        expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+    }));
+
+    test('group DM: more than 3 users', () => awaitFakeAsync((async) async {
+      await init();
+      final message = eg.dmMessage(from: eg.thirdUser,
+        to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
+      await checkNotifications(async, messageFcmMessage(message),
+        expectedTitle: "${eg.thirdUser.fullName} to you and 2 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     }));
 
