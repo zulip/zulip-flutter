@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
@@ -467,11 +466,7 @@ void main() {
         await tester.pump();
       }
 
-      final httpClient = FakeImageHttpClient();
-      debugNetworkImageHttpClientProvider = () => httpClient;
-      httpClient.request.response
-        ..statusCode = HttpStatus.ok
-        ..content = kSolidBlueAvatar;
+      prepareBoringImageHttpClient();
 
       await setupMessageListPage(tester, messageCount: 10);
       checkResultForSender(eg.selfUser.avatarUrl);
