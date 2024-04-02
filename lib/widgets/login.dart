@@ -301,10 +301,14 @@ class _LoginPageState extends State<LoginPage> {
       assert(debugLog(e.toString()));
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
-      // Could show different error messages for different failure modes.
+
+      String message = zulipLocalizations.errorWebAuthOperationalError;
+      if (e is PlatformException && e.message != null) {
+        message = e.message!;
+      }
       await showErrorDialog(context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: zulipLocalizations.errorWebAuthOperationalError);
+        message: message);
     } finally {
       setState(() {
         _inProgress = false;
@@ -341,10 +345,14 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
-      // Could show different error messages for different failure modes.
+
+      String message = zulipLocalizations.errorWebAuthOperationalError;
+      if (e is PlatformException && e.message != null) {
+        message = e.message!;
+      }
       await showErrorDialog(context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: zulipLocalizations.errorWebAuthOperationalError);
+        message: message);
     }
   }
 
