@@ -308,6 +308,10 @@
   "@loginServerUrlInputLabel": {
     "description": "Input label in login page for Zulip server URL entry."
   },
+  "serverUrlDocLinkLabel": "What's this?",
+  "@serverUrlDocLinkLabel": {
+    "description": "Link to doc to help users understand what a server URL is and how to find theirs."
+  },
   "errorUnableToOpenLinkTitle": "Unable to open link",
   "@errorUnableToOpenLinkTitle": {
     "description": "Error title when a link fails to open."
