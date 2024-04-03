@@ -45,7 +45,7 @@ export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsExce
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
   GlobalStore({required Iterable<Account> accounts})
-    : _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+      : _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
@@ -67,8 +67,8 @@ abstract class GlobalStore extends ChangeNotifier {
 
   ApiConnection apiConnectionFromAccount(Account account) {
     return apiConnection(
-      realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
-      email: account.email, apiKey: account.apiKey);
+        realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
+        email: account.email, apiKey: account.apiKey);
   }
 
   final Map<int, PerAccountStore> _perAccountStores = {};
@@ -186,6 +186,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   /// to `globalStore.apiConnectionFromAccount(account)`.
   /// When present, it should be a connection that came from that method call,
   /// but it may have already been used for other requests.
+  bool isstale=true;  // Drives the connecting snackbar
   factory PerAccountStore.fromInitialSnapshot({
     required GlobalStore globalStore,
     required int accountId,
@@ -208,10 +209,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
       users: Map.fromEntries(
-        initialSnapshot.realmUsers
-        .followedBy(initialSnapshot.realmNonActiveUsers)
-        .followedBy(initialSnapshot.crossRealmBots)
-        .map((user) => MapEntry(user.userId, user))),
+          initialSnapshot.realmUsers
+              .followedBy(initialSnapshot.realmNonActiveUsers)
+              .followedBy(initialSnapshot.crossRealmBots)
+              .map((user) => MapEntry(user.userId, user))),
       streams: streams,
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
@@ -219,7 +220,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
         streamStore: streams,
       ),
       recentDmConversationsView: RecentDmConversationsView(
-        initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
+          initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
     );
   }
 
@@ -240,10 +241,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required this.unreads,
     required this.recentDmConversationsView,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
-       assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
-       assert(realmUrl == connection.realmUrl),
-       _globalStore = globalStore,
-       _streams = streams;
+        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
+        assert(realmUrl == connection.realmUrl),
+        _globalStore = globalStore,
+        _streams = streams;
 
   ////////////////////////////////////////////////////////////////
   // Data.
@@ -298,7 +299,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   Map<int, Subscription> get subscriptions => _streams.subscriptions;
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
-    _streams.topicVisibilityPolicy(streamId, topic);
+      _streams.topicVisibilityPolicy(streamId, topic);
 
   final StreamStoreImpl _streams;
 
@@ -356,6 +357,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   void handleEvent(Event event) {
     if (event is HeartbeatEvent) {
       assert(debugLog("server event: heartbeat"));
+      isstale=false;  // Dismiss the connecting snackbar
     } else if (event is RealmEmojiUpdateEvent) {
       assert(debugLog("server event: realm_emoji/update"));
       realmEmoji = event.realmEmoji;
@@ -526,11 +528,11 @@ class LiveGlobalStore extends GlobalStore {
 
   @override
   ApiConnection apiConnection({
-      required Uri realmUrl, required int? zulipFeatureLevel,
-      String? email, String? apiKey}) {
+    required Uri realmUrl, required int? zulipFeatureLevel,
+    String? email, String? apiKey}) {
     return ApiConnection.live(
-      realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
-      email: email, apiKey: apiKey);
+        realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
+        email: email, apiKey: apiKey);
   }
 
   // We keep the API simple and synchronous for the bulk of the app's code
@@ -591,11 +593,11 @@ class UpdateMachine {
     required this.store,
     required InitialSnapshot initialSnapshot,
   }) : queueId = initialSnapshot.queueId ?? (() {
-         // The queueId is optional in the type, but should only be missing in the
-         // case of unauthenticated access to a web-public realm.  We authenticated.
-         throw Exception("bad initial snapshot: missing queueId");
-       })(),
-       lastEventId = initialSnapshot.lastEventId;
+    // The queueId is optional in the type, but should only be missing in the
+    // case of unauthenticated access to a web-public realm.  We authenticated.
+    throw Exception("bad initial snapshot: missing queueId");
+  })(),
+        lastEventId = initialSnapshot.lastEventId;
 
   /// Load the user's data from the server, and start an event queue going.
   ///
@@ -616,7 +618,7 @@ class UpdateMachine {
       initialSnapshot: initialSnapshot,
     );
     final updateMachine = UpdateMachine.fromInitialSnapshot(
-      store: store, initialSnapshot: initialSnapshot);
+        store: store, initialSnapshot: initialSnapshot);
     updateMachine.poll();
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
@@ -636,7 +638,7 @@ class UpdateMachine {
         return await registerQueue(connection);
       } catch (e) {
         assert(debugLog('Error fetching initial snapshot: $e\n'
-          'Backing off, then will retry…'));
+            'Backing off, then will retry…'));
         // TODO tell user if initial-fetch errors persist, or look non-transient
         await (backoffMachine ??= BackoffMachine()).wait();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
@@ -680,10 +682,11 @@ class UpdateMachine {
       final GetEventsResult result;
       try {
         result = await getEvents(store.connection,
-          queueId: queueId, lastEventId: lastEventId);
+            queueId: queueId, lastEventId: lastEventId);
       } catch (e) {
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+
             assert(debugLog('Lost event queue for $store.  Replacing…'));
             await store._globalStore._reloadPerAccount(store.accountId);
             dispose();
@@ -693,6 +696,7 @@ class UpdateMachine {
           case Server5xxException() || NetworkException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
+            store.isstale=true;  // drives the connecting snackbar
             // TODO tell user if transient polling errors persist
             // TODO reset to short backoff eventually
             await backoffMachine.wait();
