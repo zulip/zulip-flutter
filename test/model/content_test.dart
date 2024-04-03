@@ -580,6 +580,11 @@ void main() {
     '<p><strong>bold</strong></p>',
     const StrongNode(nodes: [TextNode('bold')]));
 
+  testParseInline('parse deleted/strike-through',
+    // "~~strike through~~"
+    '<p><del>strike through</del></p>',
+    const DeletedNode(nodes: [TextNode('strike through')]));
+
   testParseInline('parse emphasis/italic',
     // "*italic*"
     '<p><em>italic</em></p>',
@@ -590,11 +595,12 @@ void main() {
     '<p><code>inline code</code></p>',
     const InlineCodeNode(nodes: [TextNode('inline code')]));
 
-  testParseInline('parse nested strong, em, code',
-    // "***`word`***"
-    '<p><strong><em><code>word</code></em></strong></p>',
-    const StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
-      TextNode('word')])])]));
+  testParseInline('parse nested del, strong, em, code',
+    // "~~***`word`***~~"
+    '<p><del><strong><em><code>word</code></em></strong></del></p>',
+    const DeletedNode(
+      nodes: [StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
+        TextNode('word')])])])]));
 
   group('LinkNode', () {
     testParseInline('parse link',
@@ -618,19 +624,21 @@ void main() {
         nodes: [TextNode('#mobile-team > zulip-flutter')]));
   });
 
-  testParseInline('parse nested link, strong, em, code',
-    // "[***`word`***](https://example/)"
-    '<p><a href="https://example/"><strong><em><code>word'
-        '</code></em></strong></a></p>',
+  testParseInline('parse nested link, del, strong, em, code',
+    // "[~~***`word`***~~](https://example/)"
+    '<p><a href="https://example/"><del><strong><em><code>word'
+        '</code></em></strong></del></a></p>',
     const LinkNode(url: 'https://example/',
-      nodes: [StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
-        TextNode('word')])])])]));
+      nodes: [DeletedNode(nodes: [
+        StrongNode(nodes: [EmphasisNode(nodes: [InlineCodeNode(nodes: [
+         TextNode('word')])])])])]));
 
-  testParseInline('parse nested strong, em, link',
-    // "***[t](/u)***"
-    '<p><strong><em><a href="/u">t</a></em></strong></p>',
-    const StrongNode(nodes: [EmphasisNode(nodes: [LinkNode(url: '/u',
-      nodes: [TextNode('t')])])]));
+  testParseInline('parse nested del, strong, em, link',
+    // "~~***[t](/u)***~~"
+    '<p><del><strong><em><a href="/u">t</a></em></strong></del></p>',
+    const DeletedNode(
+      nodes: [StrongNode(nodes: [EmphasisNode(nodes: [LinkNode(url: '/u',
+        nodes: [TextNode('t')])])])]));
 
   group('parse @-mentions', () {
     testParseInline('plain user @-mention',
@@ -727,14 +735,15 @@ void main() {
         HeadingNode(level: HeadingLevel.h6, links: null, nodes: [TextNode('six')])]);
 
     testParse('containing inline markup',
-      // "###### one [***`two`***](https://example/)"
-      '<h6>one <a href="https://example/"><strong><em><code>two'
-          '</code></em></strong></a></h6>', const [
+      // "###### one [**~~*`two`*~~**](https://example/)"
+      '<h6>one <a href="https://example/"><strong><del><em><code>two'
+          '</code></em></del></strong></a></h6>', const [
         HeadingNode(level: HeadingLevel.h6, links: null, nodes: [
           TextNode('one '),
           LinkNode(url: 'https://example/',
-            nodes: [StrongNode(nodes: [EmphasisNode(nodes: [
-              InlineCodeNode(nodes: [TextNode('two')])])])]),
+            nodes: [StrongNode(
+              nodes: [DeletedNode( nodes: [EmphasisNode(nodes: [
+                InlineCodeNode(nodes: [TextNode('two')])])])])]),
         ])]);
 
     testParse('amidst paragraphs',

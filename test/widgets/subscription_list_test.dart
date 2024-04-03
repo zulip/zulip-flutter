@@ -89,18 +89,49 @@ void main() {
     check(isUnpinnedHeaderInTree()).isTrue();
   });
 
-  testWidgets('subscription sort', (tester) async {
-    await setupStreamListPage(tester, subscriptions: [
-      eg.subscription(eg.stream(streamId: 1, name: 'd'), pinToTop: true),
-      eg.subscription(eg.stream(streamId: 2, name: 'c'), pinToTop: false),
-      eg.subscription(eg.stream(streamId: 3, name: 'b'), pinToTop: true),
-      eg.subscription(eg.stream(streamId: 4, name: 'a'), pinToTop: false),
-    ]);
-    check(isPinnedHeaderInTree()).isTrue();
-    check(isUnpinnedHeaderInTree()).isTrue();
+  group('subscription sorting', () {
+    Iterable<int> listedStreamIds(WidgetTester tester) => tester
+      .widgetList<SubscriptionItem>(find.byType(SubscriptionItem))
+      .map((e) => e.subscription.streamId);
 
-    final streamListItems = tester.widgetList<SubscriptionItem>(find.byType(SubscriptionItem)).toList();
-    check(streamListItems.map((e) => e.subscription.streamId)).deepEquals([3, 1, 4, 2]);
+    testWidgets('pinned are shown on the top', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'a'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 2, name: 'b'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'c'), pinToTop: false),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([2, 1, 3]);
+    });
+
+    testWidgets('pinned subscriptions are sorted', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 3, name: 'b'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 1, name: 'c'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 2, name: 'a'), pinToTop: true),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([2, 3, 1]);
+    });
+
+    testWidgets('unpinned subscriptions are sorted', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 3, name: 'b'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 1, name: 'c'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 2, name: 'a'), pinToTop: false),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([2, 3, 1]);
+    });
+
+    testWidgets('subscriptions sorting is case insensitive', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'a'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 2, name: 'B'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'c'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 4, name: 'D'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 5, name: 'e'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 6, name: 'F'), pinToTop: false),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([1, 2, 3, 4, 5, 6]);
+    });
   });
 
   testWidgets('unread badge shows with unreads', (tester) async {

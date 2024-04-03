@@ -5,6 +5,13 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+extension RectChecks on Subject<Rect> {
+  Subject<double> get top => has((d) => d.top, 'top');
+  Subject<double> get bottom => has((d) => d.bottom, 'bottom');
+
+  // TODO others
+}
+
 extension AnimationChecks<T> on Subject<Animation<T>> {
   Subject<AnimationStatus> get status => has((d) => d.status, 'status');
   Subject<T> get value => has((d) => d.value, 'value');

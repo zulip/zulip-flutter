@@ -75,6 +75,11 @@ abstract class ZulipBinding {
   /// to a [GlobalStore].
   Future<GlobalStore> loadGlobalStore();
 
+  /// Checks whether the platform can launch [url], via package:url_launcher.
+  ///
+  /// This wraps [url_launcher.canLaunchUrl].
+  Future<bool> canLaunchUrl(Uri url);
+
   /// Pass [url] to the underlying platform, via package:url_launcher.
   ///
   /// This wraps [url_launcher.launchUrl].
@@ -82,6 +87,16 @@ abstract class ZulipBinding {
     Uri url, {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   });
+
+  /// Checks whether [closeInAppWebView] is supported, via package:url_launcher.
+  ///
+  /// This wraps [url_launcher.supportsCloseForLaunchMode].
+  Future<bool> supportsCloseForLaunchMode(url_launcher.LaunchMode mode);
+
+  /// Closes the current in-app web view, via package:url_launcher.
+  ///
+  /// This wraps [url_launcher.closeInAppWebView].
+  Future<void> closeInAppWebView();
 
   /// Provides device and operating system information,
   /// via package:device_info_plus.
@@ -160,11 +175,24 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
+  Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);
+
+  @override
   Future<bool> launchUrl(
     Uri url, {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   }) {
     return url_launcher.launchUrl(url, mode: mode);
+  }
+
+  @override
+  Future<bool> supportsCloseForLaunchMode(url_launcher.LaunchMode mode) async {
+    return url_launcher.supportsCloseForLaunchMode(mode);
+  }
+
+  @override
+  Future<void> closeInAppWebView() async {
+    return url_launcher.closeInAppWebView();
   }
 
   @override

@@ -450,6 +450,10 @@ class StrongNode extends InlineContainerNode {
   const StrongNode({super.debugHtmlNode, required super.nodes});
 }
 
+class DeletedNode extends InlineContainerNode {
+  const DeletedNode({super.debugHtmlNode, required super.nodes});
+}
+
 class EmphasisNode extends InlineContainerNode {
   const EmphasisNode({super.debugHtmlNode, required super.nodes});
 }
@@ -716,6 +720,9 @@ class _ZulipContentParser {
     }
     if (localName == 'strong' && className.isEmpty) {
       return StrongNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
+    }
+    if (localName == 'del' && className.isEmpty) {
+      return DeletedNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
     if (localName == 'em' && className.isEmpty) {
       return EmphasisNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);

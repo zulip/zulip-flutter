@@ -21,22 +21,37 @@ const String recentZulipVersion = '8.0';
 const int recentZulipFeatureLevel = 185;
 const int futureZulipFeatureLevel = 9999;
 
-GetServerSettingsResult serverSettings() {
+GetServerSettingsResult serverSettings({
+  Map<String, bool>? authenticationMethods,
+  List<ExternalAuthenticationMethod>? externalAuthenticationMethods,
+  int? zulipFeatureLevel,
+  String? zulipVersion,
+  String? zulipMergeBase,
+  bool? pushNotificationsEnabled,
+  bool? isIncompatible,
+  bool? emailAuthEnabled,
+  bool? requireEmailFormatUsernames,
+  Uri? realmUrl,
+  String? realmName,
+  String? realmIcon,
+  String? realmDescription,
+  bool? realmWebPublicAccessEnabled,
+}) {
   return GetServerSettingsResult(
-    authenticationMethods: {},
-    externalAuthenticationMethods: [],
-    zulipFeatureLevel: recentZulipFeatureLevel,
-    zulipVersion: recentZulipVersion,
-    zulipMergeBase: recentZulipVersion,
-    pushNotificationsEnabled: true,
-    isIncompatible: false,
-    emailAuthEnabled: true,
-    requireEmailFormatUsernames: true,
-    realmUrl: realmUrl,
-    realmName: 'Example Zulip organization',
-    realmIcon: '$realmUrl/icon.png',
-    realmDescription: 'An example Zulip organization',
-    realmWebPublicAccessEnabled: false,
+    authenticationMethods: authenticationMethods ?? {},
+    externalAuthenticationMethods: externalAuthenticationMethods ?? [],
+    zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
+    zulipVersion: zulipVersion ?? recentZulipVersion,
+    zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
+    pushNotificationsEnabled: pushNotificationsEnabled ?? true,
+    isIncompatible: isIncompatible ?? false,
+    emailAuthEnabled: emailAuthEnabled ?? true,
+    requireEmailFormatUsernames: requireEmailFormatUsernames ?? true,
+    realmUrl: realmUrl ?? _realmUrl,
+    realmName: realmName ?? 'Example Zulip organization',
+    realmIcon: realmIcon ?? '$realmUrl/icon.png',
+    realmDescription: realmDescription ?? 'An example Zulip organization',
+    realmWebPublicAccessEnabled: realmWebPublicAccessEnabled ?? false,
   );
 }
 
@@ -59,6 +74,7 @@ User user({
   int? userId,
   String? email,
   String? fullName,
+  bool? isActive,
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
@@ -68,7 +84,7 @@ User user({
     email: email ?? 'name@example.com', // TODO generate example emails
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: '2023-04-28',
-    isActive: true,
+    isActive: isActive ?? true,
     isOwner: false,
     isAdmin: false,
     isGuest: false,
@@ -107,14 +123,14 @@ final User selfUser = user(fullName: 'Self User', email: 'self@example');
 final Account selfAccount = account(
   id: 1001,
   user: selfUser,
-  apiKey: 'asdfqwer',
+  apiKey: 'dQcEJWTq3LczosDkJnRTwf31zniGvMrO', // A Zulip API key is 32 digits of base64.
 );
 
 final User otherUser = user(fullName: 'Other User', email: 'other@example');
 final Account otherAccount = account(
   id: 1002,
   user: otherUser,
-  apiKey: 'sdfgwert',
+  apiKey: '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY', // A Zulip API key is 32 digits of base64.
 );
 
 final User thirdUser = user(fullName: 'Third User', email: 'third@example');

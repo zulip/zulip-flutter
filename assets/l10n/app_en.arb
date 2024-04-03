@@ -63,6 +63,14 @@
   "@actionSheetOptionUnstarMessage":  {
     "description": "Label for unstar button on action sheet."
   },
+  "errorWebAuthOperationalErrorTitle": "Something went wrong",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorWebAuthOperationalError": "An unexpected error occurred.",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
   "errorAccountLoggedInTitle": "Account already logged in",
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
@@ -281,6 +289,17 @@
   "@loginFormSubmitLabel": {
     "description": "Button text to submit login credentials."
   },
+  "loginMethodDivider": "OR",
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "signInWithFoo": "Sign in with {method}",
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {"type": "String", "example": "Google"}
+    }
+  },
   "loginAddAnAccountPageTitle": "Add an account",
   "@loginAddAnAccountPageTitle": {
     "description": "Page title for screen to add a Zulip account."
@@ -440,5 +459,13 @@
   "allMessagesPageTitle": "All messages",
   "@allMessagesPageTitle": {
     "description": "Title for the page of all messages"
+  },
+  "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
+  "@notifGroupDmConversationLabel": {
+    "description": "Label for a group DM conversation notification.",
+    "placeholders": {
+      "senderFullName": {"type": "String", "example": "Alice"},
+      "numOthers": {"type": "int", "example": "4"}
+    }
   }
 }

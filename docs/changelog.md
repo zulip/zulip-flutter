@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.0.13 (2024-04-02)
+
+### Highlights for users
+
+* You can now log in with third-party auth methods! (#36)
+* (iOS) For now you may have to uninstall the main Zulip app to do
+  that, though.
+* Autocomplete for mentions shows avatars, and hides deactivated
+  users. (#227, #451)
+* Too many other improvements to describe them all here.  Those
+  specifically requested by you, our beta users, include: #562
+  adjusting layout, #568 on sorting streams, and #573 on notification
+  titles.
+
+
+### Highlights for developers
+
+* We've started using Pigeon to generate our own thin bindings for
+  platform APIs, with our own plugin `zulip_plugin` for the app's
+  ad hoc needs. (PR #592)
+
+Resolved: #108, #280, #575, #391, #562, #227, PR #592, #451, #100,
+  #357, #568, #573, #36, #609, #606
+
+
 ## 0.0.12 (2024-03-12)
 
 ### Highlights for users
