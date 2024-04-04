@@ -8,10 +8,10 @@ PODS:
   - Firebase/Messaging (10.22.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 10.22.0)
-  - firebase_core (2.27.0):
+  - firebase_core (2.28.0):
     - Firebase/CoreOnly (~> 10.22.0)
     - FlutterMacOS
-  - firebase_messaging (14.7.19):
+  - firebase_messaging (14.8.0):
     - Firebase/CoreOnly (~> 10.22.0)
     - Firebase/Messaging (~> 10.22.0)
     - firebase_core
@@ -150,11 +150,11 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
+  device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   file_selector_macos: 468fb6b81fac7c0e88d71317f3eec34c3b008ff9
   Firebase: 797fd7297b7e1be954432743a0b3f90038e45a71
-  firebase_core: 94cef1d79e26747286a4808b2345c1ecb8501b11
-  firebase_messaging: b243cd1026362f3f5ec5e73ffb0c4431519f0b57
+  firebase_core: 2c57be44d4fb5de6757fd8ebe04e363599daef36
+  firebase_messaging: 6ee25816b47b604184e49b9e0c49334ebe555d06
   FirebaseCore: 0326ec9b05fbed8f8716cddbf0e36894a13837f7
   FirebaseCoreInternal: 6a292e6f0bece1243a737e81556e56e5e19282e3
   FirebaseInstallations: 42d6ead4605d6eafb3b6683674e80e18eb6f2c35
@@ -164,10 +164,10 @@ SPEC CHECKSUMS:
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: d053d902a8edaa9904e1bd00c37535385b8ed152
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
-  package_info_plus: 02d7a575e80f194102bef286361c6c326e4c29ce
+  package_info_plus: fa739dd842b393193c5ca93c26798dff6e3d0e0c
   path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
+  share_plus: 36537c04ce0c3e3f5bd297ce4318b6d5ee5fd6cf
   sqlite3: 73b7fc691fdc43277614250e04d183740cb15078
   sqlite3_flutter_libs: 06a05802529659a272beac4ee1350bfec294f386
   url_launcher_macos: d2691c7dd33ed713bf3544850a623080ec693d95
