@@ -374,6 +374,39 @@ class ImageNode extends BlockContentNode {
   }
 }
 
+class InlineVideoNode extends BlockContentNode {
+  const InlineVideoNode({
+    super.debugHtmlNode,
+    required this.srcUrl,
+  });
+
+  /// A URL string for the video resource, on the Zulip server.
+  ///
+  /// This may be a relative URL string.  It also may not work without adding
+  /// authentication credentials to the request.
+  ///
+  /// Unlike [EmbedVideoNode.hrefUrl], this should always be a URL served by
+  /// either the Zulip server itself or a service it trusts.  It's therefore
+  /// fine from a privacy perspective to eagerly request data from this resource
+  /// when the user passively scrolls the video into view.
+  final String srcUrl;
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineVideoNode
+      && other.srcUrl == srcUrl;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineVideoNode', srcUrl);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('srcUrl', srcUrl));
+  }
+}
+
 class EmbedVideoNode extends BlockContentNode {
   const EmbedVideoNode({
     super.debugHtmlNode,
@@ -1013,9 +1046,42 @@ class _ZulipContentParser {
   }
 
   static final _videoClassNameRegexp = () {
-    const sourceType = r"(youtube-video|embed-video)";
+    const sourceType = r"(message_inline_video|youtube-video|embed-video)";
     return RegExp("^message_inline_image $sourceType|$sourceType message_inline_image\$");
   }();
+
+  BlockContentNode parseInlineVideoNode(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(divElement.localName == 'div'
+      && _videoClassNameRegexp.hasMatch(divElement.className));
+
+    final videoElement = () {
+      if (divElement.nodes.length != 1) return null;
+      final child = divElement.nodes[0];
+      if (child is! dom.Element) return null;
+      if (child.localName != 'a') return null;
+      if (child.className.isNotEmpty) return null;
+
+      if (child.nodes.length != 1) return null;
+      final grandchild = child.nodes[0];
+      if (grandchild is! dom.Element) return null;
+      if (grandchild.localName != 'video') return null;
+      if (grandchild.className.isNotEmpty) return null;
+      return grandchild;
+    }();
+
+    final debugHtmlNode = kDebugMode ? divElement : null;
+    if (videoElement == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    final src = videoElement.attributes['src'];
+    if (src == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    return InlineVideoNode(srcUrl: src, debugHtmlNode: debugHtmlNode);
+  }
 
   BlockContentNode parseEmbedVideoNode(dom.Element divElement) {
     assert(_debugParserContext == _ParserContext.block);
@@ -1140,8 +1206,11 @@ class _ZulipContentParser {
       final match = _videoClassNameRegexp.firstMatch(className);
       if (match != null) {
         final videoClass = match.group(1) ?? match.group(2)!;
-        if (videoClass case 'youtube-video' || 'embed-video') {
-          return parseEmbedVideoNode(element);
+        switch (videoClass) {
+          case 'message_inline_video':
+            return parseInlineVideoNode(element);
+          case 'youtube-video' || 'embed-video':
+            return parseEmbedVideoNode(element);
         }
       }
     }

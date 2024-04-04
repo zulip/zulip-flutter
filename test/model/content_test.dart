@@ -700,6 +700,36 @@ class ContentExample {
       previewImageSrcUrl: 'https://uploads.zulipusercontent.net/75aed2df4a1e8657176fcd6159fc40876ace4070/68747470733a2f2f692e76696d656f63646e2e636f6d2f766964656f2f32303936333634392d663032383137343536666334386537633331376566346330376261323539636434623430613336343962643865623530613434313862353965633366356166352d645f363430'
     ),
   ]);
+
+  static const videoInline = ContentExample(
+    'video preview for user uploaded video',
+    '[Big-Buck-Bunny.webm](/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm)',
+    '<p>'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm">Big-Buck-Bunny.webm</a>'
+    '</p>\n'
+    '<div class="message_inline_image message_inline_video">'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm" title="Big-Buck-Bunny.webm">'
+        '<video preload="metadata" src="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm"></video></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm', nodes: [TextNode('Big-Buck-Bunny.webm')]),
+    ]),
+    InlineVideoNode(srcUrl: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm'),
+  ]);
+
+  static const videoInlineClassesFlipped = ContentExample(
+    'video preview for user uploaded video, (hypothetical) class name reorder',
+    '[Big-Buck-Bunny.webm](/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm)',
+    '<p>'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm">Big-Buck-Bunny.webm</a>'
+    '</p>\n'
+    '<div class="message_inline_video message_inline_image">'
+      '<a href="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm" title="Big-Buck-Bunny.webm">'
+        '<video preload="metadata" src="/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm"></video></a></div>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm', nodes: [TextNode('Big-Buck-Bunny.webm')]),
+    ]),
+    InlineVideoNode(srcUrl: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm'),
+  ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -1017,6 +1047,8 @@ void main() {
   testParseExample(ContentExample.videoEmbedVimeoPreviewDisabled);
   testParseExample(ContentExample.videoEmbedVimeo);
   testParseExample(ContentExample.videoEmbedVimeoClassesFlipped);
+  testParseExample(ContentExample.videoInline);
+  testParseExample(ContentExample.videoInlineClassesFlipped);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"

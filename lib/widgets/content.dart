@@ -98,6 +98,14 @@ class BlockContentList extends StatelessWidget {
             "It should be wrapped in [ImageNodeList]."
           );
           return MessageImage(node: node);
+        } else if (node is InlineVideoNode) {
+          return Text.rich(
+            TextSpan(children: [
+              const TextSpan(text: "(unimplemented:", style: errorStyle),
+              TextSpan(text: node.debugHtmlText, style: errorCodeStyle),
+              const TextSpan(text: ")", style: errorStyle),
+            ]),
+            style: errorStyle);
         } else if (node is EmbedVideoNode) {
           return Text.rich(
             TextSpan(children: [
