@@ -62,6 +62,13 @@ void main() {
     });
   }
 
+  group('ThematicBreak', () {
+    testWidgets('smoke ThematicBreak', (tester) async {
+      await prepareContentBare(tester, ContentExample.thematicBreak.html);
+      tester.widget(find.byType(ThematicBreak));
+    });
+  });
+
   group('Heading', () {
     testWidgets('plain h6', (tester) async {
       await prepareContentBare(tester,

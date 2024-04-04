@@ -74,6 +74,8 @@ class BlockContentList extends StatelessWidget {
           // This goes in a Column.  So to get the effect of a newline,
           // just use an empty Text.
           return const Text('');
+        } else if (node is ThematicBreakNode) {
+          return const ThematicBreak();
         } else if (node is ParagraphNode) {
           return Paragraph(node: node);
         } else if (node is HeadingNode) {
@@ -104,6 +106,22 @@ class BlockContentList extends StatelessWidget {
         }
       }),
     ]);
+  }
+}
+
+class ThematicBreak extends StatelessWidget {
+  const ThematicBreak({super.key});
+
+  static const htmlHeight = 2.0;
+  static const htmlMarginY = 20.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      color: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
+      thickness: htmlHeight,
+      height: 2 * htmlMarginY + htmlHeight,
+    );
   }
 }
 
