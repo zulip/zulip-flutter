@@ -374,6 +374,50 @@ class ImageNode extends BlockContentNode {
   }
 }
 
+class EmbedVideoNode extends BlockContentNode {
+  const EmbedVideoNode({
+    super.debugHtmlNode,
+    required this.hrefUrl,
+    required this.previewImageSrcUrl,
+  });
+
+  /// A URL string for the video, typically on an external service.
+  ///
+  /// For example, this URL may be on youtube.com or vimeo.com.
+  ///
+  /// Unlike with [previewImageSrcUrl] or [InlineVideoNode.srcUrl],
+  /// no requests should be made to this URL unless the user explicitly chooses
+  /// to interact with the video, in order to protect the user's privacy.
+  final String hrefUrl;
+
+  /// A URL string for a thumbnail image for the video, on the Zulip server.
+  ///
+  /// This may be a relative URL string.  It also may not work without adding
+  /// authentication credentials to the request.
+  ///
+  /// Like [InlineVideoNode.srcUrl] and unlike [hrefUrl], this is suitable
+  /// from a privacy perspective for eagerly fetching data when the user
+  /// passively scrolls the video into view.
+  final String previewImageSrcUrl;
+
+  @override
+  bool operator ==(Object other) {
+    return other is EmbedVideoNode
+      && other.hrefUrl == hrefUrl
+      && other.previewImageSrcUrl == previewImageSrcUrl;
+  }
+
+  @override
+  int get hashCode => Object.hash('EmbedVideoNode', hrefUrl, previewImageSrcUrl);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('hrefUrl', hrefUrl));
+    properties.add(StringProperty('previewImageSrcUrl', previewImageSrcUrl));
+  }
+}
+
 /// A content node that expects an inline layout context from its parent.
 ///
 /// When rendered into a Flutter widget tree, an inline content node
@@ -968,6 +1012,50 @@ class _ZulipContentParser {
     return ImageNode(srcUrl: src, debugHtmlNode: debugHtmlNode);
   }
 
+  static final _videoClassNameRegexp = () {
+    const sourceType = r"(youtube-video|embed-video)";
+    return RegExp("^message_inline_image $sourceType|$sourceType message_inline_image\$");
+  }();
+
+  BlockContentNode parseEmbedVideoNode(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(divElement.localName == 'div'
+      && _videoClassNameRegexp.hasMatch(divElement.className));
+
+    final pair = () {
+      if (divElement.nodes.length != 1) return null;
+      final child = divElement.nodes[0];
+      if (child is! dom.Element) return null;
+      if (child.localName != 'a') return null;
+      if (child.className.isNotEmpty) return null;
+
+      if (child.nodes.length != 1) return null;
+      final grandchild = child.nodes[0];
+      if (grandchild is! dom.Element) return null;
+      if (grandchild.localName != 'img') return null;
+      if (grandchild.className.isNotEmpty) return null;
+      return (child, grandchild);
+    }();
+
+    final debugHtmlNode = kDebugMode ? divElement : null;
+    if (pair == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+    final (anchorElement, imgElement) = pair;
+
+    final imgSrc = imgElement.attributes['src'];
+    if (imgSrc == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    final href = anchorElement.attributes['href'];
+    if (href == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+
+    return EmbedVideoNode(hrefUrl: href, previewImageSrcUrl: imgSrc, debugHtmlNode: debugHtmlNode);
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.block);
     final debugHtmlNode = kDebugMode ? node : null;
@@ -1046,6 +1134,16 @@ class _ZulipContentParser {
 
     if (localName == 'div' && className == 'message_inline_image') {
       return parseImageNode(element);
+    }
+
+    if (localName == 'div') {
+      final match = _videoClassNameRegexp.firstMatch(className);
+      if (match != null) {
+        final videoClass = match.group(1) ?? match.group(2)!;
+        if (videoClass case 'youtube-video' || 'embed-video') {
+          return parseEmbedVideoNode(element);
+        }
+      }
     }
 
     // TODO more types of node
