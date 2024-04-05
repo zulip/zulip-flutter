@@ -107,13 +107,7 @@ class BlockContentList extends StatelessWidget {
             ]),
             style: errorStyle);
         } else if (node is EmbedVideoNode) {
-          return Text.rich(
-            TextSpan(children: [
-              const TextSpan(text: "(unimplemented:", style: errorStyle),
-              TextSpan(text: node.debugHtmlText, style: errorCodeStyle),
-              const TextSpan(text: ")", style: errorStyle),
-            ]),
-            style: errorStyle);
+          return MessageEmbedVideo(node: node);
         } else if (node is UnimplementedBlockContentNode) {
           return Text.rich(_errorUnimplemented(node));
         } else {
@@ -401,6 +395,35 @@ class MessageImage extends StatelessWidget {
         child: RealmContentNetworkImage(
           resolvedSrc,
           filterQuality: FilterQuality.medium)));
+  }
+}
+
+class MessageEmbedVideo extends StatelessWidget {
+  const MessageEmbedVideo({super.key, required this.node});
+
+  final EmbedVideoNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final previewImageSrcUrl = store.tryResolveUrl(node.previewImageSrcUrl);
+
+    return MessageMediaContainer(
+      onTap: () => _launchUrl(context, node.hrefUrl),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (previewImageSrcUrl != null) // TODO(log)
+            RealmContentNetworkImage(
+              previewImageSrcUrl,
+              filterQuality: FilterQuality.medium),
+          // Show the "play" icon even when previewImageSrcUrl didn't resolve;
+          // the action uses hrefUrl, which might still work.
+          const Icon(
+            Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: 32),
+        ]));
   }
 }
 

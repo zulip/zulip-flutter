@@ -328,6 +328,54 @@ void main() {
     });
   });
 
+  group("MessageEmbedVideo", () {
+    Future<void> prepareContent(WidgetTester tester, String html) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      prepareBoringImageHttpClient();
+
+      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: MessageContent(
+            message: eg.streamMessage(content: html),
+            content: parseContent(html))))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+      debugNetworkImageHttpClientProvider = null;
+    }
+
+    Future<void> checkEmbedVideo(WidgetTester tester, ContentExample example) async {
+      await prepareContent(tester, example.html);
+
+      final expectedTitle = (((example.expectedNodes[0] as ParagraphNode)
+        .nodes.single as LinkNode).nodes.single as TextNode).text;
+      await tester.ensureVisible(find.text(expectedTitle));
+
+      final expectedVideo = example.expectedNodes[1] as EmbedVideoNode;
+      final expectedResolvedUrl = eg.store()
+        .tryResolveUrl(expectedVideo.previewImageSrcUrl)!;
+      final image = tester.widget<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(image.src).equals(expectedResolvedUrl);
+
+      final expectedLaunchUrl = expectedVideo.hrefUrl;
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: Uri.parse(expectedLaunchUrl), mode: LaunchMode.platformDefault));
+    }
+
+    testWidgets('video preview for youtube embed', (tester) async {
+      const example = ContentExample.videoEmbedYoutube;
+      await checkEmbedVideo(tester, example);
+    });
+
+    testWidgets('video preview for vimeo embed', (tester) async {
+      const example = ContentExample.videoEmbedVimeo;
+      await checkEmbedVideo(tester, example);
+    });
+  });
+
+
   group("CodeBlock", () {
     testContentSmoke(ContentExample.codeBlockPlain);
     testContentSmoke(ContentExample.codeBlockHighlightedShort);
