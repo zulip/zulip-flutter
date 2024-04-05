@@ -89,6 +89,7 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
   stack_trace: ^1.11.1
   test: ^1.23.1
+  video_player_platform_interface: ^6.2.2
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 # For information on the generic Dart part of this file, see the
