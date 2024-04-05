@@ -390,11 +390,34 @@ class MessageImage extends StatelessWidget {
     final resolvedSrc = store.tryResolveUrl(src);
     // TODO if src fails to parse, show an explicit "broken image"
 
-    return GestureDetector(
+    return MessageMediaContainer(
       onTap: resolvedSrc == null ? null : () { // TODO(log)
         Navigator.of(context).push(getLightboxRoute(
           context: context, message: message, src: resolvedSrc));
       },
+      child: resolvedSrc == null ? null : LightboxHero(
+        message: message,
+        src: resolvedSrc,
+        child: RealmContentNetworkImage(
+          resolvedSrc,
+          filterQuality: FilterQuality.medium)));
+  }
+}
+
+class MessageMediaContainer extends StatelessWidget {
+  const MessageMediaContainer({
+    super.key,
+    required this.onTap,
+    required this.child,
+  });
+
+  final void Function()? onTap;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
       child: UnconstrainedBox(
         alignment: Alignment.centerLeft,
         child: Padding(
@@ -408,12 +431,7 @@ class MessageImage extends StatelessWidget {
               child: SizedBox(
                 height: 100,
                 width: 150,
-                child: resolvedSrc == null ? null : LightboxHero(
-                  message: message,
-                  src: resolvedSrc,
-                  child: RealmContentNetworkImage(
-                    resolvedSrc,
-                    filterQuality: FilterQuality.medium))))))));
+                child: child))))));
   }
 }
 
