@@ -86,6 +86,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   json_serializable: ^6.5.4
   pigeon: ^18.0.0
+  plugin_platform_interface: ^2.1.8
   stack_trace: ^1.11.1
   test: ^1.23.1
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
