@@ -178,6 +178,19 @@ class LineBreakNode extends BlockContentNode {
   int get hashCode => 'LineBreakNode'.hashCode;
 }
 
+/// A `hr` element
+class ThematicBreakNode extends BlockContentNode {
+  const ThematicBreakNode({super.debugHtmlNode});
+
+  @override
+  bool operator ==(Object other) {
+    return other is ThematicBreakNode;
+  }
+
+  @override
+  int get hashCode => 'ThematicBreakNode'.hashCode;
+}
+
 /// A `p` element, or a place where the DOM tree logically wanted one.
 ///
 /// We synthesize these in the absence of an actual `p` element in cases where
@@ -967,6 +980,10 @@ class _ZulipContentParser {
 
     if (localName == 'br' && className.isEmpty) {
       return LineBreakNode(debugHtmlNode: debugHtmlNode);
+    }
+
+    if (localName == 'hr' && className.isEmpty) {
+      return ThematicBreakNode(debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'p' && className.isEmpty) {

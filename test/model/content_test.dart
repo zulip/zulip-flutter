@@ -521,6 +521,17 @@ class ContentExample {
       blockUnimplemented('more text'),
     ]]),
   ]);
+
+  static const thematicBreak =  ContentExample(
+    'parse thematic break (<hr>)',
+    // https://chat.zulip.org/#narrow/stream/7-test-here/near/1774718
+    'a\n---\nb',
+    '<p>a</p>\n<hr>\n<p>b</p>',
+    [
+      ParagraphNode(links: null, nodes: [TextNode('a')]),
+      ThematicBreakNode(),
+      ParagraphNode(links: null, nodes: [TextNode('b')]),
+    ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -720,6 +731,8 @@ void main() {
       ParagraphNode(links: null, nodes: [TextNode('a')]),
       LineBreakNode(),
     ]);
+
+  testParseExample(ContentExample.thematicBreak);
 
   testParse('parse two plain-text paragraphs',
     // "hello\n\nworld"
