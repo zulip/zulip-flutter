@@ -301,6 +301,17 @@ class ContentExample {
         '\n</code></pre></div>'),
     ]);
 
+  static const codeBlockFollowedByMultipleLineBreaks = ContentExample(
+    'blank text nodes after code blocks',
+    '    code block.\n\nsome content',
+    // https://chat.zulip.org/#narrow/stream/7-test-here/near/1774823
+    '<div class="codehilite">'
+      '<pre><span></span><code>code block.\n</code></pre></div>\n\n'
+    '<p>some content</p>', [
+      CodeBlockNode([CodeBlockSpanNode(text: "code block.", type: CodeBlockSpanType.text)]),
+      ParagraphNode(links: null, nodes: [TextNode("some content")]),
+    ]);
+
   static final mathInline = ContentExample.inline(
     'inline math',
     r"$$ \lambda $$",
@@ -865,6 +876,7 @@ void main() {
   testParseExample(ContentExample.codeBlockHighlightedMultiline);
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
+  testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
 
   testParseExample(ContentExample.mathBlock);
   testParseExample(ContentExample.mathBlockInQuote);

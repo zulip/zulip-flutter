@@ -1124,6 +1124,8 @@ class _ZulipContentParser {
     return result;
   }
 
+  static final _redundantLineBreaksRegexp = RegExp(r'^\n+$');
+
   List<BlockContentNode> parseBlockContentList(dom.NodeList nodes) {
     assert(_debugParserContext == _ParserContext.block);
     final List<BlockContentNode> result = [];
@@ -1131,7 +1133,9 @@ class _ZulipContentParser {
     for (final node in nodes) {
       // We get a bunch of newline Text nodes between paragraphs.
       // A browser seems to ignore these; let's do the same.
-      if (node is dom.Text && (node.text == '\n')) continue;
+      if (node is dom.Text && _redundantLineBreaksRegexp.hasMatch(node.text)) {
+        continue;
+      }
 
       final block = parseBlockContent(node);
       if (block is ImageNode) {
