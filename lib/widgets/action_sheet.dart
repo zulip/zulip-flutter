@@ -37,14 +37,15 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     context: context,
     builder: (BuildContext _) {
       return Column(children: [
-        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
+        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context,isRounded: 1,),
         StarButton(message: message, messageListContext: context),
         ShareButton(message: message, messageListContext: context),
         if (isComposeBoxOffered) QuoteAndReplyButton(
           message: message,
           messageListContext: context,
         ),
-        CopyButton(message: message, messageListContext: context),
+        CopyButton(message: message, messageListContext: context,isRounded: 2,),
+        const MessageActionSheetCancelButton(),
       ]);
     });
 }
@@ -54,6 +55,7 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
     super.key,
     required this.message,
     required this.messageListContext,
+    this.isRounded = 0,
   }) : assert(messageListContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
 
   IconData get icon;
@@ -62,14 +64,47 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   final Message message;
   final BuildContext messageListContext;
+  final int isRounded;
+
+  final Color _kActionSheetIconColor = const Color(0xff666699);
+  final Color _kActionSheetMenuItemButtonsColor = const Color(0xff4040BF).withOpacity(0.08);
+  final Color _kActionSheetMenuItemLabelColor = const Color(0xff262659);
+
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return MenuItemButton(
-      leadingIcon: Icon(icon),
-      onPressed: () => onPressed(context),
-      child: Text(label(zulipLocalizations)));
+    return Padding(
+      padding: const EdgeInsets.only(left:16,right: 16,bottom: 1.5),
+      child: MenuItemButton(
+        trailingIcon: Icon(icon),
+        onPressed: () => onPressed(context),
+        style: ButtonStyle(
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical:10,horizontal: 15)),
+          backgroundColor: WidgetStatePropertyAll(_kActionSheetMenuItemButtonsColor),
+          iconColor: WidgetStatePropertyAll(_kActionSheetIconColor),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              // If the element is the first element we have the upper two corners rounded
+              // If the element is the last element we have the lower two corners rounded
+              // else the element is rendered with the default borders.
+              borderRadius:
+              (isRounded == 1)? const BorderRadius.only(
+                topLeft: Radius.circular(7),topRight: Radius.circular(7),)
+                  :(isRounded ==2)?const BorderRadius.only(
+                      bottomRight: Radius.circular(7),bottomLeft: Radius.circular(7),)
+                        :BorderRadius.zero,
+            ),
+          ),
+        ),
+        child: Text(label(zulipLocalizations),style:  TextStyle(
+          color: _kActionSheetMenuItemLabelColor,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          fontFamily: "Source Sans 3",
+        ),),
+      ),
+    );
   }
 }
 
@@ -80,6 +115,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     super.key,
     required super.message,
     required super.messageListContext,
+    super.isRounded,
   });
 
   @override get icon => Icons.add_reaction_outlined;
@@ -121,6 +157,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
     super.key,
     required super.message,
     required super.messageListContext,
+    super.isRounded,
   });
 
   @override get icon => ZulipIcons.star_filled;
@@ -169,6 +206,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     super.key,
     required super.message,
     required super.messageListContext,
+    super.isRounded
   });
 
   @override get icon => Icons.adaptive.share;
@@ -274,6 +312,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     super.key,
     required super.message,
     required super.messageListContext,
+    super.isRounded
   });
 
   @override get icon => Icons.format_quote_outlined;
@@ -335,6 +374,7 @@ class CopyButton extends MessageActionSheetMenuItemButton {
     super.key,
     required super.message,
     required super.messageListContext,
+    super.isRounded,
   });
 
   @override get icon => Icons.copy;
@@ -365,4 +405,35 @@ class CopyButton extends MessageActionSheetMenuItemButton {
       successContent: Text(zulipLocalizations.successMessageCopied),
       data: ClipboardData(text: rawContent));
   };
+}
+
+class MessageActionSheetCancelButton extends StatelessWidget {
+  const MessageActionSheetCancelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0,vertical: 5),
+      child: MaterialButton(
+        onPressed: (){
+          Navigator.of(context).pop();
+        },
+        color: const Color(0xffe3e3e5),
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          return SizedBox(
+              width: constraints.maxWidth,
+              child: const Text("Cancel",style: TextStyle(
+                fontSize: 20,
+                color: Color(0xff222222),
+                fontWeight: FontWeight.w500
+              ),textAlign: TextAlign.center,));
+        },),
+      ),
+    );
+  }
 }
