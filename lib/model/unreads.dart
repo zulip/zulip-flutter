@@ -15,14 +15,10 @@ import 'stream.dart';
 ///
 /// Implemented to track actual unread state as faithfully as possible
 /// given incomplete information in [UnreadMessagesSnapshot].
-/// Callers should do their own filtering based on other state, like muting,
-/// as desired.
 ///
-/// In each component of this model ([streams], [dms], [mentions]),
-/// if a message is not represented, its status is either read
-/// or unknown to the component. In all components,
-/// a message's status will be unknown if, at /register time,
-/// it was very old by the server's reckoning. See [oldUnreadsMissing].
+/// In [streams], [dms], and [mentions], if a message is not represented,
+/// its status is either read or unknown. A message's status will be unknown if
+/// it was very old at /register time; see [oldUnreadsMissing].
 /// In [mentions], there's another more complex reason
 /// the state might be unknown; see there.
 ///
