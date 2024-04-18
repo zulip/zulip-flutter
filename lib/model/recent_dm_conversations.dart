@@ -35,7 +35,7 @@ class RecentDmConversationsView extends ChangeNotifier {
   /// The latest message ID in each conversation.
   final Map<DmNarrow, int> map;
 
-  /// The [DmNarrow] keys of the map, sorted by latest message descending.
+  /// The [DmNarrow] keys of [map], sorted by latest message descending.
   final QueueList<DmNarrow> sorted;
 
   final int selfUserId;
