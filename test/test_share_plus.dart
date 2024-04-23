@@ -12,7 +12,7 @@ class MockSharePlus {
 
   Future<Object?> handleMethodCall(MethodCall methodCall) async {
     switch (methodCall.method) {
-      case 'shareWithResult':
+      case 'share':
         // The method channel doesn't preserve Map<String, dynamic> as
         // `arguments`'s type; logging runtimeType gives _Map<Object?, Object?>.
         final arguments = methodCall.arguments as Map;

@@ -205,7 +205,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     //     https://pub.dev/packages/share_plus#ipad
     //   Perhaps a wart in the API; discussion:
     //     https://github.com/zulip/zulip-flutter/pull/12#discussion_r1130146231
-    final result = await Share.shareWithResult(rawContent);
+    final result = await Share.share(rawContent);
 
     switch (result.status) {
       // The plugin isn't very helpful: "The status can not be determined".
