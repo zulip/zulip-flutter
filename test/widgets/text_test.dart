@@ -1,4 +1,3 @@
-
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -214,5 +213,58 @@ void main() {
     check(clampVariableFontWeight(901))  .equals(FontWeight.w900);
     check(clampVariableFontWeight(999))  .equals(FontWeight.w900);
     check(clampVariableFontWeight(1000)) .equals(FontWeight.w900);
+  });
+
+  group('proportionalLetterSpacing', () {
+    Future<void> testLetterSpacing(
+      String description, {
+      required double Function(BuildContext context) getValue,
+      double? ambientTextScaleFactor,
+      required double expected,
+    }) async {
+      testWidgets(description, (WidgetTester tester) async {
+        if (ambientTextScaleFactor != null) {
+          tester.platformDispatcher.textScaleFactorTestValue = ambientTextScaleFactor;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        }
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(builder: (context) => Text('',
+              style: TextStyle(letterSpacing: getValue(context))))));
+
+        final TextStyle? style = tester.widget<Text>(find.byType(Text)).style;
+        final actualLetterSpacing = style!.letterSpacing!;
+        check((actualLetterSpacing - expected).abs()).isLessThan(0.0001);
+      });
+    }
+
+    testLetterSpacing('smoke 1',
+      getValue: (context) => proportionalLetterSpacing(context, 0.01, baseFontSize: 14),
+      expected: 0.14);
+
+    testLetterSpacing('smoke 2',
+      getValue: (context) => proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
+      expected: 0.32);
+
+    for (final textScaleFactor in kTextScaleFactors) {
+      testLetterSpacing('ambient text scale factor $textScaleFactor, no override',
+        ambientTextScaleFactor: textScaleFactor,
+        getValue: (context) => proportionalLetterSpacing(context, 0.01, baseFontSize: 14),
+        expected: 0.14 * textScaleFactor);
+
+      testLetterSpacing('ambient text scale factor $textScaleFactor, override with no scaling',
+        ambientTextScaleFactor: textScaleFactor,
+        getValue: (context) => proportionalLetterSpacing(context,
+          0.01, baseFontSize: 14, textScaler: TextScaler.noScaling),
+        expected: 0.14);
+
+      final clampingTextScaler = TextScaler.linear(textScaleFactor)
+        .clamp(minScaleFactor: 0.9, maxScaleFactor: 1.1);
+      testLetterSpacing('ambient text scale factor $textScaleFactor, override with clamping',
+        ambientTextScaleFactor: textScaleFactor,
+        getValue: (context) => proportionalLetterSpacing(context,
+          0.01, baseFontSize: 14, textScaler: clampingTextScaler),
+        expected: clampingTextScaler.scale(14) * 0.01);
+    }
   });
 }

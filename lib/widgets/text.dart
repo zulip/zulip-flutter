@@ -280,3 +280,22 @@ FontWeight clampVariableFontWeight(double wght) {
 /// font's own custom-defined "wght" axis. But it's a great guess,
 /// at least without knowledge of the particular font.
 double wghtFromFontWeight(FontWeight fontWeight) => fontWeight.value.toDouble();
+
+/// A [TextStyle.letterSpacing] value from a given proportion of the font size.
+///
+/// Returns [baseFontSize] scaled by the ambient [MediaQueryData.textScaler],
+/// multiplied by [proportion] (e.g., 0.01).
+///
+/// Using [MediaQueryData.textScaler] ensures that [proportion] is still
+/// respected when the device font size setting is adjusted.
+/// To opt out of this behavior, pass [TextScaler.noScaling] or some other value
+/// for [textScaler].
+double proportionalLetterSpacing(
+  BuildContext context,
+  double proportion, {
+  required double baseFontSize,
+  TextScaler? textScaler,
+}) {
+  final effectiveTextScaler = textScaler ?? MediaQuery.textScalerOf(context);
+  return effectiveTextScaler.scale(baseFontSize) * proportion;
+}
