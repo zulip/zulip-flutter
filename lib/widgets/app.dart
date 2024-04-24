@@ -134,9 +134,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         seedColor: kZulipBrandColor,
       ),
       scaffoldBackgroundColor: const Color(0xfff6f6f6),
-      // `preferBelow: false` seems like a better default for mobile;
-      // the area below a long-press target seems more likely to be hidden by
-      // a finger or thumb than the area above.
       tooltipTheme: const TooltipThemeData(preferBelow: false),
     );
 
