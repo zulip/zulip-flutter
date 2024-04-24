@@ -667,7 +667,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final textStyle = TextStyle(
       color: contrastingColor,
       fontSize: 16,
-      letterSpacing: 0.02 * 16,
+      letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
       height: (18 / 16),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
@@ -775,9 +775,9 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(size: 16, ZulipIcons.user)),
               Expanded(
                 child: Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    letterSpacing: 0.02 * 16,
+                    letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
                     height: (18 / 16),
                   ).merge(weightVariableTextStyle(context, wght: 600)),
                   overflow: TextOverflow.ellipsis)),

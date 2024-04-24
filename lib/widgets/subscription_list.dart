@@ -148,7 +148,7 @@ class _SubscriptionListHeader extends StatelessWidget {
                 style: TextStyle(
                   color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
                   fontSize: 14,
-                  letterSpacing: 0.04 * 14,
+                  letterSpacing: proportionalLetterSpacing(context, 0.04, baseFontSize: 14),
                   height: (16 / 14),
                 ))),
             const SizedBox(width: 8),
