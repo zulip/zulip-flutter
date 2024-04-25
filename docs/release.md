@@ -56,21 +56,29 @@
 
 * Upload the archive:
 
-  * Open in Xcode:
+  * If `flutter build ipa` successfully built an IPA file:
 
-    ```
-    open build/ios/archive/Runner.xcarchive
-    ```
+    * Run `open -a Transporter build/ios/ipa/'Zulip beta'.ipa`.
 
-  * Select the "Distribute App" button, and answer the prompts.
+    * Hit the big blue "Deliver" button in the Transporter app.
 
-    * Start with "Custom".
+  * Otherwise:
 
-    * When asked, choose "Manually manage app signing".
-      Choose the only available app provisioning profile.
+    * Open in Xcode:
 
-      (It's not clear why Xcode isn't able to make this same choice
-      when asked to automatically manage app signing.)
+      ```
+      open build/ios/archive/Runner.xcarchive
+      ```
+
+    * Select the "Distribute App" button, and answer the prompts.
+
+      * Start with "Custom".
+
+      * When asked, choose "Manually manage app signing".
+        Choose the only available app provisioning profile.
+
+        (It's not clear why Xcode isn't able to make this same choice
+        when asked to automatically manage app signing.)
 
 * The build will go automatically to the alpha users in a few minutes,
   provided all goes well with the "processing" step.
@@ -138,3 +146,10 @@
   -> (your Apple ID) -> "Kandra Labs, Inc.".  Hit the "add" icon,
   and choose "Apple Distribution", to create a key and cert.
   Then use the website only to create or edit the profile.
+
+* For iOS uploads, you'll want the Transporter app — it's published by
+  Apple but doesn't come with macOS or Xcode, and instead is its own
+  item in the Mac App Store:
+  <https://apps.apple.com/us/app/transporter/id1450874784>
+
+  Install the app, open it, and log in.
