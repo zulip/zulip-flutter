@@ -12,6 +12,9 @@
 
 ### Highlights for developers
 
+* Dropped support for Android versions older than Android 9 Pie,
+  bumping minSdkVersion from 24 to 28. (400f1a5da, PR #621)
+
 Resolved: #353, #552 (possibly earlier), #156, #355, #518, #612
 
 
