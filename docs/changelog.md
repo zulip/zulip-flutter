@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* More Zulip message features: divider lines, and four-space-indented
+  code blocks. (#353, #355)
+* Mark bots with a bot icon, when they appear as message
+  senders. (#156)
+
+
+### Highlights for developers
+
+Resolved: #353, #552 (possibly earlier), #156, #355, #518, #612
+
+
 ## 0.0.13 (2024-04-02)
 
 ### Highlights for users
