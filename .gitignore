@@ -17,6 +17,8 @@ migrate_working_dir/
 /.idea/*
 /android/.idea/*
 !/.idea/inspectionProfiles/
+!/.idea/modules.xml
+!/.idea/zulip.iml
 !/android/.idea/inspectionProfiles/
 
 # The .vscode folder contains launch configuration and tasks you configure in
