@@ -18,6 +18,7 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../fake_async.dart';
 import '../model/binding.dart';

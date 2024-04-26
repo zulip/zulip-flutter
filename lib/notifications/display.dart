@@ -16,6 +16,7 @@ import '../widgets/app.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
+import '../widgets/theme.dart';
 
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
