@@ -153,6 +153,7 @@ class ReactionChip extends StatelessWidget {
                 //   which we learn about especially late).
                 final maxLabelWidth = (maxRowWidth - 6) * 0.75; // 6 is padding
 
+                final labelScaler = _labelTextScalerClamped(context);
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -168,9 +169,13 @@ class ReactionChip extends StatelessWidget {
                         constraints: BoxConstraints(maxWidth: maxLabelWidth),
                         child: Text(
                           textWidthBasis: TextWidthBasis.longestLine,
-                          textScaler: _labelTextScalerClamped(context),
+                          textScaler: labelScaler,
                           style: TextStyle(
                             fontSize: (14 * 0.90),
+                            letterSpacing: proportionalLetterSpacing(context,
+                              kButtonTextLetterSpacingProportion,
+                              baseFontSize: (14 * 0.90),
+                              textScaler: labelScaler),
                             height: 13 / (14 * 0.90),
                             color: labelColor,
                           ).merge(weightVariableTextStyle(context,

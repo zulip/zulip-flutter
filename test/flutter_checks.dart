@@ -65,6 +65,7 @@ extension TextFieldChecks on Subject<TextField> {
 
 extension TextStyleChecks on Subject<TextStyle> {
   Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
+  Subject<double?> get fontSize => has((t) => t.fontSize, 'fontSize');
   Subject<FontWeight?> get fontWeight => has((t) => t.fontWeight, 'fontWeight');
   Subject<double?> get letterSpacing => has((t) => t.letterSpacing, 'letterSpacing');
   Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');

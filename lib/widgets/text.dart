@@ -40,6 +40,14 @@ Typography zulipTypography(BuildContext context) {
     result = _convertTextTheme(result, (maybeInputStyle, _) =>
       maybeInputStyle?.merge(const TextStyle(letterSpacing: 0)));
 
+    result = result.copyWith(
+      labelLarge: result.labelLarge!.copyWith(
+        fontSize: 14.0, // (should be unchanged; restated here for explicitness)
+        letterSpacing: proportionalLetterSpacing(context,
+          kButtonTextLetterSpacingProportion, baseFontSize: 14.0),
+      ),
+    );
+
     return result;
   }
 
@@ -166,6 +174,8 @@ final TextStyle kMonospaceTextStyle = TextStyle(
 
   inherit: true,
 );
+
+const kButtonTextLetterSpacingProportion = 0.01;
 
 /// A mergeable [TextStyle] to use when the preferred font has a "wght" axis.
 ///

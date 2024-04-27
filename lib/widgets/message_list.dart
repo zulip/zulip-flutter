@@ -484,8 +484,10 @@ class MarkAsReadWidget extends StatelessWidget {
                   // [zulipTypography]…
                   Theme.of(context).textTheme.labelLarge!
                   // …then clobber some attributes to follow Figma:
-                  .merge(const TextStyle(
+                  .merge(TextStyle(
                     fontSize: 18,
+                    letterSpacing: proportionalLetterSpacing(context,
+                      kButtonTextLetterSpacingProportion, baseFontSize: 18),
                     height: (23 / 18))
                   .merge(weightVariableTextStyle(context, wght: 400))),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),

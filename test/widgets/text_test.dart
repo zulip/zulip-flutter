@@ -54,11 +54,14 @@ void main() {
       });
     }
 
-    testWidgets('zero letter spacing', (tester) async {
+    testWidgets('letter spacing', (tester) async {
       check(await getZulipTypography(tester, platformRequestsBold: false))
         ..englishLike.bodyMedium.isNotNull().letterSpacing.equals(0)
+        ..englishLike.labelLarge.isNotNull().letterSpacing.equals(0.14)
         ..dense.bodyMedium.isNotNull().letterSpacing.equals(0)
-        ..tall.bodyMedium.isNotNull().letterSpacing.equals(0);
+        ..dense.labelLarge.isNotNull().letterSpacing.equals(0.14)
+        ..tall.bodyMedium.isNotNull().letterSpacing.equals(0)
+        ..tall.labelLarge.isNotNull().letterSpacing.equals(0.14);
     });
 
     test('Typography has the assumed fields', () {
