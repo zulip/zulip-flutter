@@ -27,9 +27,9 @@ class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
   static Route<void> buildRoute({int? accountId, BuildContext? context,
-      required Narrow narrow}) {
+    required Narrow narrow}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: MessageListPage(narrow: narrow));
+        page: MessageListPage(narrow: narrow));
   }
 
   /// A [ComposeBoxController], if this [MessageListPage] offers a compose box.
@@ -67,7 +67,7 @@ class _MessageListPageState extends State<MessageListPage> {
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
-          ?? _kUnsubscribedStreamRecipientHeaderColor;
+            ?? _kUnsubscribedStreamRecipientHeaderColor;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -80,38 +80,38 @@ class _MessageListPageState extends State<MessageListPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow),
-        backgroundColor: backgroundColor,
-        shape: removeAppBarBottomBorder
-          ? const Border()
-          : null, // i.e., inherit
-      ),
-      // TODO question for Vlad: for a stream view, should we set
-      //   [backgroundColor] based on stream color, as in this frame:
-      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
-      //   That's not obviously preferred over the default background that
-      //   we matched to the Figma in 21dbae120. See another frame, which uses that:
-      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
-      body: Builder(
-        builder: (BuildContext context) => Center(
-          child: Column(children: [
-            MediaQuery.removePadding(
-              // Scaffold knows about the app bar, and so has run this
-              // BuildContext, which is under `body`, through
-              // MediaQuery.removePadding with `removeTop: true`.
-              context: context,
+        appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow),
+          backgroundColor: backgroundColor,
+          shape: removeAppBarBottomBorder
+              ? const Border()
+              : null, // i.e., inherit
+        ),
+        // TODO question for Vlad: for a stream view, should we set
+        //   [backgroundColor] based on stream color, as in this frame:
+        //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
+        //   That's not obviously preferred over the default background that
+        //   we matched to the Figma in 21dbae120. See another frame, which uses that:
+        //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
+        body: Builder(
+            builder: (BuildContext context) => Center(
+                child: Column(children: [
+                  MediaQuery.removePadding(
+                    // Scaffold knows about the app bar, and so has run this
+                    // BuildContext, which is under `body`, through
+                    // MediaQuery.removePadding with `removeTop: true`.
+                      context: context,
 
-              // The compose box, when present, pads the bottom inset.
-              // TODO this copies the details of when the compose box is shown;
-              //   if those details get complicated, refactor to avoid copying.
-              // TODO(#311) If we have a bottom nav, it will pad the bottom
-              //   inset, and this should always be true.
-              removeBottom: widget.narrow is! AllMessagesNarrow,
+                      // The compose box, when present, pads the bottom inset.
+                      // TODO this copies the details of when the compose box is shown;
+                      //   if those details get complicated, refactor to avoid copying.
+                      // TODO(#311) If we have a bottom nav, it will pad the bottom
+                      //   inset, and this should always be true.
+                      removeBottom: widget.narrow is! AllMessagesNarrow,
 
-              child: Expanded(
-                child: MessageList(narrow: widget.narrow))),
-            ComposeBox(controllerKey: _composeBoxKey, narrow: widget.narrow),
-          ]))));
+                      child: Expanded(
+                          child: MessageList(narrow: widget.narrow))),
+                  ComposeBox(controllerKey: _composeBoxKey, narrow: widget.narrow),
+                ]))));
   }
 }
 
@@ -124,17 +124,17 @@ class MessageListAppBarTitle extends StatelessWidget {
     // A null [Icon.icon] makes a blank space.
     final icon = (stream != null) ? iconDataForStream(stream) : null;
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
-      //   For screenshots of some experiments, see:
-      //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Icon(size: 16, icon),
-        const SizedBox(width: 8),
-        Flexible(child: Text(text)),
-      ]);
+        mainAxisSize: MainAxisSize.min,
+        // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
+        //   For screenshots of some experiments, see:
+        //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Icon(size: 16, icon),
+          const SizedBox(width: 8),
+          Flexible(child: Text(text)),
+        ]);
   }
 
   @override
@@ -269,34 +269,34 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     return DefaultTextStyle.merge(
       // TODO figure out text color -- web is supposedly hsl(0deg 0% 20%),
       //   but seems much darker than that
-      style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
-      // Pad the left and right insets, for small devices in landscape.
-      child: SafeArea(
-        // Don't let this be the place we pad the bottom inset. When there's
-        // no compose box, we want to let the message-list content pad it.
-        // TODO(#311) Remove as unnecessary if we do a bottom nav.
-        //   The nav will pad the bottom inset, and an ancestor of this widget
-        //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
-        bottom: false,
+        style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+        // Pad the left and right insets, for small devices in landscape.
+        child: SafeArea(
+          // Don't let this be the place we pad the bottom inset. When there's
+          // no compose box, we want to let the message-list content pad it.
+          // TODO(#311) Remove as unnecessary if we do a bottom nav.
+          //   The nav will pad the bottom inset, and an ancestor of this widget
+          //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
+            bottom: false,
 
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: NotificationListener<ScrollMetricsNotification>(
-              onNotification: _handleScrollMetricsNotification,
-              child: Stack(
-                children: <Widget>[
-                  _buildListView(context),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    // TODO(#311) SafeArea shouldn't be needed if we have a
-                    //   bottom nav. That will pad the bottom inset.
-                    child: SafeArea(
-                      child: ScrollToBottomButton(
-                        scrollController: scrollController,
-                        visibleValue: _scrollToBottomVisibleValue))),
-                ]))))));
+            child: Center(
+                child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: NotificationListener<ScrollMetricsNotification>(
+                        onNotification: _handleScrollMetricsNotification,
+                        child: Stack(
+                            children: <Widget>[
+                              _buildListView(context),
+                              Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  // TODO(#311) SafeArea shouldn't be needed if we have a
+                                  //   bottom nav. That will pad the bottom inset.
+                                  child: SafeArea(
+                                      child: ScrollToBottomButton(
+                                          scrollController: scrollController,
+                                          visibleValue: _scrollToBottomVisibleValue))),
+                            ]))))));
   }
 
   Widget _buildListView(context) {
@@ -306,91 +306,91 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
-      keyboardDismissBehavior: switch (Theme.of(context).platform) {
+        keyboardDismissBehavior: switch (Theme.of(context).platform) {
         // This seems to offer the only built-in way to close the keyboard
         // on iOS. It's not ideal; see TODO above.
-        TargetPlatform.iOS => ScrollViewKeyboardDismissBehavior.onDrag,
+          TargetPlatform.iOS => ScrollViewKeyboardDismissBehavior.onDrag,
         // The Android keyboard seems to have a built-in close button.
-        _ => ScrollViewKeyboardDismissBehavior.manual,
-      },
+          _ => ScrollViewKeyboardDismissBehavior.manual,
+        },
 
-      controller: scrollController,
-      semanticChildCount: length + 2,
-      anchor: 1.0,
-      center: centerSliverKey,
+        controller: scrollController,
+        semanticChildCount: length + 2,
+        anchor: 1.0,
+        center: centerSliverKey,
 
-      slivers: [
-        SliverStickyHeaderList(
-          headerPlacement: HeaderPlacement.scrollingStart,
-          delegate: SliverChildBuilderDelegate(
-            // To preserve state across rebuilds for individual [MessageItem]
-            // widgets as the size of [MessageListView.items] changes we need
-            // to match old widgets by their key to their new position in
-            // the list.
-            //
-            // The keys are of type [ValueKey] with a value of [Message.id]
-            // and here we use a O(log n) binary search method. This could
-            // be improved but for now it only triggers for materialized
-            // widgets. As a simple test, flinging through All Messages in
-            // CZO on a Pixel 5, this only runs about 10 times per rebuild
-            // and the timing for each call is <100 microseconds.
-            //
-            // Non-message items (e.g., start and end markers) that do not
-            // have state that needs to be preserved have not been given keys
-            // and will not trigger this callback.
-            findChildIndexCallback: (Key key) {
-              final valueKey = key as ValueKey;
-              final index = model!.findItemWithMessageId(valueKey.value);
-              if (index == -1) return null;
-              return length - 1 - (index - 2);
-            },
-            childCount: length + 2,
-            (context, i) {
-              // To reinforce that the end of the feed has been reached:
-              //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-              if (i == 0) return const SizedBox(height: 36);
+        slivers: [
+          SliverStickyHeaderList(
+              headerPlacement: HeaderPlacement.scrollingStart,
+              delegate: SliverChildBuilderDelegate(
+                // To preserve state across rebuilds for individual [MessageItem]
+                // widgets as the size of [MessageListView.items] changes we need
+                // to match old widgets by their key to their new position in
+                // the list.
+                //
+                // The keys are of type [ValueKey] with a value of [Message.id]
+                // and here we use a O(log n) binary search method. This could
+                // be improved but for now it only triggers for materialized
+                // widgets. As a simple test, flinging through All Messages in
+                // CZO on a Pixel 5, this only runs about 10 times per rebuild
+                // and the timing for each call is <100 microseconds.
+                //
+                // Non-message items (e.g., start and end markers) that do not
+                // have state that needs to be preserved have not been given keys
+                // and will not trigger this callback.
+                  findChildIndexCallback: (Key key) {
+                    final valueKey = key as ValueKey;
+                    final index = model!.findItemWithMessageId(valueKey.value);
+                    if (index == -1) return null;
+                    return length - 1 - (index - 2);
+                  },
+                  childCount: length + 2,
+                      (context, i) {
+                    // To reinforce that the end of the feed has been reached:
+                    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
+                    if (i == 0) return const SizedBox(height: 36);
 
-              if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
+                    if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
 
-              final data = model!.items[length - 1 - (i - 2)];
-              return _buildItem(data, i);
-            })),
+                    final data = model!.items[length - 1 - (i - 2)];
+                    return _buildItem(data, i);
+                  })),
 
-        // This is a trivial placeholder that occupies no space.  Its purpose is
-        // to have the key that's passed to [ScrollView.center], and so to cause
-        // the above [SliverStickyHeaderList] to run from bottom to top.
-        const SliverToBoxAdapter(key: centerSliverKey),
-      ]);
+          // This is a trivial placeholder that occupies no space.  Its purpose is
+          // to have the key that's passed to [ScrollView.center], and so to cause
+          // the above [SliverStickyHeaderList] to run from bottom to top.
+          const SliverToBoxAdapter(key: centerSliverKey),
+        ]);
   }
 
   Widget _buildItem(MessageListItem data, int i) {
     switch (data) {
       case MessageListHistoryStartItem():
         return const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Text("No earlier messages."))); // TODO use an icon
+            child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Text("No earlier messages."))); // TODO use an icon
       case MessageListLoadingItem():
         return const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: CircularProgressIndicator())); // TODO perhaps a different indicator
+            child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: CircularProgressIndicator())); // TODO perhaps a different indicator
       case MessageListRecipientHeaderItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,
-          header: header, child: header);
+            header: header, child: header);
       case MessageListDateSeparatorItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,
-          header: header,
-          child: DateSeparator(message: data.message));
+            header: header,
+            child: DateSeparator(message: data.message));
       case MessageListMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
-          key: ValueKey(data.message.id),
-          header: header,
-          trailingWhitespace: i == 1 ? 8 : 11,
-          item: data);
+            key: ValueKey(data.message.id),
+            header: header,
+            trailingWhitespace: i == 1 ? 8 : 11,
+            item: data);
     }
   }
 }
@@ -406,25 +406,25 @@ class ScrollToBottomButton extends StatelessWidget {
     final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
     final durationMs = max(300, durationMsAtSpeedLimit);
     scrollController.animateTo(
-      0,
-      duration: Duration(milliseconds: durationMs),
-      curve: Curves.ease);
+        0,
+        duration: Duration(milliseconds: durationMs),
+        curve: Curves.ease);
   }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: visibleValue,
-      builder: (BuildContext context, bool value, Widget? child) {
-        return (value && child != null) ? child : const SizedBox.shrink();
-      },
-      // TODO: fix hardcoded values for size and style here
-      child: IconButton(
-        tooltip: "Scroll to bottom",
-        icon: const Icon(Icons.expand_circle_down_rounded),
-        iconSize: 40,
-        color: const HSLColor.fromAHSL(0.5,240,0.96,0.68).toColor(),
-        onPressed: _navigateToBottom));
+        valueListenable: visibleValue,
+        builder: (BuildContext context, bool value, Widget? child) {
+          return (value && child != null) ? child : const SizedBox.shrink();
+        },
+        // TODO: fix hardcoded values for size and style here
+        child: IconButton(
+            tooltip: "Scroll to bottom",
+            icon: const Icon(Icons.expand_circle_down_rounded),
+            iconSize: 40,
+            color: const HSLColor.fromAHSL(0.5,240,0.96,0.68).toColor(),
+            onPressed: _navigateToBottom));
   }
 }
 
@@ -446,8 +446,8 @@ class MarkAsReadWidget extends StatelessWidget {
       if (!context.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
       await showErrorDialog(context: context,
-        title: zulipLocalizations.errorMarkAsReadFailedTitle,
-        message: e.toString());
+          title: zulipLocalizations.errorMarkAsReadFailedTitle,
+          message: e.toString());
       return;
     }
     if (!context.mounted) return;
@@ -466,33 +466,33 @@ class MarkAsReadWidget extends StatelessWidget {
     return IgnorePointer(
       ignoring: areMessagesRead,
       child: AnimatedOpacity(
-        opacity: areMessagesRead ? 0 : 1,
-        duration: Duration(milliseconds: areMessagesRead ? 2000 : 300),
-        curve: Curves.easeOut,
-        child: SizedBox(width: double.infinity,
-          // Design referenced from:
-          //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
-          child: Padding(
-            // vertical padding adjusted for tap target height (48px) of button
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: _UnreadMarker.color,
-                minimumSize: const Size.fromHeight(38),
-                textStyle:
-                  // Restate [FilledButton]'s default, which inherits from
-                  // [zulipTypography]…
-                  Theme.of(context).textTheme.labelLarge!
-                  // …then clobber some attributes to follow Figma:
-                  .merge(const TextStyle(
-                    fontSize: 18,
-                    height: (23 / 18))
-                  .merge(weightVariableTextStyle(context, wght: 400))),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-              ),
-              onPressed: () => _handlePress(context),
-              icon: const Icon(Icons.playlist_add_check),
-              label: Text(zulipLocalizations.markAllAsReadLabel))))),
+          opacity: areMessagesRead ? 0 : 1,
+          duration: Duration(milliseconds: areMessagesRead ? 2000 : 300),
+          curve: Curves.easeOut,
+          child: SizedBox(width: double.infinity,
+              // Design referenced from:
+              //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
+              child: Padding(
+                // vertical padding adjusted for tap target height (48px) of button
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
+                  child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _UnreadMarker.color,
+                        minimumSize: const Size.fromHeight(38),
+                        textStyle:
+                        // Restate [FilledButton]'s default, which inherits from
+                        // [zulipTypography]…
+                        Theme.of(context).textTheme.labelLarge!
+                        // …then clobber some attributes to follow Figma:
+                            .merge(const TextStyle(
+                            fontSize: 18,
+                            height: (23 / 18))
+                            .merge(weightVariableTextStyle(context, wght: 400))),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                      ),
+                      onPressed: () => _handlePress(context),
+                      icon: const Icon(Icons.playlist_add_check),
+                      label: Text(zulipLocalizations.markAllAsReadLabel))))),
     );
   }
 }
@@ -508,7 +508,7 @@ class RecipientHeader extends StatelessWidget {
     final message = this.message;
     return switch (message) {
       StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: narrow is AllMessagesNarrow),
+          showStream: narrow is AllMessagesNarrow),
       DmMessage() => DmRecipientHeader(message: message),
     };
   }
@@ -530,30 +530,30 @@ class DateSeparator extends StatelessWidget {
 
     return ColoredBox(color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-        child: Row(children: [
-          const Expanded(
-            child: SizedBox(height: 0,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      width: 0,
-                      color: Colors.black)))))),
-          Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
-            child: DateText(
-              color: _textColor,
-              fontSize: 16,
-              height: (16 / 16),
-              timestamp: message.timestamp)),
-          const SizedBox(height: 0, width: 12,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 0,
-                    color: Colors.black)))))
-        ])),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+          child: Row(children: [
+            const Expanded(
+                child: SizedBox(height: 0,
+                    child: DecoratedBox(
+                        decoration: BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(
+                                    width: 0,
+                                    color: Colors.black)))))),
+            Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
+                child: DateText(
+                    color: _textColor,
+                    fontSize: 16,
+                    height: (16 / 16),
+                    timestamp: message.timestamp)),
+            const SizedBox(height: 0, width: 12,
+                child: DecoratedBox(
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                                width: 0,
+                                color: Colors.black)))))
+          ])),
     );
   }
 }
@@ -574,16 +574,16 @@ class MessageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = item.message;
     return StickyHeaderItem(
-      allowOverflow: !item.isLastInBlock,
-      header: header,
-      child: _UnreadMarker(
-        isRead: message.flags.contains(MessageFlag.read),
-        child: ColoredBox(
-          color: Colors.white,
-          child: Column(children: [
-            MessageWithPossibleSender(item: item),
-            if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
-          ]))));
+        allowOverflow: !item.isLastInBlock,
+        header: header,
+        child: _UnreadMarker(
+            isRead: message.flags.contains(MessageFlag.read),
+            child: ColoredBox(
+                color: Colors.white,
+                child: Column(children: [
+                  MessageWithPossibleSender(item: item),
+                  if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
+                ]))));
   }
 }
 
@@ -603,28 +603,28 @@ class _UnreadMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: [
-        child,
-        Positioned(
-          top: 0,
-          left: 0,
-          bottom: 0,
-          width: 4,
-          child: AnimatedOpacity(
-            opacity: isRead ? 0 : 1,
-            // Web uses 2s and 0.3s durations, and a CSS ease-out curve.
-            // See zulip:web/styles/message_row.css .
-            duration: Duration(milliseconds: isRead ? 2000 : 300),
-            curve: Curves.easeOut,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: color,
-                // TODO(#95): Don't show this extra border in dark mode, see:
-                //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
-                border: Border(left: BorderSide(
-                  width: 1,
-                  color: Colors.white.withOpacity(0.6))))))),
-      ]);
+        children: [
+          child,
+          Positioned(
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: 4,
+              child: AnimatedOpacity(
+                  opacity: isRead ? 0 : 1,
+                  // Web uses 2s and 0.3s durations, and a CSS ease-out curve.
+                  // See zulip:web/styles/message_row.css .
+                  duration: Duration(milliseconds: isRead ? 2000 : 300),
+                  curve: Curves.easeOut,
+                  child: DecoratedBox(
+                      decoration: BoxDecoration(
+                          color: color,
+                          // TODO(#95): Don't show this extra border in dark mode, see:
+                          //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+                          border: Border(left: BorderSide(
+                              width: 1,
+                              color: Colors.white.withOpacity(0.6))))))),
+        ]);
   }
 }
 
@@ -655,7 +655,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       final swatch = subscription.colorSwatch();
       backgroundColor = swatch.barBackground;
       contrastingColor =
-        (ThemeData.estimateBrightnessForColor(swatch.barBackground) == Brightness.dark)
+      (ThemeData.estimateBrightnessForColor(swatch.barBackground) == Brightness.dark)
           ? Colors.white
           : Colors.black;
       iconColor = swatch.iconOnBarBackground;
@@ -679,62 +679,62 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       final streamName = stream?.name ?? message.displayRecipient; // TODO(log) if missing
 
       streamWidget = GestureDetector(
-        onTap: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: StreamNarrow(message.streamId))),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              // Figma specifies 5px horizontal spacing around an icon that's
-              // 18x18 and includes 1px padding.  The icon SVG is flush with
-              // the edges, so make it 16x16 with 6px horizontal padding.
-              // Bottom padding added here to shift icon up to
-              // match alignment with text visually.
-              padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
-              child: Icon(size: 16, color: iconColor,
-                // A null [Icon.icon] makes a blank space.
-                (stream != null) ? iconDataForStream(stream) : null)),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 11),
-              child: Text(streamName,
-                style: textStyle,
-                overflow: TextOverflow.ellipsis),
-            ),
-            Padding(
-              // Figma has 5px horizontal padding around an 8px wide icon.
-              // Icon is 16px wide here so horizontal padding is 1px.
-              padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Icon(size: 16,
-                color: contrastingColor.withOpacity(0.6),
-                ZulipIcons.chevron_right)),
-          ]));
+          onTap: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                  narrow: StreamNarrow(message.streamId))),
+          child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  // Figma specifies 5px horizontal spacing around an icon that's
+                  // 18x18 and includes 1px padding.  The icon SVG is flush with
+                  // the edges, so make it 16x16 with 6px horizontal padding.
+                  // Bottom padding added here to shift icon up to
+                  // match alignment with text visually.
+                    padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
+                    child: Icon(size: 16, color: iconColor,
+                        // A null [Icon.icon] makes a blank space.
+                        (stream != null) ? iconDataForStream(stream) : null)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  child: Text(streamName,
+                      style: textStyle,
+                      overflow: TextOverflow.ellipsis),
+                ),
+                Padding(
+                  // Figma has 5px horizontal padding around an 8px wide icon.
+                  // Icon is 16px wide here so horizontal padding is 1px.
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: Icon(size: 16,
+                        color: contrastingColor.withOpacity(0.6),
+                        ZulipIcons.chevron_right)),
+              ]));
     }
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: TopicNarrow.ofMessage(message))),
-      child: ColoredBox(
-        color: backgroundColor,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // TODO(#282): Long stream name will break layout; find a fix.
-            streamWidget,
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                child: Text(topic,
-                  // TODO: Give a way to see the whole topic (maybe a
-                  //   long-press interaction?)
-                  overflow: TextOverflow.ellipsis,
-                  style: textStyle))),
-            // TODO topic links?
-            // Then web also has edit/resolve/mute buttons. Skip those for mobile.
-            RecipientHeaderDate(message: message,
-              color: contrastingColor.withOpacity(0.4)),
-          ])));
+        onTap: () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+                narrow: TopicNarrow.ofMessage(message))),
+        child: ColoredBox(
+            color: backgroundColor,
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // TODO(#282): Long stream name will break layout; find a fix.
+                  streamWidget,
+                  Expanded(
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          child: Text(topic,
+                              // TODO: Give a way to see the whole topic (maybe a
+                              //   long-press interaction?)
+                              overflow: TextOverflow.ellipsis,
+                              style: textStyle))),
+                  // TODO topic links?
+                  // Then web also has edit/resolve/mute buttons. Skip those for mobile.
+                  RecipientHeaderDate(message: message,
+                      color: contrastingColor.withOpacity(0.4)),
+                ])));
   }
 }
 
@@ -750,40 +750,40 @@ class DmRecipientHeader extends StatelessWidget {
     final String title;
     if (message.allRecipientIds.length > 1) {
       title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
-        .where((id) => id != store.selfUserId)
-        .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
-        .sorted()
-        .join(", "));
+          .where((id) => id != store.selfUserId)
+          .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
+          .sorted()
+          .join(", "));
     } else {
       // TODO pick string; web has glitchy "You and $yourname"
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
-      child: ColoredBox(
-        color: _kDmRecipientHeaderColor,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(size: 16, ZulipIcons.user)),
-              Expanded(
-                child: Text(title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    letterSpacing: 0.02 * 16,
-                    height: (18 / 16),
-                  ).merge(weightVariableTextStyle(context, wght: 600)),
-                  overflow: TextOverflow.ellipsis)),
-              RecipientHeaderDate(message: message,
-                color: _kDmRecipientHeaderDateColor),
-            ]))));
+        onTap: () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+                narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+        child: ColoredBox(
+            color: _kDmRecipientHeaderColor,
+            child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: Icon(size: 16, ZulipIcons.user)),
+                      Expanded(
+                          child: Text(title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                letterSpacing: 0.02 * 16,
+                                height: (18 / 16),
+                              ).merge(weightVariableTextStyle(context, wght: 600)),
+                              overflow: TextOverflow.ellipsis)),
+                      RecipientHeaderDate(message: message,
+                          color: _kDmRecipientHeaderDateColor),
+                    ]))));
   }
 }
 
@@ -802,15 +802,15 @@ class RecipientHeaderDate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
-      child: DateText(
-        color: color,
-        fontSize: 16,
-        // In Figma this has a line-height of 19, but using 18
-        // here to match the stream/topic text widgets helps
-        // to align all the text to the same baseline.
-        height: (18 / 16),
-        timestamp: message.timestamp));
+        padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
+        child: DateText(
+            color: color,
+            fontSize: 16,
+            // In Figma this has a line-height of 19, but using 18
+            // here to match the stream/topic text widgets helps
+            // to align all the text to the same baseline.
+            height: (18 / 16),
+            timestamp: message.timestamp));
   }
 }
 
@@ -832,29 +832,29 @@ class DateText extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Text(
-      style: TextStyle(
-        color: color,
-        fontSize: fontSize,
-        height: height,
-        // This is equivalent to css `all-small-caps`, see:
-        //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
-        fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-      ),
-      formatHeaderDate(
-        zulipLocalizations,
-        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
-        now: DateTime.now()));
+        style: TextStyle(
+          color: color,
+          fontSize: fontSize,
+          height: height,
+          // This is equivalent to css `all-small-caps`, see:
+          //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
+          fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+        ),
+        formatHeaderDate(
+            zulipLocalizations,
+            DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
+            now: DateTime.now()));
   }
 }
 
 @visibleForTesting
 String formatHeaderDate(
-  ZulipLocalizations zulipLocalizations,
-  DateTime dateTime, {
-  required DateTime now,
-}) {
+    ZulipLocalizations zulipLocalizations,
+    DateTime dateTime, {
+      required DateTime now,
+    }) {
   assert(!dateTime.isUtc && !now.isUtc,
-    '`dateTime` and `now` need to be in local time.');
+  '`dateTime` and `now` need to be in local time.');
 
   if (dateTime.year == now.year &&
       dateTime.month == now.month &&
@@ -863,8 +863,8 @@ String formatHeaderDate(
   }
 
   final yesterday = now
-    .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0)
-    .add(const Duration(days: -1));
+      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0)
+      .add(const Duration(days: -1));
   if (dateTime.year == yesterday.year &&
       dateTime.month == yesterday.month &&
       dateTime.day == yesterday.day) {
@@ -882,13 +882,12 @@ String formatHeaderDate(
     return DateFormat.yMMMd().format(dateTime);
   }
 }
-
 /// A Zulip message, showing the sender's name and avatar if specified.
 // Design referenced from:
 //   - https://github.com/zulip/zulip-mobile/issues/5511
 //   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
 class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+  const MessageWithPossibleSender({Key? key, required this.item}) : super(key: key);
 
   final MessageListMessageItem item;
 
@@ -904,7 +903,7 @@ class MessageWithPossibleSender extends StatelessWidget {
     Widget? senderRow;
     if (item.showSender) {
       final time = _kMessageTimestampFormat
-        .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+          .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
       senderRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -912,42 +911,49 @@ class MessageWithPossibleSender extends StatelessWidget {
         children: [
           Flexible(
             child: GestureDetector(
-              onTap: () => Navigator.push(context,
-                ProfilePage.buildRoute(context: context,
-                  userId: message.senderId)),
-              child: Row(
-                children: [
-                  Avatar(size: 32, borderRadius: 3,
-                    userId: message.senderId),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(message.senderFullName, // TODO get from user data
-                      style: const TextStyle(
-                        fontFamily: 'Source Sans 3',
-                        fontSize: 18,
-                        height: (22 / 18),
-                      ).merge(weightVariableTextStyle(context, wght: 600,
-                                wghtIfPlatformRequestsBold: 900)),
-                      overflow: TextOverflow.ellipsis)),
-                  if (sender?.isBot ?? false) ...[
-                    const SizedBox(width: 5),
-                    const Icon(
-                      ZulipIcons.bot,
-                      size: 15,
-                      color: Color.fromARGB(255, 159, 173, 173),
-                    ),
+                onTap: () => Navigator.push(context,
+                    ProfilePage.buildRoute(context: context, userId: message.senderId)),
+                child: Row(
+                  children: [
+                    Avatar(
+                        size: 32,
+                        borderRadius: 3,
+                        userId: message.senderId),
+                    const SizedBox(width: 8),
+                    Flexible(
+                        child: Text(
+                          message.senderFullName, // TODO get from user data
+                          style: const TextStyle(
+                            fontFamily: 'Source Sans 3',
+                            fontSize: 18,
+                            height: (22 / 18),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        )),
+                    if (sender?.isBot ?? false) ...[
+                      const SizedBox(width: 5),
+                      const Icon(
+                        ZulipIcons.bot,
+                        size: 15,
+                        color: Color.fromARGB(255, 159, 173, 173),
+                      ),
+                    ],
                   ],
-                ]))),
+                )),
+          ),
           const SizedBox(width: 4),
-          Text(time,
+          Text(
+            time,
             style: TextStyle(
               color: _kMessageTimestampColor,
               fontFamily: 'Source Sans 3',
               fontSize: 16,
               height: (18 / 16),
               fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-            ).merge(weightVariableTextStyle(context))),
-        ]);
+            ),
+          ),
+        ],
+      );
     }
 
     return GestureDetector(
@@ -955,30 +961,46 @@ class MessageWithPossibleSender extends StatelessWidget {
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(children: [
-          if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-              child: senderRow),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  MessageContent(message: message, content: item.content),
-                  if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!)
-                ])),
-            SizedBox(width: 16,
-              child: message.flags.contains(MessageFlag.starred)
-                // TODO(#157): fix how star marker aligns with message content
-                // Design from Figma at:
-                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
-                ? Padding(padding: const EdgeInsets.only(top: 4),
-                    child: Icon(ZulipIcons.star_filled, size: 16, color: _starColor))
-                : null),
-          ]),
-        ])));
+        child: Column(
+          children: [
+            if (senderRow != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+                child: senderRow,
+              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      MessageContent(message: message, content: item.content),
+                      if ((message.reactions?.total ?? 0) > 0)
+                        ReactionChipsList(messageId: message.id, reactions: message.reactions!)
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    if (message.flags.contains(MessageFlag.starred))
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 5.3, 16.5, 0),
+                        child: Icon(
+                          ZulipIcons.star_filled,
+                          size: 18,
+                          color: _starColor,
+                        ),
+                      ),
+                  ],
+                )
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -988,10 +1010,10 @@ final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 final _kMessageTimestampColor = const HSLColor.fromAHSL(1, 0, 0, 0.5).toColor();
 
 Future<void> markNarrowAsRead(
-  BuildContext context,
-  Narrow narrow,
-  bool useLegacy, // TODO(server-6)
-) async {
+    BuildContext context,
+    Narrow narrow,
+    bool useLegacy, // TODO(server-6)
+    ) async {
   final store = PerAccountStoreWidget.of(context);
   final connection = store.connection;
   if (useLegacy) {
@@ -1019,22 +1041,22 @@ Future<void> markNarrowAsRead(
 
   while (true) {
     final result = await updateMessageFlagsForNarrow(connection,
-      anchor: anchor,
-      // [AnchorCode.oldest] is an anchor ID lower than any valid
-      // message ID; and follow-up requests will have already
-      // processed the anchor ID, so we just want this to be
-      // unconditionally false.
-      includeAnchor: false,
-      // There is an upper limit of 5000 messages per batch
-      // (numBefore + numAfter <= 5000) enforced on the server.
-      // See `update_message_flags_in_narrow` in zerver/views/message_flags.py .
-      // zulip-mobile uses `numAfter` of 5000, but web uses 1000
-      // for more responsive feedback. See zulip@f0d87fcf6.
-      numBefore: 0,
-      numAfter: 1000,
-      narrow: apiNarrow,
-      op: UpdateMessageFlagsOp.add,
-      flag: MessageFlag.read);
+        anchor: anchor,
+        // [AnchorCode.oldest] is an anchor ID lower than any valid
+        // message ID; and follow-up requests will have already
+        // processed the anchor ID, so we just want this to be
+        // unconditionally false.
+        includeAnchor: false,
+        // There is an upper limit of 5000 messages per batch
+        // (numBefore + numAfter <= 5000) enforced on the server.
+        // See `update_message_flags_in_narrow` in zerver/views/message_flags.py .
+        // zulip-mobile uses `numAfter` of 5000, but web uses 1000
+        // for more responsive feedback. See zulip@f0d87fcf6.
+        numBefore: 0,
+        numAfter: 1000,
+        narrow: apiNarrow,
+        op: UpdateMessageFlagsOp.add,
+        flag: MessageFlag.read);
     if (!context.mounted) {
       scaffoldMessenger.clearSnackBars();
       return;
@@ -1060,8 +1082,8 @@ Future<void> markNarrowAsRead(
       // This should be impossible given that `foundNewest` was false
       // (and that our `numAfter` was positive.)
       await showErrorDialog(context: context,
-        title: zulipLocalizations.errorMarkAsReadFailedTitle,
-        message: zulipLocalizations.errorInvalidResponse);
+          title: zulipLocalizations.errorMarkAsReadFailedTitle,
+          message: zulipLocalizations.errorInvalidResponse);
       return;
     }
     anchor = NumericAnchor(result.lastProcessedId!);
@@ -1081,7 +1103,7 @@ Future<void> markNarrowAsRead(
     //   is better for now if we allow them to run their timer through
     //   and clear the backlog later.
     scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
-      content: Text(zulipLocalizations.markAsReadInProgress)));
+        content: Text(zulipLocalizations.markAsReadInProgress)));
   }
 }
 
@@ -1102,8 +1124,8 @@ Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async 
       // of pushing the button.
       if (unreadDms == null) return;
       await updateMessageFlags(connection,
-        messages: unreadDms,
-        op: UpdateMessageFlagsOp.add,
-        flag: MessageFlag.read);
+          messages: unreadDms,
+          op: UpdateMessageFlagsOp.add,
+          flag: MessageFlag.read);
   }
 }
