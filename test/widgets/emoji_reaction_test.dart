@@ -16,6 +16,7 @@ import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
+import 'text_test.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -35,14 +36,6 @@ void main() {
       final fontLoader = FontLoader('Source Sans 3')..addFont(font);
       await fontLoader.load();
     }
-
-    // From trying the options on an iPhone 13 Pro running iOS 16.6.1:
-    const textScaleFactors = <double>[
-      0.8235, // smallest
-      1,
-      1.3529, // largest without using the "Larger Accessibility Sizes" setting
-      3.1176, // largest
-    ];
 
     Future<void> setupChipsInBox(WidgetTester tester, {
       required List<Reaction> reactions,
@@ -76,7 +69,7 @@ void main() {
     for (final displayEmojiReactionUsers in [true, false]) {
       for (final emojiset in [Emojiset.text, Emojiset.google]) {
         for (final textDirection in TextDirection.values) {
-          for (final textScaleFactor in textScaleFactors) {
+          for (final textScaleFactor in kTextScaleFactors) {
             Future<void> runSmokeTest(
               String description,
               List<Reaction> reactions, {
