@@ -6,6 +6,14 @@ import 'package:zulip/widgets/text.dart';
 
 import '../flutter_checks.dart';
 
+// From trying the options on an iPhone 13 Pro running iOS 16.6.1:
+const kTextScaleFactors = <double>[
+  0.8235, // smallest
+  1,
+  1.3529, // largest without using the "Larger Accessibility Sizes" setting
+  3.1176, // largest
+];
+
 void main() {
   group('zulipTypography', () {
     Future<Typography> getZulipTypography(WidgetTester tester, {
