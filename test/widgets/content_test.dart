@@ -468,16 +468,18 @@ void main() {
   });
 
   group('GlobalTime', () {
+    // "<time:2024-01-30T17:33:00Z>"
+    const timeSpanHtml = '<time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time>';
+    // The time is shown in the user's timezone and the result will depend on
+    // the timezone of the environment running these tests. Accept here a wide
+    // range of times. See comments in "show dates" test in
+    // `test/widgets/message_list_test.dart`.
+    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+
     testWidgets('smoke', (tester) async {
-      // "<time:2024-01-30T17:33:00Z>"
-      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
-        '<p><time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time></p>'
-      ).nodes)));
-      // The time is shown in the user's timezone and the result will depend on
-      // the timezone of the environment running this test. Accept here a wide
-      // range of times. See comments in "show dates" test in
-      // `test/widgets/message_list_test.dart`.
-      tester.widget(find.textContaining(RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$')));
+      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes:
+        parseContent('<p>$timeSpanHtml</p>').nodes)));
+      tester.widget(find.textContaining(renderedTextRegexp));
     });
   });
 
