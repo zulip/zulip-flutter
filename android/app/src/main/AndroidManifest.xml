@@ -1,3 +1,7 @@
+<!-- To view the "merged manifest" in Android Studio,
+     open the android/ subtree as its own project
+     and follow these instructions:
+       https://developer.android.com/build/manage-manifests#inspect_the_merged_manifest_and_find_conflicts -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
    <uses-permission android:name="android.permission.INTERNET"/>
    <application
