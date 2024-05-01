@@ -288,12 +288,16 @@ void main() {
 
   testContentSmoke(ContentExample.emphasis);
 
-  testContentSmoke(ContentExample.inlineCode);
+  group('inline code', () {
+    testContentSmoke(ContentExample.inlineCode);
+  });
 
-  testContentSmoke(ContentExample.userMentionPlain);
-  testContentSmoke(ContentExample.userMentionSilent);
-  testContentSmoke(ContentExample.groupMentionPlain);
-  testContentSmoke(ContentExample.groupMentionSilent);
+  group('UserMention', () {
+    testContentSmoke(ContentExample.userMentionPlain);
+    testContentSmoke(ContentExample.userMentionSilent);
+    testContentSmoke(ContentExample.groupMentionPlain);
+    testContentSmoke(ContentExample.groupMentionSilent);
+  });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
     final height = tester.getSize(textFinder).height;
@@ -459,18 +463,22 @@ void main() {
     testContentSmoke(ContentExample.emojiUnicodeLiteral);
   });
 
-  testContentSmoke(ContentExample.mathInline);
+  group('inline math', () {
+    testContentSmoke(ContentExample.mathInline);
+  });
 
-  testWidgets('GlobalTime smoke', (tester) async {
-    // "<time:2024-01-30T17:33:00Z>"
-    await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
-      '<p><time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time></p>'
-    ).nodes)));
-    // The time is shown in the user's timezone and the result will depend on
-    // the timezone of the environment running this test. Accept here a wide
-    // range of times. See comments in "show dates" test in
-    // `test/widgets/message_list_test.dart`.
-    tester.widget(find.textContaining(RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$')));
+  group('GlobalTime', () {
+    testWidgets('smoke', (tester) async {
+      // "<time:2024-01-30T17:33:00Z>"
+      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes: parseContent(
+        '<p><time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time></p>'
+      ).nodes)));
+      // The time is shown in the user's timezone and the result will depend on
+      // the timezone of the environment running this test. Accept here a wide
+      // range of times. See comments in "show dates" test in
+      // `test/widgets/message_list_test.dart`.
+      tester.widget(find.textContaining(RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$')));
+    });
   });
 
   group('MessageImageEmoji', () {
