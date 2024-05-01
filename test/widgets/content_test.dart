@@ -12,6 +12,7 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/text.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -40,10 +41,15 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Future<void> prepareContentBare(WidgetTester tester, String html) async {
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-      supportedLocales: ZulipLocalizations.supportedLocales,
-      home: BlockContentList(nodes: parseContent(html).nodes),
+    await tester.pumpWidget(Builder(
+      builder: (context) {
+        return MaterialApp(
+          theme: ThemeData(typography: zulipTypography(context)),
+          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          supportedLocales: ZulipLocalizations.supportedLocales,
+          home: Scaffold(body: BlockContentList(nodes: parseContent(html).nodes)),
+        );
+      }
     ));
   }
 
