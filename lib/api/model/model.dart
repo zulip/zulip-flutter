@@ -517,7 +517,7 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
           .withOpacity(0.3),
 
       // Follows `.sidebar-row__icon` in Vlad's replit:
-      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+      //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
       //
       // TODO fix bug where our results differ from the replit's (see unit tests)
       StreamColorVariant.iconOnPlainBackground: clamped20to75,
