@@ -38,9 +38,9 @@ void main() {
       });
 
       testWidgets('stream color', (WidgetTester tester) async {
-        final swatch = StreamColorSwatch(0xff76ce90);
+        final swatch = streamColorSwatch(0xff76ce90);
         await prepare(tester, swatch);
-        check(findBackgroundColor(tester)).equals(swatch.unreadCountBadgeBackground);
+        check(findBackgroundColor(tester)).equals(swatch[StreamColorVariant.unreadCountBadgeBackground]!);
       });
     });
   });

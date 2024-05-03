@@ -411,7 +411,8 @@ void main() {
           final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
           check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
-          check(streamIcon).color.equals(subscription.colorSwatch().iconOnBarBackground);
+          check(streamIcon).color
+            .equals(subscription.colorSwatch()[StreamColorVariant.iconOnBarBackground]!);
           // TODO check bar background color
           check(tester.widgetList(findSectionContent)).isNotEmpty();
         }
@@ -432,7 +433,8 @@ void main() {
           final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
           check(collapseIcon).icon.equals(ZulipIcons.arrow_right);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
-          check(streamIcon).color.equals(subscription.colorSwatch().iconOnPlainBackground);
+          check(streamIcon).color
+            .equals(subscription.colorSwatch()[StreamColorVariant.iconOnPlainBackground]!);
           // TODO check bar background color
           check(tester.widgetList(findSectionContent)).isEmpty();
         }

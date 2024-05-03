@@ -5,6 +5,10 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+extension ColorSwatchChecks<T> on Subject<ColorSwatch<T>> {
+  Subject<Color?> operator [](T index) => has((x) => x[index], '[$index]');
+}
+
 extension RectChecks on Subject<Rect> {
   Subject<double> get top => has((d) => d.top, 'top');
   Subject<double> get bottom => has((d) => d.bottom, 'bottom');

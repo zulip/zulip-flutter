@@ -282,7 +282,7 @@ void main() {
           find.descendant(
             of: find.byType(StreamMessageRecipientHeader),
             matching: find.byType(ColoredBox),
-        ))).color.equals(swatch.barBackground);
+        ))).color.equals(swatch[StreamColorVariant.barBackground]!);
       });
 
       testWidgets('color of stream icon', (tester) async {
@@ -294,7 +294,7 @@ void main() {
           subscriptions: [subscription]);
         await tester.pump();
         check(tester.widget<Icon>(find.byIcon(ZulipIcons.globe)))
-          .color.equals(swatch.iconOnBarBackground);
+          .color.equals(swatch[StreamColorVariant.iconOnBarBackground]!);
       });
 
       testWidgets('normal streams show hash icon', (tester) async {

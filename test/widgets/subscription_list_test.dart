@@ -186,7 +186,7 @@ void main() {
     ], unreadMsgs: unreadMsgs);
     check(getItemCount()).equals(1);
     check(tester.widget<Icon>(find.byType(Icon)).color)
-      .equals(swatch.iconOnPlainBackground);
+      .equals(swatch[StreamColorVariant.iconOnPlainBackground]!);
     check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
       .equals(swatch);
   });

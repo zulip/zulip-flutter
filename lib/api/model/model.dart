@@ -416,16 +416,17 @@ class Subscription extends ZulipStream {
     return 0xff000000 | int.parse(str.substring(1), radix: 16);
   }
 
-  StreamColorSwatch? _swatch;
-  /// A [StreamColorSwatch] for the subscription, memoized.
+  ColorSwatch<StreamColorVariant>? _swatch;
+  /// A [ColorSwatch<StreamColorVariant>] for the subscription, memoized.
   // TODO I'm not sure this is the right home for this; it seems like we might
   //   instead have chosen to put it in more UI-centered code, like in a custom
   //   material [ColorScheme] class or something. But it works for now.
-  StreamColorSwatch colorSwatch() => _swatch ??= StreamColorSwatch(color);
+  ColorSwatch<StreamColorVariant> colorSwatch() =>
+    _swatch ??= streamColorSwatch(color);
 
   @visibleForTesting
   @JsonKey(includeToJson: false)
-  StreamColorSwatch? get debugCachedSwatchValue => _swatch;
+  ColorSwatch<StreamColorVariant>? get debugCachedSwatchValue => _swatch;
 
   Subscription({
     required super.streamId,
@@ -462,70 +463,58 @@ class Subscription extends ZulipStream {
 ///
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
-class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
-  StreamColorSwatch(int base) : super(base, _compute(base));
+ColorSwatch<StreamColorVariant> streamColorSwatch(int base) {
+  final baseAsColor = Color(base);
 
-  Color get base => this[_StreamColorVariant.base]!;
+  final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
+  final clamped20to75AsHsl = HSLColor.fromColor(clamped20to75);
 
-  Color get unreadCountBadgeBackground => this[_StreamColorVariant.unreadCountBadgeBackground]!;
+  final map = {
+    StreamColorVariant.base: baseAsColor,
 
-  Color get iconOnPlainBackground => this[_StreamColorVariant.iconOnPlainBackground]!;
+    // Follows `.unread-count` in Vlad's replit:
+    //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
+    //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
+    //
+    // TODO fix bug where our results differ from the replit's (see unit tests)
+    StreamColorVariant.unreadCountBadgeBackground:
+      clampLchLightness(baseAsColor, 30, 70)
+        .withOpacity(0.3),
 
-  Color get iconOnBarBackground => this[_StreamColorVariant.iconOnBarBackground]!;
+    // Follows `.sidebar-row__icon` in Vlad's replit:
+    //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+    //
+    // TODO fix bug where our results differ from the replit's (see unit tests)
+    StreamColorVariant.iconOnPlainBackground: clamped20to75,
 
-  Color get barBackground => this[_StreamColorVariant.barBackground]!;
+    // Follows `.recepeient__icon` in Vlad's replit:
+    //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+    //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
+    //
+    // TODO fix bug where our results differ from the replit's (see unit tests)
+    StreamColorVariant.iconOnBarBackground:
+      clamped20to75AsHsl
+        .withLightness(clamped20to75AsHsl.lightness - 0.12)
+        .toColor(),
 
-  static Map<_StreamColorVariant, Color> _compute(int base) {
-    final baseAsColor = Color(base);
+    // Follows `.recepient` in Vlad's replit:
+    //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+    //
+    // TODO I think [LabColor.interpolate] doesn't actually do LAB mixing;
+    //   it just calls up to the superclass method [ColorModel.interpolate]:
+    //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
+    //   which does ordinary RGB mixing. Investigate and send a PR?
+    // TODO fix bug where our results differ from the replit's (see unit tests)
+    StreamColorVariant.barBackground:
+      LabColor.fromColor(const Color(0xfff9f9f9))
+        .interpolate(LabColor.fromColor(clamped20to75), 0.22)
+        .toColor(),
+  };
 
-    final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
-    final clamped20to75AsHsl = HSLColor.fromColor(clamped20to75);
-
-    return {
-      _StreamColorVariant.base: baseAsColor,
-
-      // Follows `.unread-count` in Vlad's replit:
-      //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
-      //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
-      //
-      // TODO fix bug where our results differ from the replit's (see unit tests)
-      _StreamColorVariant.unreadCountBadgeBackground:
-        clampLchLightness(baseAsColor, 30, 70)
-          .withOpacity(0.3),
-
-      // Follows `.sidebar-row__icon` in Vlad's replit:
-      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
-      //
-      // TODO fix bug where our results differ from the replit's (see unit tests)
-      _StreamColorVariant.iconOnPlainBackground: clamped20to75,
-
-      // Follows `.recepeient__icon` in Vlad's replit:
-      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
-      //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
-      //
-      // TODO fix bug where our results differ from the replit's (see unit tests)
-      _StreamColorVariant.iconOnBarBackground:
-        clamped20to75AsHsl
-          .withLightness(clamped20to75AsHsl.lightness - 0.12)
-          .toColor(),
-
-      // Follows `.recepient` in Vlad's replit:
-      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
-      //
-      // TODO I think [LabColor.interpolate] doesn't actually do LAB mixing;
-      //   it just calls up to the superclass method [ColorModel.interpolate]:
-      //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
-      //   which does ordinary RGB mixing. Investigate and send a PR?
-      // TODO fix bug where our results differ from the replit's (see unit tests)
-      _StreamColorVariant.barBackground:
-        LabColor.fromColor(const Color(0xfff9f9f9))
-          .interpolate(LabColor.fromColor(clamped20to75), 0.22)
-          .toColor(),
-    };
-  }
+  return ColorSwatch<StreamColorVariant>(base, map);
 }
 
-enum _StreamColorVariant {
+enum StreamColorVariant {
   /// The [Subscription.color] int that the swatch is based on.
   base,
 
