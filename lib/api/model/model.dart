@@ -529,7 +529,7 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
       // TODO fix bug where our results differ from the replit's (see unit tests)
       StreamColorVariant.iconOnBarBackground:
         clamped20to75AsHsl
-          .withLightness(clamped20to75AsHsl.lightness - 0.12)
+          .withLightness(clampDouble(clamped20to75AsHsl.lightness - 0.12, 0.0, 1.0))
           .toColor(),
 
       // Follows `.recepient` in Vlad's replit:
