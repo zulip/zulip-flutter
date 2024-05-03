@@ -526,7 +526,9 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
 }
 
 enum _StreamColorVariant {
+  /// The [Subscription.color] int that the swatch is based on.
   base,
+
   unreadCountBadgeBackground,
 
   /// The stream icon on a plain-colored surface, such as white.
