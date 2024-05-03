@@ -463,7 +463,8 @@ class Subscription extends ZulipStream {
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
 class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
-  StreamColorSwatch(int base) : this._(base, _compute(base));
+  StreamColorSwatch(int base) : this._(base, _computeLight(base));
+  StreamColorSwatch.dark(int base) : this._(base, _computeDark(base));
 
   const StreamColorSwatch._(int base, this._swatch) : super(base, _swatch);
 
@@ -498,7 +499,7 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
   /// Use this in the message list, the "Inbox" view, and the "Streams" view.
   Color get barBackground => this[StreamColorVariant.barBackground]!;
 
-  static Map<StreamColorVariant, Color> _compute(int base) {
+  static Map<StreamColorVariant, Color> _computeLight(int base) {
     final baseAsColor = Color(base);
 
     final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
@@ -543,6 +544,44 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
       StreamColorVariant.barBackground:
         LabColor.fromColor(const Color(0xfff9f9f9))
           .interpolate(LabColor.fromColor(clamped20to75), 0.22)
+          .toColor(),
+    };
+  }
+
+  static Map<StreamColorVariant, Color> _computeDark(int base) {
+    final baseAsColor = Color(base);
+
+    final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
+
+    return {
+      // See comments in [_computeLight] about what these computations are based
+      // on, and how the resulting values are a little off sometimes. The
+      // comments mostly apply here too.
+
+      StreamColorVariant.base: baseAsColor,
+      StreamColorVariant.unreadCountBadgeBackground:
+        clampLchLightness(baseAsColor, 30, 70)
+          .withOpacity(0.3),
+      StreamColorVariant.iconOnPlainBackground: clamped20to75,
+
+      // Follows the web app (as of zulip/zulip@db03369ac); see
+      // get_stream_privacy_icon_color in web/src/stream_color.ts.
+      //
+      // `.recepeient__icon` in Vlad's replit gives something different so we
+      // don't use that:
+      //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
+      //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
+      // But that's OK because Vlad said "I feel like current dark theme contrast
+      // is fine", and when he said that, this had been the web app's icon color
+      // for 6+ months (since zulip/zulip@023584e04):
+      //   https://chat.zulip.org/#narrow/stream/101-design/topic/UI.20redesign.3A.20recipient.20bar.20colors/near/1675786
+      //
+      // TODO fix bug where our results are unexpected (see unit tests)
+      StreamColorVariant.iconOnBarBackground: clamped20to75,
+
+      StreamColorVariant.barBackground:
+        LabColor.fromColor(const Color(0xff000000))
+          .interpolate(LabColor.fromColor(clamped20to75), 0.38)
           .toColor(),
     };
   }
