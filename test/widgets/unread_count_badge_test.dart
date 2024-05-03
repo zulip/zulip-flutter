@@ -40,7 +40,7 @@ void main() {
       testWidgets('stream color', (WidgetTester tester) async {
         final swatch = streamColorSwatch(0xff76ce90);
         await prepare(tester, swatch);
-        check(findBackgroundColor(tester)).equals(swatch[StreamColorVariant.unreadCountBadgeBackground]!);
+        check(findBackgroundColor(tester)).equals(swatch[StreamColor.unreadCountBadgeBackground]!);
       });
     });
   });

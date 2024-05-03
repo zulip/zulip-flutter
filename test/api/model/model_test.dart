@@ -122,24 +122,24 @@ void main() {
       check(sub.debugCachedSwatchValue).isNull();
       sub.colorSwatch();
       check(sub.debugCachedSwatchValue).isNotNull()
-        [StreamColorVariant.base].equals(const Color(0xffffffff));
+        [StreamColor.base].equals(const Color(0xffffffff));
       sub.color = 0xffff0000;
       check(sub.debugCachedSwatchValue).isNull();
       sub.colorSwatch();
       check(sub.debugCachedSwatchValue).isNotNull()
-        [StreamColorVariant.base].equals(const Color(0xffff0000));
+        [StreamColor.base].equals(const Color(0xffff0000));
     });
 
     group('streamColorSwatch', () {
       test('base', () {
-        check(streamColorSwatch(0xffffffff))[StreamColorVariant.base]
+        check(streamColorSwatch(0xffffffff))[StreamColor.base]
           .equals(const Color(0xffffffff));
       });
 
       test('unreadCountBadgeBackground', () {
         void runCheck(int base, Color expected) {
           check(streamColorSwatch(base))
-            [StreamColorVariant.unreadCountBadgeBackground].equals(expected);
+            [StreamColor.unreadCountBadgeBackground].equals(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS and EXTREME_COLORS
@@ -202,7 +202,7 @@ void main() {
       test('iconOnPlainBackground', () {
         void runCheck(int base, Color expected) {
           check(streamColorSwatch(base))
-            [StreamColorVariant.iconOnPlainBackground].equals(expected);
+            [StreamColor.iconOnPlainBackground].equals(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -244,7 +244,7 @@ void main() {
       test('iconOnBarBackground', () {
         void runCheck(int base, Color expected) {
           check(streamColorSwatch(base))
-            [StreamColorVariant.iconOnBarBackground].equals(expected);
+            [StreamColor.iconOnBarBackground].equals(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -286,7 +286,7 @@ void main() {
       test('barBackground', () {
         void runCheck(int base, Color expected) {
           check(streamColorSwatch(base))
-            [StreamColorVariant.barBackground].equals(expected);
+            [StreamColor.barBackground].equals(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS

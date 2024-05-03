@@ -208,7 +208,7 @@ class SubscriptionItem extends StatelessWidget {
           const SizedBox(width: 16),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 11),
-            child: Icon(size: 18, color: swatch[StreamColorVariant.iconOnPlainBackground]!,
+            child: Icon(size: 18, color: swatch[StreamColor.iconOnPlainBackground]!,
               iconDataForStream(subscription))),
           const SizedBox(width: 5),
           Expanded(

@@ -416,17 +416,17 @@ class Subscription extends ZulipStream {
     return 0xff000000 | int.parse(str.substring(1), radix: 16);
   }
 
-  ColorSwatch<StreamColorVariant>? _swatch;
+  ColorSwatch<StreamColor>? _swatch;
   /// A [ColorSwatch<StreamColorVariant>] for the subscription, memoized.
   // TODO I'm not sure this is the right home for this; it seems like we might
   //   instead have chosen to put it in more UI-centered code, like in a custom
   //   material [ColorScheme] class or something. But it works for now.
-  ColorSwatch<StreamColorVariant> colorSwatch() =>
+  ColorSwatch<StreamColor> colorSwatch() =>
     _swatch ??= streamColorSwatch(color);
 
   @visibleForTesting
   @JsonKey(includeToJson: false)
-  ColorSwatch<StreamColorVariant>? get debugCachedSwatchValue => _swatch;
+  ColorSwatch<StreamColor>? get debugCachedSwatchValue => _swatch;
 
   Subscription({
     required super.streamId,
@@ -463,21 +463,21 @@ class Subscription extends ZulipStream {
 ///
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
-ColorSwatch<StreamColorVariant> streamColorSwatch(int base) {
+ColorSwatch<StreamColor> streamColorSwatch(int base) {
   final baseAsColor = Color(base);
 
   final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
   final clamped20to75AsHsl = HSLColor.fromColor(clamped20to75);
 
   final map = {
-    StreamColorVariant.base: baseAsColor,
+    StreamColor.base: baseAsColor,
 
     // Follows `.unread-count` in Vlad's replit:
     //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
     //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
     //
     // TODO fix bug where our results differ from the replit's (see unit tests)
-    StreamColorVariant.unreadCountBadgeBackground:
+    StreamColor.unreadCountBadgeBackground:
       clampLchLightness(baseAsColor, 30, 70)
         .withOpacity(0.3),
 
@@ -485,14 +485,14 @@ ColorSwatch<StreamColorVariant> streamColorSwatch(int base) {
     //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
     //
     // TODO fix bug where our results differ from the replit's (see unit tests)
-    StreamColorVariant.iconOnPlainBackground: clamped20to75,
+    StreamColor.iconOnPlainBackground: clamped20to75,
 
     // Follows `.recepeient__icon` in Vlad's replit:
     //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
     //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
     //
     // TODO fix bug where our results differ from the replit's (see unit tests)
-    StreamColorVariant.iconOnBarBackground:
+    StreamColor.iconOnBarBackground:
       clamped20to75AsHsl
         .withLightness(clamped20to75AsHsl.lightness - 0.12)
         .toColor(),
@@ -505,16 +505,16 @@ ColorSwatch<StreamColorVariant> streamColorSwatch(int base) {
     //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
     //   which does ordinary RGB mixing. Investigate and send a PR?
     // TODO fix bug where our results differ from the replit's (see unit tests)
-    StreamColorVariant.barBackground:
+    StreamColor.barBackground:
       LabColor.fromColor(const Color(0xfff9f9f9))
         .interpolate(LabColor.fromColor(clamped20to75), 0.22)
         .toColor(),
   };
 
-  return ColorSwatch<StreamColorVariant>(base, map);
+  return ColorSwatch<StreamColor>(base, map);
 }
 
-enum StreamColorVariant {
+enum StreamColor {
   /// The [Subscription.color] int that the swatch is based on.
   base,
 

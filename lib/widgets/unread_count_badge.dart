@@ -31,8 +31,8 @@ class UnreadCountBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final backgroundColor = this.backgroundColor;
     final effectiveBackgroundColor = switch (backgroundColor) {
-      ColorSwatch<StreamColorVariant>() =>
-        backgroundColor[StreamColorVariant.unreadCountBadgeBackground]!,
+      ColorSwatch<StreamColor>() =>
+        backgroundColor[StreamColor.unreadCountBadgeBackground]!,
       Color() => backgroundColor,
       null => const Color.fromRGBO(102, 102, 153, 0.15),
     };

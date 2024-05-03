@@ -67,7 +67,7 @@ class _MessageListPageState extends State<MessageListPage> {
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         backgroundColor =
-          store.subscriptions[streamId]?.colorSwatch()[StreamColorVariant.barBackground]!
+          store.subscriptions[streamId]?.colorSwatch()[StreamColor.barBackground]!
           ?? _kUnsubscribedStreamRecipientHeaderColor;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
@@ -656,12 +656,12 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final Color iconColor;
     if (subscription != null) {
       final swatch = subscription.colorSwatch();
-      backgroundColor = swatch[StreamColorVariant.barBackground]!;
+      backgroundColor = swatch[StreamColor.barBackground]!;
       contrastingColor =
         (ThemeData.estimateBrightnessForColor(backgroundColor) == Brightness.dark)
           ? Colors.white
           : Colors.black;
-      iconColor = swatch[StreamColorVariant.iconOnBarBackground]!;
+      iconColor = swatch[StreamColor.iconOnBarBackground]!;
     } else {
       backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
       contrastingColor = Colors.black;

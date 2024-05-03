@@ -411,13 +411,13 @@ class _StreamHeaderItem extends _HeaderItem {
   @override get title => subscription.name;
   @override get icon => iconDataForStream(subscription);
   @override get collapsedIconColor =>
-    subscription.colorSwatch()[StreamColorVariant.iconOnPlainBackground]!;
+    subscription.colorSwatch()[StreamColor.iconOnPlainBackground]!;
   @override get uncollapsedIconColor =>
-    subscription.colorSwatch()[StreamColorVariant.iconOnBarBackground]!;
+    subscription.colorSwatch()[StreamColor.iconOnBarBackground]!;
   @override get uncollapsedBackgroundColor =>
-    subscription.colorSwatch()[StreamColorVariant.barBackground]!;
+    subscription.colorSwatch()[StreamColor.barBackground]!;
   @override get unreadCountBadgeBackgroundColor =>
-    subscription.colorSwatch()[StreamColorVariant.unreadCountBadgeBackground]!;
+    subscription.colorSwatch()[StreamColor.unreadCountBadgeBackground]!;
 
   @override get onCollapseButtonTap => () async {
     await super.onCollapseButtonTap();
