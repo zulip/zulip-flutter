@@ -469,22 +469,10 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
 
   Color get unreadCountBadgeBackground => this[_StreamColorVariant.unreadCountBadgeBackground]!;
 
-  /// The stream icon on a plain-colored surface, such as white.
-  ///
-  /// For the icon on a [barBackground]-colored surface,
-  /// use [iconOnBarBackground] instead.
   Color get iconOnPlainBackground => this[_StreamColorVariant.iconOnPlainBackground]!;
 
-  /// The stream icon on a [barBackground]-colored surface.
-  ///
-  /// For the icon on a plain surface, use [iconOnPlainBackground] instead.
-  /// This color is chosen to enhance contrast with [barBackground]:
-  ///   <https://github.com/zulip/zulip/pull/27485>
   Color get iconOnBarBackground => this[_StreamColorVariant.iconOnBarBackground]!;
 
-  /// The background color of a bar representing a stream, like a recipient bar.
-  ///
-  /// Use this in the message list, the "Inbox" view, and the "Streams" view.
   Color get barBackground => this[_StreamColorVariant.barBackground]!;
 
   static Map<_StreamColorVariant, Color> _compute(int base) {
@@ -540,8 +528,23 @@ class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
 enum _StreamColorVariant {
   base,
   unreadCountBadgeBackground,
+
+  /// The stream icon on a plain-colored surface, such as white.
+  ///
+  /// For the icon on a [barBackground]-colored surface,
+  /// use [iconOnBarBackground] instead.
   iconOnPlainBackground,
+
+  /// The stream icon on a [barBackground]-colored surface.
+  ///
+  /// For the icon on a plain surface, use [iconOnPlainBackground] instead.
+  /// This color is chosen to enhance contrast with [barBackground]:
+  ///   <https://github.com/zulip/zulip/pull/27485>
   iconOnBarBackground,
+
+  /// The background color of a bar representing a stream, like a recipient bar.
+  ///
+  /// Use this in the message list, the "Inbox" view, and the "Streams" view.
   barBackground,
 }
 
