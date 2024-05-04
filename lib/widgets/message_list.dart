@@ -982,19 +982,14 @@ class MessageWithPossibleSender extends StatelessWidget {
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    if (message.flags.contains(MessageFlag.starred))
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5.3, 16.5, 0),
-                        child: Icon(
-                          ZulipIcons.star_filled,
-                          size: 18,
-                          color: _starColor,
-                        ),
-                      ),
-                  ],
-                )
+                SizedBox(width: 17,
+              child: message.flags.contains(MessageFlag.starred)
+                // TODO(#157): fix how star marker aligns with message content
+                // Design from Figma at:
+                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
+                ? Padding(padding: const EdgeInsets.only(top: 5.5),
+                    child: Icon(ZulipIcons.star_filled, size: 17, color: _starColor))
+                : null)
               ],
             ),
           ],
