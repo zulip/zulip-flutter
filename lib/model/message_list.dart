@@ -467,11 +467,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Update data derived from the content of the given message.
+  ///
+  /// This does not notify listeners.
+  /// The caller should ensure that happens later.
   void messageContentChanged(int messageId) {
     final index = _findMessageWithId(messageId);
     if (index != -1) {
       _reparseContent(index);
-      notifyListeners();
     }
   }
 

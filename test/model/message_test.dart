@@ -162,6 +162,34 @@ void main() {
   });
 
   group('handleUpdateMessageEvent', () {
+    test('update timestamps on all messages', () async {
+      const t1 = 1718748879;
+      const t2 = t1 + 60;
+      final message1 = eg.streamMessage(lastEditTimestamp: null);
+      final message2 = eg.streamMessage(lastEditTimestamp: t1);
+      // This event is a bit artificial, but convenient.
+      // TODO use a realistic move-messages event here
+      final updateEvent = Event.fromJson({
+        ...eg.updateMessageEditEvent(message1).toJson(),
+        'message_ids': [message1.id, message2.id],
+        'edit_timestamp': t2,
+      }) as UpdateMessageEvent;
+      await prepare();
+      await prepareMessages([message1, message2]);
+
+      check(store).messages.values.unorderedMatches(<Condition<Message>>[
+        (it) => it.lastEditTimestamp.isNull,
+        (it) => it.lastEditTimestamp.equals(t1),
+      ]);
+
+      await store.handleEvent(updateEvent);
+      checkNotifiedOnce();
+      check(store).messages.values.unorderedMatches(<Condition<Message>>[
+        (it) => it.lastEditTimestamp.equals(t2),
+        (it) => it.lastEditTimestamp.equals(t2),
+      ]);
+    });
+
     test('update a message', () async {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
