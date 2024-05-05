@@ -97,7 +97,6 @@ Two specific points to expand on:
     1.1. Initialize the pinned Flutter tree:
 
     ```sh
-    git submodule update --init
     tools/setup-vendor-flutter
     ```
 

@@ -6,14 +6,25 @@ this_dir=${BASH_SOURCE[0]%/*}
 # shellcheck source=tools/lib/git.sh
 . "${this_dir}"/lib/git.sh
 
+divider_line='================================================================'
 
 # One-time setup to let git submodule + flutter SDK know that we're
 # using the main channel (main branch).
-# We should do a quick check that there's no changes.
+# Otherwise, `flutter doctor` complains about being on a user branch.
+# We do a quick check that there's no changes.
 if ! submodule_is_clean "vendor/flutter" ; then
-    echo >&2 "There are changes in the 'vendor/flutter' tree or it is not initialized."
-    echo >&2 "Please run 'git submodule update --init' then run this script again."
-    exit 1
+    echo "Initializing 'vendor/flutter' submodule:"
+    echo "${divider_line}"
+    if ! git submodule update --init ; then
+        echo "${divider_line}"
+        echo >&2 "Failed to initialize the 'vendor/flutter' submodule, please resolve the issues indicated above then run this script again."
+        exit 1
+    else
+        echo "${divider_line}"
+    fi
 fi
-
+# Check if current branch is main, if not, switch to main
+if [[ $(git -C vendor/flutter branch --show-current) == "main" ]]; then
+    exit 0
+fi
 git -C vendor/flutter checkout -B main HEAD
