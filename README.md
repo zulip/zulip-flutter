@@ -94,12 +94,10 @@ Two specific points to expand on:
 
 1. Setup the pinned version of flutter.
 
-    1.1. Make sure you have initialized submodule by doing:
+    1.1. Initialize the pinned Flutter tree:
 
     ```sh
-    # Update and initialize submodule
     git submodule update --init
-    # Run setup-vendor-flutter
     tools/setup-vendor-flutter
     ```
 
