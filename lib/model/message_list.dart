@@ -378,6 +378,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
     );
+    store.reconcileMessages(result.messages);
     for (final message in result.messages) {
       if (_messageVisible(message)) {
         _addMessage(message);
@@ -412,6 +413,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // TODO(server-6): includeAnchor should make this impossible
         result.messages.removeLast();
       }
+
+      store.reconcileMessages(result.messages);
 
       final fetchedMessages = _allMessagesVisible
         ? result.messages // Avoid unnecessarily copying the list.

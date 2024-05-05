@@ -933,6 +933,7 @@ void checkInvariants(MessageListView model) {
   }
 
   for (final message in model.messages) {
+    check(model.store.messages)[message.id].isNotNull().identicalTo(message);
     check(model.narrow.containsMessage(message)).isTrue();
 
     if (message is! StreamMessage) continue;

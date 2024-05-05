@@ -341,11 +341,16 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
   // Messages, and summaries of messages.
 
   @override
+  Map<int, Message> get messages => _messages.messages;
+  @override
   void registerMessageList(MessageListView view) =>
     _messages.registerMessageList(view);
   @override
   void unregisterMessageList(MessageListView view) =>
     _messages.unregisterMessageList(view);
+  @override
+  void reconcileMessages(List<Message> messages) =>
+    _messages.reconcileMessages(messages);
 
   final MessageStoreImpl _messages;
 
