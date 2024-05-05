@@ -19,16 +19,19 @@ Future<void> showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
+  bool barrierDismissible = true,
+  VoidCallback? onContinue,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
   return showDialog(
     context: context,
+    barrierDismissible: barrierDismissible,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
       content: message != null ? SingleChildScrollView(child: Text(message)) : null,
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: onContinue ?? () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
       ]));
 }

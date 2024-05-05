@@ -381,6 +381,10 @@
       "httpStatus": {"type": "int", "example": "500"}
     }
   },
+  "errorVideoPlayerFailed": "Unable to play the video",
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
   "serverUrlValidationErrorEmpty": "Please enter a URL.",
   "@serverUrlValidationErrorEmpty": {
     "description": "Error message when URL is empty"

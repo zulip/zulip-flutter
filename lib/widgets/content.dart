@@ -99,13 +99,7 @@ class BlockContentList extends StatelessWidget {
           );
           return MessageImage(node: node);
         } else if (node is InlineVideoNode) {
-          return Text.rich(
-            TextSpan(children: [
-              const TextSpan(text: "(unimplemented:", style: errorStyle),
-              TextSpan(text: node.debugHtmlText, style: errorCodeStyle),
-              const TextSpan(text: ")", style: errorStyle),
-            ]),
-            style: errorStyle);
+          return MessageInlineVideo(node: node);
         } else if (node is EmbedVideoNode) {
           return MessageEmbedVideo(node: node);
         } else if (node is UnimplementedBlockContentNode) {
@@ -387,7 +381,10 @@ class MessageImage extends StatelessWidget {
     return MessageMediaContainer(
       onTap: resolvedSrc == null ? null : () { // TODO(log)
         Navigator.of(context).push(getLightboxRoute(
-          context: context, message: message, src: resolvedSrc));
+          context: context,
+          message: message,
+          src: resolvedSrc,
+          mediaType: MediaType.image));
       },
       child: resolvedSrc == null ? null : LightboxHero(
         message: message,
@@ -395,6 +392,37 @@ class MessageImage extends StatelessWidget {
         child: RealmContentNetworkImage(
           resolvedSrc,
           filterQuality: FilterQuality.medium)));
+  }
+}
+
+class MessageInlineVideo extends StatelessWidget {
+  const MessageInlineVideo({super.key, required this.node});
+
+  final InlineVideoNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = InheritedMessage.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedSrc = store.tryResolveUrl(node.srcUrl);
+
+    return MessageMediaContainer(
+      onTap: resolvedSrc == null ? null : () { // TODO(log)
+        Navigator.of(context).push(getLightboxRoute(
+          context: context,
+          message: message,
+          src: resolvedSrc,
+          mediaType: MediaType.video));
+      },
+      child: Container(
+        color: Colors.black,
+        alignment: Alignment.center,
+        // To avoid potentially confusing UX, do not show play icon as
+        // we also disable onTap above.
+        child: resolvedSrc == null ? null : const Icon( // TODO(log)
+          Icons.play_arrow_rounded,
+          color: Colors.white,
+          size: 32)));
   }
 }
 

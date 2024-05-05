@@ -328,6 +328,39 @@ void main() {
     });
   });
 
+  group("MessageInlineVideo", () {
+    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
+        navigatorObservers: [testNavObserver],
+        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+          child: MessageContent(
+            message: eg.streamMessage(content: html),
+            content: parseContent(html))))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.removeLast();
+      return pushedRoutes;
+    }
+
+    testWidgets('tapping on preview opens lightbox', (tester) async {
+      const example = ContentExample.videoInline;
+      final pushedRoutes = await prepareContent(tester, example.html);
+
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
+        .fullscreenDialog.isTrue(); // opened lightbox
+    });
+  });
+
   group("MessageEmbedVideo", () {
     Future<void> prepareContent(WidgetTester tester, String html) async {
       addTearDown(testBinding.reset);
@@ -374,7 +407,6 @@ void main() {
       await checkEmbedVideo(tester, example);
     });
   });
-
 
   group("CodeBlock", () {
     testContentSmoke(ContentExample.codeBlockPlain);

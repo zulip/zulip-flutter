@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:video_player/video_player.dart';
 
+import '../api/core.dart';
 import '../api/model/model.dart';
+import '../log.dart';
 import 'content.dart';
+import 'dialog.dart';
 import 'page.dart';
 import 'clipboard.dart';
 import 'store.dart';
@@ -94,7 +98,7 @@ class _LightboxPageLayout extends StatefulWidget {
   final Animation routeEntranceAnimation;
   final Message message;
   final Widget? Function(
-    BuildContext context, Color appBarBackgroundColor, double appBarElevation) buildBottomAppBar;
+    BuildContext context, Color color, double elevation) buildBottomAppBar;
   final Widget child;
 
   @override
@@ -108,6 +112,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   @override
   void initState() {
     super.initState();
+    _handleRouteEntranceAnimationStatusChange(widget.routeEntranceAnimation.status);
     widget.routeEntranceAnimation.addStatusListener(_handleRouteEntranceAnimationStatusChange);
   }
 
@@ -215,19 +220,24 @@ class _ImageLightboxPage extends StatefulWidget {
 }
 
 class _ImageLightboxPageState extends State<_ImageLightboxPage> {
+  Widget _buildBottomAppBar(BuildContext context, Color color, double elevation) {
+    return BottomAppBar(
+      color: color,
+      elevation: elevation,
+      child: Row(children: [
+        _CopyLinkButton(url: widget.src),
+        // TODO(#43): Share image
+        // TODO(#42): Download image
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
-      buildBottomAppBar: (context, color, elevation) => BottomAppBar(
-        color: color,
-        elevation: elevation,
-        child: Row(children: [
-          _CopyLinkButton(url: widget.src),
-          // TODO(#43): Share image
-          // TODO(#42): Download image
-        ])),
+      buildBottomAppBar: _buildBottomAppBar,
       child: SizedBox.expand(
         child: InteractiveViewer(
           child: SafeArea(
@@ -238,11 +248,243 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
   }
 }
 
+class _VideoPositionSliderControl extends StatefulWidget {
+  final VideoPlayerController controller;
+
+  const _VideoPositionSliderControl({
+    required this.controller,
+  });
+
+  @override
+  State<_VideoPositionSliderControl> createState() => _VideoPositionSliderControlState();
+}
+
+class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl> {
+  Duration _sliderValue = Duration.zero;
+  bool _isSliderDragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _sliderValue = widget.controller.value.position;
+    widget.controller.addListener(_handleVideoControllerUpdate);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_handleVideoControllerUpdate);
+    super.dispose();
+  }
+
+  void _handleVideoControllerUpdate() {
+    setState(() {
+      // After 'controller.seekTo' is called in 'Slider.onChangeEnd' the
+      // position indicator switches back to the actual controller's position
+      // but since the call 'seekTo' completes before the actual controller
+      // updates are notified, the position indicator that switches to controller's
+      // position can show the older position before the call to 'seekTo' for a
+      // single frame, resulting in a glichty UX.
+      //
+      // To avoid that, we delay the position indicator switch from '_sliderValue' to
+      // happen when we are notified of the controller update.
+      if (_isSliderDragging && _sliderValue == widget.controller.value.position) {
+        _isSliderDragging = false;
+      }
+    });
+  }
+
+  static String _formatDuration(Duration value) {
+    final hours = value.inHours.toString().padLeft(2, '0');
+    final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '${hours == '00' ? '' : '$hours:'}$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentPosition = _isSliderDragging
+      ? _sliderValue
+      : widget.controller.value.position;
+
+    return Row(children: [
+      Text(_formatDuration(currentPosition),
+        style: const TextStyle(color: Colors.white)),
+      Expanded(
+        child: Slider(
+          value: currentPosition.inMilliseconds.toDouble(),
+          max: widget.controller.value.duration.inMilliseconds.toDouble(),
+          activeColor: Colors.white,
+          onChangeStart: (value) {
+            setState(() {
+              _sliderValue = Duration(milliseconds: value.toInt());
+              _isSliderDragging = true;
+            });
+          },
+          onChanged: (value) {
+            setState(() {
+              _sliderValue = Duration(milliseconds: value.toInt());
+            });
+          },
+          onChangeEnd: (value) {
+            final durationValue = Duration(milliseconds: value.toInt());
+            setState(() {
+              _sliderValue = durationValue;
+            });
+            widget.controller.seekTo(durationValue);
+
+            // The toggling back of '_isSliderDragging' is omitted here intentionally,
+            // see '_handleVideoControllerUpdates'.
+          },
+        ),
+      ),
+      Text(_formatDuration(widget.controller.value.duration),
+        style: const TextStyle(color: Colors.white)),
+    ]);
+  }
+}
+
+class VideoLightboxPage extends StatefulWidget {
+  const VideoLightboxPage({
+    super.key,
+    required this.routeEntranceAnimation,
+    required this.message,
+    required this.src,
+  });
+
+  final Animation routeEntranceAnimation;
+  final Message message;
+  final Uri src;
+
+  @override
+  State<VideoLightboxPage> createState() => _VideoLightboxPageState();
+}
+
+class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountStoreAwareStateMixin<VideoLightboxPage> {
+  VideoPlayerController? _controller;
+
+  @override
+  void onNewStore() {
+    if (_controller != null) {
+      // The exclusion of reinitialization logic is deliberate here,
+      // as initialization relies only on the initial values of the store's
+      // realm URL and the user's credentials, which we assume remain unchanged
+      // when the store is replaced.
+      return;
+    }
+
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    final store = PerAccountStoreWidget.of(context);
+
+    assert(debugLog('VideoPlayerController.networkUrl(${widget.src})'));
+    _controller = VideoPlayerController.networkUrl(widget.src, httpHeaders: {
+      if (widget.src.origin == store.account.realmUrl.origin) ...authHeader(
+        email: store.account.email,
+        apiKey: store.account.apiKey,
+      ),
+      ...userAgentHeader()
+    });
+    _controller!.addListener(_handleVideoControllerUpdate);
+
+    try {
+      await _controller!.initialize();
+      if (_controller == null) return; // widget was disposed
+      await _controller!.play();
+    } catch (error) { // TODO(log)
+      assert(debugLog("VideoPlayerController.initialize failed: $error"));
+      if (mounted) {
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        await showErrorDialog(
+          context: context,
+          title: zulipLocalizations.errorDialogTitle,
+          message: zulipLocalizations.errorVideoPlayerFailed,
+          // To avoid showing the disabled video lightbox for the unnsupported
+          // video, we make sure user doesn't reach there by dismissing the dialog
+          // by clicking around it, user must press the 'OK' button, which will
+          // take user back to content message list.
+          barrierDismissible: false,
+          onContinue: () {
+            Navigator.pop(context); // Pops the dialog
+            Navigator.pop(context); // Pops the lightbox
+          });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_handleVideoControllerUpdate);
+    _controller?.dispose();
+    _controller = null;
+    super.dispose();
+  }
+
+  void _handleVideoControllerUpdate() {
+    setState(() {});
+  }
+
+  Widget? _buildBottomAppBar(BuildContext context, Color color, double elevation) {
+    if (_controller == null) return null;
+    return BottomAppBar(
+      height: 150,
+      color: color,
+      elevation: elevation,
+      child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+        _VideoPositionSliderControl(controller: _controller!),
+        IconButton(
+          onPressed: () {
+            if (_controller!.value.isPlaying) {
+              _controller!.pause();
+            } else {
+              _controller!.play();
+            }
+          },
+          icon: Icon(
+            _controller!.value.isPlaying
+              ? Icons.pause_circle_rounded
+              : Icons.play_circle_rounded,
+            size: 50,
+          ),
+        ),
+      ]),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _LightboxPageLayout(
+      routeEntranceAnimation: widget.routeEntranceAnimation,
+      message: widget.message,
+      buildBottomAppBar: _buildBottomAppBar,
+      child: SafeArea(
+        child: Center(
+          child: Stack(alignment: Alignment.center, children: [
+            if (_controller != null && _controller!.value.isInitialized)
+              AspectRatio(
+                aspectRatio: _controller!.value.aspectRatio,
+                child: VideoPlayer(_controller!)),
+            if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(color: Colors.white)),
+            ]))));
+  }
+}
+
+enum MediaType {
+  video,
+  image
+}
+
 Route getLightboxRoute({
   int? accountId,
   BuildContext? context,
   required Message message,
   required Uri src,
+  required MediaType mediaType,
 }) {
   return AccountPageRouteBuilder(
     accountId: accountId,
@@ -254,7 +496,16 @@ Route getLightboxRoute({
       Animation<double> secondaryAnimation,
     ) {
       // TODO(#40): Drag down to close?
-      return _ImageLightboxPage(routeEntranceAnimation: animation, message: message, src: src);
+      return switch (mediaType) {
+        MediaType.image => _ImageLightboxPage(
+          routeEntranceAnimation: animation,
+          message: message,
+          src: src),
+        MediaType.video => VideoLightboxPage(
+          routeEntranceAnimation: animation,
+          message: message,
+          src: src),
+      };
     },
     transitionsBuilder: (
       BuildContext context,
