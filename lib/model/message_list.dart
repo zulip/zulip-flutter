@@ -444,6 +444,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     notifyListeners();
   }
 
+  /// Notify listeners if the given message is present in this view.
+  void notifyListenersIfMessagePresent(int messageId) {
+    final index = _findMessageWithId(messageId);
+    if (index != -1) {
+      notifyListeners();
+    }
+  }
+
   static void _applyChangesToMessage(UpdateMessageEvent event, Message message) {
     // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
     final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
@@ -510,35 +518,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
     if (!didUpdateAny) {
       return;
-    }
-
-    notifyListeners();
-  }
-
-  void maybeUpdateMessageReactions(ReactionEvent event) {
-    final index = _findMessageWithId(event.messageId);
-    if (index == -1) {
-      return;
-    }
-
-    final message = messages[index];
-    switch (event.op) {
-      case ReactionOp.add:
-        (message.reactions ??= Reactions([])).add(Reaction(
-          emojiName: event.emojiName,
-          emojiCode: event.emojiCode,
-          reactionType: event.reactionType,
-          userId: event.userId,
-        ));
-      case ReactionOp.remove:
-        if (message.reactions == null) { // TODO(log)
-          return;
-        }
-        message.reactions!.remove(
-          reactionType: event.reactionType,
-          emojiCode: event.emojiCode,
-          userId: event.userId,
-        );
     }
 
     notifyListeners();

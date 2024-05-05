@@ -109,8 +109,30 @@ class MessageStoreImpl with MessageStore {
   }
 
   void handleReactionEvent(ReactionEvent event) {
+    final message = messages[event.messageId];
+    if (message == null) return;
+
+    switch (event.op) {
+      case ReactionOp.add:
+        (message.reactions ??= Reactions([])).add(Reaction(
+          emojiName: event.emojiName,
+          emojiCode: event.emojiCode,
+          reactionType: event.reactionType,
+          userId: event.userId,
+        ));
+      case ReactionOp.remove:
+        if (message.reactions == null) { // TODO(log)
+          return;
+        }
+        message.reactions!.remove(
+          reactionType: event.reactionType,
+          emojiCode: event.emojiCode,
+          userId: event.userId,
+        );
+    }
+
     for (final view in _messageListViews) {
-      view.maybeUpdateMessageReactions(event); // TODO update mainly in [messages] instead
+      view.notifyListenersIfMessagePresent(event.messageId);
     }
   }
 }

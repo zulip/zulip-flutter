@@ -271,6 +271,41 @@ void main() {
     checkInvariants(model);
   });
 
+  group('notifyListenersIfMessagePresent', () {
+    test('message present', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
+      model.notifyListenersIfMessagePresent(150);
+      checkNotifiedOnce();
+    });
+
+    test('message absent', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i))
+          .where((m) => m.id != 150).toList());
+      model.notifyListenersIfMessagePresent(150);
+      checkNotNotified();
+    });
+
+    test('message absent (older than window)', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
+      model.notifyListenersIfMessagePresent(50);
+      checkNotNotified();
+    });
+
+    test('message absent (newer than window)', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
+      model.notifyListenersIfMessagePresent(250);
+      checkNotNotified();
+    });
+  });
+
   group('maybeUpdateMessage', () {
     test('update a message', () async {
       final originalMessage = eg.streamMessage(
@@ -452,6 +487,86 @@ void main() {
         check(model).messages.single.flags.deepEquals([MessageFlag.starred]);
       });
     });
+  });
+
+  group('regression tests for #455', () {
+    test('reaction events handled once, even when message is in two message lists', () async {
+      final stream = eg.stream();
+      store = eg.store();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      connection = store.connection as FakeApiConnection;
+
+      int notifiedCount1 = 0;
+      final model1 = MessageListView.init(store: store,
+          narrow: StreamNarrow(stream.streamId))
+        ..addListener(() => notifiedCount1++);
+
+      int notifiedCount2 = 0;
+      final model2 = MessageListView.init(store: store,
+          narrow: TopicNarrow(stream.streamId, 'hello'))
+        ..addListener(() => notifiedCount2++);
+
+      for (final m in [model1, model2]) {
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: [eg.streamMessage(stream: stream, topic: 'hello')]).toJson());
+        await m.fetchInitial();
+      }
+
+      final message = eg.streamMessage(stream: stream, topic: 'hello');
+      await store.handleEvent(MessageEvent(id: 0, message: message));
+
+      await store.handleEvent(
+        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id));
+
+      check(notifiedCount1).equals(3); // fetch, new-message event, reaction event
+      check(notifiedCount2).equals(3); // fetch, new-message event, reaction event
+
+      check(model1.messages.last)
+        ..identicalTo(model2.messages.last)
+        ..reactions.isNotNull().total.equals(1);
+    });
+
+    Future<void> checkApplied({
+      required Event Function(Message) mkEvent,
+      required void Function(Subject<Message>) doCheckMessageAfterFetch,
+    }) async {
+      final stream = eg.stream();
+      store = eg.store();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      connection = store.connection as FakeApiConnection;
+
+      final message = eg.streamMessage(stream: stream);
+
+      await store.addMessage(Message.fromJson(message.toJson()));
+      await store.handleEvent(mkEvent(message));
+
+      // init msglist *after* event was handled
+      model = MessageListView.init(store: store, narrow: const CombinedFeedNarrow());
+      checkInvariants(model);
+
+      connection.prepare(json:
+        newestResult(foundOldest: false, messages: [message]).toJson());
+      await model.fetchInitial();
+      checkInvariants(model);
+      doCheckMessageAfterFetch(
+        check(model).messages.single
+          ..id.equals(message.id)
+      );
+    }
+
+    test('ReactionEvent is applied even when message not in any msglists', () async {
+      await checkApplied(
+        mkEvent: (message) =>
+          eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id),
+        doCheckMessageAfterFetch:
+          (messageSubject) => messageSubject.reactions.isNotNull().total.equals(1),
+      );
+    });
+
+    // TODO(#455) message edits; message flags
   });
 
   test('reassemble', () async {
