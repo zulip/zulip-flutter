@@ -617,24 +617,31 @@ class UpdateMessageEvent extends Event {
   final bool? renderingOnly; // TODO(server-5)
   final int messageId;
   final List<int> messageIds;
+
   final List<MessageFlag> flags;
   final int? editTimestamp; // TODO(server-5)
+
   // final String? streamName; // ignore
-  final int? streamId;
+
+  @JsonKey(name: 'stream_id')
+  final int? origStreamId;
   final int? newStreamId;
+
   final PropagateMode? propagateMode;
 
   @JsonKey(name: 'orig_subject')
   final String? origTopic;
   @JsonKey(name: 'subject')
-  final String? topic;
+  final String? newTopic;
 
   // final List<TopicLink> topicLinks; // TODO handle
+
   final String? origContent;
   final String? origRenderedContent;
   // final int? prevRenderedContentVersion; // deprecated
   final String? content;
   final String? renderedContent;
+
   final bool? isMeMessage;
 
   UpdateMessageEvent({
@@ -645,11 +652,11 @@ class UpdateMessageEvent extends Event {
     required this.messageIds,
     required this.flags,
     required this.editTimestamp,
-    required this.streamId,
+    required this.origStreamId,
     required this.newStreamId,
     required this.propagateMode,
     required this.origTopic,
-    required this.topic,
+    required this.newTopic,
     required this.origContent,
     required this.origRenderedContent,
     required this.content,

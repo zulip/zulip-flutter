@@ -407,11 +407,11 @@ UpdateMessageEvent updateMessageEditEvent(
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
     editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
-    streamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
     newStreamId: null,
     propagateMode: null,
     origTopic: null,
-    topic: null,
+    newTopic: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
     content: 'some probably-mismatched new Markdown',

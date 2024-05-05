@@ -80,13 +80,22 @@ void main() {
       'stream_id': eg.stream().streamId,
     };
 
-    test('orig_subject -> origTopic, subject -> topic', () {
+    test('stream_id -> origStreamId', () {
+      check(Event.fromJson({ ...baseJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+      }) as UpdateMessageEvent)
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(2);
+    });
+
+    test('orig_subject -> origTopic, subject -> newTopic', () {
       check(Event.fromJson({ ...baseJson,
         'orig_subject': 'foo',
         'subject': 'bar',
       }) as UpdateMessageEvent)
         ..origTopic.equals('foo')
-        ..topic.equals('bar');
+        ..newTopic.equals('bar');
     });
   });
 
