@@ -306,6 +306,39 @@ void main() {
     });
   });
 
+  group('messageContentChanged', () {
+    test('message present', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(10, (i) => eg.streamMessage(id: 10 + i)));
+
+      final message = model.messages[5];
+      await store.handleEvent(eg.updateMessageEditEvent(message,
+        renderedContent: '${message.content}<p>edited</p'));
+      checkNotifiedOnce();
+    });
+
+    test('message absent', () async {
+      final stream = eg.stream();
+      final narrow = StreamNarrow(stream.streamId);
+      await prepare(narrow: narrow);
+
+      final messagesInNarrow = List<Message>.generate(10,
+        (i) => eg.streamMessage(id: 10 + i, stream: stream));
+      check(messagesInNarrow.every(narrow.containsMessage)).isTrue();
+
+      final messageNotInNarrow = eg.dmMessage(id: 100, from: eg.otherUser, to: [eg.selfUser]);
+      check(narrow.containsMessage(messageNotInNarrow)).isFalse();
+
+      await prepareMessages(foundOldest: false, messages: messagesInNarrow);
+      await store.addMessage(messageNotInNarrow);
+
+      await store.handleEvent(eg.updateMessageEditEvent(messageNotInNarrow,
+        renderedContent: '${messageNotInNarrow.content}<p>edited</p'));
+      checkNotNotified();
+    });
+  });
+
   group('maybeUpdateMessageFlags', () {
     UpdateMessageFlagsAddEvent mkAddEvent(
       MessageFlag flag,
@@ -484,7 +517,19 @@ void main() {
       );
     });
 
-    // TODO(#455) message edits; message flags
+    test('UpdateMessageEvent (edit) is applied even when message not in any msglists', () async {
+      await checkApplied(
+        mkEvent: (message) {
+          final newContent = '${message.content}<p>edited</p>';
+          return eg.updateMessageEditEvent(message,
+            renderedContent: newContent);
+        },
+        doCheckMessageAfterFetch:
+          (messageSubject) => messageSubject.content.endsWith('<p>edited</p>'),
+      );
+    });
+
+    // TODO(#455) message flags
   });
 
   test('reassemble', () async {

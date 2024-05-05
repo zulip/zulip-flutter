@@ -452,46 +452,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  static void _applyChangesToMessage(UpdateMessageEvent event, Message message) {
-    // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
-    final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
-    if (event.editTimestamp != null && !isRenderingOnly) {
-      // A rendering-only update gets omitted from the message edit history,
-      // and [Message.lastEditTimestamp] is the last timestamp of that history.
-      // So on a rendering-only update, the timestamp doesn't get updated.
-      message.lastEditTimestamp = event.editTimestamp;
+  void messageContentChanged(int messageId) {
+    final index = _findMessageWithId(messageId);
+    if (index != -1) {
+      _reparseContent(index);
+      notifyListeners();
     }
-
-    message.flags = event.flags;
-
-    if (event.renderedContent != null) {
-      assert(message.contentType == 'text/html',
-        "Message contentType was ${message.contentType}; expected text/html.");
-      message.content = event.renderedContent!;
-    }
-
-    if (event.isMeMessage != null) {
-      message.isMeMessage = event.isMeMessage!;
-    }
-  }
-
-  /// Update the message the given event applies to, if present in this view.
-  ///
-  /// This method only handles the case where the message's contents
-  /// were changed, and ignores any changes to its stream or topic.
-  ///
-  /// TODO(#150): Handle message moves.
-  // NB that when handling message moves (#150), recipient headers
-  // may need updating, and consequently showSender too.
-  void handleUpdateMessageEvent(UpdateMessageEvent event) {
-    final idx = _findMessageWithId(event.messageId);
-    if (idx == -1)  {
-      return;
-    }
-
-    _applyChangesToMessage(event, messages[idx]);
-    _reparseContent(idx);
-    notifyListeners();
   }
 
   void maybeUpdateMessageFlags(UpdateMessageFlagsEvent event) {
