@@ -460,9 +460,9 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page of recent DM conversations"
   },
-  "allMessagesPageTitle": "All messages",
-  "@allMessagesPageTitle": {
-    "description": "Title for the page of all messages"
+  "combinedFeedPageTitle": "Combined feed",
+  "@combinedFeedPageTitle": {
+    "description": "Title for the page of combined feed."
   },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
