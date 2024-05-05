@@ -104,7 +104,7 @@ Two specific points to expand on:
     1.2. Install [direnv][direnv], and set up its hook:
 
     ```sh
-    # On Debian or Ubuntu (bash):
+    # On Debian or Ubuntu (with Bash):
     sudo apt install direnv && echo 'eval "$(direnv hook bash)"' >>~/.bashrc
 
     # Or using Homebrew:
