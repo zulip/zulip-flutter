@@ -83,22 +83,25 @@ class _CopyLinkButton extends StatelessWidget {
   }
 }
 
-class _LightboxPage extends StatefulWidget {
-  const _LightboxPage({
+class _LightboxPageLayout extends StatefulWidget {
+  const _LightboxPageLayout({
     required this.routeEntranceAnimation,
     required this.message,
-    required this.src,
+    required this.buildBottomAppBar,
+    required this.child,
   });
 
   final Animation routeEntranceAnimation;
   final Message message;
-  final Uri src;
+  final Widget? Function(
+    BuildContext context, Color appBarBackgroundColor, double appBarElevation) buildBottomAppBar;
+  final Widget child;
 
   @override
-  State<_LightboxPage> createState() => _LightboxPageState();
+  State<_LightboxPageLayout> createState() => _LightboxPageLayoutState();
 }
 
-class _LightboxPageState extends State<_LightboxPage> {
+class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   // TODO(#38): Animate entrance/exit of header and footer
   bool _headerFooterVisible = false;
 
@@ -168,14 +171,8 @@ class _LightboxPageState extends State<_LightboxPage> {
 
     Widget? bottomAppBar;
     if (_headerFooterVisible) {
-      bottomAppBar = BottomAppBar(
-        color: appBarBackgroundColor,
-        elevation: appBarElevation,
-        child: Row(children: [
-          _CopyLinkButton(url: widget.src),
-          // TODO(#43): Share image
-          // TODO(#42): Download image
-        ]));
+      bottomAppBar = widget.buildBottomAppBar(
+        context, appBarBackgroundColor, appBarElevation);
     }
 
     return Theme(
@@ -186,6 +183,7 @@ class _LightboxPageState extends State<_LightboxPage> {
         extendBody: true, // For the BottomAppBar
         extendBodyBehindAppBar: true, // For the AppBar
         appBar: appBar,
+        bottomNavigationBar: bottomAppBar,
         body: MediaQuery(
           // Clobber the MediaQueryData prepared by Scaffold with one that's not
           // affected by the app bars. On this screen, the app bars are
@@ -197,14 +195,46 @@ class _LightboxPageState extends State<_LightboxPage> {
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: _handleTap,
-            child: SizedBox.expand(
-              child: InteractiveViewer(
-                child: SafeArea(
-                  child: LightboxHero(
-                    message: widget.message,
-                    src: widget.src,
-                    child: RealmContentNetworkImage(widget.src, filterQuality: FilterQuality.medium))))))),
-        bottomNavigationBar: bottomAppBar));
+            child: widget.child))));
+  }
+}
+
+class _ImageLightboxPage extends StatefulWidget {
+  const _ImageLightboxPage({
+    required this.routeEntranceAnimation,
+    required this.message,
+    required this.src,
+  });
+
+  final Animation routeEntranceAnimation;
+  final Message message;
+  final Uri src;
+
+  @override
+  State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
+}
+
+class _ImageLightboxPageState extends State<_ImageLightboxPage> {
+  @override
+  Widget build(BuildContext context) {
+    return _LightboxPageLayout(
+      routeEntranceAnimation: widget.routeEntranceAnimation,
+      message: widget.message,
+      buildBottomAppBar: (context, color, elevation) => BottomAppBar(
+        color: color,
+        elevation: elevation,
+        child: Row(children: [
+          _CopyLinkButton(url: widget.src),
+          // TODO(#43): Share image
+          // TODO(#42): Download image
+        ])),
+      child: SizedBox.expand(
+        child: InteractiveViewer(
+          child: SafeArea(
+            child: LightboxHero(
+              message: widget.message,
+              src: widget.src,
+              child: RealmContentNetworkImage(widget.src, filterQuality: FilterQuality.medium))))));
   }
 }
 
@@ -224,7 +254,7 @@ Route getLightboxRoute({
       Animation<double> secondaryAnimation,
     ) {
       // TODO(#40): Drag down to close?
-      return _LightboxPage(routeEntranceAnimation: animation, message: message, src: src);
+      return _ImageLightboxPage(routeEntranceAnimation: animation, message: message, src: src);
     },
     transitionsBuilder: (
       BuildContext context,
