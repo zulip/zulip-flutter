@@ -20,6 +20,7 @@ import '../log.dart';
 import '../notifications/receive.dart';
 import 'autocomplete.dart';
 import 'database.dart';
+import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
 import 'stream.dart';
@@ -199,7 +200,7 @@ abstract class GlobalStore extends ChangeNotifier {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with StreamStore {
+class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -242,6 +243,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
         .followedBy(initialSnapshot.crossRealmBots)
         .map((user) => MapEntry(user.userId, user))),
       streams: streams,
+      messages: MessageStoreImpl(),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         selfUserId: account.userId,
@@ -265,13 +267,15 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required this.userSettings,
     required this.users,
     required StreamStoreImpl streams,
+    required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
        _globalStore = globalStore,
-       _streams = streams;
+       _streams = streams,
+       _messages = messages;
 
   ////////////////////////////////////////////////////////////////
   // Data.
@@ -336,21 +340,18 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   ////////////////////////////////
   // Messages, and summaries of messages.
 
+  @override
+  void registerMessageList(MessageListView view) =>
+    _messages.registerMessageList(view);
+  @override
+  void unregisterMessageList(MessageListView view) =>
+    _messages.unregisterMessageList(view);
+
+  final MessageStoreImpl _messages;
+
   final Unreads unreads;
 
   final RecentDmConversationsView recentDmConversationsView;
-
-  final Set<MessageListView> _messageListViews = {};
-
-  void registerMessageList(MessageListView view) {
-    final added = _messageListViews.add(view);
-    assert(added);
-  }
-
-  void unregisterMessageList(MessageListView view) {
-    final removed = _messageListViews.remove(view);
-    assert(removed);
-  }
 
   ////////////////////////////////
   // Other digests of data.
@@ -365,19 +366,15 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   /// This will redo from scratch any computations we can, such as parsing
   /// message contents.  It won't repeat network requests.
   void reassemble() {
-    for (final view in _messageListViews) {
-      view.reassemble();
-    }
+    _messages.reassemble();
     autocompleteViewManager.reassemble();
   }
 
   @override
   void dispose() {
-    unreads.dispose();
     recentDmConversationsView.dispose();
-    for (final view in _messageListViews.toList()) {
-      view.dispose();
-    }
+    unreads.dispose();
+    _messages.dispose();
     super.dispose();
   }
 
@@ -464,32 +461,24 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       notifyListeners();
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
-      recentDmConversationsView.handleMessageEvent(event);
-      for (final view in _messageListViews) {
-        view.maybeAddMessage(event.message);
-      }
+      _messages.handleMessageEvent(event);
       unreads.handleMessageEvent(event);
+      recentDmConversationsView.handleMessageEvent(event);
     } else if (event is UpdateMessageEvent) {
       assert(debugLog("server event: update_message ${event.messageId}"));
-      for (final view in _messageListViews) {
-        view.maybeUpdateMessage(event);
-      }
+      _messages.handleUpdateMessageEvent(event);
       unreads.handleUpdateMessageEvent(event);
     } else if (event is DeleteMessageEvent) {
       assert(debugLog("server event: delete_message ${event.messageIds}"));
-      // TODO handle in message lists
+      _messages.handleDeleteMessageEvent(event);
       unreads.handleDeleteMessageEvent(event);
     } else if (event is UpdateMessageFlagsEvent) {
       assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
-      for (final view in _messageListViews) {
-        view.maybeUpdateMessageFlags(event);
-      }
+      _messages.handleUpdateMessageFlagsEvent(event);
       unreads.handleUpdateMessageFlagsEvent(event);
     } else if (event is ReactionEvent) {
       assert(debugLog("server event: reaction/${event.op}"));
-      for (final view in _messageListViews) {
-        view.maybeUpdateMessageReactions(event);
-      }
+      _messages.handleReactionEvent(event);
     } else if (event is UnexpectedEvent) {
       assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     } else {
