@@ -92,7 +92,7 @@ Two specific points to expand on:
 
 ### Setting up
 
-1. Setup the pinned version of flutter.
+1. Set up the pinned version of Flutter.
 
     1.1. Initialize the pinned Flutter tree:
 
