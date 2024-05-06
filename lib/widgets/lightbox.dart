@@ -400,12 +400,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
           context: context,
           title: zulipLocalizations.errorDialogTitle,
           message: zulipLocalizations.errorVideoPlayerFailed,
-          // To avoid showing the disabled video lightbox for the unnsupported
-          // video, we make sure user doesn't reach there by dismissing the dialog
-          // by clicking around it, user must press the 'OK' button, which will
-          // take user back to content message list.
-          barrierDismissible: false,
-          onContinue: () {
+          onDismiss: () {
             Navigator.pop(context); // Pops the dialog
             Navigator.pop(context); // Pops the lightbox
           });
