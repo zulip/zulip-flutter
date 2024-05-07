@@ -406,12 +406,10 @@ class CodeBlock extends StatelessWidget {
 
   final CodeBlockNode node;
 
-  static final _borderColor = const HSLColor.fromAHSL(0.15, 0, 0, 0).toColor();
-
   @override
   Widget build(BuildContext context) {
     return _CodeBlockContainer(
-      borderColor: _borderColor,
+      borderColor: Colors.transparent,
       child: Text.rich(_buildNodes(node.spans)));
   }
 
@@ -436,7 +434,7 @@ class _CodeBlockContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
         border: Border.all(
           width: 1,
           color: borderColor),
@@ -725,7 +723,6 @@ class _InlineContentBuilder {
     // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
     return _buildNodes(
-      // Use a light gray background, instead of a border.
       style: widget.style
         .merge(_kInlineCodeStyle)
         .apply(fontSizeFactor: _kInlineCodeFontSizeFactor),
@@ -770,7 +767,8 @@ const _kInlineCodeFontSizeFactor = 0.825;
 // assuming the text gets the effect of [weightVariableTextStyle]
 // through inheritance, e.g., from a [DefaultTextStyle].
 final _kInlineCodeStyle = kMonospaceTextStyle
-  .merge(const TextStyle(backgroundColor: Color(0xffeeeeee)));
+  .merge(TextStyle(
+    backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
 
 final _kCodeBlockStyle = kMonospaceTextStyle
   .merge(const TextStyle(fontSize: 0.825 * kBaseFontSize))
