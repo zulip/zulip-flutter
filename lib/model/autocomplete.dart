@@ -154,6 +154,13 @@ class AutocompleteViewManager {
       view.reassemble();
     }
   }
+
+  // No `dispose` method, because there's nothing for it to do.
+  // The [MentionAutocompleteView]s are owned by (i.e., they get [dispose]d by)
+  // the UI code that manages the autocomplete interaction, including in the
+  // case where the [PerAccountStore] is replaced.  Discussion:
+  //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.60MentionAutocompleteView.2Edispose.60/near/1791292
+  // void dispose() { … }
 }
 
 /// A view-model for a mention-autocomplete interaction.
