@@ -773,9 +773,7 @@ final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(const TextStyle(backgroundColor: Color(0xffeeeeee)));
 
 final _kCodeBlockStyle = kMonospaceTextStyle
-  .merge(const TextStyle(
-    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-    fontSize: 0.825 * kBaseFontSize))
+  .merge(const TextStyle(fontSize: 0.825 * kBaseFontSize))
   .merge(
     // TODO(a11y) pass a BuildContext, to handle platform request for bold text.
     //   To get one, the result of this whole computation (to the TextStyle
