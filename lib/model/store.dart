@@ -349,8 +349,11 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
   void unregisterMessageList(MessageListView view) =>
     _messages.unregisterMessageList(view);
   @override
-  void reconcileMessages(List<Message> messages) =>
+  void reconcileMessages(List<Message> messages) {
     _messages.reconcileMessages(messages);
+    // TODO(#649) notify [unreads] of the just-fetched messages
+    // TODO(#650) notify [recentDmConversationsView] of the just-fetched messages
+  }
 
   final MessageStoreImpl _messages;
 
@@ -469,6 +472,8 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
       _messages.handleMessageEvent(event);
       unreads.handleMessageEvent(event);
       recentDmConversationsView.handleMessageEvent(event);
+      // When adding anything here (to handle [MessageEvent]),
+      // it probably belongs in [reconcileMessages] too.
     } else if (event is UpdateMessageEvent) {
       assert(debugLog("server event: update_message ${event.messageId}"));
       _messages.handleUpdateMessageEvent(event);
