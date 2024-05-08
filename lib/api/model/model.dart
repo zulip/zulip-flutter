@@ -465,6 +465,7 @@ class Subscription extends ZulipStream {
 class StreamColorSwatch extends ColorSwatch<_StreamColorVariant> {
   StreamColorSwatch(int base) : super(base, _compute(base));
 
+  /// The [Subscription.color] int that the swatch is based on.
   Color get base => this[_StreamColorVariant.base]!;
 
   Color get unreadCountBadgeBackground => this[_StreamColorVariant.unreadCountBadgeBackground]!;
