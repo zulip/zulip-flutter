@@ -348,86 +348,86 @@ void main() async {
     test('rendering-only update does not change timestamp (for old server versions)', () async {
       await checkRenderingOnly(legacy: true);
     });
+  });
 
-    group('ReactionEvent handling', () {
-      ReactionEvent mkEvent(Reaction reaction, ReactionOp op, int messageId) {
-        return ReactionEvent(
-          id: 1,
-          op: op,
-          emojiName: reaction.emojiName,
-          emojiCode: reaction.emojiCode,
-          reactionType: reaction.reactionType,
-          userId: reaction.userId,
-          messageId: messageId,
-        );
-      }
+  group('ReactionEvent handling', () {
+    ReactionEvent mkEvent(Reaction reaction, ReactionOp op, int messageId) {
+      return ReactionEvent(
+        id: 1,
+        op: op,
+        emojiName: reaction.emojiName,
+        emojiCode: reaction.emojiCode,
+        reactionType: reaction.reactionType,
+        userId: reaction.userId,
+        messageId: messageId,
+      );
+    }
 
-      test('add reaction', () async {
-        final originalMessage = eg.streamMessage(reactions: []);
-        await prepare();
-        await prepareMessages(foundOldest: true, messages: [originalMessage]);
-        final message = model.messages.single;
+    test('add reaction', () async {
+      final originalMessage = eg.streamMessage(reactions: []);
+      await prepare();
+      await prepareMessages(foundOldest: true, messages: [originalMessage]);
+      final message = model.messages.single;
 
-        model.maybeUpdateMessageReactions(
-          mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
-        checkNotifiedOnce();
-        check(model).messages.single
-          ..identicalTo(message)
-          ..reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
-      });
+      model.maybeUpdateMessageReactions(
+        mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
+      checkNotifiedOnce();
+      check(model).messages.single
+        ..identicalTo(message)
+        ..reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
+    });
 
-      test('add reaction; message is not in list', () async {
-        final someMessage = eg.streamMessage(reactions: []);
-        await prepare();
-        await prepareMessages(foundOldest: true, messages: [someMessage]);
-        model.maybeUpdateMessageReactions(
-          mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
-        checkNotNotified();
-        check(model).messages.single.reactions.isNull();
-      });
+    test('add reaction; message is not in list', () async {
+      final someMessage = eg.streamMessage(reactions: []);
+      await prepare();
+      await prepareMessages(foundOldest: true, messages: [someMessage]);
+      model.maybeUpdateMessageReactions(
+        mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
+      checkNotNotified();
+      check(model).messages.single.reactions.isNull();
+    });
 
-      test('remove reaction', () async {
-        final eventReaction = Reaction(reactionType: ReactionType.unicodeEmoji,
-          emojiName: 'wave',          emojiCode: '1f44b', userId: 1);
+    test('remove reaction', () async {
+      final eventReaction = Reaction(reactionType: ReactionType.unicodeEmoji,
+        emojiName: 'wave',          emojiCode: '1f44b', userId: 1);
 
-        // Same emoji, different user. Not to be removed.
-        final reaction2 = Reaction(reactionType: ReactionType.unicodeEmoji,
-          emojiName: 'wave',          emojiCode: '1f44b', userId: 2);
+      // Same emoji, different user. Not to be removed.
+      final reaction2 = Reaction(reactionType: ReactionType.unicodeEmoji,
+        emojiName: 'wave',          emojiCode: '1f44b', userId: 2);
 
-        // Same user, different emoji. Not to be removed.
-        final reaction3 = Reaction(reactionType: ReactionType.unicodeEmoji,
-          emojiName: 'working_on_it', emojiCode: '1f6e0', userId: 1);
+      // Same user, different emoji. Not to be removed.
+      final reaction3 = Reaction(reactionType: ReactionType.unicodeEmoji,
+        emojiName: 'working_on_it', emojiCode: '1f6e0', userId: 1);
 
-        // Same user, same emojiCode, different emojiName. To be removed: servers
-        // key on user, message, reaction type, and emoji code, but not emoji name.
-        // So we mimic that behavior; see discussion:
-        //   https://github.com/zulip/zulip-flutter/pull/256#discussion_r1284865099
-        final reaction4 = Reaction(reactionType: ReactionType.unicodeEmoji,
-          emojiName: 'hello',         emojiCode: '1f44b', userId: 1);
+      // Same user, same emojiCode, different emojiName. To be removed: servers
+      // key on user, message, reaction type, and emoji code, but not emoji name.
+      // So we mimic that behavior; see discussion:
+      //   https://github.com/zulip/zulip-flutter/pull/256#discussion_r1284865099
+      final reaction4 = Reaction(reactionType: ReactionType.unicodeEmoji,
+        emojiName: 'hello',         emojiCode: '1f44b', userId: 1);
 
-        final originalMessage = eg.streamMessage(
-          reactions: [reaction2, reaction3, reaction4]);
-        await prepare();
-        await prepareMessages(foundOldest: true, messages: [originalMessage]);
-        final message = model.messages.single;
+      final originalMessage = eg.streamMessage(
+        reactions: [reaction2, reaction3, reaction4]);
+      await prepare();
+      await prepareMessages(foundOldest: true, messages: [originalMessage]);
+      final message = model.messages.single;
 
-        model.maybeUpdateMessageReactions(
-          mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
-        checkNotifiedOnce();
-        check(model).messages.single
-          ..identicalTo(message)
-          ..reactions.isNotNull().jsonEquals([reaction2, reaction3]);
-      });
+      model.maybeUpdateMessageReactions(
+        mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
+      checkNotifiedOnce();
+      check(model).messages.single
+        ..identicalTo(message)
+        ..reactions.isNotNull().jsonEquals([reaction2, reaction3]);
+    });
 
-      test('remove reaction; message is not in list', () async {
-        final someMessage = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
-        await prepare();
-        await prepareMessages(foundOldest: true, messages: [someMessage]);
-        model.maybeUpdateMessageReactions(
-          mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
-        checkNotNotified();
-        check(model).messages.single.reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
-      });
+    test('remove reaction; message is not in list', () async {
+      final someMessage = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
+      await prepare();
+      await prepareMessages(foundOldest: true, messages: [someMessage]);
+      model.maybeUpdateMessageReactions(
+        mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
+      checkNotNotified();
+      check(model).messages.single.reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
     });
   });
 
