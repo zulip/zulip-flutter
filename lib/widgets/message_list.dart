@@ -971,13 +971,13 @@ class MessageWithPossibleSender extends StatelessWidget {
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!)
                 ])),
-            SizedBox(width: 16,
+            SizedBox(width: 17,
               child: message.flags.contains(MessageFlag.starred)
                 // TODO(#157): fix how star marker aligns with message content
                 // Design from Figma at:
                 //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
-                ? Padding(padding: const EdgeInsets.only(top: 4),
-                    child: Icon(ZulipIcons.star_filled, size: 16, color: _starColor))
+                ? Padding(padding: const EdgeInsets.only(top: 5.5),
+                    child: Icon(ZulipIcons.star_filled, size: 17, color: _starColor))
                 : null),
           ]),
         ])));
