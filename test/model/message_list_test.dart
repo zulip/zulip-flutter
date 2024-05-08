@@ -370,12 +370,12 @@ void main() {
       final originalMessage = eg.streamMessage(reactions: []);
       await prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
-      final message = model.messages.single;
+      final message = store.messages.values.single;
 
-      model.maybeUpdateMessageReactions(
+      await store.handleEvent(
         mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
       checkNotifiedOnce();
-      check(model).messages.single
+      check(store.messages).values.single
         ..identicalTo(message)
         ..reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
     });
@@ -384,10 +384,11 @@ void main() {
       final someMessage = eg.streamMessage(reactions: []);
       await prepare();
       await prepareMessages(foundOldest: true, messages: [someMessage]);
-      model.maybeUpdateMessageReactions(
+      await store.handleEvent(
         mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
       checkNotNotified();
-      check(model).messages.single.reactions.isNull();
+      check(store.messages).values.single
+        .reactions.isNull();
     });
 
     test('remove reaction', () async {
@@ -413,12 +414,12 @@ void main() {
         reactions: [reaction2, reaction3, reaction4]);
       await prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
-      final message = model.messages.single;
+      final message = store.messages.values.single;
 
-      model.maybeUpdateMessageReactions(
+      await store.handleEvent(
         mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
       checkNotifiedOnce();
-      check(model).messages.single
+      check(store.messages).values.single
         ..identicalTo(message)
         ..reactions.isNotNull().jsonEquals([reaction2, reaction3]);
     });
@@ -427,10 +428,11 @@ void main() {
       final someMessage = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
       await prepare();
       await prepareMessages(foundOldest: true, messages: [someMessage]);
-      model.maybeUpdateMessageReactions(
+      await store.handleEvent(
         mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
       checkNotNotified();
-      check(model).messages.single.reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
+      check(store.messages).values.single
+        .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
     });
   });
 
