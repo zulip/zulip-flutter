@@ -316,6 +316,48 @@ void main() {
         runCheck(0xffa47462, const Color(0xffe7dad6));
         runCheck(0xffacc25d, const Color(0xffe9edd6));
       });
+
+      test('lerp (different a, b)', () {
+        final swatchA = StreamColorSwatch(0xff76ce90);
+
+        // TODO(#95) use something like StreamColorSwatch.dark(), once
+        //   implemented, and remove debugFromBaseAndSwatch
+        const swatchB = StreamColorSwatch.debugFromBaseAndSwatch(0xff76ce90, <StreamColorVariant, Color>{
+          StreamColorVariant.base:                       Color(0xff76ce90),
+          StreamColorVariant.unreadCountBadgeBackground: Color(0x4d65bd80),
+          StreamColorVariant.iconOnPlainBackground:      Color(0xff73cb8d),
+          StreamColorVariant.iconOnBarBackground:        Color(0xff73cb8d),
+          StreamColorVariant.barBackground:              Color(0xff2e4935),
+        });
+
+        for (final t in [0.0, 0.5, 1.0, -0.1, 1.1]) {
+          final result = StreamColorSwatch.lerp(swatchA, swatchB, t)!;
+          for (final variant in StreamColorVariant.values) {
+            final (subject, expected) = switch (variant) {
+              StreamColorVariant.base => (check(result).base,
+                Color.lerp(swatchA.base, swatchB.base, t)!),
+              StreamColorVariant.unreadCountBadgeBackground => (check(result).unreadCountBadgeBackground,
+                Color.lerp(swatchA.unreadCountBadgeBackground, swatchB.unreadCountBadgeBackground, t)!),
+              StreamColorVariant.iconOnPlainBackground => (check(result).iconOnPlainBackground,
+                Color.lerp(swatchA.iconOnPlainBackground, swatchB.iconOnPlainBackground, t)!),
+              StreamColorVariant.iconOnBarBackground => (check(result).iconOnBarBackground,
+                Color.lerp(swatchA.iconOnBarBackground, swatchB.iconOnBarBackground, t)!),
+              StreamColorVariant.barBackground => (check(result).barBackground,
+                Color.lerp(swatchA.barBackground, swatchB.barBackground, t)!),
+            };
+            subject.equals(expected);
+          }
+        }
+      });
+
+      test('lerp (identical a, b)', () {
+        check(StreamColorSwatch.lerp(null, null, 0.0)).isNull();
+
+        final swatch = StreamColorSwatch(0xff76ce90);
+        check(StreamColorSwatch.lerp(swatch, swatch, 0.5)).isNotNull()
+          ..identicalTo(swatch)
+          ..base.equals(const Color(0xff76ce90));
+      });
     });
   });
 

@@ -463,7 +463,17 @@ class Subscription extends ZulipStream {
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
 class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
-  StreamColorSwatch(int base) : super(base, _compute(base));
+  StreamColorSwatch(int base) : this._(base, _compute(base));
+
+  const StreamColorSwatch._(int base, this._swatch) : super(base, _swatch);
+
+  /// A [StreamColorSwatch], from a [Map<_StreamColorVariant, Color>]
+  /// written manually.
+  @visibleForTesting
+  const StreamColorSwatch.debugFromBaseAndSwatch(int base, swatch)
+    : this._(base, swatch);
+
+  final Map<StreamColorVariant, Color> _swatch;
 
   /// The [Subscription.color] int that the swatch is based on.
   Color get base => this[StreamColorVariant.base]!;
@@ -535,6 +545,24 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
           .interpolate(LabColor.fromColor(clamped20to75), 0.22)
           .toColor(),
     };
+  }
+
+  /// Copied from [ColorSwatch.lerp].
+  static StreamColorSwatch? lerp(StreamColorSwatch? a, StreamColorSwatch? b, double t) {
+    if (identical(a, b)) {
+      return a;
+    }
+    final Map<StreamColorVariant, Color> swatch;
+    if (b == null) {
+      swatch = a!._swatch.map((key, color) => MapEntry(key, Color.lerp(color, null, t)!));
+    } else {
+      if (a == null) {
+        swatch = b._swatch.map((key, color) => MapEntry(key, Color.lerp(null, color, t)!));
+      } else {
+        swatch = a._swatch.map((key, color) => MapEntry(key, Color.lerp(color, b[key], t)!));
+      }
+    }
+    return StreamColorSwatch._(Color.lerp(a, b, t)!.value, swatch);
   }
 }
 
