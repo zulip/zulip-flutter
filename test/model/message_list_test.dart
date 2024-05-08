@@ -20,7 +20,7 @@ import '../stdlib_checks.dart';
 import 'content_checks.dart';
 import 'test_store.dart';
 
-void main() async {
+void main() {
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Subscription subscription;
