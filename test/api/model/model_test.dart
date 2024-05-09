@@ -130,12 +130,12 @@ void main() {
     group('StreamColorSwatch', () {
       group('light', () {
         test('base', () {
-          check(StreamColorSwatch(0xffffffff)).base.equals(const Color(0xffffffff));
+          check(StreamColorSwatch.light(0xffffffff)).base.equals(const Color(0xffffffff));
         });
 
         test('unreadCountBadgeBackground', () {
           void runCheck(int base, Color expected) {
-            check(StreamColorSwatch(base)).unreadCountBadgeBackground.equals(expected);
+            check(StreamColorSwatch.light(base)).unreadCountBadgeBackground.equals(expected);
           }
 
           // Check against everything in ZULIP_ASSIGNMENT_COLORS and EXTREME_COLORS
@@ -197,7 +197,7 @@ void main() {
 
         test('iconOnPlainBackground', () {
           void runCheck(int base, Color expected) {
-            check(StreamColorSwatch(base)).iconOnPlainBackground.equals(expected);
+            check(StreamColorSwatch.light(base)).iconOnPlainBackground.equals(expected);
           }
 
           // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -238,7 +238,7 @@ void main() {
 
         test('iconOnBarBackground', () {
           void runCheck(int base, Color expected) {
-            check(StreamColorSwatch(base)).iconOnBarBackground.equals(expected);
+            check(StreamColorSwatch.light(base)).iconOnBarBackground.equals(expected);
           }
 
           // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -279,7 +279,7 @@ void main() {
 
         test('barBackground', () {
           void runCheck(int base, Color expected) {
-            check(StreamColorSwatch(base)).barBackground.equals(expected);
+            check(StreamColorSwatch.light(base)).barBackground.equals(expected);
           }
 
           // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -516,7 +516,7 @@ void main() {
       });
 
       test('lerp (different a, b)', () {
-        final swatchA = StreamColorSwatch(0xff76ce90);
+        final swatchA = StreamColorSwatch.light(0xff76ce90);
 
         // TODO(#95) use something like StreamColorSwatch.dark(), once
         //   implemented, and remove debugFromBaseAndSwatch
@@ -551,7 +551,7 @@ void main() {
       test('lerp (identical a, b)', () {
         check(StreamColorSwatch.lerp(null, null, 0.0)).isNull();
 
-        final swatch = StreamColorSwatch(0xff76ce90);
+        final swatch = StreamColorSwatch.light(0xff76ce90);
         check(StreamColorSwatch.lerp(swatch, swatch, 0.5)).isNotNull()
           ..identicalTo(swatch)
           ..base.equals(const Color(0xff76ce90));

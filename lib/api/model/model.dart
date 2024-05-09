@@ -421,7 +421,7 @@ class Subscription extends ZulipStream {
   // TODO I'm not sure this is the right home for this; it seems like we might
   //   instead have chosen to put it in more UI-centered code, like in a custom
   //   material [ColorScheme] class or something. But it works for now.
-  StreamColorSwatch colorSwatch() => _swatch ??= StreamColorSwatch(color);
+  StreamColorSwatch colorSwatch() => _swatch ??= StreamColorSwatch.light(color);
 
   @visibleForTesting
   @JsonKey(includeToJson: false)
@@ -463,7 +463,7 @@ class Subscription extends ZulipStream {
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
 class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
-  StreamColorSwatch(int base) : this._(base, _computeLight(base));
+  StreamColorSwatch.light(int base) : this._(base, _computeLight(base));
   StreamColorSwatch.dark(int base) : this._(base, _computeDark(base));
 
   const StreamColorSwatch._(int base, this._swatch) : super(base, _swatch);
