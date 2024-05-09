@@ -267,9 +267,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     if (!model!.fetched) return const Center(child: CircularProgressIndicator());
 
     return DefaultTextStyle.merge(
-      // TODO figure out text color -- web is supposedly hsl(0deg 0% 20%),
-      //   but seems much darker than that
-      style: const TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+      style: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor()),
       // Pad the left and right insets, for small devices in landscape.
       child: SafeArea(
         // Don't let this be the place we pad the bottom inset. When there's

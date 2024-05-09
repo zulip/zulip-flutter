@@ -1000,7 +1000,10 @@ class GlobalTime extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(ZulipIcons.clock, size: surroundingFontSize),
+              Icon(
+                size: surroundingFontSize,
+                color: DefaultTextStyle.of(context).style.color!,
+                ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:
               //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345
               const SizedBox(width: 1),
