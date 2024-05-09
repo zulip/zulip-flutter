@@ -468,12 +468,6 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
 
   const StreamColorSwatch._(int base, this._swatch) : super(base, _swatch);
 
-  /// A [StreamColorSwatch], from a [Map<_StreamColorVariant, Color>]
-  /// written manually.
-  @visibleForTesting
-  const StreamColorSwatch.debugFromBaseAndSwatch(int base, swatch)
-    : this._(base, swatch);
-
   final Map<StreamColorVariant, Color> _swatch;
 
   /// The [Subscription.color] int that the swatch is based on.

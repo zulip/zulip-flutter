@@ -517,17 +517,7 @@ void main() {
 
       test('lerp (different a, b)', () {
         final swatchA = StreamColorSwatch.light(0xff76ce90);
-
-        // TODO(#95) use something like StreamColorSwatch.dark(), once
-        //   implemented, and remove debugFromBaseAndSwatch
-        const swatchB = StreamColorSwatch.debugFromBaseAndSwatch(0xff76ce90, <StreamColorVariant, Color>{
-          StreamColorVariant.base:                       Color(0xff76ce90),
-          StreamColorVariant.unreadCountBadgeBackground: Color(0x4d65bd80),
-          StreamColorVariant.iconOnPlainBackground:      Color(0xff73cb8d),
-          StreamColorVariant.iconOnBarBackground:        Color(0xff73cb8d),
-          StreamColorVariant.barBackground:              Color(0xff2e4935),
-        });
-
+        final swatchB = StreamColorSwatch.dark(0xff76ce90);
         for (final t in [0.0, 0.5, 1.0, -0.1, 1.1]) {
           final result = StreamColorSwatch.lerp(swatchA, swatchB, t)!;
           for (final variant in StreamColorVariant.values) {
