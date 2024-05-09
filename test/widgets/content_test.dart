@@ -614,6 +614,29 @@ void main() {
       tester.widget(find.textContaining(renderedTextRegexp));
     });
 
+    testWidgets('clock icon and text are the same color', (tester) async {
+      await tester.pumpWidget(MaterialApp(home: DefaultTextStyle(
+        style: const TextStyle(color: Colors.green),
+        child: BlockContentList(nodes:
+          parseContent('<p>$timeSpanHtml</p>').nodes),
+      )));
+
+      final icon = tester.widget<Icon>(
+        find.descendant(of: find.byType(GlobalTime),
+          matching: find.byIcon(ZulipIcons.clock)));
+
+      final textSpan = tester.renderObject<RenderParagraph>(
+        find.descendant(of: find.byType(GlobalTime),
+          matching: find.textContaining(renderedTextRegexp)
+      )).text;
+      final textColor = mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.color;
+      check(textColor).isNotNull();
+
+      check(icon).color
+        ..equals(textColor!)
+        ..equals(Colors.green);
+    });
+
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
       Future<void> doCheck(double Function(GlobalTime widget) sizeFromWidget) async {
         await checkFontSizeRatio(tester,
