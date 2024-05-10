@@ -817,17 +817,18 @@ class UserMention extends StatelessWidget {
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
+
+        // TODO(#647) when self-user is non-silently mentioned, make bold, and:
+        // TODO(#646) when self-user is non-silently mentioned,
+        //   distinguish font color between direct and wildcard mentions
         style: surroundingTextStyle,
+
         nodes: node.nodes));
   }
 
   static get _kDecoration => BoxDecoration(
-    gradient: const LinearGradient(
-      colors: [Color.fromRGBO(0, 0, 0, 0.1), Color.fromRGBO(0, 0, 0, 0)],
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter),
-    border: Border.all(
-      color: const Color.fromRGBO(0xcc, 0xcc, 0xcc, 1), width: 1),
+    // TODO(#646) different background between direct and wildcard mentions
+    color: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
     borderRadius: const BorderRadius.all(Radius.circular(3)));
 
 // This is a more literal translation of Zulip web's CSS.
