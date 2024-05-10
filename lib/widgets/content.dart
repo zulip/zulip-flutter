@@ -809,7 +809,10 @@ class UserMention extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: _kDecoration,
+      decoration: BoxDecoration(
+        // TODO(#646) different background between direct and wildcard mentions
+        color: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
+        borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
@@ -825,11 +828,6 @@ class UserMention extends StatelessWidget {
 
         nodes: node.nodes));
   }
-
-  static get _kDecoration => BoxDecoration(
-    // TODO(#646) different background between direct and wildcard mentions
-    color: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
-    borderRadius: const BorderRadius.all(Radius.circular(3)));
 
 // This is a more literal translation of Zulip web's CSS.
 // But it turns out CSS `box-shadow` has a quirk we rely on there:
