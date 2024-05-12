@@ -186,6 +186,13 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   /// to `globalStore.apiConnectionFromAccount(account)`.
   /// When present, it should be a connection that came from that method call,
   /// but it may have already been used for other requests.
+  bool isStale = true;   // Flag indicating whether the data in the store is stale
+  void setIsStale(bool value) {
+    isStale = value;
+    notifyListeners();
+    // Potentially notify other components about the staleness change
+  }
+
   factory PerAccountStore.fromInitialSnapshot({
     required GlobalStore globalStore,
     required int accountId,
@@ -356,6 +363,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   void handleEvent(Event event) {
     if (event is HeartbeatEvent) {
       assert(debugLog("server event: heartbeat"));
+      setIsStale(false);  // Data is no longer stale after receiving HeartbeatEvent
     } else if (event is RealmEmojiUpdateEvent) {
       assert(debugLog("server event: realm_emoji/update"));
       realmEmoji = event.realmEmoji;
@@ -685,6 +693,7 @@ class UpdateMachine {
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
+            store.setIsStale(true); // Set data as stale
             await store._globalStore._reloadPerAccount(store.accountId);
             dispose();
             debugLog('… Event queue replaced.');
@@ -693,6 +702,7 @@ class UpdateMachine {
           case Server5xxException() || NetworkException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
+            store.setIsStale(true);  // Set data as stale in case of transient error
             // TODO tell user if transient polling errors persist
             // TODO reset to short backoff eventually
             await backoffMachine.wait();
@@ -702,6 +712,7 @@ class UpdateMachine {
           default:
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
+            store.setIsStale(true);  // Set data as stale in case of non-transient error
             // TODO tell user on non-transient error in polling
             await backoffMachine.wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));

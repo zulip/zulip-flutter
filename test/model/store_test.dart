@@ -25,6 +25,8 @@ void main() {
   final account1 = eg.selfAccount.copyWith(id: 1);
   final account2 = eg.otherAccount.copyWith(id: 2);
 
+
+
   test('GlobalStore.perAccount sequential case', () async {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
@@ -117,6 +119,7 @@ void main() {
   group('PerAccountStore.sendMessage', () {
     test('smoke', () async {
       final store = eg.store();
+
       final connection = store.connection as FakeApiConnection;
       final stream = eg.stream();
       connection.prepare(json: SendMessageResult(id: 12345).toJson());
@@ -135,6 +138,12 @@ void main() {
         });
     });
   });
+
+
+    final store =  eg.store();
+    check(store.isStale).isTrue();
+
+
 
   group('UpdateMachine.load', () {
     late TestGlobalStore globalStore;
@@ -204,6 +213,8 @@ void main() {
 
     // TODO test UpdateMachine.load starts polling loop
     // TODO test UpdateMachine.load calls registerNotificationToken
+
+
   });
 
   group('UpdateMachine.poll', () {
@@ -240,7 +251,6 @@ void main() {
     test('loops on success', () => awaitFakeAsync((async) async {
       await prepareStore(lastEventId: 1);
       check(updateMachine.lastEventId).equals(1);
-
       updateMachine.debugPauseLoop();
       updateMachine.poll();
 
@@ -270,6 +280,8 @@ void main() {
       updateMachine.debugPauseLoop();
       updateMachine.poll();
 
+
+
       // Pick some arbitrary event and check it gets processed on the store.
       check(store.userSettings!.twentyFourHourTime).isFalse();
       connection.prepare(json: GetEventsResult(events: [
@@ -280,6 +292,7 @@ void main() {
       async.flushMicrotasks();
       await Future.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
+      check(store.isStale).isTrue();
     }));
 
     test('handles expired queue', () => awaitFakeAsync((async) async {
@@ -288,12 +301,16 @@ void main() {
       updateMachine.poll();
       check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
 
+
+
+
       // Let the server expire the event queue.
       connection.prepare(httpStatus: 400, json: {
         'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
         'queue_id': updateMachine.queueId,
         'msg': 'Bad event queue ID: ${updateMachine.queueId}',
       });
+
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       await Future.delayed(Duration.zero);
@@ -306,6 +323,7 @@ void main() {
       updateMachine.debugPauseLoop();
       updateMachine.poll();
       check(store.userSettings!.twentyFourHourTime).isFalse();
+
       connection.prepare(json: GetEventsResult(events: [
         UserSettingsUpdateEvent(id: 2,
           property: UserSettingName.twentyFourHourTime, value: true),
@@ -314,6 +332,7 @@ void main() {
       async.flushMicrotasks();
       await Future.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
+      check(store.isStale).isTrue();
     }));
 
     void checkRetry(void Function() prepareError) {
@@ -322,6 +341,8 @@ void main() {
         updateMachine.debugPauseLoop();
         updateMachine.poll();
         check(async.pendingTimers).length.equals(0);
+
+
 
         // Make the request, inducing an error in it.
         prepareError();
@@ -336,6 +357,8 @@ void main() {
         check(connection.lastRequest).isNull();
         check(async.pendingTimers).length.equals(1);
 
+
+
         // Polling continues after a timer.
         connection.prepare(json: GetEventsResult(events: [
           HeartbeatEvent(id: 2),
@@ -343,7 +366,10 @@ void main() {
         async.flushTimers();
         checkLastRequest(lastEventId: 1);
         check(updateMachine.lastEventId).equals(2);
+        check(store.isStale).isFalse();
+
       });
+
     }
 
     test('retries on Server5xxException', () {
@@ -352,15 +378,18 @@ void main() {
 
     test('retries on NetworkException', () {
       checkRetry(() => connection.prepare(exception: Exception("failed")));
+
     });
 
     test('retries on ZulipApiException', () {
       checkRetry(() => connection.prepare(httpStatus: 400, json: {
         'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
+
     });
 
     test('retries on MalformedServerResponseException', () {
       checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+
     });
   });
 

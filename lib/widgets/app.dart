@@ -16,6 +16,7 @@ import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'theme.dart';
+import 'snackbar.dart';
 
 class ZulipApp extends StatefulWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -295,6 +296,10 @@ class HomePage extends StatelessWidget {
                 MessageListPage.buildRoute(context: context,
                   narrow: StreamNarrow(testStreamId!))),
               child: const Text("#test here")), // scaffolding hack, see above
+            SizedBox(
+              height:40,
+              child:SnackBarPage(isStale:store.isStale),
+            ),
           ],
         ])));
   }
