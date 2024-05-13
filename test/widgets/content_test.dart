@@ -96,6 +96,14 @@ void main() {
     return BlockContentList(nodes: parseContent(html).nodes);
   }
 
+  Widget messageContent(String html) {
+    return MessageContent(message: eg.streamMessage(content: html),
+       content: parseContent(html));
+  }
+
+  // TODO(#488) For content that we need to show outside a per-message context
+  //   or a context without a full PerAccountStore, make sure to include tests
+  //   that don't provide such context.
   Future<void> prepareContentBare(WidgetTester tester, Widget child, {
     List<NavigatorObserver> navObservers = const [],
     bool wrapWithPerAccountStoreWidget = false,
@@ -173,27 +181,16 @@ void main() {
 
     group('interactions: spoiler with tappable content (an image) in the header', () {
       Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
-        addTearDown(testBinding.reset);
-        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-        prepareBoringImageHttpClient();
-
         final pushedRoutes = <Route<dynamic>>[];
         final testNavObserver = TestNavigatorObserver()
           ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-
-        await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          navigatorObservers: [testNavObserver],
-          home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-            child: MessageContent(
-              message: eg.streamMessage(content: html),
-              content: parseContent(html))))));
-        await tester.pump(); // global store
-        await tester.pump(); // per-account store
-        debugNetworkImageHttpClientProvider = null;
-
-        // `tester.pumpWidget` introduces an initial route;
+        await prepareContentBare(tester,
+          // Message is needed for the image's lightbox.
+          messageContent(html),
+          navObservers: [testNavObserver],
+          // We try to resolve the image's URL on the self-account's realm.
+          wrapWithPerAccountStoreWidget: true);
+        // `tester.pumpWidget` in prepareContentBare introduces an initial route;
         // remove it so consumers only have newly pushed routes.
         assert(pushedRoutes.length == 1);
         pushedRoutes.removeLast();
@@ -261,18 +258,12 @@ void main() {
 
   group('MessageImage, MessageImageList', () {
     Future<void> prepareContent(WidgetTester tester, String html) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      prepareBoringImageHttpClient();
-
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: MessageContent(
-            message: eg.streamMessage(content: html),
-            content: parseContent(html))))));
-      await tester.pump(); // global store
-      await tester.pump(); // per-account store
-      debugNetworkImageHttpClientProvider = null;
+      await prepareContentBare(tester,
+        // Message is needed for an image's lightbox.
+        messageContent(html),
+        // We try to resolve image URLs on the self-account's realm.
+        // For URLs on the self-account's realm, we include the auth credential.
+        wrapWithPerAccountStoreWidget: true);
     }
 
     testWidgets('single image', (tester) async {
@@ -353,22 +344,21 @@ void main() {
 
   group("MessageInlineVideo", () {
     Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        navigatorObservers: [testNavObserver],
-        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: MessageContent(
-            message: eg.streamMessage(content: html),
-            content: parseContent(html))))));
-      await tester.pump(); // global store
-      await tester.pump(); // per-account store
-
+      await prepareContentBare(tester,
+        // Message is needed for a video's lightbox.
+        messageContent(html),
+        navObservers: [testNavObserver],
+        // We try to resolve video URLs on the self-account's realm.
+        // With #656, we'll show a preview image. We'll try to resolve this
+        // image's URL on the self-account's realm. If it's on the
+        // self-account's realm, we'll request it with the auth credential.
+        // TODO(#656) in above comment, change "we will" to "we do"
+        wrapWithPerAccountStoreWidget: true);
+      // `tester.pumpWidget` in prepareContentBare introduces an initial route;
+      // remove it so consumers only have newly pushed routes.
       assert(pushedRoutes.length == 1);
       pushedRoutes.removeLast();
       return pushedRoutes;
@@ -386,18 +376,11 @@ void main() {
 
   group("MessageEmbedVideo", () {
     Future<void> prepareContent(WidgetTester tester, String html) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      prepareBoringImageHttpClient();
-
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: MessageContent(
-            message: eg.streamMessage(content: html),
-            content: parseContent(html))))));
-      await tester.pump(); // global store
-      await tester.pump(); // per-account store
-      debugNetworkImageHttpClientProvider = null;
+      await prepareContentBare(tester,
+        // Message is needed for a video's lightbox.
+        messageContent(html),
+        // We try to resolve a video preview URL on the self-account's realm.
+        wrapWithPerAccountStoreWidget: true);
     }
 
     Future<void> checkEmbedVideo(WidgetTester tester, ContentExample example) async {
@@ -537,17 +520,9 @@ void main() {
     // We use this to simulate taps on specific glyphs.
 
     Future<void> prepareContent(WidgetTester tester, String html) async {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      addTearDown(testBinding.reset);
-
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: BlockContentList(
-            nodes: parseContent(html).nodes)))));
-      await tester.pump();
-      await tester.pump();
+      await prepareContentBare(tester, plainContent(html),
+        // We try to resolve relative links on the self-account's realm.
+        wrapWithPerAccountStoreWidget: true);
     }
 
     testWidgets('can tap a link to open URL', (tester) async {
@@ -636,32 +611,29 @@ void main() {
   });
 
   group('LinkNode on internal links', () {
-    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, {
-      required String html,
-    }) async {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
-        streams: [eg.stream(streamId: 1, name: 'check')],
-      ));
-      addTearDown(testBinding.reset);
+    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        navigatorObservers: [testNavObserver],
-        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: BlockContentList(nodes: parseContent(html).nodes)))));
-      await tester.pump(); // global store
-      await tester.pump(); // per-account store
-      // `tester.pumpWidget` introduces an initial route, remove so
-      // consumers only have newly pushed routes.
+
+      await prepareContentBare(tester, plainContent(html),
+        navObservers: [testNavObserver],
+        // We try to resolve relative links on the self-account's realm.
+        wrapWithPerAccountStoreWidget: true);
+
+      // `tester.pumpWidget` in prepareContentBare introduces an initial route;
+      // remove it so consumers only have newly pushed routes.
       assert(pushedRoutes.length == 1);
       pushedRoutes.removeLast();
+
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      store.addStream(eg.stream(name: 'stream'));
       return pushedRoutes;
     }
 
     testWidgets('valid internal links are navigated to within app', (tester) async {
       final pushedRoutes = await prepareContent(tester,
-        html: '<p><a href="/#narrow/stream/1-check">stream</a></p>');
+        '<p><a href="/#narrow/stream/1-check">stream</a></p>');
 
       await tapText(tester, find.text('stream'));
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
@@ -672,7 +644,7 @@ void main() {
     testWidgets('invalid internal links are opened in browser', (tester) async {
       // Link is invalid due to `topic` operator missing an operand.
       final pushedRoutes = await prepareContent(tester,
-        html: '<p><a href="/#narrow/stream/1-check/topic">invalid</a></p>');
+        '<p><a href="/#narrow/stream/1-check/topic">invalid</a></p>');
 
       await tapText(tester, find.text('invalid'));
       final expectedUrl = eg.realmUrl.resolve('/#narrow/stream/1-check/topic');
@@ -717,11 +689,9 @@ void main() {
     });
 
     testWidgets('clock icon and text are the same color', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: DefaultTextStyle(
-        style: const TextStyle(color: Colors.green),
-        child: BlockContentList(nodes:
-          parseContent('<p>$timeSpanHtml</p>').nodes),
-      )));
+      await prepareContentBare(tester,
+        DefaultTextStyle(style: const TextStyle(color: Colors.green),
+          child: plainContent('<p>$timeSpanHtml</p>')));
 
       final icon = tester.widget<Icon>(
         find.descendant(of: find.byType(GlobalTime),
@@ -779,15 +749,10 @@ void main() {
 
   group('MessageImageEmoji', () {
     Future<void> prepareContent(WidgetTester tester, String html) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      prepareBoringImageHttpClient();
-
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        home: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: BlockContentList(nodes: parseContent(html).nodes)))));
-      await tester.pump(); // global store
-      await tester.pump(); // per-account store
+      await prepareContentBare(tester, plainContent(html),
+        // We try to resolve image-emoji URLs on the self-account's realm.
+        // For URLs on the self-account's realm, we include the auth credential.
+        wrapWithPerAccountStoreWidget: true);
     }
 
     testWidgets('smoke: custom emoji', (tester) async {
