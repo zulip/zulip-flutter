@@ -717,8 +717,8 @@ void main() {
         ..equals(Colors.green);
     });
 
-    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
-      Future<void> doCheck(double Function(GlobalTime widget) sizeFromWidget) async {
+    group('maintains font-size ratio with surrounding text', () {
+      Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {
         await checkFontSizeRatio(tester,
           targetHtml: '<time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time>',
           targetFontSizeFinder: (rootSpan) {
@@ -734,21 +734,23 @@ void main() {
           });
       }
 
-      // Text is scaled
-      await doCheck((widget) {
-        final textSpan = tester.renderObject<RenderParagraph>(
-          find.descendant(of: find.byWidget(widget),
-            matching: find.textContaining(renderedTextRegexp)
-        )).text;
-        return mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.fontSize!;
+      testWidgets('text is scaled', (tester) async {
+        await doCheck(tester, (widget) {
+          final textSpan = tester.renderObject<RenderParagraph>(
+            find.descendant(of: find.byWidget(widget),
+              matching: find.textContaining(renderedTextRegexp)
+          )).text;
+          return mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.fontSize!;
+        });
       });
 
-      // Clock icon is scaled
-      await doCheck((widget) {
-        final icon = tester.widget<Icon>(
-          find.descendant(of: find.byWidget(widget),
-            matching: find.byIcon(ZulipIcons.clock)));
-        return icon.size!;
+      testWidgets('clock icon is scaled', (tester) async {
+        await doCheck(tester, (widget) {
+          final icon = tester.widget<Icon>(
+            find.descendant(of: find.byWidget(widget),
+              matching: find.byIcon(ZulipIcons.clock)));
+          return icon.size!;
+        });
       });
     });
   });
