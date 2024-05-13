@@ -92,11 +92,15 @@ void main() {
 
   TestZulipBinding.ensureInitialized();
 
-  Future<void> prepareContentBare(WidgetTester tester, String html, {
+  Widget plainContent(String html) {
+    return BlockContentList(nodes: parseContent(html).nodes);
+  }
+
+  Future<void> prepareContentBare(WidgetTester tester, Widget child, {
     List<NavigatorObserver> navObservers = const [],
     bool wrapWithPerAccountStoreWidget = false,
   }) async {
-    Widget widget = BlockContentList(nodes: parseContent(html).nodes);
+    Widget widget = child;
 
     if (wrapWithPerAccountStoreWidget) {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -132,7 +136,7 @@ void main() {
   /// and write an appropriate content-has-rendered check directly.
   void testContentSmoke(ContentExample example) {
     testWidgets('smoke: ${example.description}', (tester) async {
-      await prepareContentBare(tester, example.html);
+      await prepareContentBare(tester, plainContent(example.html));
       assert(example.expectedText != null,
         'testContentExample requires expectedText');
       tester.widget(find.text(example.expectedText!));
@@ -141,7 +145,7 @@ void main() {
 
   group('ThematicBreak', () {
     testWidgets('smoke ThematicBreak', (tester) async {
-      await prepareContentBare(tester, ContentExample.thematicBreak.html);
+      await prepareContentBare(tester, plainContent(ContentExample.thematicBreak.html));
       tester.widget(find.byType(ThematicBreak));
     });
   });
@@ -150,14 +154,14 @@ void main() {
     testWidgets('plain h6', (tester) async {
       await prepareContentBare(tester,
         // "###### six"
-        '<h6>six</h6>');
+        plainContent('<h6>six</h6>'));
       tester.widget(find.text('six'));
     });
 
     testWidgets('smoke test for h1, h2, h3, h4, h5', (tester) async {
       await prepareContentBare(tester,
         // "# one\n## two\n### three\n#### four\n##### five"
-        '<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>');
+        plainContent('<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>'));
       check(find.byType(Heading).evaluate()).length.equals(5);
     });
   });
@@ -454,9 +458,9 @@ void main() {
     required String targetHtml,
     required double Function(InlineSpan rootSpan) targetFontSizeFinder,
   }) async {
-    await prepareContentBare(tester,
+    await prepareContentBare(tester, plainContent(
       '<h1>header-plain $targetHtml</h1>\n'
-      '<p>paragraph-plain $targetHtml</p>');
+      '<p>paragraph-plain $targetHtml</p>'));
 
     final headerRootSpan = tester.renderObject<RenderParagraph>(find.textContaining('header')).text;
     final headerPlainStyle = mergedStyleOfSubstring(headerRootSpan, 'header-plain ');
@@ -708,7 +712,7 @@ void main() {
     final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
 
     testWidgets('smoke', (tester) async {
-      await prepareContentBare(tester, '<p>$timeSpanHtml</p>');
+      await prepareContentBare(tester, plainContent('<p>$timeSpanHtml</p>'));
       tester.widget(find.textContaining(renderedTextRegexp));
     });
 
