@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
@@ -19,9 +21,22 @@ class RecentDmConversationsView extends ChangeNotifier {
         DmNarrow.ofRecentDmConversation(conversation, selfUserId: selfUserId),
         conversation.maxMessageId,
       )).toList()..sort((a, b) => -a.value.compareTo(b.value));
+    final map = Map.fromEntries(entries);
+    final sorted = QueueList.from(entries.map((e) => e.key));
+
+    final msgsByUser = <int, int>{};
+    for (final entry in entries) {
+      final dmNarrow = entry.key;
+      final msg = entry.value;
+      for (final userId in dmNarrow.otherRecipientIds) {
+        // only take the latest message of a user among all the conversations.
+        msgsByUser.putIfAbsent(userId, () => msg);
+      }
+    }
     return RecentDmConversationsView._(
-      map: Map.fromEntries(entries),
-      sorted: QueueList.from(entries.map((e) => e.key)),
+      map: map,
+      sorted: sorted,
+      latestMessagesByRecipient: msgsByUser,
       selfUserId: selfUserId,
     );
   }
@@ -29,6 +44,7 @@ class RecentDmConversationsView extends ChangeNotifier {
   RecentDmConversationsView._({
     required this.map,
     required this.sorted,
+    required this.latestMessagesByRecipient,
     required this.selfUserId,
   });
 
@@ -38,7 +54,23 @@ class RecentDmConversationsView extends ChangeNotifier {
   /// The [DmNarrow] keys of [map], sorted by latest message descending.
   final QueueList<DmNarrow> sorted;
 
+  /// Map from user ID to the latest message ID in any conversation with the user.
+  ///
+  /// Both 1:1 and group DM conversations are considered.
+  /// The self-user ID is excluded even if there is a self-DM conversation.
+  ///
+  /// (The identified message was not necessarily sent by the identified user;
+  /// it might have been sent by anyone in its conversation.)
+  final Map<int, int> latestMessagesByRecipient;
+
   final int selfUserId;
+
+  int compareByDms(User userA, User userB) {
+    final aLatestMessageId = latestMessagesByRecipient[userA.userId] ?? -1;
+    final bLatestMessageId = latestMessagesByRecipient[userB.userId] ?? -1;
+
+    return bLatestMessageId.compareTo(aLatestMessageId);
+  }
 
   /// Insert the key at the proper place in [sorted].
   ///
@@ -58,7 +90,7 @@ class RecentDmConversationsView extends ChangeNotifier {
     }
   }
 
-  /// Handle [MessageEvent], updating [map] and [sorted].
+  /// Handle [MessageEvent], updating [map], [sorted], and [latestMessagesByRecipient].
   ///
   /// Can take linear time in general.  That sounds inefficient...
   /// but it's what the webapp does, so must not be catastrophic. 🤷
@@ -116,6 +148,13 @@ class RecentDmConversationsView extends ChangeNotifier {
         sorted.removeAt(i); // linear time, ouch
         _insertSorted(key, message.id);
       }
+    }
+    for (final recipient in key.otherRecipientIds) {
+      latestMessagesByRecipient.update(
+        recipient,
+        (latestMessageId) => max(message.id, latestMessageId),
+        ifAbsent: () => message.id,
+      );
     }
     notifyListeners();
   }
