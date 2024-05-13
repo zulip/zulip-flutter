@@ -93,6 +93,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Future<void> prepareContentBare(WidgetTester tester, String html, {
+    List<NavigatorObserver> navObservers = const [],
     bool wrapWithPerAccountStoreWidget = false,
   }) async {
     Widget widget = BlockContentList(nodes: parseContent(html).nodes);
@@ -111,6 +112,7 @@ void main() {
           theme: ThemeData(typography: zulipTypography(context)),
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
+          navigatorObservers: navObservers,
           home: widget)));
     await tester.pump(); // global store
     if (wrapWithPerAccountStoreWidget) {
