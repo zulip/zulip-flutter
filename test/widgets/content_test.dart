@@ -689,8 +689,7 @@ void main() {
     final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
 
     testWidgets('smoke', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: BlockContentList(nodes:
-        parseContent('<p>$timeSpanHtml</p>').nodes)));
+      await prepareContentBare(tester, '<p>$timeSpanHtml</p>');
       tester.widget(find.textContaining(renderedTextRegexp));
     });
 
