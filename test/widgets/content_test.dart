@@ -95,6 +95,9 @@ void main() {
   Future<void> prepareContentBare(WidgetTester tester, String html) async {
     Widget widget = BlockContentList(nodes: parseContent(html).nodes);
 
+    widget = GlobalStoreWidget(child: widget);
+    addTearDown(testBinding.reset);
+
     await tester.pumpWidget(
       Builder(builder: (context) =>
         MaterialApp(
@@ -102,6 +105,7 @@ void main() {
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           home: widget)));
+    await tester.pump(); // global store
   }
 
   /// Test that the given content example renders without throwing an exception.
