@@ -93,16 +93,17 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Future<void> prepareContentBare(WidgetTester tester, String html) async {
-    await tester.pumpWidget(Builder(
-      builder: (context) {
-        return MaterialApp(
+    Widget widget = BlockContentList(nodes: parseContent(html).nodes);
+
+    widget = Scaffold(body: widget);
+
+    await tester.pumpWidget(
+      Builder(builder: (context) =>
+        MaterialApp(
           theme: ThemeData(typography: zulipTypography(context)),
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
-          home: Scaffold(body: BlockContentList(nodes: parseContent(html).nodes)),
-        );
-      }
-    ));
+          home: widget)));
   }
 
   /// Test that the given content example renders without throwing an exception.
