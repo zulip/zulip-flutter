@@ -95,8 +95,6 @@ void main() {
   Future<void> prepareContentBare(WidgetTester tester, String html) async {
     Widget widget = BlockContentList(nodes: parseContent(html).nodes);
 
-    widget = Scaffold(body: widget);
-
     await tester.pumpWidget(
       Builder(builder: (context) =>
         MaterialApp(
