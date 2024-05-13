@@ -106,6 +106,8 @@ void main() {
     widget = GlobalStoreWidget(child: widget);
     addTearDown(testBinding.reset);
 
+    prepareBoringImageHttpClient();
+
     await tester.pumpWidget(
       Builder(builder: (context) =>
         MaterialApp(
@@ -118,6 +120,8 @@ void main() {
     if (wrapWithPerAccountStoreWidget) {
       await tester.pump();
     }
+
+    debugNetworkImageHttpClientProvider = null;
   }
 
   /// Test that the given content example renders without throwing an exception.
