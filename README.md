@@ -307,6 +307,31 @@ When adding new strings in the UI, we set them up to be translated.
 For details on how to do this, see the [translation doc](docs/translation.md).
 
 
+### Desktop support
+
+This app is intended for use on mobile platforms, specifically
+Android and iOS.
+
+On desktop platforms, we support running the app for development
+but not for general use.  In particular this means:
+
+ * The layout and UI are designed for mobile.  We don't spend time
+   on adapting the app to desktop UI features or paradigms.
+
+ * External platform integrations (like opening a link,
+   taking a photo, etc.) are built only for Android and iOS.
+   We don't spend time making them work on other platforms.
+
+ * On the other hand the app runs, and core functionality works,
+   on at least Linux and macOS.  Currently no regular contributor
+   uses it on Windows, but we accept fixes to keep it running there too.
+
+The reason we support desktop platforms at all is that
+for development it's sometimes useful to run the app on desktop.
+For example, this makes it easy to resize the window arbitrarily,
+which can be helpful for testing layout behavior.
+
+
 ## License
 
 Copyright (c) 2022 Kandra Labs, Inc., and contributors.
