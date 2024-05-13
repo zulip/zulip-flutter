@@ -92,8 +92,15 @@ void main() {
 
   TestZulipBinding.ensureInitialized();
 
-  Future<void> prepareContentBare(WidgetTester tester, String html) async {
+  Future<void> prepareContentBare(WidgetTester tester, String html, {
+    bool wrapWithPerAccountStoreWidget = false,
+  }) async {
     Widget widget = BlockContentList(nodes: parseContent(html).nodes);
+
+    if (wrapWithPerAccountStoreWidget) {
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      widget = PerAccountStoreWidget(accountId: eg.selfAccount.id, child: widget);
+    }
 
     widget = GlobalStoreWidget(child: widget);
     addTearDown(testBinding.reset);
@@ -106,6 +113,9 @@ void main() {
           supportedLocales: ZulipLocalizations.supportedLocales,
           home: widget)));
     await tester.pump(); // global store
+    if (wrapWithPerAccountStoreWidget) {
+      await tester.pump();
+    }
   }
 
   /// Test that the given content example renders without throwing an exception.
