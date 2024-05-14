@@ -426,13 +426,21 @@ class MentionAutocompleteQuery {
 }
 
 class AutocompleteDataCache {
+  final Map<int, String> _normalizedNamesByUser = {};
+
+  /// The lowercase `fullName` of [user].
+  String normalizedNameForUser(User user) {
+    return _normalizedNamesByUser[user.userId] ??= user.fullName.toLowerCase();
+  }
+
   final Map<int, List<String>> _nameWordsByUser = {};
 
   List<String> nameWordsForUser(User user) {
-    return _nameWordsByUser[user.userId] ??= user.fullName.toLowerCase().split(' ');
+    return _nameWordsByUser[user.userId] ??= normalizedNameForUser(user).split(' ');
   }
 
   void invalidateUser(int userId) {
+    _normalizedNamesByUser.remove(userId);
     _nameWordsByUser.remove(userId);
   }
 }
