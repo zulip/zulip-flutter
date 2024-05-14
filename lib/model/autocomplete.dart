@@ -235,6 +235,10 @@ class MentionAutocompleteView extends ChangeNotifier {
     required String? topic,
     required PerAccountStore store,
   }) {
+    // TODO(#234): give preference to "all", "everyone" or "stream"
+
+    // TODO(#618): give preference to subscribed users first
+
     if (streamId != null) {
       final recencyResult = compareByRecency(userA, userB,
         streamId: streamId,
