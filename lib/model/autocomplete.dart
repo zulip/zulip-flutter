@@ -267,13 +267,48 @@ class MentionAutocompleteView extends ChangeNotifier {
 
   List<User>? _sortedUsers;
 
-  List<User> sortByRelevance({required List<User> users}) {
+  /// Determines which of the two users are more recent in DM conversations.
+  ///
+  /// Returns a negative number if [userA] is more recent than [userB],
+  /// returns a positive number if [userB] is more recent than [userA],
+  /// and returns `0` if both [userA] and [userB] are equally recent
+  /// or there is no DM exchanged with them whatsoever.
+  int compareByDms(User userA, User userB) {
+    final recentDms = store.recentDmConversationsView;
+    final aLatestMessageId = recentDms.latestMessagesByRecipient[userA.userId] ?? -1;
+    final bLatestMessageId = recentDms.latestMessagesByRecipient[userB.userId] ?? -1;
+
+    return bLatestMessageId.compareTo(aLatestMessageId);
+  }
+
+  int compareByRelevance({
+    required User userA,
+    required User userB,
+  }) {
+    final dmPrecedence = compareByDms(userA, userB);
+    return dmPrecedence;
+  }
+
+  List<User> sortByRelevance({
+    required List<User> users,
+    required Narrow narrow,
+  }) {
+    switch (narrow) {
+      case StreamNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        users.sort((userA, userB) => compareByRelevance(
+          userA: userA,
+          userB: userB));
+      case AllMessagesNarrow():
+        // do nothing in this case for now
+    }
     return users;
   }
 
   void _sortUsers() {
     final users = store.users.values.toList();
-    _sortedUsers = sortByRelevance(users: users);
+    _sortedUsers = sortByRelevance(users: users, narrow: narrow);
   }
 
   Future<List<MentionAutocompleteResult>?> _computeResults(MentionAutocompleteQuery query) async {

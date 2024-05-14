@@ -5,9 +5,11 @@ import 'package:checks/checks.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 import '../example_data.dart' as eg;
@@ -347,6 +349,87 @@ void main() {
       doCheck('Name Four Full Words', eg.user(fullName: 'Full Name Four Words'), false);
       doCheck('F Full', eg.user(fullName: 'Full Name Four Words'), false);
       doCheck('Four F', eg.user(fullName: 'Full Name Four Words'), false);
+    });
+  });
+
+  group('MentionAutocompleteView users results', () {
+    late PerAccountStore store;
+    late MentionAutocompleteView view;
+
+    void prepare({
+      required List<User> users,
+      required List<RecentDmConversation> dmConversations,
+      required Narrow narrow,
+    }) {
+      store = eg.store(
+        initialSnapshot: eg.initialSnapshot(
+          recentPrivateConversations: dmConversations
+      ));
+      for (final user in users) {
+        store.addUser(user);
+      }
+      view = MentionAutocompleteView.init(store: store, narrow: narrow);
+    }
+
+    test('compareByDms gives priority to user with DM exchanged more recently', () {
+      prepare(
+        users: [],
+        dmConversations: [
+          RecentDmConversation(userIds: [1],    maxMessageId: 200),
+          RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
+        ],
+        narrow: const AllMessagesNarrow(),
+      );
+
+      final userA = eg.user(userId: 1);
+      final userB = eg.user(userId: 2);
+      final compareAB = view.compareByDms(userA, userB);
+      check(compareAB).isNegative();
+    });
+
+    test('autocomplete suggests relevant users in the following order: '
+      '1. Users most recent in the DM conversations', () async {
+      final users = [
+        eg.user(userId: 1),
+        eg.user(userId: 2),
+        eg.user(userId: 3),
+        eg.user(userId: 4),
+        eg.user(userId: 5),
+      ];
+
+      final dmConversations = [
+        RecentDmConversation(userIds: [4],    maxMessageId: 300),
+        RecentDmConversation(userIds: [1],    maxMessageId: 200),
+        RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
+      ];
+
+      Future<void> checkResultsIn(Narrow narrow, {required List<int> expected}) async {
+        prepare(users: users, dmConversations: dmConversations, narrow: narrow);
+
+        bool done = false;
+        view.addListener(() { done = true; });
+        view.query = MentionAutocompleteQuery('');
+        await Future(() {});
+        check(done).isTrue();
+        final results = view.results
+          .map((e) => (e as UserMentionAutocompleteResult).userId)
+          .toList();
+        check(results).deepEquals(expected);
+      }
+
+      const streamNarrow = StreamNarrow(1);
+      await checkResultsIn(streamNarrow, expected: [4, 1, 2, 3, 5]);
+
+      const topicNarrow = TopicNarrow(1, 'topic');
+      await checkResultsIn(topicNarrow, expected: [4, 1, 2, 3, 5]);
+
+      final dmNarrow = DmNarrow(allRecipientIds: [eg.selfUser.userId], selfUserId: eg.selfUser.userId);
+      await checkResultsIn(dmNarrow, expected: [4, 1, 2, 3, 5]);
+
+      const allMessagesNarrow = AllMessagesNarrow();
+      // Results are in the original order as we do not sort them for
+      // [AllMessagesNarrow] because we can not access autocomplete for now.
+      await checkResultsIn(allMessagesNarrow, expected: [1, 2, 3, 4, 5]);
     });
   });
 }
