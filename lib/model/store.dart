@@ -21,6 +21,7 @@ import 'autocomplete.dart';
 import 'database.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
+import 'recent_senders.dart';
 import 'stream.dart';
 import 'unreads.dart';
 
@@ -287,6 +288,8 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
 
   final Map<int, User> users;
 
+  final RecentSenders recentSenders = RecentSenders();
+
   ////////////////////////////////
   // Streams, topics, and stuff about them.
 
@@ -347,6 +350,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   void dispose() {
     unreads.dispose();
     recentDmConversationsView.dispose();
+    recentSenders.clear();
     for (final view in _messageListViews.toList()) {
       view.dispose();
     }
@@ -436,6 +440,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       notifyListeners();
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
+      recentSenders.handleMessage(event.message);
       recentDmConversationsView.handleMessageEvent(event);
       autocompleteViewManager.handleMessageEvent(event);
       for (final view in _messageListViews) {
