@@ -273,6 +273,10 @@ class MentionAutocompleteView extends ChangeNotifier {
     required int? streamId,
     required String? topic,
   }) {
+    // TODO(#234): give preference to "all", "everyone" or "stream".
+
+    // TODO(#618): give preference to subscribed users first.
+
     if (streamId != null) {
       final conversationPrecedence = store.recentSenders.compareByRecency(
           userA,
