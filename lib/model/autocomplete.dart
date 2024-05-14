@@ -293,7 +293,12 @@ class MentionAutocompleteView extends ChangeNotifier {
     } else if (userA.isBot && !userB.isBot) {
       return 1;
     }
-    return 0;
+
+    final userAName = store.autocompleteViewManager.autocompleteDataCache
+      .normalizedNameForUser(userA);
+    final userBName = store.autocompleteViewManager.autocompleteDataCache
+      .normalizedNameForUser(userB);
+    return userAName.compareTo(userBName);
   }
 
   List<User> sortByRelevance({
