@@ -245,7 +245,10 @@ class MentionAutocompleteView extends ChangeNotifier {
     final dmsResult = compareByDms(userA, userB, store: store);
     if (dmsResult != 0) return dmsResult;
 
-    return compareByBotStatus(userA, userB);
+    final botStatusResult = compareByBotStatus(userA, userB);
+    if (botStatusResult != 0) return botStatusResult;
+
+    return compareByAlphabeticalOrder(userA, userB, store: store);
   }
 
   /// Determines which of the two users has more recent activity (messages sent
@@ -325,6 +328,21 @@ class MentionAutocompleteView extends ChangeNotifier {
       (true, false) => 1,
       _             => 0,
     };
+  }
+
+  /// Compares the two users by [User.fullName] case-insensitively.
+  ///
+  /// Returns a negative number if `userA`'s `fullName` comes first alphabetically,
+  /// returns a positive number if `userB`'s `fullName` comes first alphabetically,
+  /// and returns `0` if both users have identical `fullName`.
+  @visibleForTesting
+  static int compareByAlphabeticalOrder(User userA, User userB,
+      {required PerAccountStore store}) {
+    final userAName = store.autocompleteViewManager.autocompleteDataCache
+      .normalizedNameForUser(userA);
+    final userBName = store.autocompleteViewManager.autocompleteDataCache
+      .normalizedNameForUser(userB);
+    return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
   @override
