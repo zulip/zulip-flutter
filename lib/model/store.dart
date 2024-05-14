@@ -23,6 +23,7 @@ import 'database.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
+import 'recent_senders.dart';
 import 'stream.dart';
 import 'unreads.dart';
 
@@ -319,6 +320,8 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
 
   final Map<int, User> users;
 
+  final RecentSenders recentSenders = RecentSenders();
+
   ////////////////////////////////
   // Streams, topics, and stuff about them.
 
@@ -383,6 +386,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
+    recentSenders.clear();
     super.dispose();
   }
 
@@ -470,6 +474,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
       _messages.handleMessageEvent(event);
       unreads.handleMessageEvent(event);
+      recentSenders.handleMessage(event.message);
       recentDmConversationsView.handleMessageEvent(event);
       // When adding anything here (to handle [MessageEvent]),
       // it probably belongs in [reconcileMessages] too.
