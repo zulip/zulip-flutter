@@ -284,7 +284,16 @@ class MentionAutocompleteView extends ChangeNotifier {
       }
     }
     final dmPrecedence = store.recentDmConversationsView.compareByDms(userA, userB);
-    return dmPrecedence;
+    if (dmPrecedence != 0) {
+      return dmPrecedence;
+    }
+
+    if (!userA.isBot && userB.isBot) {
+      return -1;
+    } else if (userA.isBot && !userB.isBot) {
+      return 1;
+    }
+    return 0;
   }
 
   List<User> sortByRelevance({
