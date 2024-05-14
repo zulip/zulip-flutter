@@ -236,13 +236,16 @@ class MentionAutocompleteView extends ChangeNotifier {
     required PerAccountStore store,
   }) {
     if (streamId != null) {
-      final result = compareByRecency(userA, userB,
+      final recencyResult = compareByRecency(userA, userB,
         streamId: streamId,
         topic: topic,
         store: store);
-      if (result != 0) return result;
+      if (recencyResult != 0) return recencyResult;
     }
-    return compareByDms(userA, userB, store: store);
+    final dmsResult = compareByDms(userA, userB, store: store);
+    if (dmsResult != 0) return dmsResult;
+
+    return compareByBotStatus(userA, userB);
   }
 
   /// Determines which of the two users has more recent activity (messages sent
@@ -307,6 +310,20 @@ class MentionAutocompleteView extends ChangeNotifier {
       (int(),     _) => 1,
       (_,     int()) => -1,
       _              => 0,
+    };
+  }
+
+  /// Compares the bot status of two users and returns an integer indicating their order.
+  ///
+  /// Returns `-1` if `userA` is human and `userB` is bot, returns `1` if `userA`
+  /// is bot and `userB` is human, and returns `0` if both users have the same
+  /// bot status.
+  @visibleForTesting
+  static int compareByBotStatus(User userA, User userB) {
+    return switch ((userA.isBot, userB.isBot)) {
+      (false, true) => -1,
+      (true, false) => 1,
+      _             => 0,
     };
   }
 
