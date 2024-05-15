@@ -180,7 +180,7 @@ void main() {
     testContentSmoke(ContentExample.spoilerRichHeaderAndContent);
 
     group('interactions: spoiler with tappable content (an image) in the header', () {
-      Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
+      Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
         final pushedRoutes = <Route<dynamic>>[];
         final testNavObserver = TestNavigatorObserver()
           ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -213,7 +213,7 @@ void main() {
       const example = ContentExample.spoilerHeaderHasImage;
 
       testWidgets('tap image', (tester) async {
-        final pushedRoutes = await prepareContent(tester, example.html);
+        final pushedRoutes = await prepare(tester, example.html);
 
         await tester.tap(find.byType(RealmContentNetworkImage));
         check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
@@ -221,7 +221,7 @@ void main() {
       });
 
       testWidgets('tap header on expand/collapse icon', (tester) async {
-        final pushedRoutes = await prepareContent(tester, example.html);
+        final pushedRoutes = await prepare(tester, example.html);
         checkIsExpanded(tester, false);
 
         await tester.tap(find.byIcon(Icons.expand_more));
@@ -236,7 +236,7 @@ void main() {
       });
 
       testWidgets('tap header away from expand/collapse icon (and image)', (tester) async {
-        final pushedRoutes = await prepareContent(tester, example.html);
+        final pushedRoutes = await prepare(tester, example.html);
         checkIsExpanded(tester, false);
 
         await tester.tapAt(
@@ -257,7 +257,7 @@ void main() {
   testContentSmoke(ContentExample.quotation);
 
   group('MessageImage, MessageImageList', () {
-    Future<void> prepareContent(WidgetTester tester, String html) async {
+    Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContentBare(tester,
         // Message is needed for an image's lightbox.
         messageContent(html),
@@ -268,7 +268,7 @@ void main() {
 
     testWidgets('single image', (tester) async {
       const example = ContentExample.imageSingle;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
@@ -278,7 +278,7 @@ void main() {
 
     testWidgets('image with invalid src URL', (tester) async {
       const example = ContentExample.imageInvalidUrl;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       // The image indeed has an invalid URL.
       final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
       check(() => Uri.parse(expectedImages.single.srcUrl)).throws();
@@ -290,7 +290,7 @@ void main() {
 
     testWidgets('multiple images', (tester) async {
       const example = ContentExample.imageCluster;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
@@ -300,7 +300,7 @@ void main() {
 
     testWidgets('content after image cluster', (tester) async {
       const example = ContentExample.imageClusterThenContent;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
@@ -310,7 +310,7 @@ void main() {
 
     testWidgets('multiple clusters of images', (tester) async {
       const example = ContentExample.imageMultipleClusters;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       final expectedImages = (example.expectedNodes[1] as ImageNodeList).images
         + (example.expectedNodes[4] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
@@ -321,7 +321,7 @@ void main() {
 
     testWidgets('image as immediate child in implicit paragraph', (tester) async {
       const example = ContentExample.imageInImplicitParagraph;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       final expectedImages = ((example.expectedNodes[0] as ListNode)
         .items[0][0] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
@@ -332,7 +332,7 @@ void main() {
 
     testWidgets('image cluster in implicit paragraph', (tester) async {
       const example = ContentExample.imageClusterInImplicitParagraph;
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
       final expectedImages = ((example.expectedNodes[0] as ListNode)
         .items[0][1] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
@@ -343,7 +343,7 @@ void main() {
   });
 
   group("MessageInlineVideo", () {
-    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
+    Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -366,7 +366,7 @@ void main() {
 
     testWidgets('tapping on preview opens lightbox', (tester) async {
       const example = ContentExample.videoInline;
-      final pushedRoutes = await prepareContent(tester, example.html);
+      final pushedRoutes = await prepare(tester, example.html);
 
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
@@ -375,7 +375,7 @@ void main() {
   });
 
   group("MessageEmbedVideo", () {
-    Future<void> prepareContent(WidgetTester tester, String html) async {
+    Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContentBare(tester,
         // Message is needed for a video's lightbox.
         messageContent(html),
@@ -384,7 +384,7 @@ void main() {
     }
 
     Future<void> checkEmbedVideo(WidgetTester tester, ContentExample example) async {
-      await prepareContent(tester, example.html);
+      await prepare(tester, example.html);
 
       final expectedTitle = (((example.expectedNodes[0] as ParagraphNode)
         .nodes.single as LinkNode).nodes.single as TextNode).text;
@@ -519,14 +519,14 @@ void main() {
     //   https://github.com/flutter/flutter/wiki/Flutter-Test-Fonts
     // We use this to simulate taps on specific glyphs.
 
-    Future<void> prepareContent(WidgetTester tester, String html) async {
+    Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContentBare(tester, plainContent(html),
         // We try to resolve relative links on the self-account's realm.
         wrapWithPerAccountStoreWidget: true);
     }
 
     testWidgets('can tap a link to open URL', (tester) async {
-      await prepareContent(tester,
+      await prepare(tester,
         '<p><a href="https://example/">hello</a></p>');
 
       await tapText(tester, find.text('hello'));
@@ -540,7 +540,7 @@ void main() {
     testWidgets('multiple links in paragraph', (tester) async {
       final fontSize = Paragraph.textStyle.fontSize!;
 
-      await prepareContent(tester,
+      await prepare(tester,
         '<p><a href="https://a/">foo</a> bar <a href="https://b/">baz</a></p>');
       final base = tester.getTopLeft(find.text('foo bar baz'))
         .translate(fontSize/2, fontSize/2); // middle of first letter
@@ -558,7 +558,7 @@ void main() {
     });
 
     testWidgets('link nested in other spans', (tester) async {
-      await prepareContent(tester,
+      await prepare(tester,
         '<p><strong><em><a href="https://a/">word</a></em></strong></p>');
       await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
@@ -568,7 +568,7 @@ void main() {
     testWidgets('link containing other spans', (tester) async {
       final fontSize = Paragraph.textStyle.fontSize!;
 
-      await prepareContent(tester,
+      await prepare(tester,
         '<p><a href="https://a/">two <strong><em><code>words</code></em></strong></a></p>');
       final base = tester.getTopLeft(find.text('two words'))
         .translate(fontSize/2, fontSize/2); // middle of first letter
@@ -583,7 +583,7 @@ void main() {
     });
 
     testWidgets('relative links are resolved', (tester) async {
-      await prepareContent(tester,
+      await prepare(tester,
         '<p><a href="/a/b?c#d">word</a></p>');
       await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
@@ -591,7 +591,7 @@ void main() {
     });
 
     testWidgets('link inside HeadingNode', (tester) async {
-      await prepareContent(tester,
+      await prepare(tester,
         '<h6><a href="https://a/">word</a></h6>');
       await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
@@ -599,7 +599,7 @@ void main() {
     });
 
     testWidgets('error dialog if invalid link', (tester) async {
-      await prepareContent(tester,
+      await prepare(tester,
         '<p><a href="file:///etc/bad">word</a></p>');
       testBinding.launchUrlResult = false;
       await tapText(tester, find.text('word'));
@@ -611,7 +611,7 @@ void main() {
   });
 
   group('LinkNode on internal links', () {
-    Future<List<Route<dynamic>>> prepareContent(WidgetTester tester, String html) async {
+    Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -632,7 +632,7 @@ void main() {
     }
 
     testWidgets('valid internal links are navigated to within app', (tester) async {
-      final pushedRoutes = await prepareContent(tester,
+      final pushedRoutes = await prepare(tester,
         '<p><a href="/#narrow/stream/1-check">stream</a></p>');
 
       await tapText(tester, find.text('stream'));
@@ -643,7 +643,7 @@ void main() {
 
     testWidgets('invalid internal links are opened in browser', (tester) async {
       // Link is invalid due to `topic` operator missing an operand.
-      final pushedRoutes = await prepareContent(tester,
+      final pushedRoutes = await prepare(tester,
         '<p><a href="/#narrow/stream/1-check/topic">invalid</a></p>');
 
       await tapText(tester, find.text('invalid'));
@@ -748,7 +748,7 @@ void main() {
   });
 
   group('MessageImageEmoji', () {
-    Future<void> prepareContent(WidgetTester tester, String html) async {
+    Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContentBare(tester, plainContent(html),
         // We try to resolve image-emoji URLs on the self-account's realm.
         // For URLs on the self-account's realm, we include the auth credential.
@@ -756,20 +756,20 @@ void main() {
     }
 
     testWidgets('smoke: custom emoji', (tester) async {
-      await prepareContent(tester, ContentExample.emojiCustom.html);
+      await prepare(tester, ContentExample.emojiCustom.html);
       tester.widget(find.byType(MessageImageEmoji));
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: custom emoji with invalid URL', (tester) async {
-      await prepareContent(tester, ContentExample.emojiCustomInvalidUrl.html);
+      await prepare(tester, ContentExample.emojiCustomInvalidUrl.html);
       final url = tester.widget<MessageImageEmoji>(find.byType(MessageImageEmoji)).node.src;
       check(() => Uri.parse(url)).throws();
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: Zulip extra emoji', (tester) async {
-      await prepareContent(tester, ContentExample.emojiZulipExtra.html);
+      await prepare(tester, ContentExample.emojiZulipExtra.html);
       tester.widget(find.byType(MessageImageEmoji));
       debugNetworkImageHttpClientProvider = null;
     });
