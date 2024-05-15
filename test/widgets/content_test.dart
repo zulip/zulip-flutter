@@ -104,7 +104,7 @@ void main() {
   // TODO(#488) For content that we need to show outside a per-message context
   //   or a context without a full PerAccountStore, make sure to include tests
   //   that don't provide such context.
-  Future<void> prepareContentBare(WidgetTester tester, Widget child, {
+  Future<void> prepareContent(WidgetTester tester, Widget child, {
     List<NavigatorObserver> navObservers = const [],
     bool wrapWithPerAccountStoreWidget = false,
   }) async {
@@ -140,11 +140,11 @@ void main() {
   ///
   /// This requires [ContentExample.expectedText] to be non-null in order to
   /// check that the content has actually rendered.  For examples where there's
-  /// no suitable value for [ContentExample.expectedText], use [prepareContentBare]
+  /// no suitable value for [ContentExample.expectedText], use [prepareContent]
   /// and write an appropriate content-has-rendered check directly.
   void testContentSmoke(ContentExample example) {
     testWidgets('smoke: ${example.description}', (tester) async {
-      await prepareContentBare(tester, plainContent(example.html));
+      await prepareContent(tester, plainContent(example.html));
       assert(example.expectedText != null,
         'testContentExample requires expectedText');
       tester.widget(find.text(example.expectedText!));
@@ -153,21 +153,21 @@ void main() {
 
   group('ThematicBreak', () {
     testWidgets('smoke ThematicBreak', (tester) async {
-      await prepareContentBare(tester, plainContent(ContentExample.thematicBreak.html));
+      await prepareContent(tester, plainContent(ContentExample.thematicBreak.html));
       tester.widget(find.byType(ThematicBreak));
     });
   });
 
   group('Heading', () {
     testWidgets('plain h6', (tester) async {
-      await prepareContentBare(tester,
+      await prepareContent(tester,
         // "###### six"
         plainContent('<h6>six</h6>'));
       tester.widget(find.text('six'));
     });
 
     testWidgets('smoke test for h1, h2, h3, h4, h5', (tester) async {
-      await prepareContentBare(tester,
+      await prepareContent(tester,
         // "# one\n## two\n### three\n#### four\n##### five"
         plainContent('<h1>one</h1>\n<h2>two</h2>\n<h3>three</h3>\n<h4>four</h4>\n<h5>five</h5>'));
       check(find.byType(Heading).evaluate()).length.equals(5);
@@ -184,13 +184,13 @@ void main() {
         final pushedRoutes = <Route<dynamic>>[];
         final testNavObserver = TestNavigatorObserver()
           ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-        await prepareContentBare(tester,
+        await prepareContent(tester,
           // Message is needed for the image's lightbox.
           messageContent(html),
           navObservers: [testNavObserver],
           // We try to resolve the image's URL on the self-account's realm.
           wrapWithPerAccountStoreWidget: true);
-        // `tester.pumpWidget` in prepareContentBare introduces an initial route;
+        // `tester.pumpWidget` in prepareContent introduces an initial route;
         // remove it so consumers only have newly pushed routes.
         assert(pushedRoutes.length == 1);
         pushedRoutes.removeLast();
@@ -258,7 +258,7 @@ void main() {
 
   group('MessageImage, MessageImageList', () {
     Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContentBare(tester,
+      await prepareContent(tester,
         // Message is needed for an image's lightbox.
         messageContent(html),
         // We try to resolve image URLs on the self-account's realm.
@@ -347,7 +347,7 @@ void main() {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      await prepareContentBare(tester,
+      await prepareContent(tester,
         // Message is needed for a video's lightbox.
         messageContent(html),
         navObservers: [testNavObserver],
@@ -357,7 +357,7 @@ void main() {
         // self-account's realm, we'll request it with the auth credential.
         // TODO(#656) in above comment, change "we will" to "we do"
         wrapWithPerAccountStoreWidget: true);
-      // `tester.pumpWidget` in prepareContentBare introduces an initial route;
+      // `tester.pumpWidget` in prepareContent introduces an initial route;
       // remove it so consumers only have newly pushed routes.
       assert(pushedRoutes.length == 1);
       pushedRoutes.removeLast();
@@ -376,7 +376,7 @@ void main() {
 
   group("MessageEmbedVideo", () {
     Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContentBare(tester,
+      await prepareContent(tester,
         // Message is needed for a video's lightbox.
         messageContent(html),
         // We try to resolve a video preview URL on the self-account's realm.
@@ -441,7 +441,7 @@ void main() {
     required String targetHtml,
     required double Function(InlineSpan rootSpan) targetFontSizeFinder,
   }) async {
-    await prepareContentBare(tester, plainContent(
+    await prepareContent(tester, plainContent(
       '<h1>header-plain $targetHtml</h1>\n'
       '<p>paragraph-plain $targetHtml</p>'));
 
@@ -520,7 +520,7 @@ void main() {
     // We use this to simulate taps on specific glyphs.
 
     Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContentBare(tester, plainContent(html),
+      await prepareContent(tester, plainContent(html),
         // We try to resolve relative links on the self-account's realm.
         wrapWithPerAccountStoreWidget: true);
     }
@@ -616,12 +616,12 @@ void main() {
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
 
-      await prepareContentBare(tester, plainContent(html),
+      await prepareContent(tester, plainContent(html),
         navObservers: [testNavObserver],
         // We try to resolve relative links on the self-account's realm.
         wrapWithPerAccountStoreWidget: true);
 
-      // `tester.pumpWidget` in prepareContentBare introduces an initial route;
+      // `tester.pumpWidget` in prepareContent introduces an initial route;
       // remove it so consumers only have newly pushed routes.
       assert(pushedRoutes.length == 1);
       pushedRoutes.removeLast();
@@ -684,12 +684,12 @@ void main() {
     final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
 
     testWidgets('smoke', (tester) async {
-      await prepareContentBare(tester, plainContent('<p>$timeSpanHtml</p>'));
+      await prepareContent(tester, plainContent('<p>$timeSpanHtml</p>'));
       tester.widget(find.textContaining(renderedTextRegexp));
     });
 
     testWidgets('clock icon and text are the same color', (tester) async {
-      await prepareContentBare(tester,
+      await prepareContent(tester,
         DefaultTextStyle(style: const TextStyle(color: Colors.green),
           child: plainContent('<p>$timeSpanHtml</p>')));
 
@@ -749,7 +749,7 @@ void main() {
 
   group('MessageImageEmoji', () {
     Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContentBare(tester, plainContent(html),
+      await prepareContent(tester, plainContent(html),
         // We try to resolve image-emoji URLs on the self-account's realm.
         // For URLs on the self-account's realm, we include the auth credential.
         wrapWithPerAccountStoreWidget: true);
