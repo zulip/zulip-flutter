@@ -44,11 +44,11 @@ const _backgroundColorSelected = Colors.white;
 //   Until then use a solid color; a much-lightened version of the shadow color.
 //   Also adapt by making [_borderColorUnselected] more transparent, so we'll
 //   want to check that against web when implementing the shadow.
-final _backgroundColorUnselected = const HSLColor.fromAHSL(0.15, 210, 0.50, 0.875).toColor();
+final _backgroundColorUnselected = const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor();
 
-final _borderColorSelected = Colors.black.withOpacity(0.40);
+final _borderColorSelected = Colors.black.withOpacity(0.45);
 // TODO see TODO on [_backgroundColorUnselected] about shadow effect
-final _borderColorUnselected = Colors.black.withOpacity(0.06);
+final _borderColorUnselected = Colors.black.withOpacity(0.05);
 
 class ReactionChip extends StatelessWidget {
   final bool showName;
@@ -91,7 +91,10 @@ class ReactionChip extends StatelessWidget {
     final splashColor =     selfVoted ? _backgroundColorUnselected : _backgroundColorSelected;
     final highlightColor =  splashColor.withOpacity(0.5);
 
-    final borderSide = BorderSide(color: borderColor, width: 1);
+    final borderSide = BorderSide(
+      color: borderColor,
+      width: selfVoted ? 1.5 : 1.0,
+    );
     final shape = StadiumBorder(side: borderSide);
 
     final Widget emoji;
