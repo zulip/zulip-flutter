@@ -164,15 +164,27 @@ class AutocompleteViewManager {
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 class MentionAutocompleteView extends ChangeNotifier {
-  MentionAutocompleteView._({required this.store, required this.narrow});
+  MentionAutocompleteView._({
+    required this.store,
+    required this.narrow,
+    required this.sortedUsers,
+  });
 
   factory MentionAutocompleteView.init({
     required PerAccountStore store,
     required Narrow narrow,
   }) {
-    final view = MentionAutocompleteView._(store: store, narrow: narrow);
+    final view = MentionAutocompleteView._(
+      store: store,
+      narrow: narrow,
+      sortedUsers: _usersByRelevance(store: store),
+    );
     store.autocompleteViewManager.registerMentionAutocomplete(view);
     return view;
+  }
+
+  static List<User> _usersByRelevance({required PerAccountStore store}) {
+    return store.users.values.toList(); // TODO(#228): sort for most relevant first
   }
 
   @override
@@ -186,6 +198,7 @@ class MentionAutocompleteView extends ChangeNotifier {
 
   final PerAccountStore store;
   final Narrow narrow;
+  final List<User> sortedUsers;
 
   MentionAutocompleteQuery? get query => _query;
   MentionAutocompleteQuery? _query;
@@ -209,18 +222,7 @@ class MentionAutocompleteView extends ChangeNotifier {
   List<MentionAutocompleteResult> _results = [];
 
   Future<void> _startSearch(MentionAutocompleteQuery query) async {
-    List<MentionAutocompleteResult>? newResults;
-
-    while (true) {
-      try {
-        newResults = await _computeResults(query);
-        break;
-      } on ConcurrentModificationError {
-        // Retry
-        // TODO backoff?
-      }
-    }
-
+    final newResults = await _computeResults(query);
     if (newResults == null) {
       // Query was old; new search is in progress. Or, no listeners to notify.
       return;
@@ -232,9 +234,7 @@ class MentionAutocompleteView extends ChangeNotifier {
 
   Future<List<MentionAutocompleteResult>?> _computeResults(MentionAutocompleteQuery query) async {
     final List<MentionAutocompleteResult> results = [];
-    final Iterable<User> users = store.users.values;
-
-    final iterator = users.iterator;
+    final iterator = sortedUsers.iterator;
     bool isDone = false;
     while (!isDone) {
       // CPU perf: End this task; enqueue a new one for resuming this work
@@ -245,7 +245,7 @@ class MentionAutocompleteView extends ChangeNotifier {
       }
 
       for (int i = 0; i < 1000; i++) {
-        if (!iterator.moveNext()) { // Can throw ConcurrentModificationError
+        if (!iterator.moveNext()) {
           isDone = true;
           break;
         }
@@ -256,7 +256,7 @@ class MentionAutocompleteView extends ChangeNotifier {
         }
       }
     }
-    return results; // TODO(#228) sort for most relevant first
+    return results;
   }
 }
 

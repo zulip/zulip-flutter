@@ -274,37 +274,35 @@ void main() {
     }
   });
 
-  test('MentionAutocompleteView mutating store.users while in progress causes retry', () async {
+  test('MentionAutocompleteView mutating store.users while in progress does not '
+      'prevent query from finishing', () async {
     const narrow = CombinedFeedNarrow();
     final store = eg.store();
-    for (int i = 0; i < 1500; i++) {
+    for (int i = 0; i < 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 10000');
+    view.query = MentionAutocompleteQuery('User 110');
 
     await Future(() {});
     check(done).isFalse();
-    await store.addUser(eg.user(userId: 10000, email: 'user10000@example.com', fullName: 'User 10000'));
+    await store.addUser(eg.user(userId: 11000, email: 'user11000@example.com', fullName: 'User 11000'));
     await Future(() {});
     check(done).isFalse();
-    await Future(() {});
-    check(done).isFalse();
-    await Future(() {});
-    check(done).isTrue();
-    check(view.results).single
-      .isA<UserMentionAutocompleteResult>()
-      .userId.equals(10000);
-    // new result sticks; no "zombie" result from `store.users` pre-mutation
-    for (int i = 0; i < 10; i++) { // for good measure
+    for (int i = 0; i < 3; i++) {
       await Future(() {});
-      check(view.results).single
-        .isA<UserMentionAutocompleteResult>()
-        .userId.equals(10000);
     }
+    check(done).isTrue();
+    final results = view.results
+      .map((e) => (e as UserMentionAutocompleteResult).userId);
+    check(results)
+      ..contains(110)
+      ..contains(1100)
+      // Does not include the newly-added user as we finish the query with stale users.
+      ..not((results) => results.contains(11000));
   });
 
   group('MentionAutocompleteQuery.testUser', () {
