@@ -29,13 +29,13 @@
   ../mobile/tools/checkout-keystore
   ```
 
-* Build an Android App Bundle, signed:
+* Build both an Android App Bundle (AAB) and an APK, signed:
 
   ```
-  flutter build appbundle -Psigned
+  flutter build appbundle -Psigned && flutter build apk -Psigned
   ```
 
-* Upload to the "Zulip (Flutter beta)" app on the Play Console,
+* Upload the AAB to the "Zulip (Flutter beta)" app on the Play Console,
   at [Release > Testing > Internal testing][play-internaltesting],
   using the "Create new release" button there.
 
@@ -96,6 +96,22 @@
     Open testing".
 
   * Confirm and send to Google for review.
+
+
+* Android via GitHub:
+
+  * Create a GitHub release, named the same as the tag.
+
+  * For the release notes, use `tools/format-changelog notes`,
+    and fix formatting as needed.
+
+    * The hashes printed at the bottom are based on the files found at
+      the usual build-output locations.  Those should be the same
+      files you upload.
+
+  * Upload both the AAB and the APK.
+
+  * Check the box "This is a pre-release".
 
 
 * iOS via TestFlight:

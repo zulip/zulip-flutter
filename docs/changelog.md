@@ -16,7 +16,10 @@
 * The tree includes configuration for Android Studio / IntelliJ,
   which should help exclude extraneous results from search. (PR #637)
 
-Resolved: #548, #620, #538, #612, #356, #309, #634, PR #680
+* Starting with this release, we post releases on GitHub, as well as
+  on Google Play and TestFlight.
+
+Resolved: #548, #620, #538, #612, #356, #309, #634, PR #680, #640
 
 
 ## 0.0.14 (2024-04-25)
