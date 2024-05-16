@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* Videos in messages are now supported. (#356)
+* The screen formerly known as "All messages" has a new,
+  more accurate name: "Combined feed". (#634)
+* (Android) Fixed bug when using third-party auth with Firefox as
+  default browser. (#620)
+
+
+### Highlights for developers
+
+* The tree includes configuration for Android Studio / IntelliJ,
+  which should help exclude extraneous results from search. (PR #637)
+
+Resolved: #548, #620, #538, #612, #356, #309, #634, PR #680
+
+
 ## 0.0.14 (2024-04-25)
 
 ### Highlights for users
@@ -15,7 +34,7 @@
 * Dropped support for Android versions older than Android 9 Pie,
   bumping minSdkVersion from 24 to 28. (400f1a5da, PR #621)
 
-Resolved: #353, #552 (possibly earlier), #156, #355, #518, #612
+Resolved: #353, #552 (possibly earlier), #156, #355, #518, ~~#612~~
 
 
 ## 0.0.13 (2024-04-02)
@@ -120,7 +139,7 @@ Resolved: PR #446 (toward #157), #170, #487, PR #496 (toward #80),
 
 ### Highlights for developers
 
-Resolved: #327, #185, #214, #475, #461, #443, #173, #359, #479
+Resolved: #327, #185, #214, #475, ~~#461~~, #443, #173, #359, #479
 
 
 ## 0.0.8 (2023-12-22)
