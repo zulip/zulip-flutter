@@ -381,6 +381,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     for (final message in result.messages) {
       if (_messageVisible(message)) {
         _addMessage(message);
+        store.recentSenders.handleMessage(message);
       }
     }
     _fetched = true;
@@ -417,6 +418,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         ? result.messages // Avoid unnecessarily copying the list.
         : result.messages.where(_messageVisible);
 
+      for (final message in fetchedMessages) {
+        store.recentSenders.handleMessage(message);
+      }
       store.autocompleteViewManager.handleOlderMessages();
 
       _insertAllMessages(0, fetchedMessages);

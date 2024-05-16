@@ -270,7 +270,19 @@ class MentionAutocompleteView extends ChangeNotifier {
   int compareByRelevance({
     required User userA,
     required User userB,
+    required int? streamId,
+    required String? topic,
   }) {
+    if (streamId != null) {
+      final conversationPrecedence = store.recentSenders.compareByRecency(
+          userA,
+          userB,
+          streamId: streamId,
+          topic: topic);
+      if (conversationPrecedence != 0) {
+        return conversationPrecedence;
+      }
+    }
     final dmPrecedence = store.recentDmConversationsView.compareByDms(userA, userB);
     return dmPrecedence;
   }
@@ -281,11 +293,23 @@ class MentionAutocompleteView extends ChangeNotifier {
   }) {
     switch (narrow) {
       case StreamNarrow():
+        users.sort((userA, userB) => compareByRelevance(
+          userA: userA,
+          userB: userB,
+          streamId: narrow.streamId,
+          topic: null));
       case TopicNarrow():
+        users.sort((userA, userB) => compareByRelevance(
+          userA: userA,
+          userB: userB,
+          streamId: narrow.streamId,
+          topic: narrow.topic));
       case DmNarrow():
         users.sort((userA, userB) => compareByRelevance(
           userA: userA,
-          userB: userB));
+          userB: userB,
+          streamId: null,
+          topic: null));
       case AllMessagesNarrow():
         // do nothing in this case for now
     }
