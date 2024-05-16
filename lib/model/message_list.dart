@@ -417,6 +417,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         ? result.messages // Avoid unnecessarily copying the list.
         : result.messages.where(_messageVisible);
 
+      store.autocompleteViewManager.handleOlderMessages();
+
       _insertAllMessages(0, fetchedMessages);
       _haveOldest = result.foundOldest;
     } finally {

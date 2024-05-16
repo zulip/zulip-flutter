@@ -437,6 +437,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     } else if (event is MessageEvent) {
       assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
       recentDmConversationsView.handleMessageEvent(event);
+      autocompleteViewManager.handleMessageEvent(event);
       for (final view in _messageListViews) {
         view.maybeAddMessage(event.message);
       }
