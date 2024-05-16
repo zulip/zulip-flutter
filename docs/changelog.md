@@ -17,7 +17,7 @@
   which should help exclude extraneous results from search. (PR #637)
 
 * Starting with this release, we post releases on GitHub, as well as
-  on Google Play and TestFlight.
+  on Google Play and TestFlight. (#640)
 
 Resolved: #548, #620, #538, #612, #356, #309, #634, PR #680, #640
 
