@@ -58,22 +58,22 @@ class _MessageListPageState extends State<MessageListPage> {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
 
-    final Color? backgroundColor;
+    final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
     switch(widget.narrow) {
       case AllMessagesNarrow():
-        backgroundColor = null; // i.e., inherit
+        appBarBackgroundColor = null; // i.e., inherit
 
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
-        backgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
+        appBarBackgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
           ?? _kUnsubscribedStreamRecipientHeaderColor;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
 
       case DmNarrow():
-        backgroundColor = _kDmRecipientHeaderColor;
+        appBarBackgroundColor = _kDmRecipientHeaderColor;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed?)
         removeAppBarBottomBorder = true;
@@ -81,12 +81,12 @@ class _MessageListPageState extends State<MessageListPage> {
 
     return Scaffold(
       appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow),
-        backgroundColor: backgroundColor,
+        backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
           ? const Border()
           : null, // i.e., inherit
       ),
-      // TODO question for Vlad: for a stream view, should we set
+      // TODO question for Vlad: for a stream view, should we set the Scaffold's
       //   [backgroundColor] based on stream color, as in this frame:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
       //   That's not obviously preferred over the default background that
