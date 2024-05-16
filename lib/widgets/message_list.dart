@@ -598,6 +598,13 @@ class _UnreadMarker extends StatelessWidget {
   //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
   // See discussion about design at:
   //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+  // TODO(#95) use opacity 0.75 in dark theme? Discussion, a few weeks after the
+  //   above-linked discussion:
+  //     https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+  //   where Vlad includes screenshots that look like they're from the Figma here:
+  //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&t=81Z9nyeJmsdmLgq4-0
+  // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
+  // in both light and dark theme.)
   static final color = const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor();
 
   @override
