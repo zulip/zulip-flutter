@@ -125,23 +125,26 @@ class AutocompleteViewManager {
     assert(removed);
   }
 
-  void handleRealmUserAddEvent(RealmUserAddEvent event) {
+  /// Recomputes the autocomplete results for users.
+  ///
+  /// Calls [MentionAutocompleteView.refreshStaleUserResults] for all that are registered.
+  void _refreshStaleUserResults() {
     for (final view in _mentionAutocompleteViews) {
       view.refreshStaleUserResults();
     }
   }
 
+  void handleRealmUserAddEvent(RealmUserAddEvent event) {
+    _refreshStaleUserResults();
+  }
+
   void handleRealmUserRemoveEvent(RealmUserRemoveEvent event) {
-    for (final view in _mentionAutocompleteViews) {
-      view.refreshStaleUserResults();
-    }
+    _refreshStaleUserResults();
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
-    for (final view in _mentionAutocompleteViews) {
-      view.refreshStaleUserResults();
-    }
+    _refreshStaleUserResults();
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
