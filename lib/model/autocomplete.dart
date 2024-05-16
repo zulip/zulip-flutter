@@ -148,6 +148,14 @@ class AutocompleteViewManager {
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
+  void handleMessageEvent(MessageEvent event) {
+    _refreshStaleUserResults();
+  }
+
+  void handleOlderMessages() {
+    _refreshStaleUserResults();
+  }
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// Calls [MentionAutocompleteView.reassemble] for all that are registered.
@@ -193,6 +201,7 @@ class MentionAutocompleteView extends ChangeNotifier {
   @override
   void dispose() {
     store.autocompleteViewManager.unregisterMentionAutocomplete(this);
+    _sortedUsers = null;
     // We cancel in-progress computations by checking [hasListeners] between tasks.
     // After [super.dispose] is called, [hasListeners] returns false.
     // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
@@ -216,6 +225,7 @@ class MentionAutocompleteView extends ChangeNotifier {
   /// Called in particular when we get a [RealmUserEvent].
   void refreshStaleUserResults() {
     if (_query != null) {
+      _sortedUsers = null;
       _startSearch(_query!);
     }
   }
@@ -225,6 +235,7 @@ class MentionAutocompleteView extends ChangeNotifier {
   /// This will redo the search from scratch for the current query, if any.
   void reassemble() {
     if (_query != null) {
+      _sortedUsers = null;
       _startSearch(_query!);
     }
   }
@@ -254,22 +265,43 @@ class MentionAutocompleteView extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<User>? _sortedUsers;
+
+  List<User> sortByRelevance({required List<User> users}) {
+    return users;
+  }
+
+  void _sortUsers() {
+    final users = store.users.values.toList();
+    _sortedUsers = sortByRelevance(users: users);
+  }
+
   Future<List<MentionAutocompleteResult>?> _computeResults(MentionAutocompleteQuery query) async {
     final List<MentionAutocompleteResult> results = [];
-    final Iterable<User> users = store.users.values;
 
-    final iterator = users.iterator;
+    if (_sortedUsers == null) {
+      _sortUsers();
+    }
+
+    final sortedUsers = _sortedUsers!;
+    final iterator = sortedUsers.iterator;
     bool isDone = false;
     while (!isDone) {
       // CPU perf: End this task; enqueue a new one for resuming this work
       await Future(() {});
+
+      if (_sortedUsers != sortedUsers) {
+        // The list of users this loop has been working from has become stale.
+        // Abort so _startSearch can retry with the new list.
+        throw ConcurrentModificationError();
+      }
 
       if (query != _query || !hasListeners) { // false if [dispose] has been called.
         return null;
       }
 
       for (int i = 0; i < 1000; i++) {
-        if (!iterator.moveNext()) { // Can throw ConcurrentModificationError
+        if (!iterator.moveNext()) {
           isDone = true;
           break;
         }
@@ -280,7 +312,7 @@ class MentionAutocompleteView extends ChangeNotifier {
         }
       }
     }
-    return results; // TODO(#228) sort for most relevant first
+    return results;
   }
 }
 
