@@ -418,7 +418,6 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
     } else if (event is RealmUserAddEvent) {
       assert(debugLog("server event: realm_user/add"));
       users[event.person.userId] = event.person;
-      autocompleteViewManager.handleRealmUserAddEvent(event);
       notifyListeners();
     } else if (event is RealmUserRemoveEvent) {
       assert(debugLog("server event: realm_user/remove"));

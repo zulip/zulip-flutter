@@ -125,23 +125,11 @@ class AutocompleteViewManager {
     assert(removed);
   }
 
-  void handleRealmUserAddEvent(RealmUserAddEvent event) {
-    for (final view in _mentionAutocompleteViews) {
-      view.refreshStaleUserResults();
-    }
-  }
-
   void handleRealmUserRemoveEvent(RealmUserRemoveEvent event) {
-    for (final view in _mentionAutocompleteViews) {
-      view.refreshStaleUserResults();
-    }
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
-    for (final view in _mentionAutocompleteViews) {
-      view.refreshStaleUserResults();
-    }
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
@@ -205,15 +193,6 @@ class MentionAutocompleteView extends ChangeNotifier {
     _query = query;
     if (query != null) {
       _startSearch(query);
-    }
-  }
-
-  /// Recompute user results for the current query, if any.
-  ///
-  /// Called in particular when we get a [RealmUserEvent].
-  void refreshStaleUserResults() {
-    if (_query != null) {
-      _startSearch(_query!);
     }
   }
 

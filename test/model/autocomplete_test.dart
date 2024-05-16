@@ -292,6 +292,8 @@ void main() {
     await Future(() {});
     check(done).isFalse();
     await Future(() {});
+    check(done).isFalse();
+    await Future(() {});
     check(done).isTrue();
     check(view.results).single
       .isA<UserMentionAutocompleteResult>()
