@@ -663,7 +663,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
-      iconColor = Colors.black;
+      iconColor = _kRecipientHeaderTextColor;
     }
 
     final Widget streamWidget;
