@@ -773,7 +773,7 @@ class DmRecipientHeader extends StatelessWidget {
                   style: recipientHeaderTextStyle(context),
                   overflow: TextOverflow.ellipsis)),
               RecipientHeaderDate(message: message,
-                color: _kDmRecipientHeaderDateColor),
+                color: Colors.black.withOpacity(0.4)),
             ]))));
   }
 }
@@ -782,7 +782,6 @@ class DmRecipientHeader extends StatelessWidget {
 // Header color from `color-background-private-message-header`
 //   in zulip:web/styles/zulip.css .
 final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
-final _kDmRecipientHeaderDateColor = Colors.black.withOpacity(0.4);
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
