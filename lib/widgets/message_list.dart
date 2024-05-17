@@ -666,7 +666,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       iconColor = Colors.black;
     }
     final textStyle = TextStyle(
-      color: Colors.black,
+      color: _kRecipientHeaderTextColor,
       fontSize: 16,
       letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
       height: (18 / 16),
@@ -777,6 +777,7 @@ class DmRecipientHeader extends StatelessWidget {
               Expanded(
                 child: Text(title,
                   style: TextStyle(
+                    color: _kRecipientHeaderTextColor,
                     fontSize: 16,
                     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
                     height: (18 / 16),
@@ -793,6 +794,8 @@ class DmRecipientHeader extends StatelessWidget {
 //   in zulip:web/styles/zulip.css .
 final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
 final _kDmRecipientHeaderDateColor = Colors.black.withOpacity(0.4);
+
+final _kRecipientHeaderTextColor = const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor();
 
 class RecipientHeaderDate extends StatelessWidget {
   const RecipientHeaderDate({super.key, required this.message, required this.color});
