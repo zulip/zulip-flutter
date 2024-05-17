@@ -773,8 +773,7 @@ class DmRecipientHeader extends StatelessWidget {
 }
 
 // TODO(#95): web uses different color in dark mode
-// Header color from `color-background-private-message-header`
-//   in zulip:web/styles/zulip.css .
+// --color-background-private-message-header in web/styles/app_variables.css
 final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
