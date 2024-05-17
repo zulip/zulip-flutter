@@ -656,20 +656,17 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 
     final subscription = store.subscriptions[message.streamId];
     final Color backgroundColor;
-    final Color contrastingColor;
     final Color iconColor;
     if (subscription != null) {
       final swatch = subscription.colorSwatch();
       backgroundColor = swatch.barBackground;
-      contrastingColor = Colors.black;
       iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
-      contrastingColor = Colors.black;
       iconColor = Colors.black;
     }
     final textStyle = TextStyle(
-      color: contrastingColor,
+      color: Colors.black,
       fontSize: 16,
       letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
       height: (18 / 16),
@@ -710,7 +707,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               // Icon is 16px wide here so horizontal padding is 1px.
               padding: const EdgeInsets.symmetric(horizontal: 1),
               child: Icon(size: 16,
-                color: contrastingColor.withOpacity(0.6),
+                color: Colors.black.withOpacity(0.6),
                 ZulipIcons.chevron_right)),
           ]));
     }
@@ -737,7 +734,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
             RecipientHeaderDate(message: message,
-              color: contrastingColor.withOpacity(0.4)),
+              color: Colors.black.withOpacity(0.4)),
           ])));
   }
 }
