@@ -697,7 +697,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               // Icon is 16px wide here so horizontal padding is 1px.
               padding: const EdgeInsets.symmetric(horizontal: 1),
               child: Icon(size: 16,
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withOpacity(0.3),
                 ZulipIcons.chevron_right)),
           ]));
     }
