@@ -661,10 +661,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     if (subscription != null) {
       final swatch = subscription.colorSwatch();
       backgroundColor = swatch.barBackground;
-      contrastingColor =
-        (ThemeData.estimateBrightnessForColor(swatch.barBackground) == Brightness.dark)
-          ? Colors.white
-          : Colors.black;
+      contrastingColor = Colors.black;
       iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
