@@ -727,8 +727,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
                   style: recipientHeaderTextStyle(context)))),
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
-            RecipientHeaderDate(message: message,
-              color: Colors.black.withOpacity(0.4)),
+            RecipientHeaderDate(message: message),
           ])));
   }
 }
@@ -772,8 +771,7 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Text(title,
                   style: recipientHeaderTextStyle(context),
                   overflow: TextOverflow.ellipsis)),
-              RecipientHeaderDate(message: message,
-                color: Colors.black.withOpacity(0.4)),
+              RecipientHeaderDate(message: message),
             ]))));
   }
 }
@@ -794,17 +792,16 @@ TextStyle recipientHeaderTextStyle(BuildContext context) {
 final _kRecipientHeaderTextColor = const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor();
 
 class RecipientHeaderDate extends StatelessWidget {
-  const RecipientHeaderDate({super.key, required this.message, required this.color});
+  const RecipientHeaderDate({super.key, required this.message});
 
   final Message message;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
       child: DateText(
-        color: color,
+        color: Colors.black.withOpacity(0.4),
         fontSize: 16,
         // In Figma this has a line-height of 19, but using 18
         // here to match the stream/topic text widgets helps
