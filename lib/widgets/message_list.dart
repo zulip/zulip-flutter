@@ -519,7 +519,7 @@ class DateSeparator extends StatelessWidget {
 
   final Message message;
 
-  // This color matches recipient headers.  TODO(design) is that what we want?
+  // TODO(design) do we want this color to match recipient headers?
   static final _textColor = Colors.black.withOpacity(0.4);
 
   @override
@@ -801,7 +801,7 @@ class RecipientHeaderDate extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
       child: DateText(
-        color: Colors.black.withOpacity(0.4),
+        color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
         fontSize: 16,
         // In Figma this has a line-height of 19, but using 18
         // here to match the stream/topic text widgets helps
