@@ -665,12 +665,6 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
       iconColor = Colors.black;
     }
-    final textStyle = TextStyle(
-      color: _kRecipientHeaderTextColor,
-      fontSize: 16,
-      letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
-      height: (18 / 16),
-    ).merge(weightVariableTextStyle(context, wght: 600));
 
     final Widget streamWidget;
     if (!showStream) {
@@ -699,7 +693,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 11),
               child: Text(streamName,
-                style: textStyle,
+                style: recipientHeaderTextStyle(context),
                 overflow: TextOverflow.ellipsis),
             ),
             Padding(
@@ -730,7 +724,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
                   // TODO: Give a way to see the whole topic (maybe a
                   //   long-press interaction?)
                   overflow: TextOverflow.ellipsis,
-                  style: textStyle))),
+                  style: recipientHeaderTextStyle(context)))),
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
             RecipientHeaderDate(message: message,
@@ -776,12 +770,7 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(size: 16, ZulipIcons.user)),
               Expanded(
                 child: Text(title,
-                  style: TextStyle(
-                    color: _kRecipientHeaderTextColor,
-                    fontSize: 16,
-                    letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
-                    height: (18 / 16),
-                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  style: recipientHeaderTextStyle(context),
                   overflow: TextOverflow.ellipsis)),
               RecipientHeaderDate(message: message,
                 color: _kDmRecipientHeaderDateColor),
@@ -795,6 +784,14 @@ class DmRecipientHeader extends StatelessWidget {
 final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
 final _kDmRecipientHeaderDateColor = Colors.black.withOpacity(0.4);
 
+TextStyle recipientHeaderTextStyle(BuildContext context) {
+  return TextStyle(
+    color: _kRecipientHeaderTextColor,
+    fontSize: 16,
+    letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
+    height: (18 / 16),
+  ).merge(weightVariableTextStyle(context, wght: 600));
+}
 final _kRecipientHeaderTextColor = const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor();
 
 class RecipientHeaderDate extends StatelessWidget {
