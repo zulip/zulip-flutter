@@ -519,9 +519,6 @@ class DateSeparator extends StatelessWidget {
 
   final Message message;
 
-  // TODO(design) do we want this color to match recipient headers?
-  static final _textColor = Colors.black.withOpacity(0.4);
-
   @override
   Widget build(BuildContext context) {
     // This makes the small-caps text vertically centered,
@@ -542,7 +539,7 @@ class DateSeparator extends StatelessWidget {
                       color: Colors.black)))))),
           Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
             child: DateText(
-              color: _textColor,
+              color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
               fontSize: 16,
               height: (16 / 16),
               timestamp: message.timestamp)),
