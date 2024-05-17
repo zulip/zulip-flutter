@@ -539,7 +539,6 @@ class DateSeparator extends StatelessWidget {
                       color: Colors.black)))))),
           Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
             child: DateText(
-              color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
               fontSize: 16,
               height: (16 / 16),
               timestamp: message.timestamp)),
@@ -798,7 +797,6 @@ class RecipientHeaderDate extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
       child: DateText(
-        color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
         fontSize: 16,
         // In Figma this has a line-height of 19, but using 18
         // here to match the stream/topic text widgets helps
@@ -811,13 +809,11 @@ class RecipientHeaderDate extends StatelessWidget {
 class DateText extends StatelessWidget {
   const DateText({
     super.key,
-    required this.color,
     required this.fontSize,
     required this.height,
     required this.timestamp,
   });
 
-  final Color color;
   final double fontSize;
   final double height;
   final int timestamp;
@@ -827,7 +823,7 @@ class DateText extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Text(
       style: TextStyle(
-        color: color,
+        color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:
