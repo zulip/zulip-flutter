@@ -12,9 +12,12 @@ ThemeData zulipThemeData(BuildContext context) {
       // ColorScheme.surfaceContainer for the scrolled-under state and
       // ColorScheme.surface otherwise, and those are different colors.
       scrolledUnderElevation: 0,
-      backgroundColor: Color(0xfff5f5f5),
+      backgroundColor: Color(0xfff5f5f5), // `bg-top-bar` in Figma
 
-      shape: Border(bottom: BorderSide(color: Color(0xffcccccc))),
+      shape: Border(bottom: BorderSide(
+        color: Color(0x33000000), // `border-bar` in Figma
+        strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
+      )),
     ),
     // This applies Material 3's color system to produce a palette of
     // appropriately matching and contrasting colors for use in a UI.
@@ -27,7 +30,7 @@ ThemeData zulipThemeData(BuildContext context) {
     colorScheme: ColorScheme.fromSeed(
       seedColor: kZulipBrandColor,
     ),
-    scaffoldBackgroundColor: const Color(0xfff6f6f6),
+    scaffoldBackgroundColor: const Color(0xfff0f0f0), // `bg-main` in Figma
     tooltipTheme: const TooltipThemeData(preferBelow: false),
   );
 }
