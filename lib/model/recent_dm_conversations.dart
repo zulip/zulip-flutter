@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
@@ -19,9 +21,21 @@ class RecentDmConversationsView extends ChangeNotifier {
         DmNarrow.ofRecentDmConversation(conversation, selfUserId: selfUserId),
         conversation.maxMessageId,
       )).toList()..sort((a, b) => -a.value.compareTo(b.value));
+
+    final latestMessagesByRecipient = <int, int>{};
+    for (final entry in entries) {
+      final dmNarrow = entry.key;
+      final maxMessageId = entry.value;
+      for (final userId in dmNarrow.otherRecipientIds) {
+        // Only take the latest message of a user across all the conversations.
+        latestMessagesByRecipient.putIfAbsent(userId, () => maxMessageId);
+      }
+    }
+
     return RecentDmConversationsView._(
       map: Map.fromEntries(entries),
       sorted: QueueList.from(entries.map((e) => e.key)),
+      latestMessagesByRecipient: latestMessagesByRecipient,
       selfUserId: selfUserId,
     );
   }
@@ -29,6 +43,7 @@ class RecentDmConversationsView extends ChangeNotifier {
   RecentDmConversationsView._({
     required this.map,
     required this.sorted,
+    required this.latestMessagesByRecipient,
     required this.selfUserId,
   });
 
@@ -37,6 +52,15 @@ class RecentDmConversationsView extends ChangeNotifier {
 
   /// The [DmNarrow] keys of [map], sorted by latest message descending.
   final QueueList<DmNarrow> sorted;
+
+  /// Map from user ID to the latest message ID in any conversation with the user.
+  ///
+  /// Both 1:1 and group DM conversations are considered.
+  /// The self-user ID is excluded even if there is a self-DM conversation.
+  ///
+  /// (The identified message was not necessarily sent by the identified user;
+  /// it might have been sent by anyone in its conversation.)
+  final Map<int, int> latestMessagesByRecipient;
 
   final int selfUserId;
 
@@ -58,7 +82,7 @@ class RecentDmConversationsView extends ChangeNotifier {
     }
   }
 
-  /// Handle [MessageEvent], updating [map] and [sorted].
+  /// Handle [MessageEvent], updating [map], [sorted], and [latestMessagesByRecipient].
   ///
   /// Can take linear time in general.  That sounds inefficient...
   /// but it's what the webapp does, so must not be catastrophic. 🤷
@@ -89,6 +113,8 @@ class RecentDmConversationsView extends ChangeNotifier {
       return;
     }
     final key = DmNarrow.ofMessage(message, selfUserId: selfUserId);
+
+    // Update [map] and [sorted].
     final prev = map[key];
     if (prev == null) {
       // The conversation is new.  Add to both `map` and `sorted`.
@@ -117,6 +143,16 @@ class RecentDmConversationsView extends ChangeNotifier {
         _insertSorted(key, message.id);
       }
     }
+
+    // Update [latestMessagesByRecipient].
+    for (final recipient in key.otherRecipientIds) {
+      latestMessagesByRecipient.update(
+        recipient,
+        (latestMessageId) => max(message.id, latestMessageId),
+        ifAbsent: () => message.id,
+      );
+    }
+
     notifyListeners();
   }
 

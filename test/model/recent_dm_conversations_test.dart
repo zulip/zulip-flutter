@@ -22,7 +22,8 @@ void main() {
       check(RecentDmConversationsView(selfUserId: eg.selfUser.userId,
         initial: []))
           ..map.isEmpty()
-          ..sorted.isEmpty();
+          ..sorted.isEmpty()
+          ..latestMessagesByRecipient.isEmpty();
 
       check(RecentDmConversationsView(selfUserId: eg.selfUser.userId,
         initial: [
@@ -35,7 +36,8 @@ void main() {
             key([]):     200,
             key([1]):    100,
           })
-          ..sorted.deepEquals([key([1, 2]), key([]), key([1])]);
+          ..sorted.deepEquals([key([1, 2]), key([]), key([1])])
+          ..latestMessagesByRecipient.deepEquals({1: 300, 2: 300});
     });
 
     group('message event (new message)', () {
@@ -55,7 +57,8 @@ void main() {
             key([1]):    200,
             key([1, 2]): 100,
           })
-          ..sorted.deepEquals([key([1]), key([1, 2])]);
+          ..sorted.deepEquals([key([1]), key([1, 2])])
+          ..latestMessagesByRecipient.deepEquals({1: 200, 2: 100});
       });
 
       test('stream message -> do nothing', () {
@@ -65,7 +68,8 @@ void main() {
           ..addListener(() { listenersNotified = true; })
           ..handleMessageEvent(MessageEvent(id: 1, message: eg.streamMessage()))
         ) ..map.deepEquals(expected.map)
-          ..sorted.deepEquals(expected.sorted);
+          ..sorted.deepEquals(expected.sorted)
+          ..latestMessagesByRecipient.deepEquals(expected.latestMessagesByRecipient);
         check(listenersNotified).isFalse();
       });
 
@@ -80,7 +84,8 @@ void main() {
             key([1]):    200,
             key([1, 2]): 100,
           })
-          ..sorted.deepEquals([key([2]), key([1]), key([1, 2])]);
+          ..sorted.deepEquals([key([2]), key([1]), key([1, 2])])
+          ..latestMessagesByRecipient.deepEquals({2: 300, 1: 200});
         check(listenersNotified).isTrue();
       });
 
@@ -95,7 +100,8 @@ void main() {
             key([2]):    150,
             key([1, 2]): 100,
           })
-          ..sorted.deepEquals([key([1]), key([2]), key([1, 2])]);
+          ..sorted.deepEquals([key([1]), key([2]), key([1, 2])])
+          ..latestMessagesByRecipient.deepEquals({1: 200, 2: 150});
         check(listenersNotified).isTrue();
       });
 
@@ -110,7 +116,8 @@ void main() {
             key([1, 2]): 300,
             key([1]):    200,
           })
-          ..sorted.deepEquals([key([1, 2]), key([1])]);
+          ..sorted.deepEquals([key([1, 2]), key([1])])
+          ..latestMessagesByRecipient.deepEquals({1: 300, 2: 300});
         check(listenersNotified).isTrue();
       });
 
@@ -124,7 +131,8 @@ void main() {
             key([1]):    300,
             key([1, 2]): 100,
           })
-          ..sorted.deepEquals([key([1]), key([1, 2])]);
+          ..sorted.deepEquals([key([1]), key([1, 2])])
+          ..latestMessagesByRecipient.deepEquals({1: 300, 2: 100});
         check(listenersNotified).isTrue();
       });
 
@@ -137,9 +145,44 @@ void main() {
           // ..addListener(() { listenersNotified = true; })
           ..handleMessageEvent(MessageEvent(id: 1, message: message))
         ) ..map.deepEquals(expected.map)
-          ..sorted.deepEquals(expected.sorted);
+          ..sorted.deepEquals(expected.sorted)
+          ..latestMessagesByRecipient.deepEquals(expected.latestMessagesByRecipient);
         // (listeners are notified unnecessarily, but that's OK)
         // check(listenersNotified).isFalse();
+      });
+
+      test('new conversation with one existing and one new user, newest message', () {
+        bool listenersNotified = false;
+        final message = eg.dmMessage(id: 300, from: eg.selfUser,
+          to: [eg.user(userId: 1), eg.user(userId: 3)]);
+        check(setupView()
+          ..addListener(() { listenersNotified = true; })
+          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+        ) ..map.deepEquals({
+            key([1, 3]): 300,
+            key([1]):    200,
+            key([1, 2]): 100,
+          })
+          ..sorted.deepEquals([key([1, 3]), key([1]), key([1, 2])])
+          ..latestMessagesByRecipient.deepEquals({1: 300, 3: 300, 2: 100});
+        check(listenersNotified).isTrue();
+      });
+
+      test('new conversation with one existing and one new user, not newest message', () {
+        bool listenersNotified = false;
+        final message = eg.dmMessage(id: 150, from: eg.selfUser,
+          to: [eg.user(userId: 1), eg.user(userId: 3)]);
+        check(setupView()
+          ..addListener(() { listenersNotified = true; })
+          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+        ) ..map.deepEquals({
+            key([1]):    200,
+            key([1, 3]): 150,
+            key([1, 2]): 100,
+          })
+          ..sorted.deepEquals([key([1]), key([1, 3]), key([1, 2])])
+          ..latestMessagesByRecipient.deepEquals({1: 200, 3: 150, 2: 100});
+        check(listenersNotified).isTrue();
       });
     });
   });
