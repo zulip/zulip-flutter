@@ -18,6 +18,7 @@ import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
 import 'content_checks.dart';
+import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
 
 void main() {
@@ -141,6 +142,25 @@ void main() {
       ..haveOldest.isTrue();
   });
 
+  // TODO(#824): move this test
+  test('fetchInitial, recent senders track all the messages', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final messages = [
+      eg.streamMessage(),
+      // Not subscribed to the stream with id 10.
+      eg.streamMessage(stream: eg.stream(streamId: 10)),
+    ];
+    connection.prepare(json: newestResult(
+      foundOldest: false,
+      messages: messages,
+    ).toJson());
+    await model.fetchInitial();
+
+    check(model).messages.length.equals(1);
+    recent_senders_test.checkMatchesMessages(store.recentSenders, messages);
+  });
+
   test('fetchOlder', () async {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
@@ -231,6 +251,27 @@ void main() {
     check(model)
       ..fetchingOlder.isFalse()
       ..messages.length.equals(200);
+  });
+
+  // TODO(#824): move this test
+  test('fetchOlder, recent senders track all the messages', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
+    await prepareMessages(foundOldest: false, messages: initialMessages);
+
+    final oldMessages = List.generate(10, (i) => eg.streamMessage(id: 89 + i))
+      // Not subscribed to the stream with id 10.
+      ..add(eg.streamMessage(id: 99, stream: eg.stream(streamId: 10)));
+    connection.prepare(json: olderResult(
+      anchor: 100, foundOldest: false,
+      messages: oldMessages,
+    ).toJson());
+    await model.fetchOlder();
+
+    check(model).messages.length.equals(20);
+    recent_senders_test.checkMatchesMessages(store.recentSenders,
+      [...initialMessages, ...oldMessages]);
   });
 
   test('MessageEvent', () async {

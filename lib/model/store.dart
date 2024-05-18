@@ -23,6 +23,7 @@ import 'database.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
+import 'recent_senders.dart';
 import 'channel.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
@@ -256,6 +257,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
       ),
       recentDmConversationsView: RecentDmConversationsView(
         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
+      recentSenders: RecentSenders(),
     );
   }
 
@@ -276,6 +278,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
+    required this.recentSenders,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
@@ -368,6 +371,8 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   final Unreads unreads;
 
   final RecentDmConversationsView recentDmConversationsView;
+
+  final RecentSenders recentSenders;
 
   ////////////////////////////////
   // Other digests of data.
@@ -492,6 +497,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
         _messages.handleMessageEvent(event);
         unreads.handleMessageEvent(event);
         recentDmConversationsView.handleMessageEvent(event);
+        recentSenders.handleMessage(event.message); // TODO(#824)
         // When adding anything here (to handle [MessageEvent]),
         // it probably belongs in [reconcileMessages] too.
 
@@ -502,6 +508,11 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
 
       case DeleteMessageEvent():
         assert(debugLog("server event: delete_message ${event.messageIds}"));
+        // This should be called before [_messages.handleDeleteMessageEvent(event)],
+        // as we need to know about each message for [event.messageIds],
+        // specifically, their `senderId`s. By calling this after the
+        // aforementioned line, we'll lose reference to those messages.
+        recentSenders.handleDeleteMessageEvent(event, messages);
         _messages.handleDeleteMessageEvent(event);
         unreads.handleDeleteMessageEvent(event);
 

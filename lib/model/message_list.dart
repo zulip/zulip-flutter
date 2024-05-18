@@ -403,6 +403,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: 0,
     );
     store.reconcileMessages(result.messages);
+    store.recentSenders.handleMessages(result.messages); // TODO(#824)
     for (final message in result.messages) {
       if (_messageVisible(message)) {
         _addMessage(message);
@@ -439,6 +440,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       }
 
       store.reconcileMessages(result.messages);
+      store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
       final fetchedMessages = _allMessagesVisible
         ? result.messages // Avoid unnecessarily copying the list.
