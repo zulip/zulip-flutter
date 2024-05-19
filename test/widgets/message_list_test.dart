@@ -332,40 +332,40 @@ void main() {
           matching: find.byIcon(ZulipIcons.lock),
         ).evaluate()).length.equals(1);
       });
-    });
 
-    testWidgets('show stream name from message when stream unknown', (tester) async {
-      // This can perfectly well happen, because message fetches can race
-      // with events.
-      // … Though not actually with AllMessagesNarrow, because that shows
-      // stream messages only in subscribed streams, hence only known streams.
-      // See skip comment below.
-      final stream = eg.stream(name: 'stream name');
-      await setupMessageListPage(tester,
-        narrow: const AllMessagesNarrow(),
-        subscriptions: [],
-        messages: [
-          eg.streamMessage(stream: stream),
-        ]);
-      await tester.pump();
-      tester.widget(find.text('stream name'));
-    }, skip: true); // TODO(#252) could repro this with search narrows, once we have those
+      testWidgets('show stream name from message when stream unknown', (tester) async {
+        // This can perfectly well happen, because message fetches can race
+        // with events.
+        // … Though not actually with AllMessagesNarrow, because that shows
+        // stream messages only in subscribed streams, hence only known streams.
+        // See skip comment below.
+        final stream = eg.stream(name: 'stream name');
+        await setupMessageListPage(tester,
+          narrow: const AllMessagesNarrow(),
+          subscriptions: [],
+          messages: [
+            eg.streamMessage(stream: stream),
+          ]);
+        await tester.pump();
+        tester.widget(find.text('stream name'));
+      }, skip: true); // TODO(#252) could repro this with search narrows, once we have those
 
-    testWidgets('show stream name from stream data when known', (tester) async {
-      final streamBefore = eg.stream(name: 'old stream name');
-      // TODO(#182) this test would be more realistic using a StreamUpdateEvent
-      final streamAfter = ZulipStream.fromJson({
-        ...(deepToJson(streamBefore) as Map<String, dynamic>),
-        'name': 'new stream name',
+      testWidgets('show stream name from stream data when known', (tester) async {
+        final streamBefore = eg.stream(name: 'old stream name');
+        // TODO(#182) this test would be more realistic using a StreamUpdateEvent
+        final streamAfter = ZulipStream.fromJson({
+          ...(deepToJson(streamBefore) as Map<String, dynamic>),
+          'name': 'new stream name',
+        });
+        await setupMessageListPage(tester,
+          narrow: const AllMessagesNarrow(),
+          subscriptions: [eg.subscription(streamAfter)],
+          messages: [
+            eg.streamMessage(stream: streamBefore),
+          ]);
+        await tester.pump();
+        tester.widget(find.text('new stream name'));
       });
-      await setupMessageListPage(tester,
-        narrow: const AllMessagesNarrow(),
-        subscriptions: [eg.subscription(streamAfter)],
-        messages: [
-          eg.streamMessage(stream: streamBefore),
-        ]);
-      await tester.pump();
-      tester.widget(find.text('new stream name'));
     });
 
     testWidgets('show names on DMs', (tester) async {
