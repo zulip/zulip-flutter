@@ -118,6 +118,7 @@ class _NoSubscriptionsItem extends StatelessWidget {
         child: Text("No streams found",
           textAlign: TextAlign.center,
           style: TextStyle(
+            // TODO(#95) need dark-theme color
             color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
             fontSize: 18,
             height: (20 / 18),
@@ -131,12 +132,14 @@ class _SubscriptionListHeader extends StatelessWidget {
   final String label;
 
   static final _line = Expanded(child: Divider(
+    // TODO(#95) need dark-theme color
     color: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor()));
 
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: ColoredBox(
+        // TODO(#95) need dark-theme color
         color: Colors.white,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -148,6 +151,7 @@ class _SubscriptionListHeader extends StatelessWidget {
               child: Text(label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  // TODO(#95) need dark-theme color
                   color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
                   fontSize: 14,
                   letterSpacing: proportionalLetterSpacing(context, 0.04, baseFontSize: 14),
@@ -198,6 +202,7 @@ class SubscriptionItem extends StatelessWidget {
     final swatch = subscription.colorSwatch();
     final hasUnreads = (unreadCount > 0);
     return Material(
+      // TODO(#95) need dark-theme color
       color: Colors.white,
       child: InkWell(
         onTap: () {
@@ -222,6 +227,7 @@ class SubscriptionItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 18,
                   height: (20 / 18),
+                  // TODO(#95) need dark-theme color
                   color: Color(0xFF262626),
                 ).merge(weightVariableTextStyle(context,
                     wght: hasUnreads ? 600 : null)),

@@ -621,6 +621,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
 }
 
 // Loosely based on the corresponding element in the web app.
+// TODO(#95) need dark-theme colors
 class OrDivider extends StatelessWidget {
   const OrDivider({super.key});
 

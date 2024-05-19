@@ -32,6 +32,7 @@ class UnreadCountBadge extends StatelessWidget {
     final effectiveBackgroundColor = switch (backgroundColor) {
       StreamColorSwatch(unreadCountBadgeBackground: var color) => color,
       Color() => backgroundColor,
+      // TODO(#95) need dark-theme color
       null => const Color.fromRGBO(102, 102, 153, 0.15),
     };
 
@@ -57,6 +58,7 @@ class UnreadCountBadge extends StatelessWidget {
             //   - in dark mode use `Color.fromRGBO(255, 255, 255, 0.9)`
             //   The web app doesn't (yet?) use stream-colored unread markers
             //   so we can't take direction from there.
+            // TODO(#95) need dark-theme color
             color: Color(0xFF222222),
           ).merge(weightVariableTextStyle(context,
               wght: bold ? 600 : null)),

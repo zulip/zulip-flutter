@@ -109,12 +109,15 @@ class RecentDmConversationsItem extends StatelessWidget {
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
         //   // 'Chris、Greg、Alya'
         title = narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', ');
+        // TODO(#95) need dark-theme color
         avatar = ColoredBox(color: const Color(0x33808080),
           child: Center(
+            // TODO(#95) need dark-theme color
             child: Icon(ZulipIcons.group_dm, color: Colors.black.withOpacity(0.5))));
     }
 
     return Material(
+      // TODO(#95) need dark-theme color
       color: Colors.white,
       child: InkWell(
         onTap: () {
@@ -132,6 +135,7 @@ class RecentDmConversationsItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
+                  // TODO(#95) need dark-theme color
                   color: Color(0xFF222222),
                 ),
                 maxLines: 2,

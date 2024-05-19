@@ -245,6 +245,7 @@ abstract class _HeaderItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
+      // TODO(#95) need dark-theme color
       color: collapsed ? Colors.white : uncollapsedBackgroundColor,
       child: InkWell(
         // TODO use onRowTap to handle taps that are not on the collapse button.
@@ -256,6 +257,7 @@ abstract class _HeaderItem extends StatelessWidget {
         onTap: onCollapseButtonTap,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Padding(padding: const EdgeInsets.all(10),
+            // TODO(#95) need dark-theme color
             child: Icon(size: 20, color: const Color(0x7F1D2E48),
               collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
           Icon(size: 18, color: collapsed ? collapsedIconColor : uncollapsedIconColor,
@@ -267,6 +269,7 @@ abstract class _HeaderItem extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 17,
                 height: (20 / 17),
+                // TODO(#95) need dark-theme color
                 color: Color(0xFF222222),
               ).merge(weightVariableTextStyle(context, wght: 600)),
               maxLines: 1,
@@ -292,8 +295,11 @@ class _AllDmsHeaderItem extends _HeaderItem {
 
   @override get title => 'Direct messages'; // TODO(i18n)
   @override get icon => ZulipIcons.user;
+
+  // TODO(#95) need dark-theme colors
   @override get collapsedIconColor => const Color(0xFF222222);
   @override get uncollapsedIconColor => const Color(0xFF222222);
+
   @override get uncollapsedBackgroundColor => const Color(0xFFF3F0E7);
   @override get unreadCountBadgeBackgroundColor => null;
 
@@ -367,6 +373,7 @@ class _DmItem extends StatelessWidget {
     };
 
     return Material(
+      // TODO(#95) need dark-theme color
       color: Colors.white,
       child: InkWell(
         onTap: () {
@@ -382,6 +389,7 @@ class _DmItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
+                  // TODO(#95) need dark-theme color
                   color: Color(0xFF222222),
                 ),
                 maxLines: 2,
@@ -486,6 +494,7 @@ class _TopicItem extends StatelessWidget {
     final subscription = store.subscriptions[streamId]!;
 
     return Material(
+      // TODO(#95) need dark-theme color
       color: Colors.white,
       child: InkWell(
         onTap: () {
@@ -502,6 +511,7 @@ class _TopicItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
+                  // TODO(#95) need dark-theme color
                   color: Color(0xFF222222),
                 ),
                 maxLines: 2,
@@ -519,6 +529,7 @@ class _TopicItem extends StatelessWidget {
 class _AtMentionMarker extends StatelessWidget {
   const _AtMentionMarker();
 
+  // TODO(#95) need dark-theme color
   static final markerColor = const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor();
 
   @override
