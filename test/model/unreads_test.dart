@@ -152,7 +152,7 @@ void main() {
   });
 
   group('count helpers', () {
-    test('countInAllMessagesNarrow', () async {
+    test('countInCombinedFeedNarrow', () async {
       final stream1 = eg.stream(streamId: 1, name: 'stream 1');
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
       final stream3 = eg.stream(streamId: 3, name: 'stream 3');
@@ -171,7 +171,7 @@ void main() {
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
       ]);
-      check(model.countInAllMessagesNarrow()).equals(5);
+      check(model.countInCombinedFeedNarrow()).equals(5);
     });
 
     test('countInStream/Narrow', () async {

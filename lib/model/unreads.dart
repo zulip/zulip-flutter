@@ -129,7 +129,7 @@ class Unreads extends ChangeNotifier {
   final int selfUserId;
 
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
-  int countInAllMessagesNarrow() {
+  int countInCombinedFeedNarrow() {
     int c = 0;
     for (final messageIds in dms.values) {
       c = c + messageIds.length;
@@ -196,7 +196,7 @@ class Unreads extends ChangeNotifier {
   int countInNarrow(Narrow narrow) {
     switch (narrow) {
       case CombinedFeedNarrow():
-        return countInAllMessagesNarrow();
+        return countInCombinedFeedNarrow();
       case StreamNarrow():
         return countInStreamNarrow(narrow.streamId);
       case TopicNarrow():
