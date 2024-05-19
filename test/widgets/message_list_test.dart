@@ -41,7 +41,7 @@ void main() {
   late FakeApiConnection connection;
 
   Future<void> setupMessageListPage(WidgetTester tester, {
-    Narrow narrow = const AllMessagesNarrow(),
+    Narrow narrow = const CombinedFeedNarrow(),
     bool foundOldest = true,
     int? messageCount,
     List<Message>? messages,
@@ -248,9 +248,9 @@ void main() {
           matching: find.text(text)).evaluate();
       }
 
-      testWidgets('show stream name in AllMessagesNarrow', (tester) async {
+      testWidgets('show stream name in CombinedFeedNarrow', (tester) async {
         await setupMessageListPage(tester,
-          narrow: const AllMessagesNarrow(),
+          narrow: const CombinedFeedNarrow(),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(1);
@@ -340,12 +340,12 @@ void main() {
       testWidgets('show stream name from message when stream unknown', (tester) async {
         // This can perfectly well happen, because message fetches can race
         // with events.
-        // … Though not actually with AllMessagesNarrow, because that shows
+        // … Though not actually with CombinedFeedNarrow, because that shows
         // stream messages only in subscribed streams, hence only known streams.
         // See skip comment below.
         final stream = eg.stream(name: 'stream name');
         await setupMessageListPage(tester,
-          narrow: const AllMessagesNarrow(),
+          narrow: const CombinedFeedNarrow(),
           subscriptions: [],
           messages: [
             eg.streamMessage(stream: stream),
@@ -362,7 +362,7 @@ void main() {
           'name': 'new stream name',
         });
         await setupMessageListPage(tester,
-          narrow: const AllMessagesNarrow(),
+          narrow: const CombinedFeedNarrow(),
           subscriptions: [eg.subscription(streamAfter)],
           messages: [
             eg.streamMessage(stream: streamBefore),
@@ -765,7 +765,7 @@ void main() {
       });
 
       testWidgets('markAllMessagesAsRead uses is:unread optimization', (WidgetTester tester) async {
-        const narrow = AllMessagesNarrow();
+        const narrow = CombinedFeedNarrow();
         await setupMessageListPage(tester,
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
@@ -839,7 +839,7 @@ void main() {
       });
 
       testWidgets('markNarrowAsRead on mark-all-as-read when Unreads.oldUnreadsMissing: true', (tester) async {
-        const narrow = AllMessagesNarrow();
+        const narrow = CombinedFeedNarrow();
         await setupMessageListPage(tester,
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
@@ -886,8 +886,8 @@ void main() {
           expectedMessage: zulipLocalizations.errorInvalidResponse);
       });
 
-      testWidgets('AllMessagesNarrow on legacy server', (WidgetTester tester) async {
-        const narrow = AllMessagesNarrow();
+      testWidgets('CombinedFeedNarrow on legacy server', (WidgetTester tester) async {
+        const narrow = CombinedFeedNarrow();
         await setupMessageListPage(tester,
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
@@ -978,7 +978,7 @@ void main() {
 
       testWidgets('catch-all api errors', (WidgetTester tester) async {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-        const narrow = AllMessagesNarrow();
+        const narrow = CombinedFeedNarrow();
         await setupMessageListPage(tester,
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();

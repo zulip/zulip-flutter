@@ -39,13 +39,12 @@ sealed class SendableNarrow extends Narrow {
   MessageDestination get destination;
 }
 
-/// The narrow called "All messages" in the UI.
+/// The narrow called "Combined feed" in the UI.
 ///
-/// This does not literally mean all messages, or even all messages
-/// that the user has access to: in particular it excludes muted streams
-/// and topics.
-class AllMessagesNarrow extends Narrow {
-  const AllMessagesNarrow();
+/// All messages the user has access to, excluding unsubscribed streams
+/// and muted streams and topics. See [PerAccountStore.isTopicVisible].
+class CombinedFeedNarrow extends Narrow {
+  const CombinedFeedNarrow();
 
   @override
   bool containsMessage(Message message) {
@@ -57,13 +56,13 @@ class AllMessagesNarrow extends Narrow {
 
   @override
   bool operator ==(Object other) {
-    if (other is! AllMessagesNarrow) return false;
+    if (other is! CombinedFeedNarrow) return false;
     // Conceptually there's only one value of this type.
     return true;
   }
 
   @override
-  int get hashCode => 'AllMessagesNarrow'.hashCode;
+  int get hashCode => 'CombinedFeedNarrow'.hashCode;
 }
 
 class StreamNarrow extends Narrow {

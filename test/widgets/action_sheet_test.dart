@@ -442,9 +442,9 @@ void main() {
       ));
     });
 
-    testWidgets('not offered in AllMessagesNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
+    testWidgets('not offered in CombinedFeedNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
       final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: const AllMessagesNarrow());
+      await setupToMessageActionSheet(tester, message: message, narrow: const CombinedFeedNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
     });
   });

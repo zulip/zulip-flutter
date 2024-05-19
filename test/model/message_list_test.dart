@@ -36,7 +36,7 @@ void main() async {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const AllMessagesNarrow()}) async {
+  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
     final stream = eg.stream();
     subscription = eg.subscription(stream);
     store = eg.store();
@@ -87,7 +87,7 @@ void main() async {
   }
 
   test('fetchInitial', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     connection.prepare(json: newestResult(
       foundOldest: false,
@@ -140,7 +140,7 @@ void main() async {
   });
 
   test('fetchOlder', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
@@ -168,7 +168,7 @@ void main() async {
   });
 
   test('fetchOlder nop when already fetching', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
@@ -198,7 +198,7 @@ void main() async {
   });
 
   test('fetchOlder nop when already haveOldest true', () async {
-    await prepare(narrow: const AllMessagesNarrow());
+    await prepare(narrow: const CombinedFeedNarrow());
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage()));
     check(model)
@@ -216,7 +216,7 @@ void main() async {
   });
 
   test('fetchOlder handles servers not understanding includeAnchor', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
@@ -555,10 +555,10 @@ void main() async {
   });
 
   group('stream/topic muting', () {
-    test('in AllMessagesNarrow', () async {
+    test('in CombinedFeedNarrow', () async {
       final stream1 = eg.stream(streamId: 1, name: 'stream 1');
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
-      await prepare(narrow: const AllMessagesNarrow());
+      await prepare(narrow: const CombinedFeedNarrow());
       await store.addStreams([stream1, stream2]);
       await store.addSubscription(eg.subscription(stream1));
       await store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
@@ -923,7 +923,7 @@ void checkInvariants(MessageListView model) {
 
     if (message is! StreamMessage) continue;
     switch (model.narrow) {
-      case AllMessagesNarrow():
+      case CombinedFeedNarrow():
         check(model.store.isTopicVisible(message.streamId, message.subject))
           .isTrue();
       case StreamNarrow():

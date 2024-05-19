@@ -180,7 +180,7 @@ void main() {
         check(jsonEncode(narrow)).equals(expected);
       }
 
-      checkNarrow(const AllMessagesNarrow().apiEncode(), jsonEncode([]));
+      checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
       checkNarrow(const StreamNarrow(12).apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
       ]));
@@ -246,7 +246,7 @@ void main() {
       return FakeApiConnection.with_((connection) async {
         connection.prepare(json: fakeResult.toJson());
         await checkGetMessages(connection,
-          narrow: const AllMessagesNarrow().apiEncode(),
+          narrow: const CombinedFeedNarrow().apiEncode(),
           anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
           expected: {
             'narrow': jsonEncode([]),
@@ -278,7 +278,7 @@ void main() {
       return FakeApiConnection.with_((connection) async {
         connection.prepare(json: fakeResult.toJson());
         await checkGetMessages(connection,
-          narrow: const AllMessagesNarrow().apiEncode(),
+          narrow: const CombinedFeedNarrow().apiEncode(),
           anchor: const NumericAnchor(42),
           numBefore: 10, numAfter: 20,
           expected: {
@@ -582,7 +582,7 @@ void main() {
         await checkUpdateMessageFlagsForNarrow(connection,
           anchor: AnchorCode.oldest,
           numBefore: 0, numAfter: 20,
-          narrow: const AllMessagesNarrow().apiEncode(),
+          narrow: const CombinedFeedNarrow().apiEncode(),
           op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
           expected: {
             'anchor': 'oldest',
@@ -622,7 +622,7 @@ void main() {
         await checkUpdateMessageFlagsForNarrow(connection,
           anchor: const NumericAnchor(42),
           numBefore: 0, numAfter: 20,
-          narrow: const AllMessagesNarrow().apiEncode(),
+          narrow: const CombinedFeedNarrow().apiEncode(),
           op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
           expected: {
             'anchor': '42',

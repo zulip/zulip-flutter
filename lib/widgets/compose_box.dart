@@ -966,7 +966,7 @@ class ComposeBox extends StatelessWidget {
       return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
     } else if (narrow is DmNarrow) {
       return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
-    } else if (narrow is AllMessagesNarrow) {
+    } else if (narrow is CombinedFeedNarrow) {
       return const SizedBox.shrink();
     } else {
       throw Exception("impossible narrow"); // TODO(dart-3): show this statically

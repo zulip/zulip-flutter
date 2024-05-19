@@ -223,11 +223,11 @@ hello
   });
 
   group('narrowLink', () {
-    test('AllMessagesNarrow', () {
+    test('CombinedFeedNarrow', () {
       final store = eg.store();
-      check(narrowLink(store, const AllMessagesNarrow()))
+      check(narrowLink(store, const CombinedFeedNarrow()))
         .equals(store.realmUrl.resolve('#narrow'));
-      check(narrowLink(store, const AllMessagesNarrow(), nearMessageId: 1))
+      check(narrowLink(store, const CombinedFeedNarrow(), nearMessageId: 1))
         .equals(store.realmUrl.resolve('#narrow/near/1'));
     });
 

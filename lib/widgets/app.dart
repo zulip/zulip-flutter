@@ -271,7 +271,7 @@ class HomePage extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.push(context,
               MessageListPage.buildRoute(context: context,
-                narrow: const AllMessagesNarrow())),
+                narrow: const CombinedFeedNarrow())),
             child: Text(zulipLocalizations.combinedFeedPageTitle)),
           const SizedBox(height: 16),
           ElevatedButton(

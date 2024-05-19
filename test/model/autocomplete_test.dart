@@ -166,7 +166,7 @@ void main() {
   });
 
   test('MentionAutocompleteView misc', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     final store = eg.store();
     await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
@@ -183,7 +183,7 @@ void main() {
 
   test('MentionAutocompleteView not starve timers', () {
     fakeAsync((binding) async {
-      const narrow = AllMessagesNarrow();
+      const narrow = CombinedFeedNarrow();
       final store = eg.store();
       await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
       final view = MentionAutocompleteView.init(store: store, narrow: narrow);
@@ -218,7 +218,7 @@ void main() {
   });
 
   test('MentionAutocompleteView yield between batches of 1000', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     final store = eg.store();
     for (int i = 0; i < 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
@@ -241,7 +241,7 @@ void main() {
   });
 
   test('MentionAutocompleteView new query during computation replaces old', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     final store = eg.store();
     for (int i = 0; i < 1500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
@@ -275,7 +275,7 @@ void main() {
   });
 
   test('MentionAutocompleteView mutating store.users while in progress causes retry', () async {
-    const narrow = AllMessagesNarrow();
+    const narrow = CombinedFeedNarrow();
     final store = eg.store();
     for (int i = 0; i < 1500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));

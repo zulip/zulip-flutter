@@ -61,7 +61,7 @@ class _MessageListPageState extends State<MessageListPage> {
     final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
     switch(widget.narrow) {
-      case AllMessagesNarrow():
+      case CombinedFeedNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
       case StreamNarrow(:final streamId):
@@ -106,7 +106,7 @@ class _MessageListPageState extends State<MessageListPage> {
               //   if those details get complicated, refactor to avoid copying.
               // TODO(#311) If we have a bottom nav, it will pad the bottom
               //   inset, and this should always be true.
-              removeBottom: widget.narrow is! AllMessagesNarrow,
+              removeBottom: widget.narrow is! CombinedFeedNarrow,
 
               child: Expanded(
                 child: MessageList(narrow: widget.narrow))),
@@ -142,7 +142,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     switch (narrow) {
-      case AllMessagesNarrow():
+      case CombinedFeedNarrow():
         return Text(zulipLocalizations.combinedFeedPageTitle);
 
       case StreamNarrow(:var streamId):
@@ -327,7 +327,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
             // The keys are of type [ValueKey] with a value of [Message.id]
             // and here we use a O(log n) binary search method. This could
             // be improved but for now it only triggers for materialized
-            // widgets. As a simple test, flinging through All Messages in
+            // widgets. As a simple test, flinging through Combined feed in
             // CZO on a Pixel 5, this only runs about 10 times per rebuild
             // and the timing for each call is <100 microseconds.
             //
@@ -447,7 +447,7 @@ class MarkAsReadWidget extends StatelessWidget {
       return;
     }
     if (!context.mounted) return;
-    if (narrow is AllMessagesNarrow && !useLegacy) {
+    if (narrow is CombinedFeedNarrow && !useLegacy) {
       PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
     }
   }
@@ -507,7 +507,7 @@ class RecipientHeader extends StatelessWidget {
     final message = this.message;
     return switch (message) {
       StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: narrow is AllMessagesNarrow),
+        showStream: narrow is CombinedFeedNarrow),
       DmMessage() => DmRecipientHeader(message: message),
     };
   }
@@ -1081,7 +1081,7 @@ Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async 
   final store = PerAccountStoreWidget.of(context);
   final connection = store.connection;
   switch (narrow) {
-    case AllMessagesNarrow():
+    case CombinedFeedNarrow():
       await markAllAsRead(connection);
     case StreamNarrow(:final streamId):
       await markStreamAsRead(connection, streamId: streamId);
