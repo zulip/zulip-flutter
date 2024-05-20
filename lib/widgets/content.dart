@@ -741,7 +741,7 @@ class _InlineContentBuilder {
       return _buildInlineCode(node);
     } else if (node is UserMentionNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: UserMention(surroundingTextStyle: widget.style, node: node));
+        child: UserMention(ambientTextStyle: widget.style, node: node));
     } else if (node is UnicodeEmojiNode) {
       return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
     } else if (node is ImageEmojiNode) {
@@ -755,7 +755,7 @@ class _InlineContentBuilder {
         children: [TextSpan(text: node.texSource)]);
     } else if (node is GlobalTimeNode) {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: GlobalTime(node: node, surroundingTextStyle: widget.style));
+        child: GlobalTime(node: node, ambientTextStyle: widget.style));
     } else if (node is UnimplementedInlineContentNode) {
       return _errorUnimplemented(node);
     } else {
@@ -873,11 +873,11 @@ final _kCodeBlockStyle = kMonospaceTextStyle
 class UserMention extends StatelessWidget {
   const UserMention({
     super.key,
-    required this.surroundingTextStyle,
+    required this.ambientTextStyle,
     required this.node,
   });
 
-  final TextStyle surroundingTextStyle;
+  final TextStyle ambientTextStyle;
   final UserMentionNode node;
 
   @override
@@ -898,7 +898,7 @@ class UserMention extends StatelessWidget {
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
         // TODO(#646) when self-user is non-silently mentioned,
         //   distinguish font color between direct and wildcard mentions
-        style: surroundingTextStyle,
+        style: ambientTextStyle,
 
         nodes: node.nodes));
   }
@@ -960,11 +960,11 @@ class GlobalTime extends StatelessWidget {
   const GlobalTime({
     super.key,
     required this.node,
-    required this.surroundingTextStyle,
+    required this.ambientTextStyle,
   });
 
   final GlobalTimeNode node;
-  final TextStyle surroundingTextStyle;
+  final TextStyle ambientTextStyle;
 
   static final _backgroundColor = const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor();
   static final _borderColor = const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor();
@@ -972,7 +972,7 @@ class GlobalTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surroundingFontSize = surroundingTextStyle.fontSize!;
+    final ambientFontSize = ambientTextStyle.fontSize!;
 
     // Design taken from css for `.rendered_markdown & time` in web,
     //   see zulip:web/styles/rendered_markdown.css .
@@ -990,13 +990,13 @@ class GlobalTime extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                size: surroundingFontSize,
+                size: ambientFontSize,
                 color: DefaultTextStyle.of(context).style.color!,
                 ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:
               //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345
               const SizedBox(width: 1),
-              Text(text, style: surroundingTextStyle),
+              Text(text, style: ambientTextStyle),
             ]))));
   }
 }
