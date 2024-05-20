@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -398,6 +400,19 @@ void main() {
           zulipLocalizations.unknownUserName)));
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
           "${zulipLocalizations.unknownUserName}, ${eg.thirdUser.fullName}")));
+      });
+
+      testWidgets('icon color matches text color', (tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        await setupMessageListPage(tester, messages: [
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+        ]);
+        await tester.pump();
+        final textSpan = tester.renderObject<RenderParagraph>(find.text(
+          zulipLocalizations.messageListGroupYouAndOthers(
+            zulipLocalizations.unknownUserName))).text;
+        final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.user));
+        check(textSpan).style.isNotNull().color.equals(icon.color);
       });
     });
 

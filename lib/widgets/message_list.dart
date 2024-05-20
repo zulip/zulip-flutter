@@ -760,9 +760,12 @@ class DmRecipientHeader extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(size: 16, ZulipIcons.user)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Icon(
+                  color: _kRecipientHeaderTextColor,
+                  size: 16,
+                  ZulipIcons.user)),
               Expanded(
                 child: Text(title,
                   style: recipientHeaderTextStyle(context),
