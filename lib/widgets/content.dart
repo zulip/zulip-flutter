@@ -847,18 +847,10 @@ const _kInlineCodeFontSizeFactor = 0.825;
 /// Inline code should use this and also apply [_kInlineCodeFontSizeFactor]
 /// to the font size of the surrounding text
 /// (which might be a Paragraph, a Heading, etc.).
-// Even though [kMonospaceTextStyle] is a variable-weight font,
-// it's acceptable to skip [weightVariableTextStyle] here,
-// assuming the text gets the effect of [weightVariableTextStyle]
-// through inheritance, e.g., from a [DefaultTextStyle].
 final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(TextStyle(
     backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
 
-// Even though [kMonospaceTextStyle] is a variable-weight font,
-// it's acceptable to skip [weightVariableTextStyle] here,
-// assuming the text gets the effect of [weightVariableTextStyle]
-// through inheritance, e.g., from a [DefaultTextStyle].
 final _kCodeBlockStyle = kMonospaceTextStyle
   .merge(const TextStyle(fontSize: 0.825 * kBaseFontSize));
 
@@ -1282,9 +1274,5 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
 const errorStyle = TextStyle(
   fontSize: kBaseFontSize, fontWeight: FontWeight.bold, color: Colors.red);
 
-// Even though [kMonospaceTextStyle] is a variable-weight font,
-// it's acceptable to skip [weightVariableTextStyle] here,
-// assuming the text gets the effect of [weightVariableTextStyle]
-// through inheritance, e.g., from a [DefaultTextStyle].
 final errorCodeStyle = kMonospaceTextStyle
   .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red));
