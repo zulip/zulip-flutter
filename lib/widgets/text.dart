@@ -203,13 +203,12 @@ const kButtonTextLetterSpacingProportion = 0.01;
 /// ```
 ///
 /// See also [FontVariation] for more background on variable fonts.
-// TODO(a11y) make `context` required when callers can adapt?
-TextStyle weightVariableTextStyle(BuildContext? context, {
+TextStyle weightVariableTextStyle(BuildContext context, {
   double? wght,
   double? wghtIfPlatformRequestsBold,
 }) {
   double value = wght ?? FontWeight.normal.value.toDouble();
-  if (context != null && MediaQuery.boldTextOf(context)) {
+  if (MediaQuery.boldTextOf(context)) {
     // The framework has a condition on [MediaQueryData.boldText]
     // in the [Text] widget, but that only affects `fontWeight`.
     // [Text] doesn't know where to land on the chosen font's "wght" axis if any,

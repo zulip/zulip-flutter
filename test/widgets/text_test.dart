@@ -105,15 +105,6 @@ void main() {
       });
     }
 
-    testWeights('no context passed; default wght values',
-      styleBuilder: (context) => weightVariableTextStyle(null),
-      expectedFontVariations: const [FontVariation('wght', 400)],
-      expectedFontWeight: FontWeight.normal);
-    testWeights('no context passed; specific wght',
-      styleBuilder: (context) => weightVariableTextStyle(null, wght: 225, wghtIfPlatformRequestsBold: 425),
-      expectedFontVariations: const [FontVariation('wght', 225)],
-      expectedFontWeight: FontWeight.w200);
-
     testWeights('default values; platform does not request bold',
       styleBuilder: (context) => weightVariableTextStyle(context),
       platformRequestsBold: false,
