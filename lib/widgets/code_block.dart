@@ -5,6 +5,8 @@ import '../model/code_block.dart';
 // Highlighted code block styles adapted from:
 // https://github.com/zulip/zulip/blob/213387249e7ba7772084411b22d8cef64b135dd0/web/styles/pygments.css
 
+// TODO(#95) follow web for dark-theme colors
+
 // .hll { background-color: hsl(60deg 100% 90%); }
 final _kCodeBlockStyleHll = TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 60, 1, 0.90).toColor());
 
