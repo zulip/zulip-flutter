@@ -926,8 +926,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                         fontFamily: 'Source Sans 3',
                         fontSize: 18,
                         height: (22 / 18),
-                      ).merge(weightVariableTextStyle(context, wght: 600,
-                                wghtIfPlatformRequestsBold: 900)),
+                      ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
                     const SizedBox(width: 5),

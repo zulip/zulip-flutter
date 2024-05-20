@@ -765,7 +765,7 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
-    style: weightVariableTextStyle(_context!, wght: 600, wghtIfPlatformRequestsBold: 900));
+    style: weightVariableTextStyle(_context!, wght: 600));
 
   InlineSpan _buildDeleted(DeletedNode node) => _buildNodes(node.nodes,
     style: const TextStyle(decoration: TextDecoration.lineThrough));
