@@ -475,6 +475,7 @@ class MarkAsReadWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
+                // TODO(#95) need dark-theme colors (foreground and background)
                 backgroundColor: _UnreadMarker.color,
                 minimumSize: const Size.fromHeight(38),
                 textStyle:
@@ -519,6 +520,9 @@ class DateSeparator extends StatelessWidget {
 
   final Message message;
 
+  // TODO(#95) in dark theme, use white, following web
+  static const _line = BorderSide(width: 0, color: Colors.black);
+
   @override
   Widget build(BuildContext context) {
     // This makes the small-caps text vertically centered,
@@ -534,9 +538,7 @@ class DateSeparator extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border(
-                    bottom: BorderSide(
-                      width: 0,
-                      color: Colors.black)))))),
+                    bottom: _line))))),
           Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
             child: DateText(
               fontSize: 16,
@@ -546,9 +548,7 @@ class DateSeparator extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
-                    width: 0,
-                    color: Colors.black)))))
+                  bottom: _line)))),
         ])),
     );
   }
@@ -881,6 +881,7 @@ class MessageWithPossibleSender extends StatelessWidget {
 
   final MessageListMessageItem item;
 
+  // TODO(#95) unchanged in dark theme?
   static final _starColor = const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor();
 
   @override
@@ -973,6 +974,7 @@ class MessageWithPossibleSender extends StatelessWidget {
 // TODO web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
+// TODO(#95) need dark-theme color (this one comes from the Figma)
 final _kMessageTimestampColor = const HSLColor.fromAHSL(1, 0, 0, 0.5).toColor();
 
 Future<void> markNarrowAsRead(
