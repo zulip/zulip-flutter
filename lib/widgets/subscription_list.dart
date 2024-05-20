@@ -130,6 +130,9 @@ class _SubscriptionListHeader extends StatelessWidget {
 
   final String label;
 
+  static final _line = Expanded(child: Divider(
+    color: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor()));
+
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
@@ -138,8 +141,7 @@ class _SubscriptionListHeader extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 16),
-            Expanded(child: Divider(
-              color: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor())),
+            _line,
             const SizedBox(width: 8),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 7),
@@ -152,8 +154,7 @@ class _SubscriptionListHeader extends StatelessWidget {
                   height: (16 / 14),
                 ))),
             const SizedBox(width: 8),
-            Expanded(child: Divider(
-              color: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor())),
+            _line,
             const SizedBox(width: 16),
           ])));
   }
