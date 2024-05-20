@@ -855,15 +855,12 @@ final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(TextStyle(
     backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
 
+// Even though [kMonospaceTextStyle] is a variable-weight font,
+// it's acceptable to skip [weightVariableTextStyle] here,
+// assuming the text gets the effect of [weightVariableTextStyle]
+// through inheritance, e.g., from a [DefaultTextStyle].
 final _kCodeBlockStyle = kMonospaceTextStyle
-  .merge(const TextStyle(fontSize: 0.825 * kBaseFontSize))
-  .merge(
-    // TODO(a11y) pass a BuildContext, to handle platform request for bold text.
-    //   To get one, the result of this whole computation (to the TextStyle
-    //   we get at the end) could live on one [InheritedWidget], at the
-    //   MessageList or higher, so the computation doesn't get repeated
-    //   frequently. Then consumers can just look it up on the InheritedWidget.
-    weightVariableTextStyle(null));
+  .merge(const TextStyle(fontSize: 0.825 * kBaseFontSize));
 
 // const _kInlineCodeLeftBracket = '⸤';
 // const _kInlineCodeRightBracket = '⸣';
@@ -1285,6 +1282,9 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
 const errorStyle = TextStyle(
   fontSize: kBaseFontSize, fontWeight: FontWeight.bold, color: Colors.red);
 
+// Even though [kMonospaceTextStyle] is a variable-weight font,
+// it's acceptable to skip [weightVariableTextStyle] here,
+// assuming the text gets the effect of [weightVariableTextStyle]
+// through inheritance, e.g., from a [DefaultTextStyle].
 final errorCodeStyle = kMonospaceTextStyle
-  .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red))
-  .merge(weightVariableTextStyle(null)); // TODO(a11y) pass a BuildContext
+  .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red));
