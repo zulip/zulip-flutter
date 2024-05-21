@@ -11,6 +11,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -41,15 +42,15 @@ Future<void> setupPage(WidgetTester tester, {
   }
 
   await tester.pumpWidget(
-    GlobalStoreWidget(
-      child: MaterialApp(
-        theme: ThemeData(extensions: [ContentTheme()]),
+    GlobalStoreWidget(child: Builder(builder: (context) =>
+      MaterialApp(
+        theme: zulipThemeData(context),
         navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         home: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,
-          child: ProfilePage(userId: pageUserId)))));
+          child: ProfilePage(userId: pageUserId))))));
 
   // global store, per-account store, and page get loaded
   await tester.pumpAndSettle();

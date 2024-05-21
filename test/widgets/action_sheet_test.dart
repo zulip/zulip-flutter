@@ -18,6 +18,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
+import 'package:zulip/widgets/theme.dart';
 import '../api/fake_api.dart';
 
 import '../example_data.dart' as eg;
@@ -57,15 +58,15 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     messages: [message],
   ).toJson());
 
-  await tester.pumpWidget(
+  await tester.pumpWidget(Builder(builder: (context) =>
     MaterialApp(
-      theme: ThemeData(extensions: [ContentTheme()]),
+      theme: zulipThemeData(context),
       localizationsDelegates: ZulipLocalizations.localizationsDelegates,
       supportedLocales: ZulipLocalizations.supportedLocales,
       home: GlobalStoreWidget(
         child: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,
-          child: MessageListPage(narrow: narrow)))));
+          child: MessageListPage(narrow: narrow))))));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();

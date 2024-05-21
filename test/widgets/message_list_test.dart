@@ -19,6 +19,7 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -66,15 +67,15 @@ void main() {
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
 
-    await tester.pumpWidget(
+    await tester.pumpWidget(Builder(builder: (context) =>
       MaterialApp(
-        theme: ThemeData(extensions: [ContentTheme()]),
+        theme: zulipThemeData(context),
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         home: GlobalStoreWidget(
           child: PerAccountStoreWidget(
             accountId: eg.selfAccount.id,
-            child: MessageListPage(narrow: narrow)))));
+            child: MessageListPage(narrow: narrow))))));
 
     // global store, per-account store, and message list get loaded
     await tester.pumpAndSettle();

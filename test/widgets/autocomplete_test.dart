@@ -7,9 +7,9 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -49,9 +49,9 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 
   prepareBoringImageHttpClient();
 
-  await tester.pumpWidget(
+  await tester.pumpWidget(Builder(builder: (context) =>
     MaterialApp(
-      theme: ThemeData(extensions: [ContentTheme()]),
+      theme: zulipThemeData(context),
       localizationsDelegates: ZulipLocalizations.localizationsDelegates,
       supportedLocales: ZulipLocalizations.supportedLocales,
       home: GlobalStoreWidget(
@@ -61,7 +61,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
             narrow: DmNarrow(
               allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
               selfUserId: eg.selfUser.userId,
-            ))))));
+            )))))));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();

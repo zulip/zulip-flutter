@@ -14,7 +14,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/text.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -126,10 +126,7 @@ void main() {
     await tester.pumpWidget(
       Builder(builder: (context) =>
         MaterialApp(
-          theme: ThemeData(
-            typography: zulipTypography(context),
-            extensions: [ContentTheme()],
-          ),
+          theme: zulipThemeData(context),
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           navigatorObservers: navObservers,
