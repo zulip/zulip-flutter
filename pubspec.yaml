@@ -80,10 +80,6 @@ dev_dependencies:
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 flutter:
-
-  # Generate localization bindings from ARB files in lib/l10n/.
-  # This happens automatically with `flutter run`
-  # but can be manually run with `flutter gen-l10n`
   generate: true
   uses-material-design: true
 
