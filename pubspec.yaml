@@ -26,6 +26,17 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  # For some packages that are pinned by the Flutter SDK, we write no
+  # constraint, to avoid unnecessarily breaking when Flutter takes a
+  # new version.  (This risks getting a new version that really is
+  # incompatible; but that's true of Flutter itself on each upgrade.)
+  # We only do this for packages with a history of major-version bumps
+  # that caused more churn than real incompatibilities.
+  intl: any  # pinned by flutter_localizations; churn history:
+             # https://github.com/dart-lang/i18n/issues/458#issuecomment-1513231235
+             # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
+             # https://github.com/flutter/flutter/issues/117163
+
   app_settings: ^5.0.0
   collection: ^1.17.2
   convert: ^3.1.1
@@ -41,7 +52,6 @@ dependencies:
   html: ^0.15.1
   http: ^1.0.0
   image_picker: ^1.0.0
-  intl: ^0.19.0
   json_annotation: ^4.8.1
   package_info_plus: ^8.0.0
   path: ^1.8.3
