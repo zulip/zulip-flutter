@@ -858,7 +858,10 @@ final _kInlineCodeStyle = kMonospaceTextStyle
     backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
 
 final _kCodeBlockStyle = kMonospaceTextStyle
-  .merge(const TextStyle(fontSize: 0.825 * kBaseFontSize));
+  .merge(const TextStyle(
+    fontSize: 0.825 * kBaseFontSize,
+    height: 1.4,
+  ));
 
 // const _kInlineCodeLeftBracket = '⸤';
 // const _kInlineCodeRightBracket = '⸣';
