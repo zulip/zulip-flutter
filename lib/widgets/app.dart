@@ -165,11 +165,25 @@ class ChooseAccountPage extends StatelessWidget {
   }) {
     return Card(
       clipBehavior: Clip.hardEdge,
-      child: ListTile(
-        title: title,
-        subtitle: subtitle,
-        onTap: () => Navigator.push(context,
-          HomePage.buildRoute(accountId: accountId))));
+      child: Dismissible(
+        background: Container(
+          alignment: Alignment.centerRight,
+          color: Colors.red,
+          padding: const EdgeInsets.only(right: 16),
+          child: const Text('Delete', style: TextStyle(color: Colors.white)),
+        ),
+        direction: DismissDirection.endToStart,
+        key: ValueKey(accountId),
+        onDismissed: (direction) {
+          final globalStore = GlobalStoreWidget.of(context);
+          globalStore.removeAccount(accountId);
+        },
+        child: ListTile(
+          title: title,
+          subtitle: subtitle,
+          onTap: () => Navigator.push(context,
+            HomePage.buildRoute(accountId: accountId)))
+      ));
   }
 
   @override

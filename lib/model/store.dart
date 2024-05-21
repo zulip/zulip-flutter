@@ -169,6 +169,19 @@ abstract class GlobalStore extends ChangeNotifier {
 
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
+
+  /// Remove an account from the store.
+  Future removeAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    assert(_perAccountStores.containsKey(accountId));
+    _accounts.remove(accountId);
+    _perAccountStores.remove(accountId)?.dispose();
+    await doRemoveAccount(accountId);
+    notifyListeners();
+  }
+
+  /// Remove an account from the underlying data store.
+  Future doRemoveAccount(int accountId);
 }
 
 /// Store for the user's data for a given Zulip account.
@@ -579,6 +592,11 @@ class LiveGlobalStore extends GlobalStore {
     return await (_db.select(_db.accounts) // TODO perhaps put this logic in AppDatabase
       ..where((a) => a.id.equals(accountId))
     ).getSingle();
+  }
+
+  @override
+  Future doRemoveAccount(int accountId) async {
+    await _db.deleteAccount(accountId);
   }
 
   @override
