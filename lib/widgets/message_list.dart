@@ -915,10 +915,11 @@ class MessageWithPossibleSender extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(message.senderFullName, // TODO get from user data
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Source Sans 3',
                         fontSize: 18,
                         height: (22 / 18),
+                        color: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
