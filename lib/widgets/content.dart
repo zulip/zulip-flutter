@@ -972,8 +972,6 @@ class GlobalTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ambientFontSize = ambientTextStyle.fontSize!;
-
     // Design taken from css for `.rendered_markdown & time` in web,
     //   see zulip:web/styles/rendered_markdown.css .
     final text = _dateFormat.format(node.datetime.toLocal());
@@ -990,7 +988,7 @@ class GlobalTime extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                size: ambientFontSize,
+                size: ambientTextStyle.fontSize!,
                 color: DefaultTextStyle.of(context).style.color!,
                 ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:
