@@ -93,7 +93,9 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Widget plainContent(String html) {
-    return BlockContentList(nodes: parseContent(html).nodes);
+    return DefaultTextStyle.merge(
+      style: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor()),
+      child: BlockContentList(nodes: parseContent(html).nodes));
   }
 
   Widget messageContent(String html) {
@@ -689,9 +691,7 @@ void main() {
     });
 
     testWidgets('clock icon and text are the same color', (tester) async {
-      await prepareContent(tester,
-        DefaultTextStyle(style: const TextStyle(color: Colors.green),
-          child: plainContent('<p>$timeSpanHtml</p>')));
+      await prepareContent(tester, plainContent('<p>$timeSpanHtml</p>'));
 
       final icon = tester.widget<Icon>(
         find.descendant(of: find.byType(GlobalTime),
@@ -704,9 +704,7 @@ void main() {
       final textColor = mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.color;
       check(textColor).isNotNull();
 
-      check(icon).color
-        ..equals(textColor!)
-        ..equals(Colors.green);
+      check(icon).color.equals(textColor!);
     });
 
     group('maintains font-size ratio with surrounding text', () {

@@ -266,35 +266,33 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     assert(model != null);
     if (!model!.fetched) return const Center(child: CircularProgressIndicator());
 
-    return DefaultTextStyle.merge(
-      style: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor()),
-      // Pad the left and right insets, for small devices in landscape.
-      child: SafeArea(
-        // Don't let this be the place we pad the bottom inset. When there's
-        // no compose box, we want to let the message-list content pad it.
-        // TODO(#311) Remove as unnecessary if we do a bottom nav.
-        //   The nav will pad the bottom inset, and an ancestor of this widget
-        //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
-        bottom: false,
+    // Pad the left and right insets, for small devices in landscape.
+    return SafeArea(
+      // Don't let this be the place we pad the bottom inset. When there's
+      // no compose box, we want to let the message-list content pad it.
+      // TODO(#311) Remove as unnecessary if we do a bottom nav.
+      //   The nav will pad the bottom inset, and an ancestor of this widget
+      //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
+      bottom: false,
 
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: NotificationListener<ScrollMetricsNotification>(
-              onNotification: _handleScrollMetricsNotification,
-              child: Stack(
-                children: <Widget>[
-                  _buildListView(context),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    // TODO(#311) SafeArea shouldn't be needed if we have a
-                    //   bottom nav. That will pad the bottom inset.
-                    child: SafeArea(
-                      child: ScrollToBottomButton(
-                        scrollController: scrollController,
-                        visibleValue: _scrollToBottomVisibleValue))),
-                ]))))));
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: NotificationListener<ScrollMetricsNotification>(
+            onNotification: _handleScrollMetricsNotification,
+            child: Stack(
+              children: <Widget>[
+                _buildListView(context),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  // TODO(#311) SafeArea shouldn't be needed if we have a
+                  //   bottom nav. That will pad the bottom inset.
+                  child: SafeArea(
+                    child: ScrollToBottomButton(
+                      scrollController: scrollController,
+                      visibleValue: _scrollToBottomVisibleValue))),
+              ])))));
   }
 
   Widget _buildListView(context) {

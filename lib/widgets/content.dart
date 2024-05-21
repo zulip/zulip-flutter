@@ -36,7 +36,9 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InheritedMessage(message: message,
-      child: BlockContentList(nodes: content.nodes));
+      child: DefaultTextStyle.merge(
+        style: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor()),
+        child: BlockContentList(nodes: content.nodes)));
   }
 }
 
