@@ -34,6 +34,8 @@ import 'text.dart';
 class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme() :
     textStylePlainParagraph = TextStyle(
+      debugLabel: 'ContentTheme.textStylePlainParagraph',
+
       color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       fontSize: kBaseFontSize,
       height: (22 / kBaseFontSize),
