@@ -156,9 +156,8 @@ List<String> get defaultFontFamilyFallback => [
 ///
 /// Callers should also call [weightVariableTextStyle] and merge that in too,
 /// because for this font, we use "variable font" assets with a "wght" axis.
-/// That is, unless it would be redundant with another step that applies
-/// [weightVariableTextStyle]; for example, a [DefaultTextStyle] that specifies
-/// a different variable-weight font that we're overriding with this one.
+/// That is, unless we've already applied [weightVariableTextStyle]
+/// for a different variable-weight font that we're overriding with this one.
 ///
 /// Example:
 ///
