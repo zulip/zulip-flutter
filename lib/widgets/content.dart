@@ -23,6 +23,8 @@ import 'text.dart';
 /// The font size for message content in a plain unstyled paragraph.
 const double kBaseFontSize = 17;
 
+final baseContentTextStyle = TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor());
+
 /// The entire content of a message, aka its body.
 ///
 /// This does not include metadata like the sender's name and avatar, the time,
@@ -37,7 +39,7 @@ class MessageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return InheritedMessage(message: message,
       child: DefaultTextStyle.merge(
-        style: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor()),
+        style: baseContentTextStyle,
         child: BlockContentList(nodes: content.nodes)));
   }
 }
