@@ -335,13 +335,13 @@ hello
       .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
   });
 
-  test('quoteAndReply / quoteAndReplyPlaceholder', () {
+  test('quoteAndReply / quoteAndReplyPlaceholder', () async {
     final sender = eg.user(userId: 123, fullName: 'Full Name');
     final stream = eg.stream(streamId: 1, name: 'test here');
     final message = eg.streamMessage(sender: sender, stream: stream, topic: 'some topic');
     final store = eg.store();
     store.addStream(stream);
-    store.addUser(sender);
+    await store.addUser(sender);
 
     check(quoteAndReplyPlaceholder(store, message: message)).equals('''
 @_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*

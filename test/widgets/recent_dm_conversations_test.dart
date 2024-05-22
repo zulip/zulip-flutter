@@ -33,9 +33,9 @@ Future<void> setupPage(WidgetTester tester, {
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-  store.addUser(eg.selfUser);
+  await store.addUser(eg.selfUser);
   for (final user in users) {
-    store.addUser(user);
+    await store.addUser(user);
   }
 
   for (final dmMessage in dmMessages) {

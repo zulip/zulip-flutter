@@ -114,13 +114,13 @@ class TestGlobalStore extends GlobalStore {
 }
 
 extension PerAccountStoreTestExtension on PerAccountStore {
-  void addUser(User user) {
+  Future<void> addUser(User user) async {
     handleEvent(RealmUserAddEvent(id: 1, person: user));
   }
 
   Future<void> addUsers(Iterable<User> users) async {
     for (final user in users) {
-      addUser(user);
+      await addUser(user);
     }
   }
 

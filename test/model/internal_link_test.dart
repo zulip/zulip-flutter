@@ -19,7 +19,7 @@ Future<PerAccountStore> setupStore({
   if (streams != null) {
     store.addStreams(streams);
   }
-  store.addUser(eg.selfUser);
+  await store.addUser(eg.selfUser);
   if (users != null) {
     await store.addUsers(users);
   }

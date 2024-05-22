@@ -823,7 +823,7 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final user = eg.user(avatarUrl: avatarUrl);
-      store.addUser(user);
+      await store.addUser(user);
 
       prepareBoringImageHttpClient();
       await tester.pumpWidget(GlobalStoreWidget(
