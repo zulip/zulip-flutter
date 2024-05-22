@@ -519,6 +519,54 @@ void main() {
       content: plainContent('<p><strong>bold</strong></p>'),
       styleFinder: findWordBold,
     );
+
+    for (final level in HeadingLevel.values) {
+      final name = level.name;
+      assert(RegExp(r'^h[1-6]$').hasMatch(name));
+      testFontWeight('in $name',
+        expectedWght: 800,
+        // # **bold**, ## **bold**, ### **bold**, etc.
+        content: plainContent('<$name><strong>bold</strong></$name>'),
+        styleFinder: findWordBold,
+      );
+    }
+
+    testFontWeight('in different kind of span in h1',
+      expectedWght: 800,
+      // # ~~**bold**~~
+      content: plainContent('<h1><del><strong>bold</strong></del></h1>'),
+      styleFinder: findWordBold,
+    );
+
+    testFontWeight('in spoiler header',
+      expectedWght: 900,
+      // ```spoiler regular **bold**
+      // content
+      // ```
+      content: plainContent(
+        '<div class="spoiler-block"><div class="spoiler-header">\n'
+          '<p>regular <strong>bold</strong></p>\n'
+          '</div><div class="spoiler-content" aria-hidden="true">\n'
+          '<p>content</p>\n'
+          '</div></div>'
+      ),
+      styleFinder: findWordBold,
+    );
+
+    testFontWeight('in different kind of span in spoiler header',
+      expectedWght: 900,
+      // ```spoiler *italic **bold***
+      // content
+      // ```
+      content: plainContent(
+        '<div class="spoiler-block"><div class="spoiler-header">\n'
+          '<p><em>italic <strong>bold</strong></em></p>\n'
+          '</div><div class="spoiler-content" aria-hidden="true">\n'
+          '<p>content</p>\n'
+          '</div></div>'
+      ),
+      styleFinder: findWordBold,
+    );
   });
 
   testContentSmoke(ContentExample.emphasis);

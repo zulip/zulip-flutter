@@ -723,6 +723,12 @@ class InlineContent extends StatelessWidget {
     required this.nodes,
   }) {
     assert(style.fontSize != null);
+    assert(
+      style.debugLabel!.contains('weightVariableTextStyle')
+      // ([ContentTheme.textStylePlainParagraph] applies [weightVariableTextStyle])
+      || style.debugLabel!.contains('ContentTheme.textStylePlainParagraph')
+      || style.debugLabel!.contains('bolderWghtTextStyle')
+    );
     _builder = _InlineContentBuilder(this);
   }
 
@@ -733,6 +739,7 @@ class InlineContent extends StatelessWidget {
   ///
   /// Must set [TextStyle.fontSize]. Some descendant spans will consume it,
   /// e.g., to make their content slightly smaller than surrounding text.
+  /// Similarly must set a font weight using [weightVariableTextStyle].
   final TextStyle style;
 
   final List<InlineContentNode> nodes;
@@ -832,7 +839,7 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
-    style: weightVariableTextStyle(_context!, wght: 600));
+    style: bolderWghtTextStyle(widget.style, by: 200));
 
   InlineSpan _buildDeleted(DeletedNode node) => _buildNodes(node.nodes,
     style: const TextStyle(decoration: TextDecoration.lineThrough));
