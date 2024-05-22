@@ -39,7 +39,6 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       fontSize: kBaseFontSize,
       letterSpacing: 0,
-      textBaseline: TextBaseline.alphabetic,
       height: (22 / kBaseFontSize),
       leadingDistribution: TextLeadingDistribution.even,
       decoration: TextDecoration.none,
