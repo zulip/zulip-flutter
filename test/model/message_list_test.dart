@@ -36,7 +36,7 @@ void main() async {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
-  void prepare({Narrow narrow = const AllMessagesNarrow()}) {
+  Future<void> prepare({Narrow narrow = const AllMessagesNarrow()}) async {
     final stream = eg.stream();
     subscription = eg.subscription(stream);
     store = eg.store()
@@ -87,7 +87,7 @@ void main() async {
 
   test('fetchInitial', () async {
     const narrow = AllMessagesNarrow();
-    prepare(narrow: narrow);
+    await prepare(narrow: narrow);
     connection.prepare(json: newestResult(
       foundOldest: false,
       messages: List.generate(kMessageListFetchBatchSize,
@@ -112,7 +112,7 @@ void main() async {
   });
 
   test('fetchInitial, short history', () async {
-    prepare();
+    await prepare();
     connection.prepare(json: newestResult(
       foundOldest: true,
       messages: List.generate(30, (i) => eg.streamMessage()),
@@ -125,7 +125,7 @@ void main() async {
   });
 
   test('fetchInitial, no messages found', () async {
-    prepare();
+    await prepare();
     connection.prepare(json: newestResult(
       foundOldest: true,
       messages: [],
@@ -140,7 +140,7 @@ void main() async {
 
   test('fetchOlder', () async {
     const narrow = AllMessagesNarrow();
-    prepare(narrow: narrow);
+    await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
@@ -168,7 +168,7 @@ void main() async {
 
   test('fetchOlder nop when already fetching', () async {
     const narrow = AllMessagesNarrow();
-    prepare(narrow: narrow);
+    await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
@@ -197,7 +197,7 @@ void main() async {
   });
 
   test('fetchOlder nop when already haveOldest true', () async {
-    prepare(narrow: const AllMessagesNarrow());
+    await prepare(narrow: const AllMessagesNarrow());
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage()));
     check(model)
@@ -216,7 +216,7 @@ void main() async {
 
   test('fetchOlder handles servers not understanding includeAnchor', () async {
     const narrow = AllMessagesNarrow();
-    prepare(narrow: narrow);
+    await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
@@ -234,7 +234,7 @@ void main() async {
 
   test('maybeAddMessage', () async {
     final stream = eg.stream();
-    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -246,7 +246,7 @@ void main() async {
 
   test('maybeAddMessage, not in narrow', () async {
     final stream = eg.stream(streamId: 123);
-    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -259,7 +259,7 @@ void main() async {
 
   test('maybeAddMessage, before fetch', () async {
     final stream = eg.stream();
-    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: StreamNarrow(stream.streamId));
     model.maybeAddMessage(eg.streamMessage(stream: stream));
     checkNotNotified();
     check(model).fetched.isFalse();
@@ -276,7 +276,7 @@ void main() async {
         editTimestamp: 99999,
         isMeMessage: true,
       );
-      prepare();
+      await prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
 
       final message = model.messages.single;
@@ -303,7 +303,7 @@ void main() async {
         messageId: originalMessage.id + 1,
         renderedContent: "<p>Hello, edited</p>",
       );
-      prepare();
+      await prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
 
       model.maybeUpdateMessage(updateEvent);
@@ -324,7 +324,7 @@ void main() async {
         renderingOnly: legacy ? null : true,
         userId: null,
       );
-      prepare();
+      await prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
       final message = model.messages.single;
 
@@ -362,7 +362,7 @@ void main() async {
 
       test('add reaction', () async {
         final originalMessage = eg.streamMessage(reactions: []);
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: [originalMessage]);
         final message = model.messages.single;
 
@@ -376,7 +376,7 @@ void main() async {
 
       test('add reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(reactions: []);
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: [someMessage]);
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
@@ -405,7 +405,7 @@ void main() async {
 
         final originalMessage = eg.streamMessage(
           reactions: [reaction2, reaction3, reaction4]);
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: [originalMessage]);
         final message = model.messages.single;
 
@@ -419,7 +419,7 @@ void main() async {
 
       test('remove reaction; message is not in list', () async {
         final someMessage = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: [someMessage]);
         model.maybeUpdateMessageReactions(
           mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
@@ -447,7 +447,7 @@ void main() async {
 
     group('add flag', () {
       test('not in list', () async {
-        prepare();
+        await prepare();
         final message = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
@@ -456,7 +456,7 @@ void main() async {
       });
 
       test('affected message, unaffected message, absent message', () async {
-        prepare();
+        await prepare();
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
@@ -468,7 +468,7 @@ void main() async {
       });
 
       test('all: true, list non-empty', () async {
-        prepare();
+        await prepare();
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
@@ -480,7 +480,7 @@ void main() async {
       });
 
       test('all: true, list empty', () async {
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: []);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [], all: true));
         checkNotNotified();
@@ -488,7 +488,7 @@ void main() async {
 
       test('other flags not clobbered', () async {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: [message]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [message.id]));
         checkNotifiedOnce();
@@ -498,7 +498,7 @@ void main() async {
 
     group('remove flag', () {
       test('not in list', () async {
-        prepare();
+        await prepare();
         final message = eg.streamMessage(flags: [MessageFlag.read]);
         await prepareMessages(foundOldest: true, messages: [message]);
         model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
@@ -507,7 +507,7 @@ void main() async {
       });
 
       test('affected message, unaffected message, absent message', () async {
-        prepare();
+        await prepare();
         final message1 = eg.streamMessage(flags: [MessageFlag.read]);
         final message2 = eg.streamMessage(flags: [MessageFlag.read]);
         final message3 = eg.streamMessage(flags: [MessageFlag.read]);
@@ -521,7 +521,7 @@ void main() async {
 
       test('other flags not affected', () async {
         final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
-        prepare();
+        await prepare();
         await prepareMessages(foundOldest: true, messages: [message]);
         model.maybeUpdateMessageFlags(mkRemoveEvent(MessageFlag.read, [message]));
         checkNotifiedOnce();
@@ -532,7 +532,7 @@ void main() async {
 
   test('reassemble', () async {
     final stream = eg.stream();
-    prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
     model.maybeAddMessage(eg.streamMessage(stream: stream));
@@ -557,7 +557,7 @@ void main() async {
     test('in AllMessagesNarrow', () async {
       final stream1 = eg.stream(streamId: 1, name: 'stream 1');
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
-      prepare(narrow: const AllMessagesNarrow());
+      await prepare(narrow: const AllMessagesNarrow());
       store.addStreams([stream1, stream2]);
       store.addSubscription(eg.subscription(stream1));
       store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
@@ -614,7 +614,7 @@ void main() async {
 
     test('in StreamNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
-      prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: StreamNarrow(stream.streamId));
       store.addStream(stream);
       store.addSubscription(eg.subscription(stream, isMuted: true));
       store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
@@ -658,7 +658,7 @@ void main() async {
 
     test('in TopicNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
-      prepare(narrow: TopicNarrow(stream.streamId, 'A'));
+      await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
       store.addStream(stream);
       store.addSubscription(eg.subscription(stream, isMuted: true));
       store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
@@ -709,7 +709,7 @@ void main() async {
       eg.dmMessage(id: id, from: eg.selfUser, to: [], timestamp: timestamp);
 
     // First, test fetchInitial, where some headers are needed and others not.
-    prepare();
+    await prepare();
     connection.prepare(json: newestResult(
       foundOldest: false,
       messages: [streamMessage(10), streamMessage(11), dmMessage(12)],
@@ -791,7 +791,7 @@ void main() async {
       eg.dmMessage(id: id, from: sender, timestamp: timestamp,
         to: [sender.userId == eg.selfUser.userId ? eg.otherUser : eg.selfUser]);
 
-    prepare();
+    await prepare();
     await prepareMessages(foundOldest: true, messages: [
       streamMessage(1, t1, eg.selfUser),  // first message, so show sender
       streamMessage(2, t1, eg.selfUser),  // hide sender
