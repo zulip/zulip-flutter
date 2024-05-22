@@ -449,7 +449,7 @@ void main() {
     });
   });
 
-  group('CopyButton', () {
+  group('CopyMessageTextButton', () {
     setUp(() async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,
@@ -457,7 +457,7 @@ void main() {
       );
     });
 
-    Future<void> tapCopyButton(WidgetTester tester) async {
+    Future<void> tapCopyMessageTextButton(WidgetTester tester) async {
       await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
       await tester.tap(find.byIcon(Icons.copy));
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
@@ -469,7 +469,7 @@ void main() {
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
-      await tapCopyButton(tester);
+      await tapCopyMessageTextButton(tester);
       await tester.pump(Duration.zero);
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals('Hello world');
     });
@@ -480,7 +480,7 @@ void main() {
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseError(store);
-      await tapCopyButton(tester);
+      await tapCopyMessageTextButton(tester);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
