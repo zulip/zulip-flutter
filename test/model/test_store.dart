@@ -118,7 +118,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     handleEvent(RealmUserAddEvent(id: 1, person: user));
   }
 
-  void addUsers(Iterable<User> users) {
+  Future<void> addUsers(Iterable<User> users) async {
     for (final user in users) {
       addUser(user);
     }

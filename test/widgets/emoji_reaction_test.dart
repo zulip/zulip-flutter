@@ -101,16 +101,15 @@ void main() {
 
                 await prepare();
 
-                store
-                  ..addUsers(users)
-                  ..handleEvent(RealmEmojiUpdateEvent(id: 1,
-                      realmEmoji: realmEmoji))
-                  ..handleEvent(UserSettingsUpdateEvent(id: 1,
-                      property: UserSettingName.displayEmojiReactionUsers,
-                      value: displayEmojiReactionUsers))
-                  ..handleEvent(UserSettingsUpdateEvent(id: 1,
-                      property: UserSettingName.emojiset,
-                      value: emojiset));
+                await store.addUsers(users);
+                store.handleEvent(RealmEmojiUpdateEvent(id: 1,
+                  realmEmoji: realmEmoji));
+                store.handleEvent(UserSettingsUpdateEvent(id: 1,
+                  property: UserSettingName.displayEmojiReactionUsers,
+                  value: displayEmojiReactionUsers));
+                store.handleEvent(UserSettingsUpdateEvent(id: 1,
+                  property: UserSettingName.emojiset,
+                  value: emojiset));
 
                 // This does mean that all image emoji will look the same…
                 // shrug, at least for now.

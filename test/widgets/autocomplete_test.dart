@@ -31,8 +31,8 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   addTearDown(testBinding.reset);
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-  store.addUsers([eg.selfUser, eg.otherUser]);
-  store.addUsers(users);
+  await store.addUsers([eg.selfUser, eg.otherUser]);
+  await store.addUsers(users);
   final connection = store.connection as FakeApiConnection;
 
   // prepare message list data

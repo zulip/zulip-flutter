@@ -61,10 +61,9 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-    store
-      ..addStreams(streams ?? [])
-      ..addSubscriptions(subscriptions ?? [])
-      ..addUsers(users ?? [eg.selfUser]);
+    store.addStreams(streams ?? []);
+    store.addSubscriptions(subscriptions ?? []);
+    await store.addUsers(users ?? [eg.selfUser]);
 
     for (final message in unreadMessages) {
       assert(!message.flags.contains(MessageFlag.read));

@@ -311,19 +311,19 @@ hello
     test('silent', () {
       check(mention(user, silent: true)).equals('@_**Full Name|123**');
     });
-    test('`users` passed; has two users with same fullName', () {
+    test('`users` passed; has two users with same fullName', () async {
       final store = eg.store();
-      store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
+      await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
       check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
     });
-    test('`users` passed; has two same-name users but one of them is deactivated', () {
+    test('`users` passed; has two same-name users but one of them is deactivated', () async {
       final store = eg.store();
-      store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
+      await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
       check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
     });
-    test('`users` passed; user has unique fullName', () {
+    test('`users` passed; user has unique fullName', () async {
       final store = eg.store();
-      store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
+      await store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
       check(mention(user, silent: true, users: store.users)).equals('@_**Full Name**');
     });
   });

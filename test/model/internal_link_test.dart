@@ -9,11 +9,11 @@ import 'package:zulip/model/store.dart';
 import '../example_data.dart' as eg;
 import 'test_store.dart';
 
-PerAccountStore setupStore({
+Future<PerAccountStore> setupStore({
   required Uri realmUrl,
   List<ZulipStream>? streams,
   List<User>? users,
-}) {
+}) async {
   final account = eg.selfAccount.copyWith(realmUrl: realmUrl);
   final store = eg.store(account: account);
   if (streams != null) {
@@ -21,7 +21,7 @@ PerAccountStore setupStore({
   }
   store.addUser(eg.selfUser);
   if (users != null) {
-    store.addUsers(users);
+    await store.addUsers(users);
   }
   return store;
 }
@@ -37,8 +37,8 @@ void main() {
     for (final testCase in testCases) {
       final String urlString = testCase.$1;
       final Narrow? expected = testCase.$2;
-      test(urlString, () {
-        final store = setupStore(realmUrl: realmUrl, streams: streams, users: users);
+      test(urlString, () async {
+        final store = await setupStore(realmUrl: realmUrl, streams: streams, users: users);
         final url = store.tryResolveUrl(urlString)!;
         check(parseInternalLink(url, store)).equals(expected);
       });
@@ -131,8 +131,8 @@ void main() {
       final String description = testCase.$2;
       final String urlString = testCase.$3;
       final Uri realmUrl = testCase.$4;
-      test('${expected ? 'accepts': 'rejects'} $description: $urlString', () {
-        final store = setupStore(realmUrl: realmUrl, streams: streams);
+      test('${expected ? 'accepts': 'rejects'} $description: $urlString', () async {
+        final store = await setupStore(realmUrl: realmUrl, streams: streams);
         final url = store.tryResolveUrl(urlString)!;
         final result = parseInternalLink(url, store);
         check(result != null).equals(expected);
