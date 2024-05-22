@@ -627,7 +627,7 @@ void main() {
       pushedRoutes.removeLast();
 
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      store.addStream(eg.stream(name: 'stream'));
+      await store.addStream(eg.stream(name: 'stream'));
       return pushedRoutes;
     }
 

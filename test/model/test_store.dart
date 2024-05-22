@@ -124,7 +124,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     }
   }
 
-  void addStream(ZulipStream stream) {
+  Future<void> addStream(ZulipStream stream) async {
     addStreams([stream]);
   }
 
