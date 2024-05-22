@@ -37,7 +37,7 @@ Future<void> setupPage(WidgetTester tester, {
 
   store.addUser(eg.selfUser);
   if (users != null) {
-    store.addUsers(users);
+    await store.addUsers(users);
   }
 
   await tester.pumpWidget(

@@ -167,8 +167,8 @@ void main() {
 
   test('MentionAutocompleteView misc', () async {
     const narrow = AllMessagesNarrow();
-    final store = eg.store()
-      ..addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
+    final store = eg.store();
+    await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
     bool done = false;
@@ -182,10 +182,10 @@ void main() {
   });
 
   test('MentionAutocompleteView not starve timers', () {
-    fakeAsync((binding) {
+    fakeAsync((binding) async {
       const narrow = AllMessagesNarrow();
-      final store = eg.store()
-        ..addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
+      final store = eg.store();
+      await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
       final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
       bool searchDone = false;

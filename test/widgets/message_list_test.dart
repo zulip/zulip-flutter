@@ -58,7 +58,7 @@ void main() {
 
     // prepare message list data
     store.addUser(eg.selfUser);
-    store.addUsers(users ?? []);
+    await store.addUsers(users ?? []);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
       return eg.streamMessage(sender: eg.selfUser);
