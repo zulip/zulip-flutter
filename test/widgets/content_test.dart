@@ -94,7 +94,7 @@ void main() {
 
   Widget plainContent(String html) {
     return Builder(builder: (context) =>
-      DefaultTextStyle.merge(
+      DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: BlockContentList(nodes: parseContent(html).nodes)));
   }

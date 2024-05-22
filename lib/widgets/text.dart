@@ -15,6 +15,9 @@ import 'package:flutter/material.dart';
 /// We often see this in the child of a [Material], for example,
 /// since by default [Material] applies an [AnimatedDefaultTextStyle]
 /// with the [TextTheme.bodyMedium] that gets its value from here.
+/// A notable exception is the base style for message content.
+/// That style is self-contained and is not meant to inherit from this;
+/// see [ContentTheme.textStylePlainParagraph].
 ///
 /// Applies [kDefaultFontFamily] and [kDefaultFontFamilyFallback],
 /// being faithful to the Material-default font weights

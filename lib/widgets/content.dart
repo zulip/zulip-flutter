@@ -32,14 +32,22 @@ import 'text.dart';
 /// background. For what this is in the message list, see
 /// widgets/message_list.dart.
 class ContentTheme extends ThemeExtension<ContentTheme> {
-  ContentTheme() :
+  ContentTheme(BuildContext context) :
     textStylePlainParagraph = TextStyle(
-      debugLabel: 'ContentTheme.textStylePlainParagraph',
+      inherit: false,
 
       color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       fontSize: kBaseFontSize,
+      letterSpacing: 0,
+      textBaseline: TextBaseline.alphabetic,
       height: (22 / kBaseFontSize),
-    );
+      leadingDistribution: TextLeadingDistribution.even,
+      decoration: TextDecoration.none,
+      fontFamily: kDefaultFontFamily,
+      fontFamilyFallback: defaultFontFamilyFallback,
+    )
+      .merge(weightVariableTextStyle(context))
+      .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph');
 
   ContentTheme._({
     required this.textStylePlainParagraph,
@@ -55,9 +63,12 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return extension!;
   }
 
-  /// The [TextStyle] we use for plain, unstyled paragraphs.
+  /// The complete [TextStyle] we use for plain, unstyled paragraphs.
   ///
   /// Also the base style that all other text content should inherit from.
+  ///
+  /// This is the complete style for plain paragraphs. Plain-paragraph content
+  /// should not need styles from other sources, such as Material defaults.
   final TextStyle textStylePlainParagraph;
 
   @override
@@ -96,7 +107,7 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InheritedMessage(message: message,
-      child: DefaultTextStyle.merge(
+      child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: BlockContentList(nodes: content.nodes)));
   }

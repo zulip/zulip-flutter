@@ -217,7 +217,7 @@ class _LinkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final linkNode = LinkNode(url: url, nodes: [TextNode(text)]);
-    final paragraph = DefaultTextStyle.merge(
+    final paragraph = DefaultTextStyle(
       style: ContentTheme.of(context).textStylePlainParagraph,
       child: Paragraph(node: ParagraphNode(nodes: [linkNode], links: [linkNode])));
     return Padding(
