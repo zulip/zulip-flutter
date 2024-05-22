@@ -39,11 +39,11 @@ Future<void> setupPage(WidgetTester tester, {
   }
 
   for (final dmMessage in dmMessages) {
-    store.handleEvent(MessageEvent(id: 1, message: dmMessage));
+    await store.handleEvent(MessageEvent(id: 1, message: dmMessage));
   }
 
   if (newNameForSelfUser != null) {
-    store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId,
+    await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId,
       fullName: newNameForSelfUser));
   }
 
@@ -151,7 +151,7 @@ void main() {
 
       Future<void> markMessageAsRead(WidgetTester tester, Message message) async {
         final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-        store.handleEvent(UpdateMessageFlagsAddEvent(
+        await store.handleEvent(UpdateMessageFlagsAddEvent(
           id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
         await tester.pump();
       }

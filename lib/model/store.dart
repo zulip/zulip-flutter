@@ -353,7 +353,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     super.dispose();
   }
 
-  void handleEvent(Event event) {
+  Future<void> handleEvent(Event event) async {
     if (event is HeartbeatEvent) {
       assert(debugLog("server event: heartbeat"));
     } else if (event is RealmEmojiUpdateEvent) {
@@ -711,7 +711,7 @@ class UpdateMachine {
 
       final events = result.events;
       for (final event in events) {
-        store.handleEvent(event);
+        await store.handleEvent(event);
       }
       if (events.isNotEmpty) {
         lastEventId = events.last.id;

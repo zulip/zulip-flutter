@@ -67,7 +67,7 @@ void main() {
 
     for (final message in unreadMessages) {
       assert(!message.flags.contains(MessageFlag.read));
-      store.handleEvent(MessageEvent(id: 1, message: message));
+      await store.handleEvent(MessageEvent(id: 1, message: message));
     }
 
     await tester.pumpWidget(
