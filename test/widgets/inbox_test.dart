@@ -62,7 +62,7 @@ void main() {
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
     await store.addStreams(streams ?? []);
-    store.addSubscriptions(subscriptions ?? []);
+    await store.addSubscriptions(subscriptions ?? []);
     await store.addUsers(users ?? [eg.selfUser]);
 
     for (final message in unreadMessages) {

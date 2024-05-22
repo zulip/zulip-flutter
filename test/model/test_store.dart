@@ -133,10 +133,10 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addSubscription(Subscription subscription) async {
-    addSubscriptions([subscription]);
+    await addSubscriptions([subscription]);
   }
 
-  void addSubscriptions(List<Subscription> subscriptions) {
+  Future<void> addSubscriptions(List<Subscription> subscriptions) async {
     handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
   }
 
