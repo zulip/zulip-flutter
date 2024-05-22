@@ -31,17 +31,16 @@ void main() {
 
   void testExpectedNarrows(List<(String, Narrow?)> testCases, {
     List<ZulipStream>? streams,
-    PerAccountStore? store,
     List<User>? users,
   }) {
-    assert((streams != null || users != null) ^ (store != null));
-    store ??= setupStore(realmUrl: realmUrl, streams: streams, users: users);
+    assert(streams != null || users != null);
     for (final testCase in testCases) {
       final String urlString = testCase.$1;
-      final Uri url = store.tryResolveUrl(urlString)!;
       final Narrow? expected = testCase.$2;
       test(urlString, () {
-        check(parseInternalLink(url, store!)).equals(expected);
+        final store = setupStore(realmUrl: realmUrl, streams: streams, users: users);
+        final url = store.tryResolveUrl(urlString)!;
+        check(parseInternalLink(url, store)).equals(expected);
       });
     }
   }
