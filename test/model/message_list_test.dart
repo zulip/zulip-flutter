@@ -561,9 +561,9 @@ void main() async {
       await prepare(narrow: const AllMessagesNarrow());
       await store.addStreams([stream1, stream2]);
       await store.addSubscription(eg.subscription(stream1));
-      store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
+      await store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
       await store.addSubscription(eg.subscription(stream2, isMuted: true));
-      store.addUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
+      await store.addUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -618,8 +618,8 @@ void main() async {
       await prepare(narrow: StreamNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
-      store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
-      store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
+      await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
+      await store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -662,7 +662,7 @@ void main() async {
       await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
-      store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
+      await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [

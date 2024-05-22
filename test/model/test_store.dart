@@ -140,7 +140,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
   }
 
-  void addUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
+  Future<void> addUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
     handleEvent(UserTopicEvent(
       id: 1,
       streamId: stream.streamId,

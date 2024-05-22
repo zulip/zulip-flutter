@@ -199,7 +199,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
+        await store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(0);
       });
@@ -221,7 +221,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
+        await store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(1);
       });
