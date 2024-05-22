@@ -174,10 +174,10 @@ void main() {
       check(model.countInAllMessagesNarrow()).equals(5);
     });
 
-    test('countInStream/Narrow', () {
+    test('countInStream/Narrow', () async {
       final stream = eg.stream();
       prepare();
-      streamStore.addStream(stream);
+      await streamStore.addStream(stream);
       streamStore.addSubscription(eg.subscription(stream));
       streamStore.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
       streamStore.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);

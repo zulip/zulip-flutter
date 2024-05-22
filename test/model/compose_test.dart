@@ -237,10 +237,10 @@ hello
         required String name,
         String? topic,
         int? nearMessageId,
-      }) {
+      }) async {
         assert(expectedFragment.startsWith('#'), 'wrong-looking expectedFragment');
         final store = eg.store();
-        store.addStream(eg.stream(streamId: streamId, name: name));
+        await store.addStream(eg.stream(streamId: streamId, name: name));
         final narrow = topic == null
           ? StreamNarrow(streamId)
           : TopicNarrow(streamId, topic);
@@ -340,7 +340,7 @@ hello
     final stream = eg.stream(streamId: 1, name: 'test here');
     final message = eg.streamMessage(sender: sender, stream: stream, topic: 'some topic');
     final store = eg.store();
-    store.addStream(stream);
+    await store.addStream(stream);
     await store.addUser(sender);
 
     check(quoteAndReplyPlaceholder(store, message: message)).equals('''

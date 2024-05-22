@@ -39,8 +39,9 @@ void main() async {
   Future<void> prepare({Narrow narrow = const AllMessagesNarrow()}) async {
     final stream = eg.stream();
     subscription = eg.subscription(stream);
-    store = eg.store()
-      ..addStream(stream)..addSubscription(subscription);
+    store = eg.store();
+    await store.addStream(stream);
+    store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     model = MessageListView.init(store: store, narrow: narrow)
@@ -615,7 +616,7 @@ void main() async {
     test('in StreamNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
       await prepare(narrow: StreamNarrow(stream.streamId));
-      store.addStream(stream);
+      await store.addStream(stream);
       store.addSubscription(eg.subscription(stream, isMuted: true));
       store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
       store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
@@ -659,7 +660,7 @@ void main() async {
     test('in TopicNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
       await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
-      store.addStream(stream);
+      await store.addStream(stream);
       store.addSubscription(eg.subscription(stream, isMuted: true));
       store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
 
