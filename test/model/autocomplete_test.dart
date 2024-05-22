@@ -221,7 +221,7 @@ void main() {
     const narrow = AllMessagesNarrow();
     final store = eg.store();
     for (int i = 0; i < 2500; i++) {
-      store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
@@ -244,7 +244,7 @@ void main() {
     const narrow = AllMessagesNarrow();
     final store = eg.store();
     for (int i = 0; i < 1500; i++) {
-      store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
@@ -278,7 +278,7 @@ void main() {
     const narrow = AllMessagesNarrow();
     final store = eg.store();
     for (int i = 0; i < 1500; i++) {
-      store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
@@ -288,7 +288,7 @@ void main() {
 
     await Future(() {});
     check(done).isFalse();
-    store.addUser(eg.user(userId: 10000, email: 'user10000@example.com', fullName: 'User 10000'));
+    await store.addUser(eg.user(userId: 10000, email: 'user10000@example.com', fullName: 'User 10000'));
     await Future(() {});
     check(done).isFalse();
     await Future(() {});

@@ -29,7 +29,7 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      store.addUser(eg.selfUser);
+      await store.addUser(eg.selfUser);
 
       // TODO do this more centrally, or put in reusable helper
       final Future<ByteData> font = rootBundle.load('assets/Source_Sans_3/SourceSans3VF-Upright.otf');

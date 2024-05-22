@@ -57,7 +57,7 @@ void main() {
     connection = store.connection as FakeApiConnection;
 
     // prepare message list data
-    store.addUser(eg.selfUser);
+    await store.addUser(eg.selfUser);
     await store.addUsers(users ?? []);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
@@ -378,8 +378,8 @@ void main() {
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
           eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]),
         ]);
-        store.addUser(eg.otherUser);
-        store.addUser(eg.thirdUser);
+        await store.addUser(eg.otherUser);
+        await store.addUser(eg.thirdUser);
         await tester.pump();
         tester.widget(find.text(zulipLocalizations.messageListGroupYouWithYourself));
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
@@ -394,7 +394,7 @@ void main() {
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
           eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]),
         ]);
-        store.addUser(eg.thirdUser);
+        await store.addUser(eg.thirdUser);
         await tester.pump();
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
           zulipLocalizations.unknownUserName)));

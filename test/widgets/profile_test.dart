@@ -35,7 +35,7 @@ Future<void> setupPage(WidgetTester tester, {
   await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-  store.addUser(eg.selfUser);
+  await store.addUser(eg.selfUser);
   if (users != null) {
     await store.addUsers(users);
   }
