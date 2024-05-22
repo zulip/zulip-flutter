@@ -17,7 +17,7 @@ Future<PerAccountStore> setupStore({
   final account = eg.selfAccount.copyWith(realmUrl: realmUrl);
   final store = eg.store(account: account);
   if (streams != null) {
-    store.addStreams(streams);
+    await store.addStreams(streams);
   }
   await store.addUser(eg.selfUser);
   if (users != null) {

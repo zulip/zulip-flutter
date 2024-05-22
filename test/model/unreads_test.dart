@@ -152,12 +152,12 @@ void main() {
   });
 
   group('count helpers', () {
-    test('countInAllMessagesNarrow', () {
+    test('countInAllMessagesNarrow', () async {
       final stream1 = eg.stream(streamId: 1, name: 'stream 1');
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
       final stream3 = eg.stream(streamId: 3, name: 'stream 3');
       prepare();
-      streamStore.addStreams([stream1, stream2, stream3]);
+      await streamStore.addStreams([stream1, stream2, stream3]);
       streamStore.addSubscription(eg.subscription(stream1));
       streamStore.addSubscription(eg.subscription(stream2));
       streamStore.addSubscription(eg.subscription(stream3, isMuted: true));

@@ -61,7 +61,7 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-    store.addStreams(streams ?? []);
+    await store.addStreams(streams ?? []);
     store.addSubscriptions(subscriptions ?? []);
     await store.addUsers(users ?? [eg.selfUser]);
 

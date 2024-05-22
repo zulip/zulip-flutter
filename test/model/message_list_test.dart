@@ -559,7 +559,7 @@ void main() async {
       final stream1 = eg.stream(streamId: 1, name: 'stream 1');
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
       await prepare(narrow: const AllMessagesNarrow());
-      store.addStreams([stream1, stream2]);
+      await store.addStreams([stream1, stream2]);
       store.addSubscription(eg.subscription(stream1));
       store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
       store.addSubscription(eg.subscription(stream2, isMuted: true));
