@@ -54,7 +54,7 @@ void main() {
       await store.addStream(stream2);
       checkUnified(store);
 
-      store.addSubscription(eg.subscription(stream1));
+      await store.addSubscription(eg.subscription(stream1));
       checkUnified(store);
     });
   });
@@ -141,7 +141,7 @@ void main() {
       test('with policy none, stream not muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        store.addSubscription(eg.subscription(stream1));
+        await store.addSubscription(eg.subscription(stream1));
         check(store.isTopicVisibleInStream(stream1.streamId, 'topic')).isTrue();
         check(store.isTopicVisible        (stream1.streamId, 'topic')).isTrue();
       });
@@ -149,7 +149,7 @@ void main() {
       test('with policy none, stream muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        store.addSubscription(eg.subscription(stream1, isMuted: true));
+        await store.addSubscription(eg.subscription(stream1, isMuted: true));
         check(store.isTopicVisibleInStream(stream1.streamId, 'topic')).isTrue();
         check(store.isTopicVisible        (stream1.streamId, 'topic')).isFalse();
       });
@@ -164,7 +164,7 @@ void main() {
       test('with policy muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        store.addSubscription(eg.subscription(stream1));
+        await store.addSubscription(eg.subscription(stream1));
         store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         check(store.isTopicVisibleInStream(stream1.streamId, 'topic')).isFalse();
         check(store.isTopicVisible        (stream1.streamId, 'topic')).isFalse();
@@ -173,7 +173,7 @@ void main() {
       test('with policy unmuted', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        store.addSubscription(eg.subscription(stream1, isMuted: true));
+        await store.addSubscription(eg.subscription(stream1, isMuted: true));
         store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         check(store.isTopicVisibleInStream(stream1.streamId, 'topic')).isTrue();
         check(store.isTopicVisible        (stream1.streamId, 'topic')).isTrue();
@@ -182,7 +182,7 @@ void main() {
       test('with policy followed', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        store.addSubscription(eg.subscription(stream1, isMuted: true));
+        await store.addSubscription(eg.subscription(stream1, isMuted: true));
         store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
         check(store.isTopicVisibleInStream(stream1.streamId, 'topic')).isTrue();
         check(store.isTopicVisible        (stream1.streamId, 'topic')).isTrue();

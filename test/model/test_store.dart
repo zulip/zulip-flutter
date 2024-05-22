@@ -132,7 +132,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     handleEvent(StreamCreateEvent(id: 1, streams: streams));
   }
 
-  void addSubscription(Subscription subscription) {
+  Future<void> addSubscription(Subscription subscription) async {
     addSubscriptions([subscription]);
   }
 

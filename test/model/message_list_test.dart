@@ -41,7 +41,7 @@ void main() async {
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
-    store.addSubscription(subscription);
+    await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     model = MessageListView.init(store: store, narrow: narrow)
@@ -560,9 +560,9 @@ void main() async {
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
       await prepare(narrow: const AllMessagesNarrow());
       await store.addStreams([stream1, stream2]);
-      store.addSubscription(eg.subscription(stream1));
+      await store.addSubscription(eg.subscription(stream1));
       store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
-      store.addSubscription(eg.subscription(stream2, isMuted: true));
+      await store.addSubscription(eg.subscription(stream2, isMuted: true));
       store.addUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
 
       // Check filtering on fetchInitial…
@@ -617,7 +617,7 @@ void main() async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
       await prepare(narrow: StreamNarrow(stream.streamId));
       await store.addStream(stream);
-      store.addSubscription(eg.subscription(stream, isMuted: true));
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
       store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
       store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
 
@@ -661,7 +661,7 @@ void main() async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
       await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
-      store.addSubscription(eg.subscription(stream, isMuted: true));
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
       store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
