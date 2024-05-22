@@ -7,6 +7,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 
@@ -50,6 +51,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 
   await tester.pumpWidget(
     MaterialApp(
+      theme: ThemeData(extensions: [ContentTheme()]),
       localizationsDelegates: ZulipLocalizations.localizationsDelegates,
       supportedLocales: ZulipLocalizations.supportedLocales,
       home: GlobalStoreWidget(

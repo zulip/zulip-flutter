@@ -43,6 +43,7 @@ Future<void> setupPage(WidgetTester tester, {
   await tester.pumpWidget(
     GlobalStoreWidget(
       child: MaterialApp(
+        theme: ThemeData(extensions: [ContentTheme()]),
         navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,

@@ -68,6 +68,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(extensions: [ContentTheme()]),
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         home: GlobalStoreWidget(

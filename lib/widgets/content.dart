@@ -20,17 +20,66 @@ import 'message_list.dart';
 import 'store.dart';
 import 'text.dart';
 
+/// A central place for styles for Zulip content (rendered Zulip Markdown).
+///
+/// These styles will animate on theme changes (with help from [lerp]),
+/// so styles that differ between light and dark theme belong here.
+///
+/// Styles also belong here if we want to centralize computing them,
+/// for performance. (The message list is particularly performance-sensitive.)
+///
+/// Content elements are assumed to be painted on a theme-appropriate
+/// background. For what this is in the message list, see
+/// widgets/message_list.dart.
+class ContentTheme extends ThemeExtension<ContentTheme> {
+  ContentTheme() :
+    textStylePlainParagraph = TextStyle(
+      color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+      fontSize: kBaseFontSize,
+      height: (22 / kBaseFontSize),
+    );
+
+  ContentTheme._({
+    required this.textStylePlainParagraph,
+  });
+
+  /// The [ContentTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [ContentTheme] in [ThemeData.extensions].
+  static ContentTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<ContentTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  /// The [TextStyle] we use for plain, unstyled paragraphs.
+  ///
+  /// Also the base style that all other text content should inherit from.
+  final TextStyle textStylePlainParagraph;
+
+  @override
+  ContentTheme copyWith({
+    TextStyle? textStylePlainParagraph,
+  }) {
+    return ContentTheme._(
+      textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
+    );
+  }
+
+  @override
+  ContentTheme lerp(ContentTheme? other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return ContentTheme._(
+      textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other?.textStylePlainParagraph, t)!,
+    );
+  }
+}
+
 /// The font size for message content in a plain unstyled paragraph.
 const double kBaseFontSize = 17;
-
-/// The [TextStyle] we use for plain, unstyled paragraphs.
-///
-/// Also the base style that all other text content should inherit from.
-final plainParagraphContentTextStyle = TextStyle(
-  color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-  fontSize: kBaseFontSize,
-  height: (22 / kBaseFontSize),
-);
 
 /// The entire content of a message, aka its body.
 ///
@@ -46,7 +95,7 @@ class MessageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return InheritedMessage(message: message,
       child: DefaultTextStyle.merge(
-        style: plainParagraphContentTextStyle,
+        style: ContentTheme.of(context).textStylePlainParagraph,
         child: BlockContentList(nodes: content.nodes)));
   }
 }

@@ -93,9 +93,10 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Widget plainContent(String html) {
-    return DefaultTextStyle.merge(
-      style: plainParagraphContentTextStyle,
-      child: BlockContentList(nodes: parseContent(html).nodes));
+    return Builder(builder: (context) =>
+      DefaultTextStyle.merge(
+        style: ContentTheme.of(context).textStylePlainParagraph,
+        child: BlockContentList(nodes: parseContent(html).nodes)));
   }
 
   Widget messageContent(String html) {
@@ -125,7 +126,10 @@ void main() {
     await tester.pumpWidget(
       Builder(builder: (context) =>
         MaterialApp(
-          theme: ThemeData(typography: zulipTypography(context)),
+          theme: ThemeData(
+            typography: zulipTypography(context),
+            extensions: [ContentTheme()],
+          ),
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           navigatorObservers: navObservers,
@@ -540,7 +544,7 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('multiple links in paragraph', (tester) async {
-      final fontSize = plainParagraphContentTextStyle.fontSize!;
+      const fontSize = kBaseFontSize;
 
       await prepare(tester,
         '<p><a href="https://a/">foo</a> bar <a href="https://b/">baz</a></p>');
@@ -568,7 +572,7 @@ void main() {
     });
 
     testWidgets('link containing other spans', (tester) async {
-      final fontSize = plainParagraphContentTextStyle.fontSize!;
+      const fontSize = kBaseFontSize;
 
       await prepare(tester,
         '<p><a href="https://a/">two <strong><em><code>words</code></em></strong></a></p>');

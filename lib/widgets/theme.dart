@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'content.dart';
 import 'text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {
   return ThemeData(
     typography: zulipTypography(context),
+    extensions: [ContentTheme()],
     appBarTheme: const AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
