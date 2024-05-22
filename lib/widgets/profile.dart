@@ -217,7 +217,9 @@ class _LinkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final linkNode = LinkNode(url: url, nodes: [TextNode(text)]);
-    final paragraph = Paragraph(node: ParagraphNode(nodes: [linkNode], links: [linkNode]));
+    final paragraph = DefaultTextStyle.merge(
+      style: baseContentTextStyle,
+      child: Paragraph(node: ParagraphNode(nodes: [linkNode], links: [linkNode])));
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: MouseRegion(
