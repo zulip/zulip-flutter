@@ -7,6 +7,14 @@ import '../log.dart';
 import '../model/localizations.dart';
 import 'exception.dart';
 
+/// A fused JSON + UTF-8 decoder.
+///
+/// This object is an instance of [`_JsonUtf8Decoder`][1] which is
+/// a fast-path present in VM and WASM standard library implementations.
+///
+/// [1]: https://github.com/dart-lang/sdk/blob/6c7452ac1530fe6161023c9b3007764ab26cc96d/sdk/lib/_internal/vm/lib/convert_patch.dart#L55
+final jsonUtf8Decoder = const Utf8Decoder().fuse(const JsonDecoder());
+
 /// A value for an API request parameter, to use directly without JSON encoding.
 class RawParameter {
   RawParameter(this.value);
@@ -105,7 +113,7 @@ class ApiConnection {
     Map<String, dynamic>? json;
     try {
       final bytes = await response.stream.toBytes();
-      json = jsonDecode(utf8.decode(bytes));
+      json = jsonUtf8Decoder.convert(bytes) as Map<String, dynamic>?;
     } catch (e) {
       // We'll throw something below, seeing `json` is null.
     }
