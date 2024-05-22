@@ -51,4 +51,17 @@ void main() {
       check(maxFromAllTrials).isGreaterThan(expectedMax * 0.75);
     }
   });
+
+  test('BackoffMachine resets duration', () async {
+    final backoffMachine = BackoffMachine();
+    await measureWait(backoffMachine.wait());
+    final duration2 = await measureWait(backoffMachine.wait());
+    check(backoffMachine.waitsCompleted).equals(2);
+
+    backoffMachine.reset();
+    check(backoffMachine.waitsCompleted).equals(0);
+    final durationReset1 = await measureWait(backoffMachine.wait());
+    check(durationReset1).isLessThan(duration2);
+    check(backoffMachine.waitsCompleted).equals(1);
+  });
 }
