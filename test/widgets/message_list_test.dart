@@ -481,7 +481,7 @@ void main() {
       }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
-        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId, avatarUrl: avatarUrl));
+        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId, avatarUrl: avatarUrl));
         await tester.pump();
       }
 
@@ -575,7 +575,7 @@ void main() {
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.dismissed);
 
-      store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
         MessageFlag.read, [message]));
       await tester.pump(); // process handleEvent
       check(getAnimation(tester, message.id))
@@ -595,7 +595,7 @@ void main() {
         ..value.equals(1.0)
         ..status.equals(AnimationStatus.dismissed);
 
-      store.handleEvent(UpdateMessageFlagsAddEvent(
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
         flag: MessageFlag.read,
         messages: [message.id],
@@ -623,7 +623,7 @@ void main() {
         ..value.equals(1.0)
         ..status.equals(AnimationStatus.dismissed);
 
-      store.handleEvent(UpdateMessageFlagsAddEvent(
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 0,
         flag: MessageFlag.read,
         messages: [message.id],
@@ -643,7 +643,7 @@ void main() {
 
       // introduce new message
       final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
-      store.handleEvent(MessageEvent(id: 0, message: newMessage));
+      await store.handleEvent(MessageEvent(id: 0, message: newMessage));
       await tester.pump(); // process handleEvent
       check(find.byType(MessageItem).evaluate()).length.equals(2);
       check(getAnimation(tester, message.id))
@@ -678,7 +678,7 @@ void main() {
       await setupMessageListPage(tester, messages: [message]);
       check(isMarkAsReadButtonVisible(tester)).isFalse();
 
-      store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
         MessageFlag.read, [message]));
       await tester.pumpAndSettle();
       check(isMarkAsReadButtonVisible(tester)).isTrue();
@@ -692,7 +692,7 @@ void main() {
       await setupMessageListPage(tester, messages: [message], unreadMsgs: unreadMsgs);
       check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-      store.handleEvent(UpdateMessageFlagsAddEvent(
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
         flag: MessageFlag.read,
         messages: [message.id],
@@ -714,7 +714,7 @@ void main() {
       check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
       final before = tester.getTopLeft(find.byType(MessageItem)).dy;
 
-      store.handleEvent(UpdateMessageFlagsAddEvent(
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
         flag: MessageFlag.read,
         messages: [message.id],

@@ -192,7 +192,8 @@ void main() {
       check(model.countInStream      (stream.streamId)).equals(5);
       check(model.countInStreamNarrow(stream.streamId)).equals(5);
 
-      streamStore.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: stream.streamId,
+      await streamStore.handleEvent(SubscriptionUpdateEvent(id: 1,
+        streamId: stream.streamId,
         property: SubscriptionProperty.isMuted, value: true));
       check(model.countInStream      (stream.streamId)).equals(2);
       check(model.countInStreamNarrow(stream.streamId)).equals(5);

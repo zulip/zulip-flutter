@@ -102,12 +102,12 @@ void main() {
                 await prepare();
 
                 await store.addUsers(users);
-                store.handleEvent(RealmEmojiUpdateEvent(id: 1,
+                await store.handleEvent(RealmEmojiUpdateEvent(id: 1,
                   realmEmoji: realmEmoji));
-                store.handleEvent(UserSettingsUpdateEvent(id: 1,
+                await store.handleEvent(UserSettingsUpdateEvent(id: 1,
                   property: UserSettingName.displayEmojiReactionUsers,
                   value: displayEmojiReactionUsers));
-                store.handleEvent(UserSettingsUpdateEvent(id: 1,
+                await store.handleEvent(UserSettingsUpdateEvent(id: 1,
                   property: UserSettingName.emojiset,
                   value: emojiset));
 

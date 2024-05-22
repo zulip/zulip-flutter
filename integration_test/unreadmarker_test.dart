@@ -51,11 +51,11 @@ void main() {
 
     final messages = await setupMessageListPage(tester, 500);
     await binding.traceAction(() async {
-      store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
         MessageFlag.read,
         messages));
       await tester.pumpAndSettle();
-      store.handleEvent(UpdateMessageFlagsAddEvent(
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
         flag: MessageFlag.read,
         messages: messages.map((e) => e.id).toList(),

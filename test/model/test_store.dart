@@ -115,7 +115,7 @@ class TestGlobalStore extends GlobalStore {
 
 extension PerAccountStoreTestExtension on PerAccountStore {
   Future<void> addUser(User user) async {
-    handleEvent(RealmUserAddEvent(id: 1, person: user));
+    await handleEvent(RealmUserAddEvent(id: 1, person: user));
   }
 
   Future<void> addUsers(Iterable<User> users) async {
@@ -129,7 +129,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addStreams(List<ZulipStream> streams) async {
-    handleEvent(StreamCreateEvent(id: 1, streams: streams));
+    await handleEvent(StreamCreateEvent(id: 1, streams: streams));
   }
 
   Future<void> addSubscription(Subscription subscription) async {
@@ -137,11 +137,11 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addSubscriptions(List<Subscription> subscriptions) async {
-    handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
+    await handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
   }
 
   Future<void> addUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
-    handleEvent(UserTopicEvent(
+    await handleEvent(UserTopicEvent(
       id: 1,
       streamId: stream.streamId,
       topicName: topic,
