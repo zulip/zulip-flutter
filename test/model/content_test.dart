@@ -1087,5 +1087,7 @@ void main() {
       r'^\s*testParseExample\s*\(\s*ContentExample\s*\.\s*(\w+)\);',
     ).allMatches(source).map((m) => m.group(1));
     check(testedExamples).unorderedEquals(declaredExamples);
-  });
+  }, skip: Platform.isWindows, // [intended] purely analyzes source, so
+       // any one platform is enough; avoid dealing with Windows file paths
+  );
 }
