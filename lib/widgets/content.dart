@@ -23,7 +23,14 @@ import 'text.dart';
 /// The font size for message content in a plain unstyled paragraph.
 const double kBaseFontSize = 17;
 
-final baseContentTextStyle = TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor());
+/// The [TextStyle] we use for plain, unstyled paragraphs.
+///
+/// Also the base style that all other text content should inherit from.
+final plainParagraphContentTextStyle = TextStyle(
+  color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+  fontSize: kBaseFontSize,
+  height: (22 / kBaseFontSize),
+);
 
 /// The entire content of a message, aka its body.
 ///
@@ -39,7 +46,7 @@ class MessageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return InheritedMessage(message: message,
       child: DefaultTextStyle.merge(
-        style: baseContentTextStyle,
+        style: plainParagraphContentTextStyle,
         child: BlockContentList(nodes: content.nodes)));
   }
 }
@@ -138,11 +145,6 @@ class Paragraph extends StatelessWidget {
 
   final ParagraphNode node;
 
-  static const textStyle = TextStyle(
-    fontSize: kBaseFontSize,
-    height: (22 / kBaseFontSize),
-  );
-
   @override
   Widget build(BuildContext context) {
     // Empty paragraph winds up with zero height.
@@ -151,7 +153,7 @@ class Paragraph extends StatelessWidget {
 
     final text = _buildBlockInlineContainer(
       node: node,
-      style: textStyle,
+      style: DefaultTextStyle.of(context).style,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,

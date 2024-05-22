@@ -94,7 +94,7 @@ void main() {
 
   Widget plainContent(String html) {
     return DefaultTextStyle.merge(
-      style: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor()),
+      style: plainParagraphContentTextStyle,
       child: BlockContentList(nodes: parseContent(html).nodes));
   }
 
@@ -540,7 +540,7 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('multiple links in paragraph', (tester) async {
-      final fontSize = Paragraph.textStyle.fontSize!;
+      final fontSize = plainParagraphContentTextStyle.fontSize!;
 
       await prepare(tester,
         '<p><a href="https://a/">foo</a> bar <a href="https://b/">baz</a></p>');
@@ -568,7 +568,7 @@ void main() {
     });
 
     testWidgets('link containing other spans', (tester) async {
-      final fontSize = Paragraph.textStyle.fontSize!;
+      final fontSize = plainParagraphContentTextStyle.fontSize!;
 
       await prepare(tester,
         '<p><a href="https://a/">two <strong><em><code>words</code></em></strong></a></p>');
