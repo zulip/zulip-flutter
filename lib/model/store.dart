@@ -202,6 +202,10 @@ abstract class GlobalStore extends ChangeNotifier {
 class PerAccountStore extends ChangeNotifier with StreamStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
+  /// The global store must already have been updated with
+  /// [GlobalStore.updateAccount], if applicable, so that its data for
+  /// the given account agrees with the snapshot.
+  ///
   /// If the [connection] parameter is omitted, it defaults
   /// to `globalStore.apiConnectionFromAccount(account)`.
   /// When present, it should be a connection that came from that method call,
@@ -213,6 +217,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required InitialSnapshot initialSnapshot,
   }) {
     final account = globalStore.getAccount(accountId)!;
+    assert(account.zulipVersion == initialSnapshot.zulipVersion
+      && account.zulipMergeBase == initialSnapshot.zulipMergeBase
+      && account.zulipFeatureLevel == initialSnapshot.zulipFeatureLevel);
+
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
@@ -221,7 +229,6 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
       globalStore: globalStore,
       connection: connection,
       realmUrl: account.realmUrl,
-      zulipVersion: initialSnapshot.zulipVersion,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       realmEmoji: initialSnapshot.realmEmoji,
@@ -249,7 +256,6 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required GlobalStore globalStore,
     required this.connection,
     required this.realmUrl,
-    required this.zulipVersion,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
     required this.realmEmoji,
@@ -287,7 +293,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   /// This returns null if [reference] fails to parse as a URL.
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
-  final String zulipVersion; // TODO get from account; update there on initial snapshot
+  String get zulipVersion => account.zulipVersion;
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   Map<String, RealmEmojiItem> realmEmoji;
