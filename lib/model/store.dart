@@ -194,6 +194,8 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
   }) {
     final account = globalStore.getAccount(accountId)!;
     connection ??= globalStore.apiConnectionFromAccount(account);
+    assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
+
     final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
