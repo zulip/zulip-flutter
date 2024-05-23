@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -630,13 +631,24 @@ class UpdateMachine {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
-    final account = globalStore.getAccount(accountId)!;
+    Account account = globalStore.getAccount(accountId)!;
     final connection = globalStore.apiConnectionFromAccount(account);
 
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await _registerQueueWithRetry(connection);
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
+
+    if (initialSnapshot.zulipVersion != account.zulipVersion
+        || initialSnapshot.zulipMergeBase != account.zulipMergeBase
+        || initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
+      account = await globalStore.updateAccount(accountId, AccountsCompanion(
+        zulipVersion: Value(initialSnapshot.zulipVersion),
+        zulipMergeBase: Value(initialSnapshot.zulipMergeBase),
+        zulipFeatureLevel: Value(initialSnapshot.zulipFeatureLevel),
+      ));
+      connection.zulipFeatureLevel = initialSnapshot.zulipFeatureLevel;
+    }
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,

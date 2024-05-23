@@ -17,6 +17,7 @@ import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'binding.dart';
+import 'store_checks.dart';
 import 'test_store.dart';
 
 void main() {
@@ -187,10 +188,11 @@ void main() {
     late TestGlobalStore globalStore;
     late FakeApiConnection connection;
 
-    Future<void> prepareStore() async {
+    Future<void> prepareStore({Account? account}) async {
       globalStore = TestGlobalStore(accounts: []);
-      await globalStore.insertAccount(eg.selfAccount.toCompanion(false));
-      connection = (globalStore.apiConnectionFromAccount(eg.selfAccount)
+      account ??= eg.selfAccount;
+      await globalStore.insertAccount(account.toCompanion(false));
+      connection = (globalStore.apiConnectionFromAccount(account)
         as FakeApiConnection);
       UpdateMachine.debugEnableRegisterNotificationToken = false;
       addTearDown(() => UpdateMachine.debugEnableRegisterNotificationToken = true);
@@ -218,6 +220,32 @@ void main() {
 
       check(updateMachine.store.users.values).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
+    }));
+
+    test('updates account from snapshot', () => awaitFakeAsync((async) async {
+      final account = eg.account(user: eg.selfUser,
+        zulipVersion: '6.0+gabcd',
+        zulipMergeBase: '6.0',
+        zulipFeatureLevel: 123,
+      );
+      await prepareStore(account: account);
+      check(globalStore.getAccount(account.id)).isNotNull()
+        ..zulipVersion.equals('6.0+gabcd')
+        ..zulipMergeBase.equals('6.0')
+        ..zulipFeatureLevel.equals(123);
+
+      connection.prepare(json: eg.initialSnapshot(
+        zulipVersion: '8.0+g9876',
+        zulipMergeBase: '8.0',
+        zulipFeatureLevel: 234,
+      ).toJson());
+      final updateMachine = await UpdateMachine.load(globalStore, account.id);
+      updateMachine.debugPauseLoop();
+      check(globalStore.getAccount(account.id)).isNotNull()
+        ..identicalTo(updateMachine.store.account)
+        ..zulipVersion.equals('8.0+g9876')
+        ..zulipMergeBase.equals('8.0')
+        ..zulipFeatureLevel.equals(234);
     }));
 
     test('retries registerQueue on NetworkError', () => awaitFakeAsync((async) async {
