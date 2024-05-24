@@ -491,23 +491,33 @@ void main() {
     testContentSmoke(ContentExample.groupMentionPlain);
     testContentSmoke(ContentExample.groupMentionSilent);
 
+    UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
+      UserMention? result;
+      rootSpan.visitChildren((span) {
+        if (span case (WidgetSpan(child: UserMention() && var widget))) {
+          result = widget;
+          return false;
+        }
+        return true;
+      });
+      return result;
+    }
+
+    TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
+      final fullNameSpan = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.byWidget(widget), matching: find.text(mentionText))
+      ).text;
+      return mergedStyleOfSubstring(fullNameSpan, mentionText)!;
+    }
+
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         targetFontSizeFinder: (rootSpan) {
-          late final double result;
-          rootSpan.visitChildren((span) {
-            if (span case WidgetSpan(child: UserMention() && var widget)) {
-              final fullNameSpan = tester.renderObject<RenderParagraph>(
-                find.descendant(
-                  of: find.byWidget(widget), matching: find.text('@Chris Bobbe'))
-              ).text;
-              result = mergedStyleOfSubstring(fullNameSpan, '@Chris Bobbe')!.fontSize!;
-              return false;
-            }
-            return true;
-          });
-          return result;
+          final widget = findUserMentionInSpan(rootSpan);
+          final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
+          return style.fontSize!;
         });
     });
   });
