@@ -469,7 +469,9 @@ void main() {
     check((ratioInHeader - ratioInParagraph).abs()).isLessThan(0.001);
   }
 
-  testContentSmoke(ContentExample.strong);
+  group('strong (bold)', () {
+    testContentSmoke(ContentExample.strong);
+  });
 
   testContentSmoke(ContentExample.emphasis);
 
