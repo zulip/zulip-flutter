@@ -255,9 +255,11 @@ const kWghtMin = 1.0;
 const kWghtMax = 1000.0;
 
 /// A [FontVariation] "wght" value that's 300 above a given, clamped to [kWghtMax].
-double bolderWght(double baseWght) {
+///
+/// Pass [by] to use a value other than 300.
+double bolderWght(double baseWght, {double by = 300}) {
   assert(kWghtMin <= baseWght && baseWght <= kWghtMax);
-  return clampDouble(baseWght + 300, kWghtMin, kWghtMax);
+  return clampDouble(baseWght + by, kWghtMin, kWghtMax);
 }
 
 /// Find the nearest [FontWeight] constant for a variable-font "wght"-axis value.

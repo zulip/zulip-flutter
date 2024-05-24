@@ -155,6 +155,15 @@ void main() {
     check(bolderWght(400)).equals(700);
     check(bolderWght(600)).equals(900);
     check(bolderWght(900)).equals(1000);
+
+    check(bolderWght(1,    by: -200)).equals(1);
+    check(bolderWght(201,  by: -200)).equals(1);
+    check(bolderWght(1000, by: -200)).equals(800);
+
+    check(bolderWght(1,   by: 200)).equals(201);
+    check(bolderWght(400, by: 200)).equals(600);
+    check(bolderWght(600, by: 200)).equals(800);
+    check(bolderWght(900, by: 200)).equals(1000);
   });
 
   test('clampVariableFontWeight: FontWeight has the assumed list of values', () {
