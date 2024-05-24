@@ -256,6 +256,8 @@ const kWghtMax = 1000.0;
 
 /// A [FontVariation] "wght" value that's 300 above a given, clamped to [kWghtMax].
 ///
+/// The input value must be between [kWghtMin] and [kWghtMax].
+///
 /// Pass [by] to use a value other than 300.
 double bolderWght(double baseWght, {double by = 300}) {
   assert(kWghtMin <= baseWght && baseWght <= kWghtMax);

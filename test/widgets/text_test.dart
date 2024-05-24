@@ -151,6 +151,9 @@ void main() {
   });
 
   test('bolderWght', () {
+    check(() => bolderWght(kWghtMin - 1)).throws<void>();
+    check(() => bolderWght(kWghtMax + 1)).throws<void>();
+
     check(bolderWght(1)).equals(301);
     check(bolderWght(400)).equals(700);
     check(bolderWght(600)).equals(900);
