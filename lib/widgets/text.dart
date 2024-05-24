@@ -264,6 +264,44 @@ double bolderWght(double baseWght, {double by = 300}) {
   return clampDouble(baseWght + by, kWghtMin, kWghtMax);
 }
 
+/// A [TextStyle] whose [FontVariation] "wght" and [TextStyle.fontWeight]
+/// have been raised using [bolderWght].
+///
+/// [style] must have already been processed with [weightVariableTextStyle],
+/// and [by] must be positive.
+///
+/// The increase done here will commute with any increase that was done by
+/// [weightVariableTextStyle] to respond to the device bold-text setting,
+/// because both adjustments are done with [bolderWght] with positive `by`.
+///
+/// [by] defaults to 300.
+TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
+  assert(
+    style.debugLabel!.contains('weightVariableTextStyle')
+    // ([ContentTheme.textStylePlainParagraph] applies [weightVariableTextStyle])
+    || style.debugLabel!.contains('ContentTheme.textStylePlainParagraph')
+    || style.debugLabel!.contains('bolderWghtTextStyle')
+  );
+  assert(by > 0);
+  assert(style.fontVariations!.where((v) => v.axis == 'wght').length == 1);
+
+  final newWght = bolderWght(wghtFromTextStyle(style)!, by: by);
+
+  TextStyle result = style.copyWith(
+    fontVariations: style.fontVariations!.map((v) => v.axis == 'wght'
+      ? FontVariation('wght', newWght)
+      : v).toList(),
+    fontWeight: clampVariableFontWeight(newWght),
+  );
+
+  assert(() {
+    result = result.copyWith(debugLabel: 'bolderWghtTextStyle(by: $by)');
+    return true;
+  }());
+
+  return result;
+}
+
 /// Find the nearest [FontWeight] constant for a variable-font "wght"-axis value.
 ///
 /// Use this for a reasonable [TextStyle.fontWeight] for glyphs that need to be
