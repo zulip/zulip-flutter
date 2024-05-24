@@ -14,6 +14,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
@@ -152,6 +153,41 @@ void main() {
         'testContentExample requires expectedText');
       tester.widget(find.text(example.expectedText!));
     });
+  }
+
+  /// Test the font weight found by [styleFinder] in the rendering of [content].
+  ///
+  /// The weight will be expected to be [expectedWght] when the system
+  /// bold-text setting is not set, and to vary appropriately when it is set.
+  ///
+  /// [styleFinder] must return the [TextStyle] containing the "wght"
+  /// (in [TextStyle.fontVariations]) and the [TextStyle.fontWeight]
+  /// to be checked.
+  Future<void> testFontWeight(String description, {
+    required Widget content,
+    required double expectedWght,
+    required TextStyle Function(WidgetTester tester) styleFinder,
+  }) async {
+    for (final platformRequestsBold in [false, true]) {
+      testWidgets(
+        description + (platformRequestsBold ? ' (platform requests bold)' : ''),
+        (tester) async {
+          tester.platformDispatcher.accessibilityFeaturesTestValue =
+            FakeAccessibilityFeatures(boldText: platformRequestsBold);
+          await prepareContent(tester, content);
+          final style = styleFinder(tester);
+          double effectiveExpectedWght = expectedWght;
+          if (platformRequestsBold) {
+            // bolderWght because that's what [weightVariableTextStyle] uses
+            effectiveExpectedWght = bolderWght(expectedWght);
+          }
+          check(style)
+            ..fontVariations.isNotNull()
+              .any((it) => it..axis.equals('wght')..value.equals(effectiveExpectedWght))
+            ..fontWeight.equals(clampVariableFontWeight(effectiveExpectedWght));
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+        });
+    }
   }
 
   group('ThematicBreak', () {
@@ -471,6 +507,18 @@ void main() {
 
   group('strong (bold)', () {
     testContentSmoke(ContentExample.strong);
+
+    TextStyle findWordBold(WidgetTester tester) {
+      final root = tester.renderObject<RenderParagraph>(find.textContaining('bold')).text;
+      return mergedStyleOfSubstring(root, 'bold')!;
+    }
+
+    testFontWeight('in plain paragraph',
+      expectedWght: 600,
+      // **bold**
+      content: plainContent('<p><strong>bold</strong></p>'),
+      styleFinder: findWordBold,
+    );
   });
 
   testContentSmoke(ContentExample.emphasis);
@@ -520,6 +568,34 @@ void main() {
           return style.fontSize!;
         });
     });
+
+    testFontWeight('silent or non-self mention in plain paragraph',
+      expectedWght: 400,
+      // @_**Greg Price**
+      content: plainContent(
+        '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(UserMention)), 'Greg Price');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent self-user mention in plain paragraph',
+    //    expectedWght: 600, // [etc.]
+
+    testFontWeight('silent or non-self mention in bold context',
+      expectedWght: 600,
+      // # @_**Chris Bobbe**
+      content: plainContent(
+        '<h1><span class="user-mention silent" data-user-id="13313">Chris Bobbe</span></h1>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(UserMention)), 'Chris Bobbe');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent self-user mention in bold context',
+    //    expectedWght: 800, // [etc.]
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {

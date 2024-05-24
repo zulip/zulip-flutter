@@ -77,6 +77,10 @@ extension TextStyleChecks on Subject<TextStyle> {
   // TODO others
 }
 
+extension FontVariationChecks on Subject<FontVariation> {
+  Subject<String> get axis => has((x) => x.axis, 'axis');
+  Subject<double> get value => has((x) => x.value, 'value');
+}
 
 extension TextThemeChecks on Subject<TextTheme> {
   Subject<TextStyle?> get displayLarge => has((t) => t.displayLarge, 'displayLarge');
