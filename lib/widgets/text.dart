@@ -209,7 +209,7 @@ TextStyle weightVariableTextStyle(BuildContext context, {
   double? wght,
   double? wghtIfPlatformRequestsBold,
 }) {
-  double value = wght ?? FontWeight.normal.value.toDouble();
+  double value = wght ?? wghtFromFontWeight(FontWeight.normal);
   if (MediaQuery.boldTextOf(context)) {
     // The framework has a condition on [MediaQueryData.boldText]
     // in the [Text] widget, but that only affects `fontWeight`.
