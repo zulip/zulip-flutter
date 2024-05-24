@@ -209,6 +209,38 @@ void main() {
     check(clampVariableFontWeight(1000)) .equals(FontWeight.w900);
   });
 
+  test('wghtFromTextStyle', () {
+    doCheck(TextStyle style, double? expected) {
+      check(wghtFromTextStyle(style)).equals(expected);
+    }
+
+    doCheck(const TextStyle(), null);
+    doCheck(const TextStyle(fontVariations: []), null);
+    doCheck(const TextStyle(fontVariations: [FontVariation.slant(45)]), null);
+
+    doCheck(const TextStyle(fontVariations: [FontVariation('wght', 100)]), 100);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation('wght', 160)],
+      fontWeight: FontWeight.w200,
+    ), 160);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation('wght', 100), FontVariation('wght', 200)]
+    ), 100);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation('wght', 100), FontVariation('wght', 100)],
+      fontWeight: FontWeight.w900,
+    ), 100);
+
+    doCheck(const TextStyle(
+      fontVariations: [],
+      fontWeight: FontWeight.w900,
+    ), 900);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation.slant(45)],
+      fontWeight: FontWeight.w900,
+    ), 900);
+  });
+
   group('proportionalLetterSpacing', () {
     Future<void> testLetterSpacing(
       String description, {

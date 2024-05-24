@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -284,6 +285,23 @@ FontWeight clampVariableFontWeight(double wght) {
       else                 return FontWeight.w900;
     }
   }
+}
+
+/// A "wght" value extracted from a [TextStyle].
+///
+/// Returns the value in [TextStyle.fontVariations] if present.
+/// If that's absent but a [TextStyle.fontWeight] is present,
+/// returns [wghtFromFontWeight] for that value.
+///
+/// The returned value already reflects any response to the system bold-text
+/// setting, so if the [TextStyle] was built using [weightVariableTextStyle],
+/// this value might be larger than the `wght` that was passed to that function.
+double? wghtFromTextStyle(TextStyle style) {
+  double? result = style.fontVariations?.firstWhereOrNull((v) => v.axis == 'wght')?.value;
+  if (result == null && style.fontWeight != null) {
+    result = wghtFromFontWeight(style.fontWeight!);
+  }
+  return result;
 }
 
 /// A good guess at a font's "wght" value to match a given [FontWeight].
