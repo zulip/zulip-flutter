@@ -1,4 +1,5 @@
 {
+  "@@locale": "en",
   "aboutPageTitle": "About Zulip",
   "@aboutPageTitle": {
     "description": "Title for About Zulip page"

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../model/localizations.dart';
 import '../model/narrow.dart';
@@ -117,7 +118,12 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         final initialAccountId = globalStore.accounts.firstOrNull?.id;
         return MaterialApp(
           title: 'Zulip',
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          localizationsDelegates: [
+            ...ZulipLocalizations.localizationsDelegates,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           supportedLocales: ZulipLocalizations.supportedLocales,
           theme: themeData,
 
@@ -129,7 +135,11 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
                 (_) => widget._declareReady());
             }
             GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
+            final locale = Localizations.localeOf(context); // Get locale from context
+            return Directionality(
+              textDirection: locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              child: child!,
+            );
           },
 
           // We use onGenerateInitialRoutes for the real work of specifying the
