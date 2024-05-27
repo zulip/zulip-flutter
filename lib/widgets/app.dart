@@ -118,7 +118,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         final initialAccountId = globalStore.accounts.firstOrNull?.id;
         return MaterialApp(
           title: 'Zulip',
-          localizationsDelegates: [
+          localizationsDelegates: const [
             ...ZulipLocalizations.localizationsDelegates,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
