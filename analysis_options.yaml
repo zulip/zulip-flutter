@@ -12,6 +12,9 @@ analyzer:
     # TODO(pigeon) re-enable lints once clean: https://github.com/flutter/flutter/issues/145633
     - lib/host/*.g.dart
 
+    # Skip analysis on `vendor/`, which has outside code like the Flutter SDK.
+    - vendor/**
+
 linter:
   # For a list of all available lints, with docs, see:
   #   https://dart-lang.github.io/linter/lints/index.html.
