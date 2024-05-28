@@ -129,13 +129,17 @@ void main() {
       });
 
       test('existing conversation, not newest in conversation', () {
+        // bool listenersNotified = false;
         final message = eg.dmMessage(id: 99, from: eg.selfUser,
           to: [eg.user(userId: 1), eg.user(userId: 2)]);
         final expected = setupView();
         check(setupView()
+          // ..addListener(() { listenersNotified = true; })
           ..handleMessageEvent(MessageEvent(id: 1, message: message))
         ) ..map.deepEquals(expected.map)
           ..sorted.deepEquals(expected.sorted);
+        // (listeners are notified unnecessarily, but that's OK)
+        // check(listenersNotified).isFalse();
       });
     });
   });
