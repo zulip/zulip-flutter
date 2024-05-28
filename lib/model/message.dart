@@ -31,7 +31,7 @@ class MessageStoreImpl with MessageStore {
   }
 
   void dispose() {
-    for (final view in _messageListViews.toList()) {
+    for (final view in _messageListViews) {
       view.dispose();
     }
   }
