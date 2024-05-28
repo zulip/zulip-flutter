@@ -177,14 +177,39 @@ class MentionAutocompleteView extends ChangeNotifier {
     final view = MentionAutocompleteView._(
       store: store,
       narrow: narrow,
-      sortedUsers: _usersByRelevance(store: store),
+      sortedUsers: _usersByRelevance(store: store, narrow: narrow),
     );
     store.autocompleteViewManager.registerMentionAutocomplete(view);
     return view;
   }
 
-  static List<User> _usersByRelevance({required PerAccountStore store}) {
-    return store.users.values.toList(); // TODO(#228): sort for most relevant first
+  static List<User> _usersByRelevance({
+    required PerAccountStore store,
+    required Narrow narrow,
+  }) {
+    assert(narrow is! CombinedFeedNarrow);
+    return store.users.values.toList()
+      ..sort((userA, userB) => compareByDms(userA, userB, store: store));
+  }
+
+  /// Determines which of the two users is more recent in DM conversations.
+  ///
+  /// Returns a negative number if [userA] is more recent than [userB],
+  /// returns a positive number if [userB] is more recent than [userA],
+  /// and returns `0` if both [userA] and [userB] are equally recent
+  /// or there is no DM exchanged with them whatsoever.
+  @visibleForTesting
+  static int compareByDms(User userA, User userB, {required PerAccountStore store}) {
+    final recentDms = store.recentDmConversationsView;
+    final aLatestMessageId = recentDms.latestMessagesByRecipient[userA.userId];
+    final bLatestMessageId = recentDms.latestMessagesByRecipient[userB.userId];
+
+    return switch((aLatestMessageId, bLatestMessageId)) {
+      (int a, int b) => -a.compareTo(b),
+      (int(),     _) => -1,
+      (_,     int()) => 1,
+      _              => 0,
+    };
   }
 
   @override

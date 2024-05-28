@@ -5,9 +5,11 @@ import 'package:checks/checks.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 import '../example_data.dart' as eg;
@@ -166,7 +168,7 @@ void main() {
   });
 
   test('MentionAutocompleteView misc', () async {
-    const narrow = CombinedFeedNarrow();
+    const narrow = StreamNarrow(1);
     final store = eg.store();
     await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
@@ -183,7 +185,7 @@ void main() {
 
   test('MentionAutocompleteView not starve timers', () {
     fakeAsync((binding) async {
-      const narrow = CombinedFeedNarrow();
+      const narrow = StreamNarrow(1);
       final store = eg.store();
       await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
       final view = MentionAutocompleteView.init(store: store, narrow: narrow);
@@ -218,7 +220,7 @@ void main() {
   });
 
   test('MentionAutocompleteView yield between batches of 1000', () async {
-    const narrow = CombinedFeedNarrow();
+    const narrow = StreamNarrow(1);
     final store = eg.store();
     for (int i = 0; i < 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
@@ -241,7 +243,7 @@ void main() {
   });
 
   test('MentionAutocompleteView new query during computation replaces old', () async {
-    const narrow = CombinedFeedNarrow();
+    const narrow = StreamNarrow(1);
     final store = eg.store();
     for (int i = 0; i < 1500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
@@ -276,7 +278,7 @@ void main() {
 
   test('MentionAutocompleteView mutating store.users while in progress does not '
       'prevent query from finishing', () async {
-    const narrow = CombinedFeedNarrow();
+    const narrow = StreamNarrow(1);
     final store = eg.store();
     for (int i = 0; i < 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
@@ -347,6 +349,129 @@ void main() {
       doCheck('Name Four Full Words', eg.user(fullName: 'Full Name Four Words'), false);
       doCheck('F Full', eg.user(fullName: 'Full Name Four Words'), false);
       doCheck('Four F', eg.user(fullName: 'Full Name Four Words'), false);
+    });
+  });
+
+  group('MentionAutocompleteView sorting users results', () {
+    late PerAccountStore store;
+
+    Future<void> prepare({
+      List<User> users = const [],
+      List<RecentDmConversation> dmConversations = const [],
+    }) async {
+      store = eg.store(initialSnapshot: eg.initialSnapshot(
+        recentPrivateConversations: dmConversations));
+      await store.addUsers(users);
+    }
+
+    group('MentionAutocompleteView.compareByDms', () {
+      const idA = 1;
+      const idB = 2;
+
+      int compareAB() => MentionAutocompleteView.compareByDms(
+        eg.user(userId: idA),
+        eg.user(userId: idB),
+        store: store,
+      );
+
+      test('has DMs with userA and userB, latest with userA -> prioritizes userA', () async {
+        await prepare(dmConversations: [
+          RecentDmConversation(userIds: [idA],      maxMessageId: 200),
+          RecentDmConversation(userIds: [idA, idB], maxMessageId: 100),
+        ]);
+        check(compareAB()).isLessThan(0);
+      });
+
+      test('has DMs with userA and userB, latest with userB -> prioritizes userB', () async {
+        await prepare(dmConversations: [
+          RecentDmConversation(userIds: [idB],      maxMessageId: 200),
+          RecentDmConversation(userIds: [idA, idB], maxMessageId: 100),
+        ]);
+        check(compareAB()).isGreaterThan(0);
+      });
+
+      test('has DMs with userA and userB, equally recent -> prioritizes neither', () async {
+        await prepare(dmConversations: [
+          RecentDmConversation(userIds: [idA, idB], maxMessageId: 100),
+        ]);
+        check(compareAB()).equals(0);
+      });
+
+      test('has DMs with userA but not userB -> prioritizes userA', () async {
+        await prepare(dmConversations: [
+          RecentDmConversation(userIds: [idA], maxMessageId: 100),
+        ]);
+        check(compareAB()).isLessThan(0);
+      });
+
+      test('has DMs with userB but not userA -> prioritizes userB', () async {
+        await prepare(dmConversations: [
+          RecentDmConversation(userIds: [idB], maxMessageId: 100),
+        ]);
+        check(compareAB()).isGreaterThan(0);
+      });
+
+      test('has no DMs with userA or userB -> prioritizes neither', () async {
+        await prepare(dmConversations: []);
+        check(compareAB()).equals(0);
+      });
+    });
+
+    group('autocomplete suggests relevant users in the intended order', () {
+      // The order should be:
+      // 1. Users most recent in the DM conversations
+
+      Future<void> checkResultsIn(Narrow narrow, {required List<int> expected}) async {
+        final users = [
+          eg.user(userId: 0),
+          eg.user(userId: 1),
+          eg.user(userId: 2),
+          eg.user(userId: 3),
+          eg.user(userId: 4),
+        ];
+
+        final dmConversations = [
+          RecentDmConversation(userIds: [3],    maxMessageId: 300),
+          RecentDmConversation(userIds: [0],    maxMessageId: 200),
+          RecentDmConversation(userIds: [0, 1], maxMessageId: 100),
+        ];
+
+        await prepare(users: users, dmConversations: dmConversations);
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
+
+        bool done = false;
+        view.addListener(() { done = true; });
+        view.query = MentionAutocompleteQuery('');
+        await Future(() {});
+        check(done).isTrue();
+        final results = view.results
+          .map((e) => (e as UserMentionAutocompleteResult).userId);
+        check(results).deepEquals(expected);
+      }
+
+      test('StreamNarrow', () async {
+        await checkResultsIn(const StreamNarrow(1), expected: [3, 0, 1, 2, 4]);
+      });
+
+      test('TopicNarrow', () async {
+        await checkResultsIn(const TopicNarrow(1, 'topic'), expected: [3, 0, 1, 2, 4]);
+      });
+
+      test('DmNarrow', () async {
+        await checkResultsIn(
+          DmNarrow.withUser(eg.selfUser.userId, selfUserId: eg.selfUser.userId),
+          expected: [3, 0, 1, 2, 4],
+        );
+      });
+
+      test('CombinedFeedNarrow', () async {
+        // As we do not expect a compose box in [CombinedFeedNarrow], it should
+        // not proceed to show any results.
+        await check(checkResultsIn(
+          const CombinedFeedNarrow(),
+          expected: [0, 1, 2, 3, 4])
+        ).throws();
+      });
     });
   });
 }
