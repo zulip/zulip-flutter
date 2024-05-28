@@ -3,20 +3,20 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/CoreOnly (10.24.0):
-    - FirebaseCore (= 10.24.0)
-  - Firebase/Messaging (10.24.0):
+  - Firebase/CoreOnly (10.25.0):
+    - FirebaseCore (= 10.25.0)
+  - Firebase/Messaging (10.25.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 10.24.0)
-  - firebase_core (2.30.1):
-    - Firebase/CoreOnly (~> 10.24.0)
+    - FirebaseMessaging (~> 10.25.0)
+  - firebase_core (2.32.0):
+    - Firebase/CoreOnly (~> 10.25.0)
     - FlutterMacOS
-  - firebase_messaging (14.9.0):
-    - Firebase/CoreOnly (~> 10.24.0)
-    - Firebase/Messaging (~> 10.24.0)
+  - firebase_messaging (14.9.4):
+    - Firebase/CoreOnly (~> 10.25.0)
+    - Firebase/Messaging (~> 10.25.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseCore (10.24.0):
+  - FirebaseCore (10.25.0):
     - FirebaseCoreInternal (~> 10.0)
     - GoogleUtilities/Environment (~> 7.12)
     - GoogleUtilities/Logger (~> 7.12)
@@ -27,7 +27,7 @@ PODS:
     - GoogleUtilities/Environment (~> 7.8)
     - GoogleUtilities/UserDefaults (~> 7.8)
     - PromisesObjC (~> 2.1)
-  - FirebaseMessaging (10.24.0):
+  - FirebaseMessaging (10.25.0):
     - FirebaseCore (~> 10.0)
     - FirebaseInstallations (~> 10.0)
     - GoogleDataTransport (~> 9.3)
@@ -81,18 +81,18 @@ PODS:
   - PromisesObjC (2.4.0)
   - share_plus (0.0.1):
     - FlutterMacOS
-  - "sqlite3 (3.45.3+1)":
-    - "sqlite3/common (= 3.45.3+1)"
-  - "sqlite3/common (3.45.3+1)"
-  - "sqlite3/fts5 (3.45.3+1)":
+  - sqlite3 (3.46.0):
+    - sqlite3/common (= 3.46.0)
+  - sqlite3/common (3.46.0)
+  - sqlite3/fts5 (3.46.0):
     - sqlite3/common
-  - "sqlite3/perf-threadsafe (3.45.3+1)":
+  - sqlite3/perf-threadsafe (3.46.0):
     - sqlite3/common
-  - "sqlite3/rtree (3.45.3+1)":
+  - sqlite3/rtree (3.46.0):
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - FlutterMacOS
-    - "sqlite3 (~> 3.45.3+1)"
+    - sqlite3 (~> 3.46.0)
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -157,27 +157,27 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
-  file_selector_macos: 468fb6b81fac7c0e88d71317f3eec34c3b008ff9
-  Firebase: 91fefd38712feb9186ea8996af6cbdef41473442
-  firebase_core: 59eec96207757ff60fa76232d0b0bb749f2c4b89
-  firebase_messaging: eb3c1afa3c6756407f2d9f22a4b6c58d50f4c9b2
-  FirebaseCore: 11dc8a16dfb7c5e3c3f45ba0e191a33ac4f50894
+  file_selector_macos: 54fdab7caa3ac3fc43c9fac4d7d8d231277f8cf2
+  Firebase: 0312a2352584f782ea56f66d91606891d4607f06
+  firebase_core: b5b8b60dad71f93132bbaa21e8d1379367d824f0
+  firebase_messaging: d821ad7103878837085612e389fe66203c5c6c0c
+  FirebaseCore: 7ec4d0484817f12c3373955bc87762d96842d483
   FirebaseCoreInternal: 910a81992c33715fec9263ca7381d59ab3a750b7
   FirebaseInstallations: 91950fe859846fff0fbd296180909dd273103b09
-  FirebaseMessaging: 4d52717dd820707cc4eadec5eb981b4832ec8d5d
+  FirebaseMessaging: 88950ba9485052891ebe26f6c43a52bb62248952
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   package_info_plus: fa739dd842b393193c5ca93c26798dff6e3d0e0c
-  path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   share_plus: 36537c04ce0c3e3f5bd297ce4318b6d5ee5fd6cf
-  sqlite3: 02d1f07eaaa01f80a1c16b4b31dfcbb3345ee01a
-  sqlite3_flutter_libs: 8d204ef443cf0d5c1c8b058044eab53f3943a9c5
-  url_launcher_macos: d2691c7dd33ed713bf3544850a623080ec693d95
-  video_player_avfoundation: 02011213dab73ae3687df27ce441fbbcc82b5579
+  sqlite3: 154b084339ede06960a5b3c8160066adc9176b7d
+  sqlite3_flutter_libs: 1be4459672f8168ded2d8667599b8e3ca5e72b83
+  url_launcher_macos: 5f437abeda8c85500ceb03f5c1938a8c5a705399
+  video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
 
 PODFILE CHECKSUM: 353c8bcc5d5b0994e508d035b5431cfe18c1dea7
 
