@@ -204,13 +204,22 @@ class MentionAutocompleteView extends ChangeNotifier {
     final aLatestMessageId = recentDms.latestMessagesByRecipient[userA.userId];
     final bLatestMessageId = recentDms.latestMessagesByRecipient[userB.userId];
 
-    return switch((aLatestMessageId, bLatestMessageId)) {
-      (int a, int b) => -a.compareTo(b),
-      (int(),     _) => -1,
-      (_,     int()) => 1,
-      _              => 0,
-    };
+    return -compareNullable(aLatestMessageId, bLatestMessageId);
   }
+
+  /// Compares [a] to [b].
+  ///
+  /// If both are non-null, returns [a.compareTo(b)].
+  /// If [a] is null and [b] is non-null, returns a negative number.
+  /// If [a] is non-null and [b] is null, returns a positive number.
+  /// If both are null, returns zero.
+  @visibleForTesting
+  static int compareNullable(int? a, int? b) => switch ((a, b)) {
+    (int a, int b) => a.compareTo(b),
+    (int(),     _) => 1,
+    (_,     int()) => -1,
+    _              => 0,
+  };
 
   @override
   void dispose() {

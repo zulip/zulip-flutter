@@ -365,6 +365,23 @@ void main() {
       await store.addUsers(users);
     }
 
+    group('MentionAutocompleteView.compareNullable', () {
+      test('both [a] and [b] are non-null', () async {
+        check(MentionAutocompleteView.compareNullable(2, 5)).isLessThan(0);
+        check(MentionAutocompleteView.compareNullable(5, 2)).isGreaterThan(0);
+        check(MentionAutocompleteView.compareNullable(5, 5)).equals(0);
+      });
+
+      test('one of [a] and [b] is null', () async {
+        check(MentionAutocompleteView.compareNullable(null, 5)).isLessThan(0);
+        check(MentionAutocompleteView.compareNullable(5, null)).isGreaterThan(0);
+      });
+
+      test('both of [a] and [b] are null', () async {
+        check(MentionAutocompleteView.compareNullable(null, null)).equals(0);
+      });
+    });
+
     group('MentionAutocompleteView.compareByDms', () {
       const idA = 1;
       const idB = 2;
