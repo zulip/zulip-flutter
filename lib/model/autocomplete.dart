@@ -204,10 +204,21 @@ class MentionAutocompleteView extends ChangeNotifier {
     final aLatestMessageId = recentDms.latestMessagesByRecipient[userA.userId];
     final bLatestMessageId = recentDms.latestMessagesByRecipient[userB.userId];
 
-    return switch((aLatestMessageId, bLatestMessageId)) {
-      (int a, int b) => -a.compareTo(b),
-      (int(),     _) => -1,
-      (_,     int()) => 1,
+    return -compareRecentMessageIds(aLatestMessageId, bLatestMessageId);
+  }
+
+  /// Compares [a] to [b], with null less than all integers.
+  ///
+  /// The values should represent the most recent message ID in each of two
+  /// sets of messages, with null meaning the set is empty.
+  ///
+  /// Return values are as with [Comparable.compareTo].
+  @visibleForTesting
+  static int compareRecentMessageIds(int? a, int? b) {
+    return switch ((a, b)) {
+      (int a, int b) => a.compareTo(b),
+      (int(),     _) => 1,
+      (_,     int()) => -1,
       _              => 0,
     };
   }
