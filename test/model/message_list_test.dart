@@ -234,19 +234,20 @@ void main() {
       ..messages.length.equals(200);
   });
 
-  test('maybeAddMessage', () async {
+  test('handleMessageEvent', () async {
     final stream = eg.stream();
     await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
-    model.maybeAddMessage(eg.streamMessage(stream: stream));
+    model.handleMessageEvent(MessageEvent(id: 0,
+      message: eg.streamMessage(stream: stream)));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
   });
 
-  test('maybeAddMessage, not in narrow', () async {
+  test('handleMessageEvent, not in narrow', () async {
     final stream = eg.stream(streamId: 123);
     await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
@@ -254,15 +255,17 @@ void main() {
 
     check(model).messages.length.equals(30);
     final otherStream = eg.stream(streamId: 234);
-    model.maybeAddMessage(eg.streamMessage(stream: otherStream));
+    model.handleMessageEvent(MessageEvent(id: 0,
+      message: eg.streamMessage(stream: otherStream)));
     checkNotNotified();
     check(model).messages.length.equals(30);
   });
 
-  test('maybeAddMessage, before fetch', () async {
+  test('handleMessageEvent, before fetch', () async {
     final stream = eg.stream();
     await prepare(narrow: StreamNarrow(stream.streamId));
-    model.maybeAddMessage(eg.streamMessage(stream: stream));
+    model.handleMessageEvent(MessageEvent(id: 0,
+      message: eg.streamMessage(stream: stream)));
     checkNotNotified();
     check(model).fetched.isFalse();
     checkInvariants(model);
@@ -537,7 +540,8 @@ void main() {
     await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
-    model.maybeAddMessage(eg.streamMessage(stream: stream));
+    model.handleMessageEvent(MessageEvent(id: 0,
+      message: eg.streamMessage(stream: stream)));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
 
@@ -592,24 +596,29 @@ void main() {
       check(model.messages.map((m) => m.id))
         .deepEquals(expected..insertAll(0, [101, 103, 105]));
 
-      // … and on maybeAddMessage.
-      model.maybeAddMessage(eg.streamMessage(id: 301, stream: stream1, topic: 'A'));
+      // … and on handleMessageEvent.
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 301, stream: stream1, topic: 'A')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
 
-      model.maybeAddMessage(eg.streamMessage(id: 302, stream: stream1, topic: 'B'));
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 302, stream: stream1, topic: 'B')));
       checkNotNotified();
       check(model.messages.map((m) => m.id)).deepEquals(expected);
 
-      model.maybeAddMessage(eg.streamMessage(id: 303, stream: stream2, topic: 'C'));
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 303, stream: stream2, topic: 'C')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(303));
 
-      model.maybeAddMessage(eg.streamMessage(id: 304, stream: stream2, topic: 'D'));
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 304, stream: stream2, topic: 'D')));
       checkNotNotified();
       check(model.messages.map((m) => m.id)).deepEquals(expected);
 
-      model.maybeAddMessage(eg.dmMessage(id: 305, from: eg.otherUser, to: [eg.selfUser]));
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.dmMessage(id: 305, from: eg.otherUser, to: [eg.selfUser])));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(305));
     });
@@ -644,16 +653,19 @@ void main() {
       check(model.messages.map((m) => m.id))
         .deepEquals(expected..insertAll(0, [101, 102]));
 
-      // … and on maybeAddMessage.
-      model.maybeAddMessage(eg.streamMessage(id: 301, stream: stream, topic: 'A'));
+      // … and on handleMessageEvent.
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 301, stream: stream, topic: 'A')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
 
-      model.maybeAddMessage(eg.streamMessage(id: 302, stream: stream, topic: 'B'));
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 302, stream: stream, topic: 'B')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(302));
 
-      model.maybeAddMessage(eg.streamMessage(id: 303, stream: stream, topic: 'C'));
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 303, stream: stream, topic: 'C')));
       checkNotNotified();
       check(model.messages.map((m) => m.id)).deepEquals(expected);
     });
@@ -683,8 +695,9 @@ void main() {
       check(model.messages.map((m) => m.id))
         .deepEquals(expected..insertAll(0, [101]));
 
-      // … and on maybeAddMessage.
-      model.maybeAddMessage(eg.streamMessage(id: 301, stream: stream, topic: 'A'));
+      // … and on handleMessageEvent.
+      model.handleMessageEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(id: 301, stream: stream, topic: 'A')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
     });
@@ -737,12 +750,12 @@ void main() {
     await model.fetchOlder();
     checkNotified(count: 2);
 
-    // Then test maybeAddMessage, where a new header is needed…
-    model.maybeAddMessage(streamMessage(13));
+    // Then test handleMessageEvent, where a new header is needed…
+    model.handleMessageEvent(MessageEvent(id: 0, message: streamMessage(13)));
     checkNotifiedOnce();
 
     // … and where it's not.
-    model.maybeAddMessage(streamMessage(14));
+    model.handleMessageEvent(MessageEvent(id: 0, message: streamMessage(14)));
     checkNotifiedOnce();
 
     // Then test maybeUpdateMessage, where a header is and remains needed…
@@ -781,7 +794,7 @@ void main() {
     // Until then, we always compute this sequentially from oldest to newest.
     // So we just need to exercise the different cases of the logic for
     // whether the sender should be shown, but the difference between
-    // fetchInitial and maybeAddMessage etc. doesn't matter.
+    // fetchInitial and handleMessageEvent etc. doesn't matter.
 
     const t1 = 1693602618;
     const t2 = t1 + 86400;

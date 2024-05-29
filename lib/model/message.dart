@@ -38,7 +38,7 @@ class MessageStoreImpl with MessageStore {
 
   void handleMessageEvent(MessageEvent event) {
     for (final view in _messageListViews) {
-      view.maybeAddMessage(event.message);
+      view.handleMessageEvent(event);
     }
   }
 

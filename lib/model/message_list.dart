@@ -426,10 +426,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  /// Add [message] to this view, if it belongs here.
-  ///
-  /// Called in particular when we get a [MessageEvent].
-  void maybeAddMessage(Message message) {
+  /// Add [MessageEvent.message] to this view, if it belongs here.
+  void handleMessageEvent(MessageEvent event) {
+    final message = event.message;
     if (!narrow.containsMessage(message) || !_messageVisible(message)) {
       return;
     }
