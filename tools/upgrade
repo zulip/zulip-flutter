@@ -163,7 +163,7 @@ upgrade_pub_major() {
     git commit -a -m "\
 WIP deps: Upgrade packages to latest, namely TODO:(which packages?)
 
-This is the result of \`tools/upgrade pod-major\`, and
+This is the result of \`tools/upgrade pub-major\`, and
 TODO:(describe any other changes you had to make).
 
 Changelogs:
