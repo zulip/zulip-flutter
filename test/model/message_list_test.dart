@@ -7,6 +7,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/algorithms.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
@@ -934,9 +935,8 @@ void checkInvariants(MessageListView model) {
     }
   }
 
-  for (int i = 0; i < model.messages.length - 1; i++) {
-    check(model.messages[i].id).isLessThan(model.messages[i+1].id);
-  }
+  check(isSortedWithoutDuplicates(model.messages.map((m) => m.id).toList()))
+    .isTrue();
 
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
