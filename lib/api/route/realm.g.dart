@@ -18,7 +18,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
           .map((e) =>
               ExternalAuthenticationMethod.fromJson(e as Map<String, dynamic>))
           .toList(),
-      zulipFeatureLevel: json['zulip_feature_level'] as int,
+      zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
       zulipVersion: json['zulip_version'] as String,
       zulipMergeBase: json['zulip_merge_base'] as String?,
       pushNotificationsEnabled: json['push_notifications_enabled'] as bool,

@@ -10,10 +10,10 @@ part of 'model.dart';
 
 CustomProfileField _$CustomProfileFieldFromJson(Map<String, dynamic> json) =>
     CustomProfileField(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       type: $enumDecode(_$CustomProfileFieldTypeEnumMap, json['type'],
           unknownValue: CustomProfileFieldType.unknown),
-      order: json['order'] as int,
+      order: (json['order'] as num).toInt(),
       name: json['name'] as String,
       hint: json['hint'] as String,
       fieldData: json['field_data'] as String,
@@ -77,7 +77,7 @@ RealmEmojiItem _$RealmEmojiItemFromJson(Map<String, dynamic> json) =>
       sourceUrl: json['source_url'] as String,
       stillUrl: json['still_url'] as String?,
       deactivated: json['deactivated'] as bool,
-      authorId: json['author_id'] as int?,
+      authorId: (json['author_id'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
@@ -91,7 +91,7 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
     };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-      userId: json['user_id'] as int,
+      userId: (json['user_id'] as num).toInt(),
       deliveryEmailStaleDoNotUse: json['delivery_email'] as String?,
       email: json['email'] as String,
       fullName: json['full_name'] as String,
@@ -102,13 +102,13 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       isGuest: json['is_guest'] as bool,
       isBillingAdmin: json['is_billing_admin'] as bool?,
       isBot: json['is_bot'] as bool,
-      botType: json['bot_type'] as int?,
-      botOwnerId: json['bot_owner_id'] as int?,
+      botType: (json['bot_type'] as num?)?.toInt(),
+      botOwnerId: (json['bot_owner_id'] as num?)?.toInt(),
       role: $enumDecode(_$UserRoleEnumMap, json['role'],
           unknownValue: UserRole.unknown),
       timezone: json['timezone'] as String,
       avatarUrl: json['avatar_url'] as String?,
-      avatarVersion: json['avatar_version'] as int,
+      avatarVersion: (json['avatar_version'] as num).toInt(),
       profileData:
           (User._readProfileData(json, 'profile_data') as Map<String, dynamic>?)
               ?.map(
@@ -165,21 +165,22 @@ Map<String, dynamic> _$ProfileFieldUserDataToJson(
     };
 
 ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
-      streamId: json['stream_id'] as int,
+      streamId: (json['stream_id'] as num).toInt(),
       name: json['name'] as String,
       description: json['description'] as String,
       renderedDescription: json['rendered_description'] as String,
-      dateCreated: json['date_created'] as int,
-      firstMessageId: json['first_message_id'] as int?,
+      dateCreated: (json['date_created'] as num).toInt(),
+      firstMessageId: (json['first_message_id'] as num?)?.toInt(),
       inviteOnly: json['invite_only'] as bool,
       isWebPublic: json['is_web_public'] as bool,
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
-      messageRetentionDays: json['message_retention_days'] as int?,
+      messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
       streamPostPolicy:
           $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
-      canRemoveSubscribersGroup: ZulipStream._readCanRemoveSubscribersGroup(
-          json, 'can_remove_subscribers_group') as int?,
-      streamWeeklyTraffic: json['stream_weekly_traffic'] as int?,
+      canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
+              json, 'can_remove_subscribers_group') as num?)
+          ?.toInt(),
+      streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
@@ -208,21 +209,22 @@ const _$StreamPostPolicyEnumMap = {
 };
 
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
-      streamId: json['stream_id'] as int,
+      streamId: (json['stream_id'] as num).toInt(),
       name: json['name'] as String,
       description: json['description'] as String,
       renderedDescription: json['rendered_description'] as String,
-      dateCreated: json['date_created'] as int,
-      firstMessageId: json['first_message_id'] as int?,
+      dateCreated: (json['date_created'] as num).toInt(),
+      firstMessageId: (json['first_message_id'] as num?)?.toInt(),
       inviteOnly: json['invite_only'] as bool,
       isWebPublic: json['is_web_public'] as bool,
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
-      messageRetentionDays: json['message_retention_days'] as int?,
+      messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
       streamPostPolicy:
           $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
-      canRemoveSubscribersGroup: ZulipStream._readCanRemoveSubscribersGroup(
-          json, 'can_remove_subscribers_group') as int?,
-      streamWeeklyTraffic: json['stream_weekly_traffic'] as int?,
+      canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
+              json, 'can_remove_subscribers_group') as num?)
+          ?.toInt(),
+      streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
       desktopNotifications: json['desktop_notifications'] as bool?,
       emailNotifications: json['email_notifications'] as bool?,
       wildcardMentionsNotify: json['wildcard_mentions_notify'] as bool?,
@@ -230,7 +232,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       audibleNotifications: json['audible_notifications'] as bool?,
       pinToTop: json['pin_to_top'] as bool,
       isMuted: json['is_muted'] as bool,
-      color: Subscription._readColor(json, 'color') as int,
+      color: (Subscription._readColor(json, 'color') as num).toInt(),
     );
 
 Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
@@ -263,22 +265,22 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       isMeMessage: json['is_me_message'] as bool,
-      lastEditTimestamp: json['last_edit_timestamp'] as int?,
+      lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
       reactions: Message._reactionsFromJson(json['reactions']),
-      recipientId: json['recipient_id'] as int,
+      recipientId: (json['recipient_id'] as num).toInt(),
       senderEmail: json['sender_email'] as String,
       senderFullName: json['sender_full_name'] as String,
-      senderId: json['sender_id'] as int,
+      senderId: (json['sender_id'] as num).toInt(),
       senderRealmStr: json['sender_realm_str'] as String,
       subject: json['subject'] as String,
-      timestamp: json['timestamp'] as int,
+      timestamp: (json['timestamp'] as num).toInt(),
       flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
       matchSubject: json['match_subject'] as String?,
       displayRecipient: json['display_recipient'] as String,
-      streamId: json['stream_id'] as int,
+      streamId: (json['stream_id'] as num).toInt(),
     );
 
 Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
@@ -306,7 +308,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
     };
 
 DmRecipient _$DmRecipientFromJson(Map<String, dynamic> json) => DmRecipient(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       email: json['email'] as String,
       fullName: json['full_name'] as String,
     );
@@ -322,17 +324,17 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       isMeMessage: json['is_me_message'] as bool,
-      lastEditTimestamp: json['last_edit_timestamp'] as int?,
+      lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
       reactions: Message._reactionsFromJson(json['reactions']),
-      recipientId: json['recipient_id'] as int,
+      recipientId: (json['recipient_id'] as num).toInt(),
       senderEmail: json['sender_email'] as String,
       senderFullName: json['sender_full_name'] as String,
-      senderId: json['sender_id'] as int,
+      senderId: (json['sender_id'] as num).toInt(),
       senderRealmStr: json['sender_realm_str'] as String,
       subject: json['subject'] as String,
-      timestamp: json['timestamp'] as int,
+      timestamp: (json['timestamp'] as num).toInt(),
       flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
       matchSubject: json['match_subject'] as String?,

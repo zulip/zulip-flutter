@@ -11,8 +11,8 @@ part of 'initial_snapshot.dart';
 InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
     InitialSnapshot(
       queueId: json['queue_id'] as String?,
-      lastEventId: json['last_event_id'] as int,
-      zulipFeatureLevel: json['zulip_feature_level'] as int,
+      lastEventId: (json['last_event_id'] as num).toInt(),
+      zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
       zulipVersion: json['zulip_version'] as String,
       zulipMergeBase: json['zulip_merge_base'] as String?,
       alertWords: (json['alert_words'] as List<dynamic>)
@@ -49,7 +49,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
         (k, e) => MapEntry(
             k, RealmDefaultExternalAccount.fromJson(e as Map<String, dynamic>)),
       ),
-      maxFileUploadSizeMib: json['max_file_upload_size_mib'] as int,
+      maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
       realmUsers:
           (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
                   as List<dynamic>)
@@ -109,9 +109,10 @@ Map<String, dynamic> _$RealmDefaultExternalAccountToJson(
 RecentDmConversation _$RecentDmConversationFromJson(
         Map<String, dynamic> json) =>
     RecentDmConversation(
-      maxMessageId: json['max_message_id'] as int,
-      userIds:
-          (json['user_ids'] as List<dynamic>).map((e) => e as int).toList(),
+      maxMessageId: (json['max_message_id'] as num).toInt(),
+      userIds: (json['user_ids'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$RecentDmConversationToJson(
@@ -149,9 +150,9 @@ const _$EmojisetEnumMap = {
 
 UserTopicItem _$UserTopicItemFromJson(Map<String, dynamic> json) =>
     UserTopicItem(
-      streamId: json['stream_id'] as int,
+      streamId: (json['stream_id'] as num).toInt(),
       topicName: json['topic_name'] as String,
-      lastUpdated: json['last_updated'] as int,
+      lastUpdated: (json['last_updated'] as num).toInt(),
       visibilityPolicy: $enumDecode(
           _$UserTopicVisibilityPolicyEnumMap, json['visibility_policy'],
           unknownValue: UserTopicVisibilityPolicy.unknown),
@@ -176,7 +177,7 @@ const _$UserTopicVisibilityPolicyEnumMap = {
 UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(
         Map<String, dynamic> json) =>
     UnreadMessagesSnapshot(
-      count: json['count'] as int,
+      count: (json['count'] as num).toInt(),
       dms: (json['pms'] as List<dynamic>)
           .map((e) => UnreadDmSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -186,8 +187,9 @@ UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(
       huddles: (json['huddles'] as List<dynamic>)
           .map((e) => UnreadHuddleSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
-      mentions:
-          (json['mentions'] as List<dynamic>).map((e) => e as int).toList(),
+      mentions: (json['mentions'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
       oldUnreadsMissing: json['old_unreads_missing'] as bool,
     );
 
@@ -205,9 +207,10 @@ Map<String, dynamic> _$UnreadMessagesSnapshotToJson(
 UnreadDmSnapshot _$UnreadDmSnapshotFromJson(Map<String, dynamic> json) =>
     UnreadDmSnapshot(
       otherUserId:
-          UnreadDmSnapshot._readOtherUserId(json, 'other_user_id') as int,
+          (UnreadDmSnapshot._readOtherUserId(json, 'other_user_id') as num)
+              .toInt(),
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
-          .map((e) => e as int)
+          .map((e) => (e as num).toInt())
           .toList(),
     );
 
@@ -221,9 +224,9 @@ UnreadStreamSnapshot _$UnreadStreamSnapshotFromJson(
         Map<String, dynamic> json) =>
     UnreadStreamSnapshot(
       topic: json['topic'] as String,
-      streamId: json['stream_id'] as int,
+      streamId: (json['stream_id'] as num).toInt(),
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
-          .map((e) => e as int)
+          .map((e) => (e as num).toInt())
           .toList(),
     );
 
@@ -240,7 +243,7 @@ UnreadHuddleSnapshot _$UnreadHuddleSnapshotFromJson(
     UnreadHuddleSnapshot(
       userIdsString: json['user_ids_string'] as String,
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
-          .map((e) => e as int)
+          .map((e) => (e as num).toInt())
           .toList(),
     );
 

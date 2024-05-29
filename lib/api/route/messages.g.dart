@@ -20,7 +20,7 @@ Map<String, dynamic> _$GetMessageResultToJson(GetMessageResult instance) =>
 
 GetMessagesResult _$GetMessagesResultFromJson(Map<String, dynamic> json) =>
     GetMessagesResult(
-      anchor: json['anchor'] as int,
+      anchor: (json['anchor'] as num).toInt(),
       foundNewest: json['found_newest'] as bool,
       foundOldest: json['found_oldest'] as bool,
       foundAnchor: json['found_anchor'] as bool,
@@ -42,7 +42,7 @@ Map<String, dynamic> _$GetMessagesResultToJson(GetMessagesResult instance) =>
 
 SendMessageResult _$SendMessageResultFromJson(Map<String, dynamic> json) =>
     SendMessageResult(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
     );
 
 Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
@@ -63,8 +63,9 @@ Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
 UpdateMessageFlagsResult _$UpdateMessageFlagsResultFromJson(
         Map<String, dynamic> json) =>
     UpdateMessageFlagsResult(
-      messages:
-          (json['messages'] as List<dynamic>).map((e) => e as int).toList(),
+      messages: (json['messages'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$UpdateMessageFlagsResultToJson(
@@ -76,10 +77,10 @@ Map<String, dynamic> _$UpdateMessageFlagsResultToJson(
 UpdateMessageFlagsForNarrowResult _$UpdateMessageFlagsForNarrowResultFromJson(
         Map<String, dynamic> json) =>
     UpdateMessageFlagsForNarrowResult(
-      processedCount: json['processed_count'] as int,
-      updatedCount: json['updated_count'] as int,
-      firstProcessedId: json['first_processed_id'] as int?,
-      lastProcessedId: json['last_processed_id'] as int?,
+      processedCount: (json['processed_count'] as num).toInt(),
+      updatedCount: (json['updated_count'] as num).toInt(),
+      firstProcessedId: (json['first_processed_id'] as num?)?.toInt(),
+      lastProcessedId: (json['last_processed_id'] as num?)?.toInt(),
       foundOldest: json['found_oldest'] as bool,
       foundNewest: json['found_newest'] as bool,
     );

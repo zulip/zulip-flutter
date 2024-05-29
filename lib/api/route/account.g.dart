@@ -12,7 +12,7 @@ FetchApiKeyResult _$FetchApiKeyResultFromJson(Map<String, dynamic> json) =>
     FetchApiKeyResult(
       apiKey: json['api_key'] as String,
       email: json['email'] as String,
-      userId: json['user_id'] as int?,
+      userId: (json['user_id'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$FetchApiKeyResultToJson(FetchApiKeyResult instance) =>
