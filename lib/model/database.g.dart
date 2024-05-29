@@ -481,10 +481,219 @@ class AccountsCompanion extends UpdateCompanion<Account> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
+  _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [accounts];
+}
+
+typedef $$AccountsTableInsertCompanionBuilder = AccountsCompanion Function({
+  Value<int> id,
+  required Uri realmUrl,
+  required int userId,
+  required String email,
+  required String apiKey,
+  required String zulipVersion,
+  Value<String?> zulipMergeBase,
+  required int zulipFeatureLevel,
+  Value<String?> ackedPushToken,
+});
+typedef $$AccountsTableUpdateCompanionBuilder = AccountsCompanion Function({
+  Value<int> id,
+  Value<Uri> realmUrl,
+  Value<int> userId,
+  Value<String> email,
+  Value<String> apiKey,
+  Value<String> zulipVersion,
+  Value<String?> zulipMergeBase,
+  Value<int> zulipFeatureLevel,
+  Value<String?> ackedPushToken,
+});
+
+class $$AccountsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AccountsTable,
+    Account,
+    $$AccountsTableFilterComposer,
+    $$AccountsTableOrderingComposer,
+    $$AccountsTableProcessedTableManager,
+    $$AccountsTableInsertCompanionBuilder,
+    $$AccountsTableUpdateCompanionBuilder> {
+  $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$AccountsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$AccountsTableOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $$AccountsTableProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<Uri> realmUrl = const Value.absent(),
+            Value<int> userId = const Value.absent(),
+            Value<String> email = const Value.absent(),
+            Value<String> apiKey = const Value.absent(),
+            Value<String> zulipVersion = const Value.absent(),
+            Value<String?> zulipMergeBase = const Value.absent(),
+            Value<int> zulipFeatureLevel = const Value.absent(),
+            Value<String?> ackedPushToken = const Value.absent(),
+          }) =>
+              AccountsCompanion(
+            id: id,
+            realmUrl: realmUrl,
+            userId: userId,
+            email: email,
+            apiKey: apiKey,
+            zulipVersion: zulipVersion,
+            zulipMergeBase: zulipMergeBase,
+            zulipFeatureLevel: zulipFeatureLevel,
+            ackedPushToken: ackedPushToken,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required Uri realmUrl,
+            required int userId,
+            required String email,
+            required String apiKey,
+            required String zulipVersion,
+            Value<String?> zulipMergeBase = const Value.absent(),
+            required int zulipFeatureLevel,
+            Value<String?> ackedPushToken = const Value.absent(),
+          }) =>
+              AccountsCompanion.insert(
+            id: id,
+            realmUrl: realmUrl,
+            userId: userId,
+            email: email,
+            apiKey: apiKey,
+            zulipVersion: zulipVersion,
+            zulipMergeBase: zulipMergeBase,
+            zulipFeatureLevel: zulipFeatureLevel,
+            ackedPushToken: ackedPushToken,
+          ),
+        ));
+}
+
+class $$AccountsTableProcessedTableManager extends ProcessedTableManager<
+    _$AppDatabase,
+    $AccountsTable,
+    Account,
+    $$AccountsTableFilterComposer,
+    $$AccountsTableOrderingComposer,
+    $$AccountsTableProcessedTableManager,
+    $$AccountsTableInsertCompanionBuilder,
+    $$AccountsTableUpdateCompanionBuilder> {
+  $$AccountsTableProcessedTableManager(super.$state);
+}
+
+class $$AccountsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get realmUrl =>
+      $state.composableBuilder(
+          column: $state.table.realmUrl,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get userId => $state.composableBuilder(
+      column: $state.table.userId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get email => $state.composableBuilder(
+      column: $state.table.email,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get apiKey => $state.composableBuilder(
+      column: $state.table.apiKey,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get zulipVersion => $state.composableBuilder(
+      column: $state.table.zulipVersion,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get zulipMergeBase => $state.composableBuilder(
+      column: $state.table.zulipMergeBase,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get zulipFeatureLevel => $state.composableBuilder(
+      column: $state.table.zulipFeatureLevel,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get ackedPushToken => $state.composableBuilder(
+      column: $state.table.ackedPushToken,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$AccountsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get realmUrl => $state.composableBuilder(
+      column: $state.table.realmUrl,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get userId => $state.composableBuilder(
+      column: $state.table.userId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get email => $state.composableBuilder(
+      column: $state.table.email,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get apiKey => $state.composableBuilder(
+      column: $state.table.apiKey,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get zulipVersion => $state.composableBuilder(
+      column: $state.table.zulipVersion,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get zulipMergeBase => $state.composableBuilder(
+      column: $state.table.zulipMergeBase,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get zulipFeatureLevel => $state.composableBuilder(
+      column: $state.table.zulipFeatureLevel,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get ackedPushToken => $state.composableBuilder(
+      column: $state.table.ackedPushToken,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+class _$AppDatabaseManager {
+  final _$AppDatabase _db;
+  _$AppDatabaseManager(this._db);
+  $$AccountsTableTableManager get accounts =>
+      $$AccountsTableTableManager(_db, _db.accounts);
 }
