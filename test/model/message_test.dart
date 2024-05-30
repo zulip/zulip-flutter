@@ -11,6 +11,7 @@ import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
 import 'message_list_test.dart';
+import 'store_checks.dart';
 import 'test_store.dart';
 
 void main() {
@@ -157,6 +158,88 @@ void main() {
       final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
       await store.handleEvent(MessageEvent(id: 1, message: newMessage));
       check(store.messages).deepEquals({1: newMessage});
+    });
+  });
+
+  group('handleUpdateMessageEvent', () {
+    test('update a message', () async {
+      final originalMessage = eg.streamMessage(
+        content: "<p>Hello, world</p>");
+      final updateEvent = eg.updateMessageEditEvent(originalMessage,
+        flags: [MessageFlag.starred],
+        renderedContent: "<p>Hello, edited</p>",
+        editTimestamp: 99999,
+        isMeMessage: true,
+      );
+      await prepare();
+      await prepareMessages([originalMessage]);
+
+      final message = store.messages.values.single;
+      check(message)
+        ..content.not((it) => it.equals(updateEvent.renderedContent!))
+        ..lastEditTimestamp.isNull()
+        ..flags.not((it) => it.deepEquals(updateEvent.flags))
+        ..isMeMessage.not((it) => it.equals(updateEvent.isMeMessage!));
+
+      await store.handleEvent(updateEvent);
+      checkNotifiedOnce();
+      check(store).messages.values.single
+        ..identicalTo(message)
+        ..content.equals(updateEvent.renderedContent!)
+        ..lastEditTimestamp.equals(updateEvent.editTimestamp)
+        ..flags.equals(updateEvent.flags)
+        ..isMeMessage.equals(updateEvent.isMeMessage!);
+    });
+
+    test('ignore when message unknown', () async {
+      final originalMessage = eg.streamMessage(
+        content: "<p>Hello, world</p>");
+      final updateEvent = eg.updateMessageEditEvent(originalMessage,
+        messageId: originalMessage.id + 1,
+        renderedContent: "<p>Hello, edited</p>",
+      );
+      await prepare();
+      await prepareMessages([originalMessage]);
+
+      await store.handleEvent(updateEvent);
+      checkNotNotified();
+      check(store).messages.values.single
+        ..content.equals(originalMessage.content)
+        ..content.not((it) => it.equals(updateEvent.renderedContent!));
+    });
+
+    // TODO(server-5): Cut legacy case for rendering-only message update
+    Future<void> checkRenderingOnly({required bool legacy}) async {
+      final originalMessage = eg.streamMessage(
+        lastEditTimestamp: 78492,
+        content: "<p>Hello, world</p>");
+      final updateEvent = eg.updateMessageEditEvent(originalMessage,
+        renderedContent: "<p>Hello, world</p> <div>Some link preview</div>",
+        editTimestamp: 99999,
+        renderingOnly: legacy ? null : true,
+        userId: null,
+      );
+      await prepare();
+      await prepareMessages([originalMessage]);
+      final message = store.messages.values.single;
+
+      await store.handleEvent(updateEvent);
+      checkNotifiedOnce();
+      check(store).messages.values.single
+        ..identicalTo(message)
+        // Content is updated...
+        ..content.equals(updateEvent.renderedContent!)
+        // ... edit timestamp is not.
+        ..lastEditTimestamp.equals(originalMessage.lastEditTimestamp)
+        ..lastEditTimestamp.not((it) => it.equals(updateEvent.editTimestamp));
+    }
+
+    test('rendering-only update does not change timestamp', () async {
+      await checkRenderingOnly(legacy: false);
+    });
+
+    test('rendering-only update does not change timestamp (for old server versions)', () async {
+      await checkRenderingOnly(legacy: true);
     });
   });
 
