@@ -483,7 +483,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// TODO(#150): Handle message moves.
   // NB that when handling message moves (#150), recipient headers
   // may need updating, and consequently showSender too.
-  void maybeUpdateMessage(UpdateMessageEvent event) {
+  void handleUpdateMessageEvent(UpdateMessageEvent event) {
     final idx = _findMessageWithId(event.messageId);
     if (idx == -1)  {
       return;

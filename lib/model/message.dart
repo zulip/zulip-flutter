@@ -94,7 +94,7 @@ class MessageStoreImpl with MessageStore {
 
   void handleUpdateMessageEvent(UpdateMessageEvent event) {
     for (final view in _messageListViews) {
-      view.maybeUpdateMessage(event); // TODO update mainly in [messages] instead
+      view.handleUpdateMessageEvent(event); // TODO update mainly in [messages] instead
     }
   }
 
