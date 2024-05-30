@@ -47,6 +47,10 @@
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."
   },
+  "actionSheetOptionCopyMessageLink": "Copy link to message",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
@@ -171,6 +175,10 @@
   "successMessageTextCopied": "Message text copied",
   "@successMessageTextCopied": {
     "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "successMessageLinkCopied": "Message link copied",
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
   },
   "composeBoxAttachFilesTooltip": "Attach files",
   "@composeBoxAttachFilesTooltip": {
