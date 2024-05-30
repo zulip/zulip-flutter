@@ -306,7 +306,7 @@ void main() {
     });
   });
 
-  group('handleUpdateMessageEvent', () {
+  group('UpdateMessageEvent', () {
     test('update a message', () async {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
@@ -326,7 +326,7 @@ void main() {
         ..flags.not((it) => it.deepEquals(updateEvent.flags))
         ..isMeMessage.not((it) => it.equals(updateEvent.isMeMessage!));
 
-      model.handleUpdateMessageEvent(updateEvent);
+      await store.handleEvent(updateEvent);
       checkNotifiedOnce();
       check(model).messages.single
         ..identicalTo(message)
@@ -346,7 +346,7 @@ void main() {
       await prepare();
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
 
-      model.handleUpdateMessageEvent(updateEvent);
+      await store.handleEvent(updateEvent);
       checkNotNotified();
       check(model).messages.single
         ..content.equals(originalMessage.content)
@@ -368,7 +368,7 @@ void main() {
       await prepareMessages(foundOldest: true, messages: [originalMessage]);
       final message = model.messages.single;
 
-      model.handleUpdateMessageEvent(updateEvent);
+      await store.handleEvent(updateEvent);
       checkNotifiedOnce();
       check(model).messages.single
         ..identicalTo(message)
@@ -792,17 +792,17 @@ void main() {
     await store.handleEvent(MessageEvent(id: 0, message: streamMessage(14)));
     checkNotifiedOnce();
 
-    // Then test handleUpdateMessageEvent, where a header is and remains needed…
+    // Then test UpdateMessageEvent edits, where a header is and remains needed…
     UpdateMessageEvent updateEvent(Message message) => eg.updateMessageEditEvent(
       message, renderedContent: '${message.content}<p>edited</p>',
     );
-    model.handleUpdateMessageEvent(updateEvent(model.messages.first));
+    await store.handleEvent(updateEvent(model.messages.first));
     checkNotifiedOnce();
-    model.handleUpdateMessageEvent(updateEvent(model.messages[model.messages.length - 2]));
+    await store.handleEvent(updateEvent(model.messages[model.messages.length - 2]));
     checkNotifiedOnce();
 
     // … and where it's not.
-    model.handleUpdateMessageEvent(updateEvent(model.messages.last));
+    await store.handleEvent(updateEvent(model.messages.last));
     checkNotifiedOnce();
 
     // Then test reassemble.
