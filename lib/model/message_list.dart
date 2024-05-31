@@ -460,7 +460,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  void maybeUpdateMessageFlags(UpdateMessageFlagsEvent event) {
+  void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
     final isAdd = switch (event) {
       UpdateMessageFlagsAddEvent()    => true,
       UpdateMessageFlagsRemoveEvent() => false,

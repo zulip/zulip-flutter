@@ -339,7 +339,7 @@ void main() {
     });
   });
 
-  group('maybeUpdateMessageFlags', () {
+  group('handleUpdateMessageFlagsEvent', () {
     UpdateMessageFlagsAddEvent mkAddEvent(
       MessageFlag flag,
       List<int> messageIds, {
@@ -360,7 +360,7 @@ void main() {
         await prepare();
         final message = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message]);
-        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
+        model.handleUpdateMessageFlagsEvent(mkAddEvent(MessageFlag.read, [2]));
         checkNotNotified();
         check(model).messages.single.flags.deepEquals([]);
       });
@@ -370,7 +370,7 @@ void main() {
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
-        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [message2.id, 3]));
+        model.handleUpdateMessageFlagsEvent(mkAddEvent(MessageFlag.read, [message2.id, 3]));
         checkNotifiedOnce();
         check(model).messages
           ..[0].flags.deepEquals([])
@@ -382,7 +382,7 @@ void main() {
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
-        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [], all: true));
+        model.handleUpdateMessageFlagsEvent(mkAddEvent(MessageFlag.read, [], all: true));
         checkNotifiedOnce();
         check(model).messages
           ..[0].flags.deepEquals([MessageFlag.read])
@@ -392,7 +392,7 @@ void main() {
       test('all: true, list empty', () async {
         await prepare();
         await prepareMessages(foundOldest: true, messages: []);
-        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [], all: true));
+        model.handleUpdateMessageFlagsEvent(mkAddEvent(MessageFlag.read, [], all: true));
         checkNotNotified();
       });
 
@@ -400,7 +400,7 @@ void main() {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
         await prepare();
         await prepareMessages(foundOldest: true, messages: [message]);
-        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [message.id]));
+        model.handleUpdateMessageFlagsEvent(mkAddEvent(MessageFlag.read, [message.id]));
         checkNotifiedOnce();
         check(model).messages.single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
       });
@@ -411,7 +411,7 @@ void main() {
         await prepare();
         final message = eg.streamMessage(flags: [MessageFlag.read]);
         await prepareMessages(foundOldest: true, messages: [message]);
-        model.maybeUpdateMessageFlags(mkAddEvent(MessageFlag.read, [2]));
+        model.handleUpdateMessageFlagsEvent(mkAddEvent(MessageFlag.read, [2]));
         checkNotNotified();
         check(model).messages.single.flags.deepEquals([MessageFlag.read]);
       });
@@ -422,7 +422,7 @@ void main() {
         final message2 = eg.streamMessage(flags: [MessageFlag.read]);
         final message3 = eg.streamMessage(flags: [MessageFlag.read]);
         await prepareMessages(foundOldest: true, messages: [message1, message2]);
-        model.maybeUpdateMessageFlags(mkRemoveEvent(MessageFlag.read, [message2, message3]));
+        model.handleUpdateMessageFlagsEvent(mkRemoveEvent(MessageFlag.read, [message2, message3]));
         checkNotifiedOnce();
         check(model).messages
           ..[0].flags.deepEquals([MessageFlag.read])
@@ -433,7 +433,7 @@ void main() {
         final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
         await prepare();
         await prepareMessages(foundOldest: true, messages: [message]);
-        model.maybeUpdateMessageFlags(mkRemoveEvent(MessageFlag.read, [message]));
+        model.handleUpdateMessageFlagsEvent(mkRemoveEvent(MessageFlag.read, [message]));
         checkNotifiedOnce();
         check(model).messages.single.flags.deepEquals([MessageFlag.starred]);
       });
