@@ -133,8 +133,36 @@ class MessageStoreImpl with MessageStore {
   }
 
   void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
-    for (final view in _messageListViews) {
-      view.handleUpdateMessageFlagsEvent(event); // TODO update mainly in [messages] instead
+    final isAdd = switch (event) {
+      UpdateMessageFlagsAddEvent()    => true,
+      UpdateMessageFlagsRemoveEvent() => false,
+    };
+
+    if (isAdd && (event as UpdateMessageFlagsAddEvent).all) {
+      for (final message in messages.values) {
+        message.flags.add(event.flag);
+      }
+
+      for (final view in _messageListViews) {
+        if (view.messages.isEmpty) continue;
+        view.notifyListeners();
+      }
+    } else {
+      bool anyMessageFound = false;
+      for (final messageId in event.messages) {
+        final message = messages[messageId];
+        if (message == null) continue; // a message we don't know about yet
+        anyMessageFound = true;
+
+        isAdd
+          ? message.flags.add(event.flag)
+          : message.flags.remove(event.flag);
+      }
+      if (anyMessageFound) {
+        for (final view in _messageListViews) {
+          view.notifyListenersIfAnyMessagePresent(event.messages);
+        }
+      }
     }
   }
 

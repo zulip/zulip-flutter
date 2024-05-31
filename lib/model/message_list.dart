@@ -444,10 +444,25 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     notifyListeners();
   }
 
+  // Repeal the `@protected` annotation that applies on the base implementation,
+  // so we can call this method from [MessageStoreImpl].
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+  }
+
   /// Notify listeners if the given message is present in this view.
   void notifyListenersIfMessagePresent(int messageId) {
     final index = _findMessageWithId(messageId);
     if (index != -1) {
+      notifyListeners();
+    }
+  }
+
+  /// Notify listeners if any of the given messages is present in this view.
+  void notifyListenersIfAnyMessagePresent(Iterable<int> messageIds) {
+    final isAnyPresent = messageIds.any((id) => _findMessageWithId(id) != -1);
+    if (isAnyPresent) {
       notifyListeners();
     }
   }
@@ -458,35 +473,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       _reparseContent(index);
       notifyListeners();
     }
-  }
-
-  void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
-    final isAdd = switch (event) {
-      UpdateMessageFlagsAddEvent()    => true,
-      UpdateMessageFlagsRemoveEvent() => false,
-    };
-
-    bool didUpdateAny = false;
-    if (isAdd && (event as UpdateMessageFlagsAddEvent).all) {
-      for (final message in messages) {
-        message.flags.add(event.flag);
-        didUpdateAny = true;
-      }
-    } else {
-      for (final messageId in event.messages) {
-        final index = _findMessageWithId(messageId);
-        if (index != -1) {
-          final message = messages[index];
-          isAdd ? message.flags.add(event.flag) : message.flags.remove(event.flag);
-          didUpdateAny = true;
-        }
-      }
-    }
-    if (!didUpdateAny) {
-      return;
-    }
-
-    notifyListeners();
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.

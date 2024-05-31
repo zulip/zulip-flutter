@@ -306,6 +306,33 @@ void main() {
     });
   });
 
+  group('notifyListenersIfAnyMessagePresent', () {
+    final messages = List.generate(100, (i) => eg.streamMessage(id: 100 + i));
+
+    test('all messages present', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false, messages: messages);
+      model.notifyListenersIfAnyMessagePresent([150, 151, 152]);
+      checkNotifiedOnce();
+    });
+
+    test('some messages present', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false,
+        messages: messages.where((m) => m.id != 151).toList());
+      model.notifyListenersIfAnyMessagePresent([150, 151, 152]);
+      checkNotifiedOnce();
+    });
+
+    test('no messages present', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false, messages:
+        messages.where((m) => ![150, 151, 152].contains(m.id)).toList());
+      model.notifyListenersIfAnyMessagePresent([150, 151, 152]);
+      checkNotNotified();
+    });
+  });
+
   group('messageContentChanged', () {
     test('message present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
@@ -428,7 +455,18 @@ void main() {
       );
     });
 
-    // TODO(#455) message flags
+    test('UpdateMessageFlagsEvent is applied even when message not in any msglists', () async {
+      await checkApplied(
+        mkEvent: (message) => UpdateMessageFlagsAddEvent(
+          id: 1,
+          flag: MessageFlag.starred,
+          messages: [message.id],
+          all: false,
+        ),
+        doCheckMessageAfterFetch:
+          (messageSubject) => messageSubject.flags.contains(MessageFlag.starred),
+      );
+    });
   });
 
   test('reassemble', () async {
