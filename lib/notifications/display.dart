@@ -89,7 +89,7 @@ class NotificationDisplayManager {
     }
   }
 
-  static void _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) {
+  static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     final title = switch (data.recipient) {
@@ -103,13 +103,16 @@ class NotificationDisplayManager {
       FcmMessageDmRecipient() =>
         data.senderFullName,
     };
-    final conversationKey = _conversationKey(data);
-    ZulipBinding.instance.androidNotificationHost.notify(
+    final groupKey = _groupKey(data);
+    final conversationKey = _conversationKey(data, groupKey);
+
+    await ZulipBinding.instance.androidNotificationHost.notify(
       // TODO the notification ID can be constant, instead of matching requestCode
       //   (This is a legacy of `flutter_local_notifications`.)
       id: notificationIdAsHashOf(conversationKey),
       tag: conversationKey,
       channelId: NotificationChannelManager.kChannelId,
+      groupKey: groupKey,
 
       contentTitle: title,
       contentText: data.content,
@@ -140,6 +143,21 @@ class NotificationDisplayManager {
         //   (This is a legacy of `flutter_local_notifications`.)
         ),
     );
+
+    await ZulipBinding.instance.androidNotificationHost.notify(
+      id: notificationIdAsHashOf(groupKey),
+      tag: groupKey,
+      channelId: NotificationChannelManager.kChannelId,
+      groupKey: groupKey,
+      isGroupSummary: true,
+
+      color: kZulipBrandColor.value,
+      // TODO vary notification icon for debug
+      smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
+      inboxStyle: InboxStyle(
+        // TODO(#570) Show organization name, not URL
+        summaryText: data.realmUri.toString()),
+    );
   }
 
   /// A notification ID, derived as a hash of the given string key.
@@ -157,8 +175,7 @@ class NotificationDisplayManager {
       | ((bytes[3] & 0x7f) << 24);
   }
 
-  static String _conversationKey(MessageFcmMessage data) {
-    final groupKey = _groupKey(data);
+  static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
       FcmMessageStreamRecipient(:var streamId, :var topic) => 'stream:$streamId:$topic',
       FcmMessageDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',

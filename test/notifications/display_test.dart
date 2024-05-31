@@ -111,24 +111,48 @@ void main() {
       required String expectedTagComponent,
     }) {
       final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
+      final expectedGroupKey = '${data.realmUri}|${data.userId}';
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       const expectedIntentFlags =
         PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
-      check(testBinding.androidNotificationHost.takeNotifyCalls()).single
-        ..id.equals(expectedId)
-        ..tag.equals(expectedTag)
-        ..channelId.equals(NotificationChannelManager.kChannelId)
-        ..contentTitle.equals(expectedTitle)
-        ..contentText.equals(data.content)
-        ..color.equals(kZulipBrandColor.value)
-        ..smallIconResourceName.equals('zulip_notification')
-        ..extras.isNull()
-        ..contentIntent.which((it) => it.isNotNull()
-          ..requestCode.equals(expectedId)
-          ..flags.equals(expectedIntentFlags)
-          ..intentPayload.equals(jsonEncode(data.toJson()))
-        );
+
+      check(testBinding.androidNotificationHost.takeNotifyCalls())
+        ..length.equals(2)
+        ..containsInOrder(<Condition<AndroidNotificationHostApiNotifyCall>>[
+          (it) => it
+            ..id.equals(expectedId)
+            ..tag.equals(expectedTag)
+            ..channelId.equals(NotificationChannelManager.kChannelId)
+            ..contentTitle.equals(expectedTitle)
+            ..contentText.equals(data.content)
+            ..color.equals(kZulipBrandColor.value)
+            ..smallIconResourceName.equals('zulip_notification')
+            ..extras.isNull()
+            ..groupKey.equals(expectedGroupKey)
+            ..isGroupSummary.isNull()
+            ..inboxStyle.isNull()
+            ..autoCancel.isNull()
+            ..contentIntent.which((it) => it.isNotNull()
+              ..requestCode.equals(expectedId)
+              ..flags.equals(expectedIntentFlags)
+              ..intentPayload.equals(jsonEncode(data.toJson()))),
+          (it) => it
+            ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+            ..tag.equals(expectedGroupKey)
+            ..channelId.equals(NotificationChannelManager.kChannelId)
+            ..contentTitle.isNull()
+            ..contentText.isNull()
+            ..color.equals(kZulipBrandColor.value)
+            ..smallIconResourceName.equals('zulip_notification')
+            ..extras.isNull()
+            ..groupKey.equals(expectedGroupKey)
+            ..isGroupSummary.equals(true)
+            ..inboxStyle.which((it) => it.isNotNull()
+              ..summaryText.equals(data.realmUri.toString()))
+            ..autoCancel.isNull()
+            ..contentIntent.isNull()
+        ]);
     }
 
     Future<void> checkNotifications(FakeAsync async, MessageFcmMessage data, {
@@ -369,12 +393,16 @@ extension AndroidNotificationChannelChecks on Subject<AndroidNotificationChannel
 extension on Subject<AndroidNotificationHostApiNotifyCall> {
   Subject<String?> get tag => has((x) => x.tag, 'tag');
   Subject<int> get id => has((x) => x.id, 'id');
+  Subject<bool?> get autoCancel => has((x) => x.autoCancel, 'autoCancel');
   Subject<String> get channelId => has((x) => x.channelId, 'channelId');
   Subject<int?> get color => has((x) => x.color, 'color');
   Subject<PendingIntent?> get contentIntent => has((x) => x.contentIntent, 'contentIntent');
   Subject<String?> get contentText => has((x) => x.contentText, 'contentText');
   Subject<String?> get contentTitle => has((x) => x.contentTitle, 'contentTitle');
   Subject<Map<String?, String?>?> get extras => has((x) => x.extras, 'extras');
+  Subject<String?> get groupKey => has((x) => x.groupKey, 'groupKey');
+  Subject<InboxStyle?> get inboxStyle => has((x) => x.inboxStyle, 'inboxStyle');
+  Subject<bool?> get isGroupSummary => has((x) => x.isGroupSummary, 'isGroupSummary');
   Subject<String?> get smallIconResourceName => has((x) => x.smallIconResourceName, 'smallIconResourceName');
 }
 
@@ -382,4 +410,8 @@ extension on Subject<PendingIntent> {
   Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
   Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
   Subject<int> get flags => has((x) => x.flags, 'flags');
+}
+
+extension on Subject<InboxStyle> {
+  Subject<String> get summaryText => has((x) => x.summaryText, 'summaryText');
 }
