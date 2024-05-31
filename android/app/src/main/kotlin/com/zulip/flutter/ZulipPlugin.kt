@@ -23,15 +23,20 @@ private class AndroidNotificationHost(val context: Context)
     override fun notify(
         tag: String?,
         id: Long,
+        autoCancel: Boolean?,
         channelId: String,
         color: Long?,
         contentIntent: PendingIntent?,
         contentText: String?,
         contentTitle: String?,
         extras: Map<String?, String?>?,
+        groupKey: String?,
+        inboxStyle: InboxStyle?,
+        isGroupSummary: Boolean?,
         smallIconResourceName: String?
     ) {
         val notification = NotificationCompat.Builder(context, channelId).apply {
+            autoCancel?.let { setAutoCancel(it) }
             color?.let { setColor(it.toInt()) }
             contentIntent?.let { setContentIntent(
                 android.app.PendingIntent.getActivity(context,
@@ -49,6 +54,12 @@ private class AndroidNotificationHost(val context: Context)
             contentTitle?.let { setContentTitle(it) }
             extras?.let { setExtras(
                 Bundle().apply { it.forEach { (k, v) -> putString(k, v) } } ) }
+            groupKey?.let { setGroup(it) }
+            inboxStyle?.let { setStyle(
+                NotificationCompat.InboxStyle()
+                    .setSummaryText(it.summaryText)
+            ) }
+            isGroupSummary?.let { setGroupSummary(it) }
             smallIconResourceName?.let { setSmallIcon(context.resources.getIdentifier(
                 it, "drawable", context.packageName)) }
         }.build()

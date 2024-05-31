@@ -27,6 +27,15 @@ class PendingIntent {
   final int flags;
 }
 
+/// Corresponds to `androidx.core.app.NotificationCompat.InboxStyle`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.InboxStyle
+class InboxStyle {
+  InboxStyle({required this.summaryText});
+
+  final String summaryText;
+}
+
 @HostApi()
 abstract class AndroidNotificationHostApi {
   /// Corresponds to `android.app.NotificationManager.notify`,
@@ -54,12 +63,16 @@ abstract class AndroidNotificationHostApi {
     required int id,
 
     // The remaining arguments go to method calls on NotificationCompat.Builder.
+    bool? autoCancel,
     required String channelId,
     int? color,
     PendingIntent? contentIntent,
     String? contentText,
     String? contentTitle,
     Map<String?, String?>? extras,
+    String? groupKey,
+    InboxStyle? inboxStyle,
+    bool? isGroupSummary,
     String? smallIconResourceName,
     // NotificationCompat.Builder has lots more methods; add as needed.
     // Keep them alphabetized, for easy comparison with that class's docs.

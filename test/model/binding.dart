@@ -496,23 +496,31 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   Future<void> notify({
     String? tag,
     required int id,
+    bool? autoCancel,
     required String channelId,
     int? color,
     PendingIntent? contentIntent,
     String? contentText,
     String? contentTitle,
     Map<String?, String?>? extras,
+    String? groupKey,
+    InboxStyle? inboxStyle,
+    bool? isGroupSummary,
     String? smallIconResourceName,
   }) async {
     _notifyCalls.add((
       tag: tag,
       id: id,
+      autoCancel: autoCancel,
       channelId: channelId,
       color: color,
       contentIntent: contentIntent,
       contentText: contentText,
       contentTitle: contentTitle,
       extras: extras,
+      groupKey: groupKey,
+      inboxStyle: inboxStyle,
+      isGroupSummary: isGroupSummary,
       smallIconResourceName: smallIconResourceName,
     ));
   }
@@ -521,11 +529,15 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
 typedef AndroidNotificationHostApiNotifyCall = ({
   String? tag,
   int id,
+  bool? autoCancel,
   String channelId,
   int? color,
   PendingIntent? contentIntent,
   String? contentText,
   String? contentTitle,
   Map<String?, String?>? extras,
+  String? groupKey,
+  InboxStyle? inboxStyle,
+  bool? isGroupSummary,
   String? smallIconResourceName,
 });

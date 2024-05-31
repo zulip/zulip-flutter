@@ -82,12 +82,42 @@ data class PendingIntent (
     )
   }
 }
+
+/**
+ * Corresponds to `androidx.core.app.NotificationCompat.InboxStyle`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.InboxStyle
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class InboxStyle (
+  val summaryText: String
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): InboxStyle {
+      val summaryText = __pigeon_list[0] as String
+      return InboxStyle(summaryText)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      summaryText,
+    )
+  }
+}
 private object NotificationsPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           PendingIntent.fromList(it)
+        }
+      }
+      130.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          InboxStyle.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -97,6 +127,10 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
     when (value) {
       is PendingIntent -> {
         stream.write(129)
+        writeValue(stream, value.toList())
+      }
+      is InboxStyle -> {
+        stream.write(130)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -125,7 +159,7 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
    *   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
    */
-  fun notify(tag: String?, id: Long, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, smallIconResourceName: String?)
+  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, smallIconResourceName: String?)
 
   companion object {
     /** The codec used by AndroidNotificationHostApi. */
@@ -143,15 +177,19 @@ interface AndroidNotificationHostApi {
             val args = message as List<Any?>
             val tagArg = args[0] as String?
             val idArg = args[1].let { num -> if (num is Int) num.toLong() else num as Long }
-            val channelIdArg = args[2] as String
-            val colorArg = args[3].let { num -> if (num is Int) num.toLong() else num as Long? }
-            val contentIntentArg = args[4] as PendingIntent?
-            val contentTextArg = args[5] as String?
-            val contentTitleArg = args[6] as String?
-            val extrasArg = args[7] as Map<String?, String?>?
-            val smallIconResourceNameArg = args[8] as String?
+            val autoCancelArg = args[2] as Boolean?
+            val channelIdArg = args[3] as String
+            val colorArg = args[4].let { num -> if (num is Int) num.toLong() else num as Long? }
+            val contentIntentArg = args[5] as PendingIntent?
+            val contentTextArg = args[6] as String?
+            val contentTitleArg = args[7] as String?
+            val extrasArg = args[8] as Map<String?, String?>?
+            val groupKeyArg = args[9] as String?
+            val inboxStyleArg = args[10] as InboxStyle?
+            val isGroupSummaryArg = args[11] as Boolean?
+            val smallIconResourceNameArg = args[12] as String?
             val wrapped: List<Any?> = try {
-              api.notify(tagArg, idArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, smallIconResourceNameArg)
+              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, smallIconResourceNameArg)
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)
