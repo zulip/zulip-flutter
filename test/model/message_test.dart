@@ -243,6 +243,110 @@ void main() {
     });
   });
 
+  group('handleUpdateMessageFlagsEvent', () {
+    UpdateMessageFlagsAddEvent mkAddEvent(
+      MessageFlag flag,
+      List<int> messageIds, {
+      bool all = false,
+    }) {
+      return UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: flag,
+        messages: messageIds,
+        all: all,
+      );
+    }
+
+    const mkRemoveEvent = eg.updateMessageFlagsRemoveEvent;
+
+    group('add flag', () {
+      test('message is unknown', () async {
+        await prepare();
+        final message = eg.streamMessage(flags: []);
+        await prepareMessages([message]);
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
+        checkNotNotified();
+        check(store).messages.values.single.flags.deepEquals([]);
+      });
+
+      test('affected message, unaffected message, absent message', () async {
+        await prepare();
+        final message1 = eg.streamMessage(flags: []);
+        final message2 = eg.streamMessage(flags: []);
+        await prepareMessages([message1, message2]);
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [message2.id, 3]));
+        checkNotifiedOnce();
+        check(store).messages
+          ..[message1.id].flags.deepEquals([])
+          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('all: true; we have some known messages', () async {
+        await prepare();
+        final message1 = eg.streamMessage(flags: []);
+        final message2 = eg.streamMessage(flags: []);
+        await prepareMessages([message1, message2]);
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        checkNotifiedOnce();
+        check(store).messages
+          ..[message1.id].flags.deepEquals([MessageFlag.read])
+          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('all: true; we don\'t know about any messages', () async {
+        await prepare();
+        await prepareMessages([]);
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        checkNotNotified();
+      });
+
+      test('other flags not clobbered', () async {
+        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        await prepare();
+        await prepareMessages([message]);
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        checkNotifiedOnce();
+        check(store).messages.values
+          .single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
+      });
+    });
+
+    group('remove flag', () {
+      test('message is unknown', () async {
+        await prepare();
+        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        await prepareMessages([message]);
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
+        checkNotNotified();
+        check(store).messages.values
+          .single.flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('affected message, unaffected message, absent message', () async {
+        await prepare();
+        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message3 = eg.streamMessage(flags: [MessageFlag.read]);
+        await prepareMessages([message1, message2]);
+        await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message2, message3]));
+        checkNotifiedOnce();
+        check(store).messages
+          ..[message1.id].flags.deepEquals([MessageFlag.read])
+          ..[message2.id].flags.deepEquals([]);
+      });
+
+      test('other flags not affected', () async {
+        final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
+        await prepare();
+        await prepareMessages([message]);
+        await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message]));
+        checkNotifiedOnce();
+        check(store).messages.values
+          .single.flags.deepEquals([MessageFlag.starred]);
+      });
+    });
+  });
+
   group('handleReactionEvent', () {
     test('add reaction', () async {
       final originalMessage = eg.streamMessage(reactions: []);
