@@ -11,6 +11,7 @@ import 'about_zulip.dart';
 import 'inbox.dart';
 import 'login.dart';
 import 'message_list.dart';
+import 'navigation_bar.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
@@ -169,7 +170,7 @@ class ChooseAccountPage extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         onTap: () => Navigator.push(context,
-          HomePage.buildRoute(accountId: accountId))));
+          InboxPage.buildRoute(accountId: accountId))));
   }
 
   @override
@@ -251,6 +252,7 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Home")),
+      bottomNavigationBar: ZulipNavigationBar(selectedPage: HomePage,),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(
