@@ -21,7 +21,7 @@ import '../widgets/theme.dart';
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
   @visibleForTesting
-  static const kChannelId = 'messages-1';
+  static const kChannelId = 'messages-2';
 
   /// The vibration pattern we set for notifications.
   // We try to set a vibration pattern that, with the phone in one's pocket,
@@ -29,6 +29,9 @@ class NotificationChannelManager {
   // Discussion: https://chat.zulip.org/#narrow/stream/48-mobile/topic/notification.20vibration.20pattern/near/1284530
   @visibleForTesting
   static final kVibrationPattern = Int64List.fromList([0, 125, 100, 450]);
+
+  @visibleForTesting
+  static const kDefaultSound = RawResourceAndroidNotificationSound('chime3');
 
   /// Create our notification channel, if it doesn't already exist.
   //
@@ -83,7 +86,7 @@ class NotificationChannelManager {
         importance: Importance.high,
         enableLights: true,
         vibrationPattern: kVibrationPattern,
-        // TODO(#340) sound
+        sound: kDefaultSound,
       ));
   }
 }
