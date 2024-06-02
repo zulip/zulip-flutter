@@ -53,8 +53,31 @@ class NotificationChannelManager {
   //    in android/app/src/main/java/com/zulipmobile/notifications/NotificationChannelManager.kt .
   static Future<void> _ensureChannel() async {
     final plugin = ZulipBinding.instance.notifications;
-    await plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(AndroidNotificationChannel(
+    final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin == null) {
+      // TODO(log)
+      return;
+    }
+
+    // Delete any older channels.
+    var found = false;
+    final channels = await androidPlugin.getNotificationChannels();
+    if (channels != null) {
+      for (final channel in channels) {
+        if (channel.id == kChannelId) {
+          found = true;
+        } else {
+          await androidPlugin.deleteNotificationChannel(channel.id);
+        }
+      }
+    }
+    if (found) {
+      // The channel already exists, nothing to do.
+      return;
+    }
+
+    // The channel doesn't exists, create it.
+    await androidPlugin.createNotificationChannel(AndroidNotificationChannel(
         kChannelId,
         'Messages', // TODO(i18n)
         importance: Importance.high,
