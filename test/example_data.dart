@@ -457,6 +457,19 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
     })));
 }
 
+
+ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
+  return ReactionEvent(
+    id: 1,
+    op: op,
+    emojiName: reaction.emojiName,
+    emojiCode: reaction.emojiCode,
+    reactionType: reaction.reactionType,
+    userId: reaction.userId,
+    messageId: messageId,
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // The entire per-account or global state.
 //

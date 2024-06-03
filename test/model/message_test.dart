@@ -161,18 +161,6 @@ void main() {
   });
 
   group('handleReactionEvent', () {
-    ReactionEvent mkEvent(Reaction reaction, ReactionOp op, int messageId) {
-      return ReactionEvent(
-        id: 1,
-        op: op,
-        emojiName: reaction.emojiName,
-        emojiCode: reaction.emojiCode,
-        reactionType: reaction.reactionType,
-        userId: reaction.userId,
-        messageId: messageId,
-      );
-    }
-
     test('add reaction', () async {
       final originalMessage = eg.streamMessage(reactions: []);
       await prepare();
@@ -180,7 +168,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
+        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -192,7 +180,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        mkEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNull();
@@ -224,7 +212,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        mkEvent(eventReaction, ReactionOp.remove, originalMessage.id));
+        eg.reactionEvent(eventReaction, ReactionOp.remove, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -236,7 +224,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        mkEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
