@@ -231,16 +231,16 @@ abstract class _HeaderItem extends StatelessWidget {
   Color get uncollapsedBackgroundColor;
   Color? get unreadCountBadgeBackgroundColor;
 
-  Future<void> Function() get onCollapseButtonTap => () async {
+  Future<void> onCollapseButtonTap() async {
     if (!collapsed) {
       await Scrollable.ensureVisible(
         sectionContext,
         alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
       );
     }
-  };
+  }
 
-  void Function() get onRowTap;
+  Future<void> onRowTap();
 
   @override
   Widget build(BuildContext context) {
@@ -303,11 +303,11 @@ class _AllDmsHeaderItem extends _HeaderItem {
   @override get uncollapsedBackgroundColor => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
   @override get unreadCountBadgeBackgroundColor => null;
 
-  @override get onCollapseButtonTap => () async {
+  @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
     pageState.allDmsCollapsed = !collapsed;
-  };
-  @override get onRowTap => onCollapseButtonTap; // TODO open all-DMs narrow?
+  }
+  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open all-DMs narrow?
 }
 
 class _AllDmsSection extends StatelessWidget {
@@ -425,15 +425,15 @@ class _StreamHeaderItem extends _HeaderItem {
   @override get unreadCountBadgeBackgroundColor =>
     subscription.colorSwatch().unreadCountBadgeBackground;
 
-  @override get onCollapseButtonTap => () async {
+  @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
     if (collapsed) {
       pageState.uncollapseStream(subscription.streamId);
     } else {
       pageState.collapseStream(subscription.streamId);
     }
-  };
-  @override get onRowTap => onCollapseButtonTap; // TODO open stream narrow
+  }
+  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open stream narrow
 }
 
 class _StreamSection extends StatelessWidget {
