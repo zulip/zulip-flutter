@@ -313,7 +313,7 @@ class DistinctiveError extends Error {
   String toString() => message;
 }
 
-Future<T> tryRequest<T>({
+Future<T> tryRequest<T extends Object?>({
   Object? exception,
   int? httpStatus,
   Map<String, dynamic>? json,
