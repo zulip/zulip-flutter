@@ -313,7 +313,7 @@ StreamMessage streamMessage({
     ..._messagePropertiesFromContent(content, contentMarkdown),
     'display_recipient': effectiveStream.name,
     'stream_id': effectiveStream.streamId,
-    'reactions': reactions == null ? [] : Reactions(reactions),
+    'reactions': reactions == null ? <Reaction>[] : Reactions(reactions),
     'flags': flags ?? [],
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
@@ -351,7 +351,7 @@ DmMessage dmMessage({
     'display_recipient': [from, ...to]
       .map((u) => {'id': u.userId, 'email': u.email, 'full_name': u.fullName})
       .toList(growable: false),
-    'reactions': [],
+    'reactions': <Reaction>[],
     'flags': flags ?? [],
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,

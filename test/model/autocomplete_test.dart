@@ -20,7 +20,7 @@ void main() {
       final TextSelection selection;
       int? expectedSyntaxStart;
       final textBuffer = StringBuffer();
-      final caretPositions = [];
+      final caretPositions = <int>[];
       int i = 0;
       for (final char in markedText.codeUnits) {
         if (char == 94 /* ^ */) {
