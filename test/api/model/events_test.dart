@@ -83,7 +83,7 @@ void main() {
 
     check(() => DeleteMessageEvent.fromJson({
       ...baseJsonStream
-    })).throws();
+    })).throws<void>();
 
     check(() => DeleteMessageEvent.fromJson({
       ...baseJsonStream, 'stream_id': 1, 'topic': 'some topic',
@@ -91,11 +91,11 @@ void main() {
 
     check(() => DeleteMessageEvent.fromJson({
       ...baseJsonStream, 'stream_id': 1,
-    })).throws();
+    })).throws<void>();
 
     check(() => DeleteMessageEvent.fromJson({
       ...baseJsonStream, 'topic': 'some topic',
-    })).throws();
+    })).throws<void>();
   });
 
   test('update_message_flags/remove: require messageDetails in mark-as-unread', () {
@@ -110,7 +110,7 @@ void main() {
     check(() => UpdateMessageFlagsRemoveEvent.fromJson(baseJson)).returnsNormally();
     check(() => UpdateMessageFlagsRemoveEvent.fromJson({
       ...baseJson, 'flag': 'read',
-    })).throws();
+    })).throws<void>();
     check(() => UpdateMessageFlagsRemoveEvent.fromJson({
       ...baseJson,
       'flag': 'read',

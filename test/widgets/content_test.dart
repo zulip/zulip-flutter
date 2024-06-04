@@ -284,7 +284,7 @@ void main() {
       await prepare(tester, example.html);
       // The image indeed has an invalid URL.
       final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
-      check(() => Uri.parse(expectedImages.single.srcUrl)).throws();
+      check(() => Uri.parse(expectedImages.single.srcUrl)).throws<void>();
       check(tryResolveUrl(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
       // The MessageImage has shown up, but it doesn't attempt a RealmContentNetworkImage.
       check(tester.widgetList(find.byType(MessageImage))).isNotEmpty();
@@ -763,7 +763,7 @@ void main() {
     testWidgets('smoke: custom emoji with invalid URL', (tester) async {
       await prepare(tester, ContentExample.emojiCustomInvalidUrl.html);
       final url = tester.widget<MessageImageEmoji>(find.byType(MessageImageEmoji)).node.src;
-      check(() => Uri.parse(url)).throws();
+      check(() => Uri.parse(url)).throws<void>();
       debugNetworkImageHttpClientProvider = null;
     });
 
