@@ -264,7 +264,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore {
     required this.selfUserId,
     required this.userSettings,
     required this.users,
-    required streams,
+    required StreamStoreImpl streams,
     required this.unreads,
     required this.recentDmConversationsView,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),

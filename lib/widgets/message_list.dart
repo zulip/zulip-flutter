@@ -295,7 +295,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
               ])))));
   }
 
-  Widget _buildListView(context) {
+  Widget _buildListView(BuildContext context) {
     final length = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
     return CustomScrollView(

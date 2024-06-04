@@ -38,7 +38,7 @@ import 'stream.dart';
 class Unreads extends ChangeNotifier {
   factory Unreads({
     required UnreadMessagesSnapshot initial,
-    required selfUserId,
+    required int selfUserId,
     required StreamStore streamStore,
   }) {
     final streams = <int, Map<String, QueueList<int>>>{};
