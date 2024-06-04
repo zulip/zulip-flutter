@@ -45,7 +45,7 @@ class BackoffMachine {
       * min(_durationCeiling,
             _firstDuration * pow(_base, _waitsCompleted));
 
-    await Future.delayed(Duration(milliseconds: duration.round()));
+    await Future<void>.delayed(Duration(milliseconds: duration.round()));
 
     _waitsCompleted++;
   }
