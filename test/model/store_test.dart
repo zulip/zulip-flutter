@@ -326,7 +326,7 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 1);
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       check(updateMachine.lastEventId).equals(2);
 
       // Loop makes second request, and processes result.
@@ -336,7 +336,7 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 2);
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       check(updateMachine.lastEventId).equals(3);
     }));
 
@@ -353,7 +353,7 @@ void main() {
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
@@ -371,7 +371,7 @@ void main() {
       });
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
       // The global store has a new store.
       check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
@@ -387,7 +387,7 @@ void main() {
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
