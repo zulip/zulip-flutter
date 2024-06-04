@@ -122,7 +122,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
   late ServerUrlParseResult _parseResult;
 
-  _serverUrlChanged() {
+  void _serverUrlChanged() {
     setState(() {
       _parseResult = _controller.tryParse();
     });
