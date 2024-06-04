@@ -58,7 +58,7 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
-  void Function(BuildContext) get onPressed;
+  void onPressed(BuildContext context);
 
   final Message message;
   final BuildContext messageListContext;
@@ -89,7 +89,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     return 'React with 👍'; // TODO(i18n) skip translation for now
   }
 
-  @override get onPressed => (BuildContext context) async {
+  @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
     String? errorMessage;
     try {
@@ -113,7 +113,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
       await showErrorDialog(context: context,
         title: 'Adding reaction failed', message: errorMessage);
     }
-  };
+  }
 }
 
 class StarButton extends MessageActionSheetMenuItemButton {
@@ -132,7 +132,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
       : zulipLocalizations.actionSheetOptionStarMessage;
   }
 
-  @override get onPressed => (BuildContext context) async {
+  @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
     final zulipLocalizations = ZulipLocalizations.of(messageListContext);
     final op = message.flags.contains(MessageFlag.starred)
@@ -161,7 +161,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
           UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
         }, message: errorMessage);
     }
-  };
+  }
 }
 
 class ShareButton extends MessageActionSheetMenuItemButton {
@@ -178,7 +178,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionShare;
   }
 
-  @override get onPressed => (BuildContext context) async {
+  @override void onPressed(BuildContext context) async {
     // Close the message action sheet; we're about to show the share
     // sheet. (We could do this after the sharing Future settles
     // with [ShareResultStatus.success], but on iOS I get impatient with
@@ -218,7 +218,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       case ShareResultStatus.dismissed:
         // nothing to do
     }
-  };
+  }
 }
 
 /// Fetch and return the raw Markdown content for [messageId],
@@ -283,10 +283,10 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionQuoteAndReply;
   }
 
-  @override get onPressed => (BuildContext bottomSheetContext) async {
+  @override void onPressed(BuildContext context) async {
     // Close the message action sheet. We'll show the request progress
     // in the compose-box content input with a "[Quoting…]" placeholder.
-    Navigator.of(bottomSheetContext).pop();
+    Navigator.of(context).pop();
     final zulipLocalizations = ZulipLocalizations.of(messageListContext);
 
     // This will be null only if the compose box disappeared after the
@@ -327,7 +327,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
     }
-  };
+  }
 }
 
 class CopyButton extends MessageActionSheetMenuItemButton {
@@ -344,7 +344,7 @@ class CopyButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionCopy;
   }
 
-  @override get onPressed => (BuildContext context) async {
+  @override void onPressed(BuildContext context) async {
     // Close the message action sheet. We won't be showing request progress,
     // but hopefully it won't take long at all, and
     // fetchRawContentWithFeedback has a TODO for giving feedback if it does.
@@ -364,5 +364,5 @@ class CopyButton extends MessageActionSheetMenuItemButton {
     copyWithPopup(context: context,
       successContent: Text(zulipLocalizations.successMessageCopied),
       data: ClipboardData(text: rawContent));
-  };
+  }
 }
