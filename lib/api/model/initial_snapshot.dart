@@ -249,7 +249,7 @@ class UnreadDmSnapshot {
   final List<int> unreadMessageIds;
 
   // TODO(server-5): Simplify away.
-  static _readOtherUserId(Map json, String key) {
+  static dynamic _readOtherUserId(Map json, String key) {
     return json[key] ?? json['sender_id'];
   }
 
