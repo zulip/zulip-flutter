@@ -63,14 +63,14 @@ class InitialSnapshot {
   // `is_active` is sometimes absent:
   //   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/.60is_active.60.20in.20.60.2Fregister.60.20response/near/1371603
   // But for our model it's convenient to always have it; so, fill it in.
-  static Object? _readUsersIsActiveFallbackTrue(Map json, String key) {
+  static Object? _readUsersIsActiveFallbackTrue(Map<dynamic, dynamic> json, String key) {
     final list = (json[key] as List<dynamic>);
     for (final Map<String, dynamic> user in list) {
       user.putIfAbsent('is_active', () => true);
     }
     return list;
   }
-  static Object? _readUsersIsActiveFallbackFalse(Map json, String key) {
+  static Object? _readUsersIsActiveFallbackFalse(Map<dynamic, dynamic> json, String key) {
     final list = (json[key] as List<dynamic>);
     for (final Map<String, dynamic> user in list) {
       user.putIfAbsent('is_active', () => false);
@@ -249,7 +249,7 @@ class UnreadDmSnapshot {
   final List<int> unreadMessageIds;
 
   // TODO(server-5): Simplify away.
-  static dynamic _readOtherUserId(Map json, String key) {
+  static dynamic _readOtherUserId(Map<dynamic, dynamic> json, String key) {
     return json[key] ?? json['sender_id'];
   }
 

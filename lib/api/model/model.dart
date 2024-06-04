@@ -220,7 +220,7 @@ class User {
   @JsonKey(readValue: _readIsSystemBot)
   bool isSystemBot;
 
-  static Map<String, dynamic>? _readProfileData(Map json, String key) {
+  static Map<String, dynamic>? _readProfileData(Map<dynamic, dynamic> json, String key) {
     final value = (json[key] as Map<String, dynamic>?);
     // Represent `{}` as `null`, to avoid allocating a huge number
     // of LinkedHashMap data structures that we can do without.
@@ -229,7 +229,7 @@ class User {
     return (value != null && value.isNotEmpty) ? value : null;
   }
 
-  static bool _readIsSystemBot(Map json, String key) {
+  static bool _readIsSystemBot(Map<dynamic, dynamic> json, String key) {
     // This field is absent in `realm_users` and `realm_non_active_users`,
     // which contain no system bots; it's present in `cross_realm_bots`.
     return json[key]
@@ -336,7 +336,7 @@ class ZulipStream {
   // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
   final int? streamWeeklyTraffic;
 
-  static int? _readCanRemoveSubscribersGroup(Map json, String key) {
+  static int? _readCanRemoveSubscribersGroup(Map<dynamic, dynamic> json, String key) {
     return json[key] ?? json['can_remove_subscribers_group_id'];
   }
 
@@ -410,7 +410,7 @@ class Subscription extends ZulipStream {
     _color = value;
     _swatch = null;
   }
-  static Object? _readColor(Map json, String key) {
+  static Object? _readColor(Map<dynamic, dynamic> json, String key) {
     final str = (json[key] as String);
     assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
     return 0xff000000 | int.parse(str.substring(1), radix: 16);

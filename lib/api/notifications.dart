@@ -112,7 +112,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   /// zulip/zulip:zerver/lib/push_notifications.py .
   final String content;
 
-  static Object? _readWhole(Map json, String key) => json;
+  static Object? _readWhole(Map<dynamic, dynamic> json, String key) => json;
 
   MessageFcmMessage({
     required super.server,

@@ -148,7 +148,7 @@ class UserSettingsUpdateEvent extends Event {
 
   /// [value], with a check that its type corresponds to [property]
   /// (e.g., `value as bool`).
-  static Object? _readValue(Map json, String key) {
+  static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
       case UserSettingName.twentyFourHourTime:
@@ -279,7 +279,7 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final RealmUserUpdateCustomProfileField? customProfileField;
   @JsonKey(readValue: _readFromPerson) final String? newEmail;
 
-  static Object? _readFromPerson(Map json, String key) {
+  static Object? _readFromPerson(Map<dynamic, dynamic> json, String key) {
     return (json['person'] as Map<String, dynamic>)[key];
   }
 
@@ -402,7 +402,7 @@ class SubscriptionRemoveEvent extends SubscriptionEvent {
   @JsonKey(readValue: _readStreamIds)
   final List<int> streamIds;
 
-  static List<int> _readStreamIds(Map json, String key) {
+  static List<int> _readStreamIds(Map<dynamic, dynamic> json, String key) {
     return (json['subscriptions'] as List<dynamic>)
       .map((e) => (e as Map<String, dynamic>)['stream_id'] as int)
       .toList();
@@ -438,7 +438,7 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
 
   /// [value], with a check that its type corresponds to [property]
   /// (e.g., `value as bool`).
-  static Object? _readValue(Map json, String key) {
+  static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (SubscriptionProperty.fromRawString(json['property'] as String)) {
       case SubscriptionProperty.color:
