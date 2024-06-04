@@ -447,9 +447,9 @@ class Unreads extends ChangeNotifier {
 
   // TODO use efficient model lookups
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
-    final newlyEmptyStreams = [];
+    final newlyEmptyStreams = <int>[];
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
-      final newlyEmptyTopics = [];
+      final newlyEmptyTopics = <String>[];
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         messageIds.removeWhere((id) => idsToRemove.contains(id));
         if (messageIds.isEmpty) {
@@ -506,7 +506,7 @@ class Unreads extends ChangeNotifier {
 
   // TODO use efficient model lookups
   void _slowRemoveAllInDms(Set<int> idsToRemove) {
-    final newlyEmptyDms = [];
+    final newlyEmptyDms = <DmNarrow>[];
     for (final MapEntry(key: dmNarrow, value: messageIds) in dms.entries) {
       messageIds.removeWhere((id) => idsToRemove.contains(id));
       if (messageIds.isEmpty) {
