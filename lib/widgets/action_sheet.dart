@@ -82,7 +82,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override get icon => Icons.add_reaction_outlined;
+  @override IconData get icon => Icons.add_reaction_outlined;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -123,7 +123,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override get icon => ZulipIcons.star_filled;
+  @override IconData get icon => ZulipIcons.star_filled;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -171,7 +171,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override get icon => Icons.adaptive.share;
+  @override IconData get icon => Icons.adaptive.share;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -276,7 +276,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override get icon => Icons.format_quote_outlined;
+  @override IconData get icon => Icons.format_quote_outlined;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -337,7 +337,7 @@ class CopyButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override get icon => Icons.copy;
+  @override IconData get icon => Icons.copy;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {

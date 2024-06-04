@@ -293,15 +293,15 @@ class _AllDmsHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override get title => 'Direct messages'; // TODO(i18n)
-  @override get icon => ZulipIcons.user;
+  @override String get title => 'Direct messages'; // TODO(i18n)
+  @override IconData get icon => ZulipIcons.user;
 
   // TODO(#95) need dark-theme colors
-  @override get collapsedIconColor => const Color(0xFF222222);
-  @override get uncollapsedIconColor => const Color(0xFF222222);
+  @override Color get collapsedIconColor => const Color(0xFF222222);
+  @override Color get uncollapsedIconColor => const Color(0xFF222222);
 
-  @override get uncollapsedBackgroundColor => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
-  @override get unreadCountBadgeBackgroundColor => null;
+  @override Color get uncollapsedBackgroundColor => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
+  @override Color? get unreadCountBadgeBackgroundColor => null;
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
@@ -416,13 +416,13 @@ class _StreamHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override get title => subscription.name;
-  @override get icon => iconDataForStream(subscription);
-  @override get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
-  @override get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
-  @override get uncollapsedBackgroundColor =>
+  @override String get title => subscription.name;
+  @override IconData get icon => iconDataForStream(subscription);
+  @override Color get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
+  @override Color get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
+  @override Color get uncollapsedBackgroundColor =>
     subscription.colorSwatch().barBackground;
-  @override get unreadCountBadgeBackgroundColor =>
+  @override Color? get unreadCountBadgeBackgroundColor =>
     subscription.colorSwatch().unreadCountBadgeBackground;
 
   @override Future<void> onCollapseButtonTap() async {
