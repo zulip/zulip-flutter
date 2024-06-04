@@ -42,7 +42,7 @@ void main() {
     test('TimeoutException on deadlocked callback', () {
       check(() => awaitFakeAsync((async) async {
         await Completer<void>().future;
-      })).throws().isA<TimeoutException>();
+      })).throws<TimeoutException>();
     });
   });
 }
