@@ -28,15 +28,15 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
-  get allDmsCollapsed => _allDmsCollapsed;
+  bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;
-  set allDmsCollapsed(value) {
+  set allDmsCollapsed(bool value) {
     setState(() {
       _allDmsCollapsed = value;
     });
   }
 
-  get collapsedStreamIds => _collapsedStreamIds;
+  Set<int> get collapsedStreamIds => _collapsedStreamIds;
   final Set<int> _collapsedStreamIds = {};
   void collapseStream(int streamId) {
     setState(() {
