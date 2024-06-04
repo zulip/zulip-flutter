@@ -37,7 +37,7 @@ void main() {
           .first;
       check(account.toCompanion(false).toJson()).deepEquals({
         ...accountData.toJson(),
-        'id': (it) => it,
+        'id': (Subject<Object?> it) => it.isA<int>(),
         'acked_push_token': null,
       });
     });
