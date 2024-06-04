@@ -33,7 +33,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       && reactionWithVotes.userIds.contains(store.selfUserId))
     ?? false;
 
-  showDraggableScrollableModalBottomSheet(
+  showDraggableScrollableModalBottomSheet<void>(
     context: context,
     builder: (BuildContext _) {
       return Column(children: [

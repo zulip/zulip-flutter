@@ -207,7 +207,7 @@ class NotificationDisplayManager {
 
     assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
-    navigator.push(MaterialAccountWidgetRoute(accountId: account.id,
+    navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
       page: MessageListPage(narrow: narrow)));
     return;
