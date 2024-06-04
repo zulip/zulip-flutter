@@ -15,7 +15,7 @@ analyzer:
   language:
     # TODO(#719): Enable these strict-* options.
     # strict-casts: true
-    # strict-inference: true
+    strict-inference: true
     # strict-raw-types: true
 
 linter:
