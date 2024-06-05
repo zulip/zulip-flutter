@@ -65,15 +65,15 @@ class InitialSnapshot {
   // But for our model it's convenient to always have it; so, fill it in.
   static Object? _readUsersIsActiveFallbackTrue(Map<dynamic, dynamic> json, String key) {
     final list = (json[key] as List<dynamic>);
-    for (final Map<String, dynamic> user in list) {
-      user.putIfAbsent('is_active', () => true);
+    for (final user in list) {
+      (user as Map<String, dynamic>).putIfAbsent('is_active', () => true);
     }
     return list;
   }
   static Object? _readUsersIsActiveFallbackFalse(Map<dynamic, dynamic> json, String key) {
     final list = (json[key] as List<dynamic>);
-    for (final Map<String, dynamic> user in list) {
-      user.putIfAbsent('is_active', () => false);
+    for (final user in list) {
+      (user as Map<String, dynamic>).putIfAbsent('is_active', () => false);
     }
     return list;
   }

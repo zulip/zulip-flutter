@@ -173,7 +173,8 @@ class NotificationDisplayManager {
   }
 
   static void _onNotificationOpened(NotificationResponse response) async {
-    final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
+    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
+    final data = MessageFcmMessage.fromJson(payload);
     assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
     _navigateForNotification(data);
   }
@@ -182,7 +183,8 @@ class NotificationDisplayManager {
     assert(response != null);
     if (response == null) return; // TODO(log) seems like a bug in flutter_local_notifications if this can happen
 
-    final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
+    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
+    final data = MessageFcmMessage.fromJson(payload);
     assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
     _navigateForNotification(data);
   }

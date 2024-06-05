@@ -188,8 +188,8 @@ ApiRequestException _makeApiException(String routeName, int httpStatus, Map<Stri
         // When `code` is missing, we fall back to `BAD_REQUEST`,
         // the same value the server uses when nobody's made it more specific.
         // TODO(server): `code` should always be present.  Get the "Invalid API key" case fixed.
-        code: json.remove('code') ?? 'BAD_REQUEST',
-        message: json.remove('msg'),
+        code: (json.remove('code') as String?) ?? 'BAD_REQUEST',
+        message: json.remove('msg') as String,
         data: json,
       );
     }

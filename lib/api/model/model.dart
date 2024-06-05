@@ -85,7 +85,7 @@ class CustomProfileFieldChoiceDataItem {
   Map<String, dynamic> toJson() => _$CustomProfileFieldChoiceDataItemToJson(this);
 
   static Map<String, CustomProfileFieldChoiceDataItem> parseFieldDataChoices(Map<String, dynamic> json) =>
-    json.map((k, v) => MapEntry(k, CustomProfileFieldChoiceDataItem.fromJson(v)));
+    json.map((k, v) => MapEntry(k, CustomProfileFieldChoiceDataItem.fromJson(v as Map<String, dynamic>)));
 }
 
 /// The realm-level field data for an "external account" custom profile field.
@@ -232,8 +232,8 @@ class User {
   static bool _readIsSystemBot(Map<dynamic, dynamic> json, String key) {
     // This field is absent in `realm_users` and `realm_non_active_users`,
     // which contain no system bots; it's present in `cross_realm_bots`.
-    return json[key]
-        ?? json['is_cross_realm_bot'] // TODO(server-5): renamed to `is_system_bot`
+    return (json[key] as bool?)
+        ?? (json['is_cross_realm_bot'] as bool?) // TODO(server-5): renamed to `is_system_bot`
         ?? false;
   }
 
@@ -337,7 +337,8 @@ class ZulipStream {
   final int? streamWeeklyTraffic;
 
   static int? _readCanRemoveSubscribersGroup(Map<dynamic, dynamic> json, String key) {
-    return json[key] ?? json['can_remove_subscribers_group_id'];
+    return (json[key] as int?)
+      ?? (json['can_remove_subscribers_group_id'] as int?);
   }
 
   ZulipStream({
