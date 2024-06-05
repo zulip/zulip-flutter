@@ -205,7 +205,7 @@ void main() {
   });
 
   group('NotificationDisplayManager open', () {
-    late List<Route<dynamic>> pushedRoutes;
+    late List<Route<void>> pushedRoutes;
 
     void takeStartingRoutes({bool withAccount = true}) {
       final expected = <Condition<Object?>>[
@@ -247,7 +247,7 @@ void main() {
       await tester.idle(); // let _navigateForNotification find navigator
     }
 
-    void matchesNavigation(Subject<Route> route, Account account, Message message) {
+    void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
       route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
         ..page.isA<MessageListPage>()
