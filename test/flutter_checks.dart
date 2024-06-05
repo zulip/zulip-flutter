@@ -42,7 +42,7 @@ extension RouteChecks<T> on Subject<Route<T>> {
   Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
 }
 
-extension PageRouteChecks on Subject<PageRoute> {
+extension PageRouteChecks<T> on Subject<PageRoute<T>> {
   Subject<bool> get fullscreenDialog => has((x) => x.fullscreenDialog, 'fullscreenDialog');
 }
 
