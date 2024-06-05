@@ -474,7 +474,7 @@ enum MediaType {
   image
 }
 
-Route getLightboxRoute({
+Route<void> getLightboxRoute({
   int? accountId,
   BuildContext? context,
   required Message message,
