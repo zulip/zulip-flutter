@@ -720,7 +720,8 @@ class _SendButtonState extends State<_SendButton> {
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
-        for (final error in widget.topicController?.validationErrors ?? const [])
+        for (final error in widget.topicController?.validationErrors
+                            ?? const <TopicValidationError>[])
           error.message(zulipLocalizations),
         for (final error in widget.contentController.validationErrors)
           error.message(zulipLocalizations),
