@@ -241,7 +241,7 @@ void main() {
       final stream = eg.stream(name: 'stream name');
       final message = eg.streamMessage(stream: stream, topic: 'topic name');
 
-      FinderResult findInMessageList(String text) {
+      FinderResult<Element> findInMessageList(String text) {
         // Stream name shows up in [AppBar] so need to avoid matching that
         return find.descendant(
           of: find.byType(MessageList),
