@@ -82,9 +82,9 @@ extension JsonChecks on Subject<Object?> {
       case null || bool() || String() || num():
         return actualJson.equals(expectedJson);
       case List():
-        return actualJson.isA<List>().deepEquals(expectedJson);
+        return actualJson.isA<List<dynamic>>().deepEquals(expectedJson);
       case Map():
-        return actualJson.isA<Map>().deepEquals(expectedJson);
+        return actualJson.isA<Map<dynamic, dynamic>>().deepEquals(expectedJson);
       case _:
         assert(false);
     }
