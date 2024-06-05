@@ -798,14 +798,14 @@ class DmRecipientListConverter extends JsonConverter<List<DmRecipient>, List<dyn
   const DmRecipientListConverter();
 
   @override
-  List<DmRecipient> fromJson(List json) {
+  List<DmRecipient> fromJson(List<dynamic> json) {
     return json.map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
       .toList(growable: false)
       ..sort((a, b) => a.id.compareTo(b.id));
   }
 
   @override
-  List toJson(List<DmRecipient> object) => object;
+  List<dynamic> toJson(List<DmRecipient> object) => object;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
