@@ -335,7 +335,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
             // have state that needs to be preserved have not been given keys
             // and will not trigger this callback.
             findChildIndexCallback: (Key key) {
-              final valueKey = key as ValueKey;
+              final valueKey = key as ValueKey<int>;
               final index = model!.findItemWithMessageId(valueKey.value);
               if (index == -1) return null;
               return length - 1 - (index - 2);
