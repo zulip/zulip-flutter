@@ -273,7 +273,8 @@ void main() {
           ..data.deepEquals(json));
     }
 
-    await check(tryRequest<Map>(json: {})).completes((it) => it.deepEquals({}));
+    await check(tryRequest<Map<String, dynamic>>(json: {}))
+      .completes((it) => it.deepEquals({}));
 
     await checkMalformed(body: jsonEncode([]));
     await checkMalformed(body: jsonEncode(null));
