@@ -37,6 +37,12 @@ class BackoffMachine {
   /// maximizes the range while preserving a capped exponential shape on
   /// the expected value.  Greg discusses this in more detail at:
   ///   https://github.com/zulip/zulip-mobile/pull/3841
+  ///
+  /// The duration is always positive; [Duration] works in microseconds, so
+  /// we deviate from the idealized uniform distribution just by rounding
+  /// the smallest durations up to one microsecond instead of down to zero.
+  /// Because in the real world any delay takes nonzero time, this mainly
+  /// affects tests that use fake time, and keeps their behavior more realistic.
   Future<void> wait() async {
     _startTime ??= DateTime.now();
 
@@ -45,7 +51,8 @@ class BackoffMachine {
       * min(_durationCeilingMs,
             _firstDurationMs * pow(_base, _waitsCompleted));
 
-    await Future<void>.delayed(Duration(milliseconds: durationMs.round()));
+    await Future<void>.delayed(Duration(
+      microseconds: max(1, (1000 * durationMs).round())));
 
     _waitsCompleted++;
   }
