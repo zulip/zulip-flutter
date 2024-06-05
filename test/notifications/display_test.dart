@@ -208,13 +208,13 @@ void main() {
     late List<Route<dynamic>> pushedRoutes;
 
     void takeStartingRoutes({bool withAccount = true}) {
-      final expected = [
-        (Subject it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+      final expected = <Condition<Object?>>[
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
         if (withAccount) ...[
-          (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+          (it) => it.isA<MaterialAccountWidgetRoute>()
             ..accountId.equals(eg.selfAccount.id)
             ..page.isA<HomePage>(),
-          (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+          (it) => it.isA<MaterialAccountWidgetRoute>()
             ..accountId.equals(eg.selfAccount.id)
             ..page.isA<InboxPage>(),
         ],
