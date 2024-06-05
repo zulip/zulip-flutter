@@ -199,11 +199,11 @@ class FcmMessageDmRecipient extends FcmMessageRecipient {
       // Group DM conversations ("huddles") are represented with `pm_users`,
       // which lists all the user IDs in the conversation.
       // TODO check they're sorted.
-      {'pm_users': var pmUsers} => const _IntListConverter().fromJson(pmUsers),
+      {'pm_users': String pmUsers} => const _IntListConverter().fromJson(pmUsers),
 
       // 1:1 DM conversations have no `pm_users`.  Knowing that it's a
       // 1:1 DM, `sender_id` is enough to identify the conversation.
-      {'sender_id': var senderId, 'user_id': var userId} =>
+      {'sender_id': String senderId, 'user_id': String userId} =>
         _pairSet(_parseInt(senderId), _parseInt(userId)),
 
       _ => throw Exception("bad recipient"),
