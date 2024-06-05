@@ -7,9 +7,9 @@ import 'dart:math';
 class BackoffMachine {
   BackoffMachine();
 
-  final double _firstDuration = 100;
-  final double _durationCeiling = 10 * 1000;
-  final double _base = 2;
+  static const double _firstDurationMs = 100;
+  static const double _durationCeilingMs = 10 * 1000;
+  static const double _base = 2;
 
   DateTime? _startTime;
 
@@ -24,8 +24,8 @@ class BackoffMachine {
   ///
   /// The popular exponential backoff strategy is to increase the duration
   /// exponentially with the number of sleeps completed, with a base of 2,
-  /// until a ceiling is reached.  E.g., if firstDuration is 100 and
-  /// durationCeiling is 10 * 1000 = 10000, the sequence is:
+  /// until a ceiling is reached.  E.g., if the first duration is 100ms and
+  /// the ceiling is 10s = 10000ms, the sequence is, in ms:
   ///
   ///   100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, ...
   ///
@@ -40,12 +40,12 @@ class BackoffMachine {
   Future<void> wait() async {
     _startTime ??= DateTime.now();
 
-    final duration =
+    final durationMs =
       Random().nextDouble() // "Jitter"
-      * min(_durationCeiling,
-            _firstDuration * pow(_base, _waitsCompleted));
+      * min(_durationCeilingMs,
+            _firstDurationMs * pow(_base, _waitsCompleted));
 
-    await Future<void>.delayed(Duration(milliseconds: duration.round()));
+    await Future<void>.delayed(Duration(milliseconds: durationMs.round()));
 
     _waitsCompleted++;
   }
