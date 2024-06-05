@@ -11,7 +11,7 @@ Future<void> main() {
   return integrationDriver(
     responseDataCallback: (data) async {
       if (data == null) return;
-      final timeline = driver.Timeline.fromJson(data['timeline']);
+      final timeline = driver.Timeline.fromJson(data['timeline'] as Map<String, dynamic>);
       final summary = driver.TimelineSummary.summarize(timeline);
       await summary.writeTimelineToFile(
         'trace_output',

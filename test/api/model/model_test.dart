@@ -16,7 +16,8 @@ void main() {
       "1": {"text": "Option 1", "order": 2},
       "2": {"text": "Option 2", "order": 3}
     }''';
-    final choices = CustomProfileFieldChoiceDataItem.parseFieldDataChoices(jsonDecode(input));
+    final decoded = jsonDecode(input) as Map<String, dynamic>;
+    final choices = CustomProfileFieldChoiceDataItem.parseFieldDataChoices(decoded);
     check(choices).jsonEquals({
       '0': const CustomProfileFieldChoiceDataItem(text: 'Option 0'),
       '1': const CustomProfileFieldChoiceDataItem(text: 'Option 1'),
