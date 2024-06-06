@@ -81,7 +81,7 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
     unpinned.sortBy((subscription) => subscription.name.toLowerCase());
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Streams")),
+      appBar: AppBar(title: const Text("Channels")),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,
@@ -115,7 +115,7 @@ class _NoSubscriptionsItem extends StatelessWidget {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.all(10),
-        child: Text("No streams found",
+        child: Text("No channels found",
           textAlign: TextAlign.center,
           style: TextStyle(
             // TODO(#95) need dark-theme color

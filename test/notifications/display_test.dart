@@ -166,7 +166,7 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
-        expectedTitle: '(unknown stream) > ${message.subject}',
+        expectedTitle: '(unknown channel) > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     }));
 

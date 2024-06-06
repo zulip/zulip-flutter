@@ -282,7 +282,7 @@ class HomePage extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.push(context,
               SubscriptionListPage.buildRoute(context: context)),
-            child: const Text("Subscribed streams")),
+            child: const Text("Subscribed channels")),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,

@@ -148,13 +148,13 @@ class MessageListAppBarTitle extends StatelessWidget {
       case StreamNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown stream)';
+        final streamName = stream?.name ?? '(unknown channel)';
         return _buildStreamRow(stream, streamName);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown stream)';
+        final streamName = stream?.name ?? '(unknown channel)';
         return _buildStreamRow(stream, "$streamName > $topic");
 
       case DmNarrow(:var otherRecipientIds):
