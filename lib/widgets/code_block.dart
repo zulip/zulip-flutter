@@ -15,7 +15,8 @@ class CodeBlockTextStyles {
       plain: kMonospaceTextStyle
         .merge(const TextStyle(
           fontSize: 0.825 * kBaseFontSize,
-          height: 1.4)),
+          height: 1.4))
+        .merge(weightVariableTextStyle(context)),
 
       // .hll { background-color: hsl(60deg 100% 90%); }
       hll: TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 60, 1, 0.90).toColor()),
