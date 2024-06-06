@@ -361,7 +361,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
 
     if (!messageListContext.mounted) return;
 
-    copyWithPopup(context: context,
+    copyWithPopup(context: messageListContext,
       successContent: Text(zulipLocalizations.successMessageTextCopied),
       data: ClipboardData(text: rawContent));
   }

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -84,11 +85,12 @@ void main() {
   void prepareRawContentResponseSuccess(PerAccountStore store, {
     required Message message,
     required String rawContent,
+    Duration delay = Duration.zero,
   }) {
     // Prepare fetch-raw-Markdown response
     // TODO: Message should really only differ from `message`
     //   in its content / content_type, not in `id` or anything else.
-    (store.connection as FakeApiConnection).prepare(json:
+    (store.connection as FakeApiConnection).prepare(delay: delay, json:
       GetMessageResult(message: eg.streamMessage(contentMarkdown: rawContent)).toJson());
   }
 
@@ -472,6 +474,33 @@ void main() {
       await tapCopyMessageTextButton(tester);
       await tester.pump(Duration.zero);
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals('Hello world');
+    });
+
+    testWidgets('success with a snackbar', (tester) async {
+      // for #732 regression check below
+      testBinding.deviceInfoResult = IosDeviceInfo(systemVersion: '16.0');
+
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      prepareRawContentResponseSuccess(store,
+        message: message,
+        rawContent: 'Hello world',
+        delay: const Duration(milliseconds: 500));
+
+      await tapCopyMessageTextButton(tester);
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      // regression check for #732
+      final snackbar = tester.widget<SnackBar>(find.byType(SnackBar));
+      check(snackbar.behavior).equals(SnackBarBehavior.floating);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(snackbar.content),
+        matching: find.text(zulipLocalizations.successMessageTextCopied)));
     });
 
     testWidgets('request has an error', (WidgetTester tester) async {
