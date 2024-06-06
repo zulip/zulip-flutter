@@ -590,7 +590,7 @@ class CodeBlock extends StatelessWidget {
     return _CodeBlockContainer(
       borderColor: Colors.transparent,
       child: Text.rich(TextSpan(
-        style: _kCodeBlockStyle,
+        style: styles.plain,
         children: node.spans
           .map((node) => TextSpan(style: styles.forSpan(node.type), text: node.text))
           .toList(growable: false))));
@@ -659,7 +659,7 @@ class MathBlock extends StatelessWidget {
     return _CodeBlockContainer(
       borderColor: _borderColor,
       child: Text.rich(TextSpan(
-        style: _kCodeBlockStyle,
+        style: ContentTheme.of(context).codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
   }
 }
@@ -945,12 +945,6 @@ const _kInlineCodeFontSizeFactor = 0.825;
 final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(TextStyle(
     backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
-
-final _kCodeBlockStyle = kMonospaceTextStyle
-  .merge(const TextStyle(
-    fontSize: 0.825 * kBaseFontSize,
-    height: 1.4,
-  ));
 
 // const _kInlineCodeLeftBracket = '⸤';
 // const _kInlineCodeRightBracket = '⸣';
