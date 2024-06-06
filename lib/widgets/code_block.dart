@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/code_block.dart';
+import 'content.dart';
 import 'text.dart';
 
 /// [TextStyle]s used to render code blocks.
@@ -11,6 +12,11 @@ class CodeBlockTextStyles {
   factory CodeBlockTextStyles(BuildContext context) {
     final bold = weightVariableTextStyle(context, wght: 700);
     return CodeBlockTextStyles._(
+      plain: kMonospaceTextStyle
+        .merge(const TextStyle(
+          fontSize: 0.825 * kBaseFontSize,
+          height: 1.4)),
+
       // .hll { background-color: hsl(60deg 100% 90%); }
       hll: TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 60, 1, 0.90).toColor()),
 
@@ -204,6 +210,7 @@ class CodeBlockTextStyles {
   }
 
   CodeBlockTextStyles._({
+    required this.plain,
     required TextStyle hll,
     required TextStyle c,
     required TextStyle err,
@@ -329,6 +336,9 @@ class CodeBlockTextStyles {
     _vg = vg,
     _vi = vi,
     _il = il;
+
+  /// The baseline style that the [forSpan] styles get applied on top of.
+  final TextStyle plain;
 
   final TextStyle _hll;
   final TextStyle _c;
@@ -471,6 +481,7 @@ class CodeBlockTextStyles {
     if (identical(this, other)) return this;
 
     return CodeBlockTextStyles._(
+      plain: TextStyle.lerp(plain, other?.plain, t)!,
       hll: TextStyle.lerp(_hll, other?._hll, t)!,
       c: TextStyle.lerp(_c, other?._c, t)!,
       err: TextStyle.lerp(_err, other?._err, t)!,
