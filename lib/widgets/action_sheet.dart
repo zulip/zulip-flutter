@@ -39,12 +39,12 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       return Column(children: [
         if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
         StarButton(message: message, messageListContext: context),
-        ShareButton(message: message, messageListContext: context),
         if (isComposeBoxOffered) QuoteAndReplyButton(
           message: message,
           messageListContext: context,
         ),
         CopyMessageTextButton(message: message, messageListContext: context),
+        ShareButton(message: message, messageListContext: context),
       ]);
     });
 }
@@ -160,63 +160,6 @@ class StarButton extends MessageActionSheetMenuItemButton {
           UpdateMessageFlagsOp.remove => zulipLocalizations.errorUnstarMessageFailedTitle,
           UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
         }, message: errorMessage);
-    }
-  }
-}
-
-class ShareButton extends MessageActionSheetMenuItemButton {
-  ShareButton({
-    super.key,
-    required super.message,
-    required super.messageListContext,
-  });
-
-  @override IconData get icon => Icons.adaptive.share;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.actionSheetOptionShare;
-  }
-
-  @override void onPressed(BuildContext context) async {
-    // Close the message action sheet; we're about to show the share
-    // sheet. (We could do this after the sharing Future settles
-    // with [ShareResultStatus.success], but on iOS I get impatient with
-    // how slowly our action sheet dismisses in that case.)
-    // TODO(#24): Fix iOS bug where this call causes the keyboard to
-    //   reopen (if it was open at the time of this
-    //   `showMessageActionSheet` call) and cover a large part of the
-    //   share sheet.
-    Navigator.of(context).pop();
-    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
-
-    final rawContent = await fetchRawContentWithFeedback(
-      context: messageListContext,
-      messageId: message.id,
-      errorDialogTitle: zulipLocalizations.errorSharingFailed,
-    );
-
-    if (rawContent == null) return;
-
-    if (!messageListContext.mounted) return;
-
-    // TODO: to support iPads, we're asked to give a
-    //   `sharePositionOrigin` param, or risk crashing / hanging:
-    //     https://pub.dev/packages/share_plus#ipad
-    //   Perhaps a wart in the API; discussion:
-    //     https://github.com/zulip/zulip-flutter/pull/12#discussion_r1130146231
-    final result = await Share.share(rawContent);
-
-    switch (result.status) {
-      // The plugin isn't very helpful: "The status can not be determined".
-      // Until we learn otherwise, assume something wrong happened.
-      case ShareResultStatus.unavailable:
-        if (!messageListContext.mounted) return;
-        await showErrorDialog(context: messageListContext,
-          title: zulipLocalizations.errorSharingFailed);
-      case ShareResultStatus.success:
-      case ShareResultStatus.dismissed:
-        // nothing to do
     }
   }
 }
@@ -364,5 +307,62 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
     copyWithPopup(context: messageListContext,
       successContent: Text(zulipLocalizations.successMessageTextCopied),
       data: ClipboardData(text: rawContent));
+  }
+}
+
+class ShareButton extends MessageActionSheetMenuItemButton {
+  ShareButton({
+    super.key,
+    required super.message,
+    required super.messageListContext,
+  });
+
+  @override IconData get icon => Icons.adaptive.share;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionShare;
+  }
+
+  @override void onPressed(BuildContext context) async {
+    // Close the message action sheet; we're about to show the share
+    // sheet. (We could do this after the sharing Future settles
+    // with [ShareResultStatus.success], but on iOS I get impatient with
+    // how slowly our action sheet dismisses in that case.)
+    // TODO(#24): Fix iOS bug where this call causes the keyboard to
+    //   reopen (if it was open at the time of this
+    //   `showMessageActionSheet` call) and cover a large part of the
+    //   share sheet.
+    Navigator.of(context).pop();
+    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+
+    final rawContent = await fetchRawContentWithFeedback(
+      context: messageListContext,
+      messageId: message.id,
+      errorDialogTitle: zulipLocalizations.errorSharingFailed,
+    );
+
+    if (rawContent == null) return;
+
+    if (!messageListContext.mounted) return;
+
+    // TODO: to support iPads, we're asked to give a
+    //   `sharePositionOrigin` param, or risk crashing / hanging:
+    //     https://pub.dev/packages/share_plus#ipad
+    //   Perhaps a wart in the API; discussion:
+    //     https://github.com/zulip/zulip-flutter/pull/12#discussion_r1130146231
+    final result = await Share.share(rawContent);
+
+    switch (result.status) {
+      // The plugin isn't very helpful: "The status can not be determined".
+      // Until we learn otherwise, assume something wrong happened.
+      case ShareResultStatus.unavailable:
+        if (!messageListContext.mounted) return;
+        await showErrorDialog(context: messageListContext,
+          title: zulipLocalizations.errorSharingFailed);
+      case ShareResultStatus.success:
+      case ShareResultStatus.dismissed:
+        // nothing to do
+    }
   }
 }

@@ -247,70 +247,6 @@ void main() {
     });
   });
 
-  group('ShareButton', () {
-    // Tests should call this.
-    MockSharePlus setupMockSharePlus() {
-      final mock = MockSharePlus();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-        MethodChannelShare.channel,
-        mock.handleMethodCall,
-      );
-      return mock;
-    }
-
-    Future<void> tapShareButton(WidgetTester tester) async {
-      await tester.ensureVisible(find.byIcon(Icons.adaptive.share, skipOffstage: false));
-      await tester.tap(find.byIcon(Icons.adaptive.share));
-      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
-    }
-
-    testWidgets('request succeeds; sharing succeeds', (WidgetTester tester) async {
-      final mockSharePlus = setupMockSharePlus();
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
-      await tapShareButton(tester);
-      await tester.pump(Duration.zero);
-      check(mockSharePlus.sharedString).equals('Hello world');
-    });
-
-    testWidgets('request succeeds; sharing fails', (WidgetTester tester) async {
-      final mockSharePlus = setupMockSharePlus();
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
-      mockSharePlus.resultString = 'dev.fluttercommunity.plus/share/unavailable';
-      await tapShareButton(tester);
-      await tester.pump(Duration.zero);
-      check(mockSharePlus.sharedString).equals('Hello world');
-      await tester.pump();
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: 'Sharing failed')));
-    });
-
-    testWidgets('request has an error', (WidgetTester tester) async {
-      final mockSharePlus = setupMockSharePlus();
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      prepareRawContentResponseError(store);
-      await tapShareButton(tester);
-      await tester.pump(Duration.zero); // error arrives; error dialog shows
-
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: 'Sharing failed',
-        expectedMessage: 'That message does not seem to exist.',
-      )));
-
-      check(mockSharePlus.sharedString).isNull();
-    });
-  });
-
   group('QuoteAndReplyButton', () {
     ComposeBoxController? findComposeBoxController(WidgetTester tester) {
       return tester.widget<ComposeBox>(find.byType(ComposeBox))
@@ -515,6 +451,70 @@ void main() {
         expectedMessage: 'That message does not seem to exist.',
       )));
       check(await Clipboard.getData('text/plain')).isNull();
+    });
+  });
+
+  group('ShareButton', () {
+    // Tests should call this.
+    MockSharePlus setupMockSharePlus() {
+      final mock = MockSharePlus();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        MethodChannelShare.channel,
+        mock.handleMethodCall,
+      );
+      return mock;
+    }
+
+    Future<void> tapShareButton(WidgetTester tester) async {
+      await tester.ensureVisible(find.byIcon(Icons.adaptive.share, skipOffstage: false));
+      await tester.tap(find.byIcon(Icons.adaptive.share));
+      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+    }
+
+    testWidgets('request succeeds; sharing succeeds', (WidgetTester tester) async {
+      final mockSharePlus = setupMockSharePlus();
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      await tapShareButton(tester);
+      await tester.pump(Duration.zero);
+      check(mockSharePlus.sharedString).equals('Hello world');
+    });
+
+    testWidgets('request succeeds; sharing fails', (WidgetTester tester) async {
+      final mockSharePlus = setupMockSharePlus();
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      mockSharePlus.resultString = 'dev.fluttercommunity.plus/share/unavailable';
+      await tapShareButton(tester);
+      await tester.pump(Duration.zero);
+      check(mockSharePlus.sharedString).equals('Hello world');
+      await tester.pump();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Sharing failed')));
+    });
+
+    testWidgets('request has an error', (WidgetTester tester) async {
+      final mockSharePlus = setupMockSharePlus();
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      prepareRawContentResponseError(store);
+      await tapShareButton(tester);
+      await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Sharing failed',
+        expectedMessage: 'That message does not seem to exist.',
+      )));
+
+      check(mockSharePlus.sharedString).isNull();
     });
   });
 }
