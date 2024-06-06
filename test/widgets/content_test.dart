@@ -465,6 +465,14 @@ void main() {
         final root = tester.renderObject<RenderParagraph>(find.textContaining('class')).text;
         return mergedStyleOfSubstring(root, 'class')!;
       });
+
+    testFontWeight('syntax highlighting: bold span',
+      expectedWght: 700,
+      content: plainContent(ContentExample.codeBlockHighlightedShort.html),
+      styleFinder: (WidgetTester tester) {
+        final root = tester.renderObject<RenderParagraph>(find.textContaining('A')).text;
+        return mergedStyleOfSubstring(root, 'A')!;
+      });
   });
 
   testContentSmoke(ContentExample.mathBlock);

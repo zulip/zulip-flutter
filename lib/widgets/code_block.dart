@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../model/code_block.dart';
+import 'text.dart';
 
 /// [TextStyle]s used to render code blocks.
 ///
 /// Use [forSpan] for syntax highlighting.
 // TODO(#95) follow web for dark-theme colors
 class CodeBlockTextStyles {
-  factory CodeBlockTextStyles() {
+  factory CodeBlockTextStyles(BuildContext context) {
+    final bold = weightVariableTextStyle(context, wght: 700);
     return CodeBlockTextStyles._(
       // .hll { background-color: hsl(60deg 100% 90%); }
       hll: TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 60, 1, 0.90).toColor()),
@@ -50,7 +52,7 @@ class CodeBlockTextStyles {
       gr: TextStyle(color: const HSLColor.fromAHSL(1, 0, 1, 0.50).toColor()),
 
       // .gh { color: hsl(240deg 100% 25%); font-weight: bold; }
-      gh: TextStyle(color: const HSLColor.fromAHSL(1, 240, 1, 0.25).toColor(), fontWeight: FontWeight.bold),
+      gh: TextStyle(color: const HSLColor.fromAHSL(1, 240, 1, 0.25).toColor()).merge(bold),
 
       // .gi { color: hsl(120deg 100% 31%); }
       gi: TextStyle(color: const HSLColor.fromAHSL(1, 120, 1, 0.31).toColor()),
@@ -59,31 +61,31 @@ class CodeBlockTextStyles {
       go: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.50).toColor()),
 
       // .gp { color: hsl(240deg 100% 25%); font-weight: bold; }
-      gp: TextStyle(color: const HSLColor.fromAHSL(1, 240, 1, 0.25).toColor(), fontWeight: FontWeight.bold),
+      gp: TextStyle(color: const HSLColor.fromAHSL(1, 240, 1, 0.25).toColor()).merge(bold),
 
       // .gs { font-weight: bold; }
-      gs: const TextStyle(fontWeight: FontWeight.bold),
+      gs: const TextStyle().merge(bold),
 
       // .gu { color: hsl(300deg 100% 25%); font-weight: bold; }
-      gu: TextStyle(color: const HSLColor.fromAHSL(1, 300, 1, 0.25).toColor(), fontWeight: FontWeight.bold),
+      gu: TextStyle(color: const HSLColor.fromAHSL(1, 300, 1, 0.25).toColor()).merge(bold),
 
       // .gt { color: hsl(221deg 100% 40%); }
       gt: TextStyle(color: const HSLColor.fromAHSL(1, 221, 1, 0.40).toColor()),
 
       // .kc { color: hsl(332deg 70% 38%); font-weight: bold; }
-      kc: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor(), fontWeight: FontWeight.bold),
+      kc: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()).merge(bold),
 
       // .kd { color: hsl(332deg 70% 38%); }
       kd: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()),
 
       // .kn { color: hsl(332deg 70% 38%); font-weight: bold; }
-      kn: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor(), fontWeight: FontWeight.bold),
+      kn: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()).merge(bold),
 
       // .kp { color: hsl(332deg 70% 38%); }
       kp: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()),
 
       // .kr { color: hsl(332deg 70% 38%); font-weight: bold; }
-      kr: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor(), fontWeight: FontWeight.bold),
+      kr: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()).merge(bold),
 
       // .kt { color: hsl(332deg 70% 38%); }
       kt: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()),
@@ -101,7 +103,7 @@ class CodeBlockTextStyles {
       nb: TextStyle(color: const HSLColor.fromAHSL(1, 195, 1, 0.35).toColor()),
 
       // .nc { color: hsl(264deg 27% 50%); font-weight: bold; }
-      nc: TextStyle(color: const HSLColor.fromAHSL(1, 264, 0.27, 0.50).toColor(), fontWeight: FontWeight.bold),
+      nc: TextStyle(color: const HSLColor.fromAHSL(1, 264, 0.27, 0.50).toColor()).merge(bold),
 
       // .no { color: hsl(0deg 100% 26%); }
       no: TextStyle(color: const HSLColor.fromAHSL(1, 0, 1, 0.26).toColor()),
@@ -110,10 +112,10 @@ class CodeBlockTextStyles {
       nd: TextStyle(color: const HSLColor.fromAHSL(1, 276, 1, 0.56).toColor()),
 
       // .ni { color: hsl(0deg 0% 60%); font-weight: bold; }
-      ni: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.60).toColor(), fontWeight: FontWeight.bold),
+      ni: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.60).toColor()).merge(bold),
 
       // .ne { color: hsl(2deg 62% 52%); font-weight: bold; }
-      ne: TextStyle(color: const HSLColor.fromAHSL(1, 2, 0.62, 0.52).toColor(), fontWeight: FontWeight.bold),
+      ne: TextStyle(color: const HSLColor.fromAHSL(1, 2, 0.62, 0.52).toColor()).merge(bold),
 
       // .nf { color: hsl(264deg 27% 50%); }
       nf: TextStyle(color: const HSLColor.fromAHSL(1, 264, 0.27, 0.50).toColor()),
@@ -122,10 +124,10 @@ class CodeBlockTextStyles {
       nl: TextStyle(color: const HSLColor.fromAHSL(1, 60, 1, 0.31).toColor()),
 
       // .nn { color: hsl(264deg 27% 50%); font-weight: bold; }
-      nn: TextStyle(color: const HSLColor.fromAHSL(1, 264, 0.27, 0.50).toColor(), fontWeight: FontWeight.bold),
+      nn: TextStyle(color: const HSLColor.fromAHSL(1, 264, 0.27, 0.50).toColor()).merge(bold),
 
       // .nt { color: hsl(120deg 100% 25%); font-weight: bold; }
-      nt: TextStyle(color: const HSLColor.fromAHSL(1, 120, 1, 0.25).toColor(), fontWeight: FontWeight.bold),
+      nt: TextStyle(color: const HSLColor.fromAHSL(1, 120, 1, 0.25).toColor()).merge(bold),
 
       // .nv { color: hsl(241deg 68% 28%); }
       nv: TextStyle(color: const HSLColor.fromAHSL(1, 241, 0.68, 0.28).toColor()),
@@ -134,7 +136,7 @@ class CodeBlockTextStyles {
       nx: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.26).toColor()),
 
       // .ow { color: hsl(276deg 100% 56%); font-weight: bold; }
-      ow: TextStyle(color: const HSLColor.fromAHSL(1, 276, 1, 0.56).toColor(), fontWeight: FontWeight.bold),
+      ow: TextStyle(color: const HSLColor.fromAHSL(1, 276, 1, 0.56).toColor()).merge(bold),
 
       // .w { color: hsl(0deg 0% 73%); }
       w: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.73).toColor()),
@@ -164,13 +166,13 @@ class CodeBlockTextStyles {
       s2: TextStyle(color: const HSLColor.fromAHSL(1, 225, 0.71, 0.33).toColor()),
 
       // .se { color: hsl(26deg 69% 43%); font-weight: bold; }
-      se: TextStyle(color: const HSLColor.fromAHSL(1, 26, 0.69, 0.43).toColor(), fontWeight: FontWeight.bold),
+      se: TextStyle(color: const HSLColor.fromAHSL(1, 26, 0.69, 0.43).toColor()).merge(bold),
 
       // .sh { color: hsl(86deg 57% 40%); }
       sh: TextStyle(color: const HSLColor.fromAHSL(1, 86, 0.57, 0.40).toColor()),
 
       // .si { color: hsl(336deg 38% 56%); font-weight: bold; }
-      si: TextStyle(color: const HSLColor.fromAHSL(1, 336, 0.38, 0.56).toColor(), fontWeight: FontWeight.bold),
+      si: TextStyle(color: const HSLColor.fromAHSL(1, 336, 0.38, 0.56).toColor()).merge(bold),
 
       // .sx { color: hsl(120deg 100% 25%); }
       sx: TextStyle(color: const HSLColor.fromAHSL(1, 120, 1, 0.25).toColor()),
