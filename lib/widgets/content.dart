@@ -47,6 +47,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     )
       .merge(weightVariableTextStyle(context))
       .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
+    codeBlockTextStyles = CodeBlockTextStyles(),
     textStyleError = const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
       .merge(weightVariableTextStyle(context, wght: 700)),
     textStyleErrorCode = kMonospaceTextStyle
@@ -54,6 +55,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   ContentTheme._({
     required this.textStylePlainParagraph,
+    required this.codeBlockTextStyles,
     required this.textStyleError,
     required this.textStyleErrorCode,
   });
@@ -76,17 +78,20 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   /// should not need styles from other sources, such as Material defaults.
   final TextStyle textStylePlainParagraph;
 
+  final CodeBlockTextStyles codeBlockTextStyles;
   final TextStyle textStyleError;
   final TextStyle textStyleErrorCode;
 
   @override
   ContentTheme copyWith({
     TextStyle? textStylePlainParagraph,
+    CodeBlockTextStyles? codeBlockTextStyles,
     TextStyle? textStyleError,
     TextStyle? textStyleErrorCode,
   }) {
     return ContentTheme._(
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
+      codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
       textStyleError: textStyleError ?? this.textStyleError,
       textStyleErrorCode: textStyleErrorCode ?? this.textStyleErrorCode,
     );
@@ -99,6 +104,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     }
     return ContentTheme._(
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other?.textStylePlainParagraph, t)!,
+      codeBlockTextStyles: codeBlockTextStyles.lerp(other?.codeBlockTextStyles, t),
       textStyleError: TextStyle.lerp(textStyleError, other?.textStyleError, t)!,
       textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other?.textStyleErrorCode, t)!,
     );
@@ -580,12 +586,13 @@ class CodeBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final styles = ContentTheme.of(context).codeBlockTextStyles;
     return _CodeBlockContainer(
       borderColor: Colors.transparent,
       child: Text.rich(TextSpan(
         style: _kCodeBlockStyle,
         children: node.spans
-          .map((node) => TextSpan(style: codeBlockTextStyle(node.type), text: node.text))
+          .map((node) => TextSpan(style: styles.forSpan(node.type), text: node.text))
           .toList(growable: false))));
   }
 }
