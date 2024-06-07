@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_color_models/flutter_color_models.dart';
 
 import '../api/model/model.dart';
 import 'text.dart';
@@ -63,5 +64,24 @@ class UnreadCountBadge extends StatelessWidget {
           ).merge(weightVariableTextStyle(context,
               wght: bold ? 600 : null)),
           count.toString())));
+  }
+}
+
+class MutedUnreadBadge extends StatelessWidget {
+  const MutedUnreadBadge({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: 0.5,
+      child: Container(
+        width: 8,
+        height: 8,
+        margin: const EdgeInsetsDirectional.only(end: 3),
+        decoration: const BoxDecoration(
+          color: HslColor(0, 0, 80),
+          shape: BoxShape.circle)));
   }
 }

@@ -174,6 +174,50 @@ void main() {
     check(find.byType(UnreadCountBadge).evaluate()).length.equals(0);
   });
 
+  testWidgets('muted unread badge shows with muted unreads', (tester) async {
+    final stream = eg.stream();
+    final unreadMsgs = eg.unreadMsgs(streams: [
+      UnreadStreamSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      UnreadStreamSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [eg.subscription(stream, isMuted: true)],
+        userTopics: [UserTopicItem(
+          streamId: stream.streamId,
+          topicName: 'b',
+          lastUpdated: 1234567890,
+          visibilityPolicy: UserTopicVisibilityPolicy.muted,
+        )],
+        unreadMsgs: unreadMsgs);
+    final finder = find.byWidgetPredicate((widget) => widget is MutedUnreadBadge);
+    check(finder.evaluate().length).equals(1);
+  });
+
+  testWidgets('muted unread badge does not show with any unmuted unreads', (tester) async {
+    final stream = eg.stream();
+    final unreadMsgs = eg.unreadMsgs(streams: [
+      UnreadStreamSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      UnreadStreamSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [eg.subscription(stream, isMuted: true)],
+        userTopics: [UserTopicItem(
+          streamId: stream.streamId,
+          topicName: 'b',
+          lastUpdated: 1234567890,
+          visibilityPolicy: UserTopicVisibilityPolicy.muted,
+        ),
+        UserTopicItem(
+          streamId: stream.streamId,
+          topicName: 'a',
+          lastUpdated: 9876543210,
+          visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
+        )],
+        unreadMsgs: unreadMsgs);
+    final finder = find.byWidgetPredicate((widget) => widget is MutedUnreadBadge);
+    check(finder.evaluate().length).equals(0);
+  });
+
   testWidgets('color propagates to icon and badge', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(streams: [

@@ -217,6 +217,31 @@ void main() {
     });
   });
 
+  group('muted helpers', () {
+    test('hasMutedInStream', () async {
+      final stream = eg.stream();
+      prepare();
+      await streamStore.addStream(stream);
+      await streamStore.addSubscription(eg.subscription(stream));
+      await streamStore.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
+      await streamStore.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.unmuted);
+      fillWithMessages([
+        eg.streamMessage(stream: stream, topic: 'a', flags: []),
+        eg.streamMessage(stream: stream, topic: 'a', flags: []),
+        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'c', flags: []),
+      ]);
+      check(model.hasMutedInStream(stream.streamId)).equals(false);
+
+      await streamStore.handleEvent(SubscriptionUpdateEvent(id: 1,
+        streamId: stream.streamId,
+        property: SubscriptionProperty.isMuted, value: true));
+      check(model.hasMutedInStream(stream.streamId)).equals(true);
+    });
+  });
+
   group('handleMessageEvent', () {
     for (final (isUnread, isStream, isDirectMentioned, isWildcardMentioned) in [
       (true,  true,  true,  true ),

@@ -180,8 +180,12 @@ class _SubscriptionList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final subscription = subscriptions[index];
         final unreadCount = unreadsModel!.countInStream(subscription.streamId);
-        // TODO(#346): if stream muted, show a dot for unreads
-        return SubscriptionItem(subscription: subscription, unreadCount: unreadCount);
+        final hasUnmutedUnreads = unreadCount > 0;
+        // There is no need to check for muted unreads if there unmuted ones
+        final hasMutedUnreads = !hasUnmutedUnreads && unreadsModel!.hasMutedInStream(subscription.streamId);
+        return SubscriptionItem(subscription: subscription,
+          unreadCount: unreadCount,
+          hasMutedUnreads: hasMutedUnreads);
     });
   }
 }
@@ -192,10 +196,13 @@ class SubscriptionItem extends StatelessWidget {
     super.key,
     required this.subscription,
     required this.unreadCount,
-  });
+    required this.hasMutedUnreads,
+  }) : hasUnmutedUnreads = unreadCount > 0;
 
   final Subscription subscription;
   final int unreadCount;
+  final bool hasMutedUnreads;
+  final bool hasUnmutedUnreads;
 
   @override
   Widget build(BuildContext context) {
@@ -234,10 +241,13 @@ class SubscriptionItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 subscription.name))),
-          if (unreadCount > 0) ...[
+          if (hasUnmutedUnreads) ...[
             const SizedBox(width: 12),
             // TODO(#384) show @-mention indicator when it applies
             UnreadCountBadge(count: unreadCount, backgroundColor: swatch, bold: true),
+          ] else if (hasMutedUnreads) ...[
+            const SizedBox(width: 12),
+            const MutedUnreadBadge(),
           ],
           const SizedBox(width: 16),
         ])));

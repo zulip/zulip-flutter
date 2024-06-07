@@ -206,6 +206,19 @@ class Unreads extends ChangeNotifier {
     }
   }
 
+  /// Checks if stream contains strictly muted unreads,
+  /// using [StreamStore.isTopicVisible].
+  bool hasMutedInStream(int streamId) {
+    final topics = streams[streamId];
+    if (topics == null) return false;
+    for (final entry in topics.entries) {
+      if (!streamStore.isTopicVisible(streamId, entry.key)) {
+        if (entry.value.isNotEmpty) return true;
+      }
+    }
+    return false;
+  }
+
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
     if (message.flags.contains(MessageFlag.read)) {
