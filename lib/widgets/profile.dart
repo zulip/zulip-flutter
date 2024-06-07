@@ -10,10 +10,15 @@ import 'content.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
+import 'text.dart';
 
 class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);
-  static const customProfileFieldLabel = TextStyle(fontSize: 15, fontWeight: FontWeight.bold);
+
+  static TextStyle customProfileFieldLabel(BuildContext context) =>
+    const TextStyle(fontSize: 15)
+      .merge(weightVariableTextStyle(context, wght: 700));
+
   static const customProfileFieldText = TextStyle(fontSize: 15);
 }
 
@@ -43,7 +48,8 @@ class ProfilePage extends StatelessWidget {
       const SizedBox(height: 16),
       Text(user.fullName,
         textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText.merge(const TextStyle(fontWeight: FontWeight.bold))),
+        style: _TextStyles.primaryFieldText
+          .merge(weightVariableTextStyle(context, wght: 700))),
       // TODO(#291) render email field
       Text(roleToLabel(user.role, zulipLocalizations),
         textAlign: TextAlign.center,
@@ -192,7 +198,8 @@ class _ProfileDataTable extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         children: [
           SizedBox(width: 96,
-            child: Text(realmField.name, style: _TextStyles.customProfileFieldLabel)),
+            child: Text(style: _TextStyles.customProfileFieldLabel(context),
+              realmField.name)),
           const SizedBox(width: 8),
           Flexible(child: widget),
         ]));
