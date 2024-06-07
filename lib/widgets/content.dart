@@ -47,8 +47,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     )
       .merge(weightVariableTextStyle(context))
       .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
-    textStyleError = const TextStyle(
-      fontSize: kBaseFontSize, fontWeight: FontWeight.bold, color: Colors.red),
+    textStyleError = const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
+      .merge(weightVariableTextStyle(context, wght: 700)),
     textStyleErrorCode = kMonospaceTextStyle
       .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red));
 
