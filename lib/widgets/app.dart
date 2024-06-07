@@ -15,6 +15,7 @@ import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
+import 'text.dart';
 import 'theme.dart';
 
 class ZulipApp extends StatefulWidget {
@@ -242,7 +243,8 @@ class HomePage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     InlineSpan bold(String text) => TextSpan(
-      text: text, style: const TextStyle(fontWeight: FontWeight.bold));
+      style: const TextStyle().merge(weightVariableTextStyle(context, wght: 700)),
+      text: text);
 
     int? testStreamId;
     if (store.connection.realmUrl.origin == 'https://chat.zulip.org') {
