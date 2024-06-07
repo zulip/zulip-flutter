@@ -3,7 +3,7 @@
 #   https://docs.flutter.dev/tools/pubspec
 #   https://github.com/flutter/flutter/blob/main/packages/flutter_tools/templates/app/pubspec.yaml.tmpl
 
-name: zulip
+name: redbangle
 description: A Zulip client for Android and iOS
 publish_to: 'none'
 
