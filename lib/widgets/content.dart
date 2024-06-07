@@ -46,10 +46,16 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       fontFamilyFallback: defaultFontFamilyFallback,
     )
       .merge(weightVariableTextStyle(context))
-      .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph');
+      .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
+    textStyleError = const TextStyle(
+      fontSize: kBaseFontSize, fontWeight: FontWeight.bold, color: Colors.red),
+    textStyleErrorCode = kMonospaceTextStyle
+      .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red));
 
   ContentTheme._({
     required this.textStylePlainParagraph,
+    required this.textStyleError,
+    required this.textStyleErrorCode,
   });
 
   /// The [ContentTheme] from the context's active theme.
@@ -70,12 +76,19 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   /// should not need styles from other sources, such as Material defaults.
   final TextStyle textStylePlainParagraph;
 
+  final TextStyle textStyleError;
+  final TextStyle textStyleErrorCode;
+
   @override
   ContentTheme copyWith({
     TextStyle? textStylePlainParagraph,
+    TextStyle? textStyleError,
+    TextStyle? textStyleErrorCode,
   }) {
     return ContentTheme._(
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
+      textStyleError: textStyleError ?? this.textStyleError,
+      textStyleErrorCode: textStyleErrorCode ?? this.textStyleErrorCode,
     );
   }
 
@@ -86,6 +99,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     }
     return ContentTheme._(
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other?.textStylePlainParagraph, t)!,
+      textStyleError: TextStyle.lerp(textStyleError, other?.textStyleError, t)!,
+      textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other?.textStyleErrorCode, t)!,
     );
   }
 }
@@ -175,7 +190,7 @@ class BlockContentList extends StatelessWidget {
         } else if (node is EmbedVideoNode) {
           return MessageEmbedVideo(node: node);
         } else if (node is UnimplementedBlockContentNode) {
-          return Text.rich(_errorUnimplemented(node));
+          return Text.rich(_errorUnimplemented(node, context: context));
         } else {
           // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
           throw Exception("impossible BlockContentNode: ${node.debugHtmlText}");
@@ -836,7 +851,7 @@ class _InlineContentBuilder {
       return WidgetSpan(alignment: PlaceholderAlignment.middle,
         child: GlobalTime(node: node, ambientTextStyle: widget.style));
     } else if (node is UnimplementedInlineContentNode) {
-      return _errorUnimplemented(node);
+      return _errorUnimplemented(node, context: _context!);
     } else {
       // TODO(dart-3): Use a sealed class / pattern matching to eliminate this case.
       throw Exception("impossible InlineContentNode: ${node.debugHtmlText}");
@@ -1326,7 +1341,10 @@ class AvatarShape extends StatelessWidget {
 // Small helpers.
 //
 
-InlineSpan _errorUnimplemented(UnimplementedNode node) {
+InlineSpan _errorUnimplemented(UnimplementedNode node, {required BuildContext context}) {
+  final contentTheme = ContentTheme.of(context);
+  final errorStyle = contentTheme.textStyleError;
+  final errorCodeStyle = contentTheme.textStyleErrorCode;
   // For now this shows error-styled HTML code even in release mode,
   // because release mode isn't yet about general users but developer demos,
   // and we want to keep the demos honest.
@@ -1334,15 +1352,15 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
   final htmlNode = node.htmlNode;
   if (htmlNode is dom.Element) {
     return TextSpan(children: [
-      const TextSpan(text: "(unimplemented:", style: errorStyle),
+      TextSpan(text: "(unimplemented:", style: errorStyle),
       TextSpan(text: htmlNode.outerHtml, style: errorCodeStyle),
-      const TextSpan(text: ")", style: errorStyle),
+      TextSpan(text: ")", style: errorStyle),
     ]);
   } else if (htmlNode is dom.Text) {
     return TextSpan(children: [
-      const TextSpan(text: "(unimplemented: text «", style: errorStyle),
+      TextSpan(text: "(unimplemented: text «", style: errorStyle),
       TextSpan(text: htmlNode.text, style: errorCodeStyle),
-      const TextSpan(text: "»)", style: errorStyle),
+      TextSpan(text: "»)", style: errorStyle),
     ]);
   } else {
     return TextSpan(
@@ -1350,9 +1368,3 @@ InlineSpan _errorUnimplemented(UnimplementedNode node) {
       style: errorStyle);
   }
 }
-
-const errorStyle = TextStyle(
-  fontSize: kBaseFontSize, fontWeight: FontWeight.bold, color: Colors.red);
-
-final errorCodeStyle = kMonospaceTextStyle
-  .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red));
