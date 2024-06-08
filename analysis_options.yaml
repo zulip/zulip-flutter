@@ -1,5 +1,5 @@
 # For docs on this file, see:
-#   https://dart.dev/guides/language/analysis-options
+#   https://dart.dev/tools/analysis
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
@@ -11,6 +11,11 @@ analyzer:
     # if Pigeon tripped them it'd immediately get caught.)
     # TODO(pigeon) re-enable lints once clean: https://github.com/flutter/flutter/issues/145633
     - lib/host/*.g.dart
+
+  language:
+    strict-inference: true
+    strict-raw-types: true
+    strict-casts: true
 
 linter:
   # For a list of all available lints, with docs, see:

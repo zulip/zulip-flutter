@@ -273,7 +273,8 @@ void main() {
           ..data.deepEquals(json));
     }
 
-    await check(tryRequest<Map>(json: {})).completes((it) => it.deepEquals({}));
+    await check(tryRequest<Map<String, dynamic>>(json: {}))
+      .completes((it) => it.deepEquals({}));
 
     await checkMalformed(body: jsonEncode([]));
     await checkMalformed(body: jsonEncode(null));
@@ -313,7 +314,7 @@ class DistinctiveError extends Error {
   String toString() => message;
 }
 
-Future<T> tryRequest<T>({
+Future<T> tryRequest<T extends Object?>({
   Object? exception,
   int? httpStatus,
   Map<String, dynamic>? json,

@@ -114,7 +114,7 @@ class _ProfileDataTable extends StatelessWidget {
 
   static T? _tryDecode<T, U>(T Function(U) fromJson, String data) {
     try {
-      return fromJson(jsonDecode(data));
+      return fromJson(jsonDecode(data) as U);
     } on FormatException {
       return null;
     } on TypeError {

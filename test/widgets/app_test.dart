@@ -31,8 +31,8 @@ void main() {
 
     testWidgets('when no accounts, go to choose account', (tester) async {
       addTearDown(testBinding.reset);
-      check(await initialRoutes(tester)).deepEquals([
-        (Subject it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+      check(await initialRoutes(tester)).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
       ]);
     });
 
@@ -44,12 +44,12 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await testBinding.globalStore.insertAccount(eg.otherAccount.toCompanion(false));
 
-      check(await initialRoutes(tester)).deepEquals([
-        (Subject it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
-        (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+      check(await initialRoutes(tester)).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        (it) => it.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(eg.selfAccount.id)
           ..page.isA<HomePage>(),
-        (Subject it) => it.isA<MaterialAccountWidgetRoute>()
+        (it) => it.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(eg.selfAccount.id)
           ..page.isA<InboxPage>(),
       ]);

@@ -11,7 +11,7 @@ import 'recent_dm_conversations_checks.dart';
 void main() {
   group('RecentDmConversationsView', () {
     /// Get a [DmNarrow] from a list of recipient IDs excluding self.
-    DmNarrow key(userIds) {
+    DmNarrow key(Iterable<int> userIds) {
       return DmNarrow(
         allRecipientIds: [eg.selfUser.userId, ...userIds]..sort(),
         selfUserId: eg.selfUser.userId,

@@ -85,7 +85,7 @@ class CustomProfileFieldChoiceDataItem {
   Map<String, dynamic> toJson() => _$CustomProfileFieldChoiceDataItemToJson(this);
 
   static Map<String, CustomProfileFieldChoiceDataItem> parseFieldDataChoices(Map<String, dynamic> json) =>
-    json.map((k, v) => MapEntry(k, CustomProfileFieldChoiceDataItem.fromJson(v)));
+    json.map((k, v) => MapEntry(k, CustomProfileFieldChoiceDataItem.fromJson(v as Map<String, dynamic>)));
 }
 
 /// The realm-level field data for an "external account" custom profile field.
@@ -220,7 +220,7 @@ class User {
   @JsonKey(readValue: _readIsSystemBot)
   bool isSystemBot;
 
-  static Map<String, dynamic>? _readProfileData(Map json, String key) {
+  static Map<String, dynamic>? _readProfileData(Map<dynamic, dynamic> json, String key) {
     final value = (json[key] as Map<String, dynamic>?);
     // Represent `{}` as `null`, to avoid allocating a huge number
     // of LinkedHashMap data structures that we can do without.
@@ -229,11 +229,11 @@ class User {
     return (value != null && value.isNotEmpty) ? value : null;
   }
 
-  static bool _readIsSystemBot(Map json, String key) {
+  static bool _readIsSystemBot(Map<dynamic, dynamic> json, String key) {
     // This field is absent in `realm_users` and `realm_non_active_users`,
     // which contain no system bots; it's present in `cross_realm_bots`.
-    return json[key]
-        ?? json['is_cross_realm_bot'] // TODO(server-5): renamed to `is_system_bot`
+    return (json[key] as bool?)
+        ?? (json['is_cross_realm_bot'] as bool?) // TODO(server-5): renamed to `is_system_bot`
         ?? false;
   }
 
@@ -336,8 +336,9 @@ class ZulipStream {
   // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
   final int? streamWeeklyTraffic;
 
-  static int? _readCanRemoveSubscribersGroup(Map json, String key) {
-    return json[key] ?? json['can_remove_subscribers_group_id'];
+  static int? _readCanRemoveSubscribersGroup(Map<dynamic, dynamic> json, String key) {
+    return (json[key] as int?)
+      ?? (json['can_remove_subscribers_group_id'] as int?);
   }
 
   ZulipStream({
@@ -410,7 +411,7 @@ class Subscription extends ZulipStream {
     _color = value;
     _swatch = null;
   }
-  static Object? _readColor(Map json, String key) {
+  static Object? _readColor(Map<dynamic, dynamic> json, String key) {
     final str = (json[key] as String);
     assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
     return 0xff000000 | int.parse(str.substring(1), radix: 16);
@@ -798,14 +799,14 @@ class DmRecipientListConverter extends JsonConverter<List<DmRecipient>, List<dyn
   const DmRecipientListConverter();
 
   @override
-  List<DmRecipient> fromJson(List json) {
+  List<DmRecipient> fromJson(List<dynamic> json) {
     return json.map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
       .toList(growable: false)
       ..sort((a, b) => a.id.compareTo(b.id));
   }
 
   @override
-  List toJson(List<DmRecipient> object) => object;
+  List<dynamic> toJson(List<DmRecipient> object) => object;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

@@ -378,6 +378,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
     );
+    store.reconcileMessages(result.messages);
     for (final message in result.messages) {
       if (_messageVisible(message)) {
         _addMessage(message);
@@ -413,6 +414,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         result.messages.removeLast();
       }
 
+      store.reconcileMessages(result.messages);
+
       final fetchedMessages = _allMessagesVisible
         ? result.messages // Avoid unnecessarily copying the list.
         : result.messages.where(_messageVisible);
@@ -426,10 +429,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  /// Add [message] to this view, if it belongs here.
-  ///
-  /// Called in particular when we get a [MessageEvent].
-  void maybeAddMessage(Message message) {
+  /// Add [MessageEvent.message] to this view, if it belongs here.
+  void handleMessageEvent(MessageEvent event) {
+    final message = event.message;
     if (!narrow.containsMessage(message) || !_messageVisible(message)) {
       return;
     }
@@ -442,104 +444,35 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     notifyListeners();
   }
 
-  static void _applyChangesToMessage(UpdateMessageEvent event, Message message) {
-    // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
-    final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
-    if (event.editTimestamp != null && !isRenderingOnly) {
-      // A rendering-only update gets omitted from the message edit history,
-      // and [Message.lastEditTimestamp] is the last timestamp of that history.
-      // So on a rendering-only update, the timestamp doesn't get updated.
-      message.lastEditTimestamp = event.editTimestamp;
-    }
+  // Repeal the `@protected` annotation that applies on the base implementation,
+  // so we can call this method from [MessageStoreImpl].
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+  }
 
-    message.flags = event.flags;
-
-    if (event.renderedContent != null) {
-      assert(message.contentType == 'text/html',
-        "Message contentType was ${message.contentType}; expected text/html.");
-      message.content = event.renderedContent!;
-    }
-
-    if (event.isMeMessage != null) {
-      message.isMeMessage = event.isMeMessage!;
+  /// Notify listeners if the given message is present in this view.
+  void notifyListenersIfMessagePresent(int messageId) {
+    final index = _findMessageWithId(messageId);
+    if (index != -1) {
+      notifyListeners();
     }
   }
 
-  /// Update the message the given event applies to, if present in this view.
-  ///
-  /// This method only handles the case where the message's contents
-  /// were changed, and ignores any changes to its stream or topic.
-  ///
-  /// TODO(#150): Handle message moves.
-  // NB that when handling message moves (#150), recipient headers
-  // may need updating, and consequently showSender too.
-  void maybeUpdateMessage(UpdateMessageEvent event) {
-    final idx = _findMessageWithId(event.messageId);
-    if (idx == -1)  {
-      return;
+  /// Notify listeners if any of the given messages is present in this view.
+  void notifyListenersIfAnyMessagePresent(Iterable<int> messageIds) {
+    final isAnyPresent = messageIds.any((id) => _findMessageWithId(id) != -1);
+    if (isAnyPresent) {
+      notifyListeners();
     }
-
-    _applyChangesToMessage(event, messages[idx]);
-    _reparseContent(idx);
-    notifyListeners();
   }
 
-  void maybeUpdateMessageFlags(UpdateMessageFlagsEvent event) {
-    final isAdd = switch (event) {
-      UpdateMessageFlagsAddEvent()    => true,
-      UpdateMessageFlagsRemoveEvent() => false,
-    };
-
-    bool didUpdateAny = false;
-    if (isAdd && (event as UpdateMessageFlagsAddEvent).all) {
-      for (final message in messages) {
-        message.flags.add(event.flag);
-        didUpdateAny = true;
-      }
-    } else {
-      for (final messageId in event.messages) {
-        final index = _findMessageWithId(messageId);
-        if (index != -1) {
-          final message = messages[index];
-          isAdd ? message.flags.add(event.flag) : message.flags.remove(event.flag);
-          didUpdateAny = true;
-        }
-      }
+  void messageContentChanged(int messageId) {
+    final index = _findMessageWithId(messageId);
+    if (index != -1) {
+      _reparseContent(index);
+      notifyListeners();
     }
-    if (!didUpdateAny) {
-      return;
-    }
-
-    notifyListeners();
-  }
-
-  void maybeUpdateMessageReactions(ReactionEvent event) {
-    final index = _findMessageWithId(event.messageId);
-    if (index == -1) {
-      return;
-    }
-
-    final message = messages[index];
-    switch (event.op) {
-      case ReactionOp.add:
-        (message.reactions ??= Reactions([])).add(Reaction(
-          emojiName: event.emojiName,
-          emojiCode: event.emojiCode,
-          reactionType: event.reactionType,
-          userId: event.userId,
-        ));
-      case ReactionOp.remove:
-        if (message.reactions == null) { // TODO(log)
-          return;
-        }
-        message.reactions!.remove(
-          reactionType: event.reactionType,
-          emojiCode: event.emojiCode,
-          userId: event.userId,
-        );
-    }
-
-    notifyListeners();
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.

@@ -252,6 +252,11 @@ class Heading extends StatelessWidget {
           fontSize: kBaseFontSize * emHeight,
           height: 1.4,
         )
+          // Could set boldness relative to ambient text style, which itself
+          // might be bolder than normal (e.g. in spoiler headers).
+          // But this didn't seem like a clear improvement and would make inline
+          // **bold** spans less distinct; discussion:
+          //   https://github.com/zulip/zulip-flutter/pull/706#issuecomment-2141326257
           .merge(weightVariableTextStyle(context, wght: 600)),
         node: node));
   }
@@ -723,6 +728,12 @@ class InlineContent extends StatelessWidget {
     required this.nodes,
   }) {
     assert(style.fontSize != null);
+    assert(
+      style.debugLabel!.contains('weightVariableTextStyle')
+      // ([ContentTheme.textStylePlainParagraph] applies [weightVariableTextStyle])
+      || style.debugLabel!.contains('ContentTheme.textStylePlainParagraph')
+      || style.debugLabel!.contains('bolderWghtTextStyle')
+    );
     _builder = _InlineContentBuilder(this);
   }
 
@@ -733,6 +744,7 @@ class InlineContent extends StatelessWidget {
   ///
   /// Must set [TextStyle.fontSize]. Some descendant spans will consume it,
   /// e.g., to make their content slightly smaller than surrounding text.
+  /// Similarly must set a font weight using [weightVariableTextStyle].
   final TextStyle style;
 
   final List<InlineContentNode> nodes;
@@ -832,7 +844,7 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
-    style: weightVariableTextStyle(_context!, wght: 600));
+    style: bolderWghtTextStyle(widget.style, by: 200));
 
   InlineSpan _buildDeleted(DeletedNode node) => _buildNodes(node.nodes,
     style: const TextStyle(decoration: TextDecoration.lineThrough));

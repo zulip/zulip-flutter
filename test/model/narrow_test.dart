@@ -36,10 +36,10 @@ void main() {
       check(() => DmNarrow(allRecipientIds: [2, 12], selfUserId: 2)).returnsNormally();
       check(() => DmNarrow(allRecipientIds: [2],     selfUserId: 2)).returnsNormally();
 
-      check(() => DmNarrow(allRecipientIds: [12, 2], selfUserId: 2)).throws();
-      check(() => DmNarrow(allRecipientIds: [2, 2],  selfUserId: 2)).throws();
-      check(() => DmNarrow(allRecipientIds: [2, 12], selfUserId: 1)).throws();
-      check(() => DmNarrow(allRecipientIds: [],      selfUserId: 2)).throws();
+      check(() => DmNarrow(allRecipientIds: [12, 2], selfUserId: 2)).throws<void>();
+      check(() => DmNarrow(allRecipientIds: [2, 2],  selfUserId: 2)).throws<void>();
+      check(() => DmNarrow(allRecipientIds: [2, 12], selfUserId: 1)).throws<void>();
+      check(() => DmNarrow(allRecipientIds: [],      selfUserId: 2)).throws<void>();
     });
 
     test('ofMessage: self-dm', () {

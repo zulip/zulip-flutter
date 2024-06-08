@@ -148,13 +148,13 @@ class MessageListAppBarTitle extends StatelessWidget {
       case StreamNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown stream)';
+        final streamName = stream?.name ?? '(unknown channel)';
         return _buildStreamRow(stream, streamName);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown stream)';
+        final streamName = stream?.name ?? '(unknown channel)';
         return _buildStreamRow(stream, "$streamName > $topic");
 
       case DmNarrow(:var otherRecipientIds):
@@ -295,7 +295,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
               ])))));
   }
 
-  Widget _buildListView(context) {
+  Widget _buildListView(BuildContext context) {
     final length = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
     return CustomScrollView(
@@ -335,7 +335,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
             // have state that needs to be preserved have not been given keys
             // and will not trigger this callback.
             findChildIndexCallback: (Key key) {
-              final valueKey = key as ValueKey;
+              final valueKey = key as ValueKey<int>;
               final index = model!.findItemWithMessageId(valueKey.value);
               if (index == -1) return null;
               return length - 1 - (index - 2);

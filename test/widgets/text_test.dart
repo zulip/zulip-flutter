@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/text.dart';
@@ -151,10 +152,98 @@ void main() {
   });
 
   test('bolderWght', () {
+    check(() => bolderWght(kWghtMin - 1)).throws<void>();
+    check(() => bolderWght(kWghtMax + 1)).throws<void>();
+
     check(bolderWght(1)).equals(301);
     check(bolderWght(400)).equals(700);
     check(bolderWght(600)).equals(900);
     check(bolderWght(900)).equals(1000);
+
+    check(bolderWght(1,    by: -200)).equals(1);
+    check(bolderWght(201,  by: -200)).equals(1);
+    check(bolderWght(1000, by: -200)).equals(800);
+
+    check(bolderWght(1,   by: 200)).equals(201);
+    check(bolderWght(400, by: 200)).equals(600);
+    check(bolderWght(600, by: 200)).equals(800);
+    check(bolderWght(900, by: 200)).equals(1000);
+  });
+
+  group('bolderWghtTextStyle', () {
+    Future<void> testBolderWghtTextStyle(
+      String description, {
+      required TextStyle Function(BuildContext context) makeStyle,
+      bool platformRequestsBold = false,
+      required double expectedWght,
+      required FontWeight expectedFontWeight,
+    }) async {
+      testWidgets(description, (WidgetTester tester) async {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+          FakeAccessibilityFeatures(boldText: platformRequestsBold);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(builder: (context) =>
+              Text('', style: makeStyle(context)))));
+
+        final TextStyle? style = tester.widget<Text>(find.byType(Text)).style;
+
+        check(style).isNotNull().fontWeight.isNotNull().equals(expectedFontWeight);
+
+        final fontVariations = style!.fontVariations;
+        check(fontVariations).isNotNull();
+        final wghtVariation = fontVariations!.singleWhereOrNull((v) => v.axis == 'wght');
+        check(wghtVariation).isNotNull().value.equals(expectedWght);
+
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+      });
+    }
+
+    testBolderWghtTextStyle('default + default',
+      makeStyle: (context) => bolderWghtTextStyle(weightVariableTextStyle(context)),
+      expectedWght: 700,
+      expectedFontWeight: FontWeight.w700);
+
+    testBolderWghtTextStyle('default + default (platform requests bold)',
+      platformRequestsBold: true,
+      makeStyle: (context) => bolderWghtTextStyle(weightVariableTextStyle(context)),
+      expectedWght: 1000,
+      expectedFontWeight: FontWeight.w900);
+
+    testBolderWghtTextStyle('320 + 200',
+      makeStyle: (context) => bolderWghtTextStyle(
+        weightVariableTextStyle(context, wght: 320),
+        by: 200,
+      ),
+      expectedWght: 520,
+      expectedFontWeight: FontWeight.w500);
+
+    testBolderWghtTextStyle('320 + 200 (platform requests bold)',
+      platformRequestsBold: true,
+      makeStyle: (context) => bolderWghtTextStyle(
+        weightVariableTextStyle(context, wght: 320),
+        by: 200,
+      ),
+      expectedWght: 820,
+      expectedFontWeight: FontWeight.w800);
+
+    testBolderWghtTextStyle('320 + 200 (platform requests bold; custom response to setting)',
+      platformRequestsBold: true,
+      makeStyle: (context) => bolderWghtTextStyle(
+        weightVariableTextStyle(context, wght: 320, wghtIfPlatformRequestsBold: 410),
+        by: 200,
+      ),
+      expectedWght: 610,
+      expectedFontWeight: FontWeight.w600);
+
+    testBolderWghtTextStyle('900 + 200',
+      makeStyle: (context) => bolderWghtTextStyle(
+        weightVariableTextStyle(context, wght: 900),
+        by: 200,
+      ),
+      expectedWght: 1000,
+      expectedFontWeight: FontWeight.w900);
   });
 
   test('clampVariableFontWeight: FontWeight has the assumed list of values', () {
@@ -207,6 +296,38 @@ void main() {
     check(clampVariableFontWeight(901))  .equals(FontWeight.w900);
     check(clampVariableFontWeight(999))  .equals(FontWeight.w900);
     check(clampVariableFontWeight(1000)) .equals(FontWeight.w900);
+  });
+
+  test('wghtFromTextStyle', () {
+    doCheck(TextStyle style, double? expected) {
+      check(wghtFromTextStyle(style)).equals(expected);
+    }
+
+    doCheck(const TextStyle(), null);
+    doCheck(const TextStyle(fontVariations: []), null);
+    doCheck(const TextStyle(fontVariations: [FontVariation.slant(45)]), null);
+
+    doCheck(const TextStyle(fontVariations: [FontVariation('wght', 100)]), 100);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation('wght', 160)],
+      fontWeight: FontWeight.w200,
+    ), 160);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation('wght', 100), FontVariation('wght', 200)]
+    ), 100);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation('wght', 100), FontVariation('wght', 100)],
+      fontWeight: FontWeight.w900,
+    ), 100);
+
+    doCheck(const TextStyle(
+      fontVariations: [],
+      fontWeight: FontWeight.w900,
+    ), 900);
+    doCheck(const TextStyle(
+      fontVariations: [FontVariation.slant(45)],
+      fontWeight: FontWeight.w900,
+    ), 900);
   });
 
   group('proportionalLetterSpacing', () {

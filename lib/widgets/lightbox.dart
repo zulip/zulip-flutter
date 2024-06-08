@@ -95,7 +95,7 @@ class _LightboxPageLayout extends StatefulWidget {
     required this.child,
   });
 
-  final Animation routeEntranceAnimation;
+  final Animation<double> routeEntranceAnimation;
   final Message message;
   final Widget? Function(
     BuildContext context, Color color, double elevation) buildBottomAppBar;
@@ -211,7 +211,7 @@ class _ImageLightboxPage extends StatefulWidget {
     required this.src,
   });
 
-  final Animation routeEntranceAnimation;
+  final Animation<double> routeEntranceAnimation;
   final Message message;
   final Uri src;
 
@@ -351,7 +351,7 @@ class VideoLightboxPage extends StatefulWidget {
     required this.src,
   });
 
-  final Animation routeEntranceAnimation;
+  final Animation<double> routeEntranceAnimation;
   final Message message;
   final Uri src;
 
@@ -474,7 +474,7 @@ enum MediaType {
   image
 }
 
-Route getLightboxRoute({
+Route<void> getLightboxRoute({
   int? accountId,
   BuildContext? context,
   required Message message,

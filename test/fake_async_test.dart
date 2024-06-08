@@ -12,7 +12,7 @@ void main() {
       const duration = Duration(milliseconds: 100);
       check(awaitFakeAsync((async) async {
         final start = clock.now();
-        await Future.delayed(duration);
+        await Future<void>.delayed(duration);
         return clock.now().difference(start);
       })).equals(duration);
     });
@@ -41,8 +41,8 @@ void main() {
 
     test('TimeoutException on deadlocked callback', () {
       check(() => awaitFakeAsync((async) async {
-        await Completer().future;
-      })).throws().isA<TimeoutException>();
+        await Completer<void>().future;
+      })).throws<TimeoutException>();
     });
   });
 }

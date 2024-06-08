@@ -330,7 +330,7 @@ class _StreamContentInput extends StatefulWidget {
 class _StreamContentInputState extends State<_StreamContentInput> {
   late String _topicTextNormalized;
 
-  _topicChanged() {
+  void _topicChanged() {
     setState(() {
       _topicTextNormalized = widget.topicController.textNormalized;
     });
@@ -678,7 +678,7 @@ class _SendButton extends StatefulWidget {
 }
 
 class _SendButtonState extends State<_SendButton> {
-  _hasErrorsChanged() {
+  void _hasErrorsChanged() {
     setState(() {
       // Update disabled/non-disabled state
     });
@@ -720,7 +720,8 @@ class _SendButtonState extends State<_SendButton> {
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
-        for (final error in widget.topicController?.validationErrors ?? const [])
+        for (final error in widget.topicController?.validationErrors
+                            ?? const <TopicValidationError>[])
           error.message(zulipLocalizations),
         for (final error in widget.contentController.validationErrors)
           error.message(zulipLocalizations),

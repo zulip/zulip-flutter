@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -209,7 +210,7 @@ TextStyle weightVariableTextStyle(BuildContext context, {
   double? wght,
   double? wghtIfPlatformRequestsBold,
 }) {
-  double value = wght ?? FontWeight.normal.value.toDouble();
+  double value = wght ?? wghtFromFontWeight(FontWeight.normal);
   if (MediaQuery.boldTextOf(context)) {
     // The framework has a condition on [MediaQueryData.boldText]
     // in the [Text] widget, but that only affects `fontWeight`.
@@ -254,9 +255,51 @@ const kWghtMin = 1.0;
 const kWghtMax = 1000.0;
 
 /// A [FontVariation] "wght" value that's 300 above a given, clamped to [kWghtMax].
-double bolderWght(double baseWght) {
+///
+/// The input value must be between [kWghtMin] and [kWghtMax].
+///
+/// Pass [by] to use a value other than 300.
+double bolderWght(double baseWght, {double by = 300}) {
   assert(kWghtMin <= baseWght && baseWght <= kWghtMax);
-  return clampDouble(baseWght + 300, kWghtMin, kWghtMax);
+  return clampDouble(baseWght + by, kWghtMin, kWghtMax);
+}
+
+/// A [TextStyle] whose [FontVariation] "wght" and [TextStyle.fontWeight]
+/// have been raised using [bolderWght].
+///
+/// [style] must have already been processed with [weightVariableTextStyle],
+/// and [by] must be positive.
+///
+/// The increase done here will commute with any increase that was done by
+/// [weightVariableTextStyle] to respond to the device bold-text setting,
+/// because both adjustments are done with [bolderWght] with positive `by`.
+///
+/// [by] defaults to 300.
+TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
+  assert(
+    style.debugLabel!.contains('weightVariableTextStyle')
+    // ([ContentTheme.textStylePlainParagraph] applies [weightVariableTextStyle])
+    || style.debugLabel!.contains('ContentTheme.textStylePlainParagraph')
+    || style.debugLabel!.contains('bolderWghtTextStyle')
+  );
+  assert(by > 0);
+  assert(style.fontVariations!.where((v) => v.axis == 'wght').length == 1);
+
+  final newWght = bolderWght(wghtFromTextStyle(style)!, by: by);
+
+  TextStyle result = style.copyWith(
+    fontVariations: style.fontVariations!.map((v) => v.axis == 'wght'
+      ? FontVariation('wght', newWght)
+      : v).toList(),
+    fontWeight: clampVariableFontWeight(newWght),
+  );
+
+  assert(() {
+    result = result.copyWith(debugLabel: 'bolderWghtTextStyle(by: $by)');
+    return true;
+  }());
+
+  return result;
 }
 
 /// Find the nearest [FontWeight] constant for a variable-font "wght"-axis value.
@@ -284,6 +327,23 @@ FontWeight clampVariableFontWeight(double wght) {
       else                 return FontWeight.w900;
     }
   }
+}
+
+/// A "wght" value extracted from a [TextStyle].
+///
+/// Returns the value in [TextStyle.fontVariations] if present.
+/// If that's absent but a [TextStyle.fontWeight] is present,
+/// returns [wghtFromFontWeight] for that value.
+///
+/// The returned value already reflects any response to the system bold-text
+/// setting, so if the [TextStyle] was built using [weightVariableTextStyle],
+/// this value might be larger than the `wght` that was passed to that function.
+double? wghtFromTextStyle(TextStyle style) {
+  double? result = style.fontVariations?.firstWhereOrNull((v) => v.axis == 'wght')?.value;
+  if (result == null && style.fontWeight != null) {
+    result = wghtFromFontWeight(style.fontWeight!);
+  }
+  return result;
 }
 
 /// A good guess at a font's "wght" value to match a given [FontWeight].

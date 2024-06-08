@@ -83,7 +83,7 @@ void main() {
       // each with probability 1/256; so the probability of missing all of those
       // is exp(- n * 32 / 256) < 2e-12, and there are 256 such possible
       // byte values so the probability that any of them gets missed is < 1e-9.
-      for (final byteValue in Iterable.generate(256)) {
+      for (final byteValue in Iterable<int>.generate(256)) {
         check(bytesThatAppear).contains(byteValue);
       }
     });

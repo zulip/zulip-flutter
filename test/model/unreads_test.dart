@@ -827,7 +827,8 @@ void main() {
     });
 
     group('mark as unread', () {
-      mkEvent(messages) => eg.updateMessageFlagsRemoveEvent(MessageFlag.read, messages);
+      mkEvent(Iterable<Message> messages) =>
+        eg.updateMessageFlagsRemoveEvent(MessageFlag.read, messages);
 
       test('usual cases', () {
         final stream1 = eg.stream(streamId: 1);

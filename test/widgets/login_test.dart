@@ -68,9 +68,9 @@ void main() {
     late List<Route<dynamic>> pushedRoutes;
 
     void takeStartingRoutes() {
-      final expected = [
-        (Subject it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
-        (Subject it) => it.isA<WidgetRoute>().page.isA<LoginPage>(),
+      final expected = <Condition<Object?>>[
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        (it) => it.isA<WidgetRoute>().page.isA<LoginPage>(),
       ];
       check(pushedRoutes.take(expected.length)).deepEquals(expected);
       pushedRoutes.removeRange(0, expected.length);

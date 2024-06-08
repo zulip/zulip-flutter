@@ -7,9 +7,9 @@ import 'dart:math';
 class BackoffMachine {
   BackoffMachine();
 
-  final double _firstDuration = 100;
-  final double _durationCeiling = 10 * 1000;
-  final double _base = 2;
+  static const double _firstDurationMs = 100;
+  static const double _durationCeilingMs = 10 * 1000;
+  static const double _base = 2;
 
   DateTime? _startTime;
 
@@ -24,8 +24,8 @@ class BackoffMachine {
   ///
   /// The popular exponential backoff strategy is to increase the duration
   /// exponentially with the number of sleeps completed, with a base of 2,
-  /// until a ceiling is reached.  E.g., if firstDuration is 100 and
-  /// durationCeiling is 10 * 1000 = 10000, the sequence is:
+  /// until a ceiling is reached.  E.g., if the first duration is 100ms and
+  /// the ceiling is 10s = 10000ms, the sequence is, in ms:
   ///
   ///   100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, ...
   ///
@@ -37,15 +37,22 @@ class BackoffMachine {
   /// maximizes the range while preserving a capped exponential shape on
   /// the expected value.  Greg discusses this in more detail at:
   ///   https://github.com/zulip/zulip-mobile/pull/3841
+  ///
+  /// The duration is always positive; [Duration] works in microseconds, so
+  /// we deviate from the idealized uniform distribution just by rounding
+  /// the smallest durations up to one microsecond instead of down to zero.
+  /// Because in the real world any delay takes nonzero time, this mainly
+  /// affects tests that use fake time, and keeps their behavior more realistic.
   Future<void> wait() async {
     _startTime ??= DateTime.now();
 
-    final duration =
+    final durationMs =
       Random().nextDouble() // "Jitter"
-      * min(_durationCeiling,
-            _firstDuration * pow(_base, _waitsCompleted));
+      * min(_durationCeilingMs,
+            _firstDurationMs * pow(_base, _waitsCompleted));
 
-    await Future.delayed(Duration(milliseconds: duration.round()));
+    await Future<void>.delayed(Duration(
+      microseconds: max(1, (1000 * durationMs).round())));
 
     _waitsCompleted++;
   }

@@ -336,7 +336,7 @@ void main() {
       final stream = eg.stream(name: "general");
 
       group('basic', () {
-        String mkUrlString(operand) {
+        String mkUrlString(String operand) {
           return '#narrow/stream/${stream.streamId}-${stream.name}/topic/$operand';
         }
         final testCases = [
@@ -347,7 +347,7 @@ void main() {
       });
 
       group('on old topic link, with dot-encoding', () {
-        String mkUrlString(operand) {
+        String mkUrlString(String operand) {
           return '#narrow/stream/${stream.name}/topic/$operand';
         }
         final testCases = [

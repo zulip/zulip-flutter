@@ -67,7 +67,7 @@ extension ReactionWithVotesChecks on Subject<ReactionWithVotes> {
     // Same emoji for all reactions
     assert(reactions.every((r) => r.reactionType == first.reactionType && r.emojiCode == first.emojiCode));
 
-    final userIds = Set.from(reactions.map((r) => r.userId));
+    final userIds = Set<int>.from(reactions.map((r) => r.userId));
 
     // No double-votes from one person (we don't expect this from servers)
     assert(userIds.length == reactions.length);

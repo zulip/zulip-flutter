@@ -122,7 +122,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
   late ServerUrlParseResult _parseResult;
 
-  _serverUrlChanged() {
+  void _serverUrlChanged() {
     setState(() {
       _parseResult = _controller.tryParse();
     });
@@ -398,7 +398,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<int> _getUserId(String email, apiKey) async {
+  Future<int> _getUserId(String email, String apiKey) async {
     final globalStore = GlobalStoreWidget.of(context);
     final connection = globalStore.apiConnection(
       realmUrl: widget.serverSettings.realmUrl,

@@ -13,7 +13,7 @@ void main() {
   };
 
   void checkParseFails(Map<String, String> data) {
-    check(() => FcmMessage.fromJson(data)).throws();
+    check(() => FcmMessage.fromJson(data)).throws<void>();
   }
 
   group('FcmMessage', () {

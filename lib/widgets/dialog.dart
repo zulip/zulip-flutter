@@ -47,7 +47,7 @@ void showSuggestedActionDialog({
   required VoidCallback onActionButtonPress,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
-  showDialog(
+  showDialog<void>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),

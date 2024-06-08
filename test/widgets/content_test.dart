@@ -14,6 +14,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
@@ -154,6 +155,41 @@ void main() {
     });
   }
 
+  /// Test the font weight found by [styleFinder] in the rendering of [content].
+  ///
+  /// The weight will be expected to be [expectedWght] when the system
+  /// bold-text setting is not set, and to vary appropriately when it is set.
+  ///
+  /// [styleFinder] must return the [TextStyle] containing the "wght"
+  /// (in [TextStyle.fontVariations]) and the [TextStyle.fontWeight]
+  /// to be checked.
+  Future<void> testFontWeight(String description, {
+    required Widget content,
+    required double expectedWght,
+    required TextStyle Function(WidgetTester tester) styleFinder,
+  }) async {
+    for (final platformRequestsBold in [false, true]) {
+      testWidgets(
+        description + (platformRequestsBold ? ' (platform requests bold)' : ''),
+        (tester) async {
+          tester.platformDispatcher.accessibilityFeaturesTestValue =
+            FakeAccessibilityFeatures(boldText: platformRequestsBold);
+          await prepareContent(tester, content);
+          final style = styleFinder(tester);
+          double effectiveExpectedWght = expectedWght;
+          if (platformRequestsBold) {
+            // bolderWght because that's what [weightVariableTextStyle] uses
+            effectiveExpectedWght = bolderWght(expectedWght);
+          }
+          check(style)
+            ..fontVariations.isNotNull()
+              .any((it) => it..axis.equals('wght')..value.equals(effectiveExpectedWght))
+            ..fontWeight.equals(clampVariableFontWeight(effectiveExpectedWght));
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+        });
+    }
+  }
+
   group('ThematicBreak', () {
     testWidgets('smoke ThematicBreak', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.thematicBreak.html));
@@ -284,7 +320,7 @@ void main() {
       await prepare(tester, example.html);
       // The image indeed has an invalid URL.
       final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
-      check(() => Uri.parse(expectedImages.single.srcUrl)).throws();
+      check(() => Uri.parse(expectedImages.single.srcUrl)).throws<void>();
       check(tryResolveUrl(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
       // The MessageImage has shown up, but it doesn't attempt a RealmContentNetworkImage.
       check(tester.widgetList(find.byType(MessageImage))).isNotEmpty();
@@ -469,7 +505,69 @@ void main() {
     check((ratioInHeader - ratioInParagraph).abs()).isLessThan(0.001);
   }
 
-  testContentSmoke(ContentExample.strong);
+  group('strong (bold)', () {
+    testContentSmoke(ContentExample.strong);
+
+    TextStyle findWordBold(WidgetTester tester) {
+      final root = tester.renderObject<RenderParagraph>(find.textContaining('bold')).text;
+      return mergedStyleOfSubstring(root, 'bold')!;
+    }
+
+    testFontWeight('in plain paragraph',
+      expectedWght: 600,
+      // **bold**
+      content: plainContent('<p><strong>bold</strong></p>'),
+      styleFinder: findWordBold,
+    );
+
+    for (final level in HeadingLevel.values) {
+      final name = level.name;
+      assert(RegExp(r'^h[1-6]$').hasMatch(name));
+      testFontWeight('in $name',
+        expectedWght: 800,
+        // # **bold**, ## **bold**, ### **bold**, etc.
+        content: plainContent('<$name><strong>bold</strong></$name>'),
+        styleFinder: findWordBold,
+      );
+    }
+
+    testFontWeight('in different kind of span in h1',
+      expectedWght: 800,
+      // # ~~**bold**~~
+      content: plainContent('<h1><del><strong>bold</strong></del></h1>'),
+      styleFinder: findWordBold,
+    );
+
+    testFontWeight('in spoiler header',
+      expectedWght: 900,
+      // ```spoiler regular **bold**
+      // content
+      // ```
+      content: plainContent(
+        '<div class="spoiler-block"><div class="spoiler-header">\n'
+          '<p>regular <strong>bold</strong></p>\n'
+          '</div><div class="spoiler-content" aria-hidden="true">\n'
+          '<p>content</p>\n'
+          '</div></div>'
+      ),
+      styleFinder: findWordBold,
+    );
+
+    testFontWeight('in different kind of span in spoiler header',
+      expectedWght: 900,
+      // ```spoiler *italic **bold***
+      // content
+      // ```
+      content: plainContent(
+        '<div class="spoiler-block"><div class="spoiler-header">\n'
+          '<p><em>italic <strong>bold</strong></em></p>\n'
+          '</div><div class="spoiler-content" aria-hidden="true">\n'
+          '<p>content</p>\n'
+          '</div></div>'
+      ),
+      styleFinder: findWordBold,
+    );
+  });
 
   testContentSmoke(ContentExample.emphasis);
 
@@ -489,25 +587,63 @@ void main() {
     testContentSmoke(ContentExample.groupMentionPlain);
     testContentSmoke(ContentExample.groupMentionSilent);
 
+    UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
+      UserMention? result;
+      rootSpan.visitChildren((span) {
+        if (span case (WidgetSpan(child: UserMention() && var widget))) {
+          result = widget;
+          return false;
+        }
+        return true;
+      });
+      return result;
+    }
+
+    TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
+      final fullNameSpan = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.byWidget(widget), matching: find.text(mentionText))
+      ).text;
+      return mergedStyleOfSubstring(fullNameSpan, mentionText)!;
+    }
+
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         targetFontSizeFinder: (rootSpan) {
-          late final double result;
-          rootSpan.visitChildren((span) {
-            if (span case WidgetSpan(child: UserMention() && var widget)) {
-              final fullNameSpan = tester.renderObject<RenderParagraph>(
-                find.descendant(
-                  of: find.byWidget(widget), matching: find.text('@Chris Bobbe'))
-              ).text;
-              result = mergedStyleOfSubstring(fullNameSpan, '@Chris Bobbe')!.fontSize!;
-              return false;
-            }
-            return true;
-          });
-          return result;
+          final widget = findUserMentionInSpan(rootSpan);
+          final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
+          return style.fontSize!;
         });
     });
+
+    testFontWeight('silent or non-self mention in plain paragraph',
+      expectedWght: 400,
+      // @_**Greg Price**
+      content: plainContent(
+        '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(UserMention)), 'Greg Price');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent self-user mention in plain paragraph',
+    //    expectedWght: 600, // [etc.]
+
+    testFontWeight('silent or non-self mention in bold context',
+      expectedWght: 600,
+      // # @_**Chris Bobbe**
+      content: plainContent(
+        '<h1><span class="user-mention silent" data-user-id="13313">Chris Bobbe</span></h1>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(UserMention)), 'Chris Bobbe');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent self-user mention in bold context',
+    //    expectedWght: 800, // [etc.]
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
@@ -763,7 +899,7 @@ void main() {
     testWidgets('smoke: custom emoji with invalid URL', (tester) async {
       await prepare(tester, ContentExample.emojiCustomInvalidUrl.html);
       final url = tester.widget<MessageImageEmoji>(find.byType(MessageImageEmoji)).node.src;
-      check(() => Uri.parse(url)).throws();
+      check(() => Uri.parse(url)).throws<void>();
       debugNetworkImageHttpClientProvider = null;
     });
 

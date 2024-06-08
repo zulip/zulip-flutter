@@ -13,7 +13,7 @@ import 'narrow.dart';
 class RecentDmConversationsView extends ChangeNotifier {
   factory RecentDmConversationsView({
     required List<RecentDmConversation> initial,
-    required selfUserId,
+    required int selfUserId,
   }) {
     final entries = initial.map((conversation) => MapEntry(
         DmNarrow.ofRecentDmConversation(conversation, selfUserId: selfUserId),

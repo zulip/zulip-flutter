@@ -96,7 +96,7 @@ class NotificationDisplayManager {
       FcmMessageStreamRecipient(:var streamName?, :var topic) =>
         '$streamName > $topic',
       FcmMessageStreamRecipient(:var topic) =>
-        '(unknown stream) > $topic', // TODO get stream name from data
+        '(unknown channel) > $topic', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
@@ -173,7 +173,8 @@ class NotificationDisplayManager {
   }
 
   static void _onNotificationOpened(NotificationResponse response) async {
-    final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
+    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
+    final data = MessageFcmMessage.fromJson(payload);
     assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
     _navigateForNotification(data);
   }
@@ -182,7 +183,8 @@ class NotificationDisplayManager {
     assert(response != null);
     if (response == null) return; // TODO(log) seems like a bug in flutter_local_notifications if this can happen
 
-    final data = MessageFcmMessage.fromJson(jsonDecode(response.payload!));
+    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
+    final data = MessageFcmMessage.fromJson(payload);
     assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
     _navigateForNotification(data);
   }
@@ -207,7 +209,7 @@ class NotificationDisplayManager {
 
     assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
-    navigator.push(MaterialAccountWidgetRoute(accountId: account.id,
+    navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
       page: MessageListPage(narrow: narrow)));
     return;

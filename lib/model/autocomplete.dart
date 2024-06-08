@@ -229,7 +229,7 @@ class MentionAutocompleteView extends ChangeNotifier {
   Iterable<MentionAutocompleteResult> get results => _results;
   List<MentionAutocompleteResult> _results = [];
 
-  _startSearch(MentionAutocompleteQuery query) async {
+  Future<void> _startSearch(MentionAutocompleteQuery query) async {
     List<MentionAutocompleteResult>? newResults;
 
     while (true) {

@@ -28,15 +28,15 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
-  get allDmsCollapsed => _allDmsCollapsed;
+  bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;
-  set allDmsCollapsed(value) {
+  set allDmsCollapsed(bool value) {
     setState(() {
       _allDmsCollapsed = value;
     });
   }
 
-  get collapsedStreamIds => _collapsedStreamIds;
+  Set<int> get collapsedStreamIds => _collapsedStreamIds;
   final Set<int> _collapsedStreamIds = {};
   void collapseStream(int streamId) {
     setState(() {
@@ -231,16 +231,16 @@ abstract class _HeaderItem extends StatelessWidget {
   Color get uncollapsedBackgroundColor;
   Color? get unreadCountBadgeBackgroundColor;
 
-  Future<void> Function() get onCollapseButtonTap => () async {
+  Future<void> onCollapseButtonTap() async {
     if (!collapsed) {
       await Scrollable.ensureVisible(
         sectionContext,
         alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
       );
     }
-  };
+  }
 
-  void Function() get onRowTap;
+  Future<void> onRowTap();
 
   @override
   Widget build(BuildContext context) {
@@ -293,21 +293,21 @@ class _AllDmsHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override get title => 'Direct messages'; // TODO(i18n)
-  @override get icon => ZulipIcons.user;
+  @override String get title => 'Direct messages'; // TODO(i18n)
+  @override IconData get icon => ZulipIcons.user;
 
   // TODO(#95) need dark-theme colors
-  @override get collapsedIconColor => const Color(0xFF222222);
-  @override get uncollapsedIconColor => const Color(0xFF222222);
+  @override Color get collapsedIconColor => const Color(0xFF222222);
+  @override Color get uncollapsedIconColor => const Color(0xFF222222);
 
-  @override get uncollapsedBackgroundColor => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
-  @override get unreadCountBadgeBackgroundColor => null;
+  @override Color get uncollapsedBackgroundColor => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
+  @override Color? get unreadCountBadgeBackgroundColor => null;
 
-  @override get onCollapseButtonTap => () async {
+  @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
     pageState.allDmsCollapsed = !collapsed;
-  };
-  @override get onRowTap => onCollapseButtonTap; // TODO open all-DMs narrow?
+  }
+  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open all-DMs narrow?
 }
 
 class _AllDmsSection extends StatelessWidget {
@@ -416,24 +416,24 @@ class _StreamHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override get title => subscription.name;
-  @override get icon => iconDataForStream(subscription);
-  @override get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
-  @override get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
-  @override get uncollapsedBackgroundColor =>
+  @override String get title => subscription.name;
+  @override IconData get icon => iconDataForStream(subscription);
+  @override Color get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
+  @override Color get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
+  @override Color get uncollapsedBackgroundColor =>
     subscription.colorSwatch().barBackground;
-  @override get unreadCountBadgeBackgroundColor =>
+  @override Color? get unreadCountBadgeBackgroundColor =>
     subscription.colorSwatch().unreadCountBadgeBackground;
 
-  @override get onCollapseButtonTap => () async {
+  @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
     if (collapsed) {
       pageState.uncollapseStream(subscription.streamId);
     } else {
       pageState.collapseStream(subscription.streamId);
     }
-  };
-  @override get onRowTap => onCollapseButtonTap; // TODO open stream narrow
+  }
+  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open stream narrow
 }
 
 class _StreamSection extends StatelessWidget {

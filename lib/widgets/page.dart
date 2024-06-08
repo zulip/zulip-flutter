@@ -6,7 +6,7 @@ import 'store.dart';
 /// A page route that always builds the same widget.
 ///
 /// This is useful for making the route more transparent for a test to inspect.
-abstract class WidgetRoute<T> extends PageRoute<T> {
+abstract class WidgetRoute<T extends Object?> extends PageRoute<T> {
   /// The widget that this page route always builds.
   Widget get page;
 }
@@ -18,7 +18,7 @@ abstract class WidgetRoute<T> extends PageRoute<T> {
 /// See also:
 ///  * [MaterialAccountWidgetRoute], a subclass which automates providing a
 ///    per-account store on the new route.
-class MaterialWidgetRoute<T> extends MaterialPageRoute<T> implements WidgetRoute<T> {
+class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> implements WidgetRoute<T> {
   MaterialWidgetRoute({
     required this.page,
     super.settings,
@@ -32,7 +32,7 @@ class MaterialWidgetRoute<T> extends MaterialPageRoute<T> implements WidgetRoute
 }
 
 /// A mixin for providing a given account's per-account store on a page route.
-mixin AccountPageRouteMixin<T> on PageRoute<T> {
+mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
   int get accountId;
 
   @override
@@ -51,7 +51,7 @@ mixin AccountPageRouteMixin<T> on PageRoute<T> {
 ///    for tests.
 ///  * [AccountPageRouteBuilder], for defining one-off page routes
 ///    in terms of callbacks.
-class MaterialAccountPageRoute<T> extends MaterialPageRoute<T> with AccountPageRouteMixin<T> {
+class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> with AccountPageRouteMixin<T> {
   /// Construct a [MaterialAccountPageRoute] using either the given account ID,
   /// or the ambient one from the given context.
   ///
@@ -89,7 +89,7 @@ class MaterialAccountPageRoute<T> extends MaterialPageRoute<T> with AccountPageR
 ///
 /// See also:
 ///  * [MaterialWidgetRoute], for routes that need no per-account store.
-class MaterialAccountWidgetRoute<T> extends MaterialAccountPageRoute<T> implements WidgetRoute<T> {
+class MaterialAccountWidgetRoute<T extends Object?> extends MaterialAccountPageRoute<T> implements WidgetRoute<T> {
   /// Construct a [MaterialAccountWidgetRoute] using either the given account ID,
   /// or the ambient one from the given context.
   ///
@@ -118,7 +118,7 @@ class MaterialAccountWidgetRoute<T> extends MaterialAccountPageRoute<T> implemen
 /// A [PageRouteBuilder] providing a per-account store for a given account.
 ///
 /// This is the [PageRouteBuilder] analogue of [MaterialAccountPageRoute].
-class AccountPageRouteBuilder<T> extends PageRouteBuilder<T> with AccountPageRouteMixin<T> {
+class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T> with AccountPageRouteMixin<T> {
   /// Construct an [AccountPageRouteBuilder] using either the given account ID,
   /// or the ambient one from the given context.
   ///
