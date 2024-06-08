@@ -9,6 +9,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
+            android:usesCleartextTraffic="true"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
