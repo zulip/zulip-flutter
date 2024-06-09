@@ -159,6 +159,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     final operand = segments[i + 1];
     switch (operator) {
       case _NarrowOperator.stream:
+      case _NarrowOperator.channel:
         if (streamElement != null) return null;
         final streamId = _parseStreamOperand(operand, store);
         if (streamId == null) return null;
@@ -207,6 +208,7 @@ enum _NarrowOperator {
   near,
   pmWith,
   stream,
+  channel,
   subject,
   topic,
   unknown;
