@@ -108,6 +108,32 @@ class FakeVideoPlayerPlatform extends Fake
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group('VideoDurationLabel', () {
+    const cases = [
+      (Duration(milliseconds: 1),    '00:00',     '1ms'),
+      (Duration(milliseconds: 900),  '00:00',     '900ms'),
+      (Duration(milliseconds: 1000), '00:01',     '1000ms'),
+      (Duration(seconds: 59),        '00:59',     '59s'),
+      (Duration(seconds: 60),        '01:00',     '60s'),
+      (Duration(minutes: 59),        '59:00',     '59m'),
+      (Duration(minutes: 60),        '01:00:00',  '60m'),
+      (Duration(hours: 23),          '23:00:00',  '23h'),
+      (Duration(hours: 24),          '24:00:00',  '24h'),
+      (Duration(hours: 25),          '25:00:00',  '25h'),
+      (Duration(hours: 100),         '100:00:00', '100h'),
+    ];
+
+    for (final (duration, expected, title) in cases) {
+      testWidgets('with $title shows $expected', (tester) async {
+        await tester.pumpWidget(MaterialApp(home: VideoDurationLabel(duration)));
+        final text = tester.widget<Text>(find.byType(Text));
+        check(text.data)
+          ..equals(VideoDurationLabel.formatDuration(duration))
+          ..equals(expected);
+      });
+    }
+  });
+
   group("VideoLightboxPage", () {
     FakeVideoPlayerPlatform.registerWith();
 

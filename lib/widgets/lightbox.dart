@@ -248,6 +248,31 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
   }
 }
 
+class VideoDurationLabel extends StatelessWidget {
+  const VideoDurationLabel(this.duration, {
+    super.key,
+    this.semanticsLabel,
+  });
+
+  final Duration duration;
+  final String? semanticsLabel;
+
+  @visibleForTesting
+  static String formatDuration(Duration value) {
+    final hours = value.inHours.toString().padLeft(2, '0');
+    final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '${hours == '00' ? '' : '$hours:'}$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(formatDuration(duration),
+      semanticsLabel: semanticsLabel,
+      style: const TextStyle(color: Colors.white));
+  }
+}
+
 class _VideoPositionSliderControl extends StatefulWidget {
   final VideoPlayerController controller;
 
@@ -280,13 +305,6 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
     setState(() {});
   }
 
-  static String _formatDuration(Duration value) {
-    final hours = value.inHours.toString().padLeft(2, '0');
-    final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '${hours == '00' ? '' : '$hours:'}$minutes:$seconds';
-  }
-
   @override
   Widget build(BuildContext context) {
     final currentPosition = _isSliderDragging
@@ -294,8 +312,8 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
       : widget.controller.value.position;
 
     return Row(children: [
-      Text(_formatDuration(currentPosition),
-        style: const TextStyle(color: Colors.white)),
+      VideoDurationLabel(currentPosition,
+        semanticsLabel: "Current position"),
       Expanded(
         child: Slider(
           value: currentPosition.inMilliseconds.toDouble(),
@@ -324,8 +342,8 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
           },
         ),
       ),
-      Text(_formatDuration(widget.controller.value.duration),
-        style: const TextStyle(color: Colors.white)),
+      VideoDurationLabel(widget.controller.value.duration,
+        semanticsLabel: "Video duration"),
     ]);
   }
 }
