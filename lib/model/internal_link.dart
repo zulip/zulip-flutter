@@ -179,8 +179,9 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (dmIds == null) return null;
         dmElement = ApiNarrowDm(dmIds, negated: negated);
 
-      case _NarrowOperator.near:
-        continue; // TODO(#82): support for near
+      case _NarrowOperator.near: // TODO(#82): support for near
+      case _NarrowOperator.with_: // TODO(#683): support for with
+        continue;
 
       case _NarrowOperator.unknown:
         return null;
@@ -206,6 +207,9 @@ enum _NarrowOperator {
   // 'dm' is new in server-7.0; means the same as 'pm-with'
   dm,
   near,
+  // cannot use `with` as it is a reserved keyword in Dart
+  @JsonValue('with')
+  with_,
   pmWith,
   stream,
   channel,

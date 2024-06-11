@@ -172,9 +172,12 @@ void main() {
       const testCases = [
         ('/#narrow/stream/check/topic/test',                 TopicNarrow(1, 'test')),
         ('/#narrow/stream/mobile/subject/topic/near/378333', TopicNarrow(3, 'topic')),
+        ('/#narrow/stream/mobile/subject/topic/with/1',      TopicNarrow(3, 'topic')),
         ('/#narrow/stream/mobile/topic/topic/',              TopicNarrow(3, 'topic')),
         ('/#narrow/stream/stream/topic/topic/near/1',        TopicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/topic/topic/with/22',       TopicNarrow(5, 'topic')),
         ('/#narrow/stream/stream/subject/topic/near/1',      TopicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic/with/333',    TopicNarrow(5, 'topic')),
         ('/#narrow/stream/stream/subject/topic',             TopicNarrow(5, 'topic')),
       ];
       testExpectedNarrows(testCases, streams: streams);
@@ -198,7 +201,9 @@ void main() {
       final testCases = [
         ('/#narrow/dm/1,2-group',                        expectedNarrow),
         ('/#narrow/dm/1,2-group/near/1',                 expectedNarrow),
+        ('/#narrow/dm/1,2-group/with/2',                 expectedNarrow),
         ('/#narrow/dm/a.40b.2Ecom.2Ec.2Ed.2Ecom/near/3', null),
+        ('/#narrow/dm/a.40b.2Ecom.2Ec.2Ed.2Ecom/with/4', null),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -209,7 +214,9 @@ void main() {
       final testCases = [
         ('/#narrow/pm-with/1,2-group',                        expectedNarrow),
         ('/#narrow/pm-with/1,2-group/near/1',                 expectedNarrow),
+        ('/#narrow/pm-with/1,2-group/with/2',                 expectedNarrow),
         ('/#narrow/pm-with/a.40b.2Ecom.2Ec.2Ed.2Ecom/near/3', null),
+        ('/#narrow/pm-with/a.40b.2Ecom.2Ec.2Ed.2Ecom/with/3', null),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
