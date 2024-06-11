@@ -36,12 +36,20 @@ The steps are:
               then upgrade pods to match.  If there are any changes
               here, the resulting commit is only a draft and requires
               human editing and review.
+
+Options:
+
+  --no-pod    Skip running CocoaPods.  This is convenient for
+              drafting a branch on Linux.
 EOF
 }
 
+opt_pod=y
 opt_steps=()
 while (( $# )); do
     case "$1" in
+        --no-pod)
+            opt_pod=; shift;;
         pod|pub|pub-major)
             opt_steps+=("$1"); shift;;
         --help) usage; exit 0;;
@@ -60,6 +68,8 @@ rootdir=$(git rev-parse --show-toplevel)
 cd "$rootdir"
 
 check_have_cocoapods() {
+    [ -z "${opt_pod}" ] && return;
+
     if ! type pod >/dev/null; then
         echo >&2 "No \`pod\` command found."
         echo >&2
@@ -100,11 +110,19 @@ check_pub_get_clean() {
 }
 
 just_pod_update() {
+    [ -z "${opt_pod}" ] && return;
+
     run_visibly pod update --project-directory=ios/
     run_visibly pod update --project-directory=macos/
 }
 
 upgrade_pod() {
+    if [ -z "${opt_pod}" ]; then
+        echo >&2
+        echo >&2 "pod update: WARNING: skipping because --no-pod"
+        return
+    fi
+
     check_no_uncommitted_or_untracked
     check_pub_get_clean
 
@@ -144,6 +162,11 @@ upgrade_pub() {
     git commit -a -m "\
 deps: Upgrade packages within constraints (tools/upgrade pub)
 "
+
+    if [ -z "${opt_pod}" ]; then
+        echo >&2
+        echo >&2 "flutter pub upgrade: WARNING: Podfile.lock files may be out of date because --no-pod"
+    fi
 }
 
 upgrade_pub_major() {
@@ -191,6 +214,11 @@ To finish the upgrade:
 If several unrelated packages were upgraded, and any of them require
 changes in our code, consider upgrading them in separate commits.
 EOF
+
+    if [ -z "${opt_pod}" ]; then
+        echo >&2
+        echo >&2 "flutter pub upgrade --major-versions: WARNING: Podfile.lock files may be out of date because --no-pod"
+    fi
 }
 
 check_have_cocoapods
