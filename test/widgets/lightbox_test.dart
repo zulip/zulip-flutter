@@ -16,21 +16,27 @@ import '../model/binding.dart';
 class FakeVideoPlayerPlatform extends Fake
     with MockPlatformInterfaceMixin
     implements VideoPlayerPlatform {
-  static const int _textureId = 0xffffffff;
-
-  static StreamController<VideoEvent> _streamController = StreamController<VideoEvent>();
-  static bool initialized = false;
-  static bool isPlaying = false;
+  static final FakeVideoPlayerPlatform instance = FakeVideoPlayerPlatform();
 
   static void registerWith() {
-    VideoPlayerPlatform.instance = FakeVideoPlayerPlatform();
+    VideoPlayerPlatform.instance = instance;
   }
 
-  static void reset() {
+  static const int _textureId = 0xffffffff;
+
+  StreamController<VideoEvent> _streamController = StreamController<VideoEvent>();
+
+  bool get initialized => _initialized;
+  bool _initialized = false;
+
+  bool get isPlaying => _isPlaying;
+  bool _isPlaying = false;
+
+  void reset() {
     _streamController.close();
     _streamController = StreamController<VideoEvent>();
-    initialized = false;
-    isPlaying = false;
+    _initialized = false;
+    _isPlaying = false;
   }
 
   @override
@@ -38,15 +44,15 @@ class FakeVideoPlayerPlatform extends Fake
 
   @override
   Future<void> dispose(int textureId) async {
-    assert(initialized);
+    assert(_initialized);
     assert(textureId == _textureId);
-    initialized = false;
+    _initialized = false;
   }
 
   @override
   Future<int?> create(DataSource dataSource) async  {
-    assert(!initialized);
-    initialized = true;
+    assert(!_initialized);
+    _initialized = true;
     _streamController.add(VideoEvent(
       eventType: VideoEventType.initialized,
       duration: const Duration(seconds: 1),
@@ -71,7 +77,7 @@ class FakeVideoPlayerPlatform extends Fake
   @override
   Future<void> play(int textureId) async {
     assert(textureId == _textureId);
-    isPlaying = true;
+    _isPlaying = true;
     _streamController.add(VideoEvent(
       eventType: VideoEventType.isPlayingStateUpdate,
       isPlaying: true,
@@ -81,7 +87,7 @@ class FakeVideoPlayerPlatform extends Fake
   @override
   Future<void> pause(int textureId) async {
     assert(textureId == _textureId);
-    isPlaying = false;
+    _isPlaying = false;
     _streamController.add(VideoEvent(
       eventType: VideoEventType.isPlayingStateUpdate,
       isPlaying: false,
@@ -136,13 +142,14 @@ void main() {
 
   group("VideoLightboxPage", () {
     FakeVideoPlayerPlatform.registerWith();
+    final platform = FakeVideoPlayerPlatform.instance;
 
     Future<void> setupPage(WidgetTester tester, {
       required Uri videoSrc,
     }) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      addTearDown(FakeVideoPlayerPlatform.reset);
+      addTearDown(platform.reset);
 
       await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
@@ -159,24 +166,24 @@ void main() {
     testWidgets('shows a VideoPlayer, and video is playing', (tester) async {
       await setupPage(tester, videoSrc: Uri.parse('https://a/b.mp4'));
 
-      check(FakeVideoPlayerPlatform.initialized).isTrue();
-      check(FakeVideoPlayerPlatform.isPlaying).isTrue();
+      check(platform.initialized).isTrue();
+      check(platform.isPlaying).isTrue();
 
       await tester.ensureVisible(find.byType(VideoPlayer));
     });
 
     testWidgets('toggles between play and pause', (tester) async {
       await setupPage(tester, videoSrc: Uri.parse('https://a/b.mp4'));
-      check(FakeVideoPlayerPlatform.isPlaying).isTrue();
+      check(platform.isPlaying).isTrue();
 
       await tester.tap(find.byIcon(Icons.pause_circle_rounded));
-      check(FakeVideoPlayerPlatform.isPlaying).isFalse();
+      check(platform.isPlaying).isFalse();
 
       // re-render to update player controls
       await tester.pump();
 
       await tester.tap(find.byIcon(Icons.play_circle_rounded));
-      check(FakeVideoPlayerPlatform.isPlaying).isTrue();
+      check(platform.isPlaying).isTrue();
     });
   });
 }
