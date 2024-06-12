@@ -111,6 +111,7 @@ check_pub_get_clean() {
 
 just_pod_update() {
     [ -z "${opt_pod}" ] && return;
+    check_have_cocoapods
 
     run_visibly pod update --project-directory=ios/
     run_visibly pod update --project-directory=macos/
@@ -123,6 +124,7 @@ upgrade_pod() {
         return
     fi
 
+    check_have_cocoapods
     check_no_uncommitted_or_untracked
     check_pub_get_clean
 
@@ -138,6 +140,7 @@ deps: Update CocoaPods pods (tools/upgrade pod)
 }
 
 upgrade_pub() {
+    check_have_cocoapods
     check_no_uncommitted_or_untracked
     check_pub_get_clean
 
@@ -170,6 +173,7 @@ deps: Upgrade packages within constraints (tools/upgrade pub)
 }
 
 upgrade_pub_major() {
+    check_have_cocoapods
     check_no_uncommitted_or_untracked
     check_pub_get_clean
 
@@ -220,8 +224,6 @@ EOF
         echo >&2 "flutter pub upgrade --major-versions: WARNING: Podfile.lock files may be out of date because --no-pod"
     fi
 }
-
-check_have_cocoapods
 
 divider_line='================================================================'
 
