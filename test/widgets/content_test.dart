@@ -457,6 +457,14 @@ void main() {
     testContentSmoke(ContentExample.codeBlockPlain);
     testContentSmoke(ContentExample.codeBlockHighlightedShort);
     testContentSmoke(ContentExample.codeBlockHighlightedMultiline);
+
+    testFontWeight('syntax highlighting: non-bold span',
+      expectedWght: 400,
+      content: plainContent(ContentExample.codeBlockHighlightedShort.html),
+      styleFinder: (WidgetTester tester) {
+        final root = tester.renderObject<RenderParagraph>(find.textContaining('class')).text;
+        return mergedStyleOfSubstring(root, 'class')!;
+      });
   });
 
   testContentSmoke(ContentExample.mathBlock);
