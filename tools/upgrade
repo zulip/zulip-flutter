@@ -20,7 +20,7 @@ usage: tools/upgrade [OPTION]... [STEP]...
 
 Upgrade our dependencies.
 
-By default, run all upgrade steps:
+By default, run the following upgrade steps:
   ${default_steps[*]}
 
 Each step produces a Git commit if there were any changes.
@@ -28,6 +28,12 @@ Each step produces a Git commit if there were any changes.
 The steps are:
 
   pod         Upgrade CocoaPods pods.
+
+  flutter-local
+              Upgrade Flutter and its supporting libraries.
+              EXPERIMENTAL and not in the default list,
+              because it takes your current locally-installed version
+              rather than finding the latest.
 
   pub         Upgrade pub packages within the constraints expressed
               in pubspec.yaml, then upgrade pods to match.
@@ -50,7 +56,7 @@ while (( $# )); do
     case "$1" in
         --no-pod)
             opt_pod=; shift;;
-        pod|pub|pub-major)
+        pod|flutter-local|pub|pub-major)
             opt_steps+=("$1"); shift;;
         --help) usage; exit 0;;
         *) usage >&2; exit 2;;
@@ -137,6 +143,76 @@ upgrade_pod() {
     git commit -a -m "\
 deps: Update CocoaPods pods (tools/upgrade pod)
 "
+}
+
+upgrade_flutter_local() {
+    local pattern flutter_version_output flutter_version dart_sdk_version
+
+    check_no_uncommitted_or_untracked
+
+    # No check_pub_get_clean.  This operates on a `flutter` you've
+    # already locally upgraded, so if that happens to update any
+    # supporting libraries then it's expected that those will show up
+    # on `flutter pub get`.
+    # check_pub_get_clean
+
+    # TODO upgrade Flutter to latest, rather than what's lying around
+
+    # Sometimes the `flutter --version` output begins with lines like
+    # "Resolving dependencies..."; so the pattern accommodates those.
+    # The pattern requires Dart 3.x, because we'll emit "<4.0.0" below.
+    pattern=$'\nFlutter (\S+) .*\sDart \S+ \(build (3\.\S+)\)'
+
+    flutter_version_output=$(run_visibly flutter --version)
+    if ! [[ $'\n'"${flutter_version_output}" =~ $pattern ]]; then
+        echo >&2 "error: 'flutter --version' output not recognized"
+        printf >&2 "output was:\n-----\n%s\n-----" "${flutter_version_output}"
+        return 1
+    fi
+    flutter_version="${BASH_REMATCH[1]}"
+    dart_sdk_version="${BASH_REMATCH[2]}"
+
+    yaml_fragment="\
+  sdk: '>=${dart_sdk_version} <4.0.0'
+  flutter: '>=${flutter_version}'
+" \
+      perl -i -0pe 's/^  sdk: .*\n  flutter: .*\n/$ENV{yaml_fragment}/m' \
+        pubspec.yaml
+
+    if no_uncommitted_changes; then
+        echo >&2 "flutter: No changes."
+        return
+    fi
+
+    run_visibly flutter pub get
+
+    local libraries_updated=
+    if git diff pubspec.lock | perl -0ne '
+            s/.*?\n(@@)/$1/s;  # cut `git diff` header
+            if (/^[-+](?!  (dart|flutter):)/m) { exit 0; } else { exit 1; }
+          '; then
+        libraries_updated=y
+    fi
+
+    local more="
+
+And update Flutter's supporting libraries to match."
+    git commit -a -m "\
+deps: Upgrade Flutter to ${flutter_version}${libraries_updated:+"${more}"}
+"
+
+    cat <<EOF
+
+There was a Flutter upgrade${libraries_updated:+, and libraries were updated}.
+
+The \`tools/upgrade\` script created a draft commit, but
+it requires manual checking:
+
+ * The update was to the Flutter version you currently
+   have installed at the \`flutter\` command.
+   Check that is is the latest Flutter from main,
+   or otherwise the version you intend to upgrade to.
+EOF
 }
 
 upgrade_pub() {
@@ -233,6 +309,7 @@ for step in "${opt_steps[@]}"; do
     echo "======== tools/upgrade ${step}"
     case "${step}" in
         pod)       upgrade_pod ;;
+        flutter-local) upgrade_flutter_local ;;
         pub)       upgrade_pub ;;
         pub-major) upgrade_pub_major ;;
         *)   echo >&2 "Internal error: unknown step ${step}" ;;

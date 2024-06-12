@@ -243,12 +243,11 @@ new PR merged that we particularly want to take.
 
 To update the version bounds:
 * Use `flutter upgrade` to upgrade your local Flutter and Dart.
-* Update the lower bounds at `environment` in `pubspec.yaml`
-  to the new versions, as seen in `flutter --version`.
-* Run `flutter pub get`, which will update `pubspec.lock`.
+* Run `tools/upgrade flutter-local`, which makes a commit updating
+  `pubspec.yaml` and `pubspec.lock` to match your local Flutter.
 * Make a quick check that things work: `tools/check`,
   and do a quick smoke-test of the app.
-* Commit and push the changes in `pubspec.yaml` and `pubspec.lock`.
+* Send the changes as a PR.
 
 
 ### Upgrading dependencies
