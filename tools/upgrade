@@ -171,6 +171,7 @@ Changelogs:
 "
 
     cat <<EOF
+
 There were upgrades beyond the constraints we had in \`pubspec.yaml\`.
 This typically means the package maintainers identified the changes
 as potentially breaking.
