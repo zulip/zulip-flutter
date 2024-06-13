@@ -373,3 +373,24 @@ double proportionalLetterSpacing(
   final effectiveTextScaler = textScaler ?? MediaQuery.textScalerOf(context);
   return effectiveTextScaler.scale(baseFontSize) * proportion;
 }
+
+/// The most suitable [TextBaseline] for the current language.
+///
+/// The result is chosen based on information from [MaterialLocalizations]
+/// about the language's script.
+/// If [MaterialLocalizations] doesn't have that information,
+/// gives [TextBaseline.alphabetic].
+// Adapted from [Theme.of], which localizes text styles according to the
+// locale's [ScriptCategory]. With M3 defaults, this just means varying
+// [TextStyle.textBaseline] the way we do here.
+TextBaseline localizedTextBaseline(BuildContext context) {
+  final materialLocalizations =
+    Localizations.of<MaterialLocalizations>(context, MaterialLocalizations);
+  final scriptCategory = materialLocalizations?.scriptCategory
+    ?? ScriptCategory.englishLike;
+  return switch (scriptCategory) {
+    ScriptCategory.dense => TextBaseline.ideographic,
+    ScriptCategory.englishLike => TextBaseline.alphabetic,
+    ScriptCategory.tall => TextBaseline.alphabetic,
+  };
+}

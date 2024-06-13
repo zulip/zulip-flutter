@@ -39,6 +39,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       fontSize: kBaseFontSize,
       letterSpacing: 0,
+      textBaseline: localizedTextBaseline(context),
       height: (22 / kBaseFontSize),
       leadingDistribution: TextLeadingDistribution.even,
       decoration: TextDecoration.none,
@@ -345,7 +346,7 @@ class ListItemWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+      textBaseline: localizedTextBaseline(context),
       children: [
         SizedBox(
           width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
