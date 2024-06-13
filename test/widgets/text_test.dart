@@ -2,9 +2,12 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../flutter_checks.dart';
+import '../model/binding.dart';
 
 // From trying the options on an iPhone 13 Pro running iOS 16.6.1:
 const kTextScaleFactors = <double>[
@@ -15,6 +18,8 @@ const kTextScaleFactors = <double>[
 ];
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('zulipTypography', () {
     Future<Typography> getZulipTypography(WidgetTester tester, {
       required bool platformRequestsBold,
@@ -381,5 +386,35 @@ void main() {
           0.01, baseFontSize: 14, textScaler: clampingTextScaler),
         expected: clampingTextScaler.scale(14) * 0.01);
     }
+  });
+
+  group('localizedTextBaseline', () {
+    Future<void> testLocalizedTextBaseline(Locale locale, TextBaseline expected) async {
+      testWidgets('gives $expected for $locale', (tester) async {
+        addTearDown(testBinding.reset);
+        tester.platformDispatcher.localeTestValue = locale;
+        tester.platformDispatcher.localesTestValue = [locale];
+        addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+        addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+        await tester.pumpWidget(const ZulipApp());
+        await tester.pump();
+
+        final navigator = await ZulipApp.navigator;
+        navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) =>
+          Text('123', style: TextStyle(textBaseline: localizedTextBaseline(context))))));
+        await tester.pumpAndSettle();
+
+        final TextStyle? style = tester.widget<Text>(find.text('123')).style;
+        final actualTextBaseline = style!.textBaseline!;
+        check(actualTextBaseline).equals(expected);
+      });
+    }
+
+    testLocalizedTextBaseline(const Locale('en'), TextBaseline.alphabetic);
+    testLocalizedTextBaseline(const Locale('ja'), TextBaseline.ideographic);
+
+    // "und" is a special language code meaning undefined; see [Locale]
+    testLocalizedTextBaseline(const Locale('und'), TextBaseline.alphabetic);
   });
 }

@@ -195,7 +195,7 @@ class _ProfileDataTable extends StatelessWidget {
 
       items.add(Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
+        textBaseline: localizedTextBaseline(context),
         children: [
           SizedBox(width: 100,
             child: Text(style: _TextStyles.customProfileFieldLabel(context),

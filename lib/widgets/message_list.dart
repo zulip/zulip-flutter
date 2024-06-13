@@ -120,7 +120,10 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   final Narrow narrow;
 
-  Widget _buildStreamRow(ZulipStream? stream, String text) {
+  Widget _buildStreamRow(BuildContext context, {
+    ZulipStream? stream,
+    required String text,
+  }) {
     // A null [Icon.icon] makes a blank space.
     final icon = (stream != null) ? iconDataForStream(stream) : null;
     return Row(
@@ -129,7 +132,7 @@ class MessageListAppBarTitle extends StatelessWidget {
       //   For screenshots of some experiments, see:
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
       crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+      textBaseline: localizedTextBaseline(context),
       children: [
         Icon(size: 16, icon),
         const SizedBox(width: 8),
@@ -149,13 +152,13 @@ class MessageListAppBarTitle extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
         final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(stream, streamName);
+        return _buildStreamRow(context, stream: stream, text: streamName);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
         final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(stream, "$streamName > $topic");
+        return _buildStreamRow(context, stream: stream, text: "$streamName > $topic");
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
@@ -899,7 +902,7 @@ class MessageWithPossibleSender extends StatelessWidget {
       senderRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
+        textBaseline: localizedTextBaseline(context),
         children: [
           Flexible(
             child: GestureDetector(
