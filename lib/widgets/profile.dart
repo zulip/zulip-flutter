@@ -197,7 +197,7 @@ class _ProfileDataTable extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          SizedBox(width: 96,
+          SizedBox(width: 100,
             child: Text(style: _TextStyles.customProfileFieldLabel(context),
               realmField.name)),
           const SizedBox(width: 8),
