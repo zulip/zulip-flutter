@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* To simplify Zulip for new users, streams have been renamed to
+  channels. (#630)
+* When typing an @-mention, users you've DMed with recently are
+  suggested first. (#693)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Our test suite now gets run as part of the Flutter project's
+  own CI checks. (#239; PRs #696, #700)
+
+* We've enabled Dart analyzer rules that should prevent most
+  implicit use of `dynamic`. (#719)
+
+* Resolved: #690, PR #686, PR #689, PR #687, PR #701, PR #695,
+  #239, #458, #697, #77, #676, PR #709, #719, #705, #455, #602,
+  #630, PR #693, PR #730, #632, #684
+
+
 ## 0.0.15 (2024-05-15)
 
 ### Highlights for users
