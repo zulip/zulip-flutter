@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -71,12 +71,10 @@ void main() {
     }
 
     await tester.pumpWidget(
-      GlobalStoreWidget(
-        child: MaterialApp(
-          navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
-          home: PerAccountStoreWidget(
-            accountId: eg.selfAccount.id,
-            child: const InboxPage()))));
+      ZulipApp(navigatorObservers: [if (navigatorObserver != null) navigatorObserver]));
+    await tester.pump();
+    final navigator = await ZulipApp.navigator;
+    navigator.push(InboxPage.buildRoute(accountId: eg.selfAccount.id));
 
     // global store and per-account store get loaded
     await tester.pumpAndSettle();
