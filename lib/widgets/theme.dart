@@ -7,16 +7,30 @@ ThemeData zulipThemeData(BuildContext context) {
   return ThemeData(
     typography: zulipTypography(context),
     extensions: [ContentTheme(context)],
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
       // given a backgroundColor directly or by theme, it uses
       // ColorScheme.surfaceContainer for the scrolled-under state and
       // ColorScheme.surface otherwise, and those are different colors.
       scrolledUnderElevation: 0,
-      backgroundColor: Color(0xfff5f5f5), // `bg-top-bar` in Figma
+      backgroundColor: const Color(0xfff5f5f5), // `bg-top-bar` in Figma
 
-      shape: Border(bottom: BorderSide(
+      titleTextStyle: TextStyle(
+        inherit: false,
+        color: const Color(0xff1a1b21), // colorScheme.onSurface
+        fontSize: 22.0,
+        letterSpacing: 0.0,
+        height: 1.27,
+        textBaseline: localizedTextBaseline(context),
+        leadingDistribution: TextLeadingDistribution.even,
+        decoration: TextDecoration.none,
+        fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
+      )
+        .merge(weightVariableTextStyle(context)),
+
+      shape: const Border(bottom: BorderSide(
         color: Color(0x33000000), // `border-bar` in Figma
         strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
       )),
