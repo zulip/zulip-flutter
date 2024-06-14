@@ -16,6 +16,7 @@ ThemeData zulipThemeData(BuildContext context) {
       scrolledUnderElevation: 0,
       backgroundColor: const Color(0xfff5f5f5), // `bg-top-bar` in Figma
 
+      // TODO match layout to Figma
       actionsIconTheme: const IconThemeData(
         color: Color(0xff666699), // `icon` in Figma
       ),
@@ -34,6 +35,10 @@ ThemeData zulipThemeData(BuildContext context) {
       )
         .merge(weightVariableTextStyle(context, wght: 600)),
       titleSpacing: 4,
+
+      // TODO Figma has height 42; we should try `toolbarHeight: 42` and test
+      //   that it looks reasonable with different system text-size settings.
+      //   Also the back button will look too big and need adjusting.
 
       shape: const Border(bottom: BorderSide(
         color: Color(0x33000000), // `border-bar` in Figma
