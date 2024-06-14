@@ -146,7 +146,7 @@ deps: Update CocoaPods pods (tools/upgrade pod)
 }
 
 upgrade_flutter_local() {
-    local pattern flutter_version_output flutter_version dart_sdk_version
+    local flutter_version_output versions flutter_version dart_sdk_version
 
     check_no_uncommitted_or_untracked
 
@@ -158,19 +158,23 @@ upgrade_flutter_local() {
 
     # TODO upgrade Flutter to latest, rather than what's lying around
 
-    # Sometimes the `flutter --version` output begins with lines like
-    # "Resolving dependencies..."; so the pattern accommodates those.
-    # The pattern requires Dart 3.x, because we'll emit "<4.0.0" below.
-    pattern=$'\nFlutter (\S+) .*\sDart \S+ \(build (3\.\S+)\)'
-
     flutter_version_output=$(run_visibly flutter --version)
-    if ! [[ $'\n'"${flutter_version_output}" =~ $pattern ]]; then
+    # shellcheck disable=SC2207 # output has controlled whitespace
+    versions=( $(echo -n "${flutter_version_output}" | perl -0ne '
+      # Sometimes the `flutter --version` output begins with lines like
+      # "Resolving dependencies..."; so the pattern accommodates those.
+      # And the pattern requires Dart 3.x, because we emit "<4.0.0" below.
+      if (/^Flutter (\S+) .*\sDart \S+ \(build (3\.\S+)\)/ms) {
+        print "$1 $2";
+      }
+    ') )
+    if (( !"${#versions[@]}" )); then
         echo >&2 "error: 'flutter --version' output not recognized"
         printf >&2 "output was:\n-----\n%s\n-----" "${flutter_version_output}"
         return 1
     fi
-    flutter_version="${BASH_REMATCH[1]}"
-    dart_sdk_version="${BASH_REMATCH[2]}"
+    flutter_version="${versions[0]}"
+    dart_sdk_version="${versions[1]}"
 
     yaml_fragment="\
   sdk: '>=${dart_sdk_version} <4.0.0'
