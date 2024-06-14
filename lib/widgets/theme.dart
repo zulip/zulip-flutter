@@ -4,9 +4,10 @@ import 'content.dart';
 import 'text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {
+  final designVariables = DesignVariables();
   return ThemeData(
     typography: zulipTypography(context),
-    extensions: [ContentTheme(context)],
+    extensions: [ContentTheme(context), designVariables],
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
@@ -14,16 +15,16 @@ ThemeData zulipThemeData(BuildContext context) {
       // ColorScheme.surfaceContainer for the scrolled-under state and
       // ColorScheme.surface otherwise, and those are different colors.
       scrolledUnderElevation: 0,
-      backgroundColor: const Color(0xfff5f5f5), // `bg-top-bar` in Figma
+      backgroundColor: designVariables.bgTopBar,
 
       // TODO match layout to Figma
-      actionsIconTheme: const IconThemeData(
-        color: Color(0xff666699), // `icon` in Figma
+      actionsIconTheme: IconThemeData(
+        color: designVariables.icon,
       ),
 
       titleTextStyle: TextStyle(
         inherit: false,
-        color: const Color(0xff1a1a1a), // `title` in Figma
+        color: designVariables.title,
         fontSize: 20,
         letterSpacing: 0.0,
         height: (30 / 20),
@@ -40,8 +41,8 @@ ThemeData zulipThemeData(BuildContext context) {
       //   that it looks reasonable with different system text-size settings.
       //   Also the back button will look too big and need adjusting.
 
-      shape: const Border(bottom: BorderSide(
-        color: Color(0x33000000), // `border-bar` in Figma
+      shape: Border(bottom: BorderSide(
+        color: designVariables.borderBar,
         strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
       )),
     ),
@@ -56,7 +57,7 @@ ThemeData zulipThemeData(BuildContext context) {
     colorScheme: ColorScheme.fromSeed(
       seedColor: kZulipBrandColor,
     ),
-    scaffoldBackgroundColor: const Color(0xfff0f0f0), // `bg-main` in Figma
+    scaffoldBackgroundColor: designVariables.bgMain,
     tooltipTheme: const TooltipThemeData(preferBelow: false),
   );
 }
@@ -66,3 +67,71 @@ ThemeData zulipThemeData(BuildContext context) {
 /// This is chosen as the sRGB midpoint of the Zulip logo's gradient.
 // As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
 const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
+
+/// Variables from the Figma design.
+///
+/// For how to export these from the Figma, see:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
+class DesignVariables extends ThemeExtension<DesignVariables> {
+  DesignVariables() :
+    bgMain = const Color(0xfff0f0f0),
+    bgTopBar = const Color(0xfff5f5f5),
+    borderBar = const Color(0x33000000),
+    icon = const Color(0xff666699),
+    title = const Color(0xff1a1a1a);
+
+  DesignVariables._({
+    required this.bgMain,
+    required this.bgTopBar,
+    required this.borderBar,
+    required this.icon,
+    required this.title,
+  });
+
+  /// The [DesignVariables] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [DesignVariables] in [ThemeData.extensions].
+  static DesignVariables of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<DesignVariables>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final Color bgMain;
+  final Color bgTopBar;
+  final Color borderBar;
+  final Color icon;
+  final Color title;
+
+  @override
+  DesignVariables copyWith({
+    Color? bgMain,
+    Color? bgTopBar,
+    Color? borderBar,
+    Color? icon,
+    Color? title,
+  }) {
+    return DesignVariables._(
+      bgMain: bgMain ?? this.bgMain,
+      bgTopBar: bgTopBar ?? this.bgTopBar,
+      borderBar: borderBar ?? this.borderBar,
+      icon: icon ?? this.icon,
+      title: title ?? this.title,
+    );
+  }
+
+  @override
+  DesignVariables lerp(DesignVariables? other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return DesignVariables._(
+      bgMain: Color.lerp(bgMain, other?.bgMain, t)!,
+      bgTopBar: Color.lerp(bgTopBar, other?.bgTopBar, t)!,
+      borderBar: Color.lerp(borderBar, other?.borderBar, t)!,
+      icon: Color.lerp(icon, other?.icon, t)!,
+      title: Color.lerp(title, other?.title, t)!,
+    );
+  }
+}
