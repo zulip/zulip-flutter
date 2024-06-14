@@ -2,12 +2,19 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/stream_colors.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
 
+import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
+import '../model/binding.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('button text size and letter spacing', () {
     const buttonText = 'Zulip';
 
@@ -67,5 +74,32 @@ void main() {
 
     doCheck('TextButton',
       button: TextButton(onPressed: () {}, child: const Text(buttonText)));
+  });
+
+  group('colorSwatchFor', () {
+    void doTest(String description, int baseColor, StreamColorSwatch expected) {
+      testWidgets('$description $baseColor', (WidgetTester tester) async {
+        addTearDown(testBinding.reset);
+
+        final subscription = eg.subscription(eg.stream(), color: baseColor);
+
+        await tester.pumpWidget(const ZulipApp());
+        await tester.pump();
+
+        late StreamColorSwatch actualSwatch;
+        final navigator = await ZulipApp.navigator;
+        navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) {
+          actualSwatch = colorSwatchFor(context, subscription);
+          return const Placeholder();
+        })));
+        await tester.pumpAndSettle();
+
+        // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
+        check(actualSwatch).equals(expected);
+      });
+    }
+
+    doTest('light', 0xff76ce90, StreamColorSwatch.light(0xff76ce90));
+    // TODO(#95) test with Brightness.dark and lerping between light/dark
   });
 }

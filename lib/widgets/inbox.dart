@@ -10,6 +10,7 @@ import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 import 'unread_count_badge.dart';
 
 class InboxPage extends StatefulWidget {
@@ -423,12 +424,14 @@ class _StreamHeaderItem extends _HeaderItem {
 
   @override String get title => subscription.name;
   @override IconData get icon => iconDataForStream(subscription);
-  @override Color collapsedIconColor(context) => subscription.colorSwatch().iconOnPlainBackground;
-  @override Color uncollapsedIconColor(context) => subscription.colorSwatch().iconOnBarBackground;
+  @override Color collapsedIconColor(context) =>
+    colorSwatchFor(context, subscription).iconOnPlainBackground;
+  @override Color uncollapsedIconColor(context) =>
+    colorSwatchFor(context, subscription).iconOnBarBackground;
   @override Color uncollapsedBackgroundColor(context) =>
-    subscription.colorSwatch().barBackground;
+    colorSwatchFor(context, subscription).barBackground;
   @override Color? unreadCountBadgeBackgroundColor(context) =>
-    subscription.colorSwatch().unreadCountBadgeBackground;
+    colorSwatchFor(context, subscription).unreadCountBadgeBackground;
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
@@ -525,7 +528,8 @@ class _TopicItem extends StatelessWidget {
             const SizedBox(width: 12),
             if (hasMention) const _AtMentionMarker(),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(backgroundColor: subscription.colorSwatch(),
+              child: UnreadCountBadge(
+                backgroundColor: colorSwatchFor(context, subscription),
                 count: count)),
           ]))));
   }

@@ -22,6 +22,7 @@ import 'profile.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
@@ -67,8 +68,9 @@ class _MessageListPageState extends State<MessageListPage> {
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final subscription = store.subscriptions[streamId];
-        appBarBackgroundColor = subscription?.colorSwatch().barBackground
-          ?? _kUnsubscribedStreamRecipientHeaderColor;
+        appBarBackgroundColor = subscription != null
+          ? colorSwatchFor(context, subscription).barBackground
+          : _kUnsubscribedStreamRecipientHeaderColor;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -664,7 +666,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final Color backgroundColor;
     final Color iconColor;
     if (subscription != null) {
-      final swatch = subscription.colorSwatch();
+      final swatch = colorSwatchFor(context, subscription);
       backgroundColor = swatch.barBackground;
       iconColor = swatch.iconOnBarBackground;
     } else {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../api/model/model.dart';
 import 'content.dart';
+import 'stream_colors.dart';
 import 'text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {
@@ -78,7 +80,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgTopBar = const Color(0xfff5f5f5),
     borderBar = const Color(0x33000000),
     icon = const Color(0xff666699),
-    title = const Color(0xff1a1a1a);
+    title = const Color(0xff1a1a1a),
+    streamColorSwatches = StreamColorSwatches.light;
 
   DesignVariables._({
     required this.bgMain,
@@ -86,6 +89,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.borderBar,
     required this.icon,
     required this.title,
+    required this.streamColorSwatches,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -104,6 +108,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color icon;
   final Color title;
 
+  // Not exactly from the Figma design, but from Vlad anyway.
+  final StreamColorSwatches streamColorSwatches;
+
   @override
   DesignVariables copyWith({
     Color? bgMain,
@@ -111,6 +118,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? borderBar,
     Color? icon,
     Color? title,
+    StreamColorSwatches? streamColorSwatches,
   }) {
     return DesignVariables._(
       bgMain: bgMain ?? this.bgMain,
@@ -118,6 +126,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: borderBar ?? this.borderBar,
       icon: icon ?? this.icon,
       title: title ?? this.title,
+      streamColorSwatches: streamColorSwatches ?? this.streamColorSwatches,
     );
   }
 
@@ -132,6 +141,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: Color.lerp(borderBar, other?.borderBar, t)!,
       icon: Color.lerp(icon, other?.icon, t)!,
       title: Color.lerp(title, other?.title, t)!,
+      streamColorSwatches: streamColorSwatches.lerp(other?.streamColorSwatches, t),
     );
   }
+}
+
+/// The theme-appropriate [StreamColorSwatch] based on [subscription.color].
+///
+/// For how this value is cached, see [StreamColorSwatches.forBaseColor].
+StreamColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
+  return DesignVariables.of(context)
+    .streamColorSwatches.forBaseColor(subscription.color);
 }

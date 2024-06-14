@@ -6,6 +6,74 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import '../api/model/model.dart';
 import 'color.dart';
 
+/// A lazily-computed map from a stream's base color to a
+/// corresponding [StreamColorSwatch].
+abstract class StreamColorSwatches {
+  /// The [StreamColorSwatches] for the light theme.
+  static final StreamColorSwatches light = _StreamColorSwatchesLight();
+
+  /// The [StreamColorSwatches] for the dark theme.
+  static final StreamColorSwatches dark = _StreamColorSwatchesDark();
+
+  final Map<int, StreamColorSwatch> _cache = {};
+
+  /// Gives the [StreamColorSwatch] for a [subscription.color].
+  StreamColorSwatch forBaseColor(int base) =>
+    _cache[base] ??= _computeForBaseColor(base);
+
+  StreamColorSwatch _computeForBaseColor(int base);
+
+  /// Gives a [StreamColorSwatches], lerped to [other] at [t].
+  ///
+  /// If [this] and [other] are [identical], returns [this].
+  ///
+  /// Else returns an instance whose [forBaseColor] will call
+  /// [this.forBaseColor] and [other.forBaseColor]
+  /// and return [StreamColorSwatch.lerp]'s result on those.
+  /// This computation is cached on the instance
+  /// in order to save work building [t]'s animation frame when there are
+  /// multiple UI elements using the same [subscription.color].
+  StreamColorSwatches lerp(StreamColorSwatches? other, double t) {
+    // This short-circuit helps when [a] and [b]
+    // are both [StreamColorSwatches.light]
+    // or both [StreamColorSwatches.dark].
+    // Empirically, [lerp] is called even when the theme hasn't changed,
+    // so this is an important optimization.
+    if (identical(this, other)) {
+      return this;
+    }
+
+    return _StreamColorSwatchesLerped(this, other, t);
+  }
+}
+
+class _StreamColorSwatchesLight extends StreamColorSwatches {
+  _StreamColorSwatchesLight();
+
+  @override
+  StreamColorSwatch _computeForBaseColor(int base) => StreamColorSwatch.light(base);
+}
+
+class _StreamColorSwatchesDark extends StreamColorSwatches {
+  _StreamColorSwatchesDark();
+
+  @override
+  StreamColorSwatch _computeForBaseColor(int base) => StreamColorSwatch.dark(base);
+}
+
+class _StreamColorSwatchesLerped extends StreamColorSwatches {
+  _StreamColorSwatchesLerped(this.a, this.b, this.t);
+
+  final StreamColorSwatches a;
+  final StreamColorSwatches? b;
+  final double t;
+
+  @override
+  StreamColorSwatch _computeForBaseColor(int base) =>
+    StreamColorSwatch.lerp(a.forBaseColor(base), b?.forBaseColor(base), t)!;
+}
+
+
 /// A [ColorSwatch] with colors related to a base stream color.
 ///
 /// Use this in UI code for colors related to [Subscription.color],

@@ -19,6 +19,7 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/stream_colors.dart';
 import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
@@ -293,7 +294,7 @@ void main() {
 
       testWidgets('color of recipient header background', (tester) async {
         final subscription = eg.subscription(stream, color: Colors.red.value);
-        final swatch = subscription.colorSwatch();
+        final swatch = StreamColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: subscription)],
           subscriptions: [subscription]);
@@ -308,7 +309,7 @@ void main() {
       testWidgets('color of stream icon', (tester) async {
         final stream = eg.stream(isWebPublic: true);
         final subscription = eg.subscription(stream, color: Colors.red.value);
-        final swatch = subscription.colorSwatch();
+        final swatch = StreamColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: subscription)],
           subscriptions: [subscription]);

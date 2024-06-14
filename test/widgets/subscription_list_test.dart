@@ -5,6 +5,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/stream_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
@@ -179,7 +180,7 @@ void main() {
       UnreadStreamSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
     ]);
     final subscription = eg.subscription(stream, color: Colors.red.value);
-    final swatch = subscription.colorSwatch();
+    final swatch = StreamColorSwatch.light(subscription.color);
     await setupStreamListPage(tester, subscriptions: [
       subscription,
     ], unreadMsgs: unreadMsgs);

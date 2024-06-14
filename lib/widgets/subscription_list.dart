@@ -9,6 +9,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 import 'unread_count_badge.dart';
 
 /// Scrollable listing of subscribed streams.
@@ -199,7 +200,7 @@ class SubscriptionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final swatch = subscription.colorSwatch();
+    final swatch = colorSwatchFor(context, subscription);
     final hasUnreads = (unreadCount > 0);
     return Material(
       // TODO(#95) need dark-theme color

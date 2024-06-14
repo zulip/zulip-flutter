@@ -1,12 +1,73 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/stream_colors.dart';
 
 import 'stream_colors_checks.dart';
 
 void main() {
+  group('StreamColorSwatches', () {
+    test('.light', () {
+      final instance = StreamColorSwatches.light;
+
+      const base1 = 0xff76ce90;
+      final swatch1 = instance.forBaseColor(base1);
+      check(swatch1).equals(StreamColorSwatch.light(base1));
+      check(instance.forBaseColor(base1)).identicalTo(swatch1);
+
+      const base2 = 0xfffae589;
+      final swatch2 = instance.forBaseColor(base2);
+      check(swatch2).equals(StreamColorSwatch.light(base2));
+      check(instance.forBaseColor(base2)).identicalTo(swatch2);
+      check(instance.forBaseColor(base1)).identicalTo(swatch1);
+    });
+
+    // TODO deduplicate with corresponding light-theme test?
+    test('.dark', () {
+      final instance = StreamColorSwatches.dark;
+
+      const base1 = 0xff76ce90;
+      final swatch1 = instance.forBaseColor(base1);
+      check(swatch1).equals(StreamColorSwatch.dark(base1));
+      check(instance.forBaseColor(base1)).identicalTo(swatch1);
+
+      const base2 = 0xfffae589;
+      final swatch2 = instance.forBaseColor(base2);
+      check(swatch2).equals(StreamColorSwatch.dark(base2));
+      check(instance.forBaseColor(base2)).identicalTo(swatch2);
+      check(instance.forBaseColor(base1)).identicalTo(swatch1);
+    });
+
+    group('lerp', () {
+      test('on identical instances', () {
+        check(
+          StreamColorSwatches.light.lerp(StreamColorSwatches.light, 0.5)
+        ).identicalTo(StreamColorSwatches.light);
+
+        check(
+          StreamColorSwatches.dark.lerp(StreamColorSwatches.dark, 0.5)
+        ).identicalTo(StreamColorSwatches.dark);
+      });
+
+      test('from light to dark', () {
+        final instance = StreamColorSwatches.light.lerp(StreamColorSwatches.dark, 0.4);
+
+        const base1 = 0xff76ce90;
+        final swatch1 = instance.forBaseColor(base1);
+        check(swatch1).equals(StreamColorSwatch.lerp(
+          StreamColorSwatch.light(base1), StreamColorSwatch.dark(base1), 0.4)!);
+        check(instance.forBaseColor(base1)).identicalTo(swatch1);
+
+        const base2 = 0xfffae589;
+        final swatch2 = instance.forBaseColor(base2);
+        check(swatch2).equals(StreamColorSwatch.lerp(
+          StreamColorSwatch.light(base2), StreamColorSwatch.dark(base2), 0.4)!);
+        check(instance.forBaseColor(base2)).identicalTo(swatch2);
+        check(instance.forBaseColor(base1)).identicalTo(swatch1);
+      });
+    });
+  });
+
   group('StreamColorSwatch', () {
     group('light', () {
       test('base', () {
