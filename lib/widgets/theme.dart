@@ -18,17 +18,18 @@ ThemeData zulipThemeData(BuildContext context) {
 
       titleTextStyle: TextStyle(
         inherit: false,
-        color: const Color(0xff1a1b21), // colorScheme.onSurface
-        fontSize: 22.0,
+        color: const Color(0xff1a1a1a), // `title` in Figma
+        fontSize: 20,
         letterSpacing: 0.0,
-        height: 1.27,
+        height: (30 / 20),
         textBaseline: localizedTextBaseline(context),
         leadingDistribution: TextLeadingDistribution.even,
         decoration: TextDecoration.none,
         fontFamily: kDefaultFontFamily,
         fontFamilyFallback: defaultFontFamilyFallback,
       )
-        .merge(weightVariableTextStyle(context)),
+        .merge(weightVariableTextStyle(context, wght: 600)),
+      titleSpacing: 4,
 
       shape: const Border(bottom: BorderSide(
         color: Color(0x33000000), // `border-bar` in Figma
