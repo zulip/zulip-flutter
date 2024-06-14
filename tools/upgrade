@@ -214,7 +214,7 @@ it requires manual checking:
 
  * The update was to the Flutter version you currently
    have installed at the \`flutter\` command.
-   Check that is is the latest Flutter from main,
+   Check that that is the latest Flutter from main,
    or otherwise the version you intend to upgrade to.
 EOF
 }
