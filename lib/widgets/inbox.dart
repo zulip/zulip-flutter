@@ -226,10 +226,10 @@ abstract class _HeaderItem extends StatelessWidget {
 
   String get title;
   IconData get icon;
-  Color get collapsedIconColor;
-  Color get uncollapsedIconColor;
-  Color get uncollapsedBackgroundColor;
-  Color? get unreadCountBadgeBackgroundColor;
+  Color collapsedIconColor(BuildContext context);
+  Color uncollapsedIconColor(BuildContext context);
+  Color uncollapsedBackgroundColor(BuildContext context);
+  Color? unreadCountBadgeBackgroundColor(BuildContext context);
 
   Future<void> onCollapseButtonTap() async {
     if (!collapsed) {
@@ -246,7 +246,7 @@ abstract class _HeaderItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       // TODO(#95) need dark-theme color
-      color: collapsed ? Colors.white : uncollapsedBackgroundColor,
+      color: collapsed ? Colors.white : uncollapsedBackgroundColor(context),
       child: InkWell(
         // TODO use onRowTap to handle taps that are not on the collapse button.
         //   Probably we should give the collapse button a 44px or 48px square
@@ -260,7 +260,10 @@ abstract class _HeaderItem extends StatelessWidget {
             // TODO(#95) need dark-theme color
             child: Icon(size: 20, color: const Color(0x7F1D2E48),
               collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18, color: collapsed ? collapsedIconColor : uncollapsedIconColor,
+          Icon(size: 18,
+            color: collapsed
+              ? collapsedIconColor(context)
+              : uncollapsedIconColor(context),
             icon),
           const SizedBox(width: 5),
           Expanded(child: Padding(
@@ -278,7 +281,9 @@ abstract class _HeaderItem extends StatelessWidget {
           const SizedBox(width: 12),
           if (hasMention) const _AtMentionMarker(),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: UnreadCountBadge(backgroundColor: unreadCountBadgeBackgroundColor, bold: true,
+            child: UnreadCountBadge(
+              backgroundColor: unreadCountBadgeBackgroundColor(context),
+              bold: true,
               count: count)),
         ])));
   }
@@ -297,11 +302,11 @@ class _AllDmsHeaderItem extends _HeaderItem {
   @override IconData get icon => ZulipIcons.user;
 
   // TODO(#95) need dark-theme colors
-  @override Color get collapsedIconColor => const Color(0xFF222222);
-  @override Color get uncollapsedIconColor => const Color(0xFF222222);
+  @override Color collapsedIconColor(context) => const Color(0xFF222222);
+  @override Color uncollapsedIconColor(context) => const Color(0xFF222222);
 
-  @override Color get uncollapsedBackgroundColor => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
-  @override Color? get unreadCountBadgeBackgroundColor => null;
+  @override Color uncollapsedBackgroundColor(context) => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
+  @override Color? unreadCountBadgeBackgroundColor(context) => null;
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
@@ -418,11 +423,11 @@ class _StreamHeaderItem extends _HeaderItem {
 
   @override String get title => subscription.name;
   @override IconData get icon => iconDataForStream(subscription);
-  @override Color get collapsedIconColor => subscription.colorSwatch().iconOnPlainBackground;
-  @override Color get uncollapsedIconColor => subscription.colorSwatch().iconOnBarBackground;
-  @override Color get uncollapsedBackgroundColor =>
+  @override Color collapsedIconColor(context) => subscription.colorSwatch().iconOnPlainBackground;
+  @override Color uncollapsedIconColor(context) => subscription.colorSwatch().iconOnBarBackground;
+  @override Color uncollapsedBackgroundColor(context) =>
     subscription.colorSwatch().barBackground;
-  @override Color? get unreadCountBadgeBackgroundColor =>
+  @override Color? unreadCountBadgeBackgroundColor(context) =>
     subscription.colorSwatch().unreadCountBadgeBackground;
 
   @override Future<void> onCollapseButtonTap() async {
