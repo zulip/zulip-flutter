@@ -132,7 +132,7 @@ void main() {
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
             ..inboxStyle.isNull()
-            ..autoCancel.isNull()
+            ..autoCancel.equals(true)
             ..contentIntent.which((it) => it.isNotNull()
               ..requestCode.equals(expectedId)
               ..flags.equals(expectedIntentFlags)
