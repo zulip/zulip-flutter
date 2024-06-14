@@ -131,11 +131,10 @@ class MessageListAppBarTitle extends StatelessWidget {
       // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
       //   For screenshots of some experiments, see:
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: localizedTextBaseline(context),
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(size: 16, icon),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Flexible(child: Text(text)),
       ]);
   }
