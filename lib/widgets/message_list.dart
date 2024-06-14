@@ -66,7 +66,8 @@ class _MessageListPageState extends State<MessageListPage> {
 
       case StreamNarrow(:final streamId):
       case TopicNarrow(:final streamId):
-        appBarBackgroundColor = store.subscriptions[streamId]?.colorSwatch().barBackground
+        final subscription = store.subscriptions[streamId];
+        appBarBackgroundColor = subscription?.colorSwatch().barBackground
           ?? _kUnsubscribedStreamRecipientHeaderColor;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
