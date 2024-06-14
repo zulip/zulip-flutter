@@ -16,6 +16,10 @@ ThemeData zulipThemeData(BuildContext context) {
       scrolledUnderElevation: 0,
       backgroundColor: const Color(0xfff5f5f5), // `bg-top-bar` in Figma
 
+      actionsIconTheme: const IconThemeData(
+        color: Color(0xff666699), // `icon` in Figma
+      ),
+
       titleTextStyle: TextStyle(
         inherit: false,
         color: const Color(0xff1a1a1a), // `title` in Figma
