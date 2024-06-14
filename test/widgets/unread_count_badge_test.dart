@@ -2,7 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/api/model/model.dart';
+import 'package:zulip/widgets/stream_colors.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
 void main() {
