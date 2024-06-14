@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
-import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
@@ -28,12 +29,10 @@ void main() {
     );
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            accountId: eg.selfAccount.id,
-            child: const SubscriptionListPage()))));
+    await tester.pumpWidget(const ZulipApp());
+    await tester.pump();
+    final navigator = await ZulipApp.navigator;
+    navigator.push(SubscriptionListPage.buildRoute(accountId: eg.selfAccount.id));
 
     // global store, per-account store
     await tester.pumpAndSettle();
@@ -185,7 +184,7 @@ void main() {
       subscription,
     ], unreadMsgs: unreadMsgs);
     check(getItemCount()).equals(1);
-    check(tester.widget<Icon>(find.byType(Icon)).color)
+    check(tester.widget<Icon>(find.byIcon(iconDataForStream(stream))).color)
       .equals(swatch.iconOnPlainBackground);
     check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
       .equals(swatch);
