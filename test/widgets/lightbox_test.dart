@@ -382,6 +382,9 @@ void main() {
     });
 
     testWidgets('ensure slider doesn\'t flicker right after it is moved', (tester) async {
+      // Regression test for a potential bug that we successfully avoided
+      // but is described in the comment quoted here:
+      //   https://github.com/zulip/zulip-flutter/pull/587#discussion_r1596190776
       await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
       check(platform.isPlaying).isTrue();
 
@@ -399,26 +402,26 @@ void main() {
       await tester.pump();
       checkPositionsRelative(tester, slider: 0.5, video: 0.5);
 
-      final basePosition = kTestVideoDuration * 0.5;
-      Duration actualElapsed = basePosition;
-      Duration lastPolled = basePosition;
+      // The video_player plugin only reports a new position every 500ms, alas:
+      //   https://github.com/zulip/zulip-flutter/pull/694#discussion_r1635506000
+      const videoPlayerPollIntervalMs = 500;
+      const frameTimeMs = 10; // 100fps
+      const maxIterations = 1 + videoPlayerPollIntervalMs ~/ frameTimeMs;
+
+      // The slider may stay in place for several frames.
+      // But find when it first moves again…
+      int iterations = 0;
+      Duration position = findSliderPosition(tester);
+      final basePosition = position;
       while (true) {
-        if (lastPolled >= (basePosition + (const Duration(milliseconds: 500) * 4))) {
-          // 4 iterations of slider updates
-          break;
-        }
-
-        const frameTime = Duration(milliseconds: 10); // 100fps
-        await tester.pump(frameTime);
-        actualElapsed += frameTime;
-
-        // Periodic timer interval at which video_player plugin notifies
-        // of position events is 500ms.
-        if (actualElapsed.inMilliseconds % 500 == 0) {
-          lastPolled += const Duration(milliseconds: 500);
-        }
-        checkPositions(tester, slider: lastPolled, video: actualElapsed);
+        if (++iterations > maxIterations) break;
+        await tester.pump(const Duration(milliseconds: frameTimeMs));
+        position = findSliderPosition(tester);
+        if (position != basePosition) break;
       }
+      // … and check the movement is forward, and corresponds to the video.
+      check(position).isGreaterThan(basePosition);
+      check(platform.position).equals(position);
     });
   });
 }
