@@ -224,11 +224,8 @@ void main() {
     FakeVideoPlayerPlatform.registerWith();
     final platform = FakeVideoPlayerPlatform.instance;
 
-    // A helper to verify that expected positions matches the actual
-    // positions of Slider, current position indicator label and the
-    // video controller position. Where the video controller position
-    // can differ from Slider and the position indicator label, hence the
-    // need for two different expected position inputs (slider & video).
+    /// Check the slider and label show position [slider],
+    /// and the actual position of the video controller is [video].
     void checkPositions(WidgetTester tester, {
       required Duration slider,
       required Duration video,
