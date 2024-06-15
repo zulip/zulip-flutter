@@ -240,6 +240,16 @@ void main() {
       check(platform.position).equals(video);
     }
 
+    /// Like [checkPositions], but expressed in units of [kTestVideoDuration].
+    void checkPositionsRelative(WidgetTester tester, {
+      required double slider,
+      required double video,
+    }) {
+      checkPositions(tester,
+        slider: kTestVideoDuration * slider,
+        video: kTestVideoDuration * video);
+    }
+
     (Offset, Offset) calculateSliderDimensions(WidgetTester tester) {
       const padding = 24.0;
       final rect = tester.getRect(find.byType(Slider));
@@ -306,9 +316,7 @@ void main() {
 
       await tester.pump(kTestVideoDuration * 0.5);
       platform.pumpEvents();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.5,
-        video: kTestVideoDuration * 0.5);
+      checkPositionsRelative(tester, slider: 0.5, video: 0.5);
       check(platform.isCompleted).isFalse();
       check(platform.isPlaying).isTrue();
 
@@ -324,18 +332,14 @@ void main() {
       // At exactly the end of the video.
       await tester.pump(const Duration(milliseconds: 500));
       platform.pumpEvents();
-      checkPositions(tester,
-        slider: kTestVideoDuration,
-        video: kTestVideoDuration);
+      checkPositionsRelative(tester, slider: 1.0, video: 1.0);
       check(platform.isCompleted).isTrue(); // completed
       check(platform.isPlaying).isFalse(); // stopped playing
 
       // After the video ended.
       await tester.pump(const Duration(milliseconds: 500));
       platform.pumpEvents();
-      checkPositions(tester,
-        slider: kTestVideoDuration,
-        video: kTestVideoDuration);
+      checkPositionsRelative(tester, slider: 1.0, video: 1.0);
       check(platform.isCompleted).isTrue();
       check(platform.isPlaying).isFalse();
     });
@@ -350,33 +354,23 @@ void main() {
       // gesture increments.
       final gesture = await tester.startGesture(trackStartPos);
       await tester.pump();
-      checkPositions(tester,
-        slider: Duration.zero,
-        video: Duration.zero);
+      checkPositionsRelative(tester, slider: 0.0, video: 0.0);
 
       await gesture.moveBy(trackLength * 0.2);
       await tester.pump();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.2,
-        video: Duration.zero);
+      checkPositionsRelative(tester, slider: 0.2, video: 0.0);
 
       await gesture.moveBy(trackLength * 0.4);
       await tester.pump();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.6,
-        video: Duration.zero);
+      checkPositionsRelative(tester, slider: 0.6, video: 0.0);
 
-      await gesture.moveBy(-trackLength * 0.2);
+      await gesture.moveBy(trackLength * -0.2);
       await tester.pump();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.4,
-        video: Duration.zero);
+      checkPositionsRelative(tester, slider: 0.4, video: 0.0);
 
       await gesture.up();
       await tester.pump();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.4,
-        video: kTestVideoDuration * 0.4);
+      checkPositionsRelative(tester, slider: 0.4, video: 0.4);
 
       // Verify seekTo is called only once.
       check(platform.callLog.where((v) => v == 'seekTo').length).equals(1);
@@ -390,21 +384,15 @@ void main() {
 
       final gesture = await tester.startGesture(trackStartPos);
       await tester.pump();
-      checkPositions(tester,
-        slider: Duration.zero,
-        video: Duration.zero);
+      checkPositionsRelative(tester, slider: 0.0, video: 0.0);
 
       await gesture.moveBy(trackLength * 0.5);
       await tester.pump();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.5,
-        video: Duration.zero);
+      checkPositionsRelative(tester, slider: 0.5, video: 0.0);
 
       await gesture.up();
       await tester.pump();
-      checkPositions(tester,
-        slider: kTestVideoDuration * 0.5,
-        video: kTestVideoDuration * 0.5);
+      checkPositionsRelative(tester, slider: 0.5, video: 0.5);
 
       final basePosition = kTestVideoDuration * 0.5;
       Duration actualElapsed = basePosition;
@@ -424,9 +412,7 @@ void main() {
         if (actualElapsed.inMilliseconds % 500 == 0) {
           lastPolled += const Duration(milliseconds: 500);
         }
-        checkPositions(tester,
-          slider: lastPolled,
-          video: actualElapsed);
+        checkPositions(tester, slider: lastPolled, video: actualElapsed);
       }
     });
   });
