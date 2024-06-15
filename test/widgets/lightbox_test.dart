@@ -224,19 +224,24 @@ void main() {
     FakeVideoPlayerPlatform.registerWith();
     final platform = FakeVideoPlayerPlatform.instance;
 
+    /// Find the position shown by the slider, and check the label agrees.
+    Duration findSliderPosition(WidgetTester tester) {
+      final sliderValue = tester.widget<Slider>(find.byType(Slider)).value;
+      final result = Duration(milliseconds: sliderValue.toInt());
+      check(tester.widget<RichText>(
+          find.descendant(of: find.bySemanticsLabel('Current position'),
+          matching: find.byType(RichText))).text.toPlainText())
+        .equals(VideoDurationLabel.formatDuration(result));
+      return result;
+    }
+
     /// Check the slider and label show position [slider],
     /// and the actual position of the video controller is [video].
     void checkPositions(WidgetTester tester, {
       required Duration slider,
       required Duration video,
     }) {
-      check(tester.widget<Slider>(find.byType(Slider)).value.toInt())
-        .equals(slider.inMilliseconds);
-      check(tester.widget<RichText>(
-          find.descendant(of: find.bySemanticsLabel('Current position'),
-          matching: find.byType(RichText))).text.toPlainText())
-        .equals(VideoDurationLabel.formatDuration(slider));
-
+      check(findSliderPosition(tester)).equals(slider);
       check(platform.position).equals(video);
     }
 
