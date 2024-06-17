@@ -301,7 +301,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     final length = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
 
-    final sliver = SliverStickyHeaderList(
+    Widget sliver = SliverStickyHeaderList(
       headerPlacement: HeaderPlacement.scrollingStart,
       delegate: SliverChildBuilderDelegate(
         // To preserve state across rebuilds for individual [MessageItem]
@@ -336,6 +336,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           final data = model!.items[length - 1 - (i - 2)];
           return _buildItem(data, i);
         }));
+
+    if (widget.narrow is CombinedFeedNarrow) {
+      // TODO(#311) If we have a bottom nav, it will pad the bottom
+      //   inset, and this shouldn't be necessary
+      sliver = SliverSafeArea(sliver: sliver);
+    }
 
     return CustomScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or

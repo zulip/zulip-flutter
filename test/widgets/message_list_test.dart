@@ -86,6 +86,22 @@ void main() {
     return scrollView.controller;
   }
 
+  group('presents message content appropriately', () {
+    // regression test for https://github.com/zulip/zulip-flutter/issues/736
+    testWidgets('content in "Combined feed" not asked to consume insets (including bottom)', (tester) async {
+      const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
+      tester.view.viewInsets = fakePadding;
+      tester.view.padding = fakePadding;
+
+      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
+        messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html)]);
+
+      final element = tester.element(find.byType(CodeBlock));
+      final padding = MediaQuery.of(element).padding;
+      check(padding).equals(EdgeInsets.zero);
+    });
+  });
+
   group('fetch older messages on scroll', () {
     int? itemCount(WidgetTester tester) =>
       tester.widget<CustomScrollView>(find.byType(CustomScrollView)).semanticChildCount;
