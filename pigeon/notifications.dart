@@ -52,6 +52,8 @@ abstract class AndroidNotificationHostApi {
   void notify({
     String? tag,
     required int id,
+
+    // The remaining arguments go to method calls on NotificationCompat.Builder.
     required String channelId,
     int? color,
     PendingIntent? contentIntent,
@@ -60,5 +62,6 @@ abstract class AndroidNotificationHostApi {
     Map<String?, String?>? extras,
     String? smallIconResourceName,
     // NotificationCompat.Builder has lots more methods; add as needed.
+    // Keep them alphabetized, for easy comparison with that class's docs.
   });
 }
