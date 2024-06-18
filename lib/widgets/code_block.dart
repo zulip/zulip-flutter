@@ -9,7 +9,7 @@ import 'text.dart';
 /// Use [forSpan] for syntax highlighting.
 // TODO(#749) follow web for dark-theme colors
 class CodeBlockTextStyles {
-  factory CodeBlockTextStyles(BuildContext context) {
+  factory CodeBlockTextStyles.light(BuildContext context) {
     final bold = weightVariableTextStyle(context, wght: 700);
     return CodeBlockTextStyles._(
       plain: kMonospaceTextStyle
