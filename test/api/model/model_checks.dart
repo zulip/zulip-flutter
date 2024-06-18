@@ -38,14 +38,24 @@ extension StreamColorSwatchChecks on Subject<StreamColorSwatch> {
 }
 
 extension MessageChecks on Subject<Message> {
-  Subject<int> get id => has((e) => e.id, 'id');
+  Subject<String> get client => has((e) => e.client, 'client');
   Subject<String> get content => has((e) => e.content, 'content');
+  Subject<String> get contentType => has((e) => e.contentType, 'contentType');
+  Subject<int> get id => has((e) => e.id, 'id');
   Subject<bool> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');
   Subject<int?> get lastEditTimestamp => has((e) => e.lastEditTimestamp, 'lastEditTimestamp');
   Subject<Reactions?> get reactions => has((e) => e.reactions, 'reactions');
+  Subject<int> get recipientId => has((e) => e.recipientId, 'recipientId');
+  Subject<String> get senderEmail => has((e) => e.senderEmail, 'senderEmail');
+  Subject<String> get senderFullName => has((e) => e.senderFullName, 'senderFullName');
+  Subject<int> get senderId => has((e) => e.senderId, 'senderId');
+  Subject<String> get senderRealmStr => has((e) => e.senderRealmStr, 'senderRealmStr');
+  Subject<String> get subject => has((e) => e.subject, 'subject');
+  Subject<int> get timestamp => has((e) => e.timestamp, 'timestamp');
+  Subject<String> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
-
-  // TODO accessors for other fields
+  Subject<String?> get matchContent => has((e) => e.matchContent, 'matchContent');
+  Subject<String?> get matchSubject => has((e) => e.matchSubject, 'matchSubject');
 }
 
 extension ReactionsChecks on Subject<Reactions> {
