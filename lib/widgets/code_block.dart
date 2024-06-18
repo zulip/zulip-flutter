@@ -14,6 +14,7 @@ class CodeBlockTextStyles {
     return CodeBlockTextStyles._(
       plain: kMonospaceTextStyle
         .merge(const TextStyle(
+          color: Colors.black, // --color-markdown-code-text in web
           fontSize: 0.825 * kBaseFontSize,
           height: 1.4))
         .merge(weightVariableTextStyle(context)),
