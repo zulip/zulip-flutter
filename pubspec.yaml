@@ -95,6 +95,8 @@ flutter:
 
   assets:
     - assets/Noto_Color_Emoji/LICENSE
+    - assets/Pygments/AUTHORS.txt
+    - assets/Pygments/LICENSE.txt
     - assets/Source_Code_Pro/LICENSE.md
     - assets/Source_Sans_3/LICENSE.md
 

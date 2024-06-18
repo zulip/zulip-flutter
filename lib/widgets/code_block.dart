@@ -7,7 +7,6 @@ import 'text.dart';
 /// [TextStyle]s used to render code blocks.
 ///
 /// Use [forSpan] for syntax highlighting.
-// TODO(#749) follow web for dark-theme colors
 class CodeBlockTextStyles {
   // TODO(#754) update these styles
   factory CodeBlockTextStyles.light(BuildContext context) {
@@ -242,6 +241,260 @@ class CodeBlockTextStyles {
 
       // .il { color: hsl(0deg 0% 40%); }
       il: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.40).toColor())
+    );
+  }
+
+  // Pygments Monokai, following web in web/styles/pygments.css.
+  // The CSS in comments is quoted from that file.
+  // The styles ultimately come from here:
+  //   https://github.com/pygments/pygments/blob/f64833d9d/pygments/styles/monokai.py
+  factory CodeBlockTextStyles.dark(BuildContext context) {
+    final bold = weightVariableTextStyle(context, wght: 700);
+    return CodeBlockTextStyles._(
+      plain: kMonospaceTextStyle
+        .merge(TextStyle(
+          // --color-markdown-code-text in web
+          color: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
+          fontSize: 0.825 * kBaseFontSize,
+          height: 1.4))
+        .merge(weightVariableTextStyle(context)),
+
+      // .hll { background-color: #49483e; }
+      hll: const TextStyle(backgroundColor: Color(0xff49483e)),
+
+      // .c { color: #959077; }
+      c: const TextStyle(color: Color(0xff959077)),
+
+      // .err { color: #ed007e; background-color: #1e0010; }
+      err: const TextStyle(color: Color(0xffed007e), backgroundColor: Color(0xff1e0010)),
+
+      // .esc { color: #f8f8f2; }
+      esc: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .g { color: #f8f8f2; }
+      g: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .k { color: #66d9ef; }
+      k: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .l { color: #ae81ff; }
+      l: const TextStyle(color: Color(0xffae81ff)),
+
+      // .n { color: #f8f8f2; }
+      n: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .o { color: #ff4689; }
+      o: const TextStyle(color: Color(0xffff4689)),
+
+      // .x { color: #f8f8f2; }
+      x: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .p { color: #f8f8f2; }
+      p: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .ch { color: #959077; }
+      ch: const TextStyle(color: Color(0xff959077)),
+
+      // .cm { color: #959077; }
+      cm: const TextStyle(color: Color(0xff959077)),
+
+      // .cp { color: #959077; }
+      cp: const TextStyle(color: Color(0xff959077)),
+
+      // .cpf { color: #959077; }
+      cpf: const TextStyle(color: Color(0xff959077)),
+
+      // .c1 { color: #959077; }
+      c1: const TextStyle(color: Color(0xff959077)),
+
+      // .cs { color: #959077; }
+      cs: const TextStyle(color: Color(0xff959077)),
+
+      // .gd { color: #ff4689; }
+      gd: const TextStyle(color: Color(0xffff4689)),
+
+      // .ge { color: #f8f8f2; font-style: italic; }
+      ge: const TextStyle(color: Color(0xfff8f8f2), fontStyle: FontStyle.italic),
+
+      // .ges { color: #f8f8f2; font-weight: bold; font-style: italic; }
+      ges: const TextStyle(color: Color(0xfff8f8f2), fontStyle: FontStyle.italic).merge(bold),
+
+      // .gr { color: #f8f8f2; }
+      gr: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .gh { color: #f8f8f2; }
+      gh: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .gi { color: #a6e22e; }
+      gi: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .go { color: #66d9ef; }
+      go: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .gp { color: #ff4689; font-weight: bold; }
+      gp: const TextStyle(color: Color(0xffff4689)).merge(bold),
+
+      // .gs { color: #f8f8f2; font-weight: bold; }
+      gs: const TextStyle(color: Color(0xfff8f8f2)).merge(bold),
+
+      // .gu { color: #959077; }
+      gu: const TextStyle(color: Color(0xff959077)),
+
+      // .gt { color: #f8f8f2; }
+      gt: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .kc { color: #66d9ef; }
+      kc: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .kd { color: #66d9ef; }
+      kd: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .kn { color: #ff4689; }
+      kn: const TextStyle(color: Color(0xffff4689)),
+
+      // .kp { color: #66d9ef; }
+      kp: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .kr { color: #66d9ef; }
+      kr: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .kt { color: #66d9ef; }
+      kt: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .ld { color: #e6db74; }
+      ld: const TextStyle(color: Color(0xffe6db74)),
+
+      // .m { color: #ae81ff; }
+      m: const TextStyle(color: Color(0xffae81ff)),
+
+      // .s { color: #e6db74; }
+      s: const TextStyle(color: Color(0xffe6db74)),
+
+      // .na { color: #a6e22e; }
+      na: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .nb { color: #f8f8f2; }
+      nb: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .nc { color: #a6e22e; }
+      nc: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .no { color: #66d9ef; }
+      no: const TextStyle(color: Color(0xff66d9ef)),
+
+      // .nd { color: #a6e22e; }
+      nd: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .ni { color: #f8f8f2; }
+      ni: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .ne { color: #a6e22e; }
+      ne: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .nf { color: #a6e22e; }
+      nf: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .nl { color: #f8f8f2; }
+      nl: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .nn { color: #f8f8f2; }
+      nn: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .nx { color: #a6e22e; }
+      nx: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .py { color: #f8f8f2; }
+      py: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .nt { color: #ff4689; }
+      nt: const TextStyle(color: Color(0xffff4689)),
+
+      // .nv { color: #f8f8f2; }
+      nv: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .ow { color: #ff4689; }
+      ow: const TextStyle(color: Color(0xffff4689)),
+
+      // .pm { color: #f8f8f2; }
+      pm: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .w { color: #f8f8f2; }
+      w: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .mb { color: #ae81ff; }
+      mb: const TextStyle(color: Color(0xffae81ff)),
+
+      // .mf { color: #ae81ff; }
+      mf: const TextStyle(color: Color(0xffae81ff)),
+
+      // .mh { color: #ae81ff; }
+      mh: const TextStyle(color: Color(0xffae81ff)),
+
+      // .mi { color: #ae81ff; }
+      mi: const TextStyle(color: Color(0xffae81ff)),
+
+      // .mo { color: #ae81ff; }
+      mo: const TextStyle(color: Color(0xffae81ff)),
+
+      // .sa { color: #e6db74; }
+      sa: const TextStyle(color: Color(0xffe6db74)),
+
+      // .sb { color: #e6db74; }
+      sb: const TextStyle(color: Color(0xffe6db74)),
+
+      // .sc { color: #e6db74; }
+      sc: const TextStyle(color: Color(0xffe6db74)),
+
+      // .dl { color: #e6db74; }
+      dl: const TextStyle(color: Color(0xffe6db74)),
+
+      // .sd { color: #e6db74; }
+      sd: const TextStyle(color: Color(0xffe6db74)),
+
+      // .s2 { color: #e6db74; }
+      s2: const TextStyle(color: Color(0xffe6db74)),
+
+      // .se { color: #ae81ff; }
+      se: const TextStyle(color: Color(0xffae81ff)),
+
+      // .sh { color: #e6db74; }
+      sh: const TextStyle(color: Color(0xffe6db74)),
+
+      // .si { color: #e6db74; }
+      si: const TextStyle(color: Color(0xffe6db74)),
+
+      // .sx { color: #e6db74; }
+      sx: const TextStyle(color: Color(0xffe6db74)),
+
+      // .sr { color: #e6db74; }
+      sr: const TextStyle(color: Color(0xffe6db74)),
+
+      // .s1 { color: #e6db74; }
+      s1: const TextStyle(color: Color(0xffe6db74)),
+
+      // .ss { color: #e6db74; }
+      ss: const TextStyle(color: Color(0xffe6db74)),
+
+      // .bp { color: #f8f8f2; }
+      bp: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .fm { color: #a6e22e; }
+      fm: const TextStyle(color: Color(0xffa6e22e)),
+
+      // .vc { color: #f8f8f2; }
+      vc: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .vg { color: #f8f8f2; }
+      vg: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .vi { color: #f8f8f2; }
+      vi: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .vm { color: #f8f8f2; }
+      vm: const TextStyle(color: Color(0xfff8f8f2)),
+
+      // .il { color: #ae81ff; }
+      il: const TextStyle(color: Color(0xffae81ff)),
     );
   }
 

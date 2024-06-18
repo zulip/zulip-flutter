@@ -16,6 +16,16 @@ Stream<LicenseEntry> additionalLicenses() async* {
     ['Noto Color Emoji'],
     await rootBundle.loadString('assets/Noto_Color_Emoji/LICENSE'));
   yield LicenseEntryWithLineBreaks(
+    ['Pygments'],
+    await () async {
+      final [licenseFileText, authorsFileText] = await Future.wait([
+        rootBundle.loadString('assets/Pygments/LICENSE.txt'),
+        rootBundle.loadString('assets/Pygments/AUTHORS.txt'),
+      ]);
+
+      return '$licenseFileText\n\nAUTHORS file follows:\n\n$authorsFileText';
+    }());
+  yield LicenseEntryWithLineBreaks(
     ['Source Code Pro'],
     await rootBundle.loadString('assets/Source_Code_Pro/LICENSE.md'));
   yield LicenseEntryWithLineBreaks(
