@@ -92,9 +92,9 @@ void main() {
   }
 
   /// Set up an inbox view with lots of interesting content.
-  Future<void> setupVarious(WidgetTester tester) async {
+  Future<void> setupVarious(WidgetTester tester, {int? sub1Color}) async {
     final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-    final sub1 = eg.subscription(stream1);
+    final sub1 = eg.subscription(stream1, color: sub1Color);
     final stream2 = eg.stream(streamId: 2, name: 'stream 2');
     final sub2 = eg.subscription(stream2);
 
@@ -465,6 +465,29 @@ void main() {
           checkAppearsCollapsed(tester, 1, findSectionContent);
           await tapCollapseIcon(tester, 1);
           checkAppearsUncollapsed(tester, 1, findSectionContent);
+        });
+
+        testWidgets('uncollapsed header changes background color when [subscription.color] changes', (tester) async {
+          final initialColor = Colors.indigo.value;
+
+          final stream = eg.stream(streamId: 1);
+          await setupPage(tester,
+            streams: [stream],
+            subscriptions: [eg.subscription(stream, color: initialColor)],
+            unreadMessages: [eg.streamMessage(stream: stream, topic: 'specific topic', flags: [])]);
+
+          checkAppearsUncollapsed(tester, stream.streamId, find.text('specific topic'));
+
+          check(streamHeaderBackgroundColor(tester, 1))
+            .equals(StreamColorSwatch.light(initialColor).barBackground);
+
+          final newColor = Colors.orange.value;
+          store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
+            property: SubscriptionProperty.color, value: newColor));
+          await tester.pump();
+
+          check(streamHeaderBackgroundColor(tester, 1))
+            .equals(StreamColorSwatch.light(newColor).barBackground);
         });
 
         testWidgets('collapse stream section when partially offscreen: '
