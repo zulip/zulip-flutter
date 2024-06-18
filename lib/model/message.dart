@@ -1,5 +1,6 @@
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../log.dart';
 import 'message_list.dart';
 
 /// The portion of [PerAccountStore] for messages and message lists.
@@ -96,8 +97,7 @@ class MessageStoreImpl with MessageStore {
     assert(event.messageIds.contains(event.messageId), "See https://github.com/zulip/zulip-flutter/pull/753#discussion_r1649463633");
     _handleUpdateMessageEventTimestamp(event);
     _handleUpdateMessageEventContent(event);
-    // TODO(#150): Handle message moves.  The views' recipient headers
-    //   may need updating, and consequently showSender too.
+    _handleUpdateMessageEventMove(event);
     for (final view in _messageListViews) {
       view.notifyListenersIfAnyMessagePresent(event.messageIds);
     }
@@ -137,6 +137,41 @@ class MessageStoreImpl with MessageStore {
     for (final view in _messageListViews) {
       view.messageContentChanged(event.messageId);
     }
+  }
+
+  void _handleUpdateMessageEventMove(UpdateMessageEvent event) {
+    // The interaction between the fields of these events are a bit tricky.
+    // For reference, see: https://zulip.com/api/get-events#update_message
+
+    if (event.origTopic == null) {
+      // There was no move.
+      assert(() {
+        if (event.newStreamId != null && event.origStreamId != null
+            && event.newStreamId != event.origStreamId) {
+          // This should be impossible; `orig_subject` (aka origTopic) is
+          // documented to be present when either the stream or topic changed.
+          debugLog('Malformed UpdateMessageEvent: stream move but no origTopic'); // TODO(log)
+        }
+        return true;
+      }());
+      return;
+    }
+
+    if (event.newTopic == null) {
+      // The `subject` field (aka newTopic) is documented to be present on moves.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no newTopic')); // TODO(log)
+      return;
+    }
+    if (event.origStreamId == null) {
+      // The `stream_id` field (aka origStreamId) is documented to be present on moves.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
+      return;
+    }
+
+    // final newStreamId = event.newStreamId; // null if topic-only move
+    // final newTopic = event.newTopic!;
+    // TODO(#150): Handle message moves.  The views' recipient headers
+    //   may need updating, and consequently showSender too.
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
