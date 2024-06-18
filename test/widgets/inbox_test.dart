@@ -134,10 +134,30 @@ void main() {
     return findRowByLabel(tester, 'Direct messages');
   }
 
+  Color? allDmsHeaderBackgroundColor(WidgetTester tester) {
+    final row = findAllDmsHeaderRow(tester);
+    check(row).isNotNull();
+    final material = tester.firstWidget<Material>(
+      find.ancestor(
+        of: find.byWidget(row!),
+        matching: find.byType(Material)));
+    return material.color;
+  }
+
   /// For the given stream ID, find the stream header element.
   Widget? findStreamHeaderRow(WidgetTester tester, int streamId) {
     final stream = store.streams[streamId]!;
     return findRowByLabel(tester, stream.name);
+  }
+
+  Color? streamHeaderBackgroundColor(WidgetTester tester, int streamId) {
+    final row = findStreamHeaderRow(tester, streamId);
+    check(row).isNotNull();
+    final material = tester.firstWidget<Material>(
+      find.ancestor(
+        of: find.byWidget(row!),
+        matching: find.byType(Material)));
+    return material.color;
   }
 
   IconData expectedStreamHeaderIcon(int streamId) {
@@ -310,7 +330,8 @@ void main() {
           check(headerRow).isNotNull();
           final icon = findHeaderCollapseIcon(tester, headerRow!);
           check(icon).icon.equals(ZulipIcons.arrow_down);
-          // TODO check bar background color
+          check(allDmsHeaderBackgroundColor(tester))
+            .isNotNull().equals(const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor());
           check(tester.widgetList(findSectionContent)).isNotEmpty();
         }
 
@@ -327,7 +348,8 @@ void main() {
           check(headerRow).isNotNull();
           final icon = findHeaderCollapseIcon(tester, headerRow!);
           check(icon).icon.equals(ZulipIcons.arrow_right);
-          // TODO check bar background color
+          check(allDmsHeaderBackgroundColor(tester))
+            .isNotNull().equals(Colors.white);
           check(tester.widgetList(findSectionContent)).isEmpty();
         }
 
@@ -403,7 +425,8 @@ void main() {
           check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.equals(subscription.colorSwatch().iconOnBarBackground);
-          // TODO check bar background color
+          check(streamHeaderBackgroundColor(tester, streamId))
+            .isNotNull().equals(subscription.colorSwatch().barBackground);
           check(tester.widgetList(findSectionContent)).isNotEmpty();
         }
 
@@ -424,7 +447,8 @@ void main() {
           check(collapseIcon).icon.equals(ZulipIcons.arrow_right);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.equals(subscription.colorSwatch().iconOnPlainBackground);
-          // TODO check bar background color
+          check(streamHeaderBackgroundColor(tester, streamId))
+            .isNotNull().equals(Colors.white);
           check(tester.widgetList(findSectionContent)).isEmpty();
         }
 
