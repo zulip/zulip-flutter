@@ -611,6 +611,7 @@ class MessageEvent extends Event {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageEvent extends Event {
   @override
+  @JsonKey(includeToJson: true)
   String get type => 'update_message';
 
   final int? userId; // TODO(server-5)
@@ -683,6 +684,7 @@ enum PropagateMode {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class DeleteMessageEvent extends Event {
   @override
+  @JsonKey(includeToJson: true)
   String get type => 'delete_message';
 
   final List<int> messageIds;

@@ -379,6 +379,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'type': instance.type,
       'user_id': instance.userId,
       'rendering_only': instance.renderingOnly,
       'message_id': instance.messageId,
@@ -428,6 +429,7 @@ DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$DeleteMessageEventToJson(DeleteMessageEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'type': instance.type,
       'message_ids': instance.messageIds,
       'message_type': _$MessageTypeEnumMap[instance.messageType]!,
       'stream_id': instance.streamId,
