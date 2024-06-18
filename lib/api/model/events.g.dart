@@ -363,7 +363,6 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
           .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
           .toList(),
       editTimestamp: (json['edit_timestamp'] as num?)?.toInt(),
-      streamName: json['stream_name'] as String?,
       streamId: (json['stream_id'] as num?)?.toInt(),
       newStreamId: (json['new_stream_id'] as num?)?.toInt(),
       propagateMode:
@@ -386,7 +385,6 @@ Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
       'message_ids': instance.messageIds,
       'flags': instance.flags,
       'edit_timestamp': instance.editTimestamp,
-      'stream_name': instance.streamName,
       'stream_id': instance.streamId,
       'new_stream_id': instance.newStreamId,
       'propagate_mode': _$PropagateModeEnumMap[instance.propagateMode],

@@ -395,7 +395,6 @@ UpdateMessageEvent updateMessageEditEvent(
   int? messageId,
   List<MessageFlag>? flags,
   int? editTimestamp,
-  String? streamName,
   String? renderedContent,
   bool isMeMessage = false,
 }) {
@@ -408,7 +407,6 @@ UpdateMessageEvent updateMessageEditEvent(
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
     editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
-    streamName: streamName,
     streamId: origMessage is StreamMessage ? origMessage.streamId : null,
     newStreamId: null,
     propagateMode: null,

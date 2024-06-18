@@ -619,7 +619,7 @@ class UpdateMessageEvent extends Event {
   final List<int> messageIds;
   final List<MessageFlag> flags;
   final int? editTimestamp; // TODO(server-5)
-  final String? streamName;
+  // final String? streamName; // ignore
   final int? streamId;
   final int? newStreamId;
   final PropagateMode? propagateMode;
@@ -641,7 +641,6 @@ class UpdateMessageEvent extends Event {
     required this.messageIds,
     required this.flags,
     required this.editTimestamp,
-    required this.streamName,
     required this.streamId,
     required this.newStreamId,
     required this.propagateMode,
