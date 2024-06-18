@@ -236,7 +236,7 @@ class SubscriptionItem extends StatelessWidget {
                 subscription.name))),
           if (unreadCount > 0) ...[
             const SizedBox(width: 12),
-            // TODO(#384) show @-mention indicator when it applies
+            // TODO(#747) show @-mention indicator when it applies
             UnreadCountBadge(count: unreadCount, backgroundColor: swatch, bold: true),
           ],
           const SizedBox(width: 16),
