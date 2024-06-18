@@ -9,6 +9,7 @@ import 'text.dart';
 /// Use [forSpan] for syntax highlighting.
 // TODO(#749) follow web for dark-theme colors
 class CodeBlockTextStyles {
+  // TODO(#754) update these styles
   factory CodeBlockTextStyles.light(BuildContext context) {
     final bold = weightVariableTextStyle(context, wght: 700);
     return CodeBlockTextStyles._(
@@ -31,17 +32,33 @@ class CodeBlockTextStyles {
       // .err { border: 1px solid hsl(0deg 100% 50%); }
       err: const TextStyle(backgroundColor: Color(0xffe2706e)),
 
+      esc: null,
+
+      g: null,
+
       // .k { color: hsl(332deg 70% 38%); }
       k: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.7, 0.38).toColor()),
 
+      l: null,
+
+      n: null,
+
       // .o { color: hsl(332deg 70% 38%); }
       o: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.7, 0.38).toColor()),
+
+      x: null,
+
+      p: null,
+
+      ch: null,
 
       // .cm { color: hsl(180deg 33% 37%); font-style: italic; }
       cm: TextStyle(color: const HSLColor.fromAHSL(1, 180, 0.33, 0.37).toColor(), fontStyle: FontStyle.italic),
 
       // .cp { color: hsl(38deg 100% 36%); }
       cp: TextStyle(color: const HSLColor.fromAHSL(1, 38, 1, 0.36).toColor()),
+
+      cpf: null,
 
       // .c1 { color: hsl(0deg 0% 67%); font-style: italic; }
       c1: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.67).toColor(), fontStyle: FontStyle.italic),
@@ -54,6 +71,8 @@ class CodeBlockTextStyles {
 
       // .ge { font-style: italic; }
       ge: const TextStyle(fontStyle: FontStyle.italic),
+
+      ges: null,
 
       // .gr { color: hsl(0deg 100% 50%); }
       gr: TextStyle(color: const HSLColor.fromAHSL(1, 0, 1, 0.50).toColor()),
@@ -96,6 +115,8 @@ class CodeBlockTextStyles {
 
       // .kt { color: hsl(332deg 70% 38%); }
       kt: TextStyle(color: const HSLColor.fromAHSL(1, 332, 0.70, 0.38).toColor()),
+
+      ld: null,
 
       // .m { color: hsl(0deg 0% 40%); }
       m: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.40).toColor()),
@@ -142,11 +163,17 @@ class CodeBlockTextStyles {
       // .nx { color: hsl(0deg 0% 26%); }
       nx: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.26).toColor()),
 
+      py: null,
+
       // .ow { color: hsl(276deg 100% 56%); font-weight: bold; }
       ow: TextStyle(color: const HSLColor.fromAHSL(1, 276, 1, 0.56).toColor()).merge(bold),
 
+      pm: null,
+
       // .w { color: hsl(0deg 0% 73%); }
       w: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.73).toColor()),
+
+      mb: null,
 
       // .mf { color: hsl(195deg 100% 35%); }
       mf: TextStyle(color: const HSLColor.fromAHSL(1, 195, 1, 0.35).toColor()),
@@ -160,11 +187,15 @@ class CodeBlockTextStyles {
       // .mo { color: hsl(195deg 100% 35%); }
       mo: TextStyle(color: const HSLColor.fromAHSL(1, 195, 1, 0.35).toColor()),
 
+      sa: null,
+
       // .sb { color: hsl(86deg 57% 40%); }
       sb: TextStyle(color: const HSLColor.fromAHSL(1, 86, 0.57, 0.40).toColor()),
 
       // .sc { color: hsl(86deg 57% 40%); }
       sc: TextStyle(color: const HSLColor.fromAHSL(1, 86, 0.57, 0.40).toColor()),
+
+      dl: null,
 
       // .sd { color: hsl(86deg 57% 40%); font-style: italic; }
       sd: TextStyle(color: const HSLColor.fromAHSL(1, 86, 0.57, 0.40).toColor(), fontStyle: FontStyle.italic),
@@ -196,6 +227,8 @@ class CodeBlockTextStyles {
       // .bp { color: hsl(120deg 100% 25%); }
       bp: TextStyle(color: const HSLColor.fromAHSL(1, 120, 1, 0.25).toColor()),
 
+      fm: null,
+
       // .vc { color: hsl(241deg 68% 28%); }
       vc: TextStyle(color: const HSLColor.fromAHSL(1, 241, 0.68, 0.28).toColor()),
 
@@ -204,6 +237,8 @@ class CodeBlockTextStyles {
 
       // .vi { color: hsl(241deg 68% 28%); }
       vi: TextStyle(color: const HSLColor.fromAHSL(1, 241, 0.68, 0.28).toColor()),
+
+      vm: null,
 
       // .il { color: hsl(0deg 0% 40%); }
       il: TextStyle(color: const HSLColor.fromAHSL(1, 0, 0, 0.40).toColor())
@@ -215,14 +250,23 @@ class CodeBlockTextStyles {
     required TextStyle hll,
     required TextStyle c,
     required TextStyle err,
+    required TextStyle? esc,
+    required TextStyle? g,
     required TextStyle k,
+    required TextStyle? l,
+    required TextStyle? n,
     required TextStyle o,
+    required TextStyle? x,
+    required TextStyle? p,
+    required TextStyle? ch,
     required TextStyle cm,
     required TextStyle cp,
+    required TextStyle? cpf,
     required TextStyle c1,
     required TextStyle cs,
     required TextStyle gd,
     required TextStyle ge,
+    required TextStyle? ges,
     required TextStyle gr,
     required TextStyle gh,
     required TextStyle gi,
@@ -237,6 +281,7 @@ class CodeBlockTextStyles {
     required TextStyle kp,
     required TextStyle kr,
     required TextStyle kt,
+    required TextStyle? ld,
     required TextStyle m,
     required TextStyle s,
     required TextStyle na,
@@ -252,14 +297,19 @@ class CodeBlockTextStyles {
     required TextStyle nt,
     required TextStyle nv,
     required TextStyle nx,
+    required TextStyle? py,
     required TextStyle ow,
+    required TextStyle? pm,
     required TextStyle w,
+    required TextStyle? mb,
     required TextStyle mf,
     required TextStyle mh,
     required TextStyle mi,
     required TextStyle mo,
+    required TextStyle? sa,
     required TextStyle sb,
     required TextStyle sc,
+    required TextStyle? dl,
     required TextStyle sd,
     required TextStyle s2,
     required TextStyle se,
@@ -270,22 +320,33 @@ class CodeBlockTextStyles {
     required TextStyle s1,
     required TextStyle ss,
     required TextStyle bp,
+    required TextStyle? fm,
     required TextStyle vc,
     required TextStyle vg,
     required TextStyle vi,
+    required TextStyle? vm,
     required TextStyle il,
   }) :
     _hll = hll,
     _c = c,
     _err = err,
+    _esc = esc,
+    _g = g,
     _k = k,
+    _l = l,
+    _n = n,
     _o = o,
+    _x = x,
+    _p = p,
+    _ch = ch,
     _cm = cm,
     _cp = cp,
+    _cpf = cpf,
     _c1 = c1,
     _cs = cs,
     _gd = gd,
     _ge = ge,
+    _ges = ges,
     _gr = gr,
     _gh = gh,
     _gi = gi,
@@ -300,6 +361,7 @@ class CodeBlockTextStyles {
     _kp = kp,
     _kr = kr,
     _kt = kt,
+    _ld = ld,
     _m = m,
     _s = s,
     _na = na,
@@ -315,14 +377,19 @@ class CodeBlockTextStyles {
     _nt = nt,
     _nv = nv,
     _nx = nx,
+    _py = py,
     _ow = ow,
+    _pm = pm,
     _w = w,
+    _mb = mb,
     _mf = mf,
     _mh = mh,
     _mi = mi,
     _mo = mo,
+    _sa = sa,
     _sb = sb,
     _sc = sc,
+    _dl = dl,
     _sd = sd,
     _s2 = s2,
     _se = se,
@@ -333,9 +400,11 @@ class CodeBlockTextStyles {
     _s1 = s1,
     _ss = ss,
     _bp = bp,
+    _fm = fm,
     _vc = vc,
     _vg = vg,
     _vi = vi,
+    _vm = vm,
     _il = il;
 
   /// The baseline style that the [forSpan] styles get applied on top of.
@@ -344,14 +413,23 @@ class CodeBlockTextStyles {
   final TextStyle _hll;
   final TextStyle _c;
   final TextStyle _err;
+  final TextStyle? _esc;
+  final TextStyle? _g;
   final TextStyle _k;
+  final TextStyle? _l;
+  final TextStyle? _n;
   final TextStyle _o;
+  final TextStyle? _x;
+  final TextStyle? _p;
+  final TextStyle? _ch;
   final TextStyle _cm;
   final TextStyle _cp;
+  final TextStyle? _cpf;
   final TextStyle _c1;
   final TextStyle _cs;
   final TextStyle _gd;
   final TextStyle _ge;
+  final TextStyle? _ges;
   final TextStyle _gr;
   final TextStyle _gh;
   final TextStyle _gi;
@@ -366,6 +444,7 @@ class CodeBlockTextStyles {
   final TextStyle _kp;
   final TextStyle _kr;
   final TextStyle _kt;
+  final TextStyle? _ld;
   final TextStyle _m;
   final TextStyle _s;
   final TextStyle _na;
@@ -381,14 +460,19 @@ class CodeBlockTextStyles {
   final TextStyle _nt;
   final TextStyle _nv;
   final TextStyle _nx;
+  final TextStyle? _py;
   final TextStyle _ow;
+  final TextStyle? _pm;
   final TextStyle _w;
+  final TextStyle? _mb;
   final TextStyle _mf;
   final TextStyle _mh;
   final TextStyle _mi;
   final TextStyle _mo;
+  final TextStyle? _sa;
   final TextStyle _sb;
   final TextStyle _sc;
+  final TextStyle? _dl;
   final TextStyle _sd;
   final TextStyle _s2;
   final TextStyle _se;
@@ -399,9 +483,11 @@ class CodeBlockTextStyles {
   final TextStyle _s1;
   final TextStyle _ss;
   final TextStyle _bp;
+  final TextStyle? _fm;
   final TextStyle _vc;
   final TextStyle _vg;
   final TextStyle _vi;
+  final TextStyle? _vm;
   final TextStyle _il;
 
   /// The [TextStyle] for a [CodeBlockSpanType], if there is one.
@@ -415,14 +501,23 @@ class CodeBlockTextStyles {
       CodeBlockSpanType.highlightedLines => _hll,
       CodeBlockSpanType.comment => _c,
       CodeBlockSpanType.error => _err,
+      CodeBlockSpanType.escape => _esc,
+      CodeBlockSpanType.generic => _g,
       CodeBlockSpanType.keyword => _k,
+      CodeBlockSpanType.literal => _l,
+      CodeBlockSpanType.name => _n,
       CodeBlockSpanType.operator => _o,
+      CodeBlockSpanType.other => _x,
+      CodeBlockSpanType.punctuation => _p,
+      CodeBlockSpanType.commentHashbang => _ch,
       CodeBlockSpanType.commentMultiline => _cm,
       CodeBlockSpanType.commentPreproc => _cp,
+      CodeBlockSpanType.commentPreprocFile => _cpf,
       CodeBlockSpanType.commentSingle => _c1,
       CodeBlockSpanType.commentSpecial => _cs,
       CodeBlockSpanType.genericDeleted => _gd,
       CodeBlockSpanType.genericEmph => _ge,
+      CodeBlockSpanType.genericEmphStrong => _ges,
       CodeBlockSpanType.genericError => _gr,
       CodeBlockSpanType.genericHeading => _gh,
       CodeBlockSpanType.genericInserted => _gi,
@@ -437,6 +532,7 @@ class CodeBlockTextStyles {
       CodeBlockSpanType.keywordPseudo => _kp,
       CodeBlockSpanType.keywordReserved => _kr,
       CodeBlockSpanType.keywordType => _kt,
+      CodeBlockSpanType.literalDate => _ld,
       CodeBlockSpanType.number => _m,
       CodeBlockSpanType.string => _s,
       CodeBlockSpanType.nameAttribute => _na,
@@ -452,14 +548,19 @@ class CodeBlockTextStyles {
       CodeBlockSpanType.nameTag => _nt,
       CodeBlockSpanType.nameVariable => _nv,
       CodeBlockSpanType.nameOther => _nx,
+      CodeBlockSpanType.nameProperty => _py,
       CodeBlockSpanType.operatorWord => _ow,
+      CodeBlockSpanType.punctuationMarker => _pm,
       CodeBlockSpanType.whitespace => _w,
+      CodeBlockSpanType.numberBin => _mb,
       CodeBlockSpanType.numberFloat => _mf,
       CodeBlockSpanType.numberHex => _mh,
       CodeBlockSpanType.numberInteger => _mi,
       CodeBlockSpanType.numberOct => _mo,
+      CodeBlockSpanType.stringAffix => _sa,
       CodeBlockSpanType.stringBacktick => _sb,
       CodeBlockSpanType.stringChar => _sc,
+      CodeBlockSpanType.stringDelimiter => _dl,
       CodeBlockSpanType.stringDoc => _sd,
       CodeBlockSpanType.stringDouble => _s2,
       CodeBlockSpanType.stringEscape => _se,
@@ -470,11 +571,13 @@ class CodeBlockTextStyles {
       CodeBlockSpanType.stringSingle => _s1,
       CodeBlockSpanType.stringSymbol => _ss,
       CodeBlockSpanType.nameBuiltinPseudo => _bp,
+      CodeBlockSpanType.nameFunctionMagic => _fm,
       CodeBlockSpanType.nameVariableClass => _vc,
       CodeBlockSpanType.nameVariableGlobal => _vg,
       CodeBlockSpanType.nameVariableInstance => _vi,
+      CodeBlockSpanType.nameVariableMagic => _vm,
       CodeBlockSpanType.numberIntegerLong => _il,
-      _ => null, // not every token is styled
+      CodeBlockSpanType.unknown => null,
     };
   }
 
@@ -486,14 +589,23 @@ class CodeBlockTextStyles {
       hll: TextStyle.lerp(a._hll, b._hll, t)!,
       c: TextStyle.lerp(a._c, b._c, t)!,
       err: TextStyle.lerp(a._err, b._err, t)!,
+      esc: TextStyle.lerp(a._esc, b._esc, t)!,
+      g: TextStyle.lerp(a._g, b._g, t)!,
       k: TextStyle.lerp(a._k, b._k, t)!,
+      l: TextStyle.lerp(a._l, b._l, t)!,
+      n: TextStyle.lerp(a._n, b._n, t)!,
       o: TextStyle.lerp(a._o, b._o, t)!,
+      x: TextStyle.lerp(a._x, b._x, t)!,
+      p: TextStyle.lerp(a._p, b._p, t)!,
+      ch: TextStyle.lerp(a._ch, b._ch, t)!,
       cm: TextStyle.lerp(a._cm, b._cm, t)!,
       cp: TextStyle.lerp(a._cp, b._cp, t)!,
+      cpf: TextStyle.lerp(a._cpf, b._cpf, t)!,
       c1: TextStyle.lerp(a._c1, b._c1, t)!,
       cs: TextStyle.lerp(a._cs, b._cs, t)!,
       gd: TextStyle.lerp(a._gd, b._gd, t)!,
       ge: TextStyle.lerp(a._ge, b._ge, t)!,
+      ges: TextStyle.lerp(a._ges, b._ges, t)!,
       gr: TextStyle.lerp(a._gr, b._gr, t)!,
       gh: TextStyle.lerp(a._gh, b._gh, t)!,
       gi: TextStyle.lerp(a._gi, b._gi, t)!,
@@ -508,6 +620,7 @@ class CodeBlockTextStyles {
       kp: TextStyle.lerp(a._kp, b._kp, t)!,
       kr: TextStyle.lerp(a._kr, b._kr, t)!,
       kt: TextStyle.lerp(a._kt, b._kt, t)!,
+      ld: TextStyle.lerp(a._ld, b._ld, t)!,
       m: TextStyle.lerp(a._m, b._m, t)!,
       s: TextStyle.lerp(a._s, b._s, t)!,
       na: TextStyle.lerp(a._na, b._na, t)!,
@@ -523,14 +636,19 @@ class CodeBlockTextStyles {
       nt: TextStyle.lerp(a._nt, b._nt, t)!,
       nv: TextStyle.lerp(a._nv, b._nv, t)!,
       nx: TextStyle.lerp(a._nx, b._nx, t)!,
+      py: TextStyle.lerp(a._py, b._py, t)!,
       ow: TextStyle.lerp(a._ow, b._ow, t)!,
+      pm: TextStyle.lerp(a._pm, b._pm, t)!,
       w: TextStyle.lerp(a._w, b._w, t)!,
+      mb: TextStyle.lerp(a._mb, b._mb, t)!,
       mf: TextStyle.lerp(a._mf, b._mf, t)!,
       mh: TextStyle.lerp(a._mh, b._mh, t)!,
       mi: TextStyle.lerp(a._mi, b._mi, t)!,
       mo: TextStyle.lerp(a._mo, b._mo, t)!,
+      sa: TextStyle.lerp(a._sa, b._sa, t)!,
       sb: TextStyle.lerp(a._sb, b._sb, t)!,
       sc: TextStyle.lerp(a._sc, b._sc, t)!,
+      dl: TextStyle.lerp(a._dl, b._dl, t)!,
       sd: TextStyle.lerp(a._sd, b._sd, t)!,
       s2: TextStyle.lerp(a._s2, b._s2, t)!,
       se: TextStyle.lerp(a._se, b._se, t)!,
@@ -541,9 +659,11 @@ class CodeBlockTextStyles {
       s1: TextStyle.lerp(a._s1, b._s1, t)!,
       ss: TextStyle.lerp(a._ss, b._ss, t)!,
       bp: TextStyle.lerp(a._bp, b._bp, t)!,
+      fm: TextStyle.lerp(a._fm, b._fm, t)!,
       vc: TextStyle.lerp(a._vc, b._vc, t)!,
       vg: TextStyle.lerp(a._vg, b._vg, t)!,
       vi: TextStyle.lerp(a._vi, b._vi, t)!,
+      vm: TextStyle.lerp(a._vm, b._vm, t)!,
       il: TextStyle.lerp(a._il, b._il, t)!,
     );
   }
