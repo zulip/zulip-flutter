@@ -17,4 +17,7 @@
 
   // This much more focused automatic fix is helpful, though.
   "files.trimTrailingWhitespace": true,
+
+  // Suppress the warnings that appear for TODOs throughout the codebase.
+  "dart.showTodos": false,
 }
