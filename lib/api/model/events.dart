@@ -623,8 +623,12 @@ class UpdateMessageEvent extends Event {
   final int? streamId;
   final int? newStreamId;
   final PropagateMode? propagateMode;
-  final String? origSubject;
-  final String? subject;
+
+  @JsonKey(name: 'orig_subject')
+  final String? origTopic;
+  @JsonKey(name: 'subject')
+  final String? topic;
+
   // final List<TopicLink> topicLinks; // TODO handle
   final String? origContent;
   final String? origRenderedContent;
@@ -644,8 +648,8 @@ class UpdateMessageEvent extends Event {
     required this.streamId,
     required this.newStreamId,
     required this.propagateMode,
-    required this.origSubject,
-    required this.subject,
+    required this.origTopic,
+    required this.topic,
     required this.origContent,
     required this.origRenderedContent,
     required this.content,

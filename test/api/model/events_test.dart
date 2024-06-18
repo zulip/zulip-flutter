@@ -66,6 +66,30 @@ void main() {
     check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
   });
 
+  group('update_message', () {
+    final message = eg.streamMessage();
+    final baseJson = {
+      'id': 1,
+      'type': 'update_message',
+      'user_id': eg.selfUser.userId,
+      'rendering_only': false,
+      'message_id': message.id,
+      'message_ids': [message.id],
+      'flags': <String>[],
+      'edit_timestamp': 1718741351,
+      'stream_id': eg.stream().streamId,
+    };
+
+    test('orig_subject -> origTopic, subject -> topic', () {
+      check(Event.fromJson({ ...baseJson,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+      }) as UpdateMessageEvent)
+        ..origTopic.equals('foo')
+        ..topic.equals('bar');
+    });
+  });
+
   test('delete_message: require streamId and topic for stream messages', () {
     check(() => DeleteMessageEvent.fromJson({
       'id': 1,

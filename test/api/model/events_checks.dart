@@ -27,6 +27,25 @@ extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
 }
 
+extension UpdateMessageEventChecks on Subject<UpdateMessageEvent> {
+  Subject<int?> get userId => has((e) => e.userId, 'userId');
+  Subject<bool?> get renderingOnly => has((e) => e.renderingOnly, 'renderingOnly');
+  Subject<int> get messageId => has((e) => e.messageId, 'messageId');
+  Subject<List<int>> get messageIds => has((e) => e.messageIds, 'messageIds');
+  Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
+  Subject<int?> get editTimestamp => has((e) => e.editTimestamp, 'editTimestamp');
+  Subject<int?> get streamId => has((e) => e.streamId, 'streamId');
+  Subject<int?> get newStreamId => has((e) => e.newStreamId, 'newStreamId');
+  Subject<PropagateMode?> get propagateMode => has((e) => e.propagateMode, 'propagateMode');
+  Subject<String?> get origTopic => has((e) => e.origTopic, 'origTopic');
+  Subject<String?> get topic => has((e) => e.topic, 'topic');
+  Subject<String?> get origContent => has((e) => e.origContent, 'origContent');
+  Subject<String?> get origRenderedContent => has((e) => e.origRenderedContent, 'origRenderedContent');
+  Subject<String?> get content => has((e) => e.content, 'content');
+  Subject<String?> get renderedContent => has((e) => e.renderedContent, 'renderedContent');
+  Subject<bool?> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');
+}
+
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {
   // No properties not covered by Event.
 }
