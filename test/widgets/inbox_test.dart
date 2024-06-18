@@ -129,20 +129,12 @@ void main() {
         matching: find.byType(Row)));
   }
 
-  /// Find an all-DMs header element.
-  // Why "an" all-DMs header element? Because there might be two: one that
-  // floats at the top of the screen to give the "sticky header" effect, and one
-  // that scrolls normally, the way it would in a regular [ListView].
-  // TODO we'll need to find both and run checks on them, knowing which is which.
+  /// Find the all-DMs header element.
   Widget? findAllDmsHeaderRow(WidgetTester tester) {
     return findRowByLabel(tester, 'Direct messages');
   }
 
-  /// For the given stream ID, find a stream header element.
-  // Why "an" all-DMs header element? Because there might be two: one that
-  // floats at the top of the screen to give the "sticky header" effect, and one
-  // that scrolls normally, the way it would in a regular [ListView].
-  // TODO we'll need to find both and run checks on them, knowing which is which.
+  /// For the given stream ID, find the stream header element.
   Widget? findStreamHeaderRow(WidgetTester tester, int streamId) {
     final stream = store.streams[streamId]!;
     return findRowByLabel(tester, stream.name);
