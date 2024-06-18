@@ -584,8 +584,8 @@ class MessageEvent extends Event {
   //
   // The other difference in the server API between message objects in these
   // events and in the get-messages results is that `matchContent` and
-  // `matchSubject` are absent here.  Already [Message.matchContent] and
-  // [Message.matchSubject] are optional, so no action is needed on that.
+  // `matchTopic` are absent here.  Already [Message.matchContent] and
+  // [Message.matchTopic] are optional, so no action is needed on that.
   final Message message;
 
   MessageEvent({required super.id, required this.message});

@@ -55,7 +55,7 @@ extension MessageChecks on Subject<Message> {
   Subject<String> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
   Subject<String?> get matchContent => has((e) => e.matchContent, 'matchContent');
-  Subject<String?> get matchSubject => has((e) => e.matchSubject, 'matchSubject');
+  Subject<String?> get matchTopic => has((e) => e.matchTopic, 'matchTopic');
 }
 
 extension ReactionsChecks on Subject<Reactions> {

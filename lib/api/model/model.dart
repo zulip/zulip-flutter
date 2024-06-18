@@ -657,7 +657,8 @@ sealed class Message {
   @JsonKey(fromJson: _flagsFromJson)
   List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
   final String? matchContent;
-  final String? matchSubject;
+  @JsonKey(name: 'match_subject')
+  final String? matchTopic;
 
   static Reactions? _reactionsFromJson(dynamic json) {
     final list = (json as List<dynamic>);
@@ -690,7 +691,7 @@ sealed class Message {
     required this.timestamp,
     required this.flags,
     required this.matchContent,
-    required this.matchSubject,
+    required this.matchTopic,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -755,7 +756,7 @@ class StreamMessage extends Message {
     required super.timestamp,
     required super.flags,
     required super.matchContent,
-    required super.matchSubject,
+    required super.matchTopic,
     required this.displayRecipient,
     required this.streamId,
   });
@@ -857,7 +858,7 @@ class DmMessage extends Message {
     required super.timestamp,
     required super.flags,
     required super.matchContent,
-    required super.matchSubject,
+    required super.matchTopic,
     required this.displayRecipient,
   });
 

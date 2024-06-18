@@ -278,7 +278,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       timestamp: (json['timestamp'] as num).toInt(),
       flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
-      matchSubject: json['match_subject'] as String?,
+      matchTopic: json['match_subject'] as String?,
       displayRecipient: json['display_recipient'] as String,
       streamId: (json['stream_id'] as num).toInt(),
     );
@@ -301,7 +301,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'timestamp': instance.timestamp,
       'flags': instance.flags,
       'match_content': instance.matchContent,
-      'match_subject': instance.matchSubject,
+      'match_subject': instance.matchTopic,
       'type': instance.type,
       'display_recipient': instance.displayRecipient,
       'stream_id': instance.streamId,
@@ -337,7 +337,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       timestamp: (json['timestamp'] as num).toInt(),
       flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
-      matchSubject: json['match_subject'] as String?,
+      matchTopic: json['match_subject'] as String?,
       displayRecipient: const DmRecipientListConverter()
           .fromJson(json['display_recipient'] as List),
     );
@@ -359,7 +359,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'timestamp': instance.timestamp,
       'flags': instance.flags,
       'match_content': instance.matchContent,
-      'match_subject': instance.matchSubject,
+      'match_subject': instance.matchTopic,
       'type': instance.type,
       'display_recipient':
           const DmRecipientListConverter().toJson(instance.displayRecipient),
