@@ -480,8 +480,8 @@ Future<void> _uploadFiles({
       url = Uri.parse(result.uri);
     } catch (e) {
       if (!context.mounted) return;
-      // TODO(#37): Specifically handle `413 Payload Too Large`
-      // TODO(#37): On API errors, quote `msg` from server, with "The server said:"
+      // TODO(#741): Specifically handle `413 Payload Too Large`
+      // TODO(#741): On API errors, quote `msg` from server, with "The server said:"
       showErrorDialog(context: context,
         title: zulipLocalizations.errorFailedToUploadFileTitle(filename),
         message: e.toString());
