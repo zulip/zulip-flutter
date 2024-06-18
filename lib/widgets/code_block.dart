@@ -7,7 +7,7 @@ import 'text.dart';
 /// [TextStyle]s used to render code blocks.
 ///
 /// Use [forSpan] for syntax highlighting.
-// TODO(#95) follow web for dark-theme colors
+// TODO(#749) follow web for dark-theme colors
 class CodeBlockTextStyles {
   factory CodeBlockTextStyles(BuildContext context) {
     final bold = weightVariableTextStyle(context, wght: 700);
