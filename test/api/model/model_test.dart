@@ -148,6 +148,9 @@ void main() {
       );
       check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
     });
+
+    // Code relevant to messageEditState is tested separately in the
+    // MessageEditState group.
   });
 
   group('DmMessage', () {
@@ -210,6 +213,112 @@ void main() {
         .deepEquals([2, 3, 11]);
       check(parse(withRecipients([user11, user2, user3])).allRecipientIds)
         .deepEquals([2, 3, 11]);
+    });
+  });
+
+  group('MessageEditState', () {
+    Map<String, dynamic> baseJson() => deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+
+    group('Edit history is absent', () {
+      test('Message with no evidence of an edit history -> none', () {
+        check(Message.fromJson(baseJson()..['edit_history'] = null))
+          .editState.equals(MessageEditState.none);
+      });
+
+      test('Message without edit history has last edit timestamp -> edited', () {
+        check(Message.fromJson(baseJson()
+            ..['edit_history'] = null
+            ..['last_edit_timestamp'] = 1678139636))
+          .editState.equals(MessageEditState.edited);
+      });
+    });
+
+    void checkEditState(MessageEditState editState, List<Map<String, dynamic>> editHistory){
+      check(Message.fromJson(baseJson()..['edit_history'] = editHistory))
+        .editState.equals(editState);
+    }
+
+    group('edit history exists', () {
+      test('Moved message has last edit timestamp but no actual edits -> moved', () {
+        check(Message.fromJson(baseJson()
+            ..['edit_history'] = [{'prev_stream': 5, 'stream': 7}]
+            ..['last_edit_timestamp'] = 1678139636))
+          .editState.equals(MessageEditState.moved);
+      });
+
+      test('Channel change only -> moved', () {
+        checkEditState(MessageEditState.moved,
+          [{'prev_stream': 5, 'stream': 7}]);
+      });
+
+      test('Topic name change only -> moved', () {
+        checkEditState(MessageEditState.moved,
+          [{'prev_topic': 'old_topic', 'topic': 'new_topic'}]);
+      });
+
+      test('Both topic and content changed -> edited', () {
+        checkEditState(MessageEditState.edited, [
+          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
+          {'prev_content': 'old_content'},
+        ]);
+        checkEditState(MessageEditState.edited, [
+          {'prev_content': 'old_content'},
+          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
+        ]);
+      });
+
+      test('Both topic and content changed in a single edit -> edited', () {
+        checkEditState(MessageEditState.edited,
+          [{'prev_topic': 'old_topic', 'topic': 'new_topic', 'prev_content': 'old_content'}]);
+      });
+
+      test('Content change only -> edited', () {
+        checkEditState(MessageEditState.edited,
+          [{'prev_content': 'old_content'}]);
+      });
+
+      test("'prev_topic' present without the 'topic' field -> moved", () {
+        checkEditState(MessageEditState.moved,
+          [{'prev_topic': 'old_topic'}]);
+      });
+
+      test("'prev_subject' present from a pre-5.0 server -> moved", () {
+        checkEditState(MessageEditState.moved,
+          [{'prev_subject': 'old_topic'}]);
+      });
+    });
+
+    group('topic resolved in edit history', () {
+      test('Topic was only resolved -> none', () {
+        checkEditState(MessageEditState.none,
+          [{'prev_topic': 'old_topic', 'topic': '✔ old_topic'}]);
+      });
+
+      test('Topic was resolved but the content changed in the history -> edited', () {
+        checkEditState(MessageEditState.edited, [
+          {'prev_topic': 'old_topic', 'topic': '✔ old_topic'},
+          {'prev_content': 'old_content'},
+        ]);
+      });
+
+      test('Topic was resolved but it also moved in the history -> moved', () {
+        checkEditState(MessageEditState.moved, [
+          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
+          {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
+        ]);
+      });
+
+      test('Topic was moved but it also was resolved in the history -> moved', () {
+        checkEditState(MessageEditState.moved, [
+          {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
+          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
+        ]);
+      });
+
+      test('Unresolving topic with a weird prefix -> moved', () {
+          checkEditState(MessageEditState.moved,
+            [{'prev_topic': '✔ ✔old_topic', 'topic': 'old_topic'}]);
+      });
     });
   });
 }

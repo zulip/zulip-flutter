@@ -464,6 +464,9 @@ sealed class Message {
   final String contentType;
 
   // final List<MessageEditHistory> editHistory; // TODO handle
+  @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
+  MessageEditState editState;
+
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -490,6 +493,12 @@ sealed class Message {
   @JsonKey(name: 'match_subject')
   final String? matchTopic;
 
+  static MessageEditState _messageEditStateFromJson(dynamic json) {
+    // This is a no-op so that [MessageEditState._readFromMessage]
+    // can return the enum value directly.
+    return json as MessageEditState;
+  }
+
   static Reactions? _reactionsFromJson(dynamic json) {
     final list = (json as List<dynamic>);
     return list.isNotEmpty ? Reactions.fromJson(list) : null;
@@ -508,6 +517,7 @@ sealed class Message {
     required this.client,
     required this.content,
     required this.contentType,
+    required this.editState,
     required this.id,
     required this.isMeMessage,
     required this.lastEditTimestamp,
@@ -573,6 +583,7 @@ class StreamMessage extends Message {
     required super.client,
     required super.content,
     required super.contentType,
+    required super.editState,
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
@@ -675,6 +686,7 @@ class DmMessage extends Message {
     required super.client,
     required super.content,
     required super.contentType,
+    required super.editState,
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
@@ -697,4 +709,79 @@ class DmMessage extends Message {
 
   @override
   Map<String, dynamic> toJson() => _$DmMessageToJson(this);
+}
+
+enum MessageEditState {
+  none,
+  edited,
+  moved;
+
+  // Adapted from the shared code:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+  // The canonical resolved-topic prefix.
+  static const String _resolvedTopicPrefix = '✔ ';
+
+  /// Whether the given topic move reflected either a "resolve topic"
+  /// or "unresolve topic" operation.
+  ///
+  /// The Zulip "resolved topics" feature is implemented by renaming the topic;
+  /// but for purposes of [Message.editState], we want to ignore such renames.
+  /// This method identifies topic moves that should be ignored in that context.
+  static bool topicMoveWasResolveOrUnresolve(String topic, String prevTopic) {
+    if (topic.startsWith(_resolvedTopicPrefix)
+        && topic.substring(_resolvedTopicPrefix.length) == prevTopic) {
+      return true;
+    }
+
+    if (prevTopic.startsWith(_resolvedTopicPrefix)
+        && prevTopic.substring(_resolvedTopicPrefix.length) == topic) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static MessageEditState _readFromMessage(Map<dynamic, dynamic> json, String key) {
+    // Adapted from `analyze_edit_history` in the web app:
+    //   https://github.com/zulip/zulip/blob/c31cebbf68a93927d41e9947427c2dd4d46503e3/web/src/message_list_view.js#L68-L118
+    final editHistory = json['edit_history'] as List<dynamic>?;
+    final lastEditTimestamp = json['last_edit_timestamp'] as int?;
+    if (editHistory == null) {
+      return (lastEditTimestamp != null)
+        ? MessageEditState.edited
+        : MessageEditState.none;
+    }
+
+    // Edit history should never be empty whenever it is present
+    assert(editHistory.isNotEmpty);
+
+    bool hasMoved = false;
+    for (final entry in editHistory) {
+      if (entry['prev_content'] != null) {
+        return MessageEditState.edited;
+      }
+
+      if (entry['prev_stream'] != null) {
+        hasMoved = true;
+        continue;
+      }
+
+      // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
+      final prevTopic = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
+      final topic = entry['topic'] as String?;
+      if (prevTopic != null) {
+        // TODO(server-5) pre-5.0 servers do not have the 'topic' field
+        if (topic == null) {
+          hasMoved = true;
+        } else {
+          hasMoved |= !topicMoveWasResolveOrUnresolve(topic, prevTopic);
+        }
+      }
+    }
+
+    if (hasMoved) return MessageEditState.moved;
+
+    // This can happen when a topic is resolved but nothing else has been edited
+    return MessageEditState.none;
+  }
 }
