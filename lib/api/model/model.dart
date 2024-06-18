@@ -646,7 +646,8 @@ sealed class Message {
   final String senderFullName;
   final int senderId;
   final String senderRealmStr;
-  final String subject; // TODO call it "topic" internally; also similar others
+  @JsonKey(name: 'subject')
+  final String topic;
   // final List<string> submessages; // TODO handle
   final int timestamp;
   String get type;
@@ -685,7 +686,7 @@ sealed class Message {
     required this.senderFullName,
     required this.senderId,
     required this.senderRealmStr,
-    required this.subject,
+    required this.topic,
     required this.timestamp,
     required this.flags,
     required this.matchContent,
@@ -750,7 +751,7 @@ class StreamMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.subject,
+    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
@@ -852,7 +853,7 @@ class DmMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.subject,
+    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,

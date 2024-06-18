@@ -244,7 +244,7 @@ mixin _MessageSequence {
 bool haveSameRecipient(Message prevMessage, Message message) {
   if (prevMessage is StreamMessage && message is StreamMessage) {
     if (prevMessage.streamId != message.streamId) return false;
-    if (prevMessage.subject != message.subject) return false;
+    if (prevMessage.topic != message.topic) return false;
   } else if (prevMessage is DmMessage && message is DmMessage) {
     if (!_equalIdSequences(prevMessage.allRecipientIds, message.allRecipientIds)) {
       return false;
@@ -335,14 +335,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case CombinedFeedNarrow():
         return switch (message) {
           StreamMessage() =>
-            store.isTopicVisible(message.streamId, message.subject),
+            store.isTopicVisible(message.streamId, message.topic),
           DmMessage() => true,
         };
 
       case StreamNarrow(:final streamId):
         assert(message is StreamMessage && message.streamId == streamId);
         if (message is! StreamMessage) return false;
-        return store.isTopicVisibleInStream(streamId, message.subject);
+        return store.isTopicVisibleInStream(streamId, message.topic);
 
       case TopicNarrow():
       case DmNarrow():

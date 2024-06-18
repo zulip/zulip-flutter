@@ -439,7 +439,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
             type: MessageType.stream,
             mentioned: mentioned,
             streamId: message.streamId,
-            topic: message.subject,
+            topic: message.topic,
             userIds: null,
           ),
           DmMessage() => UpdateMessageFlagsMessageDetail(

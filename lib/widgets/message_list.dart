@@ -657,7 +657,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
 
-    final topic = message.subject;
+    final topic = message.topic;
 
     final subscription = store.subscriptions[message.streamId];
     final Color backgroundColor;

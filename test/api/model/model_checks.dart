@@ -50,7 +50,7 @@ extension MessageChecks on Subject<Message> {
   Subject<String> get senderFullName => has((e) => e.senderFullName, 'senderFullName');
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<String> get senderRealmStr => has((e) => e.senderRealmStr, 'senderRealmStr');
-  Subject<String> get subject => has((e) => e.subject, 'subject');
+  Subject<String> get topic => has((e) => e.topic, 'topic');
   Subject<int> get timestamp => has((e) => e.timestamp, 'timestamp');
   Subject<String> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');

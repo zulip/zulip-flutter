@@ -95,7 +95,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   const TopicNarrow(this.streamId, this.topic);
 
   factory TopicNarrow.ofMessage(StreamMessage message) {
-    return TopicNarrow(message.streamId, message.subject);
+    return TopicNarrow(message.streamId, message.topic);
   }
 
   final int streamId;
@@ -104,7 +104,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   @override
   bool containsMessage(Message message) {
     return (message is StreamMessage
-      && message.streamId == streamId && message.subject == topic);
+      && message.streamId == streamId && message.topic == topic);
   }
 
   @override

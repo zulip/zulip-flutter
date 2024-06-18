@@ -551,6 +551,16 @@ void main() {
   });
 
   group('Message', () {
+    Map<String, dynamic> baseStreamJson() =>
+      deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+
+    test('subject -> topic', () {
+      check(baseStreamJson()).not((it) => it.containsKey('topic'));
+      check(Message.fromJson(baseStreamJson()
+        ..['subject'] = 'hello'
+      )).topic.equals('hello');
+    });
+
     test('no crash on unrecognized flag', () {
       final m1 = Message.fromJson(
         (deepToJson(eg.streamMessage()) as Map<String, dynamic>)

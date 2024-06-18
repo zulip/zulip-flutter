@@ -181,8 +181,8 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
-        expectedTitle: '#${stream.name} > ${message.subject}',
-        expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
+        expectedTitle: '#${stream.name} > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
     }));
 
     test('stream message, stream name omitted', () => awaitFakeAsync((async) async {
@@ -190,8 +190,8 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
-        expectedTitle: '#(unknown channel) > ${message.subject}',
-        expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
+        expectedTitle: '#(unknown channel) > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
     }));
 
     test('group DM: 3 users', () => awaitFakeAsync((async) async {

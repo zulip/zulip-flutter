@@ -68,7 +68,7 @@ void main() {
       switch (message) {
         case StreamMessage():
           final perTopic = expectedStreams[message.streamId] ??= {};
-          final messageIds = perTopic[message.subject] ??= QueueList();
+          final messageIds = perTopic[message.topic] ??= QueueList();
           messageIds.add(message.id);
         case DmMessage():
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
@@ -445,7 +445,7 @@ void main() {
             messageType: MessageType.stream,
             messageIds: [message.id],
             streamId: message.streamId,
-            topic: message.subject,
+            topic: message.topic,
           ),
           DmMessage() => DeleteMessageEvent(
             id: 0,
@@ -506,7 +506,7 @@ void main() {
         messageIds: [message.id],
         messageType: MessageType.stream,
         streamId: message.streamId,
-        topic: message.subject,
+        topic: message.topic,
       ));
       // TODO improve implementation; then:
       //   checkNotNotified();

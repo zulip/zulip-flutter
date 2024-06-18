@@ -300,7 +300,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
       && topicController.textNormalized == kNoTopicTopic
       && message is StreamMessage
     ) {
-      topicController.value = TextEditingValue(text: message.subject);
+      topicController.value = TextEditingValue(text: message.topic);
     }
     final tag = composeBoxController.contentController
       .registerQuoteAndReplyStart(PerAccountStoreWidget.of(messageListContext),

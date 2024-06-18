@@ -27,7 +27,7 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       final actual = TopicNarrow.ofMessage(message);
-      check(actual).equals(TopicNarrow(stream.streamId, message.subject));
+      check(actual).equals(TopicNarrow(stream.streamId, message.topic));
     });
   });
 

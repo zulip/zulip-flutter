@@ -873,10 +873,10 @@ void checkInvariants(MessageListView model) {
     if (message is! StreamMessage) continue;
     switch (model.narrow) {
       case CombinedFeedNarrow():
-        check(model.store.isTopicVisible(message.streamId, message.subject))
+        check(model.store.isTopicVisible(message.streamId, message.topic))
           .isTrue();
       case StreamNarrow():
-        check(model.store.isTopicVisibleInStream(message.streamId, message.subject))
+        check(model.store.isTopicVisibleInStream(message.streamId, message.topic))
           .isTrue();
       case TopicNarrow():
       case DmNarrow():
