@@ -158,6 +158,10 @@ class NotificationDisplayManager {
       inboxStyle: InboxStyle(
         // TODO(#570) Show organization name, not URL
         summaryText: data.realmUri.toString()),
+      // On Android 11 and lower, if autoCancel is not specified,
+      // the summary notification may linger even after all child
+      // notifications have been opened and cleared.
+      autoCancel: true,
     );
   }
 

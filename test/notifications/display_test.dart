@@ -150,7 +150,7 @@ void main() {
             ..isGroupSummary.equals(true)
             ..inboxStyle.which((it) => it.isNotNull()
               ..summaryText.equals(data.realmUri.toString()))
-            ..autoCancel.isNull()
+            ..autoCancel.equals(true)
             ..contentIntent.isNull()
         ]);
     }
