@@ -10,13 +10,17 @@ import 'package:flutter/services.dart';
 // remember to include the file in the asset bundle by listing its path
 // under `assets` in pubspec.yaml.
 Stream<LicenseEntry> additionalLicenses() async* {
+  // Alphabetic by path.
+
+  yield LicenseEntryWithLineBreaks(
+    ['Noto Color Emoji'],
+    await rootBundle.loadString('assets/Noto_Color_Emoji/LICENSE'));
   yield LicenseEntryWithLineBreaks(
     ['Source Code Pro'],
     await rootBundle.loadString('assets/Source_Code_Pro/LICENSE.md'));
   yield LicenseEntryWithLineBreaks(
     ['Source Sans 3'],
     await rootBundle.loadString('assets/Source_Sans_3/LICENSE.md'));
-  yield LicenseEntryWithLineBreaks(
-    ['Noto Color Emoji'],
-    await rootBundle.loadString('assets/Noto_Color_Emoji/LICENSE'));
+
+  // Alphabetic by path.
 }
