@@ -9,7 +9,7 @@ ThemeData zulipThemeData(BuildContext context) {
   final designVariables = DesignVariables();
   return ThemeData(
     typography: zulipTypography(context),
-    extensions: [ContentTheme(context), designVariables],
+    extensions: [ContentTheme.light(context), designVariables],
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been

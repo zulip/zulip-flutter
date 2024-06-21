@@ -32,27 +32,30 @@ import 'text.dart';
 /// background. For what this is in the message list, see
 /// widgets/message_list.dart.
 class ContentTheme extends ThemeExtension<ContentTheme> {
-  ContentTheme(BuildContext context) :
-    textStylePlainParagraph = TextStyle(
-      inherit: false,
+  factory ContentTheme.light(BuildContext context) {
+    return ContentTheme._(
+      textStylePlainParagraph: TextStyle(
+        inherit: false,
 
-      color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      fontSize: kBaseFontSize,
-      letterSpacing: 0,
-      textBaseline: localizedTextBaseline(context),
-      height: (22 / kBaseFontSize),
-      leadingDistribution: TextLeadingDistribution.even,
-      decoration: TextDecoration.none,
-      fontFamily: kDefaultFontFamily,
-      fontFamilyFallback: defaultFontFamilyFallback,
-    )
-      .merge(weightVariableTextStyle(context))
-      .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
-    codeBlockTextStyles = CodeBlockTextStyles.light(context),
-    textStyleError = const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
-      .merge(weightVariableTextStyle(context, wght: 700)),
-    textStyleErrorCode = kMonospaceTextStyle
-      .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red));
+        color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+        fontSize: kBaseFontSize,
+        letterSpacing: 0,
+        textBaseline: localizedTextBaseline(context),
+        height: (22 / kBaseFontSize),
+        leadingDistribution: TextLeadingDistribution.even,
+        decoration: TextDecoration.none,
+        fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
+      )
+        .merge(weightVariableTextStyle(context))
+        .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
+      codeBlockTextStyles: CodeBlockTextStyles.light(context),
+      textStyleError: const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
+        .merge(weightVariableTextStyle(context, wght: 700)),
+      textStyleErrorCode: kMonospaceTextStyle
+        .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red)),
+    );
+  }
 
   ContentTheme._({
     required this.textStylePlainParagraph,
