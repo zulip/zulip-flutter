@@ -131,17 +131,17 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }
 
   @override
-  DesignVariables lerp(DesignVariables? other, double t) {
+  DesignVariables lerp(DesignVariables other, double t) {
     if (identical(this, other)) {
       return this;
     }
     return DesignVariables._(
-      bgMain: Color.lerp(bgMain, other?.bgMain, t)!,
-      bgTopBar: Color.lerp(bgTopBar, other?.bgTopBar, t)!,
-      borderBar: Color.lerp(borderBar, other?.borderBar, t)!,
-      icon: Color.lerp(icon, other?.icon, t)!,
-      title: Color.lerp(title, other?.title, t)!,
-      streamColorSwatches: streamColorSwatches.lerp(other?.streamColorSwatches, t),
+      bgMain: Color.lerp(bgMain, other.bgMain, t)!,
+      bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
+      borderBar: Color.lerp(borderBar, other.borderBar, t)!,
+      icon: Color.lerp(icon, other.icon, t)!,
+      title: Color.lerp(title, other.title, t)!,
+      streamColorSwatches: streamColorSwatches.lerp(other.streamColorSwatches, t),
     );
   }
 }
