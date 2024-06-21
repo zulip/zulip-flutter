@@ -125,6 +125,11 @@ class MessageStoreImpl with MessageStore {
     if (message == null) return;
 
     message.flags = event.flags;
+    if (event.origContent != null) {
+      // The message is guaranteed to be edited.
+      // See also: https://zulip.com/api/get-events#update_message
+      message.editState = MessageEditState.edited;
+    }
     if (event.renderedContent != null) {
       assert(message.contentType == 'text/html',
         "Message contentType was ${message.contentType}; expected text/html.");
@@ -168,10 +173,26 @@ class MessageStoreImpl with MessageStore {
       return;
     }
 
-    // final newStreamId = event.newStreamId; // null if topic-only move
-    // final newTopic = event.newTopic!;
+    final newTopic = event.newTopic!;
+    final newChannelId = event.newStreamId; // null if topic-only move
+
+    if (newChannelId == null
+        && MessageEditState.topicMoveWasResolveOrUnresolve(event.origTopic!, newTopic)) {
+      // The topic was only resolved/unresolved.
+      // No change to the messages' editState.
+      return;
+    }
+
     // TODO(#150): Handle message moves.  The views' recipient headers
     //   may need updating, and consequently showSender too.
+    //   Currently only editState gets updated.
+    for (final messageId in event.messageIds) {
+      final message = messages[messageId];
+      if (message == null) continue;
+      // Do not override the edited marker if the message has also been moved.
+      if (message.editState == MessageEditState.edited) continue;
+      message.editState = MessageEditState.moved;
+    }
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {

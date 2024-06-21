@@ -437,6 +437,38 @@ UpdateMessageEvent updateMessageEditEvent(
   );
 }
 
+UpdateMessageEvent updateMessageMoveEvent(
+  List<Message> messages, {
+  int? newStreamId,
+  String? origTopic,
+  String? newTopic,
+  String? origContent,
+  String? newContent,
+}) {
+  assert(messages.isNotEmpty);
+  final origMessage = messages[0];
+  final messageId = origMessage.id;
+  return UpdateMessageEvent(
+    id: 0,
+    userId: selfUser.userId,
+    renderingOnly: false,
+    messageId: messageId,
+    messageIds: messages.map((message) => message.id).toList(),
+    flags: origMessage.flags,
+    editTimestamp: 1234567890, // TODO generate timestamp
+    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    newStreamId: newStreamId,
+    propagateMode: null,
+    origTopic: origTopic,
+    newTopic: newTopic,
+    origContent: origContent,
+    origRenderedContent: origContent,
+    content: newContent,
+    renderedContent: newContent,
+    isMeMessage: false,
+  );
+}
+
 UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
   MessageFlag flag,
   Iterable<Message> messages, {
