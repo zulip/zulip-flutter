@@ -33,15 +33,13 @@ abstract class StreamColorSwatches {
   /// This computation is cached on the instance
   /// in order to save work building [t]'s animation frame when there are
   /// multiple UI elements using the same [subscription.color].
-  StreamColorSwatches lerp(StreamColorSwatches? other, double t) {
+  StreamColorSwatches lerp(StreamColorSwatches other, double t) {
     // This short-circuit helps when [a] and [b]
     // are both [StreamColorSwatches.light]
     // or both [StreamColorSwatches.dark].
     // Empirically, [lerp] is called even when the theme hasn't changed,
     // so this is an important optimization.
-    if (identical(this, other)) {
-      return this;
-    }
+    if (identical(this, other)) return this;
 
     return _StreamColorSwatchesLerped(this, other, t);
   }
@@ -65,12 +63,12 @@ class _StreamColorSwatchesLerped extends StreamColorSwatches {
   _StreamColorSwatchesLerped(this.a, this.b, this.t);
 
   final StreamColorSwatches a;
-  final StreamColorSwatches? b;
+  final StreamColorSwatches b;
   final double t;
 
   @override
   StreamColorSwatch _computeForBaseColor(int base) =>
-    StreamColorSwatch.lerp(a.forBaseColor(base), b?.forBaseColor(base), t)!;
+    StreamColorSwatch.lerp(a.forBaseColor(base), b.forBaseColor(base), t)!;
 }
 
 
