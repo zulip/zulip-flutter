@@ -99,15 +99,15 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }
 
   @override
-  ContentTheme lerp(ContentTheme? other, double t) {
+  ContentTheme lerp(ContentTheme other, double t) {
     if (identical(this, other)) {
       return this;
     }
     return ContentTheme._(
-      textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other?.textStylePlainParagraph, t)!,
-      codeBlockTextStyles: codeBlockTextStyles.lerp(other?.codeBlockTextStyles, t),
-      textStyleError: TextStyle.lerp(textStyleError, other?.textStyleError, t)!,
-      textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other?.textStyleErrorCode, t)!,
+      textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
+      codeBlockTextStyles: codeBlockTextStyles.lerp(other.codeBlockTextStyles, t),
+      textStyleError: TextStyle.lerp(textStyleError, other.textStyleError, t)!,
+      textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other.textStyleErrorCode, t)!,
     );
   }
 }
