@@ -40,17 +40,16 @@ void main() {
 
     group('lerp', () {
       test('on identical instances', () {
-        check(
-          StreamColorSwatches.light.lerp(StreamColorSwatches.light, 0.5)
-        ).identicalTo(StreamColorSwatches.light);
+        final light = StreamColorSwatches.light;
+        check(StreamColorSwatches.lerp(light, light, 0.5)).identicalTo(light);
 
-        check(
-          StreamColorSwatches.dark.lerp(StreamColorSwatches.dark, 0.5)
-        ).identicalTo(StreamColorSwatches.dark);
+        final dark = StreamColorSwatches.dark;
+        check(StreamColorSwatches.lerp(dark, dark, 0.5)).identicalTo(dark);
       });
 
       test('from light to dark', () {
-        final instance = StreamColorSwatches.light.lerp(StreamColorSwatches.dark, 0.4);
+        final instance = StreamColorSwatches
+          .lerp(StreamColorSwatches.light, StreamColorSwatches.dark, 0.4);
 
         const base1 = 0xff76ce90;
         final swatch1 = instance.forBaseColor(base1);

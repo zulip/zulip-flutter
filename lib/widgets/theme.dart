@@ -141,7 +141,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       title: Color.lerp(title, other.title, t)!,
-      streamColorSwatches: streamColorSwatches.lerp(other.streamColorSwatches, t),
+      streamColorSwatches: StreamColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
     );
   }
 }
