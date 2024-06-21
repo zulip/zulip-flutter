@@ -25,8 +25,7 @@ class CodeBlockTextStyles {
       c: TextStyle(color: const HSLColor.fromAHSL(1, 180, 0.33, 0.37).toColor(), fontStyle: FontStyle.italic),
 
       // TODO: Borders are hard in TextSpan, see the comment in `_buildInlineCode`
-      // So, using a lighter background color for now (precisely it's
-      // the text color used in web app in `.err` class in dark mode)
+      // So instead, using a background color for now.
       //
       // .err { border: 1px solid hsl(0deg 100% 50%); }
       err: const TextStyle(backgroundColor: Color(0xffe2706e)),
