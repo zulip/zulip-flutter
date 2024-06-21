@@ -105,7 +105,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     }
     return ContentTheme._(
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
-      codeBlockTextStyles: codeBlockTextStyles.lerp(other.codeBlockTextStyles, t),
+      codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
       textStyleError: TextStyle.lerp(textStyleError, other.textStyleError, t)!,
       textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other.textStyleErrorCode, t)!,
     );
