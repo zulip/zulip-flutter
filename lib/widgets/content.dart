@@ -327,6 +327,7 @@ class Quotation extends StatelessWidget {
           border: Border(
             left: BorderSide(
               width: 5,
+              // Web has the same color in light and dark mode.
               color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
         child: BlockContentList(nodes: node.nodes)));
   }
@@ -432,6 +433,7 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
       padding: const EdgeInsets.fromLTRB(0, 5, 0, 15),
       child: DecoratedBox(
         decoration: BoxDecoration(
+          // Web has the same color in light and dark mode.
           border: Border.all(color: const Color(0xff808080)),
           borderRadius: BorderRadius.circular(10),
         ),
@@ -451,6 +453,7 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
                           nodes: effectiveHeader))),
                     RotationTransition(
                       turns: _animation.drive(Tween(begin: 0, end: 0.5)),
+                      // Web has the same color in light and dark mode.
                       child: const Icon(color: Color(0xffd4d4d4), size: 25,
                         Icons.expand_more)),
                   ]))),
@@ -460,6 +463,7 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       border: Border(
+                        // Web has the same color in light and dark mode.
                         bottom: BorderSide(width: 1, color: Color(0xff808080))))))),
               SizeTransition(
                 sizeFactor: _animation,
@@ -537,13 +541,13 @@ class MessageInlineVideo extends StatelessWidget {
           mediaType: MediaType.video));
       },
       child: Container(
-        color: Colors.black,
+        color: Colors.black, // Web has the same color in light and dark mode.
         alignment: Alignment.center,
         // To avoid potentially confusing UX, do not show play icon as
         // we also disable onTap above.
         child: resolvedSrc == null ? null : const Icon( // TODO(log)
           Icons.play_arrow_rounded,
-          color: Colors.white,
+          color: Colors.white, // Web has the same color in light and dark mode.
           size: 32)));
   }
 }
@@ -571,7 +575,7 @@ class MessageEmbedVideo extends StatelessWidget {
           // the action uses hrefUrl, which might still work.
           const Icon(
             Icons.play_arrow_rounded,
-            color: Colors.white,
+            color: Colors.white, // Web has the same color in light and dark mode.
             size: 32),
         ]));
   }
@@ -902,6 +906,7 @@ class _InlineContentBuilder {
     assert(recognizer != null);
     _pushRecognizer(recognizer);
     final result = _buildNodes(node.nodes,
+      // Web has the same color in light and dark mode.
       style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
     _popRecognizer();
     return result;
