@@ -34,6 +34,7 @@ import 'text.dart';
 class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
+      colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -48,6 +49,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
+      colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
@@ -61,6 +63,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }
 
   ContentTheme._({
+    required this.colorMessageMediaContainerBackground,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
     required this.codeBlockTextStyles,
@@ -78,6 +81,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return extension!;
   }
 
+  final Color colorMessageMediaContainerBackground;
   final Color colorThematicBreak;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
@@ -109,6 +113,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   @override
   ContentTheme copyWith({
+    Color? colorMessageMediaContainerBackground,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
     CodeBlockTextStyles? codeBlockTextStyles,
@@ -116,6 +121,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     TextStyle? textStyleErrorCode,
   }) {
     return ContentTheme._(
+      colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
@@ -130,6 +136,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       return this;
     }
     return ContentTheme._(
+      colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
@@ -601,7 +608,7 @@ class MessageMediaContainer extends StatelessWidget {
           //   in particular, avoid adding loose whitespace at end of message.
           padding: const EdgeInsets.only(right: 5, bottom: 5),
           child: ColoredBox(
-            color: const Color.fromRGBO(0, 0, 0, 0.03),
+            color: ContentTheme.of(context).colorMessageMediaContainerBackground,
             child: Padding(
               padding: const EdgeInsets.all(1),
               child: SizedBox(
