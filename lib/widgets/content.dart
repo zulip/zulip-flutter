@@ -57,6 +57,31 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     );
   }
 
+  factory ContentTheme.dark(BuildContext context) {
+    return ContentTheme._(
+      textStylePlainParagraph: TextStyle(
+        inherit: false,
+
+        color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+        fontSize: kBaseFontSize,
+        letterSpacing: 0,
+        textBaseline: localizedTextBaseline(context),
+        height: (22 / kBaseFontSize),
+        leadingDistribution: TextLeadingDistribution.even,
+        decoration: TextDecoration.none,
+        fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
+      )
+        .merge(weightVariableTextStyle(context))
+        .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
+      codeBlockTextStyles: CodeBlockTextStyles.dark(context),
+      textStyleError: TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)
+        .merge(weightVariableTextStyle(context, wght: 700)),
+      textStyleErrorCode: kMonospaceTextStyle
+        .merge(TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)),
+    );
+  }
+
   ContentTheme._({
     required this.textStylePlainParagraph,
     required this.codeBlockTextStyles,
