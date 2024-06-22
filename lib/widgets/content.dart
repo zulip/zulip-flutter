@@ -34,6 +34,7 @@ import 'text.dart';
 class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
+      colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
@@ -47,6 +48,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
+      colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
@@ -59,6 +61,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }
 
   ContentTheme._({
+    required this.colorThematicBreak,
     required this.textStylePlainParagraph,
     required this.codeBlockTextStyles,
     required this.textStyleError,
@@ -74,6 +77,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     assert(extension != null);
     return extension!;
   }
+
+  final Color colorThematicBreak;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
   ///
@@ -104,12 +109,14 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   @override
   ContentTheme copyWith({
+    Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
     CodeBlockTextStyles? codeBlockTextStyles,
     TextStyle? textStyleError,
     TextStyle? textStyleErrorCode,
   }) {
     return ContentTheme._(
+      colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
       textStyleError: textStyleError ?? this.textStyleError,
@@ -123,6 +130,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       return this;
     }
     return ContentTheme._(
+      colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
       textStyleError: TextStyle.lerp(textStyleError, other.textStyleError, t)!,
@@ -235,7 +243,7 @@ class ThematicBreak extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Divider(
-      color: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
+      color: ContentTheme.of(context).colorThematicBreak,
       thickness: htmlHeight,
       height: 2 * htmlMarginY + htmlHeight,
     );
