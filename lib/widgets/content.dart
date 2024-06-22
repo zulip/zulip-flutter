@@ -34,21 +34,9 @@ import 'text.dart';
 class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
-      textStylePlainParagraph: TextStyle(
-        inherit: false,
-
+      textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-        fontSize: kBaseFontSize,
-        letterSpacing: 0,
-        textBaseline: localizedTextBaseline(context),
-        height: (22 / kBaseFontSize),
-        leadingDistribution: TextLeadingDistribution.even,
-        decoration: TextDecoration.none,
-        fontFamily: kDefaultFontFamily,
-        fontFamilyFallback: defaultFontFamilyFallback,
-      )
-        .merge(weightVariableTextStyle(context))
-        .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
+        debugLabel: 'ContentTheme.textStylePlainParagraph'),
       codeBlockTextStyles: CodeBlockTextStyles.light(context),
       textStyleError: const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
         .merge(weightVariableTextStyle(context, wght: 700)),
@@ -59,21 +47,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
-      textStylePlainParagraph: TextStyle(
-        inherit: false,
-
+      textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
-        fontSize: kBaseFontSize,
-        letterSpacing: 0,
-        textBaseline: localizedTextBaseline(context),
-        height: (22 / kBaseFontSize),
-        leadingDistribution: TextLeadingDistribution.even,
-        decoration: TextDecoration.none,
-        fontFamily: kDefaultFontFamily,
-        fontFamilyFallback: defaultFontFamilyFallback,
-      )
-        .merge(weightVariableTextStyle(context))
-        .copyWith(debugLabel: 'ContentTheme.textStylePlainParagraph'),
+        debugLabel: 'ContentTheme.textStylePlainParagraph'),
       codeBlockTextStyles: CodeBlockTextStyles.dark(context),
       textStyleError: TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)
         .merge(weightVariableTextStyle(context, wght: 700)),
@@ -110,6 +86,21 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final CodeBlockTextStyles codeBlockTextStyles;
   final TextStyle textStyleError;
   final TextStyle textStyleErrorCode;
+
+  /// [ContentTheme.textStylePlainParagraph] attributes independent of theme.
+  static TextStyle _plainParagraphCommon(BuildContext context) => TextStyle(
+    inherit: false,
+
+    fontSize: kBaseFontSize,
+    letterSpacing: 0,
+    textBaseline: localizedTextBaseline(context),
+    height: (22 / kBaseFontSize),
+    leadingDistribution: TextLeadingDistribution.even,
+    decoration: TextDecoration.none,
+    fontFamily: kDefaultFontFamily,
+    fontFamilyFallback: defaultFontFamilyFallback,
+  )
+    .merge(weightVariableTextStyle(context));
 
   @override
   ContentTheme copyWith({
