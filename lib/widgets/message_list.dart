@@ -15,6 +15,7 @@ import 'action_sheet.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'dialog.dart';
+import 'edit_state_marker.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
@@ -586,11 +587,11 @@ class MessageItem extends StatelessWidget {
       header: header,
       child: _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
-        child: ColoredBox(
-          color: Colors.white,
-          child: Column(children: [
-            MessageWithPossibleSender(item: item),
-            if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
+            child: ColoredBox(
+              color: Colors.white,
+              child: Column(children: [
+                MessageWithPossibleSender(item: item),
+                if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
           ]))));
   }
 }
@@ -899,7 +900,6 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final theme = DesignVariables.of(context);
 
     final message = item.message;
     final sender = store.users[message.senderId];
@@ -962,25 +962,16 @@ class MessageWithPossibleSender extends StatelessWidget {
           if (senderRow != null)
             Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
               child: senderRow),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  MessageContent(message: message, content: item.content),
-                  if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!)
-                ])),
-            SizedBox(width: 16,
-              child: message.flags.contains(MessageFlag.starred)
-                // TODO(#157): fix how star marker aligns with message content
-                // Design from Figma at:
-                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
-                ? Padding(padding: const EdgeInsets.only(top: 4),
-                    child: Icon(ZulipIcons.star_filled, size: 16, color: theme.starColor))
-                : null),
-          ]),
+          SwipableMessageRow(
+            message: message,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                MessageContent(message: message, content: item.content),
+                if ((message.reactions?.total ?? 0) > 0)
+                  ReactionChipsList(messageId: message.id, reactions: message.reactions!)
+              ])
+          ),
         ])));
   }
 }
