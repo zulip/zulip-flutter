@@ -36,6 +36,55 @@ class InboxStyle {
   final String summaryText;
 }
 
+/// Corresponds to `androidx.core.app.Person`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/Person
+class Person {
+  Person({
+    required this.iconData,
+    required this.name,
+    required this.key,
+  });
+
+  final Uint8List? iconData;
+  final String key;
+  final String name;
+}
+
+/// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle.Message`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle.Message
+class MessagingStyleMessage {
+  MessagingStyleMessage({
+    required this.text,
+    required this.timestampMs,
+    required this.person,
+  });
+
+  final String text;
+  // TODO: Pigeon doesn't support DateTime yet:
+  //  https://github.com/flutter/flutter/issues/115979
+  final int timestampMs;
+  final Person person;
+}
+
+/// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle
+class MessagingStyle {
+  MessagingStyle({
+    required this.user,
+    required this.conversationTitle,
+    required this.isGroupConversation,
+    required this.messages,
+  });
+
+  final Person user;
+  final String? conversationTitle;
+  final List<MessagingStyleMessage?>? messages;
+  final bool isGroupConversation;
+}
+
 @HostApi()
 abstract class AndroidNotificationHostApi {
   /// Corresponds to `android.app.NotificationManager.notify`,
@@ -73,8 +122,12 @@ abstract class AndroidNotificationHostApi {
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
+    MessagingStyle? messagingStyle,
+    int? number,
     String? smallIconResourceName,
     // NotificationCompat.Builder has lots more methods; add as needed.
     // Keep them alphabetized, for easy comparison with that class's docs.
   });
+
+  MessagingStyle? getActiveNotificationMessagingStyleByTag(String tag);
 }

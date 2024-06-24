@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -506,6 +507,8 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
+    MessagingStyle? messagingStyle,
+    int? number,
     String? smallIconResourceName,
   }) async {
     _notifyCalls.add((
@@ -521,9 +524,17 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       groupKey: groupKey,
       inboxStyle: inboxStyle,
       isGroupSummary: isGroupSummary,
+      messagingStyle: messagingStyle,
+      number: number,
       smallIconResourceName: smallIconResourceName,
     ));
   }
+
+  @override
+  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async =>
+    _notifyCalls
+      .lastWhereOrNull((notification) => notification.tag == tag)
+      ?.messagingStyle;
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({
@@ -539,5 +550,7 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   String? groupKey,
   InboxStyle? inboxStyle,
   bool? isGroupSummary,
+  MessagingStyle? messagingStyle,
+  int? number,
   String? smallIconResourceName,
 });
