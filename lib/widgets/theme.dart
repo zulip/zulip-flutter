@@ -123,6 +123,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
       streamColorSwatches: StreamColorSwatches.light,
+      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     );
 
   DesignVariables.dark() :
@@ -133,6 +134,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       streamColorSwatches: StreamColorSwatches.dark,
+      // TODO(#95) unchanged in dark theme?
+      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     );
 
   DesignVariables._({
@@ -142,6 +145,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.mainBackground,
     required this.title,
     required this.streamColorSwatches,
+    required this.star,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -163,6 +167,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   // Not exactly from the Figma design, but from Vlad anyway.
   final StreamColorSwatches streamColorSwatches;
 
+  // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
+  final Color star;
+
   @override
   DesignVariables copyWith({
     Color? bgTopBar,
@@ -171,6 +178,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? mainBackground,
     Color? title,
     StreamColorSwatches? streamColorSwatches,
+    Color? star,
   }) {
     return DesignVariables._(
       bgTopBar: bgTopBar ?? this.bgTopBar,
@@ -179,6 +187,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
       streamColorSwatches: streamColorSwatches ?? this.streamColorSwatches,
+      star: star ?? this.star,
     );
   }
 
@@ -194,6 +203,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
       streamColorSwatches: StreamColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
+      star: Color.lerp(star, other.star, t)!,
     );
   }
 }

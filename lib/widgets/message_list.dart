@@ -896,12 +896,10 @@ class MessageWithPossibleSender extends StatelessWidget {
 
   final MessageListMessageItem item;
 
-  // TODO(#95) unchanged in dark theme?
-  static final _starColor = const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor();
-
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final message = item.message;
     final sender = store.users[message.senderId];
@@ -980,7 +978,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                 // Design from Figma at:
                 //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
                 ? Padding(padding: const EdgeInsets.only(top: 4),
-                    child: Icon(ZulipIcons.star_filled, size: 16, color: _starColor))
+                    child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star))
                 : null),
           ]),
         ])));
