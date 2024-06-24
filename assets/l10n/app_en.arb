@@ -471,5 +471,13 @@
       "senderFullName": {"type": "String", "example": "Alice"},
       "numOthers": {"type": "int", "example": "4"}
     }
+  },
+  "messageIsEdited": "Edited",
+  "@messageIsEdited": {
+    "description": "Text that appears on a marker next to an edited message."
+  },
+  "messageIsMoved": "Moved",
+  "@messageIsMoved": {
+    "description": "Text that appears on a marker next to an moved message."
   }
 }
