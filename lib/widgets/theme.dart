@@ -81,7 +81,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     borderBar = const Color(0x33000000),
     icon = const Color(0xff666699),
     title = const Color(0xff1a1a1a),
-    streamColorSwatches = StreamColorSwatches.light;
+    streamColorSwatches = StreamColorSwatches.light,
+    starColor = const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor();
 
   DesignVariables._({
     required this.bgMain,
@@ -90,6 +91,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.icon,
     required this.title,
     required this.streamColorSwatches,
+    required this.starColor,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -110,6 +112,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   // Not exactly from the Figma design, but from Vlad anyway.
   final StreamColorSwatches streamColorSwatches;
+  final Color starColor;
 
   @override
   DesignVariables copyWith({
@@ -119,6 +122,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? icon,
     Color? title,
     StreamColorSwatches? streamColorSwatches,
+    Color? starColor,
   }) {
     return DesignVariables._(
       bgMain: bgMain ?? this.bgMain,
@@ -127,6 +131,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: icon ?? this.icon,
       title: title ?? this.title,
       streamColorSwatches: streamColorSwatches ?? this.streamColorSwatches,
+      starColor: starColor ?? this.starColor,
     );
   }
 
@@ -142,6 +147,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: Color.lerp(icon, other.icon, t)!,
       title: Color.lerp(title, other.title, t)!,
       streamColorSwatches: StreamColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
+      starColor: Color.lerp(starColor, other.starColor, t)!,
     );
   }
 }
