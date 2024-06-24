@@ -21,6 +21,7 @@ import 'page.dart';
 import 'profile.dart';
 import 'sticky_header.dart';
 import 'store.dart';
+import 'edit_state_marker.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -962,18 +963,16 @@ class MessageWithPossibleSender extends StatelessWidget {
           if (senderRow != null)
             Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
               child: senderRow),
-          Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: localizedTextBaseline(context),
+          EditStateMarker(
+            editState: message.editState,
             children: [
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    MessageContent(message: message, content: item.content),
-                    if ((message.reactions?.total ?? 0) > 0)
-                      ReactionChipsList(messageId: message.id, reactions: message.reactions!)
-                  ])),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  MessageContent(message: message, content: item.content),
+                  if ((message.reactions?.total ?? 0) > 0)
+                    ReactionChipsList(messageId: message.id, reactions: message.reactions!)
+                ])),
               SizedBox(width: 16,
                 child: message.flags.contains(MessageFlag.starred)
                   ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
