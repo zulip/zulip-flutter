@@ -1,10 +1,11 @@
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
 
 import '../api/notifications.dart';
 import '../host/android_notifications.dart';
@@ -92,7 +93,29 @@ class NotificationDisplayManager {
   static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final title = switch (data.recipient) {
+    final groupKey = _groupKey(data);
+    final conversationKey = _conversationKey(data, groupKey);
+
+    final oldMessagingStyle = await ZulipBinding.instance.androidNotificationHost
+      .getActiveNotificationMessagingStyleByTag(conversationKey);
+
+    final MessagingStyle messagingStyle = oldMessagingStyle != null
+      ? MessagingStyle(
+          user: oldMessagingStyle.user,
+          messages: oldMessagingStyle.messages?.toList() ?? [], // Clone a fixed-length list
+          isGroupConversation: oldMessagingStyle.isGroupConversation)
+      : MessagingStyle(
+          user: Person(
+            key: data.userId.toString(),
+            name: 'You'), // TODO(i18n)
+          messages: [],
+          isGroupConversation: switch (data.recipient) {
+            FcmMessageStreamRecipient() => true,
+            FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 => true,
+            FcmMessageDmRecipient() => false,
+        });
+
+    messagingStyle.conversationTitle = switch (data.recipient) {
       FcmMessageStreamRecipient(:var streamName?, :var topic) =>
         '#$streamName > $topic',
       FcmMessageStreamRecipient(:var topic) =>
@@ -103,8 +126,15 @@ class NotificationDisplayManager {
       FcmMessageDmRecipient() =>
         data.senderFullName,
     };
-    final groupKey = _groupKey(data);
-    final conversationKey = _conversationKey(data, groupKey);
+
+    messagingStyle.messages?.add(MessagingStyleMessage(
+      text: data.content,
+      timestampMs: data.time * 1000,
+      person: Person(
+        key: data.senderId.toString(),
+        name: data.senderFullName,
+        iconData: await _fetchBitmap(data.senderAvatarUrl))),
+    );
 
     await ZulipBinding.instance.androidNotificationHost.notify(
       // TODO the notification ID can be constant, instead of matching requestCode
@@ -114,8 +144,8 @@ class NotificationDisplayManager {
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
 
-      contentTitle: title,
-      contentText: data.content,
+      messagingStyle: messagingStyle,
+      number: messagingStyle.messages?.length,
       color: kZulipBrandColor.value,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
@@ -158,11 +188,6 @@ class NotificationDisplayManager {
       inboxStyle: InboxStyle(
         // TODO(#570) Show organization name, not URL
         summaryText: data.realmUri.toString()),
-
-      // On Android 11 and lower, if autoCancel is not specified,
-      // the summary notification may linger even after all child
-      // notifications have been opened and cleared.
-      // TODO(android-12): cut this autoCancel workaround
       autoCancel: true,
     );
   }
@@ -237,5 +262,15 @@ class NotificationDisplayManager {
       // TODO(#82): Open at specific message, not just conversation
       page: MessageListPage(narrow: narrow)));
     return;
+  }
+
+  static Future<Uint8List?> _fetchBitmap(Uri url) async {
+    try {
+      final resp = await http.get(url);
+      return resp.bodyBytes;
+    } catch (e) {
+      // TODO(log)
+      return null;
+    }
   }
 }
