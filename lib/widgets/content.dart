@@ -35,6 +35,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
+      colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
@@ -51,6 +52,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
+      colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
@@ -66,6 +68,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   ContentTheme._({
     required this.colorCodeBlockBackground,
+    required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
@@ -85,6 +88,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }
 
   final Color colorCodeBlockBackground;
+  final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
   final Color colorThematicBreak;
 
@@ -118,6 +122,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   @override
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
+    Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
@@ -127,6 +132,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }) {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
+      colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
@@ -143,6 +149,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     }
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
+      colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
@@ -698,12 +705,10 @@ class MathBlock extends StatelessWidget {
 
   final MathBlockNode node;
 
-  static final _borderColor = const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor();
-
   @override
   Widget build(BuildContext context) {
     return _CodeBlockContainer(
-      borderColor: _borderColor,
+      borderColor: ContentTheme.of(context).colorMathBlockBorder,
       child: Text.rich(TextSpan(
         style: ContentTheme.of(context).codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
