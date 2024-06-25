@@ -46,7 +46,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         .merge(weightVariableTextStyle(context, wght: 700)),
       textStyleErrorCode: kMonospaceTextStyle
         .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red)),
-      textStyleInlineMath: _kInlineCodeStyle.merge(TextStyle(
+      textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
         // TODO(#46) this won't be needed
         backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.93).toColor())),
     );
@@ -66,7 +66,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         .merge(weightVariableTextStyle(context, wght: 700)),
       textStyleErrorCode: kMonospaceTextStyle
         .merge(TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)),
-      textStyleInlineMath: _kInlineCodeStyle.merge(TextStyle(
+      textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
         // TODO(#46) this won't be needed
         backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor())),
     );
