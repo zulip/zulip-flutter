@@ -34,6 +34,7 @@ import 'text.dart';
 class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
+      colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
@@ -49,6 +50,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
+      colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
@@ -63,6 +65,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }
 
   ContentTheme._({
+    required this.colorCodeBlockBackground,
     required this.colorMessageMediaContainerBackground,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
@@ -81,6 +84,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return extension!;
   }
 
+  final Color colorCodeBlockBackground;
   final Color colorMessageMediaContainerBackground;
   final Color colorThematicBreak;
 
@@ -113,6 +117,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   @override
   ContentTheme copyWith({
+    Color? colorCodeBlockBackground,
     Color? colorMessageMediaContainerBackground,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
@@ -121,6 +126,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     TextStyle? textStyleErrorCode,
   }) {
     return ContentTheme._(
+      colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
@@ -136,6 +142,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       return this;
     }
     return ContentTheme._(
+      colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
@@ -646,7 +653,7 @@ class _CodeBlockContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
+        color: ContentTheme.of(context).colorCodeBlockBackground,
         border: Border.all(
           width: 1,
           color: borderColor),
