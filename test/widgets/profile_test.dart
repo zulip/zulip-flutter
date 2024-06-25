@@ -7,6 +7,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
@@ -322,6 +323,38 @@ void main() {
             urlPattern: 'https://example/%(username)s')});
 
       check(find.textContaining(longString).evaluate()).length.equals(7);
+    });
+
+    group('bot vs non-bot users', () {
+      void checkUser(String fullName, {required bool isBot}) {
+        final nameFinder = find.text(fullName);
+        final botFinder = find.byIcon(ZulipIcons.bot);
+
+        check(nameFinder.evaluate()).isNotEmpty();
+        if (isBot) {
+          check(botFinder.evaluate().singleOrNull).isNotNull();
+          final botAndNameRowFinder = find.ancestor(
+            of: botFinder,
+            matching: find.ancestor(of: nameFinder, matching: find.byType(Row)));
+          check(botAndNameRowFinder.evaluate().singleOrNull).isNotNull();
+        } else {
+          check(botFinder.evaluate().singleOrNull).isNull();
+        }
+      }
+
+      testWidgets('page builds; bot icon is shown with bot user\'s fullName', (tester) async {
+        final user = eg.user(isBot: true);
+        await setupPage(tester, pageUserId: user.userId, users: [user]);
+
+        checkUser(user.fullName, isBot: true);
+      });
+
+      testWidgets('page builds; bot icon is not shown with non-bot user\'s fullName', (tester) async {
+        final user = eg.user(isBot: false);
+        await setupPage(tester, pageUserId: user.userId, users: [user]);
+
+        checkUser(user.fullName, isBot: false);
+      });
     });
   });
 }
