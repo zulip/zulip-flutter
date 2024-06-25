@@ -1007,22 +1007,6 @@ final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(TextStyle(
     backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
 
-// const _kInlineCodeLeftBracket = '⸤';
-// const _kInlineCodeRightBracket = '⸣';
-// Some alternatives:
-// const _kInlineCodeLeftBracket = '⸢'; // end-bracket looks a lot like comma
-// const _kInlineCodeRightBracket = '⸥';
-// const _kInlineCodeLeftBracket = '｢'; // a bit bigger
-// const _kInlineCodeRightBracket = '｣';
-// const _kInlineCodeLeftBracket = '「'; // too much space
-// const _kInlineCodeRightBracket = '」';
-// const _kInlineCodeLeftBracket = '﹝'; // neat but too much space
-// const _kInlineCodeRightBracket = '﹞';
-// const _kInlineCodeLeftBracket = '❲'; // different shape, could work
-// const _kInlineCodeRightBracket = '❳';
-// const _kInlineCodeLeftBracket = '⟨'; // probably too visually similar to paren
-// const _kInlineCodeRightBracket = '⟩';
-
 class UserMention extends StatelessWidget {
   const UserMention({
     super.key,
