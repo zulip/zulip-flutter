@@ -7,6 +7,7 @@ import '../api/model/model.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import 'content.dart';
+import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -46,10 +47,23 @@ class ProfilePage extends StatelessWidget {
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
       const SizedBox(height: 16),
-      Text(user.fullName,
-        textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText
-          .merge(weightVariableTextStyle(context, wght: 700))),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (user.isBot) ...[
+            const Icon(
+              ZulipIcons.bot,
+              size: 22,
+              color: Color.fromARGB(255, 159, 173, 173),
+            ),
+            const SizedBox(width: 10),
+          ],
+          Flexible(child: Text(user.fullName,
+            textAlign: TextAlign.center,
+            style: _TextStyles.primaryFieldText
+              .merge(weightVariableTextStyle(context, wght: 700)))),
+        ],
+      ),
       // TODO(#291) render email field
       Text(roleToLabel(user.role, zulipLocalizations),
         textAlign: TextAlign.center,
