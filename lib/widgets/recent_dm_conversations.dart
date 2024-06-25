@@ -93,10 +93,12 @@ class RecentDmConversationsItem extends StatelessWidget {
 
     final String title;
     final Widget avatar;
+    final bool isBot;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = selfUser.fullName;
         avatar = AvatarImage(userId: selfUser.userId, size: _avatarSize);
+        isBot = false;
       case [var otherUserId]:
         // TODO(#296) actually don't show this row if the user is muted?
         //   (should we offer a "spam folder" style summary screen of recent
@@ -104,6 +106,7 @@ class RecentDmConversationsItem extends StatelessWidget {
         final otherUser = store.users[otherUserId];
         title = otherUser?.fullName ?? '(unknown user)';
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
+        isBot = otherUser?.isBot ?? false;
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
@@ -114,6 +117,7 @@ class RecentDmConversationsItem extends StatelessWidget {
           child: Center(
             // TODO(#95) need dark-theme color
             child: Icon(ZulipIcons.group_dm, color: Colors.black.withOpacity(0.5))));
+        isBot = false;
     }
 
     return Material(
@@ -131,16 +135,27 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: const TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(#95) need dark-theme color
-                  color: Color(0xFF222222),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
+              child: Row(
+                children: [
+                  Flexible(child: Text(
+                    style: const TextStyle(
+                      fontSize: 17,
+                      height: (20 / 17),
+                      // TODO(#95) need dark-theme color
+                      color: Color(0xFF222222),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    title)),
+                  if (isBot) ...[
+                    const SizedBox(width: 5),
+                    const Icon(
+                      ZulipIcons.bot,
+                      size: 15,
+                      color: Color.fromARGB(255, 159, 173, 173),
+                    ),
+                  ],
+                ]))),
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
