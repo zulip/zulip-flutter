@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
+import '../model/binding.dart';
 import 'page.dart';
 
 class AboutZulipPage extends StatefulWidget {
@@ -16,22 +16,15 @@ class AboutZulipPage extends StatefulWidget {
 }
 
 class _AboutZulipPageState extends State<AboutZulipPage> {
-  PackageInfo? _packageInfo;
-
-  @override
-  void initState() {
-    super.initState();
-    (() async {
-      final result = await PackageInfo.fromPlatform();
-      setState(() {
-        _packageInfo = result;
-      });
-    })();
-  }
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+
+    // At this point `ZulipBinding` should already be initialized
+    // so `packageInfo` will only be null if there was a failure
+    // while fetching it.
+    final appVersion = ZulipBinding.instance.packageInfo?.version;
+
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.aboutPageTitle)),
       body: SingleChildScrollView(
@@ -41,9 +34,10 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                ListTile(
-                  title: Text(zulipLocalizations.aboutPageAppVersion),
-                  subtitle: Text(_packageInfo?.version ?? '(…)')),
+                if (appVersion != null)
+                  ListTile(
+                    title: Text(zulipLocalizations.aboutPageAppVersion),
+                    subtitle: Text(appVersion)),
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
                   subtitle: Text(zulipLocalizations.aboutPageTapToView),
