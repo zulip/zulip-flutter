@@ -25,11 +25,11 @@ class _SwipableMessageRowState extends State<SwipableMessageRow> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context).extension<DesignVariables>()!;
 
-    // TODO(#157): fix how star marker aligns with message content
-    // Design from Figma at:
-    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
-    var star = Padding(padding: const EdgeInsets.only(top: 5.5),
-      child: Icon(ZulipIcons.star_filled, size: 16, color: theme.starColor));
+    var star = Padding(
+      padding: const EdgeInsets.only(top: 5.5),
+      child: Row(children: [
+          const Text("", style: TextStyle(fontSize: 15)),
+          Icon(ZulipIcons.star_filled, size: 16, color: theme.starColor)]));
     final hasMarker = widget.message.editState != MessageEditState.none;
 
     return Stack(
