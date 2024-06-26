@@ -1005,7 +1005,7 @@ const kInlineCodeFontSizeFactor = 0.825;
 /// (which might be a Paragraph, a Heading, etc.).
 final _kInlineCodeStyle = kMonospaceTextStyle
   .merge(TextStyle(
-    backgroundColor: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()));
+    backgroundColor: const HSLColor.fromAHSL(0.06, 0, 0, 0).toColor()));
 
 class UserMention extends StatelessWidget {
   const UserMention({
