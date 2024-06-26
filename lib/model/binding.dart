@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../host/android_notifications.dart';
@@ -71,6 +72,12 @@ abstract class ZulipBinding {
   ///
   /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
   BaseDeviceInfo? get deviceInfo;
+
+  /// Provides application package information,
+  /// via package:package_info_plus.
+  ///
+  /// This wraps [package_info_plus.PackageInfo.fromPlatform].
+  PackageInfo? get packageInfo;
 
   /// Prepare the app's [GlobalStore], loading the necessary data.
   ///
@@ -152,6 +159,17 @@ class IosDeviceInfo extends BaseDeviceInfo {
   IosDeviceInfo({required this.systemVersion});
 }
 
+/// Like [package_info_plus.PackageInfo], but without things we don't use.
+class PackageInfo {
+  final String version;
+  final String buildNumber;
+
+  PackageInfo({
+    required this.version,
+    required this.buildNumber,
+  });
+}
+
 /// A concrete binding for use in the live application.
 ///
 /// The global store returned by [loadGlobalStore], and consequently by
@@ -166,6 +184,7 @@ class LiveZulipBinding extends ZulipBinding {
     if (ZulipBinding._instance == null) {
       final binding = LiveZulipBinding();
       binding._prefetchDeviceInfo();
+      binding._prefetchPackageInfo();
     }
     return ZulipBinding.instance as LiveZulipBinding;
   }
@@ -174,6 +193,10 @@ class LiveZulipBinding extends ZulipBinding {
   BaseDeviceInfo? get deviceInfo => _deviceInfo;
   BaseDeviceInfo? _deviceInfo;
 
+  @override
+  PackageInfo? get packageInfo => _packageInfo;
+  PackageInfo? _packageInfo;
+
   Future<void> _prefetchDeviceInfo() async {
     final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
     _deviceInfo = switch (info) {
@@ -181,6 +204,14 @@ class LiveZulipBinding extends ZulipBinding {
       device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
       _                                                  => throw UnimplementedError(),
     };
+  }
+
+  Future<void> _prefetchPackageInfo() async {
+    final info = await package_info_plus.PackageInfo.fromPlatform();
+    _packageInfo =  PackageInfo(
+      version: info.version,
+      buildNumber: info.buildNumber,
+    );
   }
 
   @override

@@ -70,6 +70,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetLaunchUrl();
     _resetCloseInAppWebView();
     _resetDeviceInfo();
+    _resetPackageInfo();
     _resetFirebase();
     _resetNotifications();
   }
@@ -213,6 +214,17 @@ class TestZulipBinding extends ZulipBinding {
 
   void _resetDeviceInfo() {
     deviceInfoResult = _defaultDeviceInfoResult;
+  }
+
+  @override
+  PackageInfo? get packageInfo => packageInfoResult;
+
+  /// The value that `ZulipBinding.instance.packageInfo` should return.
+  PackageInfo packageInfoResult = _defaultPackageInfo;
+  static final _defaultPackageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+
+  void _resetPackageInfo() {
+    packageInfoResult = _defaultPackageInfo;
   }
 
   void _resetFirebase() {
