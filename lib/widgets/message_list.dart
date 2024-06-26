@@ -31,6 +31,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.black,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+      editedMovedMarkerBg: const Color(0xffddecf6),
+      editedMovedMarkerExpanded: const Color(0xff26516e),
       editedMovedMarkerCollapsed: const Color.fromARGB(128, 146, 167, 182),
       messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -59,6 +61,10 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       // TODO(#95) need proper dark-theme color (this is ad hoc)
+      editedMovedMarkerBg: const Color(0xffddecf6),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      editedMovedMarkerExpanded: const Color(0xff26516e),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
       editedMovedMarkerCollapsed: const Color.fromARGB(128, 214, 202, 194),
       messageTimestamp: const HSLColor.fromAHSL(0.6, 0, 0, 1).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
@@ -84,6 +90,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dateSeparator,
     required this.dateSeparatorText,
     required this.dmRecipientHeaderBg,
+    required this.editedMovedMarkerBg,
+    required this.editedMovedMarkerExpanded,
     required this.editedMovedMarkerCollapsed,
     required this.messageTimestamp,
     required this.recipientHeaderText,
@@ -109,6 +117,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dateSeparator;
   final Color dateSeparatorText;
   final Color dmRecipientHeaderBg;
+  final Color editedMovedMarkerBg;
+  final Color editedMovedMarkerExpanded;
   final Color editedMovedMarkerCollapsed;
   final Color messageTimestamp;
   final Color recipientHeaderText;
@@ -124,7 +134,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme copyWith({
     Color? dateSeparator,
     Color? dateSeparatorText,
-    Color? dmRecipientHeaderBg,
+    Color? editedMovedMarkerBg,
+    Color? editedMovedMarkerExpanded,
     Color? editedMovedMarkerCollapsed,
     Color? messageTimestamp,
     Color? recipientHeaderText,
@@ -140,6 +151,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
+      editedMovedMarkerBg: editedMovedMarkerBg ?? this.editedMovedMarkerBg,
+      editedMovedMarkerExpanded: editedMovedMarkerExpanded ?? this.editedMovedMarkerExpanded,
       editedMovedMarkerCollapsed: editedMovedMarkerCollapsed ?? this.editedMovedMarkerCollapsed,
       messageTimestamp: messageTimestamp ?? this.messageTimestamp,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
@@ -162,6 +175,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
+      editedMovedMarkerBg: Color.lerp(editedMovedMarkerBg, other.editedMovedMarkerBg, t)!,
+      editedMovedMarkerExpanded: Color.lerp(editedMovedMarkerExpanded, other.editedMovedMarkerExpanded, t)!,
       editedMovedMarkerCollapsed: Color.lerp(editedMovedMarkerCollapsed, other.editedMovedMarkerCollapsed, t)!,
       messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
