@@ -46,6 +46,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         .merge(weightVariableTextStyle(context, wght: 700)),
       textStyleErrorCode: kMonospaceTextStyle
         .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red)),
+      textStyleInlineCode: kMonospaceTextStyle.merge(TextStyle(
+        backgroundColor: const HSLColor.fromAHSL(0.06, 0, 0, 0).toColor())),
       textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
         // TODO(#46) this won't be needed
         backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.93).toColor())),
@@ -66,6 +68,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         .merge(weightVariableTextStyle(context, wght: 700)),
       textStyleErrorCode: kMonospaceTextStyle
         .merge(TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)),
+      textStyleInlineCode: kMonospaceTextStyle.merge(TextStyle(
+        backgroundColor: const HSLColor.fromAHSL(0.08, 0, 0, 1).toColor())),
       textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
         // TODO(#46) this won't be needed
         backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor())),
@@ -81,6 +85,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.codeBlockTextStyles,
     required this.textStyleError,
     required this.textStyleErrorCode,
+    required this.textStyleInlineCode,
     required this.textStyleInlineMath,
   });
 
@@ -110,6 +115,13 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final CodeBlockTextStyles codeBlockTextStyles;
   final TextStyle textStyleError;
   final TextStyle textStyleErrorCode;
+
+  /// The [TextStyle] for inline code, excluding font-size adjustment.
+  ///
+  /// Inline code should use this and also apply [kInlineCodeFontSizeFactor]
+  /// to the font size of the surrounding text
+  /// (which might be a Paragraph, a Heading, etc.).
+  final TextStyle textStyleInlineCode;
 
   /// The [TextStyle] for inline math, excluding font-size adjustment.
   ///
@@ -143,6 +155,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     CodeBlockTextStyles? codeBlockTextStyles,
     TextStyle? textStyleError,
     TextStyle? textStyleErrorCode,
+    TextStyle? textStyleInlineCode,
     TextStyle? textStyleInlineMath,
   }) {
     return ContentTheme._(
@@ -154,6 +167,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
       textStyleError: textStyleError ?? this.textStyleError,
       textStyleErrorCode: textStyleErrorCode ?? this.textStyleErrorCode,
+      textStyleInlineCode: textStyleInlineCode ?? this.textStyleInlineCode,
       textStyleInlineMath: textStyleInlineMath ?? this.textStyleInlineMath,
     );
   }
@@ -172,6 +186,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
       textStyleError: TextStyle.lerp(textStyleError, other.textStyleError, t)!,
       textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other.textStyleErrorCode, t)!,
+      textStyleInlineCode: TextStyle.lerp(textStyleInlineCode, other.textStyleInlineCode, t)!,
       textStyleInlineMath: TextStyle.lerp(textStyleInlineMath, other.textStyleInlineMath, t)!,
     );
   }
@@ -973,7 +988,7 @@ class _InlineContentBuilder {
 
     return _buildNodes(
       style: widget.style
-        .merge(_kInlineCodeStyle)
+        .merge(ContentTheme.of(_context!).textStyleInlineCode)
         .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
       node.nodes,
     );
@@ -997,15 +1012,6 @@ class _InlineContentBuilder {
 }
 
 const kInlineCodeFontSizeFactor = 0.825;
-
-/// The [TextStyle] for inline code, excluding font-size adjustment.
-///
-/// Inline code should use this and also apply [kInlineCodeFontSizeFactor]
-/// to the font size of the surrounding text
-/// (which might be a Paragraph, a Heading, etc.).
-final _kInlineCodeStyle = kMonospaceTextStyle
-  .merge(TextStyle(
-    backgroundColor: const HSLColor.fromAHSL(0.06, 0, 0, 0).toColor()));
 
 class UserMention extends StatelessWidget {
   const UserMention({
