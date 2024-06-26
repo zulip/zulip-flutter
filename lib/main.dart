@@ -13,8 +13,8 @@ void main() {
     return true;
   }());
   LicenseRegistry.addLicense(additionalLicenses);
-  LiveZulipBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
+  LiveZulipBinding.ensureInitialized();
   NotificationService.instance.start();
   runApp(const ZulipApp());
 }

@@ -18,16 +18,20 @@ void copyWithPopup({
   required Widget successContent,
 }) async {
   await Clipboard.setData(data);
-  final deviceInfo = await ZulipBinding.instance.deviceInfo();
 
   if (!context.mounted) return;
 
-  final shouldShowSnackbar = switch (deviceInfo) {
+  final shouldShowSnackbar = switch (ZulipBinding.instance.deviceInfo) {
     // Android 13+ shows its own popup on copying to the clipboard,
     // so we suppress ours, following the advice at:
     //   https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
     // TODO(android-sdk-33): Simplify this and dartdoc
     AndroidDeviceInfo(:var sdkInt) => sdkInt <= 32,
+    // Otherwise always display the snackbar if:
+    //  1. It's any other os/device than Android.
+    //  2. deviceInfo == null, meaning there was a failure while fetching
+    //     the deviceInfo, so we don't know which os/device variant the
+    //     app is running on.
     _                              => true,
   };
   if (shouldShowSnackbar) {

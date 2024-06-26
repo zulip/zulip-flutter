@@ -66,6 +66,12 @@ abstract class ZulipBinding {
     _instance = this;
   }
 
+  /// Provides device and operating system information,
+  /// via package:device_info_plus.
+  ///
+  /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
+  BaseDeviceInfo? get deviceInfo;
+
   /// Prepare the app's [GlobalStore], loading the necessary data.
   ///
   /// Generally the app should call this function only once.
@@ -97,12 +103,6 @@ abstract class ZulipBinding {
   ///
   /// This wraps [url_launcher.closeInAppWebView].
   Future<void> closeInAppWebView();
-
-  /// Provides device and operating system information,
-  /// via package:device_info_plus.
-  ///
-  /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
-  Future<BaseDeviceInfo> deviceInfo();
 
   /// Initialize Firebase, to use for notifications.
   ///
@@ -164,9 +164,23 @@ class LiveZulipBinding extends ZulipBinding {
   /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
   static LiveZulipBinding ensureInitialized() {
     if (ZulipBinding._instance == null) {
-      LiveZulipBinding();
+      final binding = LiveZulipBinding();
+      binding._prefetchDeviceInfo();
     }
     return ZulipBinding.instance as LiveZulipBinding;
+  }
+
+  @override
+  BaseDeviceInfo? get deviceInfo => _deviceInfo;
+  BaseDeviceInfo? _deviceInfo;
+
+  Future<void> _prefetchDeviceInfo() async {
+    final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
+    _deviceInfo = switch (info) {
+      device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
+      device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
+      _                                                  => throw UnimplementedError(),
+    };
   }
 
   @override
@@ -193,16 +207,6 @@ class LiveZulipBinding extends ZulipBinding {
   @override
   Future<void> closeInAppWebView() async {
     return url_launcher.closeInAppWebView();
-  }
-
-  @override
-  Future<BaseDeviceInfo> deviceInfo() async {
-    final deviceInfo = await device_info_plus.DeviceInfoPlugin().deviceInfo;
-    return switch (deviceInfo) {
-      device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
-      device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
-      _                                                  => throw UnimplementedError(),
-    };
   }
 
   @override
