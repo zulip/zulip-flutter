@@ -388,6 +388,21 @@ const _unreadMsgs = unreadMsgs;
 // Events.
 //
 
+DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
+  assert(messages.isNotEmpty);
+  final streamId = messages.first.streamId;
+  final topic = messages.first.topic;
+  assert(messages.every((m) => m.streamId == streamId));
+  assert(messages.every((m) => m.topic == topic));
+  return DeleteMessageEvent(
+    id: 0,
+    messageIds: messages.map((message) => message.id).toList(),
+    messageType: MessageType.stream,
+    streamId: messages[0].streamId,
+    topic: messages[0].topic,
+  );
+}
+
 UpdateMessageEvent updateMessageEditEvent(
   Message origMessage, {
   int? userId = -1, // null means null; default is [selfUser.userId]

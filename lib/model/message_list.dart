@@ -155,6 +155,30 @@ mixin _MessageSequence {
     _processMessage(messages.length - 1);
   }
 
+  /// Removes the given messages, if present.
+  ///
+  /// Returns true if at least one message was present, false otherwise.
+  /// If none of [messageIds] are found, this is a no-op.
+  bool _removeMessagesById(Iterable<int> messageIds) {
+    final messagesToRemoveById = <int>{};
+    final contentToRemove = Set<ZulipContent>.identity();
+    for (final messageId in messageIds) {
+      final index = _findMessageWithId(messageId);
+      if (index == -1) continue;
+      messagesToRemoveById.add(messageId);
+      contentToRemove.add(contents[index]);
+    }
+    if (messagesToRemoveById.isEmpty) return false;
+
+    assert(contents.length == messages.length);
+    messages.removeWhere((message) => messagesToRemoveById.contains(message.id));
+    contents.removeWhere((content) => contentToRemove.contains(content));
+    assert(contents.length == messages.length);
+    _reprocessAll();
+
+    return true;
+  }
+
   void _insertAllMessages(int index, Iterable<Message> toInsert) {
     // TODO parse/process messages in smaller batches, to not drop frames.
     //   On a Pixel 5, a batch of 100 messages takes ~15-20ms in _insertAllMessages.
@@ -425,6 +449,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     } finally {
       _fetchingOlder = false;
       _updateEndMarkers();
+      notifyListeners();
+    }
+  }
+
+  void handleDeleteMessageEvent(DeleteMessageEvent event) {
+    if (_removeMessagesById(event.messageIds)) {
       notifyListeners();
     }
   }

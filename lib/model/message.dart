@@ -175,7 +175,12 @@ class MessageStoreImpl with MessageStore {
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
-    // TODO handle DeleteMessageEvent, particularly in MessageListView
+    for (final messageId in event.messageIds) {
+      messages.remove(messageId);
+    }
+    for (final view in _messageListViews) {
+      view.handleDeleteMessageEvent(event);
+    }
   }
 
   void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {

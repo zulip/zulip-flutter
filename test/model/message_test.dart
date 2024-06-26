@@ -375,6 +375,39 @@ void main() {
     });
   });
 
+  group('handleDeleteMessageEvent', () {
+    test('delete an unknown message', () async {
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      await prepare();
+      await prepareMessages([message1]);
+      await store.handleEvent(eg.deleteMessageEvent([message2]));
+      checkNotNotified();
+      check(store).messages.values.single.id.equals(message1.id);
+    });
+
+    test('delete messages', () async {
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      await prepare();
+      await prepareMessages([message1, message2]);
+      await store.handleEvent(eg.deleteMessageEvent([message1, message2]));
+      checkNotifiedOnce();
+      check(store).messages.isEmpty();
+    });
+
+    test('delete an unknown message with a known message', () async {
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      final message3 = eg.streamMessage();
+      await prepare();
+      await prepareMessages([message1, message2]);
+      await store.handleEvent(eg.deleteMessageEvent([message2, message3]));
+      checkNotifiedOnce();
+      check(store).messages.values.single.id.equals(message1.id);
+    });
+  });
+
   group('handleReactionEvent', () {
     test('add reaction', () async {
       final originalMessage = eg.streamMessage(reactions: []);
