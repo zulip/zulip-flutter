@@ -1140,6 +1140,8 @@ class GlobalTime extends StatelessWidget {
             children: [
               Icon(
                 size: ambientTextStyle.fontSize!,
+                // (When GlobalTime appears in a link, it should be blue
+                // like the text.)
                 color: DefaultTextStyle.of(context).style.color!,
                 ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:

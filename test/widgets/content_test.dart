@@ -843,22 +843,27 @@ void main() {
       tester.widget(find.textContaining(renderedTextRegexp));
     });
 
-    testWidgets('clock icon and text are the same color', (tester) async {
-      await prepareContent(tester, plainContent('<p>$timeSpanHtml</p>'));
+    void testIconAndTextSameColor(String description, String html) {
+      testWidgets('clock icon and text are the same color: $description', (tester) async {
+        await prepareContent(tester, plainContent(html));
 
-      final icon = tester.widget<Icon>(
-        find.descendant(of: find.byType(GlobalTime),
-          matching: find.byIcon(ZulipIcons.clock)));
+        final icon = tester.widget<Icon>(
+          find.descendant(of: find.byType(GlobalTime),
+            matching: find.byIcon(ZulipIcons.clock)));
 
-      final textSpan = tester.renderObject<RenderParagraph>(
-        find.descendant(of: find.byType(GlobalTime),
-          matching: find.textContaining(renderedTextRegexp)
-      )).text;
-      final textColor = mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.color;
-      check(textColor).isNotNull();
+        final textSpan = tester.renderObject<RenderParagraph>(
+          find.descendant(of: find.byType(GlobalTime),
+            matching: find.textContaining(renderedTextRegexp)
+        )).text;
+        final textColor = mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.color;
+        check(textColor).isNotNull();
 
-      check(icon).color.equals(textColor!);
-    });
+        check(icon).color.equals(textColor!);
+      });
+    }
+
+    testIconAndTextSameColor('common case', '<p>$timeSpanHtml</p>');
+    testIconAndTextSameColor('inside link', '<p><a href="https://example/">$timeSpanHtml</a></p>');
 
     group('maintains font-size ratio with surrounding text', () {
       Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {
