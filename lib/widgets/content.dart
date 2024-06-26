@@ -35,6 +35,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
+      colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
@@ -57,6 +58,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
+      colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
@@ -78,6 +80,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   ContentTheme._({
     required this.colorCodeBlockBackground,
+    required this.colorDirectMentionBackground,
     required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
     required this.colorThematicBreak,
@@ -100,6 +103,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }
 
   final Color colorCodeBlockBackground;
+  final Color colorDirectMentionBackground;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
   final Color colorThematicBreak;
@@ -148,6 +152,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   @override
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
+    Color? colorDirectMentionBackground,
     Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
     Color? colorThematicBreak,
@@ -160,6 +165,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   }) {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
+      colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
@@ -179,6 +185,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     }
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
+      colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
@@ -1025,10 +1032,11 @@ class UserMention extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final contentTheme = ContentTheme.of(context);
     return Container(
       decoration: BoxDecoration(
-        // TODO(#646) different background between direct and wildcard mentions
-        color: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
+        // TODO(#646) different for wildcard mentions
+        color: contentTheme.colorDirectMentionBackground,
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
