@@ -25,7 +25,21 @@ mixin ChannelStore {
   /// For UI contexts that are not specific to a particular stream, see
   /// [isTopicVisible].
   bool isTopicVisibleInStream(int streamId, String topic) {
-    switch (topicVisibilityPolicy(streamId, topic)) {
+    return _isTopicVisibleInStream(topicVisibilityPolicy(streamId, topic));
+  }
+
+  /// Whether the given event will change the result of [isTopicVisibleInStream]
+  /// for its stream and topic, compared to the current state.
+  VisibilityEffect willChangeIfTopicVisibleInStream(UserTopicEvent event) {
+    final streamId = event.streamId;
+    final topic = event.topicName;
+    return VisibilityEffect._fromBeforeAfter(
+      _isTopicVisibleInStream(topicVisibilityPolicy(streamId, topic)),
+      _isTopicVisibleInStream(event.visibilityPolicy));
+  }
+
+  static bool _isTopicVisibleInStream(UserTopicVisibilityPolicy policy) {
+    switch (policy) {
       case UserTopicVisibilityPolicy.none:
         return true;
       case UserTopicVisibilityPolicy.muted:
@@ -48,7 +62,21 @@ mixin ChannelStore {
   /// For UI contexts that are specific to a particular stream, see
   /// [isTopicVisibleInStream].
   bool isTopicVisible(int streamId, String topic) {
-    switch (topicVisibilityPolicy(streamId, topic)) {
+    return _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic));
+  }
+
+  /// Whether the given event will change the result of [isTopicVisible]
+  /// for its stream and topic, compared to the current state.
+  VisibilityEffect willChangeIfTopicVisible(UserTopicEvent event) {
+    final streamId = event.streamId;
+    final topic = event.topicName;
+    return VisibilityEffect._fromBeforeAfter(
+      _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic)),
+      _isTopicVisible(streamId, event.visibilityPolicy));
+  }
+
+  bool _isTopicVisible(int streamId, UserTopicVisibilityPolicy policy) {
+    switch (policy) {
       case UserTopicVisibilityPolicy.none:
         switch (subscriptions[streamId]?.isMuted) {
           case false: return true;
@@ -64,6 +92,28 @@ mixin ChannelStore {
         assert(false);
         return true;
     }
+  }
+}
+
+/// Whether and how a given [UserTopicEvent] will affect the results
+/// that [ChannelStore.isTopicVisible] or [ChannelStore.isTopicVisibleInStream]
+/// would give for some messages.
+enum VisibilityEffect {
+  /// The event will have no effect on the visibility results.
+  none,
+
+  /// The event will change some visibility results from true to false.
+  muted,
+
+  /// The event will change some visibility results from false to true.
+  unmuted;
+
+  factory VisibilityEffect._fromBeforeAfter(bool before, bool after) {
+    return switch ((before, after)) {
+      (false, true) => VisibilityEffect.unmuted,
+      (true, false) => VisibilityEffect.muted,
+      _             => VisibilityEffect.none,
+    };
   }
 }
 
