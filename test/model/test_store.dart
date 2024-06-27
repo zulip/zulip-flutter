@@ -5,6 +5,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
+import '../example_data.dart' as eg;
 
 /// A [GlobalStore] containing data provided by callers,
 /// and that causes no database queries or network requests.
@@ -146,13 +147,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
-    await handleEvent(UserTopicEvent(
-      id: 1,
-      streamId: stream.streamId,
-      topicName: topic,
-      lastUpdated: 1234567890,
-      visibilityPolicy: visibilityPolicy,
-    ));
+    await handleEvent(eg.userTopicEvent(stream.streamId, topic, visibilityPolicy));
   }
 
   Future<void> addMessage(Message message) async {
