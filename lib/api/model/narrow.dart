@@ -35,7 +35,7 @@ sealed class ApiNarrowElement {
 }
 
 class ApiNarrowStream extends ApiNarrowElement {
-  @override String get operator => 'stream';
+  @override String get operator => 'channel';
 
   @override final int operand;
 
