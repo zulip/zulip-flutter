@@ -189,6 +189,97 @@ void main() {
       });
     });
 
+    group('willChangeIfTopicVisible/InStream', () {
+      UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
+        eg.userTopicEvent(stream1.streamId, 'topic', policy);
+
+      void checkChanges(PerAccountStore store,
+          UserTopicVisibilityPolicy newPolicy,
+          VisibilityEffect expectedInStream, VisibilityEffect expectedOverall) {
+        final event = mkEvent(newPolicy);
+        check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
+        check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+      }
+
+      test('stream not muted, policy none -> followed, no change', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+        checkChanges(store, UserTopicVisibilityPolicy.followed,
+          VisibilityEffect.none, VisibilityEffect.none);
+      });
+
+      test('stream not muted, policy none -> muted, means muted', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+        checkChanges(store, UserTopicVisibilityPolicy.muted,
+          VisibilityEffect.muted, VisibilityEffect.muted);
+      });
+
+      test('stream muted, policy none -> followed, means none/unmuted', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1, isMuted: true));
+        checkChanges(store, UserTopicVisibilityPolicy.followed,
+          VisibilityEffect.none, VisibilityEffect.unmuted);
+      });
+
+      test('stream muted, policy none -> muted, means muted/none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1, isMuted: true));
+        checkChanges(store, UserTopicVisibilityPolicy.muted,
+          VisibilityEffect.muted, VisibilityEffect.none);
+      });
+
+      final policies = [
+        UserTopicVisibilityPolicy.muted,
+        UserTopicVisibilityPolicy.none,
+        UserTopicVisibilityPolicy.unmuted,
+      ];
+      for (final streamMuted in [null, false, true]) {
+        for (final oldPolicy in policies) {
+          for (final newPolicy in policies) {
+            final streamDesc = switch (streamMuted) {
+              false => "stream not muted",
+              true => "stream muted",
+              null => "stream unsubscribed",
+            };
+            test('$streamDesc, topic ${oldPolicy.name} -> ${newPolicy.name}', () async {
+              final store = eg.store();
+              await store.addStream(stream1);
+              if (streamMuted != null) {
+                await store.addSubscription(
+                  eg.subscription(stream1, isMuted: streamMuted));
+              }
+              store.handleEvent(mkEvent(oldPolicy));
+              final oldVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, 'topic');
+              final oldVisible         = store.isTopicVisible(stream1.streamId, 'topic');
+
+              final event = mkEvent(newPolicy);
+              final willChangeInStream = store.willChangeIfTopicVisibleInStream(event);
+              final willChange         = store.willChangeIfTopicVisible(event);
+
+              store.handleEvent(event);
+              final newVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, 'topic');
+              final newVisible         = store.isTopicVisible(stream1.streamId, 'topic');
+
+              VisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
+                if (newVisible == oldVisible) return VisibilityEffect.none;
+                if (newVisible) return VisibilityEffect.unmuted;
+                return VisibilityEffect.muted;
+              }
+              check(willChangeInStream)
+                .equals(fromOldNew(oldVisibleInStream, newVisibleInStream));
+              check(willChange)
+                .equals(fromOldNew(oldVisible,         newVisible));
+            });
+          }
+        }
+      }
+    });
+
     void compareTopicVisibility(PerAccountStore store, List<UserTopicItem> expected) {
       final expectedStore = eg.store(initialSnapshot: eg.initialSnapshot(
         userTopics: expected,
