@@ -296,6 +296,7 @@ void main() {
     check(done).isFalse();
     for (int i = 0; i < 3; i++) {
       await Future(() {});
+      if (done) break;
     }
     check(done).isTrue();
     final results = view.results
