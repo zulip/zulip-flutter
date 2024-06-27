@@ -21,7 +21,7 @@ packages:
     dependency: transitive
     description: dart
     source: sdk
-    version: "0.3.1"
+    version: "0.3.2"
   analyzer:
     dependency: transitive
     description:
@@ -701,10 +701,10 @@ packages:
     dependency: transitive
     description:
       name: macros
-      sha256: "6245feb91dfa3693100d2e680f6c5614405b1623b555b4b3cba3cb88a3beb5c2"
+      sha256: "0acaed5d6b7eab89f63350bccd82119e6c602df0f391260d0e32b5e23db79536"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.2-main.3"
+    version: "0.1.2-main.4"
   matcher:
     dependency: transitive
     description:
@@ -1258,10 +1258,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "360c4271613beb44db559547d02f8b0dc044741d0eeb9aa6ccdb47e8ec54c63a"
+      sha256: f652077d0bdf60abe4c1f6377448e8655008eef28f128bc023f7b5e8dfeb48fc
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.3"
+    version: "14.2.4"
   watcher:
     dependency: transitive
     description:
@@ -1358,5 +1358,5 @@ packages:
     source: path
     version: "0.0.1"
 sdks:
-  dart: ">=3.5.0-254.0.dev <4.0.0"
-  flutter: ">=3.23.0-13.0.pre.234"
+  dart: ">=3.5.0-308.0.dev <4.0.0"
+  flutter: ">=3.23.0-13.0.pre.363"
