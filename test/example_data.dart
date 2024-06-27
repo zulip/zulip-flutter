@@ -416,6 +416,17 @@ const _unreadMsgs = unreadMsgs;
 // Events.
 //
 
+UserTopicEvent userTopicEvent(
+    int streamId, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
+  return UserTopicEvent(
+    id: 1,
+    streamId: streamId,
+    topicName: topic,
+    lastUpdated: 1234567890,
+    visibilityPolicy: visibilityPolicy,
+  );
+}
+
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);
   final streamId = messages.first.streamId;
