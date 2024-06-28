@@ -33,7 +33,10 @@ void main() {
     check(notifiedCount).equals(count);
     notifiedCount = 0;
   }
-  void checkNotNotified() => checkNotified(count: 0);
+  void checkNotNotified() {
+    checkInvariants(model);
+    checkNotified(count: 0);
+  }
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
@@ -51,7 +54,6 @@ void main() {
         notifiedCount++;
       });
     check(model).fetched.isFalse();
-    checkInvariants(model);
     checkNotNotified();
   }
 
@@ -97,7 +99,6 @@ void main() {
     ).toJson());
     final fetchFuture = model.fetchInitial();
     check(model).fetched.isFalse();
-    checkInvariants(model);
 
     checkNotNotified();
     await fetchFuture;
@@ -185,7 +186,6 @@ void main() {
     // Don't prepare another response.
     final fetchFuture2 = model.fetchOlder();
     checkNotNotified();
-    checkInvariants(model);
     check(model).fetchingOlder.isTrue();
 
     await fetchFuture;
@@ -210,7 +210,6 @@ void main() {
     // We must not have made a request, because we didn't
     // prepare a response and didn't get an exception.
     checkNotNotified();
-    checkInvariants(model);
     check(model)
       ..haveOldest.isTrue()
       ..messages.length.equals(30);
@@ -268,7 +267,6 @@ void main() {
       message: eg.streamMessage(stream: stream)));
     checkNotNotified();
     check(model).fetched.isFalse();
-    checkInvariants(model);
   });
 
   group('notifyListenersIfMessagePresent', () {
