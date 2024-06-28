@@ -287,9 +287,20 @@ class SpoilerNode extends BlockContentNode {
 }
 
 class CodeBlockNode extends BlockContentNode {
-  const CodeBlockNode(this.spans, {super.debugHtmlNode});
+  const CodeBlockNode(
+    this.spans, {
+    this.codeLanguage,
+    super.debugHtmlNode,
+  });
 
   final List<CodeBlockSpanNode> spans;
+  final String? codeLanguage;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('codeLanguage', codeLanguage));
+  }
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
@@ -943,9 +954,11 @@ class _ZulipContentParser {
 
   BlockContentNode parseCodeBlock(dom.Element divElement) {
     assert(_debugParserContext == _ParserContext.block);
+    String? codeLanguage;
     final mainElement = () {
       assert(divElement.localName == 'div'
           && divElement.className == "codehilite");
+      codeLanguage = divElement.attributes['data-code-language'];
 
       if (divElement.nodes.length != 1) return null;
       final child = divElement.nodes[0];
@@ -1009,7 +1022,7 @@ class _ZulipContentParser {
       spans.add(span);
     }
 
-    return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
+    return CodeBlockNode(spans, codeLanguage: codeLanguage, debugHtmlNode: debugHtmlNode);
   }
 
   BlockContentNode parseImageNode(dom.Element divElement) {

@@ -281,7 +281,7 @@ class ContentExample {
     "```\nverb\natim\n```",
     expectedText: 'verb\natim',
     '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>', [
-      CodeBlockNode([
+      CodeBlockNode(codeLanguage: null, [
         CodeBlockSpanNode(text: 'verb\natim', type: CodeBlockSpanType.text),
       ]),
     ]);
@@ -294,7 +294,7 @@ class ContentExample {
         '<span></span><code><span class="kd">class</span><span class="w"> </span>'
         '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
         '\n</code></pre></div>', [
-      CodeBlockNode([
+      CodeBlockNode(codeLanguage: 'Dart', [
         CodeBlockSpanNode(text: 'class', type: CodeBlockSpanType.keywordDeclaration),
         CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
         CodeBlockSpanNode(text: 'A', type: CodeBlockSpanType.nameClass),
@@ -316,7 +316,7 @@ class ContentExample {
         '<span class="s">"world!</span><span class="se">\\n</span><span class="s">"</span>'
         '<span class="p">);</span>\n<span class="p">}</span>\n'
         '</code></pre></div>', [
-      CodeBlockNode([
+      CodeBlockNode(codeLanguage: 'Rust', [
         CodeBlockSpanNode(text: 'fn', type: CodeBlockSpanType.keyword),
         CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.text),
         CodeBlockSpanNode(text: 'main', type: CodeBlockSpanType.nameFunction),
@@ -378,7 +378,8 @@ class ContentExample {
     '<div class="codehilite">'
       '<pre><span></span><code>code block.\n</code></pre></div>\n\n'
     '<p>some content</p>', [
-      CodeBlockNode([CodeBlockSpanNode(text: "code block.", type: CodeBlockSpanType.text)]),
+      CodeBlockNode(codeLanguage: null,
+        [CodeBlockSpanNode(text: "code block.", type: CodeBlockSpanType.text)]),
       ParagraphNode(links: null, nodes: [TextNode("some content")]),
     ]);
 
@@ -1062,7 +1063,7 @@ void main() {
             ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('three')]),
           ]]),
         ]),
-        CodeBlockNode([
+        CodeBlockNode(codeLanguage: null, [
           CodeBlockSpanNode(text: 'four', type: CodeBlockSpanType.text),
         ]),
         ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
