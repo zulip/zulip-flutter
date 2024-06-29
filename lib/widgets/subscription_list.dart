@@ -220,28 +220,33 @@ class SubscriptionItem extends StatelessWidget {
         },
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 11),
-            child: Icon(size: 18, color: swatch.iconOnPlainBackground,
-              iconDataForStream(subscription))),
-          const SizedBox(width: 5),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              // TODO(design): unclear whether bold text is applied to all subscriptions
-              //   or only those with unreads:
-              //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
-              child: Text(
-                style: const TextStyle(
-                  fontSize: 18,
-                  height: (20 / 18),
-                  // TODO(#95) need dark-theme color
-                  color: Color(0xFF262626),
-                ).merge(weightVariableTextStyle(context,
-                    wght: hasUnreads ? 600 : null)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                subscription.name))),
+            child: Opacity(
+              opacity: subscription.isMuted ? 0.55 : 1,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    child: Icon(size: 18, color: swatch.iconOnPlainBackground,
+                      iconDataForStream(subscription))),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      // TODO(design): unclear whether bold text is applied to all subscriptions
+                      //   or only those with unreads:
+                      //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
+                      child: Text(
+                        style: const TextStyle(
+                          fontSize: 18,
+                          height: (20 / 18),
+                          // TODO(#95) need dark-theme color
+                          color: Color(0xFF262626),
+                        ).merge(weightVariableTextStyle(context,
+                            wght: hasUnreads ? 600 : null)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        subscription.name)))]))),
           if (unreadCount > 0) ...[
             const SizedBox(width: 12),
             // TODO(#747) show @-mention indicator when it applies
