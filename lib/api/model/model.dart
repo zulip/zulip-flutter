@@ -464,6 +464,9 @@ sealed class Message {
   final String contentType;
 
   // final List<MessageEditHistory> editHistory; // TODO handle
+  @JsonKey(readValue: MessageEditState._readFromMessage)
+  MessageEditState editState;
+
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -508,6 +511,7 @@ sealed class Message {
     required this.client,
     required this.content,
     required this.contentType,
+    required this.editState,
     required this.id,
     required this.isMeMessage,
     required this.lastEditTimestamp,
@@ -573,6 +577,7 @@ class StreamMessage extends Message {
     required super.client,
     required super.content,
     required super.contentType,
+    required super.editState,
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
@@ -675,6 +680,7 @@ class DmMessage extends Message {
     required super.client,
     required super.content,
     required super.contentType,
+    required super.editState,
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
@@ -697,4 +703,75 @@ class DmMessage extends Message {
 
   @override
   Map<String, dynamic> toJson() => _$DmMessageToJson(this);
+}
+
+enum MessageEditState {
+  none,
+  edited,
+  moved;
+
+  // Adapted from the shared code:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+  // Pattern for an arbitrary resolved-topic prefix.
+  // These always begin with the canonical prefix, but can go on longer.
+  // It's designed to remove a weird "✔ ✔✔ " prefix, if present.
+  static RegExp _resolvedTopicPrefixRe = RegExp('^✔ [ ✔]*');
+
+  /// Whether two topics are equal, ignoring any resolved-topic prefix.
+  ///
+  /// When a topic is resolved, the clients agree on adding a ✔ prefix to the
+  /// topic string. Topics whose only difference is the ✔ prefix are considered
+  /// the same. This helper can be helpful when checking if a message has been
+  /// moved.
+  static bool areSameTopic(String topic, String prevTopic) {
+    // TODO(#744) Extract this to its own home to support "mark as resolve".
+    topic = topic.replaceFirst(_resolvedTopicPrefixRe, '');
+    prevTopic = prevTopic.replaceFirst(_resolvedTopicPrefixRe, '');
+
+    return topic == prevTopic;
+  }
+
+  static String _readFromMessage(Map<dynamic, dynamic> json, String key) {
+    // Adapted from the web app:
+    //   https://github.com/zulip/zulip/blob/c31cebbf68a93927d41e9947427c2dd4d46503e3/web/src/message_list_view.js#L68-L118
+    final editHistory = json['edit_history'] as List<dynamic>?;
+    final lastEditTimestamp = json['last_edit_timestamp'] as int?;
+    if (editHistory == null) {
+      return (lastEditTimestamp != null)
+        ? 'edited'
+        : 'none';
+    }
+
+    // Edit history should never be empty whenever it is present
+    assert(editHistory.isNotEmpty);
+
+    bool hasMoved = false;
+    for (final entry in editHistory) {
+      if (entry['prev_content'] != null) {
+        return 'edited';
+      }
+
+      if (entry['prev_stream'] != null) {
+        hasMoved = true;
+        continue;
+      }
+
+      // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
+      final prevTopic = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
+      final topic = entry['topic'] as String?;
+      if (prevTopic != null) {
+        // TODO(server-5) pre-5.0 servers do not have the 'topic' field
+        if (topic == null) {
+          hasMoved = true;
+        } else {
+          hasMoved |= !areSameTopic(topic, prevTopic);
+        }
+      }
+    }
+
+    if (hasMoved) return 'moved';
+
+    // This can happen when a topic is resolved but nothing else has been edited
+    return 'none';
+  }
 }
