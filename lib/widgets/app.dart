@@ -267,7 +267,7 @@ class HomePage extends StatelessWidget {
               Text.rich(TextSpan(
                 text: 'Zulip server version: ',
                 children: [bold(store.zulipVersion)])),
-              Text(zulipLocalizations.subscribedToNStreams(store.subscriptions.length)),
+              Text(zulipLocalizations.subscribedToNChannels(store.subscriptions.length)),
             ])),
           const SizedBox(height: 16),
           ElevatedButton(

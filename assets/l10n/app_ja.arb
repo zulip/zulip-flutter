@@ -5,7 +5,7 @@
   "cameraAccessDeniedTitle": "権限が必要です",
   "cameraAccessDeniedMessage": "画像をアップロードするには、「設定」で Zulip に追加の権限を許可してください。",
   "cameraAccessDeniedButtonText": "設定を開く",
-  "subscribedToNStreams": "{num, plural, other{{num}つのチャンネルをフォローしています}}",
+  "subscribedToNChannels": "{num, plural, other{{num}つのチャンネルをフォローしています}}",
   "userRoleOwner": "オーナー",
   "userRoleAdministrator": "管理者",
   "userRoleModerator": "モデレータ",

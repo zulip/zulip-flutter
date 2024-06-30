@@ -211,11 +211,11 @@
   "@composeBoxSelfDmContentHint": {
     "description": "Hint text for content input when sending a message to yourself."
   },
-  "composeBoxStreamContentHint": "Message #{stream} > {topic}",
-  "@composeBoxStreamContentHint": {
+  "composeBoxChannelContentHint": "Message #{channel} > {topic}",
+  "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel",
     "placeholders": {
-      "stream": {"type": "String", "example": "channel name"},
+      "channel": {"type": "String", "example": "channel name"},
       "topic": {"type": "String", "example": "topic name"}
     }
   },
@@ -223,8 +223,8 @@
   "@composeBoxSendTooltip":  {
     "description": "Tooltip for send button in compose box."
   },
-  "composeBoxUnknownStreamName": "(unknown channel)",
-  "@composeBoxUnknownStreamName": {
+  "composeBoxUnknownChannelName": "(unknown channel)",
+  "@composeBoxUnknownChannelName": {
     "description": "Replacement name for channel when it cannot be found in the store."
   },
   "composeBoxTopicHintText": "Topic",
@@ -352,8 +352,8 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
-  "subscribedToNStreams": "Subscribed to {num, plural, =0{no channels} =1{1 channel} other{{num} channels}}",
-  "@subscribedToNStreams": {
+  "subscribedToNChannels": "Subscribed to {num, plural, =0{no channels} =1{1 channel} other{{num} channels}}",
+  "@subscribedToNChannels": {
     "description": "Test page label showing number of channels user is subscribed to.",
     "placeholders": {
       "num": {"type": "int", "example": "4"}
