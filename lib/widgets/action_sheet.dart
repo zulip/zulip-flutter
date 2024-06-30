@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../model/message_list.dart';
 import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
@@ -17,7 +18,7 @@ import 'store.dart';
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
+void showMessageActionSheet({required BuildContext context, required Message message, required MessageListView model}) {
   final store = PerAccountStoreWidget.of(context);
 
   // The UI that's conditioned on this won't live-update during this appearance
@@ -45,6 +46,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
           messageListContext: context,
         ),
         CopyButton(message: message, messageListContext: context),
+        MarkAsUnread(message: message, messageListContext: context, model: model),
       ]);
     });
 }
@@ -364,5 +366,36 @@ class CopyButton extends MessageActionSheetMenuItemButton {
     copyWithPopup(context: context,
       successContent: Text(zulipLocalizations.successMessageCopied),
       data: ClipboardData(text: rawContent));
+  }
+}
+
+class MarkAsUnread extends MessageActionSheetMenuItemButton {
+  MarkAsUnread({
+    super.key,
+    required super.message,
+    required super.messageListContext,
+    required this.model,
+  });
+
+  final MessageListView model;
+
+  @override IconData get icon => Icons.mark_chat_unread_outlined;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetMarkAsUnread;
+  }
+
+  @override void onPressed(BuildContext context) async {
+    Navigator.of(context).pop();
+    final ids = [
+      message.id,
+      ...model.getNarrowMessagesAfter(message).map((e) => e.id)];
+
+    try {
+      final connection = PerAccountStoreWidget.of(messageListContext).connection;
+      await updateMessageFlags(connection, messages: ids,
+        op: UpdateMessageFlagsOp.remove, flag: MessageFlag.read);
+    } catch (e) {}
   }
 }

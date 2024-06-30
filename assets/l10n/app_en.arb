@@ -47,6 +47,10 @@
   "@actionSheetOptionCopy":  {
     "description": "Label for copy message text button on action sheet."
   },
+  "actionSheetMarkAsUnread": "Mark as unread from here",
+  "@actionSheetMarkAsUnread":  {
+    "description": "Label for mark as unread button on action sheet."
+  },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."

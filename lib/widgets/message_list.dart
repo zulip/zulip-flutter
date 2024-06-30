@@ -397,6 +397,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       case MessageListMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
+          model: model!,
           key: ValueKey(data.message.id),
           header: header,
           trailingWhitespace: i == 1 ? 8 : 11,
@@ -571,12 +572,14 @@ class MessageItem extends StatelessWidget {
     super.key,
     required this.item,
     required this.header,
+    required this.model,
     this.trailingWhitespace,
   });
 
   final MessageListMessageItem item;
   final Widget header;
   final double? trailingWhitespace;
+  final MessageListView model;
 
   @override
   Widget build(BuildContext context) {
@@ -589,7 +592,7 @@ class MessageItem extends StatelessWidget {
         child: ColoredBox(
           color: Colors.white,
           child: Column(children: [
-            MessageWithPossibleSender(item: item),
+            MessageWithPossibleSender(item: item, model: model,),
             if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
           ]))));
   }
@@ -892,9 +895,10 @@ String formatHeaderDate(
 //   - https://github.com/zulip/zulip-mobile/issues/5511
 //   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
 class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+  const MessageWithPossibleSender({super.key, required this.item, required this.model});
 
   final MessageListMessageItem item;
+  final MessageListView model;
 
   // TODO(#95) unchanged in dark theme?
   static final _starColor = const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor();
@@ -957,7 +961,7 @@ class MessageWithPossibleSender extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onLongPress: () => showMessageActionSheet(context: context, message: message),
+      onLongPress: () => showMessageActionSheet(context: context, message: message, model: model),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
