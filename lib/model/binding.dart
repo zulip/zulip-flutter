@@ -140,13 +140,20 @@ abstract class BaseDeviceInfo {
 
 /// Like [device_info_plus.AndroidDeviceInfo], but without things we don't use.
 class AndroidDeviceInfo extends BaseDeviceInfo {
+  /// The user-visible version string.
+  ///
+  /// E.g., "1.0" or "3.4b5" or "bananas". This field is an opaque string.
+  /// Do not assume that its value has any particular structure or that
+  /// values of RELEASE from different releases can be somehow ordered.
+  final String release;
+
   /// The Android SDK version.
   ///
   /// Possible values are defined in:
   ///   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
   final int sdkInt;
 
-  AndroidDeviceInfo({required this.sdkInt});
+  AndroidDeviceInfo({required this.release, required this.sdkInt});
 }
 
 /// Like [device_info_plus.IosDeviceInfo], but without things we don't use.
@@ -157,6 +164,56 @@ class IosDeviceInfo extends BaseDeviceInfo {
   final String systemVersion;
 
   IosDeviceInfo({required this.systemVersion});
+}
+
+/// Like [device_info_plus.MacOsDeviceInfo], but without things we don't use.
+class MacOsDeviceInfo extends BaseDeviceInfo {
+  /// The major release number, such as 10 in version 10.9.3.
+  final int majorVersion;
+
+  /// The minor release number, such as 9 in version 10.9.3.
+  final int minorVersion;
+
+  /// The update release number, such as 3 in version 10.9.3.
+  final int patchVersion;
+
+  MacOsDeviceInfo({
+    required this.majorVersion,
+    required this.minorVersion,
+    required this.patchVersion,
+  });
+}
+
+/// Like [device_info_plus.WindowsDeviceInfo], currently only used to
+/// determine if we're on Windows.
+class WindowsDeviceInfo implements BaseDeviceInfo {}
+
+/// Like [device_info_plus.LinuxDeviceInfo], but without things we don't use.
+///
+/// See:
+///   https://www.freedesktop.org/software/systemd/man/os-release.html
+class LinuxDeviceInfo implements BaseDeviceInfo {
+  /// A string identifying the operating system, without a version component,
+  /// and suitable for presentation to the user.
+  ///
+  /// Examples: 'Fedora', 'Debian GNU/Linux'.
+  ///
+  /// If not set, defaults to 'Linux'.
+  final String name;
+
+  /// A lower-case string identifying the operating system version, excluding
+  /// any OS name information or release code name, and suitable for processing
+  /// by scripts or usage in generated filenames.
+  ///
+  /// The version is mostly numeric, and contains no spaces or other characters
+  /// outside of 0–9, a–z, '.', '_' and '-'.
+  ///
+  /// Examples: '17', '11.04'.
+  ///
+  /// This field is optional and may be null on some systems.
+  final String? versionId;
+
+  LinuxDeviceInfo({required this.name, required this.versionId});
 }
 
 /// Like [package_info_plus.PackageInfo], but without things we don't use.
@@ -200,9 +257,16 @@ class LiveZulipBinding extends ZulipBinding {
   Future<void> _prefetchDeviceInfo() async {
     final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
     _deviceInfo = switch (info) {
-      device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
-      device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
-      _                                                  => throw UnimplementedError(),
+      device_info_plus.AndroidDeviceInfo() => AndroidDeviceInfo(release: info.version.release,
+                                                                sdkInt: info.version.sdkInt),
+      device_info_plus.IosDeviceInfo()     => IosDeviceInfo(systemVersion: info.systemVersion),
+      device_info_plus.MacOsDeviceInfo()   => MacOsDeviceInfo(majorVersion: info.majorVersion,
+                                                              minorVersion: info.minorVersion,
+                                                              patchVersion: info.patchVersion),
+      device_info_plus.WindowsDeviceInfo() => WindowsDeviceInfo(),
+      device_info_plus.LinuxDeviceInfo()   => LinuxDeviceInfo(name: info.name,
+                                                              versionId: info.versionId),
+      _                                    => throw UnimplementedError(),
     };
   }
 
