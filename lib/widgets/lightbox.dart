@@ -7,6 +7,7 @@ import 'package:video_player/video_player.dart';
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../log.dart';
+import '../model/binding.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
@@ -389,7 +390,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
         email: store.account.email,
         apiKey: store.account.apiKey,
       ),
-      ...userAgentHeader()
+      ...ZulipBinding.instance.userAgentHeader(),
     });
     _controller!.addListener(_handleVideoControllerUpdate);
 

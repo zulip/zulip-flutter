@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../log.dart';
+import '../model/binding.dart';
 import '../model/localizations.dart';
 import 'exception.dart';
 
@@ -37,11 +38,14 @@ class ApiConnection {
     String? email,
     String? apiKey,
     required http.Client client,
+    Map<String, String>? userAgentHeader,
   }) : assert((email != null) == (apiKey != null)),
        _authValue = (email != null && apiKey != null)
          ? _authHeaderValue(email: email, apiKey: apiKey)
          : null,
-       _client = client;
+       _client = client,
+       _userAgentHeader =
+         userAgentHeader ?? <String, String>{'User-Agent': 'ZulipFlutter'};
 
   /// Construct an API connection that talks to a live Zulip server over the real network.
   ApiConnection.live({
@@ -51,7 +55,8 @@ class ApiConnection {
     String? apiKey,
   }) : this(client: http.Client(),
             realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
-            email: email, apiKey: apiKey);
+            email: email, apiKey: apiKey,
+            userAgentHeader: ZulipBinding.instance.userAgentHeader());
 
   final Uri realmUrl;
 
@@ -68,6 +73,8 @@ class ApiConnection {
   /// See:
   ///  * API docs at <https://zulip.com/api/changelog>.
   int? zulipFeatureLevel;
+
+  final Map<String, String> _userAgentHeader;
 
   final String? _authValue;
 
@@ -88,7 +95,7 @@ class ApiConnection {
     assert(debugLog("${request.method} ${request.url}"));
 
     addAuth(request);
-    request.headers.addAll(userAgentHeader());
+    request.headers.addAll(_userAgentHeader);
     if (overrideUserAgent != null) {
       request.headers['User-Agent'] = overrideUserAgent;
     }
@@ -210,13 +217,6 @@ String _authHeaderValue({required String email, required String apiKey}) {
 Map<String, String> authHeader({required String email, required String apiKey}) {
   return {
     'Authorization': _authHeaderValue(email: email, apiKey: apiKey),
-  };
-}
-
-Map<String, String> userAgentHeader() {
-  return {
-    // TODO(#467) include platform, platform version, and app version
-    'User-Agent': 'ZulipFlutter',
   };
 }
 

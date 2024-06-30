@@ -131,6 +131,9 @@ abstract class ZulipBinding {
 
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
+
+  /// Generates a user agent header for HTTP requests.
+  Map<String, String> userAgentHeader();
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -246,6 +249,9 @@ class LiveZulipBinding extends ZulipBinding {
     return ZulipBinding.instance as LiveZulipBinding;
   }
 
+  // Stored user agent header, since it remains constant.
+  Map<String, String>? _userAgentHeader;
+
   @override
   BaseDeviceInfo? get deviceInfo => _deviceInfo;
   BaseDeviceInfo? _deviceInfo;
@@ -330,4 +336,17 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
+
+  @override
+  Map<String, String> userAgentHeader() {
+    return _userAgentHeader ??= buildUserAgentHeader();
+  }
+}
+
+@visibleForTesting
+Map<String, String> buildUserAgentHeader() {
+  return {
+    // TODO(#467) include platform, platform version, and app version
+    'User-Agent': 'ZulipFlutter',
+  };
 }

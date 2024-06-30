@@ -71,6 +71,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetCloseInAppWebView();
     _resetDeviceInfo();
     _resetPackageInfo();
+    _resetUserAgentHeader();
     _resetFirebase();
     _resetNotifications();
   }
@@ -227,6 +228,11 @@ class TestZulipBinding extends ZulipBinding {
     packageInfoResult = _defaultPackageInfo;
   }
 
+  Map<String, String>? _userAgentHeader;
+  void _resetUserAgentHeader() {
+    _userAgentHeader = null;
+  }
+
   void _resetFirebase() {
     _firebaseInitialized = false;
     _firebaseMessaging = null;
@@ -278,6 +284,11 @@ class TestZulipBinding extends ZulipBinding {
   @override
   FakeAndroidNotificationHostApi get androidNotificationHost {
     return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
+  }
+
+  @override
+  Map<String, String> userAgentHeader() {
+    return _userAgentHeader ??= buildUserAgentHeader();
   }
 }
 

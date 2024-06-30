@@ -8,25 +8,31 @@ import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
 import 'package:zulip/model/localizations.dart';
 
+import '../model/binding.dart';
 import '../stdlib_checks.dart';
 import 'exception_checks.dart';
 import 'fake_api.dart';
 import '../example_data.dart' as eg;
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+  tearDown(testBinding.reset);
+
   test('ApiConnection.get', () async {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(json: {});
-        await connection.get(kExampleRouteName, (json) => json, 'example/route', params);
-        check(connection.lastRequest!).isA<http.Request>()
-          ..method.equals('GET')
-          ..url.asString.equals('${eg.realmUrl.origin}$expectedRelativeUrl')
-          ..headers.deepEquals({
-            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
-          })
-          ..body.equals('');
+      return FakeApiConnection.with_(account: eg.selfAccount,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          connection.prepare(json: {});
+          await connection.get(kExampleRouteName, (json) => json, 'example/route', params);
+          check(connection.lastRequest!).isA<http.Request>()
+            ..method.equals('GET')
+            ..url.asString.equals('${eg.realmUrl.origin}$expectedRelativeUrl')
+            ..headers.deepEquals({
+              ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+              ...testBinding.userAgentHeader(),
+            })
+            ..body.equals('');
       });
     }
 
@@ -47,19 +53,21 @@ void main() {
 
   test('ApiConnection.post', () async {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(json: {});
-        await connection.post(kExampleRouteName, (json) => json, 'example/route', params);
-        check(connection.lastRequest!).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
-          ..headers.deepEquals({
-            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
-            if (expectContentType)
-              'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
-          })
-          ..body.equals(expectedBody);
+      return FakeApiConnection.with_(account: eg.selfAccount,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          connection.prepare(json: {});
+          await connection.post(kExampleRouteName, (json) => json, 'example/route', params);
+          check(connection.lastRequest!).isA<http.Request>()
+            ..method.equals('POST')
+            ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
+            ..headers.deepEquals({
+              ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+              ...testBinding.userAgentHeader(),
+              if (expectContentType)
+                'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+            })
+            ..body.equals(expectedBody);
       });
     }
 
@@ -78,26 +86,28 @@ void main() {
 
   test('ApiConnection.postFileFromStream', () async {
     Future<void> checkRequest(List<List<int>> content, int length, String? filename) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(json: {});
-        await connection.postFileFromStream(
-          kExampleRouteName, (json) => json, 'example/route',
-          Stream.fromIterable(content), length, filename: filename);
-        check(connection.lastRequest!).isA<http.MultipartRequest>()
-          ..method.equals('POST')
-          ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
-          ..headers.deepEquals({
-            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
-          })
-          ..fields.deepEquals({})
-          ..files.single.which((it) => it
-            ..field.equals('file')
-            ..length.equals(length)
-            ..filename.equals(filename)
-            ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
-              .completes((it) => it.deepEquals(content.expand((l) => l)))
-          );
+      return FakeApiConnection.with_(account: eg.selfAccount,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          connection.prepare(json: {});
+          await connection.postFileFromStream(
+            kExampleRouteName, (json) => json, 'example/route',
+            Stream.fromIterable(content), length, filename: filename);
+          check(connection.lastRequest!).isA<http.MultipartRequest>()
+            ..method.equals('POST')
+            ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
+            ..headers.deepEquals({
+              ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+              ...testBinding.userAgentHeader(),
+            })
+            ..fields.deepEquals({})
+            ..files.single.which((it) => it
+              ..field.equals('file')
+              ..length.equals(length)
+              ..filename.equals(filename)
+              ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+                .completes((it) => it.deepEquals(content.expand((l) => l)))
+            );
       });
     }
 
@@ -113,19 +123,21 @@ void main() {
 
   test('ApiConnection.delete', () async {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
-        connection.prepare(json: {});
-        await connection.delete(kExampleRouteName, (json) => json, 'example/route', params);
-        check(connection.lastRequest!).isA<http.Request>()
-          ..method.equals('DELETE')
-          ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
-          ..headers.deepEquals({
-            ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
-            if (expectContentType)
-              'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
-          })
-          ..body.equals(expectedBody);
+      return FakeApiConnection.with_(account: eg.selfAccount,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          connection.prepare(json: {});
+          await connection.delete(kExampleRouteName, (json) => json, 'example/route', params);
+          check(connection.lastRequest!).isA<http.Request>()
+            ..method.equals('DELETE')
+            ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
+            ..headers.deepEquals({
+              ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+              ...testBinding.userAgentHeader(),
+              if (expectContentType)
+                'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+            })
+            ..body.equals(expectedBody);
       });
     }
 
