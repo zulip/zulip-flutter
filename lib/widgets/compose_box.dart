@@ -265,6 +265,22 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
+class AutocompleteInputWrapper extends StatelessWidget {
+  const AutocompleteInputWrapper({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => InputDecorator(
+    decoration: const InputDecoration(),
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
+        // TODO constrain this adaptively (i.e. not hard-coded 200)
+        maxHeight: 200,
+      ), child:child));
+}
+
 class _ContentInput extends StatelessWidget {
   const _ContentInput({
     required this.narrow,
@@ -282,30 +298,18 @@ class _ContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    return InputDecorator(
-      decoration: const InputDecoration(),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
-
-          // TODO constrain this adaptively (i.e. not hard-coded 200)
-          maxHeight: 200,
-        ),
-        child: ComposeAutocomplete(
-          narrow: narrow,
+    return AutocompleteInputWrapper(
+      child: ComposeAutocomplete(
+        narrow: narrow,
+        controller: controller,
+        focusNode: focusNode,
+        fieldViewBuilder: (context) => TextField(
           controller: controller,
           focusNode: focusNode,
-          fieldViewBuilder: (context) {
-            return TextField(
-              controller: controller,
-              focusNode: focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-            );
-          }),
-        ));
+          style: TextStyle(color: colorScheme.onSurface),
+          decoration: InputDecoration.collapsed(hintText: hintText),
+          maxLines: null,
+          textCapitalization: TextCapitalization.sentences)));
   }
 }
 
