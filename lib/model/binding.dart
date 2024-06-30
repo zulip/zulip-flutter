@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../host/android_notifications.dart';
+import '../log.dart';
 import '../widgets/store.dart';
 import 'store.dart';
 
@@ -133,6 +134,9 @@ abstract class ZulipBinding {
   AndroidNotificationHostApi get androidNotificationHost;
 
   /// Generates a user agent header for HTTP requests.
+  ///
+  /// Uses [deviceInfo] to get operating system information
+  /// and [packageInfo] to get application version information.
   Map<String, String> userAgentHeader();
 }
 
@@ -339,14 +343,40 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Map<String, String> userAgentHeader() {
-    return _userAgentHeader ??= buildUserAgentHeader();
+    if (deviceInfo == null || packageInfo == null) {
+      debugLog('userAgentHeader: Dependencies not initialized, falling back to \'ZulipFlutter\'.');
+      return {'User-Agent': 'ZulipFlutter'}; // TODO(log)
+    }
+    return _userAgentHeader ??= buildUserAgentHeader(deviceInfo!, packageInfo!);
   }
 }
 
 @visibleForTesting
-Map<String, String> buildUserAgentHeader() {
+Map<String, String> buildUserAgentHeader(BaseDeviceInfo deviceInfo, PackageInfo packageInfo) {
+  final osInfo = switch (deviceInfo) {
+    AndroidDeviceInfo(
+      :var release)       => 'Android $release', // "Android 14"
+    IosDeviceInfo(
+      :var systemVersion) => 'iOS $systemVersion', // "iOS 17.4"
+    MacOsDeviceInfo(
+      :var majorVersion,
+      :var minorVersion,
+      :var patchVersion)  => 'macOS $majorVersion.$minorVersion.$patchVersion', // "macOS 14.5.0"
+    WindowsDeviceInfo()   => 'Windows', // "Windows"
+    LinuxDeviceInfo(
+      :var name,
+      :var versionId)     => 'Linux; $name${versionId != null ? ' $versionId' : ''}', // "Linux; Fedora Linux 40" or "Linux; Fedora Linux"
+    _                     => throw UnimplementedError(),
+  };
+  final PackageInfo(:version, :buildNumber) = packageInfo;
+
+  // Possible examples:
+  //  'ZulipFlutter/0.0.15+15 (Android 14)'
+  //  'ZulipFlutter/0.0.15+15 (iOS 17.4)'
+  //  'ZulipFlutter/0.0.15+15 (macOS 14.5.0)'
+  //  'ZulipFlutter/0.0.15+15 (Windows)'
+  //  'ZulipFlutter/0.0.15+15 (Linux; Fedora Linux 40)'
   return {
-    // TODO(#467) include platform, platform version, and app version
-    'User-Agent': 'ZulipFlutter',
+    'User-Agent': 'ZulipFlutter/$version+$buildNumber ($osInfo)',
   };
 }

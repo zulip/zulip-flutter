@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 
 import '../model/binding.dart';
@@ -318,6 +319,41 @@ void main() {
         ..causeException.isA<DistinctiveError>()
         ..message.contains("something is wrong");
       check(st.toString()).contains("distinctivelyNamedFromJson");
+    }
+  });
+
+  group('ApiConnection user-agent', () {
+    Future<void> checkUserAgent(String expectedUserAgent) async {
+      return FakeApiConnection.with_(account: eg.selfAccount,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          connection.prepare(json: {});
+          await connection.get(kExampleRouteName, (json) => json, 'example/route', null);
+          check(connection.lastRequest!).isA<http.Request>()
+            .headers.deepEquals({
+              ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+              ...{'User-Agent': expectedUserAgent},
+            });
+      });
+    }
+
+    final packageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+
+    final testCases = [
+      ('ZulipFlutter/0.0.1+1 (Android 14)',             AndroidDeviceInfo(release: '14', sdkInt: 34),                        packageInfo),
+      ('ZulipFlutter/0.0.1+1 (iOS 17.4)',               IosDeviceInfo(systemVersion: '17.4'),                                packageInfo),
+      ('ZulipFlutter/0.0.1+1 (macOS 14.5.0)',           MacOsDeviceInfo(majorVersion: 14, minorVersion: 5, patchVersion: 0), packageInfo),
+      ('ZulipFlutter/0.0.1+1 (Windows)',                WindowsDeviceInfo(),                                                 packageInfo),
+      ('ZulipFlutter/0.0.1+1 (Linux; Fedora Linux 40)', LinuxDeviceInfo(name: 'Fedora Linux', versionId: '40'),              packageInfo),
+      ('ZulipFlutter/0.0.1+1 (Linux; Fedora Linux)',    LinuxDeviceInfo(name: 'Fedora Linux', versionId: null),              packageInfo),
+    ];
+
+    for (final (userAgent, deviceInfo, pacakgeInfo) in testCases) {
+      test('matches $userAgent', () async {
+        testBinding.deviceInfoResult = deviceInfo;
+        testBinding.packageInfoResult = pacakgeInfo;
+        await checkUserAgent(userAgent);
+      });
     }
   });
 }

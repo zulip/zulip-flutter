@@ -288,7 +288,7 @@ class TestZulipBinding extends ZulipBinding {
 
   @override
   Map<String, String> userAgentHeader() {
-    return _userAgentHeader ??= buildUserAgentHeader();
+    return _userAgentHeader ??= buildUserAgentHeader(deviceInfo!, packageInfo!);
   }
 }
 
