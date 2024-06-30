@@ -81,7 +81,7 @@ the generated Dart binding for it will instead be a function,
 taking arguments corresponding to the placeholders.
 
 For example:
-`zulipLocalizations.subscribedToNStreams(store.subscriptions.length)`.
+`zulipLocalizations.subscribedToNChannels(store.subscriptions.length)`.
 
 
 ## Hack to enforce locale (for testing, etc.)
