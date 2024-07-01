@@ -197,4 +197,49 @@ void main() {
                .values.single.type.equals(MessageType.direct);
     });
   });
+
+  group('typing status event', () {
+    final baseJson = {
+      'id': 1,
+      'type': 'typing',
+      'op': 'start',
+      'sender': {'user_id': 123, 'email': '123@example.com'},
+    };
+
+    final directMessageJson = {
+      ...baseJson,
+      'message_type': 'direct',
+      'recipients': [1, 2, 3].map((e) => {'user_id': e, 'email': '$e@example.com'}).toList(),
+    };
+
+    test('direct message typing events', () {
+      check(TypingEvent.fromJson(directMessageJson))
+        ..recipientIds.isNotNull().deepEquals([1, 2, 3])
+        ..senderId.equals(123);
+    });
+
+    test('private type missing recipient', () {
+      check(() => TypingEvent.fromJson({
+        ...baseJson, 'message_type': 'private'})).throws<void>();
+    });
+
+    test('private -> direct', () {
+      check(TypingEvent.fromJson({
+        ...directMessageJson,
+        'message_type': 'private',
+      })).messageType.equals(MessageType.direct);
+    });
+
+    test('stream type missing streamId/topic', () {
+      check(() => TypingEvent.fromJson({
+        ...baseJson, 'message_type': 'stream', 'stream_id': 123, 'topic': 'foo'}))
+        .returnsNormally();
+      check(() => TypingEvent.fromJson({
+        ...baseJson, 'message_type': 'stream'})).throws<void>();
+      check(() => TypingEvent.fromJson({
+        ...baseJson, 'message_type': 'stream', 'topic': 'foo'})).throws<void>();
+      check(() => TypingEvent.fromJson({
+        ...baseJson, 'message_type': 'stream', 'stream_id': 123})).throws<void>();
+    });
+  });
 }

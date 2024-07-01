@@ -62,6 +62,7 @@ sealed class Event {
           case 'remove': return UpdateMessageFlagsRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'typing': return TypingEvent.fromJson(json);
       case 'reaction': return ReactionEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -736,8 +737,9 @@ class DeleteMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
 }
 
-/// As in [DeleteMessageEvent.messageType]
-/// or [UpdateMessageFlagsMessageDetail.type].
+/// As in [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type],
+/// or [TypingEvent.messageType].
 @JsonEnum(alwaysCreate: true)
 enum MessageType {
   stream,
@@ -869,6 +871,69 @@ class UpdateMessageFlagsMessageDetail {
   }
 
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsMessageDetailToJson(this);
+}
+
+/// A Zulip event of type `typing`:
+///   https://zulip.com/api/get-events#typing-start
+///   https://zulip.com/api/get-events#typing-stop
+@JsonSerializable(fieldRename: FieldRename.snake)
+class TypingEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'typing';
+
+  final TypingOp op;
+  @MessageTypeConverter()
+  final MessageType messageType;
+  @JsonKey(readValue: _readSenderId)
+  final int senderId;
+  @JsonKey(name: 'recipients', fromJson: _recipientIdsFromJson)
+  final List<int>? recipientIds;
+  final int? streamId;
+  final String? topic;
+
+  TypingEvent({
+    required super.id,
+    required this.op,
+    required this.messageType,
+    required this.senderId,
+    required this.recipientIds,
+    required this.streamId,
+    required this.topic,
+  });
+
+  static Object? _readSenderId(Map<Object?, Object?> json, String key) {
+    return (json['sender'] as Map<String, dynamic>)['user_id'];
+  }
+
+  static List<int>? _recipientIdsFromJson(Object? json) {
+    if (json == null) return null;
+    return (json as List<Object?>).map(
+      (item) => (item as Map<String, Object?>)['user_id'] as int).toList();
+  }
+
+  factory TypingEvent.fromJson(Map<String, dynamic> json) {
+    final result = _$TypingEventFromJson(json);
+    // Crunchy-shell validation
+    switch (result.messageType) {
+      case MessageType.stream:
+        result.streamId as int;
+        result.topic as String;
+      case MessageType.direct:
+        result.recipientIds as List<int>;
+    }
+    return result;
+  }
+
+  @override
+  Map<String, dynamic> toJson() => _$TypingEventToJson(this);
+}
+
+/// As in [TypingEvent.op].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum TypingOp {
+  start,
+  stop
 }
 
 /// A Zulip event of type `reaction`, with op `add` or `remove`.

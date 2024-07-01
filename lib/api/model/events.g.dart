@@ -526,6 +526,34 @@ Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
       'topic': instance.topic,
     };
 
+TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
+      id: (json['id'] as num).toInt(),
+      op: $enumDecode(_$TypingOpEnumMap, json['op']),
+      messageType:
+          const MessageTypeConverter().fromJson(json['message_type'] as String),
+      senderId: (TypingEvent._readSenderId(json, 'sender_id') as num).toInt(),
+      recipientIds: TypingEvent._recipientIdsFromJson(json['recipients']),
+      streamId: (json['stream_id'] as num?)?.toInt(),
+      topic: json['topic'] as String?,
+    );
+
+Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': _$TypingOpEnumMap[instance.op]!,
+      'message_type': const MessageTypeConverter().toJson(instance.messageType),
+      'sender_id': instance.senderId,
+      'recipients': instance.recipientIds,
+      'stream_id': instance.streamId,
+      'topic': instance.topic,
+    };
+
+const _$TypingOpEnumMap = {
+  TypingOp.start: 'start',
+  TypingOp.stop: 'stop',
+};
+
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: (json['id'] as num).toInt(),

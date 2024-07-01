@@ -72,6 +72,14 @@ extension UpdateMessageFlagsMessageDetailCheck on Subject<UpdateMessageFlagsMess
   Subject<MessageType?> get type => has((e) => e.type, 'type');
 }
 
+extension TypingEventChecks on Subject<TypingEvent> {
+  Subject<MessageType> get messageType => has((e) => e.messageType, 'messageType');
+  Subject<int> get senderId => has((e) => e.senderId, 'senderId');
+  Subject<List<int>?> get recipientIds => has((e) => e.recipientIds, 'recipientIds');
+  Subject<int?> get streamId => has((e) => e.streamId, 'streamId');
+  Subject<String?> get topic => has((e) => e.topic, 'topic');
+}
+
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {
   // No properties not covered by Event.
 }
