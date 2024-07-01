@@ -576,6 +576,39 @@ void main() {
     });
   });
 
+  group('EditStateMarker', () {
+    void checkMarkersCount({required int edited, required int moved}) {
+      check(find.byIcon(ZulipIcons.edited).evaluate()).length.equals(edited);
+      check(find.byIcon(ZulipIcons.message_moved).evaluate()).length.equals(moved);
+    }
+
+    testWidgets('no edited or moved messages', (tester) async {
+      final message = eg.streamMessage();
+      await setupMessageListPage(tester, messages: [message]);
+      checkMarkersCount(edited: 0, moved: 0);
+    });
+
+    testWidgets('edited and moved messages from events', (tester) async {
+      final message = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      await setupMessageListPage(tester, messages: [message, message2]);
+      checkMarkersCount(edited: 0, moved: 0);
+
+      await store.handleEvent(eg.updateMessageEditEvent(message, renderedContent: "edited"));
+      await tester.pump();
+      checkMarkersCount(edited: 1, moved: 0);
+
+      await store.handleEvent(eg.updateMessageMoveEvent
+        ([message, message2], origTopic: 'old', newTopic: 'new'));
+      await tester.pump();
+      checkMarkersCount(edited: 1, moved: 1);
+
+      await store.handleEvent(eg.updateMessageEditEvent(message2, renderedContent: "edited"));
+      await tester.pump();
+      checkMarkersCount(edited: 2, moved: 0);
+    });
+  });
+
   group('_UnreadMarker animations', () {
     // TODO: Improve animation state testing so it is less tied to
     //   implementation details and more focused on output, see:

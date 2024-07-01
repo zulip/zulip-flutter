@@ -265,6 +265,8 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
+      editState: Message._messageEditStateFromJson(
+          MessageEditState._readFromMessage(json, 'edit_state')),
       id: (json['id'] as num).toInt(),
       isMeMessage: json['is_me_message'] as bool,
       lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
@@ -288,6 +290,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'client': instance.client,
       'content': instance.content,
       'content_type': instance.contentType,
+      'edit_state': _$MessageEditStateEnumMap[instance.editState]!,
       'id': instance.id,
       'is_me_message': instance.isMeMessage,
       'last_edit_timestamp': instance.lastEditTimestamp,
@@ -307,6 +310,12 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'stream_id': instance.streamId,
     };
 
+const _$MessageEditStateEnumMap = {
+  MessageEditState.none: 'none',
+  MessageEditState.edited: 'edited',
+  MessageEditState.moved: 'moved',
+};
+
 DmRecipient _$DmRecipientFromJson(Map<String, dynamic> json) => DmRecipient(
       id: (json['id'] as num).toInt(),
       email: json['email'] as String,
@@ -324,6 +333,8 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
+      editState: Message._messageEditStateFromJson(
+          MessageEditState._readFromMessage(json, 'edit_state')),
       id: (json['id'] as num).toInt(),
       isMeMessage: json['is_me_message'] as bool,
       lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
@@ -346,6 +357,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'client': instance.client,
       'content': instance.content,
       'content_type': instance.contentType,
+      'edit_state': _$MessageEditStateEnumMap[instance.editState]!,
       'id': instance.id,
       'is_me_message': instance.isMeMessage,
       'last_edit_timestamp': instance.lastEditTimestamp,

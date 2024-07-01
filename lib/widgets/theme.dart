@@ -81,7 +81,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     borderBar = const Color(0x33000000),
     icon = const Color(0xff666699),
     title = const Color(0xff1a1a1a),
-    streamColorSwatches = StreamColorSwatches.light;
+    streamColorSwatches = StreamColorSwatches.light,
+    starColor = const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+    bgMarker = const Color(0xffddecf6),
+    textMarker = const Color(0xff26516e),
+    textMarkerLight = const Color(0xff92a7b6);
 
   DesignVariables._({
     required this.bgMain,
@@ -90,6 +94,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.icon,
     required this.title,
     required this.streamColorSwatches,
+    required this.starColor,
+    required this.bgMarker,
+    required this.textMarker,
+    required this.textMarkerLight,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -110,6 +118,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   // Not exactly from the Figma design, but from Vlad anyway.
   final StreamColorSwatches streamColorSwatches;
+  final Color starColor;
+  final Color bgMarker;
+  final Color textMarker;
+  final Color textMarkerLight;
 
   @override
   DesignVariables copyWith({
@@ -119,6 +131,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? icon,
     Color? title,
     StreamColorSwatches? streamColorSwatches,
+    Color? starColor,
+    Color? bgMarker,
+    Color? textMarker,
+    Color? textMarkerLight,
   }) {
     return DesignVariables._(
       bgMain: bgMain ?? this.bgMain,
@@ -127,6 +143,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: icon ?? this.icon,
       title: title ?? this.title,
       streamColorSwatches: streamColorSwatches ?? this.streamColorSwatches,
+      starColor: starColor ?? this.starColor,
+      bgMarker: bgMarker ?? this.bgMarker,
+      textMarker: textMarker ?? this.textMarker,
+      textMarkerLight: textMarkerLight ?? this.textMarkerLight,
     );
   }
 
@@ -142,6 +162,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: Color.lerp(icon, other.icon, t)!,
       title: Color.lerp(title, other.title, t)!,
       streamColorSwatches: StreamColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
+      starColor: Color.lerp(starColor, other.starColor, t)!,
+      bgMarker: Color.lerp(bgMarker, other.bgMarker, t)!,
+      textMarker: Color.lerp(textMarker, other.textMarker, t)!,
+      textMarkerLight: Color.lerp(textMarkerLight, other.textMarkerLight, t)!,
     );
   }
 }
