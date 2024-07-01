@@ -179,19 +179,19 @@ void main() {
 
         store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
           deliveryEmail: null));
-        check(getUser()).deliveryEmailStaleDoNotUse.equals('a@mail.example');
+        check(getUser()).deliveryEmail.equals('a@mail.example');
 
         store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
           deliveryEmail: const JsonNullable(null)));
-        check(getUser()).deliveryEmailStaleDoNotUse.isNull();
+        check(getUser()).deliveryEmail.isNull();
 
         store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
           deliveryEmail: const JsonNullable('b@mail.example')));
-        check(getUser()).deliveryEmailStaleDoNotUse.equals('b@mail.example');
+        check(getUser()).deliveryEmail.equals('b@mail.example');
 
         store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
           deliveryEmail: const JsonNullable('c@mail.example')));
-        check(getUser()).deliveryEmailStaleDoNotUse.equals('c@mail.example');
+        check(getUser()).deliveryEmail.equals('c@mail.example');
       });
     });
   });

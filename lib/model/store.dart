@@ -430,15 +430,15 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
       if (user == null) {
         return; // TODO log
       }
-      if (event.fullName != null)       user.fullName                   = event.fullName!;
-      if (event.avatarUrl != null)      user.avatarUrl                  = event.avatarUrl!;
-      if (event.avatarVersion != null)  user.avatarVersion              = event.avatarVersion!;
-      if (event.timezone != null)       user.timezone                   = event.timezone!;
-      if (event.botOwnerId != null)     user.botOwnerId                 = event.botOwnerId!;
-      if (event.role != null)           user.role                       = event.role!;
-      if (event.isBillingAdmin != null) user.isBillingAdmin             = event.isBillingAdmin!;
-      if (event.deliveryEmail != null)  user.deliveryEmailStaleDoNotUse = event.deliveryEmail!.value;
-      if (event.newEmail != null)       user.email                      = event.newEmail!;
+      if (event.fullName != null)       user.fullName       = event.fullName!;
+      if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl!;
+      if (event.avatarVersion != null)  user.avatarVersion  = event.avatarVersion!;
+      if (event.timezone != null)       user.timezone       = event.timezone!;
+      if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;
+      if (event.role != null)           user.role           = event.role!;
+      if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
+      if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
+      if (event.newEmail != null)       user.email          = event.newEmail!;
       if (event.customProfileField != null) {
         final profileData = (user.profileData ??= {});
         final update = event.customProfileField!;
