@@ -505,8 +505,7 @@ class MarkAsReadWidget extends StatelessWidget {
               ),
               onPressed: () => _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
-              label: Text(zulipLocalizations.markAllAsReadLabel))))),
-    );
+              label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }
 
