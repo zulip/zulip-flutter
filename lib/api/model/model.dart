@@ -189,8 +189,7 @@ enum Emojiset {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class User {
   final int userId;
-  @JsonKey(name: 'delivery_email')
-  String? deliveryEmailStaleDoNotUse; // TODO see [RealmUserUpdateEvent.deliveryEmail]
+  String? deliveryEmail;
   String email;
   String fullName;
   String dateJoined;
@@ -236,7 +235,7 @@ class User {
 
   User({
     required this.userId,
-    required this.deliveryEmailStaleDoNotUse,
+    required this.deliveryEmail,
     required this.email,
     required this.fullName,
     required this.dateJoined,

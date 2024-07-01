@@ -83,7 +83,7 @@ User user({
   var effectiveDeliveryEmail = deliveryEmail ?? 'name@example.com'; // TODO generate example emails
   return User(
     userId: userId ?? _nextUserId(),
-    deliveryEmailStaleDoNotUse: effectiveDeliveryEmail,
+    deliveryEmail: effectiveDeliveryEmail,
     email: email ?? effectiveDeliveryEmail,
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: '2023-04-28',

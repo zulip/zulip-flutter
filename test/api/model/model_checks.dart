@@ -3,7 +3,7 @@ import 'package:zulip/api/model/model.dart';
 
 extension UserChecks on Subject<User> {
   Subject<int> get userId => has((x) => x.userId, 'userId');
-  Subject<String?> get deliveryEmailStaleDoNotUse => has((x) => x.deliveryEmailStaleDoNotUse, 'deliveryEmailStaleDoNotUse');
+  Subject<String?> get deliveryEmail => has((x) => x.deliveryEmail, 'deliveryEmail');
   Subject<String> get email => has((x) => x.email, 'email');
   Subject<String> get fullName => has((x) => x.fullName, 'fullName');
   Subject<String> get dateJoined => has((x) => x.dateJoined, 'dateJoined');
