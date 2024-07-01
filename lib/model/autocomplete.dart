@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/streams.dart';
 import '../widgets/compose_box.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -40,6 +41,16 @@ extension ComposeContentAutocomplete on ComposeContentController {
         textEditingValue: value);
     }
     return null;
+  }
+}
+
+extension ComposeTopicAutocomplete on ComposeTopicController {
+  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() {
+    if (!selection.isValid || !selection.isNormalized) return null;
+    return AutocompleteIntent(
+      syntaxStart: 0,
+      query: TopicAutocompleteQuery(value.text),
+      textEditingValue: value);
   }
 }
 
@@ -148,6 +159,12 @@ class AutocompleteViewManager {
       view.reassemble();
     }
     autocompleteDataCache.invalidateUser(event.userId);
+  }
+
+  void handleTopicsFetchCompleted() {
+    for (final view in _getViewsOfType<TopicAutocompleteView>()) {
+      view.reassemble();
+    }
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
@@ -407,6 +424,7 @@ class MentionAutocompleteQuery extends AutocompleteQuery {
 
 class AutocompleteDataCache {
   final Map<int, List<String>> _nameWordsByUser = {};
+  final Map<int, List<String>> _nameWordsByTopic = {};
 
   List<String> nameWordsForUser(User user) {
     return _nameWordsByUser[user.userId] ??= user.fullName.toLowerCase().split(' ');
@@ -414,6 +432,14 @@ class AutocompleteDataCache {
 
   void invalidateUser(int userId) {
     _nameWordsByUser.remove(userId);
+  }
+
+  List<String> nameWordsForTopic(Topic topic) {
+    return _nameWordsByTopic[topic.maxId] ??= topic.name.toLowerCase().split(' ');
+  }
+
+  void invalidateTopic(int topicMaxId) {
+    _nameWordsByTopic.remove(topicMaxId);
   }
 }
 
@@ -430,3 +456,77 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
 // TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
 // TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+
+class TopicAutocompleteDataProvider extends AutocompleteDataProvider<Topic, TopicAutocompleteQuery, TopicAutocompleteResult> {
+  final PerAccountStore store;
+  final int streamId;
+  Iterable<Topic>? _topics;
+  bool _isFetching = false;
+
+  TopicAutocompleteDataProvider({required this.store, required this.streamId});
+
+  /// Fetches topics of the current stream narrow, expected to fetch
+  /// only once per lifecycle.
+  ///
+  /// Starts fetching once the stream narrow is active, then when results
+  /// are fetched it notifies `autocompleteViewManager` to refresh UI
+  /// showing the newly fetched topics.
+  Future<void> fetch() async {
+    if (_topics != null && !_isFetching) return;
+    _isFetching = true;
+    final result = await getStreamTopics(store.connection, streamId: streamId);
+    _topics = result.topics;
+    store.autocompleteViewManager.handleTopicsFetchCompleted();
+    _isFetching = false;
+  }
+
+  @override
+  Iterable<Topic> getDataForQuery(TopicAutocompleteQuery query) {
+    return _topics ?? [];
+  }
+
+  @override
+  TopicAutocompleteResult? testItem(TopicAutocompleteQuery query, Topic item) {
+    if (query.testTopic(item, store.autocompleteViewManager.autocompleteDataCache)) {
+      return TopicAutocompleteResult(topic: item);
+    }
+    return null;
+  }
+}
+
+class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
+  TopicAutocompleteView.init({
+      required super.store,
+      required int streamId,
+  }) : super(dataProvider: TopicAutocompleteDataProvider(
+      store: store,
+      streamId: streamId
+    )..fetch());
+}
+
+class TopicAutocompleteQuery extends AutocompleteQuery {
+  TopicAutocompleteQuery(super.raw);
+
+  bool testTopic(Topic topic, AutocompleteDataCache cache) {
+    return _testContainsQueryWords(cache.nameWordsForTopic(topic));
+  }
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TopicAutocompleteQuery')}(raw: $raw)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TopicAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicAutocompleteQuery', raw);
+}
+
+class TopicAutocompleteResult extends AutocompleteResult {
+  final Topic topic;
+
+  TopicAutocompleteResult({required this.topic});
+}

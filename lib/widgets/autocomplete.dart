@@ -70,6 +70,36 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
     });
 }
 
+class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
+  TopicAutocomplete({
+    super.key,
+    required int streamId,
+    required ComposeTopicController controller,
+    required super.focusNode,
+    required FocusNode contentFocusNode,
+    required super.fieldViewBuilder,
+  }) : super(
+    controller: controller,
+    getAutocompleteIntent: () => controller.autocompleteIntent(),
+    viewModelBuilder: (context) {
+      final store = PerAccountStoreWidget.of(context);
+      return TopicAutocompleteView.init(store: store, streamId: streamId);
+    },
+    itemBuilder: (context, index, option) => InkWell(
+      onTap: () {
+        final intent = controller.autocompleteIntent();
+        if (intent == null) return;
+        final label = option.topic.name;
+        controller.value = intent.textEditingValue.replaced(TextRange(
+          start: intent.syntaxStart,
+          end: intent.textEditingValue.selection.end), label);
+        contentFocusNode.requestFocus();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Text(option.topic.name))));
+}
+
 class AutocompleteField<Q extends AutocompleteQuery, R extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
     super.key,
