@@ -138,8 +138,10 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
           RealmUserUpdateEvent._readFromPerson(json, 'is_billing_admin')
               as bool?,
       deliveryEmail:
-          RealmUserUpdateEvent._readFromPerson(json, 'delivery_email')
-              as String?,
+          _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+              RealmUserUpdateEvent._readNullableStringFromPerson(
+                  json, 'delivery_email'),
+              const NullableStringJsonConverter().fromJson),
       customProfileField: RealmUserUpdateEvent._readFromPerson(
                   json, 'custom_profile_field') ==
               null
@@ -164,7 +166,10 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
       'bot_owner_id': instance.botOwnerId,
       'role': instance.role,
       'is_billing_admin': instance.isBillingAdmin,
-      'delivery_email': instance.deliveryEmail,
+      'delivery_email':
+          _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+              instance.deliveryEmail,
+              const NullableStringJsonConverter().toJson),
       'custom_profile_field': instance.customProfileField,
       'new_email': instance.newEmail,
     };
@@ -177,6 +182,18 @@ const _$UserRoleEnumMap = {
   UserRole.guest: 600,
   UserRole.unknown: null,
 };
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) =>
+    json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);
 
 StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
     StreamCreateEvent(

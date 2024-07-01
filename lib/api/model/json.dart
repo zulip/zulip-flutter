@@ -1,3 +1,5 @@
+import 'package:json_annotation/json_annotation.dart';
+
 /// A value parsed from JSON as either `null` or another value.
 ///
 /// This can be used to represent JSON properties where absence, null,
@@ -28,4 +30,22 @@ class JsonNullable<T extends Object> {
 
   @override
   int get hashCode => Object.hash('JsonNullable', value);
+}
+
+class IdentityJsonConverter<T> extends JsonConverter<T, T> {
+  const IdentityJsonConverter();
+
+  @override
+  T fromJson(T json) => json;
+
+  @override
+  T toJson(T object) => object;
+}
+
+// Make similar IdentityJsonConverter<…> subclasses as needed.
+// Just writing `@IdentityJsonConverter<…>` directly as the annotation
+// doesn't work, as json_serializable gets confused.  Possibly related:
+//   https://github.com/google/json_serializable.dart/issues/1398
+class NullableStringJsonConverter extends IdentityJsonConverter<JsonNullable<String>> {
+  const NullableStringJsonConverter();
 }

@@ -437,7 +437,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
       if (event.botOwnerId != null)     user.botOwnerId                 = event.botOwnerId!;
       if (event.role != null)           user.role                       = event.role!;
       if (event.isBillingAdmin != null) user.isBillingAdmin             = event.isBillingAdmin!;
-      if (event.deliveryEmail != null)  user.deliveryEmailStaleDoNotUse = event.deliveryEmail!;
+      if (event.deliveryEmail != null)  user.deliveryEmailStaleDoNotUse = event.deliveryEmail!.value;
       if (event.newEmail != null)       user.email                      = event.newEmail!;
       if (event.customProfileField != null) {
         final profileData = (user.profileData ??= {});

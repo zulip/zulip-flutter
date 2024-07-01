@@ -4,6 +4,7 @@ import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
 
+export 'json.dart' show JsonNullable;
 export 'reaction.dart';
 
 part 'model.g.dart';
