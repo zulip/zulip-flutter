@@ -111,34 +111,51 @@ class AutocompleteIntent<Q extends AutocompleteQuery> {
 ///
 /// On reassemble, call [reassemble].
 class AutocompleteViewManager {
-  final Set<MentionAutocompleteView> _mentionAutocompleteViews = {};
+  final Map<Type, Set<AutocompleteView>> _views = {};
 
   AutocompleteDataCache autocompleteDataCache = AutocompleteDataCache();
 
-  void registerMentionAutocomplete(MentionAutocompleteView view) {
-    final added = _mentionAutocompleteViews.add(view);
-    assert(added);
+  Set<AutocompleteView> get _allViews => _views.values.fold(
+    {}, (previousValue, element) => previousValue..addAll(element));
+
+  Set<T> _getViewsOfType<T extends AutocompleteView>() {
+    return _views[T]?.cast() ?? {};
   }
 
-  void unregisterMentionAutocomplete(MentionAutocompleteView view) {
-    final removed = _mentionAutocompleteViews.remove(view);
+  void register<T extends AutocompleteView>(T view) {
+    final typedViews = _views[view.runtimeType] ?? {};
+    final added = typedViews.add(view);
+    assert(added);
+    _views[view.runtimeType] = typedViews;
+  }
+
+  void unregister<T extends AutocompleteView>(T view) {
+    final typedViews = _views[view.runtimeType] ?? {};
+    final removed = typedViews.remove(view);
     assert(removed);
+    _views[view.runtimeType] = typedViews;
   }
 
   void handleRealmUserRemoveEvent(RealmUserRemoveEvent event) {
+    for (final view in _getViewsOfType<MentionAutocompleteView>()) {
+      view.reassemble();
+    }
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
+    for (final view in _getViewsOfType<MentionAutocompleteView>()) {
+      view.reassemble();
+    }
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
-  /// Calls [MentionAutocompleteView.reassemble] for all that are registered.
+  /// Calls [AutocompleteView.reassemble] for all that are registered.
   ///
   void reassemble() {
-    for (final view in _mentionAutocompleteViews) {
+    for (final view in _allViews) {
       view.reassemble();
     }
   }
@@ -185,7 +202,18 @@ abstract class AutocompleteView<Q extends AutocompleteQuery, R extends Autocompl
   final List<R> Function(List<R> results)? resultsFilter;
   final PerAccountStore store;
 
-  AutocompleteView({required this.dataProvider, this.resultsFilter, required this.store});
+  AutocompleteView({required this.dataProvider, this.resultsFilter, required this.store}) {
+    store.autocompleteViewManager.register(this);
+  }
+
+  @override
+  void dispose() {
+    store.autocompleteViewManager.unregister(this);
+    // We cancel in-progress computations by checking [hasListeners] between tasks.
+    // After [super.dispose] is called, [hasListeners] returns false.
+    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
+    super.dispose();
+  }
 
   Q? get query => _query;
   Q? _query;
@@ -308,18 +336,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required Narrow narrow,
   }) : super(dataProvider: MentionAutocompleteDataProvider(
     store: store,
-    narrow: narrow)) {
-    store.autocompleteViewManager.registerMentionAutocomplete(this);
-  }
-
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterMentionAutocomplete(this);
-    // We cancel in-progress computations by checking [hasListeners] between tasks.
-    // After [super.dispose] is called, [hasListeners] returns false.
-    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
-    super.dispose();
-  }
+    narrow: narrow));
 }
 
 abstract class AutocompleteQuery {
