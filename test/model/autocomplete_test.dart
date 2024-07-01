@@ -359,10 +359,12 @@ void main() {
     Future<void> prepare({
       List<User> users = const [],
       List<RecentDmConversation> dmConversations = const [],
+      List<Message> messages = const [],
     }) async {
       store = eg.store(initialSnapshot: eg.initialSnapshot(
         recentPrivateConversations: dmConversations));
       await store.addUsers(users);
+      await store.addMessages(messages);
     }
 
     group('MentionAutocompleteView.compareNullable', () {
@@ -379,6 +381,62 @@ void main() {
 
       test('both of [a] and [b] are null', () async {
         check(MentionAutocompleteView.compareNullable(null, null)).equals(0);
+        check(MentionAutocompleteView.compareNullable(null, null)).equals(0);
+      });
+    });
+
+    group('MentionAutocompleteView.compareByRecency', () {
+      final userA = eg.otherUser;
+      final userB = eg.thirdUser;
+      final stream = eg.stream();
+      const topic1 = 'topic1';
+      const topic2 = 'topic2';
+
+      Message message(User sender, String topic) {
+        return eg.streamMessage(
+          sender: sender,
+          stream: stream,
+          topic: topic,
+        );
+      }
+
+      int compareAB({required String? topic}) {
+        return MentionAutocompleteView.compareByRecency(userA, userB,
+          streamId: stream.streamId,
+          topic: topic,
+          store: store,
+        );
+      }
+
+      test('prioritizes the user with more recent activity in the topic', () async {
+        await prepare(messages: [
+          message(userA, topic1),
+          message(userB, topic1),
+        ]);
+        check(compareAB(topic: topic1)).isGreaterThan(0);
+      });
+
+      test('prioritizes the user with more recent activity in the stream '
+        'if there is no activity in the topic from both users', () async {
+        await prepare(messages: [
+          message(userA, topic1),
+          message(userB, topic1),
+        ]);
+        check(compareAB(topic: topic2)).isGreaterThan(0);
+      });
+
+      test('prioritizes the user with more recent activity in the stream '
+        'if there is no topic provided', () async {
+        await prepare(messages: [
+          message(userA, topic1),
+          message(userB, topic2),
+        ]);
+        check(compareAB(topic: null)).isGreaterThan(0);
+      });
+
+      test('prioritizes none of the users if there is no activity in the stream from both users', () async {
+        await prepare(messages: []);
+        check(compareAB(topic: null)).equals(0);
       });
     });
 
@@ -436,8 +494,11 @@ void main() {
     });
 
     group('autocomplete suggests relevant users in the intended order', () {
-      // The order should be:
-      // 1. Users most recent in the DM conversations
+      // 1. Users most recent in the current topic/stream.
+      // 2. Users most recent in the DM conversations.
+
+      final stream = eg.stream();
+      const topic = 'topic';
 
       Future<void> checkResultsIn(Narrow narrow, {required List<int> expected}) async {
         final users = [
@@ -454,7 +515,15 @@ void main() {
           RecentDmConversation(userIds: [0, 1], maxMessageId: 100),
         ];
 
-        await prepare(users: users, dmConversations: dmConversations);
+        final messages = [
+          eg.streamMessage(sender: users[0], stream: stream, topic: topic),
+          eg.streamMessage(sender: users[4], stream: stream),
+        ];
+
+        await prepare(
+          users: users,
+          dmConversations: dmConversations,
+          messages: messages);
         final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
         bool done = false;
@@ -468,11 +537,11 @@ void main() {
       }
 
       test('StreamNarrow', () async {
-        await checkResultsIn(const StreamNarrow(1), expected: [3, 0, 1, 2, 4]);
+        await checkResultsIn(StreamNarrow(stream.streamId), expected: [4, 0, 3, 1, 2]);
       });
 
       test('TopicNarrow', () async {
-        await checkResultsIn(const TopicNarrow(1, 'topic'), expected: [3, 0, 1, 2, 4]);
+        await checkResultsIn(TopicNarrow(stream.streamId, topic), expected: [0, 4, 3, 1, 2]);
       });
 
       test('DmNarrow', () async {

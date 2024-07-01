@@ -188,8 +188,82 @@ class MentionAutocompleteView extends ChangeNotifier {
     required Narrow narrow,
   }) {
     assert(narrow is! CombinedFeedNarrow);
+
+    final int? streamId;
+    final String? topic;
+    switch (narrow) {
+      case StreamNarrow():
+        streamId = narrow.streamId;
+        topic = null;
+      case TopicNarrow():
+        streamId = narrow.streamId;
+        topic = narrow.topic;
+      case DmNarrow():
+      case CombinedFeedNarrow():
+        streamId = null;
+        topic = null;
+    }
     return store.users.values.toList()
-      ..sort((userA, userB) => compareByDms(userA, userB, store: store));
+      ..sort((userA, userB) => _compareByRelevance(userA, userB,
+          streamId: streamId,
+          topic: topic,
+          store: store));
+  }
+
+  static int _compareByRelevance(User userA, User userB, {
+    required int? streamId,
+    required String? topic,
+    required PerAccountStore store,
+  }) {
+    if (streamId != null) {
+      final result = compareByRecency(userA, userB,
+        streamId: streamId,
+        topic: topic,
+        store: store);
+      if (result != 0) {
+        return result;
+      }
+    }
+    return compareByDms(userA, userB, store: store);
+  }
+
+  /// Determines which of the two users has more recent activity (messages sent
+  /// recently) in the topic/stream.
+  ///
+  /// First checks for the activity in [topic] if provided.
+  ///
+  /// If no [topic] is provided, or the activity in the topic is the same (which
+  /// is impossible as message `id` is unique) or there is no activity in the
+  /// topic at all, then checks for the activity in the stream with [streamId].
+  ///
+  /// Returns a negative number if [userA] has more recent activity than [userB],
+  /// returns a positive number if [userB] has more recent activity than [userA],
+  /// and returns `0` if both [userA] and [userB] have the same recent activity
+  /// (which is impossible as message `id` is unique) or have no activity at all.
+  @visibleForTesting
+  static int compareByRecency(
+    User userA,
+    User userB, {
+    required int streamId,
+    required String? topic,
+    required PerAccountStore store,
+  }) {
+    final recentSenders = store.recentSenders;
+    if (topic != null) {
+      final aMessageId = recentSenders.latestMessageIdOfSenderInTopic(
+        streamId: streamId, topic: topic, senderId: userA.userId);
+      final bMessageId = recentSenders.latestMessageIdOfSenderInTopic(
+        streamId: streamId, topic: topic, senderId: userB.userId);
+
+      final result = -compareNullable(aMessageId, bMessageId);
+      if (result != 0) return result;
+    }
+
+    final aMessageId = recentSenders.latestMessageIdOfSenderInStream(
+      streamId: streamId, senderId: userA.userId);
+    final bMessageId = recentSenders.latestMessageIdOfSenderInStream(
+      streamId: streamId, senderId: userB.userId);
+    return -compareNullable(aMessageId, bMessageId);
   }
 
   /// Determines which of the two users is more recent in DM conversations.
