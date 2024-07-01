@@ -779,6 +779,46 @@ void main() {
           await tester.pump();
           check(state.isLoading).isFalse();
         });
+
+        testWidgets('displays correctly based on visible and loading', (WidgetTester tester) async {
+          final child = Container();
+
+          // Test loading state
+          await tester.pumpWidget(MaterialApp(
+            home: MarkAsReadAnimation(
+              visible: false,
+              loading: true,
+              child: child,
+            ),
+          ));
+          check(find.byWidget(child).evaluate()).length.equals(1);
+          check(tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity).equals(0.5);
+          check(tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale).equals(0.95);
+
+          // Test visible state
+          await tester.pumpWidget(MaterialApp(
+            home: MarkAsReadAnimation(
+              visible: true,
+              loading: false,
+              child: child,
+            ),
+          ));
+          check(find.byWidget(child).evaluate()).length.equals(1);
+          check(tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity).equals(1);
+          check(tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale).equals(1);
+
+          // Test default state
+          await tester.pumpWidget(MaterialApp(
+            home: MarkAsReadAnimation(
+              visible: false,
+              loading: false,
+              child: child,
+            ),
+          ));
+          check(find.byWidget(child).evaluate()).length.equals(1);
+          check(tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity).equals(0);
+          check(tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale).equals(0);
+        });
       });
 
       testWidgets('smoke test on modern server', (WidgetTester tester) async {
