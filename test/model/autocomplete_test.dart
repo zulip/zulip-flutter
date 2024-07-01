@@ -8,11 +8,14 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
+import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
+import 'message_list_test.dart';
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
@@ -359,10 +362,12 @@ void main() {
     Future<void> prepare({
       List<User> users = const [],
       List<RecentDmConversation> dmConversations = const [],
+      List<Message> messages = const [],
     }) async {
       store = eg.store(initialSnapshot: eg.initialSnapshot(
         recentPrivateConversations: dmConversations));
       await store.addUsers(users);
+      await store.addMessages(messages);
     }
 
     group('MentionAutocompleteView.compareRecentMessageIds', () {
@@ -379,6 +384,61 @@ void main() {
 
       test('both of a and b are null', () async {
         check(MentionAutocompleteView.compareRecentMessageIds(null, null)).equals(0);
+      });
+    });
+
+    group('MentionAutocompleteView.compareByRecency', () {
+      final userA = eg.otherUser;
+      final userB = eg.thirdUser;
+      final stream = eg.stream();
+      const topic1 = 'topic1';
+      const topic2 = 'topic2';
+
+      Message message(User sender, String topic) {
+        return eg.streamMessage(
+          sender: sender,
+          stream: stream,
+          topic: topic,
+        );
+      }
+
+      int compareAB({required String? topic}) {
+        return MentionAutocompleteView.compareByRecency(userA, userB,
+          streamId: stream.streamId,
+          topic: topic,
+          store: store,
+        );
+      }
+
+      test('prioritizes the user with more recent activity in the topic', () async {
+        await prepare(messages: [
+          message(userA, topic1),
+          message(userB, topic1),
+        ]);
+        check(compareAB(topic: topic1)).isGreaterThan(0);
+      });
+
+      test('no activity in topic -> prioritizes the user with more recent '
+          'activity in the stream', () async {
+        await prepare(messages: [
+          message(userA, topic1),
+          message(userB, topic1),
+        ]);
+        check(compareAB(topic: topic2)).isGreaterThan(0);
+      });
+
+      test('no topic provided -> prioritizes the user with more recent '
+          'activity in the stream', () async {
+        await prepare(messages: [
+          message(userA, topic1),
+          message(userB, topic2),
+        ]);
+        check(compareAB(topic: null)).isGreaterThan(0);
+      });
+
+      test('no activity in topic/stream -> prioritizes none', () async {
+        await prepare(messages: []);
+        check(compareAB(topic: null)).equals(0);
       });
     });
 
@@ -437,24 +497,37 @@ void main() {
 
     group('autocomplete suggests relevant users in the intended order', () {
       // The order should be:
-      // 1. Users most recent in the DM conversations
+      // 1. Users most recent in the current topic/stream.
+      // 2. Users most recent in the DM conversations.
+
+      final stream = eg.stream();
+      const topic = 'topic';
+      final streamNarrow = StreamNarrow(stream.streamId);
+      final topicNarrow = TopicNarrow(stream.streamId, topic);
+      final dmNarrow = DmNarrow.withUser(eg.selfUser.userId, selfUserId: eg.selfUser.userId);
+
+      final users = List.generate(5, (i) => eg.user(userId: i));
+
+      final dmConversations = [
+        RecentDmConversation(userIds: [3],    maxMessageId: 300),
+        RecentDmConversation(userIds: [0],    maxMessageId: 200),
+        RecentDmConversation(userIds: [0, 1], maxMessageId: 100),
+      ];
+
+      StreamMessage streamMessage({required int id, required int senderId, String? topic}) =>
+        eg.streamMessage(id: id, sender: users[senderId], topic: topic, stream: stream);
+
+      final messages = [
+        streamMessage(id: 50, senderId: 0, topic: topic),
+        streamMessage(id: 60, senderId: 4),
+      ];
+
+      Future<void> prepareStore({bool includeMessageHistory = false}) async {
+        await prepare(users: users, dmConversations: dmConversations,
+          messages: includeMessageHistory ? messages : []);
+      }
 
       Future<void> checkResultsIn(Narrow narrow, {required List<int> expected}) async {
-        final users = [
-          eg.user(userId: 0),
-          eg.user(userId: 1),
-          eg.user(userId: 2),
-          eg.user(userId: 3),
-          eg.user(userId: 4),
-        ];
-
-        final dmConversations = [
-          RecentDmConversation(userIds: [3],    maxMessageId: 300),
-          RecentDmConversation(userIds: [0],    maxMessageId: 200),
-          RecentDmConversation(userIds: [0, 1], maxMessageId: 100),
-        ];
-
-        await prepare(users: users, dmConversations: dmConversations);
         final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
         bool done = false;
@@ -467,22 +540,120 @@ void main() {
         check(results).deepEquals(expected);
       }
 
-      test('StreamNarrow', () async {
-        await checkResultsIn(const StreamNarrow(1), expected: [3, 0, 1, 2, 4]);
+      group('StreamNarrow & TopicNarrow', () {
+        late FakeApiConnection connection;
+        late MessageListView messageList;
+
+        Future<void> fetchInitialMessagesIn(Narrow narrow) async {
+          connection = store.connection as FakeApiConnection;
+          connection.prepare(json: newestResult(
+            foundOldest: false,
+            messages: narrow is StreamNarrow
+              ? messages
+              : messages.where((m) => m.topic == topic).toList(),
+          ).toJson());
+          messageList = MessageListView.init(store: store, narrow: narrow);
+          await messageList.fetchInitial();
+        }
+
+        Future<void> checkInitialResultsIn(Narrow narrow,
+            {required List<int> expected, bool includeStream = false}) async {
+          assert(narrow is! StreamNarrow || !includeStream);
+          await prepareStore(includeMessageHistory: includeStream);
+          await fetchInitialMessagesIn(narrow);
+          await checkResultsIn(narrow, expected: expected);
+        }
+
+        test('StreamNarrow', () async {
+          await checkInitialResultsIn(streamNarrow, expected: [4, 0, 3, 1, 2]);
+        });
+
+        test('StreamNarrow, new message arrives', () async {
+          await checkInitialResultsIn(streamNarrow, expected: [4, 0, 3, 1, 2]);
+
+          // Until now, latest message id in [stream] is 60.
+          await store.addMessage(streamMessage(id: 70, senderId: 2));
+
+          await checkResultsIn(streamNarrow, expected: [2, 4, 0, 3, 1]);
+        });
+
+        test('StreamNarrow, a batch of older messages arrives', () async {
+          await checkInitialResultsIn(streamNarrow, expected: [4, 0, 3, 1, 2]);
+
+          // Until now, oldest message id in [stream] is 50.
+          final oldMessages = [
+            streamMessage(id: 30, senderId: 1),
+            streamMessage(id: 40, senderId: 2),
+          ];
+          connection.prepare(json: olderResult(
+            anchor: 50, foundOldest: false,
+            messages: oldMessages,
+          ).toJson());
+          await messageList.fetchOlder();
+
+          await checkResultsIn(streamNarrow, expected: [4, 0, 2, 1, 3]);
+        });
+
+        test('TopicNarrow, no other messages are in stream', () async {
+          await checkInitialResultsIn(topicNarrow, expected: [0, 3, 1, 2, 4]);
+        });
+
+        test('TopicNarrow, other messages are in stream', () async {
+          await checkInitialResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2],
+            includeStream: true);
+        });
+
+        test('TopicNarrow, new message arrives', () async {
+          await checkInitialResultsIn(topicNarrow, expected: [0, 3, 1, 2, 4]);
+
+          // Until now, latest message id in [topic] is 50.
+          await store.addMessage(streamMessage(id: 60, senderId: 2, topic: topic));
+
+          await checkResultsIn(topicNarrow, expected: [2, 0, 3, 1, 4]);
+        });
+
+        test('TopicNarrow, a batch of older messages arrives', () async {
+          await checkInitialResultsIn(topicNarrow, expected: [0, 3, 1, 2, 4]);
+
+          // Until now, oldest message id in [topic] is 50.
+          final oldMessages = [
+            streamMessage(id: 30, senderId: 2, topic: topic),
+            streamMessage(id: 40, senderId: 4, topic: topic),
+          ];
+          connection.prepare(json: olderResult(
+            anchor: 50, foundOldest: false,
+            messages: oldMessages,
+          ).toJson());
+
+          await messageList.fetchOlder();
+          await checkResultsIn(topicNarrow, expected: [0, 4, 2, 3, 1]);
+        });
       });
 
-      test('TopicNarrow', () async {
-        await checkResultsIn(const TopicNarrow(1, 'topic'), expected: [3, 0, 1, 2, 4]);
-      });
+      group('DmNarrow', () {
+        test('DmNarrow, with no topic/stream message history', () async {
+          await prepareStore();
+          await checkResultsIn(dmNarrow, expected: [3, 0, 1, 2, 4]);
+        });
 
-      test('DmNarrow', () async {
-        await checkResultsIn(
-          DmNarrow.withUser(eg.selfUser.userId, selfUserId: eg.selfUser.userId),
-          expected: [3, 0, 1, 2, 4],
-        );
+        test('DmNarrow, with topic/stream message history', () async {
+          await prepareStore(includeMessageHistory: true);
+          await checkResultsIn(dmNarrow, expected: [3, 0, 1, 2, 4]);
+        });
+
+        test('DmNarrow, new message arrives', () async {
+          await prepareStore();
+          await checkResultsIn(dmNarrow, expected: [3, 0, 1, 2, 4]);
+
+          // Until now, latest message id in recent DMs is 300.
+          await store.addMessage(eg.dmMessage(id: 400, from: users[1], to: [eg.selfUser]));
+
+          await checkResultsIn(dmNarrow, expected: [1, 3, 0, 2, 4]);
+        });
       });
 
       test('CombinedFeedNarrow', () async {
+        await prepareStore();
         // As we do not expect a compose box in [CombinedFeedNarrow], it should
         // not proceed to show any results.
         await check(checkResultsIn(
