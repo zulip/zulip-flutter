@@ -61,6 +61,7 @@ sealed class Event {
           case 'remove': return UpdateMessageFlagsRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'typing': return TypingStatusEvent.fromJson(json);
       case 'reaction': return ReactionEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -715,8 +716,9 @@ class DeleteMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
 }
 
-/// As in [DeleteMessageEvent.messageType]
-/// or [UpdateMessageFlagsMessageDetail.type].
+/// As in [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type]
+/// or [TypingStatusEvent.messageType]
 @JsonEnum(fieldRename: FieldRename.snake)
 enum MessageType {
   stream,
@@ -830,6 +832,71 @@ class UpdateMessageFlagsMessageDetail {
   }
 
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsMessageDetailToJson(this);
+}
+
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class TypingStatusEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'typing';
+
+  final TypingStatusOp op;
+  final MessageType messageType;
+  final Typist sender;
+  final List<Typist>? recipients;
+  final int? streamId;
+  final String? topic;
+
+  TypingStatusEvent({
+    required super.id,
+    required this.op,
+    required this.messageType,
+    required this.sender,
+    required this.recipients,
+    required this.streamId,
+    required this.topic,
+  });
+
+  factory TypingStatusEvent.fromJson(Map<String, dynamic> json) {
+    final result = _$TypingStatusEventFromJson(json);
+    // Crunchy-shell validation
+    switch (result.messageType) {
+      case MessageType.stream:
+        result.streamId as int;
+        result.topic as String;
+      case MessageType.private:
+        result.recipients as List<Typist>;
+    }
+    return result;
+  }
+
+  @override
+  Map<String, dynamic> toJson() => _$TypingStatusEventToJson(this);
+}
+
+/// As in [TypingStatusEvent.op].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum TypingStatusOp {
+  start,
+  stop
+}
+
+/// As in [TypingStatusEvent.sender] and [TypingStatusEvent.recipients].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class Typist {
+  final int userId;
+  final String email;
+
+  Typist({
+    required this.userId,
+    required this.email,
+  });
+
+  factory Typist.fromJson(Map<String, dynamic> json) =>
+    _$TypistFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TypistToJson(this);
 }
 
 /// A Zulip event of type `reaction`, with op `add` or `remove`.

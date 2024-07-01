@@ -513,6 +513,46 @@ Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
       'topic': instance.topic,
     };
 
+TypingStatusEvent _$TypingStatusEventFromJson(Map<String, dynamic> json) =>
+    TypingStatusEvent(
+      id: (json['id'] as num).toInt(),
+      op: $enumDecode(_$TypingStatusOpEnumMap, json['op']),
+      messageType: $enumDecode(_$MessageTypeEnumMap, json['message_type']),
+      sender: Typist.fromJson(json['sender'] as Map<String, dynamic>),
+      recipients: (json['recipients'] as List<dynamic>?)
+          ?.map((e) => Typist.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      streamId: (json['stream_id'] as num?)?.toInt(),
+      topic: json['topic'] as String?,
+    );
+
+Map<String, dynamic> _$TypingStatusEventToJson(TypingStatusEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': _$TypingStatusOpEnumMap[instance.op]!,
+      'message_type': _$MessageTypeEnumMap[instance.messageType]!,
+      'sender': instance.sender,
+      'recipients': instance.recipients,
+      'stream_id': instance.streamId,
+      'topic': instance.topic,
+    };
+
+const _$TypingStatusOpEnumMap = {
+  TypingStatusOp.start: 'start',
+  TypingStatusOp.stop: 'stop',
+};
+
+Typist _$TypistFromJson(Map<String, dynamic> json) => Typist(
+      userId: (json['user_id'] as num).toInt(),
+      email: json['email'] as String,
+    );
+
+Map<String, dynamic> _$TypistToJson(Typist instance) => <String, dynamic>{
+      'user_id': instance.userId,
+      'email': instance.email,
+    };
+
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: (json['id'] as num).toInt(),
