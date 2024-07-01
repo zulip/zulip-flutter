@@ -151,6 +151,20 @@ class AutocompleteViewManager {
   // void dispose() { … }
 }
 
+/// Provides the full list of possible items and filter predicate for
+/// `AutocompleteView` without having to deal with state management or
+/// result computation process.
+///
+/// Having this factored out of `AutocompleteView` helps in limiting
+/// it's responsibility to managing the autocomplete state and result
+/// computation process.
+abstract class AutocompleteDataProvider<T, Q extends AutocompleteQuery, R extends AutocompleteResult> {
+
+  Iterable<T> getDataForQuery(Q query);
+
+  R? testItem(Q query, T item);
+}
+
 /// A view-model for an autocomplete interaction.
 ///
 /// The owner of one of these objects must call [dispose] when the object
@@ -164,17 +178,14 @@ class AutocompleteViewManager {
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 abstract class AutocompleteView<Q extends AutocompleteQuery, R extends AutocompleteResult> extends ChangeNotifier {
+  final AutocompleteDataProvider<Object, Q, R> dataProvider;
 
   /// This could be used to transform results after they've been
   /// computed for sorting, filtering etc.
   final List<R> Function(List<R> results)? resultsFilter;
   final PerAccountStore store;
 
-  AutocompleteView({this.resultsFilter, required this.store});
-
-  Iterable<Object> getDataForQuery(Q query);
-
-  R? testItem(Q query, Object item);
+  AutocompleteView({required this.dataProvider, this.resultsFilter, required this.store});
 
   Q? get query => _query;
   Q? _query;
@@ -210,7 +221,7 @@ abstract class AutocompleteView<Q extends AutocompleteQuery, R extends Autocompl
 
   Future<List<R>?> _computeResults(Q query) async {
     final List<R> results = [];
-    final Iterable<Object> data = getDataForQuery(query);
+    final Iterable<Object> data = dataProvider.getDataForQuery(query);
 
     final iterator = data.iterator;
     bool isDone = false;
@@ -227,8 +238,7 @@ abstract class AutocompleteView<Q extends AutocompleteQuery, R extends Autocompl
           isDone = true;
           break;
         }
-        final Object item = iterator.current;
-        final result = testItem(query, item);
+        final result = dataProvider.testItem(query, iterator.current);
         if (result != null) results.add(result);
       }
     }
@@ -236,17 +246,15 @@ abstract class AutocompleteView<Q extends AutocompleteQuery, R extends Autocompl
   }
 }
 
-class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
+class MentionAutocompleteDataProvider extends AutocompleteDataProvider<Object, MentionAutocompleteQuery, MentionAutocompleteResult> {
   final Narrow narrow;
+  final PerAccountStore store;
   final List<User> sortedUsers;
 
-  MentionAutocompleteView.init({
-    required super.store,
-    required this.narrow,
-  }) : sortedUsers = _usersByRelevance(store: store, narrow: narrow)
-  {
-    store.autocompleteViewManager.registerMentionAutocomplete(this);
-  }
+  MentionAutocompleteDataProvider({
+    required this.store,
+    required this.narrow
+  }) : sortedUsers = _usersByRelevance(store: store, narrow: narrow);
 
   static List<User> _usersByRelevance({
     required PerAccountStore store,
@@ -290,6 +298,18 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       (_,     int()) => 1,
       _              => 0,
     };
+  }
+}
+
+class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
+
+  MentionAutocompleteView.init({
+    required super.store,
+    required Narrow narrow,
+  }) : super(dataProvider: MentionAutocompleteDataProvider(
+    store: store,
+    narrow: narrow)) {
+    store.autocompleteViewManager.registerMentionAutocomplete(this);
   }
 
   @override

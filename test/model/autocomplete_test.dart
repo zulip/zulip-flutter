@@ -368,7 +368,7 @@ void main() {
       const idA = 1;
       const idB = 2;
 
-      int compareAB() => MentionAutocompleteView.compareByDms(
+      int compareAB() => MentionAutocompleteDataProvider.compareByDms(
         eg.user(userId: idA),
         eg.user(userId: idB),
         store: store,
