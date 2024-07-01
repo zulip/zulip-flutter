@@ -16,8 +16,8 @@ environment:
   # that by the time we want to release, these will have become stable.
   # TODO: Before general release, switch to stable Flutter and Dart versions,
   #   or pin exact versions: https://github.com/zulip/zulip-flutter/issues/15
-  sdk: '>=3.5.0-308.0.dev <4.0.0'
-  flutter: '>=3.23.0-13.0.pre.363'
+  sdk: '>=3.5.0-319.0.dev <4.0.0'
+  flutter: '>=3.23.0-14.0.pre.77'
 
 # To update dependencies, see instructions in README.md.
 dependencies:
