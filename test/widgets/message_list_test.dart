@@ -753,6 +753,34 @@ void main() {
           unreadMessageIds: [message.id]),
       ]);
 
+      group('MarkAsReadAnimation', () {
+        testWidgets('isLoading is changed correctly', (WidgetTester tester) async {
+          final narrow = TopicNarrow.ofMessage(message);
+          await setupMessageListPage(tester,
+            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+          check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+          connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+            processedCount: 11, updatedCount: 3,
+            firstProcessedId: null, lastProcessedId: null,
+            foundOldest: true, foundNewest: true).toJson());
+
+          // Verify isLoading is initially false
+          final state = tester.state<MarkAsReadWidgetState>(find.byType(MarkAsReadWidget));
+          check(state.isLoading).isFalse();
+
+          // Simulate button press and verify isLoading is true
+          await tester.tap(find.byType(MarkAsReadWidget));
+          await tester.pump();
+          check(state.isLoading).isTrue();
+
+          // Simulate completion of markNarrowAsRead and verify isLoading is false
+          await tester.idle();
+          await tester.pump();
+          check(state.isLoading).isFalse();
+        });
+      });
+
       testWidgets('smoke test on modern server', (WidgetTester tester) async {
         final narrow = TopicNarrow.ofMessage(message);
         await setupMessageListPage(tester,
