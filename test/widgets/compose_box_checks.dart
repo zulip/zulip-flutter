@@ -6,7 +6,7 @@ extension ComposeContentControllerChecks on Subject<ComposeContentController> {
   Subject<List<ContentValidationError>> get validationErrors => has((c) => c.validationErrors, 'validationErrors');
 }
 
-extension AutocompleteIntentChecks on Subject<AutocompleteIntent> {
+extension AutocompleteIntentChecks on Subject<AutocompleteIntent<MentionAutocompleteQuery>> {
   Subject<int> get syntaxStart => has((i) => i.syntaxStart, 'syntaxStart');
   Subject<MentionAutocompleteQuery> get query => has((i) => i.query, 'query');
 }
