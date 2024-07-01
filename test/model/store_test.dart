@@ -162,6 +162,40 @@ void main() {
     // TODO test database gets updated correctly (an integration test with sqlite?)
   });
 
+  group('PerAccountStore.handleEvent', () {
+    // Mostly this method just dispatches to StreamStore and MessageStore etc.,
+    // and so most of the tests live in the test files for those
+    // (but they call the handleEvent method because it's the entry point).
+
+    group('RealmUserUpdateEvent', () {
+      // TODO write more tests for handling RealmUserUpdateEvent
+
+      test('deliveryEmail', () {
+        final user = eg.user(deliveryEmail: 'a@mail.example');
+        final store = eg.store(initialSnapshot: eg.initialSnapshot(
+          realmUsers: [eg.selfUser, user]));
+
+        User getUser() => store.users[user.userId]!;
+
+        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+          deliveryEmail: null));
+        check(getUser()).deliveryEmailStaleDoNotUse.equals('a@mail.example');
+
+        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+          deliveryEmail: const JsonNullable(null)));
+        check(getUser()).deliveryEmailStaleDoNotUse.isNull();
+
+        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+          deliveryEmail: const JsonNullable('b@mail.example')));
+        check(getUser()).deliveryEmailStaleDoNotUse.equals('b@mail.example');
+
+        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+          deliveryEmail: const JsonNullable('c@mail.example')));
+        check(getUser()).deliveryEmailStaleDoNotUse.equals('c@mail.example');
+      });
+    });
+  });
+
   group('PerAccountStore.sendMessage', () {
     test('smoke', () async {
       final store = eg.store();

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'json.dart';
 import 'model.dart';
 
 part 'events.g.dart';
@@ -266,6 +267,7 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   String get op => 'update';
 
   @JsonKey(readValue: _readFromPerson) final int userId;
+
   @JsonKey(readValue: _readFromPerson) final String? fullName;
   @JsonKey(readValue: _readFromPerson) final String? avatarUrl;
   // @JsonKey(readValue: _readFromPerson) final String? avatarSource; // TODO obsolete?
@@ -275,12 +277,28 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final int? botOwnerId;
   @JsonKey(readValue: _readFromPerson, unknownEnumValue: UserRole.unknown) final UserRole? role;
   @JsonKey(readValue: _readFromPerson) final bool? isBillingAdmin;
-  @JsonKey(readValue: _readFromPerson) final String? deliveryEmail; // TODO handle JSON `null`
+
+  @JsonKey(readValue: _readNullableStringFromPerson)
+  @NullableStringJsonConverter()
+  final JsonNullable<String>? deliveryEmail;
+
   @JsonKey(readValue: _readFromPerson) final RealmUserUpdateCustomProfileField? customProfileField;
   @JsonKey(readValue: _readFromPerson) final String? newEmail;
 
   static Object? _readFromPerson(Map<dynamic, dynamic> json, String key) {
     return (json['person'] as Map<String, dynamic>)[key];
+  }
+
+  static JsonNullable<String>? _readNullableStringFromPerson(
+      Map<dynamic, dynamic> json, String key) {
+    // We can't just say `readValue: _readNullableFromPerson<String>`,
+    // because json_serializable drops the type argument in the generated code.
+    return _readNullableFromPerson<String>(json, key);
+  }
+
+  static JsonNullable<T>? _readNullableFromPerson<T extends Object>(
+      Map<dynamic, dynamic> json, String key) {
+    return JsonNullable.readFromJson(json['person'] as Map<String, dynamic>, key);
   }
 
   RealmUserUpdateEvent({

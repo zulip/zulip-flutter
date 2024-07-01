@@ -30,6 +30,28 @@ void main() {
     ).isEmpty();
   });
 
+  group('realm_user/update', () {
+    Map<String, Object?> mkJson(Map<String, Object?> data) =>
+      {'id': 1, 'type': 'realm_user', 'op': 'update',
+       'person': {'user_id': 1, ...data}};
+
+    test('delivery_email absent', () {
+      check(Event.fromJson(mkJson({})))
+        .isA<RealmUserUpdateEvent>().deliveryEmail.isNull();
+    });
+
+    test('delivery_email null', () {
+      check(Event.fromJson(mkJson({'delivery_email': null})))
+        .isA<RealmUserUpdateEvent>().deliveryEmail.equals(const JsonNullable(null));
+    });
+
+    test('delivery_email a string', () {
+      check(Event.fromJson(mkJson({'delivery_email': 'name@example.org'})))
+        .isA<RealmUserUpdateEvent>().deliveryEmail.equals(
+          const JsonNullable('name@example.org'));
+    });
+  });
+
   test('subscription/remove: deserialize stream_ids correctly', () {
     check(Event.fromJson({
       'id': 1,

@@ -72,6 +72,7 @@ int _lastUserId = 1000;
 /// from the calls to [user].
 User user({
   int? userId,
+  String? deliveryEmail,
   String? email,
   String? fullName,
   bool? isActive,
@@ -79,10 +80,11 @@ User user({
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
+  var effectiveDeliveryEmail = deliveryEmail ?? 'name@example.com'; // TODO generate example emails
   return User(
     userId: userId ?? _nextUserId(),
-    deliveryEmailStaleDoNotUse: 'name@example.com',
-    email: email ?? 'name@example.com', // TODO generate example emails
+    deliveryEmailStaleDoNotUse: effectiveDeliveryEmail,
+    email: email ?? effectiveDeliveryEmail,
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: '2023-04-28',
     isActive: isActive ?? true,
