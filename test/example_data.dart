@@ -533,6 +533,9 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  int? serverTypingStartedExpiryPeriodMilliseconds,
+  int? serverTypingStoppedWaitPeriodMilliseconds,
+  int? serverTypingStartedWaitPeriodMilliseconds,
   Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
   List<Subscription>? subscriptions,
@@ -554,6 +557,12 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    serverTypingStartedExpiryPeriodMilliseconds:
+      serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
+    serverTypingStoppedWaitPeriodMilliseconds:
+      serverTypingStoppedWaitPeriodMilliseconds ?? 5000,
+    serverTypingStartedWaitPeriodMilliseconds:
+      serverTypingStartedWaitPeriodMilliseconds ?? 10000,
     realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
