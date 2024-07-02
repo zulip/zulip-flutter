@@ -24,6 +24,7 @@ import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
 import 'stream.dart';
+import 'typing_status.dart';
 import 'unreads.dart';
 
 export 'package:drift/drift.dart' show Value;
@@ -242,6 +243,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
         .followedBy(initialSnapshot.realmNonActiveUsers)
         .followedBy(initialSnapshot.crossRealmBots)
         .map((user) => MapEntry(user.userId, user))),
+      typingStatus: TypingStatus(
+        selfUserId: account.userId,
+        typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
+      ),
       streams: streams,
       messages: MessageStoreImpl(),
       unreads: Unreads(
@@ -266,6 +271,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
     required this.selfUserId,
     required this.userSettings,
     required this.users,
+    required this.typingStatus,
     required StreamStoreImpl streams,
     required MessageStoreImpl messages,
     required this.unreads,
@@ -318,6 +324,8 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
   // Users and data about them.
 
   final Map<int, User> users;
+
+  final TypingStatus typingStatus;
 
   ////////////////////////////////
   // Streams, topics, and stuff about them.
@@ -383,6 +391,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
+    typingStatus.dispose();
     super.dispose();
   }
 
@@ -485,6 +494,9 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
       assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
       _messages.handleUpdateMessageFlagsEvent(event);
       unreads.handleUpdateMessageFlagsEvent(event);
+    } else if (event is TypingEvent) {
+      assert(debugLog("server event: typing/${event.op} ${event.messageType}"));
+      typingStatus.handleTypingEvent(event);
     } else if (event is ReactionEvent) {
       assert(debugLog("server event: reaction/${event.op}"));
       _messages.handleReactionEvent(event);

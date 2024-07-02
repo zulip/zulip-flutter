@@ -504,6 +504,22 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
     })));
 }
 
+TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
+  switch (narrow) {
+    case TopicNarrow():
+      return TypingEvent(id: 1, op: op, senderId: senderId,
+        messageType: MessageType.stream,
+        streamId: narrow.streamId,
+        topic: narrow.topic,
+        recipientIds: null);
+    case DmNarrow():
+      return TypingEvent(id: 1, op: op, senderId: senderId,
+        messageType: MessageType.direct,
+        recipientIds: narrow.allRecipientIds,
+        streamId: null,
+        topic: null);
+  }
+}
 
 ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
   return ReactionEvent(
