@@ -262,6 +262,25 @@ mixin _MessageSequence {
     }
     _updateEndMarkers();
   }
+
+  /// Returns a list of messages that are sent after the given [message].
+  List<Message> getMessagesAfter(Message message) {
+    final messageIndex = _findMessageWithId(message.id);
+    if (messageIndex == -1) {
+      // Message not found in the list, return an empty list.
+      return [];
+    }
+
+    // Return the list of messages after the given message.
+    return messages.sublist(messageIndex + 1);
+  }
+
+  /// Returns a list of messages that are sent after the given [message] on same narrow.
+  List<Message> getNarrowMessagesAfter(Message message) {
+    return getMessagesAfter(message)
+      .where((element) => element.isOnSameNarrowAs(message))
+      .toList();
+  }
 }
 
 @visibleForTesting

@@ -504,6 +504,18 @@ sealed class Message {
     return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
   }
 
+  bool isOnSameNarrowAs(Message other) {
+    if (this is StreamMessage) {
+      return other is StreamMessage
+        && other.streamId == (this as StreamMessage).streamId
+        && other.topic == topic;
+    } else if (this is DmMessage) {
+      return other is DmMessage
+        && other.recipientId == recipientId;
+    }
+    return false;
+  }
+
   Message({
     required this.client,
     required this.content,
