@@ -476,25 +476,23 @@ void main() {
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals('Hello world');
     });
 
-    testWidgets('success with a snackbar', (tester) async {
-      // for #732 regression check below
+    testWidgets('can show snackbar on success', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/732
       testBinding.deviceInfoResult = IosDeviceInfo(systemVersion: '16.0');
 
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      prepareRawContentResponseSuccess(store,
-        message: message,
-        rawContent: 'Hello world',
+      // Make the request take a bit of time to complete…
+      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world',
         delay: const Duration(milliseconds: 500));
-
       await tapCopyMessageTextButton(tester);
-      for (int i = 0; i < 5; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      // … and pump a frame to finish the NavigationState.pop animation…
+      await tester.pump(const Duration(milliseconds: 250));
+      // … before the request finishes.  This is the repro condition for #732.
+      await tester.pump(const Duration(milliseconds: 250));
 
-      // regression check for #732
       final snackbar = tester.widget<SnackBar>(find.byType(SnackBar));
       check(snackbar.behavior).equals(SnackBarBehavior.floating);
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
