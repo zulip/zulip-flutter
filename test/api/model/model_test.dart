@@ -48,7 +48,7 @@ void main() {
     }
 
     test('delivery_email', () {
-      check(mkUser({'delivery_email': 'name@email.com'}).deliveryEmailStaleDoNotUse)
+      check(mkUser({'delivery_email': 'name@email.com'}).deliveryEmail)
         .equals('name@email.com');
     });
 

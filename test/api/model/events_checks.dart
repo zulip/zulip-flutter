@@ -15,6 +15,20 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
   Subject<List<String>> get alertWords => has((e) => e.alertWords, 'alertWords');
 }
 
+extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
+  Subject<int> get userId => has((e) => e.userId, 'userId');
+  Subject<String?> get fullName => has((e) => e.fullName, 'fullName');
+  Subject<String?> get avatarUrl => has((e) => e.avatarUrl, 'avatarUrl');
+  Subject<int?> get avatarVersion => has((e) => e.avatarVersion, 'avatarVersion');
+  Subject<String?> get timezone => has((e) => e.timezone, 'timezone');
+  Subject<int?> get botOwnerId => has((e) => e.botOwnerId, 'botOwnerId');
+  Subject<UserRole?> get role => has((e) => e.role, 'role');
+  Subject<bool?> get isBillingAdmin => has((e) => e.isBillingAdmin, 'isBillingAdmin');
+  Subject<RealmUserUpdateCustomProfileField?> get customProfileField => has((e) => e.customProfileField, 'customProfileField');
+  Subject<String?> get newEmail => has((e) => e.newEmail, 'newEmail');
+  Subject<JsonNullable<String>?> get deliveryEmail => has((e) => e.deliveryEmail, 'deliveryEmail');
+}
+
 extension SubscriptionRemoveEventChecks on Subject<SubscriptionRemoveEvent> {
   Subject<List<int>> get streamIds => has((e) => e.streamIds, 'streamIds');
 }

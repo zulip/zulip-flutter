@@ -4,6 +4,7 @@ import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
 
+export 'json.dart' show JsonNullable;
 export 'reaction.dart';
 
 part 'model.g.dart';
@@ -188,8 +189,7 @@ enum Emojiset {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class User {
   final int userId;
-  @JsonKey(name: 'delivery_email')
-  String? deliveryEmailStaleDoNotUse; // TODO see [RealmUserUpdateEvent.deliveryEmail]
+  String? deliveryEmail;
   String email;
   String fullName;
   String dateJoined;
@@ -204,7 +204,7 @@ class User {
   @JsonKey(unknownEnumValue: UserRole.unknown)
   UserRole role;
   String timezone;
-  String? avatarUrl; // TODO distinguish null from missing https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20omitted.20vs.2E.20null.20in.20JSON/near/1551759
+  String? avatarUrl; // TODO(#255) distinguish null from missing, as a `JsonNullable<String>?`
   int avatarVersion;
 
   // null for bots, which don't have custom profile fields.
@@ -235,7 +235,7 @@ class User {
 
   User({
     required this.userId,
-    required this.deliveryEmailStaleDoNotUse,
+    required this.deliveryEmail,
     required this.email,
     required this.fullName,
     required this.dateJoined,

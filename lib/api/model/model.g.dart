@@ -92,7 +92,7 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
       userId: (json['user_id'] as num).toInt(),
-      deliveryEmailStaleDoNotUse: json['delivery_email'] as String?,
+      deliveryEmail: json['delivery_email'] as String?,
       email: json['email'] as String,
       fullName: json['full_name'] as String,
       dateJoined: json['date_joined'] as String,
@@ -120,7 +120,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'user_id': instance.userId,
-      'delivery_email': instance.deliveryEmailStaleDoNotUse,
+      'delivery_email': instance.deliveryEmail,
       'email': instance.email,
       'full_name': instance.fullName,
       'date_joined': instance.dateJoined,
