@@ -204,7 +204,7 @@ class User {
   @JsonKey(unknownEnumValue: UserRole.unknown)
   UserRole role;
   String timezone;
-  String? avatarUrl; // TODO distinguish null from missing https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20omitted.20vs.2E.20null.20in.20JSON/near/1551759
+  String? avatarUrl; // TODO(#255) distinguish null from missing, as a `JsonNullable<String>?`
   int avatarVersion;
 
   // null for bots, which don't have custom profile fields.
