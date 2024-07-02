@@ -21,6 +21,18 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
           .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
           .toList(),
+      serverTypingStartedExpiryPeriodMilliseconds:
+          (json['server_typing_started_expiry_period_milliseconds'] as num?)
+                  ?.toInt() ??
+              15000,
+      serverTypingStoppedWaitPeriodMilliseconds:
+          (json['server_typing_stopped_wait_period_milliseconds'] as num?)
+                  ?.toInt() ??
+              5000,
+      serverTypingStartedWaitPeriodMilliseconds:
+          (json['server_typing_started_wait_period_milliseconds'] as num?)
+                  ?.toInt() ??
+              10000,
       realmEmoji: (json['realm_emoji'] as Map<String, dynamic>).map(
         (k, e) =>
             MapEntry(k, RealmEmojiItem.fromJson(e as Map<String, dynamic>)),
@@ -74,6 +86,12 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_merge_base': instance.zulipMergeBase,
       'alert_words': instance.alertWords,
       'custom_profile_fields': instance.customProfileFields,
+      'server_typing_started_expiry_period_milliseconds':
+          instance.serverTypingStartedExpiryPeriodMilliseconds,
+      'server_typing_stopped_wait_period_milliseconds':
+          instance.serverTypingStoppedWaitPeriodMilliseconds,
+      'server_typing_started_wait_period_milliseconds':
+          instance.serverTypingStartedWaitPeriodMilliseconds,
       'realm_emoji': instance.realmEmoji,
       'recent_private_conversations': instance.recentPrivateConversations,
       'subscriptions': instance.subscriptions,

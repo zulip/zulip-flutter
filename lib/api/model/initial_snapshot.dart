@@ -24,6 +24,10 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  final int serverTypingStartedExpiryPeriodMilliseconds;
+  final int serverTypingStoppedWaitPeriodMilliseconds;
+  final int serverTypingStartedWaitPeriodMilliseconds;
+
   // final List<…> mutedTopics; // TODO(#422) we ignore this feature on older servers
 
   final Map<String, RealmEmojiItem> realmEmoji;
@@ -86,6 +90,10 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    // TODO(server-8): Remove the default values.
+    this.serverTypingStartedExpiryPeriodMilliseconds = 15000,
+    this.serverTypingStoppedWaitPeriodMilliseconds = 5000,
+    this.serverTypingStartedWaitPeriodMilliseconds = 10000,
     required this.realmEmoji,
     required this.recentPrivateConversations,
     required this.subscriptions,

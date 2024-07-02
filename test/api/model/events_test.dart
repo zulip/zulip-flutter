@@ -150,4 +150,34 @@ void main() {
       'message_details': {'123': {'type': 'private', 'mentioned': false, 'user_ids': [2]}},
     })).returnsNormally();
   });
+
+  group('typing status event', () {
+    final baseJson = {
+      'id': 1,
+      'type': 'typing',
+      'op': 'start',
+      'sender': {'user_id': 123, 'email': '123@example.com'},
+    };
+
+    test('normal events', () {
+      final directMessageJson = {
+        ...baseJson,
+        'message_type': 'private',
+        'recipients': [{'user_id': 123, 'email': '123@example.com'}],
+      };
+      check(() => TypingStatusEvent.fromJson(directMessageJson)).returnsNormally();
+      check(() => TypingStatusEvent.fromJson({
+        ...directMessageJson, 'op': 'stop'})).returnsNormally();
+    });
+
+    test('private type missing recipient', () {
+      check(() => TypingStatusEvent.fromJson({
+        ...baseJson, 'message_type': 'private'})).throws<void>();
+    });
+
+    test('stream type missing streamId', () {
+      check(() => TypingStatusEvent.fromJson({
+        ...baseJson, 'message_type': 'stream'})).throws<void>();
+    });
+  });
 }
