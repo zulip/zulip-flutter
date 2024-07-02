@@ -321,12 +321,11 @@ void main() {
       check(model).messages.length.equals(30);
       await store.handleEvent(eg.deleteMessageEvent(messagesToDelete));
       checkNotifiedOnce();
-      final expected = [
+      check(model.messages.map((message) => message.id)).deepEquals([
         ...messages.sublist(0, 2),
         ...messages.sublist(5, 10),
-        ...messages.sublist(15)].map((message) => message.id);
-      check(model).messages.length.equals(expected.length);
-      check(model.messages.map((message) => message.id)).deepEquals(expected);
+        ...messages.sublist(15),
+      ].map((message) => message.id));
     });
   });
 
