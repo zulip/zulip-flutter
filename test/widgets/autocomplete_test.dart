@@ -4,7 +4,9 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/streams.dart';
 import 'package:zulip/model/compose.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -72,6 +74,52 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   return finder;
 }
 
+/// Simulates loading a [MessageListPage] with a stream narrow
+/// and tapping to focus the topic input.
+///
+/// Also prepares test-topics to be sent to topics api request,
+/// so they can show up in autocomplete.
+Future<Finder> setupToTopicInput(WidgetTester tester, {
+  required List<Topic> topics,
+}) async {
+  addTearDown(testBinding.reset);
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  final connection = store.connection as FakeApiConnection;
+
+  // prepare message list data
+  final stream = eg.stream();
+  final message = eg.streamMessage(stream: stream, sender: eg.selfUser);
+  connection.prepare(json: GetMessagesResult(
+    anchor: message.id,
+    foundNewest: true,
+    foundOldest: true,
+    foundAnchor: true,
+    historyLimited: false,
+    messages: [message],
+  ).toJson());
+
+  await tester.pumpWidget(Builder(builder: (context) =>
+    MaterialApp(
+      theme: zulipThemeData(context),
+      localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+      supportedLocales: ZulipLocalizations.supportedLocales,
+      home: GlobalStoreWidget(
+        child: PerAccountStoreWidget(
+          accountId: eg.selfAccount.id,
+          child: MessageListPage(
+            narrow: StreamNarrow(stream.streamId)))))));
+
+  // global store, per-account store, and message list get loaded
+  await tester.pumpAndSettle();
+  connection.prepare(json: GetTopicsResult(topics: topics).toJson());
+  final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+  final finder = find.byWidgetPredicate((widget) => widget is TextField
+    && widget.decoration?.hintText == zulipLocalizations.composeBoxTopicHintText);
+  check(finder.evaluate()).isNotEmpty();
+  return finder;
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
 
@@ -135,6 +183,45 @@ void main() {
       checkUserShown(user3, store, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('TopicAutocomplete', () {
+    void checkTopicShown(Topic topic, PerAccountStore store, {required bool expected}) {
+      check(find.text(topic.name).evaluate().length).equals(expected ? 1 : 0);
+    }
+
+    testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
+      final topic1 = Topic(maxId: 1, name: 'Topic one');
+      final topic2 = Topic(maxId: 2, name: 'Topic two');
+      final topic3 = Topic(maxId: 3, name: 'Topic three');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2, topic3]);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query
+      await tester.enterText(topicInputFinder, 'Topic');
+      await tester.enterText(topicInputFinder, 'Topic T');
+      await tester.pumpAndSettle();
+
+      // "topic three" and "topic two" appear, but not "topic one"
+      checkTopicShown(topic1, store, expected: false);
+      checkTopicShown(topic2, store, expected: true);
+      checkTopicShown(topic3, store, expected: true);
+
+      // Finishing autocomplete updates topic box; causes options to disappear
+      await tester.tap(find.text('Topic three'));
+      await tester.pumpAndSettle();
+      check(tester.widget<TextField>(topicInputFinder).controller!.text)
+        .equals(topic3.name);
+      checkTopicShown(topic1, store, expected: false);
+      checkTopicShown(topic2, store, expected: false);
+      checkTopicShown(topic3, store, expected: true); // shown in `_StreamTopicInput` once
+
+      // Then a new autocomplete intent brings up options again
+      await tester.enterText(topicInputFinder, 'topic t');
+      await tester.enterText(topicInputFinder, 'topic two');
+      await tester.pumpAndSettle();
+      checkTopicShown(topic2, store, expected: true);
     });
   });
 }

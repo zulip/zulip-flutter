@@ -7,37 +7,131 @@ import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'compose_box.dart';
 
-class ComposeAutocomplete extends StatefulWidget {
-  const ComposeAutocomplete({
+class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult> {
+  ComposeAutocomplete({
     super.key,
-    required this.narrow,
+    required Narrow narrow,
+    required ComposeContentController controller,
+    required super.focusNode,
+    required super.fieldViewBuilder
+  }) : super(
+    controller: controller,
+    getAutocompleteIntent: () => controller.autocompleteIntent(),
+    viewModelBuilder: (context) {
+      final store = PerAccountStoreWidget.of(context);
+      return MentionAutocompleteView.init(store: store, narrow: narrow);
+    },
+    itemBuilder: (context, index, option) {
+      Widget avatar;
+      String label;
+      switch (option) {
+        case UserMentionAutocompleteResult(:var userId):
+          avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
+          label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+        default:
+          avatar = const SizedBox();
+          label = '';
+      }
+      return InkWell(
+        onTap: () {
+        // Probably the same intent that brought up the option that was tapped.
+        // If not, it still shouldn't be off by more than the time it takes
+        // to compute the autocomplete results, which we do asynchronously.
+        final intent = controller.autocompleteIntent();
+        if (intent == null) {
+          return; // Shrug.
+        }
+
+        final store = PerAccountStoreWidget.of(context);
+        final String replacementString;
+        switch (option) {
+          case UserMentionAutocompleteResult(:var userId):
+            // TODO(i18n) language-appropriate space character; check active keyboard?
+            //   (maybe handle centrally in `controller`)
+            replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
+          default:
+            replacementString = '';
+        }
+
+        controller.value = intent.textEditingValue.replaced(
+          TextRange(
+            start: intent.syntaxStart,
+            end: intent.textEditingValue.selection.end),
+          replacementString,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          children: [
+            avatar,
+            const SizedBox(width: 8),
+            Text(label)])));
+    });
+}
+
+class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
+  TopicAutocomplete({
+    super.key,
+    required int streamId,
+    required ComposeTopicController controller,
+    required super.focusNode,
+    required FocusNode contentFocusNode,
+    required super.fieldViewBuilder,
+  }) : super(
+    controller: controller,
+    getAutocompleteIntent: () => controller.autocompleteIntent(),
+    viewModelBuilder: (context) {
+      final store = PerAccountStoreWidget.of(context);
+      return TopicAutocompleteView.init(store: store, streamId: streamId);
+    },
+    itemBuilder: (context, index, option) => InkWell(
+      onTap: () {
+        final intent = controller.autocompleteIntent();
+        if (intent == null) return;
+        final label = option.topic.name;
+        controller.value = intent.textEditingValue.replaced(TextRange(
+          start: intent.syntaxStart,
+          end: intent.textEditingValue.selection.end), label);
+        contentFocusNode.requestFocus();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Text(option.topic.name))));
+}
+
+class AutocompleteField<Q extends AutocompleteQuery, R extends AutocompleteResult> extends StatefulWidget {
+  const AutocompleteField({
+    super.key,
     required this.controller,
     required this.focusNode,
     required this.fieldViewBuilder,
+    required this.itemBuilder,
+    required this.viewModelBuilder,
+    required this.getAutocompleteIntent,
   });
 
-  /// The message list's narrow.
-  final Narrow narrow;
-
-  final ComposeContentController controller;
+  final TextEditingController controller;
   final FocusNode focusNode;
   final WidgetBuilder fieldViewBuilder;
+  final Widget? Function(BuildContext, int, R) itemBuilder;
+  final AutocompleteView<Q, R> Function(BuildContext) viewModelBuilder;
+  final AutocompleteIntent<Q>? Function() getAutocompleteIntent;
 
   @override
-  State<ComposeAutocomplete> createState() => _ComposeAutocompleteState();
+  State<AutocompleteField<Q, R>> createState() => _AutocompleteFieldState<Q, R>();
 }
 
-class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccountStoreAwareStateMixin<ComposeAutocomplete> {
-  MentionAutocompleteView? _viewModel; // TODO different autocomplete view types
+class _AutocompleteFieldState<Q extends AutocompleteQuery, R extends AutocompleteResult> extends State<AutocompleteField<Q, R>> with PerAccountStoreAwareStateMixin<AutocompleteField<Q, R>> {
+  AutocompleteView<Q, R>? _viewModel;
 
   void _initViewModel() {
-    final store = PerAccountStoreWidget.of(context);
-    _viewModel = MentionAutocompleteView.init(store: store, narrow: widget.narrow)
+    _viewModel = widget.viewModelBuilder(context)
       ..addListener(_viewModelChanged);
   }
 
-  void _composeContentChanged() {
-    final newAutocompleteIntent = widget.controller.autocompleteIntent();
+  void _onChanged() {
+    final AutocompleteIntent<Q>? newAutocompleteIntent = widget.getAutocompleteIntent();
     if (newAutocompleteIntent != null) {
       if (_viewModel == null) {
         _initViewModel();
@@ -55,7 +149,7 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_composeContentChanged);
+    widget.controller.addListener(_onChanged);
   }
 
   @override
@@ -69,22 +163,22 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
   }
 
   @override
-  void didUpdateWidget(covariant ComposeAutocomplete oldWidget) {
+  void didUpdateWidget(covariant AutocompleteField<Q, R> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
-      oldWidget.controller.removeListener(_composeContentChanged);
-      widget.controller.addListener(_composeContentChanged);
+      oldWidget.controller.removeListener(_onChanged);
+      widget.controller.addListener(_onChanged);
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_composeContentChanged);
+    widget.controller.removeListener(_onChanged);
     _viewModel?.dispose(); // removes our listener
     super.dispose();
   }
 
-  List<MentionAutocompleteResult> _resultsToDisplay = [];
+  List<R> _resultsToDisplay = [];
 
   void _viewModelChanged() {
     setState(() {
@@ -92,58 +186,9 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
     });
   }
 
-  void _onTapOption(MentionAutocompleteResult option) {
-    // Probably the same intent that brought up the option that was tapped.
-    // If not, it still shouldn't be off by more than the time it takes
-    // to compute the autocomplete results, which we do asynchronously.
-    final intent = widget.controller.autocompleteIntent();
-    if (intent == null) {
-      return; // Shrug.
-    }
-
-    final store = PerAccountStoreWidget.of(context);
-    final String replacementString;
-    switch (option) {
-      case UserMentionAutocompleteResult(:var userId):
-        // TODO(i18n) language-appropriate space character; check active keyboard?
-        //   (maybe handle centrally in `widget.controller`)
-        replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
-    }
-
-    widget.controller.value = intent.textEditingValue.replaced(
-      TextRange(
-        start: intent.syntaxStart,
-        end: intent.textEditingValue.selection.end),
-      replacementString,
-    );
-  }
-
-  Widget _buildItem(BuildContext _, int index) {
-    final option = _resultsToDisplay[index];
-    Widget avatar;
-    String label;
-    switch (option) {
-      case UserMentionAutocompleteResult(:var userId):
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
-        label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
-    }
-    return InkWell(
-      onTap: () {
-        _onTapOption(option);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Row(
-          children: [
-            avatar,
-            const SizedBox(width: 8),
-            Text(label),
-          ])));
-  }
-
   @override
   Widget build(BuildContext context) {
-    return RawAutocomplete<MentionAutocompleteResult>(
+    return RawAutocomplete<R>(
       textEditingController: widget.controller,
       focusNode: widget.focusNode,
       optionsBuilder: (_) => _resultsToDisplay,
@@ -159,20 +204,20 @@ class _ComposeAutocompleteState extends State<ComposeAutocomplete> with PerAccou
       //   the work of creating the list of options. We're not; the
       //   `optionsBuilder` we pass is just a function that returns
       //   _resultsToDisplay, which is computed with lots of help from
-      //   MentionAutocompleteView.
-      optionsViewBuilder: (context, _, __) {
-        return Align(
-          alignment: Alignment.bottomLeft,
-          child: Material(
-            elevation: 4.0,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: _resultsToDisplay.length,
-                itemBuilder: _buildItem))));
-      },
+      //   AutocompleteView.
+      optionsViewBuilder: (context, _, __) => Align(
+        alignment: Alignment.bottomLeft,
+        child: Material(
+          elevation: 4.0,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: _resultsToDisplay.length,
+              itemBuilder: (context, index) {
+                return widget.itemBuilder(context, index, _resultsToDisplay[index]);
+              })))),
       // RawAutocomplete passes these when it calls fieldViewBuilder:
       //   TextEditingController textEditingController,
       //   FocusNode focusNode,

@@ -3,12 +3,13 @@ import 'package:flutter/services.dart';
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/streams.dart';
 import '../widgets/compose_box.dart';
 import 'narrow.dart';
 import 'store.dart';
 
-extension Autocomplete on ComposeContentController {
-  AutocompleteIntent? autocompleteIntent() {
+extension ComposeContentAutocomplete on ComposeContentController {
+  AutocompleteIntent<MentionAutocompleteQuery>? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
       // autocorrect and even backspace involve programmatically expanding the
@@ -43,6 +44,16 @@ extension Autocomplete on ComposeContentController {
   }
 }
 
+extension ComposeTopicAutocomplete on ComposeTopicController {
+  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() {
+    if (!selection.isValid || !selection.isNormalized) return null;
+    return AutocompleteIntent(
+      syntaxStart: 0,
+      query: TopicAutocompleteQuery(value.text),
+      textEditingValue: value);
+  }
+}
+
 final RegExp mentionAutocompleteMarkerRegex = (() {
   // What's likely to come before an @-mention: the start of the string,
   // whitespace, or punctuation. Letters are unlikely; in that case an email
@@ -69,7 +80,7 @@ final RegExp mentionAutocompleteMarkerRegex = (() {
 })();
 
 /// The content controller's recognition that the user might want autocomplete UI.
-class AutocompleteIntent {
+class AutocompleteIntent<Q extends AutocompleteQuery> {
   AutocompleteIntent({
     required this.syntaxStart,
     required this.query,
@@ -91,7 +102,7 @@ class AutocompleteIntent {
   // that use a custom/subclassed [TextEditingValue], so that's not convenient.
   final int syntaxStart;
 
-  final MentionAutocompleteQuery query; // TODO other autocomplete query types
+  final Q query;
 
   /// The [TextEditingValue] whose text [syntaxStart] refers to.
   final TextEditingValue textEditingValue;
@@ -111,34 +122,57 @@ class AutocompleteIntent {
 ///
 /// On reassemble, call [reassemble].
 class AutocompleteViewManager {
-  final Set<MentionAutocompleteView> _mentionAutocompleteViews = {};
+  final Map<Type, Set<AutocompleteView>> _views = {};
 
   AutocompleteDataCache autocompleteDataCache = AutocompleteDataCache();
 
-  void registerMentionAutocomplete(MentionAutocompleteView view) {
-    final added = _mentionAutocompleteViews.add(view);
-    assert(added);
+  Set<AutocompleteView> get _allViews => _views.values.fold(
+    {}, (previousValue, element) => previousValue..addAll(element));
+
+  Set<T> _getViewsOfType<T extends AutocompleteView>() {
+    return _views[T]?.cast() ?? {};
   }
 
-  void unregisterMentionAutocomplete(MentionAutocompleteView view) {
-    final removed = _mentionAutocompleteViews.remove(view);
+  void register<T extends AutocompleteView>(T view) {
+    final typedViews = _views[view.runtimeType] ?? {};
+    final added = typedViews.add(view);
+    assert(added);
+    _views[view.runtimeType] = typedViews;
+  }
+
+  void unregister<T extends AutocompleteView>(T view) {
+    final typedViews = _views[view.runtimeType] ?? {};
+    final removed = typedViews.remove(view);
     assert(removed);
+    _views[view.runtimeType] = typedViews;
   }
 
   void handleRealmUserRemoveEvent(RealmUserRemoveEvent event) {
+    for (final view in _getViewsOfType<MentionAutocompleteView>()) {
+      view.reassemble();
+    }
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
+    for (final view in _getViewsOfType<MentionAutocompleteView>()) {
+      view.reassemble();
+    }
     autocompleteDataCache.invalidateUser(event.userId);
+  }
+
+  void handleTopicsFetchCompleted() {
+    for (final view in _getViewsOfType<TopicAutocompleteView>()) {
+      view.reassemble();
+    }
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
-  /// Calls [MentionAutocompleteView.reassemble] for all that are registered.
+  /// Calls [AutocompleteView.reassemble] for all that are registered.
   ///
   void reassemble() {
-    for (final view in _mentionAutocompleteViews) {
+    for (final view in _allViews) {
       view.reassemble();
     }
   }
@@ -151,37 +185,121 @@ class AutocompleteViewManager {
   // void dispose() { … }
 }
 
-/// A view-model for a mention-autocomplete interaction.
+/// Provides the full list of possible items and filter predicate for
+/// `AutocompleteView` without having to deal with state management or
+/// result computation process.
+///
+/// Having this factored out of `AutocompleteView` helps in limiting
+/// it's responsibility to managing the autocomplete state and result
+/// computation process.
+abstract class AutocompleteDataProvider<T, Q extends AutocompleteQuery, R extends AutocompleteResult> {
+
+  Iterable<T> getDataForQuery(Q query);
+
+  R? testItem(Q query, T item);
+}
+
+/// A view-model for an autocomplete interaction.
 ///
 /// The owner of one of these objects must call [dispose] when the object
 /// will no longer be used, in order to free resources on the [PerAccountStore].
 ///
 /// Lifecycle:
-///  * Create with [init].
+///  * Create an instance of a concrete subtype.
 ///  * Add listeners with [addListener].
 ///  * Use the [query] setter to start a search for a query.
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
-class MentionAutocompleteView extends ChangeNotifier {
-  MentionAutocompleteView._({
-    required this.store,
-    required this.narrow,
-    required this.sortedUsers,
-  });
+abstract class AutocompleteView<Q extends AutocompleteQuery, R extends AutocompleteResult> extends ChangeNotifier {
+  final AutocompleteDataProvider<Object, Q, R> dataProvider;
 
-  factory MentionAutocompleteView.init({
-    required PerAccountStore store,
-    required Narrow narrow,
-  }) {
-    final view = MentionAutocompleteView._(
-      store: store,
-      narrow: narrow,
-      sortedUsers: _usersByRelevance(store: store, narrow: narrow),
-    );
-    store.autocompleteViewManager.registerMentionAutocomplete(view);
-    return view;
+  /// This could be used to transform results after they've been
+  /// computed for sorting, filtering etc.
+  final List<R> Function(List<R> results)? resultsFilter;
+  final PerAccountStore store;
+
+  AutocompleteView({required this.dataProvider, this.resultsFilter, required this.store}) {
+    store.autocompleteViewManager.register(this);
   }
+
+  @override
+  void dispose() {
+    store.autocompleteViewManager.unregister(this);
+    // We cancel in-progress computations by checking [hasListeners] between tasks.
+    // After [super.dispose] is called, [hasListeners] returns false.
+    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
+    super.dispose();
+  }
+
+  Q? get query => _query;
+  Q? _query;
+  set query(Q? query) {
+    _query = query;
+    if (query != null) {
+      _startSearch(query);
+    }
+  }
+
+  /// Called when the app is reassembled during debugging, e.g. for hot reload.
+  ///
+  /// This will redo the search from scratch for the current query, if any.
+  void reassemble() {
+    if (_query != null) {
+      _startSearch(_query!);
+    }
+  }
+
+  Iterable<R> get results => _results;
+  List<R> _results = [];
+
+  Future<void> _startSearch(Q query) async {
+    final newResults = await _computeResults(query);
+    if (newResults == null) {
+      // Query was old; new search is in progress. Or, no listeners to notify.
+      return;
+    }
+
+    _results = newResults;
+    notifyListeners();
+  }
+
+  Future<List<R>?> _computeResults(Q query) async {
+    final List<R> results = [];
+    final Iterable<Object> data = dataProvider.getDataForQuery(query);
+
+    final iterator = data.iterator;
+    bool isDone = false;
+    while (!isDone) {
+      // CPU perf: End this task; enqueue a new one for resuming this work
+      await Future(() {});
+
+      if (query != _query || !hasListeners) { // false if [dispose] has been called.
+        return null;
+      }
+
+      for (int i = 0; i < 1000; i++) {
+        if (!iterator.moveNext()) {
+          isDone = true;
+          break;
+        }
+        final result = dataProvider.testItem(query, iterator.current);
+        if (result != null) results.add(result);
+      }
+    }
+    return resultsFilter?.call(results) ?? results;
+  }
+}
+
+class MentionAutocompleteDataProvider extends AutocompleteDataProvider<Object, MentionAutocompleteQuery, MentionAutocompleteResult> {
+  final Narrow narrow;
+  final PerAccountStore store;
+  final List<User> sortedUsers;
+
+  MentionAutocompleteDataProvider({
+    required this.store,
+    required this.narrow
+  }) : sortedUsers = _usersByRelevance(store: store, narrow: narrow);
 
   static List<User> _usersByRelevance({
     required PerAccountStore store,
@@ -190,6 +308,21 @@ class MentionAutocompleteView extends ChangeNotifier {
     assert(narrow is! CombinedFeedNarrow);
     return store.users.values.toList()
       ..sort((userA, userB) => compareByDms(userA, userB, store: store));
+  }
+
+  @override
+  Iterable<Object> getDataForQuery(MentionAutocompleteQuery query) {
+    return sortedUsers;
+  }
+
+  @override
+  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, Object item) {
+    if (item is User) {
+      if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
+        return UserMentionAutocompleteResult(userId: item.userId);
+      }
+    }
+    return null;
   }
 
   /// Determines which of the two users is more recent in DM conversations.
@@ -211,104 +344,26 @@ class MentionAutocompleteView extends ChangeNotifier {
       _              => 0,
     };
   }
-
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterMentionAutocomplete(this);
-    // We cancel in-progress computations by checking [hasListeners] between tasks.
-    // After [super.dispose] is called, [hasListeners] returns false.
-    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
-    super.dispose();
-  }
-
-  final PerAccountStore store;
-  final Narrow narrow;
-  final List<User> sortedUsers;
-
-  MentionAutocompleteQuery? get query => _query;
-  MentionAutocompleteQuery? _query;
-  set query(MentionAutocompleteQuery? query) {
-    _query = query;
-    if (query != null) {
-      _startSearch(query);
-    }
-  }
-
-  /// Called when the app is reassembled during debugging, e.g. for hot reload.
-  ///
-  /// This will redo the search from scratch for the current query, if any.
-  void reassemble() {
-    if (_query != null) {
-      _startSearch(_query!);
-    }
-  }
-
-  Iterable<MentionAutocompleteResult> get results => _results;
-  List<MentionAutocompleteResult> _results = [];
-
-  Future<void> _startSearch(MentionAutocompleteQuery query) async {
-    final newResults = await _computeResults(query);
-    if (newResults == null) {
-      // Query was old; new search is in progress. Or, no listeners to notify.
-      return;
-    }
-
-    _results = newResults;
-    notifyListeners();
-  }
-
-  Future<List<MentionAutocompleteResult>?> _computeResults(MentionAutocompleteQuery query) async {
-    final List<MentionAutocompleteResult> results = [];
-    final iterator = sortedUsers.iterator;
-    bool isDone = false;
-    while (!isDone) {
-      // CPU perf: End this task; enqueue a new one for resuming this work
-      await Future(() {});
-
-      if (query != _query || !hasListeners) { // false if [dispose] has been called.
-        return null;
-      }
-
-      for (int i = 0; i < 1000; i++) {
-        if (!iterator.moveNext()) {
-          isDone = true;
-          break;
-        }
-
-        final User user = iterator.current;
-        if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
-          results.add(UserMentionAutocompleteResult(userId: user.userId));
-        }
-      }
-    }
-    return results;
-  }
 }
 
-class MentionAutocompleteQuery {
-  MentionAutocompleteQuery(this.raw, {this.silent = false})
-    : _lowercaseWords = raw.toLowerCase().split(' ');
+class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
 
+  MentionAutocompleteView.init({
+    required super.store,
+    required Narrow narrow,
+  }) : super(dataProvider: MentionAutocompleteDataProvider(
+    store: store,
+    narrow: narrow));
+}
+
+abstract class AutocompleteQuery {
   final String raw;
-
-  /// Whether the user wants a silent mention (@_query, vs. @query).
-  final bool silent;
-
   final List<String> _lowercaseWords;
 
-  bool testUser(User user, AutocompleteDataCache cache) {
-    // TODO(#236) test email too, not just name
+  AutocompleteQuery(this.raw) : _lowercaseWords = raw.toLowerCase().split(' ');
 
-    if (!user.isActive) return false;
-
-    return _testName(user, cache);
-  }
-
-  bool _testName(User user, AutocompleteDataCache cache) {
+  bool _testContainsQueryWords(List<String> nameWords) {
     // TODO(#237) test with diacritics stripped, where appropriate
-
-    final List<String> nameWords = cache.nameWordsForUser(user);
-
     int nameWordsIndex = 0;
     int queryWordsIndex = 0;
     while (true) {
@@ -328,6 +383,33 @@ class MentionAutocompleteQuery {
 
   @override
   String toString() {
+    return '${objectRuntimeType(this, 'AutocompleteQuery')}(raw: $raw})';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('AutocompleteQuery', raw);
+}
+
+class MentionAutocompleteQuery extends AutocompleteQuery {
+  /// Whether the user wants a silent mention (@_query, vs. @query).
+  final bool silent;
+
+  MentionAutocompleteQuery(super.raw, {this.silent = false});
+
+  bool testUser(User user, AutocompleteDataCache cache) {
+    // TODO(#236) test email too, not just name
+    if (!user.isActive) return false;
+
+    return _testContainsQueryWords(cache.nameWordsForUser(user));
+  }
+
+  @override
+  String toString() {
     return '${objectRuntimeType(this, 'MentionAutocompleteQuery')}(raw: $raw, silent: $silent})';
   }
 
@@ -342,6 +424,7 @@ class MentionAutocompleteQuery {
 
 class AutocompleteDataCache {
   final Map<int, List<String>> _nameWordsByUser = {};
+  final Map<int, List<String>> _nameWordsByTopic = {};
 
   List<String> nameWordsForUser(User user) {
     return _nameWordsByUser[user.userId] ??= user.fullName.toLowerCase().split(' ');
@@ -350,9 +433,19 @@ class AutocompleteDataCache {
   void invalidateUser(int userId) {
     _nameWordsByUser.remove(userId);
   }
+
+  List<String> nameWordsForTopic(Topic topic) {
+    return _nameWordsByTopic[topic.maxId] ??= topic.name.toLowerCase().split(' ');
+  }
+
+  void invalidateTopic(int topicMaxId) {
+    _nameWordsByTopic.remove(topicMaxId);
+  }
 }
 
-sealed class MentionAutocompleteResult {}
+class AutocompleteResult {}
+
+sealed class MentionAutocompleteResult extends AutocompleteResult {}
 
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   UserMentionAutocompleteResult({required this.userId});
@@ -363,3 +456,77 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
 // TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
 // TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+
+class TopicAutocompleteDataProvider extends AutocompleteDataProvider<Topic, TopicAutocompleteQuery, TopicAutocompleteResult> {
+  final PerAccountStore store;
+  final int streamId;
+  Iterable<Topic>? _topics;
+  bool _isFetching = false;
+
+  TopicAutocompleteDataProvider({required this.store, required this.streamId});
+
+  /// Fetches topics of the current stream narrow, expected to fetch
+  /// only once per lifecycle.
+  ///
+  /// Starts fetching once the stream narrow is active, then when results
+  /// are fetched it notifies `autocompleteViewManager` to refresh UI
+  /// showing the newly fetched topics.
+  Future<void> fetch() async {
+    if (_topics != null && !_isFetching) return;
+    _isFetching = true;
+    final result = await getStreamTopics(store.connection, streamId: streamId);
+    _topics = result.topics;
+    store.autocompleteViewManager.handleTopicsFetchCompleted();
+    _isFetching = false;
+  }
+
+  @override
+  Iterable<Topic> getDataForQuery(TopicAutocompleteQuery query) {
+    return _topics ?? [];
+  }
+
+  @override
+  TopicAutocompleteResult? testItem(TopicAutocompleteQuery query, Topic item) {
+    if (query.testTopic(item, store.autocompleteViewManager.autocompleteDataCache)) {
+      return TopicAutocompleteResult(topic: item);
+    }
+    return null;
+  }
+}
+
+class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
+  TopicAutocompleteView.init({
+      required super.store,
+      required int streamId,
+  }) : super(dataProvider: TopicAutocompleteDataProvider(
+      store: store,
+      streamId: streamId
+    )..fetch());
+}
+
+class TopicAutocompleteQuery extends AutocompleteQuery {
+  TopicAutocompleteQuery(super.raw);
+
+  bool testTopic(Topic topic, AutocompleteDataCache cache) {
+    return _testContainsQueryWords(cache.nameWordsForTopic(topic));
+  }
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TopicAutocompleteQuery')}(raw: $raw)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TopicAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicAutocompleteQuery', raw);
+}
+
+class TopicAutocompleteResult extends AutocompleteResult {
+  final Topic topic;
+
+  TopicAutocompleteResult({required this.topic});
+}

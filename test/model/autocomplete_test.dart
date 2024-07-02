@@ -7,11 +7,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/streams.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
@@ -176,6 +178,7 @@ void main() {
     bool done = false;
     view.addListener(() { done = true; });
     view.query = MentionAutocompleteQuery('Third');
+    await Future(() {});
     await Future(() {});
     check(done).isTrue();
     check(view.results).single
@@ -368,7 +371,7 @@ void main() {
       const idA = 1;
       const idB = 2;
 
-      int compareAB() => MentionAutocompleteView.compareByDms(
+      int compareAB() => MentionAutocompleteDataProvider.compareByDms(
         eg.user(userId: idA),
         eg.user(userId: idB),
         store: store,
@@ -472,6 +475,114 @@ void main() {
           expected: [0, 1, 2, 3, 4])
         ).throws();
       });
+    });
+  });
+
+  group('ComposeTopicAutocomplete.autocompleteIntent', () {
+    doTest(String markedText, TopicAutocompleteQuery? expectedQuery) {
+      final description = 'topic-input with text: $markedText produces: ${expectedQuery?.raw ?? 'No Query!'}';
+      test(description, () {
+        final controller = ComposeTopicController();
+        controller.text = markedText;
+        controller.selection = TextSelection.collapsed(offset: controller.text.length - 1);
+        if (expectedQuery == null) {
+          check(controller).autocompleteIntent.isNull();
+        } else {
+          check(controller).autocompleteIntent.isNotNull()
+            ..query.equals(expectedQuery)
+            ..syntaxStart.equals(0); // query is the whole value
+        }
+      });
+    }
+
+    /// if there is any input, produced query should match input text
+    doTest('', null);
+    doTest('Some Topic', TopicAutocompleteQuery('Some Topic'));
+    doTest('S', TopicAutocompleteQuery('S'));
+    doTest('Long topic name still is the same', TopicAutocompleteQuery('Long topic name still is the same'));
+  });
+
+  test('TopicAutocompleteView misc', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    final first = eg.topic(maxId: 1, name: 'First Topic');
+    final second = eg.topic(maxId: 2, name: 'Second Topic');
+    final third = eg.topic(maxId: 3, name: 'Third Topic');
+    connection.prepare(json: GetTopicsResult(
+      topics: [first, second, third]).toJson());
+    final view = TopicAutocompleteView.init(
+      store: store,
+      streamId: eg.stream().streamId);
+
+    bool done = false;
+    view.addListener(() { done = true; });
+    view.query = TopicAutocompleteQuery('Third');
+    // those are here to wait for topics to be loaded
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view.results).single
+      .isA<TopicAutocompleteResult>()
+      ..maxId.equals(third.maxId)
+      ..name.equals(third.name);
+  });
+
+  test('TopicAutocompleteView updates results when streams are loaded', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    connection.prepare(json: GetTopicsResult(
+      topics: [eg.topic(name: 'test')]
+    ).toJson());
+
+    final view = TopicAutocompleteView.init(
+      store: store,
+      streamId: eg.stream().streamId);
+
+    bool done = false;
+    view.addListener(() { done = true; });
+    view.query = TopicAutocompleteQuery('te');
+
+    check(done).isFalse();
+    await Future(() {});
+    check(done).isTrue();
+  });
+
+  group('TopicAutocompleteQuery.testTopic', () {
+    doCheck(String rawQuery, Topic topic, bool expected) {
+      final result = TopicAutocompleteQuery(rawQuery)
+        .testTopic(topic, AutocompleteDataCache());
+      expected ? check(result).isTrue() : check(result).isFalse();
+    }
+
+    test('topic is included if name matches the query', () {
+      doCheck('', eg.topic(name: 'Top Name'), true);
+      doCheck('', eg.topic(name: ''), true); // Unlikely case, but should not crash
+      doCheck('Top Name', eg.topic(name: 'Top Name'), true);
+      doCheck('top name', eg.topic(name: 'Top Name'), true);
+      doCheck('Top Name', eg.topic(name: 'top name'), true);
+      doCheck('Top', eg.topic(name: 'Top Name'), true);
+      doCheck('Name', eg.topic(name: 'Top Name'), true);
+      doCheck('Top Name', eg.topic(name: 'Topic Named'), true);
+      doCheck('Top Four', eg.topic(name: 'Top Name Four Words'), true);
+      doCheck('Name Words', eg.topic(name: 'Top Name Four Words'), true);
+      doCheck('Top F', eg.topic(name: 'Top Name Four Words'), true);
+      doCheck('T Four', eg.topic(name: 'Top Name Four Words'), true);
+      doCheck('top top', eg.topic(name: 'Top Top Name'), true);
+      doCheck('top top', eg.topic(name: 'Top Name Top'), true);
+
+      doCheck('T', eg.topic(name: ''), false); // Unlikely case, but should not crash
+      doCheck('Topic Named', eg.topic(name: 'Top Name'), false);
+      doCheck('Top Name', eg.topic(name: 'Top'), false);
+      doCheck('Top Name', eg.topic(name: 'Name'), false);
+      doCheck('op ame', eg.topic(name: 'Top Name'), false);
+      doCheck('op Name', eg.topic(name: 'Top Name'), false);
+      doCheck('Top ame', eg.topic(name: 'Top Name'), false);
+      doCheck('Top Top', eg.topic(name: 'Top Name'), false);
+      doCheck('Name Name', eg.topic(name: 'Top Name'), false);
+      doCheck('Name Top', eg.topic(name: 'Top Name'), false);
+      doCheck('Name Four Top Words', eg.topic(name: 'Top Name Four Words'), false);
+      doCheck('F Top', eg.topic(name: 'Top Name Four Words'), false);
+      doCheck('Four T', eg.topic(name: 'Top Name Four Words'), false);
     });
   });
 }
