@@ -70,6 +70,8 @@ class TestZulipBinding extends ZulipBinding {
     _resetLaunchUrl();
     _resetCloseInAppWebView();
     _resetDeviceInfo();
+    _resetPackageInfo();
+    _resetUserAgentHeader();
     _resetFirebase();
     _resetNotifications();
   }
@@ -204,19 +206,31 @@ class TestZulipBinding extends ZulipBinding {
     _closeInAppWebViewCallCount++;
   }
 
-  /// The value that `ZulipBinding.instance.deviceInfo()` should return.
-  ///
-  /// See also [takeDeviceInfoCalls].
+  @override
+  BaseDeviceInfo? get deviceInfo => deviceInfoResult;
+
+  /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
-  static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
+  static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
 
   void _resetDeviceInfo() {
     deviceInfoResult = _defaultDeviceInfoResult;
   }
 
   @override
-  Future<BaseDeviceInfo> deviceInfo() {
-    return Future(() => deviceInfoResult);
+  PackageInfo? get packageInfo => packageInfoResult;
+
+  /// The value that `ZulipBinding.instance.packageInfo` should return.
+  PackageInfo packageInfoResult = _defaultPackageInfo;
+  static final _defaultPackageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+
+  void _resetPackageInfo() {
+    packageInfoResult = _defaultPackageInfo;
+  }
+
+  Map<String, String>? _userAgentHeader;
+  void _resetUserAgentHeader() {
+    _userAgentHeader = null;
   }
 
   void _resetFirebase() {
@@ -270,6 +284,11 @@ class TestZulipBinding extends ZulipBinding {
   @override
   FakeAndroidNotificationHostApi get androidNotificationHost {
     return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
+  }
+
+  @override
+  Map<String, String> userAgentHeader() {
+    return _userAgentHeader ??= buildUserAgentHeader(deviceInfo!, packageInfo!);
   }
 }
 

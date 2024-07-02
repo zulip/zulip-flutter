@@ -953,14 +953,14 @@ void main() {
       check(await actualHeaders(tester, Uri.parse('https://chat.example/image.png')))
         .deepEquals({
           'Authorization': [authHeaders['Authorization']!],
-          'User-Agent': [userAgentHeader()['User-Agent']!],
+          'User-Agent': [testBinding.userAgentHeader()['User-Agent']!],
         });
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('excludes auth header if `src` off-realm', (tester) async {
       check(await actualHeaders(tester, Uri.parse('https://other.example/image.png')))
-        .deepEquals({'User-Agent': [userAgentHeader()['User-Agent']!]});
+        .deepEquals({'User-Agent': [testBinding.userAgentHeader()['User-Agent']!]});
       debugNetworkImageHttpClientProvider = null;
     });
 

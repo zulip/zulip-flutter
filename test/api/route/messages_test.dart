@@ -3,18 +3,21 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
-import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/narrow.dart';
 
 import '../../example_data.dart' as eg;
+import '../../model/binding.dart';
 import '../../stdlib_checks.dart';
 import '../fake_api.dart';
 import 'route_checks.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+  tearDown(testBinding.reset);
+
   group('getMessageCompat', () {
     Future<Message?> checkGetMessageCompat(FakeApiConnection connection, {
       required bool expectLegacy,
@@ -316,100 +319,113 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals(expectedBodyFields)
-        ..headers['User-Agent'].equals(expectedUserAgent ?? userAgentHeader()['User-Agent']!);
+        ..headers['User-Agent'].equals(expectedUserAgent
+          ?? testBinding.userAgentHeader()['User-Agent']!);
     }
 
     test('smoke', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
-          queueId: 'abc:123',
-          localId: '456',
-          readBySender: true,
-          expectedBodyFields: {
-            'type': 'stream',
-            'to': streamId.toString(),
-            'topic': topic,
-            'content': content,
-            'queue_id': '"abc:123"',
-            'local_id': '"456"',
-            'read_by_sender': 'true',
-          });
+      return FakeApiConnection.with_(
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          await checkSendMessage(connection,
+            destination: StreamDestination(streamId, topic), content: content,
+            queueId: 'abc:123',
+            localId: '456',
+            readBySender: true,
+            expectedBodyFields: {
+              'type': 'stream',
+              'to': streamId.toString(),
+              'topic': topic,
+              'content': content,
+              'queue_id': '"abc:123"',
+              'local_id': '"456"',
+              'read_by_sender': 'true',
+            });
       });
     });
 
     test('to stream', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
-          readBySender: true,
-          expectedBodyFields: {
-            'type': 'stream',
-            'to': streamId.toString(),
-            'topic': topic,
-            'content': content,
-            'read_by_sender': 'true',
-          });
+      return FakeApiConnection.with_(
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          await checkSendMessage(connection,
+            destination: StreamDestination(streamId, topic), content: content,
+            readBySender: true,
+            expectedBodyFields: {
+              'type': 'stream',
+              'to': streamId.toString(),
+              'topic': topic,
+              'content': content,
+              'read_by_sender': 'true',
+            });
       });
     });
 
     test('to DM conversation', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkSendMessage(connection,
-          destination: DmDestination(userIds: userIds), content: content,
-          readBySender: true,
-          expectedBodyFields: {
-            'type': 'direct',
-            'to': jsonEncode(userIds),
-            'content': content,
-            'read_by_sender': 'true',
-          });
+      return FakeApiConnection.with_(
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          await checkSendMessage(connection,
+            destination: DmDestination(userIds: userIds), content: content,
+            readBySender: true,
+            expectedBodyFields: {
+              'type': 'direct',
+              'to': jsonEncode(userIds),
+              'content': content,
+              'read_by_sender': 'true',
+            });
       });
     });
 
     test('to DM conversation, with legacy type "private"', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) async {
-        await checkSendMessage(connection,
-          destination: DmDestination(userIds: userIds), content: content,
-          readBySender: true,
-          expectedBodyFields: {
-            'type': 'private',
-            'to': jsonEncode(userIds),
-            'content': content,
-            'read_by_sender': 'true',
-          },
-          expectedUserAgent: 'ZulipMobile/flutter');
+      return FakeApiConnection.with_(zulipFeatureLevel: 173,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          await checkSendMessage(connection,
+            destination: DmDestination(userIds: userIds), content: content,
+            readBySender: true,
+            expectedBodyFields: {
+              'type': 'private',
+              'to': jsonEncode(userIds),
+              'content': content,
+              'read_by_sender': 'true',
+            },
+            expectedUserAgent: 'ZulipMobile/flutter');
       });
     });
 
     test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
-          readBySender: null,
-          expectedBodyFields: {
-            'type': 'stream',
-            'to': streamId.toString(),
-            'topic': topic,
-            'content': content,
-          },
-          expectedUserAgent: 'ZulipMobile/flutter');
+      return FakeApiConnection.with_(
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          await checkSendMessage(connection,
+            destination: StreamDestination(streamId, topic), content: content,
+            readBySender: null,
+            expectedBodyFields: {
+              'type': 'stream',
+              'to': streamId.toString(),
+              'topic': topic,
+              'content': content,
+            },
+            expectedUserAgent: 'ZulipMobile/flutter');
       });
     });
 
     test('legacy: when server does not support readBySender, sends a User-Agent the server will recognize', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 235, (connection) async {
-        await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
-          readBySender: true,
-          expectedBodyFields: {
-            'type': 'stream',
-            'to': streamId.toString(),
-            'topic': topic,
-            'content': content,
-            'read_by_sender': 'true',
-          },
-          expectedUserAgent: 'ZulipMobile/flutter');
+      return FakeApiConnection.with_(zulipFeatureLevel: 235,
+        userAgentHeader: testBinding.userAgentHeader(),
+        (connection) async {
+          await checkSendMessage(connection,
+            destination: StreamDestination(streamId, topic), content: content,
+            readBySender: true,
+            expectedBodyFields: {
+              'type': 'stream',
+              'to': streamId.toString(),
+              'topic': topic,
+              'content': content,
+              'read_by_sender': 'true',
+            },
+            expectedUserAgent: 'ZulipMobile/flutter');
       });
     });
   });

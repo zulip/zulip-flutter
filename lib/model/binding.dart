@@ -3,9 +3,11 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../host/android_notifications.dart';
+import '../log.dart';
 import '../widgets/store.dart';
 import 'store.dart';
 
@@ -66,6 +68,18 @@ abstract class ZulipBinding {
     _instance = this;
   }
 
+  /// Provides device and operating system information,
+  /// via package:device_info_plus.
+  ///
+  /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
+  BaseDeviceInfo? get deviceInfo;
+
+  /// Provides application package information,
+  /// via package:package_info_plus.
+  ///
+  /// This wraps [package_info_plus.PackageInfo.fromPlatform].
+  PackageInfo? get packageInfo;
+
   /// Prepare the app's [GlobalStore], loading the necessary data.
   ///
   /// Generally the app should call this function only once.
@@ -98,12 +112,6 @@ abstract class ZulipBinding {
   /// This wraps [url_launcher.closeInAppWebView].
   Future<void> closeInAppWebView();
 
-  /// Provides device and operating system information,
-  /// via package:device_info_plus.
-  ///
-  /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
-  Future<BaseDeviceInfo> deviceInfo();
-
   /// Initialize Firebase, to use for notifications.
   ///
   /// This wraps [firebase_core.Firebase.initializeApp].
@@ -124,6 +132,12 @@ abstract class ZulipBinding {
 
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
+
+  /// Generates a user agent header for HTTP requests.
+  ///
+  /// Uses [deviceInfo] to get operating system information
+  /// and [packageInfo] to get application version information.
+  Map<String, String> userAgentHeader();
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -133,13 +147,20 @@ abstract class BaseDeviceInfo {
 
 /// Like [device_info_plus.AndroidDeviceInfo], but without things we don't use.
 class AndroidDeviceInfo extends BaseDeviceInfo {
+  /// The user-visible version string.
+  ///
+  /// E.g., "1.0" or "3.4b5" or "bananas". This field is an opaque string.
+  /// Do not assume that its value has any particular structure or that
+  /// values of RELEASE from different releases can be somehow ordered.
+  final String release;
+
   /// The Android SDK version.
   ///
   /// Possible values are defined in:
   ///   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
   final int sdkInt;
 
-  AndroidDeviceInfo({required this.sdkInt});
+  AndroidDeviceInfo({required this.release, required this.sdkInt});
 }
 
 /// Like [device_info_plus.IosDeviceInfo], but without things we don't use.
@@ -150,6 +171,67 @@ class IosDeviceInfo extends BaseDeviceInfo {
   final String systemVersion;
 
   IosDeviceInfo({required this.systemVersion});
+}
+
+/// Like [device_info_plus.MacOsDeviceInfo], but without things we don't use.
+class MacOsDeviceInfo extends BaseDeviceInfo {
+  /// The major release number, such as 10 in version 10.9.3.
+  final int majorVersion;
+
+  /// The minor release number, such as 9 in version 10.9.3.
+  final int minorVersion;
+
+  /// The update release number, such as 3 in version 10.9.3.
+  final int patchVersion;
+
+  MacOsDeviceInfo({
+    required this.majorVersion,
+    required this.minorVersion,
+    required this.patchVersion,
+  });
+}
+
+/// Like [device_info_plus.WindowsDeviceInfo], currently only used to
+/// determine if we're on Windows.
+class WindowsDeviceInfo implements BaseDeviceInfo {}
+
+/// Like [device_info_plus.LinuxDeviceInfo], but without things we don't use.
+///
+/// See:
+///   https://www.freedesktop.org/software/systemd/man/os-release.html
+class LinuxDeviceInfo implements BaseDeviceInfo {
+  /// A string identifying the operating system, without a version component,
+  /// and suitable for presentation to the user.
+  ///
+  /// Examples: 'Fedora', 'Debian GNU/Linux'.
+  ///
+  /// If not set, defaults to 'Linux'.
+  final String name;
+
+  /// A lower-case string identifying the operating system version, excluding
+  /// any OS name information or release code name, and suitable for processing
+  /// by scripts or usage in generated filenames.
+  ///
+  /// The version is mostly numeric, and contains no spaces or other characters
+  /// outside of 0–9, a–z, '.', '_' and '-'.
+  ///
+  /// Examples: '17', '11.04'.
+  ///
+  /// This field is optional and may be null on some systems.
+  final String? versionId;
+
+  LinuxDeviceInfo({required this.name, required this.versionId});
+}
+
+/// Like [package_info_plus.PackageInfo], but without things we don't use.
+class PackageInfo {
+  final String version;
+  final String buildNumber;
+
+  PackageInfo({
+    required this.version,
+    required this.buildNumber,
+  });
 }
 
 /// A concrete binding for use in the live application.
@@ -164,9 +246,46 @@ class LiveZulipBinding extends ZulipBinding {
   /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
   static LiveZulipBinding ensureInitialized() {
     if (ZulipBinding._instance == null) {
-      LiveZulipBinding();
+      final binding = LiveZulipBinding();
+      binding._prefetchDeviceInfo();
+      binding._prefetchPackageInfo();
     }
     return ZulipBinding.instance as LiveZulipBinding;
+  }
+
+  // Stored user agent header, since it remains constant.
+  Map<String, String>? _userAgentHeader;
+
+  @override
+  BaseDeviceInfo? get deviceInfo => _deviceInfo;
+  BaseDeviceInfo? _deviceInfo;
+
+  @override
+  PackageInfo? get packageInfo => _packageInfo;
+  PackageInfo? _packageInfo;
+
+  Future<void> _prefetchDeviceInfo() async {
+    final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
+    _deviceInfo = switch (info) {
+      device_info_plus.AndroidDeviceInfo() => AndroidDeviceInfo(release: info.version.release,
+                                                                sdkInt: info.version.sdkInt),
+      device_info_plus.IosDeviceInfo()     => IosDeviceInfo(systemVersion: info.systemVersion),
+      device_info_plus.MacOsDeviceInfo()   => MacOsDeviceInfo(majorVersion: info.majorVersion,
+                                                              minorVersion: info.minorVersion,
+                                                              patchVersion: info.patchVersion),
+      device_info_plus.WindowsDeviceInfo() => WindowsDeviceInfo(),
+      device_info_plus.LinuxDeviceInfo()   => LinuxDeviceInfo(name: info.name,
+                                                              versionId: info.versionId),
+      _                                    => throw UnimplementedError(),
+    };
+  }
+
+  Future<void> _prefetchPackageInfo() async {
+    final info = await package_info_plus.PackageInfo.fromPlatform();
+    _packageInfo =  PackageInfo(
+      version: info.version,
+      buildNumber: info.buildNumber,
+    );
   }
 
   @override
@@ -196,16 +315,6 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<BaseDeviceInfo> deviceInfo() async {
-    final deviceInfo = await device_info_plus.DeviceInfoPlugin().deviceInfo;
-    return switch (deviceInfo) {
-      device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
-      device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
-      _                                                  => throw UnimplementedError(),
-    };
-  }
-
-  @override
   Future<void> firebaseInitializeApp({
       required firebase_core.FirebaseOptions options}) {
     return firebase_core.Firebase.initializeApp(options: options);
@@ -231,4 +340,43 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
+
+  @override
+  Map<String, String> userAgentHeader() {
+    if (deviceInfo == null || packageInfo == null) {
+      debugLog('userAgentHeader: Dependencies not initialized, falling back to \'ZulipFlutter\'.');
+      return {'User-Agent': 'ZulipFlutter'}; // TODO(log)
+    }
+    return _userAgentHeader ??= buildUserAgentHeader(deviceInfo!, packageInfo!);
+  }
+}
+
+@visibleForTesting
+Map<String, String> buildUserAgentHeader(BaseDeviceInfo deviceInfo, PackageInfo packageInfo) {
+  final osInfo = switch (deviceInfo) {
+    AndroidDeviceInfo(
+      :var release)       => 'Android $release', // "Android 14"
+    IosDeviceInfo(
+      :var systemVersion) => 'iOS $systemVersion', // "iOS 17.4"
+    MacOsDeviceInfo(
+      :var majorVersion,
+      :var minorVersion,
+      :var patchVersion)  => 'macOS $majorVersion.$minorVersion.$patchVersion', // "macOS 14.5.0"
+    WindowsDeviceInfo()   => 'Windows', // "Windows"
+    LinuxDeviceInfo(
+      :var name,
+      :var versionId)     => 'Linux; $name${versionId != null ? ' $versionId' : ''}', // "Linux; Fedora Linux 40" or "Linux; Fedora Linux"
+    _                     => throw UnimplementedError(),
+  };
+  final PackageInfo(:version, :buildNumber) = packageInfo;
+
+  // Possible examples:
+  //  'ZulipFlutter/0.0.15+15 (Android 14)'
+  //  'ZulipFlutter/0.0.15+15 (iOS 17.4)'
+  //  'ZulipFlutter/0.0.15+15 (macOS 14.5.0)'
+  //  'ZulipFlutter/0.0.15+15 (Windows)'
+  //  'ZulipFlutter/0.0.15+15 (Linux; Fedora Linux 40)'
+  return {
+    'User-Agent': 'ZulipFlutter/$version+$buildNumber ($osInfo)',
+  };
 }
