@@ -407,6 +407,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       if (_messageVisible(message)) {
         _addMessage(message);
       }
+      store.recentSenders.handleMessage(message);
     }
     _fetched = true;
     _haveOldest = result.foundOldest;
@@ -443,6 +444,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       final fetchedMessages = _allMessagesVisible
         ? result.messages // Avoid unnecessarily copying the list.
         : result.messages.where(_messageVisible);
+
+      for (final message in fetchedMessages) {
+        store.recentSenders.handleMessage(message);
+      }
 
       _insertAllMessages(0, fetchedMessages);
       _haveOldest = result.foundOldest;
