@@ -132,6 +132,18 @@ void main() {
       ]);
       check(listedStreamIds(tester)).deepEquals([1, 2, 3, 4, 5, 6]);
     });
+
+    testWidgets('muted subscriptions come at last', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'a'), isMuted: true, pinToTop: true),
+        eg.subscription(eg.stream(streamId: 2, name: 'b'), isMuted: false, pinToTop: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'c'), isMuted: true, pinToTop: true),
+        eg.subscription(eg.stream(streamId: 4, name: 'd'), isMuted: false, pinToTop: false),
+        eg.subscription(eg.stream(streamId: 5, name: 'e'), isMuted: true, pinToTop: false),
+        eg.subscription(eg.stream(streamId: 6, name: 'f'), isMuted: false, pinToTop: false),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([2, 1, 3, 4, 6, 5]);
+    });
   });
 
   testWidgets('unread badge shows with unreads', (tester) async {
@@ -189,5 +201,44 @@ void main() {
       .equals(swatch.iconOnPlainBackground);
     check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
       .equals(swatch);
+  });
+
+  testWidgets('muted streams are displayed as faded', (tester) async {
+    final stream1 = eg.stream(name: 'Stream 1');
+    final stream2 = eg.stream(name: 'Stream 2');
+    final unreadMsgs = eg.unreadMsgs(streams: [
+      UnreadStreamSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      UnreadStreamSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [
+        eg.subscription(stream1, isMuted: true),
+        eg.subscription(stream2, isMuted: false)
+      ],
+      userTopics: [
+        UserTopicItem(
+          streamId: stream1.streamId,
+          topicName: 'a',
+          lastUpdated: 1234567890,
+          visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
+        ),
+        UserTopicItem(
+          streamId: stream2.streamId,
+          topicName: 'b',
+          lastUpdated: 1234567890,
+          visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
+        ),
+      ],
+      unreadMsgs: unreadMsgs);
+
+    final stream1Finder = find.text('Stream 1');
+    final stream1Opacity = tester.widget<Opacity>(
+      find.ancestor(of: stream1Finder, matching: find.byType(Opacity))).opacity;
+    check(stream1Opacity).equals(0.55);
+
+    final stream2Finder = find.text('Stream 2');
+    final stream2Opacity = tester.widget<Opacity>(
+      find.ancestor(of: stream2Finder, matching: find.byType(Opacity))).opacity;
+    check(stream2Opacity).equals(1.0);
   });
 }
