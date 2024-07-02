@@ -438,10 +438,18 @@ class ScrollToBottomButton extends StatelessWidget {
   }
 }
 
-class MarkAsReadWidget extends StatelessWidget {
+class MarkAsReadWidget extends StatefulWidget {
   const MarkAsReadWidget({super.key, required this.narrow});
 
   final Narrow narrow;
+
+  @override
+  State<MarkAsReadWidget> createState() => MarkAsReadWidgetState();
+}
+
+class MarkAsReadWidgetState extends State<MarkAsReadWidget> {
+  @visibleForTesting
+  bool isLoading = false;
 
   void _handlePress(BuildContext context) async {
     if (!context.mounted) return;
@@ -449,9 +457,10 @@ class MarkAsReadWidget extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final connection = store.connection;
     final useLegacy = connection.zulipFeatureLevel! < 155;
+    setState(() => isLoading = true);
 
     try {
-      await markNarrowAsRead(context, narrow, useLegacy);
+      await markNarrowAsRead(context, widget.narrow, useLegacy);
     } catch (e) {
       if (!context.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -459,9 +468,11 @@ class MarkAsReadWidget extends StatelessWidget {
         title: zulipLocalizations.errorMarkAsReadFailedTitle,
         message: e.toString()); // TODO(#741): extract user-facing message better
       return;
+    } finally {
+      setState(() => isLoading = false);
     }
     if (!context.mounted) return;
-    if (narrow is CombinedFeedNarrow && !useLegacy) {
+    if (widget.narrow is CombinedFeedNarrow && !useLegacy) {
       PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
     }
   }
@@ -470,15 +481,14 @@ class MarkAsReadWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final unreadCount = store.unreads.countInNarrow(narrow);
+    final unreadCount = store.unreads.countInNarrow(widget.narrow);
     final areMessagesRead = unreadCount == 0;
 
     return IgnorePointer(
       ignoring: areMessagesRead,
-      child: AnimatedOpacity(
-        opacity: areMessagesRead ? 0 : 1,
-        duration: Duration(milliseconds: areMessagesRead ? 2000 : 300),
-        curve: Curves.easeOut,
+      child: MarkAsReadAnimation(
+        visible: !areMessagesRead,
+        loading: isLoading,
         child: SizedBox(width: double.infinity,
           // Design referenced from:
           //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
@@ -503,10 +513,9 @@ class MarkAsReadWidget extends StatelessWidget {
                   .merge(weightVariableTextStyle(context, wght: 400))),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
               ),
-              onPressed: () => _handlePress(context),
+              onPressed: () => isLoading ? null : _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
-              label: Text(zulipLocalizations.markAllAsReadLabel))))),
-    );
+              label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }
 
@@ -640,6 +649,36 @@ class _UnreadMarker extends StatelessWidget {
                   width: 1,
                   color: Colors.white.withOpacity(0.6))))))),
       ]);
+  }
+}
+
+class MarkAsReadAnimation extends StatelessWidget {
+  const MarkAsReadAnimation({
+    super.key,
+    required this.visible,
+    required this.loading,
+    required this.child});
+
+  final bool visible;
+  final bool loading;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final (opacity, scale) = loading
+      ? (0.5, 0.95)
+      : visible ? (1.0 , 1.0) : (0.0, 0.0);
+    const duration = Duration(milliseconds: 500);
+    const curve = Curves.easeOut;
+    return AnimatedScale(
+      scale: scale,
+      duration: duration,
+      curve: curve,
+      child: AnimatedOpacity(
+        opacity: opacity,
+        duration: duration,
+        curve: curve,
+        child: child));
   }
 }
 
