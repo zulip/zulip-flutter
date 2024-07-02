@@ -107,6 +107,102 @@ data class InboxStyle (
     )
   }
 }
+
+/**
+ * Corresponds to `androidx.core.app.Person`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/Person
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class Person (
+  val iconData: ByteArray? = null,
+  val key: String,
+  val name: String
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): Person {
+      val iconData = __pigeon_list[0] as ByteArray?
+      val key = __pigeon_list[1] as String
+      val name = __pigeon_list[2] as String
+      return Person(iconData, key, name)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      iconData,
+      key,
+      name,
+    )
+  }
+}
+
+/**
+ * Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle.Message`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle.Message
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class MessagingStyleMessage (
+  val text: String,
+  val timestampMs: Long,
+  val person: Person
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): MessagingStyleMessage {
+      val text = __pigeon_list[0] as String
+      val timestampMs = __pigeon_list[1].let { num -> if (num is Int) num.toLong() else num as Long }
+      val person = __pigeon_list[2] as Person
+      return MessagingStyleMessage(text, timestampMs, person)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      text,
+      timestampMs,
+      person,
+    )
+  }
+}
+
+/**
+ * Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class MessagingStyle (
+  val user: Person,
+  val conversationTitle: String? = null,
+  val messages: List<MessagingStyleMessage?>? = null,
+  val isGroupConversation: Boolean
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): MessagingStyle {
+      val user = __pigeon_list[0] as Person
+      val conversationTitle = __pigeon_list[1] as String?
+      val messages = __pigeon_list[2] as List<MessagingStyleMessage?>?
+      val isGroupConversation = __pigeon_list[3] as Boolean
+      return MessagingStyle(user, conversationTitle, messages, isGroupConversation)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      user,
+      conversationTitle,
+      messages,
+      isGroupConversation,
+    )
+  }
+}
 private object NotificationsPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -120,6 +216,21 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
           InboxStyle.fromList(it)
         }
       }
+      131.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Person.fromList(it)
+        }
+      }
+      132.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MessagingStyleMessage.fromList(it)
+        }
+      }
+      133.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MessagingStyle.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -131,6 +242,18 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
       }
       is InboxStyle -> {
         stream.write(130)
+        writeValue(stream, value.toList())
+      }
+      is Person -> {
+        stream.write(131)
+        writeValue(stream, value.toList())
+      }
+      is MessagingStyleMessage -> {
+        stream.write(132)
+        writeValue(stream, value.toList())
+      }
+      is MessagingStyle -> {
+        stream.write(133)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -159,7 +282,8 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
    *   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
    */
-  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, smallIconResourceName: String?)
+  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
+  fun getActiveNotificationMessagingStyleByTag(tag: String): MessagingStyle?
 
   companion object {
     /** The codec used by AndroidNotificationHostApi. */
@@ -187,10 +311,29 @@ interface AndroidNotificationHostApi {
             val groupKeyArg = args[9] as String?
             val inboxStyleArg = args[10] as InboxStyle?
             val isGroupSummaryArg = args[11] as Boolean?
-            val smallIconResourceNameArg = args[12] as String?
+            val messagingStyleArg = args[12] as MessagingStyle?
+            val numberArg = args[13].let { num -> if (num is Int) num.toLong() else num as Long? }
+            val smallIconResourceNameArg = args[14] as String?
             val wrapped: List<Any?> = try {
-              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, smallIconResourceNameArg)
+              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, messagingStyleArg, numberArg, smallIconResourceNameArg)
               listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotificationMessagingStyleByTag$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val tagArg = args[0] as String
+            val wrapped: List<Any?> = try {
+              listOf(api.getActiveNotificationMessagingStyleByTag(tagArg))
             } catch (exception: Throwable) {
               wrapError(exception)
             }
