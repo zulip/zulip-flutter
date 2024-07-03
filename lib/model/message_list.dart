@@ -474,6 +474,17 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     notifyListeners();
   }
 
+  /// Update data derived from the content of the given message.
+  ///
+  /// This does not notify listeners.
+  /// The caller should ensure that happens later.
+  void messageContentChanged(int messageId) {
+    final index = _findMessageWithId(messageId);
+    if (index != -1) {
+      _reparseContent(index);
+    }
+  }
+
   // Repeal the `@protected` annotation that applies on the base implementation,
   // so we can call this method from [MessageStoreImpl].
   @override
@@ -494,17 +505,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     final isAnyPresent = messageIds.any((id) => _findMessageWithId(id) != -1);
     if (isAnyPresent) {
       notifyListeners();
-    }
-  }
-
-  /// Update data derived from the content of the given message.
-  ///
-  /// This does not notify listeners.
-  /// The caller should ensure that happens later.
-  void messageContentChanged(int messageId) {
-    final index = _findMessageWithId(messageId);
-    if (index != -1) {
-      _reparseContent(index);
     }
   }
 
