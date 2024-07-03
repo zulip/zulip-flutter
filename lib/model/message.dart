@@ -179,22 +179,43 @@ class MessageStoreImpl with MessageStore {
       return;
     }
 
-    if (newStreamId == null
-        && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!)) {
-      // The topic was only resolved/unresolved.
-      // No change to the messages' editState.
-      return;
-    }
+    final wasResolveOrUnresolve = (newStreamId == null
+      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!));
 
-    // TODO(#150): Handle message moves.  The views' recipient headers
-    //   may need updating, and consequently showSender too.
-    //   Currently only editState gets updated.
     for (final messageId in event.messageIds) {
       final message = messages[messageId];
       if (message == null) continue;
-      // Do not override the edited marker if the message has also been moved.
-      if (message.editState == MessageEditState.edited) continue;
-      message.editState = MessageEditState.moved;
+
+      if (message is! StreamMessage) {
+        assert(debugLog('Bad UpdateMessageEvent: stream/topic move on a DM')); // TODO(log)
+        continue;
+      }
+
+      if (newStreamId != null) {
+        message.streamId = newStreamId;
+        // See [StreamMessage.displayRecipient] on why the invalidation is
+        // needed.
+        message.displayRecipient = null;
+      }
+
+      if (newTopic != null) {
+        message.topic = newTopic;
+      }
+
+      if (!wasResolveOrUnresolve
+          && message.editState == MessageEditState.none) {
+        message.editState = MessageEditState.moved;
+      }
+    }
+
+    for (final view in _messageListViews) {
+      view.messagesMoved(
+        origStreamId: origStreamId,
+        newStreamId: newStreamId ?? origStreamId,
+        origTopic: origTopic,
+        newTopic: newTopic ?? origTopic,
+        messageIds: event.messageIds,
+      );
     }
   }
 
