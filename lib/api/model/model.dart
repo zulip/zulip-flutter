@@ -480,7 +480,7 @@ sealed class Message {
   final int senderId;
   final String senderRealmStr;
   @JsonKey(name: 'subject')
-  final String topic;
+  String topic;
   // final List<string> submessages; // TODO handle
   final int timestamp;
   String get type;
@@ -577,7 +577,7 @@ class StreamMessage extends Message {
   String get type => 'stream';
 
   final String displayRecipient;
-  final int streamId;
+  int streamId;
 
   StreamMessage({
     required super.client,

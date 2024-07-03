@@ -276,12 +276,16 @@ void main() {
       final message = eg.streamMessage();
       final otherMessage = eg.streamMessage();
 
-      Future<void> sendEvent(Message message, UpdateMessageEvent event) async {
+      Future<void> sendEvent(
+        Message message,
+        UpdateMessageEvent event,
+        {int notifiedCount = 1}
+      ) async {
         await prepare();
         await prepareMessages([message, otherMessage]);
 
         await store.handleEvent(event);
-        checkNotifiedOnce();
+        checkNotified(count: notifiedCount);
       }
 
       test('message not moved update', () async {
@@ -291,55 +295,76 @@ void main() {
       });
 
       test('message topic moved update', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: 'old topic',
-          newTopic:  'new topic'));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: 'old topic',
+            newTopic:  'new topic'),
+          notifiedCount: 2,
+        );
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
       test('message topic resolved update', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: 'new topic',
-          newTopic:  '✔ new topic'));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: 'new topic',
+            newTopic:  '✔ new topic'),
+          notifiedCount: 2,
+        );
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
 
       test('message topic unresolved update', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: '✔ new topic',
-          newTopic:  'new topic'));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: '✔ new topic',
+            newTopic:  'new topic'),
+          notifiedCount: 2,
+        );
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
 
       test('message topic both resolved and edited update', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: 'new topic',
-          newTopic:  '✔ new topic 2'));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: 'new topic',
+            newTopic:  '✔ new topic 2'),
+          notifiedCount: 2,
+        );
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
       test('message topic both unresolved and edited update', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: '✔ new topic',
-          newTopic:  'new topic 2'));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: '✔ new topic',
+            newTopic:  'new topic 2'),
+          notifiedCount: 2,
+        );
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
       test('message stream moved update', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: 'topic',
-          newTopic: 'topic',
-          newStreamId:  20));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: 'topic',
+            newTopic: 'topic',
+            newStreamId:  20),
+          notifiedCount: 2,
+        );
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
       test('message is both moved and updated', () async {
-        await sendEvent(message, eg.updateMessageMoveEvent([message, otherMessage],
-          origTopic: 'topic',
-          newTopic: 'topic',
-          newStreamId:  20,
-          origContent: 'old content',
-          newContent: 'new content'));
+        await sendEvent(message,
+          eg.updateMessageMoveEvent([message, otherMessage],
+            origTopic: 'topic',
+            newTopic: 'topic',
+            newStreamId:  20,
+            origContent: 'old content',
+            newContent: 'new content'),
+          notifiedCount: 2,
+        );
         check(store).messages[message.id].editState.equals(MessageEditState.edited);
         check(store).messages[otherMessage.id].editState.equals(MessageEditState.moved);
       });
