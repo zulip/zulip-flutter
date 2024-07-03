@@ -150,6 +150,14 @@ void main() {
         }
       }
 
+      void checkBotIcon({required int count}) {
+        final botFinder = find.descendant(
+          of: find.byType(RecentDmConversationsItem),
+          matching: find.byIcon(ZulipIcons.bot)).hitTestable();
+
+        check(botFinder.evaluate().length).equals(count);
+      }
+
       Future<void> markMessageAsRead(WidgetTester tester, Message message) async {
         final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         await store.handleEvent(UpdateMessageFlagsAddEvent(
@@ -177,6 +185,7 @@ void main() {
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
           checkTitle(tester, eg.selfUser.fullName);
+          checkBotIcon(count: 0);
         });
 
         testWidgets('short name takes one line', (WidgetTester tester) async {
@@ -185,6 +194,7 @@ void main() {
           await setupPage(tester, users: [], dmMessages: [message],
             newNameForSelfUser: name);
           checkTitle(tester, name, 1);
+          checkBotIcon(count: 0);
         });
 
         testWidgets('very long name takes two lines (must be ellipsized)', (WidgetTester tester) async {
@@ -193,6 +203,7 @@ void main() {
           await setupPage(tester, users: [], dmMessages: [message],
             newNameForSelfUser: name);
           checkTitle(tester, name, 2);
+          checkBotIcon(count: 0);
         });
 
         testWidgets('unread counts', (WidgetTester tester) async {
@@ -206,39 +217,95 @@ void main() {
       });
 
       group('1:1', () {
-        testWidgets('has right title/avatar', (WidgetTester tester) async {
-          final user = eg.user(userId: 1);
-          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
-          await setupPage(tester, users: [user], dmMessages: [message]);
+        group('has right avatar/title', () {
+          Future<void> checkRecipient(WidgetTester tester, {
+            required bool isBot,
+            required bool looksBot
+          }) async {
+            final user = eg.user(userId: 1, isBot: isBot);
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester, users: [user], dmMessages: [message]);
 
-          checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, user.fullName);
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, user.fullName);
+            checkBotIcon(count: looksBot ? 1 : 0);
+          }
+
+          testWidgets('bot recipient -> shows bot icon', (tester) async {
+            await checkRecipient(tester, isBot: true, looksBot: true);
+          });
+
+          testWidgets('non-bot recipient -> shows no bot icon', (tester) async {
+            await checkRecipient(tester, isBot: false, looksBot: false);
+          });
         });
 
-        testWidgets('no error when user somehow missing from store.users', (WidgetTester tester) async {
-          final user = eg.user(userId: 1);
-          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
-          await setupPage(tester,
-            users: [], // exclude user
-            dmMessages: [message],
-          );
+        group('no error when user somehow missing from store.users', () {
+          Future<void> checkRecipient(WidgetTester tester, {
+            required bool isBot,
+            required bool looksBot
+          }) async {
+            final user = eg.user(userId: 1, isBot: isBot);
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester,
+              users: [], // exclude user
+              dmMessages: [message],
+            );
 
-          checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, '(unknown user)');
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, '(unknown user)');
+            checkBotIcon(count: looksBot ? 1 : 0);
+          }
+
+          testWidgets('bot recipient -> shows no bot icon', (tester) async {
+            await checkRecipient(tester, isBot: true, looksBot: false);
+          });
+
+          testWidgets('non-bot recipient -> shows no bot icon', (tester) async {
+            await checkRecipient(tester, isBot: false, looksBot: false);
+          });
         });
 
-        testWidgets('short name takes one line', (WidgetTester tester) async {
-          final user = eg.user(userId: 1, fullName: 'Short name');
-          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
-          await setupPage(tester, users: [user], dmMessages: [message]);
-          checkTitle(tester, user.fullName, 1);
+        group('short name takes one line', () {
+          Future<void> checkRecipient(WidgetTester tester, {
+            required bool isBot,
+            required bool looksBot
+          }) async {
+            final user = eg.user(userId: 1, fullName: 'Short name', isBot: isBot);
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester, users: [user], dmMessages: [message]);
+            checkTitle(tester, user.fullName, 1);
+            checkBotIcon(count: looksBot ? 1 : 0);
+          }
+
+          testWidgets('bot recipient -> shows bot icon', (tester) async {
+            await checkRecipient(tester, isBot: true, looksBot: true);
+          });
+
+          testWidgets('non-bot recipient -> shows no bot icon', (tester) async {
+            await checkRecipient(tester, isBot: false, looksBot: false);
+          });
         });
 
-        testWidgets('very long name takes two lines (must be ellipsized)', (WidgetTester tester) async {
-          final user = eg.user(userId: 1, fullName: 'Long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name');
-          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
-          await setupPage(tester, users: [user], dmMessages: [message]);
-          checkTitle(tester, user.fullName, 2);
+        group('very long name takes two lines (must be ellipsized)', () {
+          Future<void> checkRecipient(WidgetTester tester, {
+            required bool isBot,
+            required bool looksBot
+          }) async {
+            final user = eg.user(userId: 1, isBot: isBot, fullName: 'Long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name');
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester, users: [user], dmMessages: [message]);
+            checkTitle(tester, user.fullName, 2);
+            checkBotIcon(count: looksBot ? 1 : 0);
+          }
+
+          testWidgets('bot recipient -> shows no bot icon', (WidgetTester tester) async {
+            await checkRecipient(tester, isBot: true, looksBot: false);
+          });
+
+          testWidgets('non-bot recipient -> shows no bot icon', (WidgetTester tester) async {
+            await checkRecipient(tester, isBot: false, looksBot: false);
+          });
         });
 
         testWidgets('unread counts', (WidgetTester tester) async {
@@ -252,37 +319,43 @@ void main() {
       });
 
       group('group', () {
-        List<User> usersList(int count) {
+        List<User> usersList(int count, {List<int>? botUsers}) {
+          assert(() {
+            if (botUsers == null) return true;
+            for (int userIndex in botUsers) {
+              if (userIndex >= count) return false;
+            }
+            return true;
+          }());
           final result = <User>[];
           for (int i = 0; i < count; i++) {
-            result.add(eg.user(userId: i, fullName: 'User ${i.toString()}'));
+            result.add(eg.user(userId: i, fullName: 'User ${i.toString()}',
+              isBot: botUsers?.contains(i) ?? false));
           }
           return result;
         }
 
         testWidgets('has right title/avatar', (WidgetTester tester) async {
-          final users = usersList(2);
-          final user0 = users[0];
-          final user1 = users[1];
-          final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
+          final users = usersList(3, botUsers: [0, 2]);
+          final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, '${user0.fullName}, ${user1.fullName}');
+          checkTitle(tester, users.map((u) => u.fullName).join(', '));
+          checkBotIcon(count: 2);
         });
 
         testWidgets('no error when one user somehow missing from store.users', (WidgetTester tester) async {
-          final users = usersList(2);
-          final user0 = users[0];
-          final user1 = users[1];
-          final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
+          final users = usersList(2, botUsers: [1]);
+          final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester,
-            users: [user0], // exclude user1
+            users: [users[0]], // exclude user[1], which is bot
             dmMessages: [message],
           );
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, '${user0.fullName}, (unknown user)');
+          checkTitle(tester, '${users[0].fullName}, (unknown user)');
+          checkBotIcon(count: 0);
         });
 
         testWidgets('few names takes one line', (WidgetTester tester) async {
@@ -290,6 +363,7 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           checkTitle(tester, users.map((u) => u.fullName).join(', '), 1);
+          checkBotIcon(count: 0);
         });
 
         testWidgets('very many names takes two lines (must be ellipsized)', (WidgetTester tester) async {
@@ -297,6 +371,7 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           checkTitle(tester, users.map((u) => u.fullName).join(', '), 2);
+          checkBotIcon(count: 0);
         });
 
         testWidgets('unread counts', (WidgetTester tester) async {

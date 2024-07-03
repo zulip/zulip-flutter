@@ -91,24 +91,29 @@ class RecentDmConversationsItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
 
-    final String title;
+    final List<({String name, bool isBot})> users;
     final Widget avatar;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = selfUser.fullName;
+        users = [(name: selfUser.fullName, isBot: selfUser.isBot)];
         avatar = AvatarImage(userId: selfUser.userId, size: _avatarSize);
       case [var otherUserId]:
         // TODO(#296) actually don't show this row if the user is muted?
         //   (should we offer a "spam folder" style summary screen of recent
         //   1:1 DM conversations from muted users?)
         final otherUser = store.users[otherUserId];
-        title = otherUser?.fullName ?? '(unknown user)';
+        users = [(name: otherUser?.fullName ?? '(unknown user)',
+          isBot: otherUser?.isBot ?? false)];
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
         //   // 'Chris、Greg、Alya'
-        title = narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', ');
+        users = narrow.otherRecipientIds.map((id) {
+          final user = store.users[id];
+          return (name: user?.fullName ?? '(unknown user)',
+            isBot: user?.isBot ?? false);
+        }).toList();
         // TODO(#95) need dark-theme color
         avatar = ColoredBox(color: const Color(0x33808080),
           child: Center(
@@ -131,7 +136,7 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
+              child: Text.rich(
                 style: const TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
@@ -140,7 +145,19 @@ class RecentDmConversationsItem extends StatelessWidget {
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                title))),
+                TextSpan(children: List.generate(users.length, (index) {
+                  final user = users[index];
+                  return TextSpan(text: user.name, children: [
+                    if (user.isBot) ...[
+                      const WidgetSpan(child: SizedBox(width: 5)),
+                      const WidgetSpan(
+                        child: Icon(ZulipIcons.bot, size: 15,
+                          color: Color.fromARGB(255, 159, 173, 173)),
+                        alignment: PlaceholderAlignment.middle),
+                    ],
+                    if (index < users.length - 1) const TextSpan(text: ', '),
+                  ]);
+                }).toList())))),
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
