@@ -297,11 +297,15 @@ void main() {
 
       test('message topic moved update', () async {
         await prepareOrigMessages(origTopic: 'old topic');
+        final originalDisplayRecipient = origMessages[0].displayRecipient!;
         await store.handleEvent(eg.updateMessageMoveFromEvent(
           origMessages: origMessages,
           newTopic:  'new topic'));
-        checkNotifiedOnce();
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
+        checkNotified(count: 2);
+        check(store).messages.values.every(((message) =>
+          message.isA<StreamMessage>()
+            ..editState.equals(MessageEditState.moved)
+            ..displayRecipient.equals(originalDisplayRecipient)));
       });
 
       test('message topic resolved update', () async {
@@ -309,7 +313,7 @@ void main() {
         await store.handleEvent(eg.updateMessageMoveFromEvent(
           origMessages: origMessages,
           newTopic:  '✔ new topic'));
-        checkNotifiedOnce();
+        checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
 
@@ -318,7 +322,7 @@ void main() {
         await store.handleEvent(eg.updateMessageMoveFromEvent(
           origMessages: origMessages,
           newTopic:  'new topic'));
-        checkNotifiedOnce();
+        checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
 
@@ -327,7 +331,7 @@ void main() {
         await store.handleEvent(eg.updateMessageMoveFromEvent(
           origMessages: origMessages,
           newTopic:  '✔ new topic 2'));
-        checkNotifiedOnce();
+        checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
@@ -336,7 +340,7 @@ void main() {
         await store.handleEvent(eg.updateMessageMoveFromEvent(
           origMessages: origMessages,
           newTopic:  'new topic 2'));
-        checkNotifiedOnce();
+        checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
@@ -346,8 +350,11 @@ void main() {
           origMessages: origMessages,
           newTopic:  'topic',
           newStreamId: 20));
-        checkNotifiedOnce();
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
+        checkNotified(count: 2);
+        check(store).messages.values.every(((message) =>
+          message.isA<StreamMessage>()
+            ..editState.equals(MessageEditState.moved)
+            ..displayRecipient.equals(null)));
       });
 
       test('message is both moved and updated', () async {
@@ -357,7 +364,7 @@ void main() {
           newTopic:  'topic',
           newContent: 'new content',
           newStreamId: 1001));
-        checkNotifiedOnce();
+        checkNotified(count: 2);
         check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
         check(store).messages[origMessages[1].id].editState.equals(MessageEditState.moved);
       });

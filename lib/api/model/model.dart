@@ -480,7 +480,7 @@ sealed class Message {
   final int senderId;
   final String senderRealmStr;
   @JsonKey(name: 'subject')
-  final String topic;
+  String topic;
   // final List<string> submessages; // TODO handle
   final int timestamp;
   String get type;
@@ -576,11 +576,12 @@ class StreamMessage extends Message {
   @JsonKey(includeToJson: true)
   String get type => 'stream';
 
-  final int streamId;
-  // This is not nullable API-wise, but if the message move across streams we
-  // might set [displayRecipient] to null to invalidate it.
+  // This is not nullable API-wise, but if the message move across channels,
+  // [displayRecipient] still refers to the original channel and it has to be
+  // invalidated.
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
+  int streamId;
 
   StreamMessage({
     required super.client,

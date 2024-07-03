@@ -16,6 +16,7 @@ import 'package:zulip/model/store.dart';
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'content_checks.dart';
 import 'recent_senders_test.dart' as recent_senders_test;
@@ -462,6 +463,348 @@ void main() {
       await store.handleEvent(eg.updateMessageEditEvent(messageNotInNarrow,
         renderedContent: '${messageNotInNarrow.content}<p>edited</p'));
       checkNotNotified();
+    });
+  });
+
+  group('messagesMoved', () {
+    final stream = eg.stream(streamId: 1, name: 'test stream');
+    final otherStream = eg.stream(streamId: 2, name: 'other stream');
+
+    void checkHasMessages(Iterable<Message> messages) {
+      check(model.messages.map((e) => e.id)).deepEquals(messages.map((e) => e.id));
+    }
+
+    Future<void> prepareNarrow(Narrow narrow, List<Message> messages) async {
+      await prepare(narrow: narrow);
+      for (final streamToAdd in [stream, otherStream]) {
+        final subscription = eg.subscription(streamToAdd);
+        await store.addStream(streamToAdd);
+        await store.addSubscription(subscription);
+      }
+      if (messages.isNotEmpty) {
+        await prepareMessages(foundOldest: false, messages: messages);
+      }
+      checkHasMessages(messages);
+    }
+
+    group('in topic narrow', () {
+      final narrow = TopicNarrow(stream.streamId, 'topic');
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+
+      test('internal no-op move', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: movedMessages[0].topic,
+          newMessages: movedMessages,
+        ));
+        checkNotifiedOnce();
+        checkHasMessages(initialMessages + movedMessages);
+      });
+
+      test('moved into narrow', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: 'other',
+          newMessages: movedMessages,
+        ));
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 2));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('moved from narrow', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: movedMessages,
+          newTopic: 'new',
+        ));
+        checkHasMessages(initialMessages);
+        checkNotifiedOnce();
+      });
+    });
+
+    group('in stream narrow', () {
+      final narrow = StreamNarrow(stream.streamId);
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+
+      test('internal move', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: movedMessages,
+          newTopic: 'new',
+        ));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotified(count: 2);
+      });
+
+      test('moved into narrow', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: 'orig topic',
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 2));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('moved from narrow', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: movedMessages,
+          newTopic: 'new',
+          newStreamId: otherStream.streamId,
+        ));
+        checkHasMessages(initialMessages);
+        checkNotifiedOnce();
+      });
+    });
+
+    group('in combined feed narrow', () {
+      const narrow = CombinedFeedNarrow();
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+
+      test('internal move between streams', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: initialMessages,
+          newTopic: initialMessages[0].topic,
+          newStreamId: otherStream.streamId,
+        ));
+        checkHasMessages(initialMessages);
+        checkNotified(count: 2);
+      }));
+
+      test('internal move between topics', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: movedMessages,
+          newTopic: 'new',
+        ));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotified(count: 2);
+      });
+    });
+
+    group('fetch races', (){
+      final narrow = StreamNarrow(stream.streamId);
+      final olderMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+
+      test('fetchOlder, _reset, fetchOlder returns, move fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 1), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages,
+        ).toJson());
+        final fetchFuture = model.fetchOlder();
+        check(model).fetchingOlder.isTrue();
+        checkHasMessages(initialMessages);
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: movedMessages[0].topic,
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        check(model).fetchingOlder.isFalse();
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        await fetchFuture;
+        checkHasMessages([]);
+        checkNotNotified();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('fetchOlder, _reset, move fetch finishes, fetchOlder returns', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages,
+        ).toJson());
+        final fetchFuture = model.fetchOlder();
+        checkHasMessages(initialMessages);
+        check(model).fetchingOlder.isTrue();
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: movedMessages[0].topic,
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        checkHasMessages([]);
+        check(model).fetchingOlder.isFalse();
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+
+        await fetchFuture;
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotNotified();
+      }));
+
+      test('fetchInitial, _reset, initial fetch finishes, move fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, []);
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages,
+        ).toJson());
+        final fetchFuture = model.fetchInitial();
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: movedMessages[0].topic,
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+        checkNotifiedOnce();
+
+        await fetchFuture;
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+        checkNotNotified();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('fetchInitial, _reset, move fetch finishes, initial fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, []);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages,
+        ).toJson());
+        final fetchFuture = model.fetchInitial();
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: movedMessages[0].topic,
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        check(model).fetched.isTrue();
+
+        await fetchFuture;
+        checkHasMessages(initialMessages + movedMessages);
+      }));
+
+      test('fetchOlder #1, _reset, move fetch finishes, fetchOlder #2, '
+        'fetchOlder #1 finishes, fetchOlder #2 finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages,
+        ).toJson());
+        final fetchFuture1 = model.fetchOlder();
+        checkHasMessages(initialMessages);
+        check(model).fetchingOlder.isTrue();
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveToEvent(
+          origTopic: movedMessages[0].topic,
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        checkHasMessages([]);
+        check(model).fetchingOlder.isFalse();
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 1));
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 2), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages
+        ).toJson());
+        final fetchFuture2 = model.fetchOlder();
+        checkHasMessages(initialMessages + movedMessages);
+        check(model).fetchingOlder.isTrue();
+        checkNotifiedOnce();
+
+        await fetchFuture1;
+        checkHasMessages(initialMessages + movedMessages);
+        // The older fetchOlder call should not override fetchingOlder set by
+        // the new fetchOlder call, nor should it notify the listeners.
+        check(model).fetchingOlder.isTrue();
+        checkNotNotified();
+
+        await fetchFuture2;
+        checkHasMessages(olderMessages + initialMessages + movedMessages);
+        check(model).fetchingOlder.isFalse();
+        checkNotifiedOnce();
+      }));
     });
   });
 
