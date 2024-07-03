@@ -139,7 +139,8 @@ void main() {
         // TODO(#232): syntax like `check(find(…), findsOneWidget)`
         final widget = tester.widget(find.descendant(
           of: find.byType(RecentDmConversationsItem),
-          matching: find.text(expectedText),
+          matching: find.byWidgetPredicate((widget) => widget is Text
+            && (widget.textSpan?.toPlainText(includePlaceholders: false) ?? '') == expectedText),
         ));
         if (expectedLines != null) {
           final renderObject = tester.renderObject<RenderParagraph>(find.byWidget(widget));
