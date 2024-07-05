@@ -962,25 +962,23 @@ class MessageWithPossibleSender extends StatelessWidget {
           if (senderRow != null)
             Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
               child: senderRow),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  MessageContent(message: message, content: item.content),
-                  if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!)
-                ])),
-            SizedBox(width: 16,
-              child: message.flags.contains(MessageFlag.starred)
-                // TODO(#157): fix how star marker aligns with message content
-                // Design from Figma at:
-                //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=813%3A28817&mode=dev .
-                ? Padding(padding: const EdgeInsets.only(top: 4),
-                    child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star))
-                : null),
-          ]),
+          Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: localizedTextBaseline(context),
+            children: [
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    MessageContent(message: message, content: item.content),
+                    if ((message.reactions?.total ?? 0) > 0)
+                      ReactionChipsList(messageId: message.id, reactions: message.reactions!)
+                  ])),
+              SizedBox(width: 16,
+                child: message.flags.contains(MessageFlag.starred)
+                  ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
+                  : null),
+            ]),
         ])));
   }
 }
