@@ -483,5 +483,24 @@
   "notifSelfUser": "You",
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "onePersonTyping": "{typist} is typing…",
+  "@onePersonTyping": {
+    "description": "Text to display when there is one user typing.",
+    "placeholders": {
+      "typist": {"type": "String", "example": "Alice"}
+    }
+  },
+  "twoPeopleTyping": "{typist} and {otherTypist} are typing…",
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "typist": {"type": "String", "example": "Alice"},
+      "otherTypist": {"type": "String", "example": "Bob"}
+    }
+  },
+  "manyPeopleTyping": "Several people are typing…",
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
   }
 }

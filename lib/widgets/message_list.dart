@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +10,7 @@ import '../api/model/model.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
+import '../model/typing_status.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'compose_box.dart';
@@ -496,9 +498,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           final valueKey = key as ValueKey<int>;
           final index = model!.findItemWithMessageId(valueKey.value);
           if (index == -1) return null;
-          return length - 1 - (index - 2);
+          return length - 1 - (index - 3);
         },
-        childCount: length + 2,
+        childCount: length + 3,
         (context, i) {
           // To reinforce that the end of the feed has been reached:
           //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
@@ -506,7 +508,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
           if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
 
-          final data = model!.items[length - 1 - (i - 2)];
+          if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
+
+          final data = model!.items[length - 1 - (i - 3)];
           return _buildItem(data, i);
         }));
 
@@ -606,6 +610,64 @@ class ScrollToBottomButton extends StatelessWidget {
         // Web has the same color in light and dark mode.
         color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
         onPressed: _navigateToBottom));
+  }
+}
+
+class TypingStatusWidget extends StatefulWidget {
+  const TypingStatusWidget({super.key, required this.narrow});
+
+  final Narrow narrow;
+
+  @override
+  State<StatefulWidget> createState() => _TypingStatusWidgetState();
+}
+
+class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccountStoreAwareStateMixin<TypingStatusWidget> {
+  TypingStatus? model;
+
+  @override
+  void onNewStore() {
+    model?.removeListener(_modelChanged);
+    model = PerAccountStoreWidget.of(context).typingStatus
+      ..addListener(_modelChanged);
+  }
+
+  @override
+  void dispose() {
+    model?.removeListener(_modelChanged);
+    super.dispose();
+  }
+
+  void _modelChanged() {
+    setState(() {
+      // The actual state lives in [model].
+      // This method was called because that just changed.
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final narrow = widget.narrow;
+    if (narrow is! SendableNarrow) return const SizedBox();
+
+    final store = PerAccountStoreWidget.of(context);
+    final localizations = ZulipLocalizations.of(context);
+    final typistIds = model!.typistIdsInNarrow(narrow);
+    if (typistIds.isEmpty) return const SizedBox();
+    final text = switch (typistIds.length) {
+      1 => localizations.onePersonTyping(
+        store.users[typistIds.first]?.fullName ?? localizations.unknownUserName),
+      2 => localizations.twoPeopleTyping(
+        store.users[typistIds.first]?.fullName ?? localizations.unknownUserName,
+        store.users[typistIds.last]?.fullName  ?? localizations.unknownUserName),
+      _ => localizations.manyPeopleTyping,
+    };
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 16, top: 2),
+      child: Text(text,
+        style: const TextStyle(
+          color: HslColor(0, 0, 53), fontStyle: FontStyle.italic)));
   }
 }
 

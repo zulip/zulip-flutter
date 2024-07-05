@@ -320,6 +320,70 @@ void main() {
     });
   });
 
+  group('TypingStatusWidget', () {
+    final users = [eg.selfUser, eg.otherUser, eg.thirdUser, eg.fourthUser];
+    final finder = find.descendant(
+      of: find.byType(TypingStatusWidget),
+      matching: find.byType(Text)
+    );
+
+    Future<void> checkTyping(WidgetTester tester, TypingEvent event, {required String expected}) async {
+      await store.handleEvent(event);
+      await tester.pump();
+      check(tester.widget<Text>(finder)).data.equals(expected);
+    }
+
+    final dmMessage = eg.dmMessage(
+      from: eg.selfUser, to: [eg.otherUser, eg.thirdUser, eg.fourthUser]);
+    final dmNarrow = DmNarrow.ofMessage(dmMessage, selfUserId: eg.selfUser.userId);
+
+    final streamMessage = eg.streamMessage();
+    final topicNarrow = TopicNarrow.ofMessage(streamMessage);
+
+    for (final (description, message, narrow) in [
+      ('typing in dm',    dmMessage,      dmNarrow),
+      ('typing in topic', streamMessage,  topicNarrow),
+    ]) {
+      testWidgets(description, (tester) async {
+        await setupMessageListPage(tester,
+          narrow: narrow, users: users, messages: [message]);
+        await tester.pump();
+        check(finder.evaluate()).isEmpty();
+        await checkTyping(tester,
+          eg.typingEvent(narrow, TypingOp.start, eg.otherUser.userId),
+          expected: 'Other User is typing…');
+        await checkTyping(tester,
+          eg.typingEvent(narrow, TypingOp.start, eg.selfUser.userId),
+          expected: 'Other User is typing…');
+        await checkTyping(tester,
+          eg.typingEvent(narrow, TypingOp.start, eg.thirdUser.userId),
+          expected: 'Other User and Third User are typing…');
+        await checkTyping(tester,
+          eg.typingEvent(narrow, TypingOp.start, eg.fourthUser.userId),
+          expected: 'Several people are typing…');
+        await checkTyping(tester,
+          eg.typingEvent(narrow, TypingOp.stop, eg.otherUser.userId),
+          expected: 'Third User and Fourth User are typing…');
+        // Verify that typing indicators expire after a set duration.
+        await tester.pump(const Duration(seconds: 15));
+        check(finder.evaluate()).isEmpty();
+      });
+    }
+
+    testWidgets('unknown user typing', (tester) async {
+      final streamMessage = eg.streamMessage();
+      final narrow = TopicNarrow.ofMessage(streamMessage);
+      await setupMessageListPage(tester,
+        narrow: narrow, users: [], messages: [streamMessage]);
+      await checkTyping(tester,
+        eg.typingEvent(narrow, TypingOp.start, 1000),
+        expected: '(unknown user) is typing…',
+      );
+      // Wait for the pending timers to end.
+      await tester.pump(const Duration(seconds: 15));
+    });
+  });
+
   group('MarkAsReadWidget', () {
     bool isMarkAsReadButtonVisible(WidgetTester tester) {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
