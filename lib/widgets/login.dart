@@ -584,7 +584,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       key: _passwordKey,
       autofillHints: const [AutofillHints.password],
       obscureText: _obscurePassword,
-      keyboardType: TextInputType.visiblePassword,
+      keyboardType: _obscurePassword ? null : TextInputType.visiblePassword,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
         if (value == null || value.isEmpty) {
