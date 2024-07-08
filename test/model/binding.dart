@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -506,6 +506,13 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }
   List<AndroidNotificationHostApiNotifyCall> _notifyCalls = [];
 
+  final Map<String, MessagingStyle?> _activeNotificationsMessagingStyle = {};
+
+  /// Clears all active notifications that have been created via [notify].
+  void clearActiveNotifications() {
+    _activeNotificationsMessagingStyle.clear();
+  }
+
   @override
   Future<void> notify({
     String? tag,
@@ -520,6 +527,8 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
+    MessagingStyle? messagingStyle,
+    int? number,
     String? smallIconResourceName,
   }) async {
     _notifyCalls.add((
@@ -535,9 +544,33 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       groupKey: groupKey,
       inboxStyle: inboxStyle,
       isGroupSummary: isGroupSummary,
+      messagingStyle: messagingStyle,
+      number: number,
       smallIconResourceName: smallIconResourceName,
     ));
+
+    if (tag != null) {
+      _activeNotificationsMessagingStyle[tag] = messagingStyle == null
+        ? null
+        : MessagingStyle(
+            user: messagingStyle.user,
+            conversationTitle: messagingStyle.conversationTitle,
+            isGroupConversation: messagingStyle.isGroupConversation,
+            messages: messagingStyle.messages.map((message) =>
+              MessagingStyleMessage(
+                text: message!.text,
+                timestampMs: message.timestampMs,
+                person: Person(
+                  key: message.person.key,
+                  name: message.person.name,
+                  iconBitmap: null)),
+            ).toList());
+    }
   }
+
+  @override
+  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async =>
+    _activeNotificationsMessagingStyle[tag];
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({
@@ -553,5 +586,7 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   String? groupKey,
   InboxStyle? inboxStyle,
   bool? isGroupSummary,
+  MessagingStyle? messagingStyle,
+  int? number,
   String? smallIconResourceName,
 });

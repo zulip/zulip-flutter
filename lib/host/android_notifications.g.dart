@@ -77,6 +77,121 @@ class InboxStyle {
   }
 }
 
+/// Corresponds to `androidx.core.app.Person`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/Person
+class Person {
+  Person({
+    this.iconBitmap,
+    required this.key,
+    required this.name,
+  });
+
+  /// An icon for this person.
+  ///
+  /// This should be compressed image data, in a format to be passed
+  /// to `androidx.core.graphics.drawable.IconCompat.createWithData`.
+  /// Supported formats include JPEG, PNG, and WEBP.
+  ///
+  /// See:
+  ///  https://developer.android.com/reference/androidx/core/graphics/drawable/IconCompat#createWithData(byte[],int,int)
+  Uint8List? iconBitmap;
+
+  String key;
+
+  String name;
+
+  Object encode() {
+    return <Object?>[
+      iconBitmap,
+      key,
+      name,
+    ];
+  }
+
+  static Person decode(Object result) {
+    result as List<Object?>;
+    return Person(
+      iconBitmap: result[0] as Uint8List?,
+      key: result[1]! as String,
+      name: result[2]! as String,
+    );
+  }
+}
+
+/// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle.Message`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle.Message
+class MessagingStyleMessage {
+  MessagingStyleMessage({
+    required this.text,
+    required this.timestampMs,
+    required this.person,
+  });
+
+  String text;
+
+  int timestampMs;
+
+  Person person;
+
+  Object encode() {
+    return <Object?>[
+      text,
+      timestampMs,
+      person,
+    ];
+  }
+
+  static MessagingStyleMessage decode(Object result) {
+    result as List<Object?>;
+    return MessagingStyleMessage(
+      text: result[0]! as String,
+      timestampMs: result[1]! as int,
+      person: result[2]! as Person,
+    );
+  }
+}
+
+/// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle
+class MessagingStyle {
+  MessagingStyle({
+    required this.user,
+    this.conversationTitle,
+    required this.messages,
+    required this.isGroupConversation,
+  });
+
+  Person user;
+
+  String? conversationTitle;
+
+  List<MessagingStyleMessage?> messages;
+
+  bool isGroupConversation;
+
+  Object encode() {
+    return <Object?>[
+      user,
+      conversationTitle,
+      messages,
+      isGroupConversation,
+    ];
+  }
+
+  static MessagingStyle decode(Object result) {
+    result as List<Object?>;
+    return MessagingStyle(
+      user: result[0]! as Person,
+      conversationTitle: result[1] as String?,
+      messages: (result[2] as List<Object?>?)!.cast<MessagingStyleMessage?>(),
+      isGroupConversation: result[3]! as bool,
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -87,6 +202,15 @@ class _PigeonCodec extends StandardMessageCodec {
       writeValue(buffer, value.encode());
     } else     if (value is InboxStyle) {
       buffer.putUint8(130);
+      writeValue(buffer, value.encode());
+    } else     if (value is Person) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
+    } else     if (value is MessagingStyleMessage) {
+      buffer.putUint8(132);
+      writeValue(buffer, value.encode());
+    } else     if (value is MessagingStyle) {
+      buffer.putUint8(133);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -100,6 +224,12 @@ class _PigeonCodec extends StandardMessageCodec {
         return PendingIntent.decode(readValue(buffer)!);
       case 130: 
         return InboxStyle.decode(readValue(buffer)!);
+      case 131: 
+        return Person.decode(readValue(buffer)!);
+      case 132: 
+        return MessagingStyleMessage.decode(readValue(buffer)!);
+      case 133: 
+        return MessagingStyle.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -136,7 +266,7 @@ class AndroidNotificationHostApi {
   /// See:
   ///   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
   ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
-  Future<void> notify({String? tag, required int id, bool? autoCancel, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String?, String?>? extras, String? groupKey, InboxStyle? inboxStyle, bool? isGroupSummary, String? smallIconResourceName,}) async {
+  Future<void> notify({String? tag, required int id, bool? autoCancel, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String?, String?>? extras, String? groupKey, InboxStyle? inboxStyle, bool? isGroupSummary, MessagingStyle? messagingStyle, int? number, String? smallIconResourceName,}) async {
     final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.notify$__pigeon_messageChannelSuffix';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
@@ -144,7 +274,7 @@ class AndroidNotificationHostApi {
       binaryMessenger: __pigeon_binaryMessenger,
     );
     final List<Object?>? __pigeon_replyList =
-        await __pigeon_channel.send(<Object?>[tag, id, autoCancel, channelId, color, contentIntent, contentText, contentTitle, extras, groupKey, inboxStyle, isGroupSummary, smallIconResourceName]) as List<Object?>?;
+        await __pigeon_channel.send(<Object?>[tag, id, autoCancel, channelId, color, contentIntent, contentText, contentTitle, extras, groupKey, inboxStyle, isGroupSummary, messagingStyle, number, smallIconResourceName]) as List<Object?>?;
     if (__pigeon_replyList == null) {
       throw _createConnectionError(__pigeon_channelName);
     } else if (__pigeon_replyList.length > 1) {
@@ -155,6 +285,39 @@ class AndroidNotificationHostApi {
       );
     } else {
       return;
+    }
+  }
+
+  /// Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
+  /// combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
+  ///
+  /// Returns the messaging style, if any, of an active notification
+  /// that has tag `tag`.  If there are several such notifications,
+  /// an arbitrary one of them is used.
+  /// Returns null if there are no such notifications.
+  ///
+  /// See:
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
+  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotificationMessagingStyleByTag$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[tag]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else {
+      return (__pigeon_replyList[0] as MessagingStyle?);
     }
   }
 }

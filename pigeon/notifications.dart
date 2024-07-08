@@ -36,6 +36,64 @@ class InboxStyle {
   final String summaryText;
 }
 
+/// Corresponds to `androidx.core.app.Person`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/Person
+class Person {
+  Person({
+    required this.iconBitmap,
+    required this.key,
+    required this.name,
+  });
+
+  /// An icon for this person.
+  ///
+  /// This should be compressed image data, in a format to be passed
+  /// to `androidx.core.graphics.drawable.IconCompat.createWithData`.
+  /// Supported formats include JPEG, PNG, and WEBP.
+  ///
+  /// See:
+  ///  https://developer.android.com/reference/androidx/core/graphics/drawable/IconCompat#createWithData(byte[],int,int)
+  final Uint8List? iconBitmap;
+
+  final String key;
+  final String name;
+}
+
+/// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle.Message`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle.Message
+class MessagingStyleMessage {
+  MessagingStyleMessage({
+    required this.text,
+    required this.timestampMs,
+    required this.person,
+  });
+
+  final String text;
+  final int timestampMs;
+  final Person person;
+}
+
+/// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.MessagingStyle
+class MessagingStyle {
+  MessagingStyle({
+    required this.user,
+    required this.conversationTitle,
+    required this.isGroupConversation,
+    required this.messages,
+  });
+
+  final Person user;
+  final String? conversationTitle;
+  // TODO(pigeon): Make list item non-nullable, once pigeon supports non-nullable type arguments.
+  //   https://github.com/flutter/flutter/issues/97848
+  final List<MessagingStyleMessage?> messages;
+  final bool isGroupConversation;
+}
+
 @HostApi()
 abstract class AndroidNotificationHostApi {
   /// Corresponds to `android.app.NotificationManager.notify`,
@@ -73,8 +131,23 @@ abstract class AndroidNotificationHostApi {
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
+    MessagingStyle? messagingStyle,
+    int? number,
     String? smallIconResourceName,
     // NotificationCompat.Builder has lots more methods; add as needed.
     // Keep them alphabetized, for easy comparison with that class's docs.
   });
+
+  /// Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
+  /// combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
+  ///
+  /// Returns the messaging style, if any, of an active notification
+  /// that has tag `tag`.  If there are several such notifications,
+  /// an arbitrary one of them is used.
+  /// Returns null if there are no such notifications.
+  ///
+  /// See:
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
+  MessagingStyle? getActiveNotificationMessagingStyleByTag(String tag);
 }
