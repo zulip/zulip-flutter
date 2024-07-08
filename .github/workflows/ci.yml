@@ -8,6 +8,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4.1.7
 
+    - name: Set up JDK
+      uses: actions/setup-java@v4.2.1
+      with:
+        java-version: 17
+        distribution: temurin
+
     - name: Clone Flutter SDK
       # We can't do a depth-1 clone, because we need the most recent tag
       # so that Flutter knows its version and sees the constraint in our

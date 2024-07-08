@@ -24,7 +24,12 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 ## CLI PARSING
 
-default_suites=(analyze test build_runner drift pigeon icons)
+default_suites=(
+    analyze test
+    build_runner drift pigeon icons
+    android  # This takes multiple minutes in CI, so do it last.
+)
+
 extra_suites=(
     shellcheck  # Requires its own dependency, from outside the pub system.
 )
@@ -77,7 +82,7 @@ while (( $# )); do
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
         --verbose) opt_verbose=1; shift;;
-        analyze|test|build_runner|drift|pigeon|icons|shellcheck)
+        analyze|test|build_runner|drift|pigeon|icons|android|shellcheck)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -351,6 +356,18 @@ run_icons() {
     check_no_changes "icon updates" "${outputs[@]}"
 }
 
+run_android() {
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check android/ \
+    || return 0
+
+    flutter build apk \
+    || return
+
+    flutter build appbundle
+}
+
 run_shellcheck() {
     # Omitted from this check: nothing (nothing known, anyway).
     files_check tools/ '!*.'{dart,js,json} \
@@ -424,6 +441,7 @@ for suite in "${opt_suites[@]}"; do
         drift)        run_drift ;;
         pigeon)       run_pigeon ;;
         icons)        run_icons ;;
+        android)      run_android ;;
         shellcheck)   run_shellcheck ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
