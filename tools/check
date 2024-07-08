@@ -362,6 +362,15 @@ run_android() {
     files_check android/ \
     || return 0
 
+    # This causes `android/gradlew` to exist, for `tools/gradle` to use.
+    flutter build apk --config-only \
+    || return
+
+    # For docs on this Android linter:
+    #   https://developer.android.com/studio/write/lint
+    tools/gradle -q :app:lint \
+    || return
+
     flutter build apk \
     || return
 

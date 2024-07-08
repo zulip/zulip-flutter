@@ -72,6 +72,13 @@ android {
                     signingConfigs.release : signingConfigs.debug
         }
     }
+
+    lint {
+        // For docs on options available here:
+        //   https://developer.android.com/reference/tools/gradle-api/8.5/com/android/build/api/dsl/Lint
+        checkAllWarnings = true
+        warningsAsErrors = true
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
