@@ -463,26 +463,28 @@ UpdateMessageEvent updateMessageEditEvent(
   );
 }
 
-UpdateMessageEvent updateMessageMoveEvent(
-  List<Message> messages, {
+UpdateMessageEvent _updateMessageMoveEvent(
+  List<int> messageIds, {
+  required int origStreamId,
   int? newStreamId,
-  String? origTopic,
+  required String origTopic,
   String? newTopic,
   String? origContent,
   String? newContent,
+  required List<MessageFlag> flags,
 }) {
-  assert(messages.isNotEmpty);
-  final origMessage = messages[0];
-  final messageId = origMessage.id;
+  assert(newTopic != origTopic
+         || (newStreamId != null && newStreamId != origStreamId));
+  assert(messageIds.isNotEmpty);
   return UpdateMessageEvent(
     id: 0,
     userId: selfUser.userId,
     renderingOnly: false,
-    messageId: messageId,
-    messageIds: messages.map((message) => message.id).toList(),
-    flags: origMessage.flags,
+    messageId: messageIds.first,
+    messageIds: messageIds,
+    flags: flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origStreamId,
     newStreamId: newStreamId,
     propagateMode: null,
     origTopic: origTopic,
@@ -492,6 +494,54 @@ UpdateMessageEvent updateMessageMoveEvent(
     content: newContent,
     renderedContent: newContent,
     isMeMessage: false,
+  );
+}
+
+/// An [UpdateMessageEvent] where [origMessages] are moved to somewhere else.
+UpdateMessageEvent updateMessageEventMoveFrom({
+  required List<StreamMessage> origMessages,
+  int? newStreamId,
+  String? newTopic,
+  String? newContent,
+}) {
+  assert(origMessages.isNotEmpty);
+  final origMessage = origMessages.first;
+  // Only present on content change.
+  final origContent = (newContent != null) ? origMessage.content : null;
+  return _updateMessageMoveEvent(origMessages.map((e) => e.id).toList(),
+    origStreamId: origMessage.streamId,
+    newStreamId: newStreamId,
+    origTopic: origMessage.topic,
+    newTopic: newTopic,
+    origContent: origContent,
+    newContent: newContent,
+    flags: origMessage.flags,
+  );
+}
+
+/// An [UpdateMessageEvent] where [newMessages] are moved from somewhere.
+UpdateMessageEvent updateMessageEventMoveTo({
+  required List<StreamMessage> newMessages,
+  int? origStreamId,
+  String? origTopic,
+  String? origContent,
+}) {
+  assert(newMessages.isNotEmpty);
+  final newMessage = newMessages.first;
+  // Only present on topic move.
+  final newTopic = (origTopic != null) ? newMessage.topic : null;
+  // Only present on channel move.
+  final newStreamId = (origStreamId != null) ? newMessage.streamId : null;
+  // Only present on content change.
+  final newContent = (origContent != null) ? newMessage.content : null;
+  return _updateMessageMoveEvent(newMessages.map((e) => e.id).toList(),
+    origStreamId: origStreamId ?? newMessage.streamId,
+    newStreamId: newStreamId,
+    origTopic: origTopic ?? newMessage.topic,
+    newTopic:  newTopic,
+    origContent: origContent,
+    newContent: newContent,
+    flags: newMessage.flags,
   );
 }
 

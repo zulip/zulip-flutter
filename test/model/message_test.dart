@@ -297,9 +297,8 @@ void main() {
 
       test('message topic moved update', () async {
         await prepareOrigMessages(origTopic: 'old topic');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: 'old topic',
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
           newTopic:  'new topic'));
         checkNotifiedOnce();
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
@@ -307,9 +306,8 @@ void main() {
 
       test('message topic resolved update', () async {
         await prepareOrigMessages(origTopic: 'new topic');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: 'new topic',
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
           newTopic:  '✔ new topic'));
         checkNotifiedOnce();
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
@@ -317,9 +315,8 @@ void main() {
 
       test('message topic unresolved update', () async {
         await prepareOrigMessages(origTopic: '✔ new topic');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: '✔ new topic',
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
           newTopic:  'new topic'));
         checkNotifiedOnce();
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
@@ -327,9 +324,8 @@ void main() {
 
       test('message topic both resolved and edited update', () async {
         await prepareOrigMessages(origTopic: 'new topic');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: 'new topic',
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
           newTopic:  '✔ new topic 2'));
         checkNotifiedOnce();
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
@@ -337,9 +333,8 @@ void main() {
 
       test('message topic both unresolved and edited update', () async {
         await prepareOrigMessages(origTopic: '✔ new topic');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: '✔ new topic',
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
           newTopic:  'new topic 2'));
         checkNotifiedOnce();
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
@@ -347,23 +342,18 @@ void main() {
 
       test('message stream moved without topic change', () async {
         await prepareOrigMessages(origTopic: 'topic');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: 'topic',
-          newTopic: 'topic',
-          newStreamId:  20));
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
+          newStreamId: 20));
         checkNotifiedOnce();
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
       test('message is both moved and updated', () async {
         await prepareOrigMessages(origTopic: 'topic', origContent: 'old content');
-        await store.handleEvent(eg.updateMessageMoveEvent(
-          origMessages,
-          origTopic: 'topic',
-          newTopic: 'topic',
-          newStreamId:  20,
-          origContent: 'old content',
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: origMessages,
+          newStreamId: 20,
           newContent: 'new content'));
         checkNotifiedOnce();
         check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
