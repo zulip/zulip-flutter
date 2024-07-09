@@ -630,8 +630,8 @@ void main() {
     });
 
     testWidgets('edited and moved messages from events', (WidgetTester tester) async {
-      final message = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message = eg.streamMessage(topic: 'old');
+      final message2 = eg.streamMessage(topic: 'old');
       await setupMessageListPage(tester, messages: [message, message2]);
       checkMarkersCount(edited: 0, moved: 0);
 
@@ -639,8 +639,8 @@ void main() {
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 0);
 
-      await store.handleEvent(eg.updateMessageMoveEvent(
-        [message, message2], origTopic: 'old', newTopic: 'new'));
+      await store.handleEvent(eg.updateMessageMoveFromEvent(
+        origMessages: [message, message2], newTopic: 'new'));
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 1);
 
@@ -695,8 +695,8 @@ void main() {
       final rectsBefore = captureMessageRects(tester, messages, messageWithMarker);
       checkMarkersCount(edited: 0, moved: 0);
 
-      await store.handleEvent(eg.updateMessageMoveEvent(
-        [messageWithMarker], origTopic: 'old', newTopic: messageWithMarker.topic));
+      await store.handleEvent(eg.updateMessageMoveToEvent(
+        origTopic: 'old', newMessages: [messageWithMarker]));
       await tester.pump();
       check(captureMessageRects(tester, messages, messageWithMarker))
         .deepEquals(rectsBefore);

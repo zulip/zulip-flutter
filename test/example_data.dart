@@ -463,11 +463,12 @@ UpdateMessageEvent updateMessageEditEvent(
   );
 }
 
-UpdateMessageEvent updateMessageMoveEvent(
+UpdateMessageEvent _updateMessageMoveEvent(
   List<Message> messages, {
+  required int origStreamId,
+  required String origTopic,
+  required String newTopic,
   int? newStreamId,
-  String? origTopic,
-  String? newTopic,
   String? origContent,
   String? newContent,
 }) {
@@ -482,7 +483,7 @@ UpdateMessageEvent updateMessageMoveEvent(
     messageIds: messages.map((message) => message.id).toList(),
     flags: origMessage.flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origStreamId,
     newStreamId: newStreamId,
     propagateMode: null,
     origTopic: origTopic,
@@ -492,6 +493,50 @@ UpdateMessageEvent updateMessageMoveEvent(
     content: newContent,
     renderedContent: newContent,
     isMeMessage: false,
+  );
+}
+
+/// [UpdateMessageEvent] where [origMessages] are moved to somewhere else.
+UpdateMessageEvent updateMessageMoveFromEvent({
+  required List<StreamMessage> origMessages,
+  required String newTopic,
+  int? newStreamId,
+  String? newContent,
+}) {
+  assert(origMessages.isNotEmpty);
+  final origMessage = origMessages.first;
+  // Only present on content change.
+  final effectiveOrigContent = (newContent != null) ? origMessage.content : null;
+  return _updateMessageMoveEvent(origMessages,
+    origStreamId: origMessage.streamId,
+    newStreamId: newStreamId,
+    origTopic: origMessage.topic,
+    newTopic: newTopic,
+    origContent: effectiveOrigContent,
+    newContent: newContent
+  );
+}
+
+/// [UpdateMessageEvent] where [newMessages] are moved from somewhere.
+UpdateMessageEvent updateMessageMoveToEvent({
+  required List<StreamMessage> newMessages,
+  required String origTopic,
+  int? origStreamId,
+  String? origContent,
+}) {
+  assert(newMessages.isNotEmpty);
+  final movedMessage = newMessages.first;
+  // Only present on channel move.
+  final effectiveNewStreamId = (origStreamId != null) ? movedMessage.streamId : null;
+  // Only present on content change.
+  final effectiveNewContent = (origContent != null) ? movedMessage.content : null;
+  return _updateMessageMoveEvent(newMessages,
+    origStreamId: origStreamId ?? movedMessage.streamId,
+    newStreamId: effectiveNewStreamId,
+    origTopic: origTopic,
+    newTopic:  movedMessage.topic,
+    origContent: origContent,
+    newContent: effectiveNewContent,
   );
 }
 
