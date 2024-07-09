@@ -465,6 +465,7 @@ UpdateMessageEvent updateMessageEditEvent(
 
 UpdateMessageEvent updateMessageMoveEvent(
   List<Message> messages, {
+  int? origStreamId,
   int? newStreamId,
   String? origTopic,
   String? newTopic,
@@ -472,6 +473,9 @@ UpdateMessageEvent updateMessageMoveEvent(
   String? newContent,
 }) {
   assert(messages.isNotEmpty);
+  assert(origTopic != null, 'origTopic required for a message move');
+  assert(newTopic != null, 'newTopic required for a message move');
+
   final origMessage = messages[0];
   final messageId = origMessage.id;
   return UpdateMessageEvent(
@@ -482,7 +486,7 @@ UpdateMessageEvent updateMessageMoveEvent(
     messageIds: messages.map((message) => message.id).toList(),
     flags: origMessage.flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origStreamId ?? (origMessage is StreamMessage ? origMessage.streamId : null),
     newStreamId: newStreamId,
     propagateMode: null,
     origTopic: origTopic,
