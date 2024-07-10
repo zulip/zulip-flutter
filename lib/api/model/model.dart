@@ -576,7 +576,11 @@ class StreamMessage extends Message {
   @JsonKey(includeToJson: true)
   String get type => 'stream';
 
-  final String displayRecipient;
+  // This is not nullable API-wise, but if the message moves across channels,
+  // [displayRecipient] still refers to the original channel and it has to be
+  // invalidated.
+  @JsonKey(required: true, disallowNullValue: true)
+  String? displayRecipient;
   final int streamId;
 
   StreamMessage({
