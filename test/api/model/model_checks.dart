@@ -49,6 +49,10 @@ extension MessageChecks on Subject<Message> {
   Subject<String?> get matchTopic => has((e) => e.matchTopic, 'matchTopic');
 }
 
+extension StreamMessageChecks on Subject<StreamMessage> {
+  Subject<String?> get displayRecipient => has((e) => e.displayRecipient, 'displayRecipient');
+}
+
 extension ReactionsChecks on Subject<Reactions> {
   Subject<int> get total => has((e) => e.total, 'total');
   Subject<List<ReactionWithVotes>> get aggregated => has((e) => e.aggregated, 'aggregated');

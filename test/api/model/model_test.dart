@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
 
@@ -147,6 +148,14 @@ void main() {
           ..['flags'] = ['read', 'something_unknown'],
       );
       check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+    });
+
+    test('require displayRecipient on parse', () {
+      check(() => StreamMessage.fromJson(baseStreamJson()..['display_recipient'] = null))
+        .throws<DisallowedNullValueException>();
+
+      check(() => StreamMessage.fromJson(baseStreamJson()..remove('display_recipient')))
+        .throws<MissingRequiredKeysException>();
     });
 
     // Code relevant to messageEditState is tested separately in the

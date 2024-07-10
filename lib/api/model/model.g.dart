@@ -260,55 +260,70 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'color': instance.color,
     };
 
-StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
-    StreamMessage(
-      client: json['client'] as String,
-      content: json['content'] as String,
-      contentType: json['content_type'] as String,
-      editState: Message._messageEditStateFromJson(
-          MessageEditState._readFromMessage(json, 'edit_state')),
-      id: (json['id'] as num).toInt(),
-      isMeMessage: json['is_me_message'] as bool,
-      lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
-      reactions: Message._reactionsFromJson(json['reactions']),
-      recipientId: (json['recipient_id'] as num).toInt(),
-      senderEmail: json['sender_email'] as String,
-      senderFullName: json['sender_full_name'] as String,
-      senderId: (json['sender_id'] as num).toInt(),
-      senderRealmStr: json['sender_realm_str'] as String,
-      topic: json['subject'] as String,
-      timestamp: (json['timestamp'] as num).toInt(),
-      flags: Message._flagsFromJson(json['flags']),
-      matchContent: json['match_content'] as String?,
-      matchTopic: json['match_subject'] as String?,
-      displayRecipient: json['display_recipient'] as String,
-      streamId: (json['stream_id'] as num).toInt(),
-    );
+StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
+  $checkKeys(
+    json,
+    requiredKeys: const ['display_recipient'],
+    disallowNullValues: const ['display_recipient'],
+  );
+  return StreamMessage(
+    client: json['client'] as String,
+    content: json['content'] as String,
+    contentType: json['content_type'] as String,
+    editState: Message._messageEditStateFromJson(
+        MessageEditState._readFromMessage(json, 'edit_state')),
+    id: (json['id'] as num).toInt(),
+    isMeMessage: json['is_me_message'] as bool,
+    lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
+    reactions: Message._reactionsFromJson(json['reactions']),
+    recipientId: (json['recipient_id'] as num).toInt(),
+    senderEmail: json['sender_email'] as String,
+    senderFullName: json['sender_full_name'] as String,
+    senderId: (json['sender_id'] as num).toInt(),
+    senderRealmStr: json['sender_realm_str'] as String,
+    topic: json['subject'] as String,
+    timestamp: (json['timestamp'] as num).toInt(),
+    flags: Message._flagsFromJson(json['flags']),
+    matchContent: json['match_content'] as String?,
+    matchTopic: json['match_subject'] as String?,
+    displayRecipient: json['display_recipient'] as String?,
+    streamId: (json['stream_id'] as num).toInt(),
+  );
+}
 
-Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
-    <String, dynamic>{
-      'client': instance.client,
-      'content': instance.content,
-      'content_type': instance.contentType,
-      'edit_state': _$MessageEditStateEnumMap[instance.editState]!,
-      'id': instance.id,
-      'is_me_message': instance.isMeMessage,
-      'last_edit_timestamp': instance.lastEditTimestamp,
-      'reactions': Message._reactionsToJson(instance.reactions),
-      'recipient_id': instance.recipientId,
-      'sender_email': instance.senderEmail,
-      'sender_full_name': instance.senderFullName,
-      'sender_id': instance.senderId,
-      'sender_realm_str': instance.senderRealmStr,
-      'subject': instance.topic,
-      'timestamp': instance.timestamp,
-      'flags': instance.flags,
-      'match_content': instance.matchContent,
-      'match_subject': instance.matchTopic,
-      'type': instance.type,
-      'display_recipient': instance.displayRecipient,
-      'stream_id': instance.streamId,
-    };
+Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) {
+  final val = <String, dynamic>{
+    'client': instance.client,
+    'content': instance.content,
+    'content_type': instance.contentType,
+    'edit_state': _$MessageEditStateEnumMap[instance.editState]!,
+    'id': instance.id,
+    'is_me_message': instance.isMeMessage,
+    'last_edit_timestamp': instance.lastEditTimestamp,
+    'reactions': Message._reactionsToJson(instance.reactions),
+    'recipient_id': instance.recipientId,
+    'sender_email': instance.senderEmail,
+    'sender_full_name': instance.senderFullName,
+    'sender_id': instance.senderId,
+    'sender_realm_str': instance.senderRealmStr,
+    'subject': instance.topic,
+    'timestamp': instance.timestamp,
+    'flags': instance.flags,
+    'match_content': instance.matchContent,
+    'match_subject': instance.matchTopic,
+    'type': instance.type,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('display_recipient', instance.displayRecipient);
+  val['stream_id'] = instance.streamId;
+  return val;
+}
 
 const _$MessageEditStateEnumMap = {
   MessageEditState.none: 'none',
