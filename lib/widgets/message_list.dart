@@ -699,7 +699,9 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       streamWidget = const SizedBox(width: 16);
     } else {
       final stream = store.streams[message.streamId];
-      final streamName = stream?.name ?? message.displayRecipient; // TODO(log) if missing
+      final streamName = stream?.name
+        ?? message.displayRecipient
+        ?? '(unknown channel)'; // TODO(log)
 
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,

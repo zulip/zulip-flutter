@@ -576,8 +576,11 @@ class StreamMessage extends Message {
   @JsonKey(includeToJson: true)
   String get type => 'stream';
 
-  final String displayRecipient;
   final int streamId;
+  // This is not nullable API-wise, but if the message move across streams we
+  // might set [displayRecipient] to null to invalidate it.
+  @JsonKey(required: true, disallowNullValue: true)
+  String? displayRecipient;
 
   StreamMessage({
     required super.client,
