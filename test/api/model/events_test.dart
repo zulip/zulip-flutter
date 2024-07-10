@@ -153,7 +153,16 @@ void main() {
     })).throws<void>();
   });
 
-  test('update_message_flags/remove: require messageDetails in mark-as-unread', () {
+  test('delete_message: private -> direct', () {
+    check(DeleteMessageEvent.fromJson({
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'private',
+    })).messageType.equals(MessageType.direct);
+  });
+
+  group('update_message_flags/remove', () {
     final baseJson = {
       'id': 1,
       'type': 'update_message_flags',
@@ -162,14 +171,30 @@ void main() {
       'messages': [123],
       'all': false,
     };
-    check(() => UpdateMessageFlagsRemoveEvent.fromJson(baseJson)).returnsNormally();
-    check(() => UpdateMessageFlagsRemoveEvent.fromJson({
-      ...baseJson, 'flag': 'read',
-    })).throws<void>();
-    check(() => UpdateMessageFlagsRemoveEvent.fromJson({
-      ...baseJson,
-      'flag': 'read',
-      'message_details': {'123': {'type': 'private', 'mentioned': false, 'user_ids': [2]}},
-    })).returnsNormally();
+    final messageDetail = {'type': 'direct', 'mentioned': false, 'user_ids': [2]};
+
+    test('require messageDetails in mark-as-unread', () {
+      check(() => UpdateMessageFlagsRemoveEvent.fromJson(baseJson)).returnsNormally();
+      check(() => UpdateMessageFlagsRemoveEvent.fromJson({
+        ...baseJson, 'flag': 'read',
+      })).throws<void>();
+      check(() => UpdateMessageFlagsRemoveEvent.fromJson({
+        ...baseJson,
+        'flag': 'read',
+        'message_details': {'123': messageDetail},
+      })).returnsNormally();
+    });
+
+    test('private -> direct', () {
+      check(UpdateMessageFlagsRemoveEvent.fromJson({
+        ...baseJson,
+        'flag': 'read',
+        'message_details': {
+          '123': {
+            ...messageDetail,
+            'type': 'private',
+          }}})).messageDetails.isNotNull()
+               .values.single.type.equals(MessageType.direct);
+    });
   });
 }

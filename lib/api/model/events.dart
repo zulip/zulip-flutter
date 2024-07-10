@@ -707,6 +707,9 @@ class DeleteMessageEvent extends Event {
 
   final List<int> messageIds;
   // final int messageId; // Not present; we support the bulk_message_deletion capability
+  // The server never actually sends "direct" here yet (it's "private" instead),
+  // but we accept both forms for forward-compatibility.
+  @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
   final String? topic;
@@ -735,10 +738,25 @@ class DeleteMessageEvent extends Event {
 
 /// As in [DeleteMessageEvent.messageType]
 /// or [UpdateMessageFlagsMessageDetail.type].
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(alwaysCreate: true)
 enum MessageType {
   stream,
-  private;
+  direct;
+}
+
+class MessageTypeConverter extends JsonConverter<MessageType, String> {
+  const MessageTypeConverter();
+
+  @override
+  MessageType fromJson(String json) {
+    if (json == 'private') json = 'direct'; // TODO(server-future)
+    return $enumDecode(_$MessageTypeEnumMap, json);
+  }
+
+  @override
+  String toJson(MessageType object) {
+    return _$MessageTypeEnumMap[object]!;
+  }
 }
 
 /// A Zulip event of type `update_message_flags`.
@@ -820,6 +838,9 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
 /// As in [UpdateMessageFlagsRemoveEvent.messageDetails].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsMessageDetail {
+  // The server never actually sends "direct" here yet (it's "private" instead),
+  // but we accept both forms for forward-compatibility.
+  @MessageTypeConverter()
   final MessageType type;
   final bool? mentioned;
   final List<int>? userIds;
@@ -841,7 +862,7 @@ class UpdateMessageFlagsMessageDetail {
       case MessageType.stream:
         result.streamId as int;
         result.topic as String;
-      case MessageType.private:
+      case MessageType.direct:
         result.userIds as List<int>;
     }
     return result;

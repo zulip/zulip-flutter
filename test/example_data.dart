@@ -492,7 +492,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
             userIds: null,
           ),
           DmMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.private,
+            type: MessageType.direct,
             mentioned: mentioned,
             streamId: null,
             topic: null,

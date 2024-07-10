@@ -60,6 +60,18 @@ extension UpdateMessageEventChecks on Subject<UpdateMessageEvent> {
   Subject<bool?> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');
 }
 
+extension DeleteMessageEventChecks on Subject<DeleteMessageEvent> {
+  Subject<MessageType?> get messageType => has((e) => e.messageType, 'messageType');
+}
+
+extension UpdateMessageFlagsRemoveEventChecks on Subject<UpdateMessageFlagsRemoveEvent> {
+  Subject<Map<int, UpdateMessageFlagsMessageDetail>?> get messageDetails => has((e) => e.messageDetails, 'messageDetails');
+}
+
+extension UpdateMessageFlagsMessageDetailCheck on Subject<UpdateMessageFlagsMessageDetail> {
+  Subject<MessageType?> get type => has((e) => e.type, 'type');
+}
+
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {
   // No properties not covered by Event.
 }

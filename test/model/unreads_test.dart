@@ -449,7 +449,7 @@ void main() {
           ),
           DmMessage() => DeleteMessageEvent(
             id: 0,
-            messageType: MessageType.private,
+            messageType: MessageType.direct,
             messageIds: [message.id],
             streamId: null,
             topic: null,
@@ -488,7 +488,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        messageType: MessageType.private,
+        messageType: MessageType.direct,
         streamId: null,
         topic: null,
       ));
@@ -523,7 +523,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [message.id],
-        messageType: MessageType.private,
+        messageType: MessageType.direct,
         streamId: null,
         topic: null,
       ));
@@ -968,7 +968,7 @@ void main() {
               ),
               // message 2 and 3 have their details missing
               message4.id: UpdateMessageFlagsMessageDetail(
-                type: MessageType.private,
+                type: MessageType.direct,
                 mentioned: false,
                 streamId: null,
                 topic: null,

@@ -438,7 +438,8 @@ DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
       messageIds: (json['message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
-      messageType: $enumDecode(_$MessageTypeEnumMap, json['message_type']),
+      messageType:
+          const MessageTypeConverter().fromJson(json['message_type'] as String),
       streamId: (json['stream_id'] as num?)?.toInt(),
       topic: json['topic'] as String?,
     );
@@ -448,15 +449,10 @@ Map<String, dynamic> _$DeleteMessageEventToJson(DeleteMessageEvent instance) =>
       'id': instance.id,
       'type': instance.type,
       'message_ids': instance.messageIds,
-      'message_type': _$MessageTypeEnumMap[instance.messageType]!,
+      'message_type': const MessageTypeConverter().toJson(instance.messageType),
       'stream_id': instance.streamId,
       'topic': instance.topic,
     };
-
-const _$MessageTypeEnumMap = {
-  MessageType.stream: 'stream',
-  MessageType.private: 'private',
-};
 
 UpdateMessageFlagsAddEvent _$UpdateMessageFlagsAddEventFromJson(
         Map<String, dynamic> json) =>
@@ -511,7 +507,7 @@ Map<String, dynamic> _$UpdateMessageFlagsRemoveEventToJson(
 UpdateMessageFlagsMessageDetail _$UpdateMessageFlagsMessageDetailFromJson(
         Map<String, dynamic> json) =>
     UpdateMessageFlagsMessageDetail(
-      type: $enumDecode(_$MessageTypeEnumMap, json['type']),
+      type: const MessageTypeConverter().fromJson(json['type'] as String),
       mentioned: json['mentioned'] as bool?,
       userIds: (json['user_ids'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
@@ -523,7 +519,7 @@ UpdateMessageFlagsMessageDetail _$UpdateMessageFlagsMessageDetailFromJson(
 Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
         UpdateMessageFlagsMessageDetail instance) =>
     <String, dynamic>{
-      'type': _$MessageTypeEnumMap[instance.type]!,
+      'type': const MessageTypeConverter().toJson(instance.type),
       'mentioned': instance.mentioned,
       'user_ids': instance.userIds,
       'stream_id': instance.streamId,
@@ -574,3 +570,8 @@ Map<String, dynamic> _$HeartbeatEventToJson(HeartbeatEvent instance) =>
       'id': instance.id,
       'type': instance.type,
     };
+
+const _$MessageTypeEnumMap = {
+  MessageType.stream: 'stream',
+  MessageType.direct: 'direct',
+};

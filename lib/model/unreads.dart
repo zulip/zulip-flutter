@@ -288,7 +288,7 @@ class Unreads extends ChangeNotifier {
         final streamId = event.streamId!;
         final topic = event.topic!;
         _removeAllInStreamTopic(messageIdsSet, streamId, topic);
-      case MessageType.private:
+      case MessageType.direct:
         _slowRemoveAllInDms(messageIdsSet);
     }
 
@@ -363,7 +363,7 @@ class Unreads extends ChangeNotifier {
                   final topics = (newlyUnreadInStreams[detail.streamId!] ??= {});
                   final messageIds = (topics[detail.topic!] ??= QueueList());
                   messageIds.add(messageId);
-                case MessageType.private:
+                case MessageType.direct:
                   final narrow = DmNarrow.ofUpdateMessageFlagsMessageDetail(selfUserId: selfUserId,
                     detail);
                   (newlyUnreadInDms[narrow] ??= QueueList())
