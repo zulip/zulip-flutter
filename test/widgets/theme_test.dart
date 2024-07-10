@@ -76,13 +76,47 @@ void main() {
       button: TextButton(onPressed: () {}, child: const Text(buttonText)));
   });
 
+  group('DesignVariables', () {
+    group('lerp', () {
+      testWidgets('light -> light', (tester) async {
+        final a = DesignVariables.light();
+        final b = DesignVariables.light();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+
+      testWidgets('light -> dark', (tester) async {
+        final a = DesignVariables.light();
+        final b = DesignVariables.dark();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+
+      testWidgets('dark -> light', (tester) async {
+        final a = DesignVariables.dark();
+        final b = DesignVariables.light();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+
+      testWidgets('dark -> dark', (tester) async {
+        final a = DesignVariables.dark();
+        final b = DesignVariables.dark();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+    });
+  });
+
   group('colorSwatchFor', () {
     const baseColor = 0xff76ce90;
 
-    testWidgets('light $baseColor', (WidgetTester tester) async {
+    testWidgets('light–dark animation', (WidgetTester tester) async {
       addTearDown(testBinding.reset);
 
       final subscription = eg.subscription(eg.stream(), color: baseColor);
+
+      assert(!debugFollowPlatformBrightness); // to be removed with #95
+      debugFollowPlatformBrightness = true;
+      addTearDown(() { debugFollowPlatformBrightness = false; });
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
       await tester.pumpWidget(const ZulipApp());
       await tester.pump();
@@ -96,8 +130,20 @@ void main() {
       // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
       check(colorSwatchFor(element, subscription))
         .equals(StreamColorSwatch.light(baseColor));
-    });
 
-    // TODO(#95) test with Brightness.dark and lerping between light/dark
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      await tester.pump();
+
+      await tester.pump(kThemeAnimationDuration * 0.4);
+      check(colorSwatchFor(element, subscription))
+        .equals(StreamColorSwatch.lerp(
+          StreamColorSwatch.light(baseColor),
+          StreamColorSwatch.dark(baseColor),
+          0.4)!);
+
+      await tester.pump(kThemeAnimationDuration * 0.6);
+      check(colorSwatchFor(element, subscription))
+        .equals(StreamColorSwatch.dark(baseColor));
+    });
   });
 }

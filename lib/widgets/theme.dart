@@ -36,11 +36,11 @@ ThemeData zulipThemeData(BuildContext context) {
     : Brightness.light;
   switch (brightness) {
     case Brightness.light: {
-      designVariables = DesignVariables();
+      designVariables = DesignVariables.light();
       themeExtensions = [ContentTheme.light(context), designVariables];
     }
     case Brightness.dark: {
-      designVariables = DesignVariables(); // TODO(#95)
+      designVariables = DesignVariables.dark();
       themeExtensions = [ContentTheme.dark(context), designVariables];
     }
   }
@@ -115,13 +115,25 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 /// For how to export these from the Figma, see:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
-  DesignVariables() :
-    bgTopBar = const Color(0xfff5f5f5),
-    borderBar = const Color(0x33000000),
-    icon = const Color(0xff666699),
-    mainBackground = const Color(0xfff0f0f0),
-    title = const Color(0xff1a1a1a),
-    streamColorSwatches = StreamColorSwatches.light;
+  DesignVariables.light() :
+    this._(
+      bgTopBar: const Color(0xfff5f5f5),
+      borderBar: const Color(0x33000000),
+      icon: const Color(0xff666699),
+      mainBackground: const Color(0xfff0f0f0),
+      title: const Color(0xff1a1a1a),
+      streamColorSwatches: StreamColorSwatches.light,
+    );
+
+  DesignVariables.dark() :
+    this._(
+      bgTopBar: const Color(0xff242424),
+      borderBar: Colors.black.withOpacity(0.41),
+      icon: const Color(0xff7070c2),
+      mainBackground: const Color(0xff1d1d1d),
+      title: const Color(0xffffffff),
+      streamColorSwatches: StreamColorSwatches.dark,
+    );
 
   DesignVariables._({
     required this.bgTopBar,
