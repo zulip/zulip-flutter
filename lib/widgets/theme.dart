@@ -59,7 +59,7 @@ ThemeData zulipThemeData(BuildContext context) {
     colorScheme: ColorScheme.fromSeed(
       seedColor: kZulipBrandColor,
     ),
-    scaffoldBackgroundColor: designVariables.bgMain,
+    scaffoldBackgroundColor: designVariables.mainBackground,
     tooltipTheme: const TooltipThemeData(preferBelow: false),
   );
 }
@@ -76,18 +76,18 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables() :
-    bgMain = const Color(0xfff0f0f0),
     bgTopBar = const Color(0xfff5f5f5),
     borderBar = const Color(0x33000000),
     icon = const Color(0xff666699),
+    mainBackground = const Color(0xfff0f0f0),
     title = const Color(0xff1a1a1a),
     streamColorSwatches = StreamColorSwatches.light;
 
   DesignVariables._({
-    required this.bgMain,
     required this.bgTopBar,
     required this.borderBar,
     required this.icon,
+    required this.mainBackground,
     required this.title,
     required this.streamColorSwatches,
   });
@@ -102,10 +102,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     return extension!;
   }
 
-  final Color bgMain;
   final Color bgTopBar;
   final Color borderBar;
   final Color icon;
+  final Color mainBackground;
   final Color title;
 
   // Not exactly from the Figma design, but from Vlad anyway.
@@ -113,18 +113,18 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   @override
   DesignVariables copyWith({
-    Color? bgMain,
     Color? bgTopBar,
     Color? borderBar,
     Color? icon,
+    Color? mainBackground,
     Color? title,
     StreamColorSwatches? streamColorSwatches,
   }) {
     return DesignVariables._(
-      bgMain: bgMain ?? this.bgMain,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       icon: icon ?? this.icon,
+      mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
       streamColorSwatches: streamColorSwatches ?? this.streamColorSwatches,
     );
@@ -136,10 +136,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       return this;
     }
     return DesignVariables._(
-      bgMain: Color.lerp(bgMain, other.bgMain, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
+      mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
       streamColorSwatches: StreamColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
     );
