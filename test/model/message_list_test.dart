@@ -587,6 +587,37 @@ void main() {
         checkHasMessages(initialMessages);
         checkNotNotified();
       });
+
+      void testMessageMove(PropagateMode propagateMode) => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: movedMessages,
+          newTopic: 'new',
+          newStreamId: otherStream.streamId,
+          propagateMode: propagateMode,
+        ));
+        checkNotifiedOnce();
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages);
+        check(model).narrow.equals(ChannelNarrow(stream.streamId));
+        checkNotNotified();
+      });
+
+      test('do not follow when propagateMode = changeOne', () {
+        testMessageMove(PropagateMode.changeOne);
+      });
+
+      test('do not follow when propagateMode = changeLater', () {
+        testMessageMove(PropagateMode.changeLater);
+      });
+
+      test('do not follow when propagateMode = changeAll', () {
+        testMessageMove(PropagateMode.changeAll);
+      });
     });
 
     group('in topic narrow', () {
@@ -674,6 +705,68 @@ void main() {
           checkNotNotified();
         }));
       });
+
+      void handleMoveEvent(PropagateMode propagateMode) => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          origMessages: movedMessages,
+          newTopic: 'new',
+          newStreamId: otherStream.streamId,
+          propagateMode: propagateMode,
+        ));
+        checkNotifiedOnce();
+        async.elapse(const Duration(seconds: 1));
+      });
+
+      test('do not follow to the new narrow when propagateMode = changeOne', () {
+        handleMoveEvent(PropagateMode.changeOne);
+        checkNotNotified();
+        checkHasMessages(initialMessages);
+        check(model).narrow.equals(TopicNarrow(stream.streamId, 'topic'));
+      });
+
+      test('follow to the new narrow when propagateMode = changeLater', () {
+        handleMoveEvent(PropagateMode.changeLater);
+        checkNotifiedOnce();
+        checkHasMessages(movedMessages);
+        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+      });
+
+      test('follow to the new narrow when propagateMode = changeAll', () {
+        handleMoveEvent(PropagateMode.changeAll);
+        checkNotifiedOnce();
+        checkHasMessages(movedMessages);
+        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+      });
+
+      test('handle move event before initial fetch', () => awaitFakeAsync((async) async {
+        await prepare(narrow: narrow);
+        final subscription = eg.subscription(stream);
+        await store.addStream(stream);
+        await store.addSubscription(subscription);
+        final followedMessage = eg.streamMessage(stream: stream, topic: 'new');
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: true,
+          messages: [followedMessage],
+        ).toJson());
+
+        check(model).fetched.isFalse();
+        checkHasMessages([]);
+        await store.handleEvent(eg.updateMessageEventMoveTo(
+          origTopic: 'topic',
+          newMessages: [followedMessage],
+          propagateMode: PropagateMode.changeAll,
+        ));
+        check(model).narrow.equals(TopicNarrow(stream.streamId, 'new'));
+
+        async.elapse(const Duration(seconds: 2));
+        checkHasMessages([followedMessage]);
+      }));
     });
 
     group('fetch races', () {

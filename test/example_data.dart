@@ -472,6 +472,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
   String? origContent,
   String? newContent,
   required List<MessageFlag> flags,
+  PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   assert(newTopic != origTopic
          || (newStreamId != null && newStreamId != origStreamId));
@@ -486,7 +487,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
     editTimestamp: 1234567890, // TODO generate timestamp
     origStreamId: origStreamId,
     newStreamId: newStreamId,
-    propagateMode: null,
+    propagateMode: propagateMode,
     origTopic: origTopic,
     newTopic: newTopic,
     origContent: origContent,
@@ -503,6 +504,7 @@ UpdateMessageEvent updateMessageEventMoveFrom({
   int? newStreamId,
   String? newTopic,
   String? newContent,
+  PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   assert(origMessages.isNotEmpty);
   final origMessage = origMessages.first;
@@ -516,6 +518,7 @@ UpdateMessageEvent updateMessageEventMoveFrom({
     origContent: origContent,
     newContent: newContent,
     flags: origMessage.flags,
+    propagateMode: propagateMode,
   );
 }
 
@@ -525,6 +528,7 @@ UpdateMessageEvent updateMessageEventMoveTo({
   int? origStreamId,
   String? origTopic,
   String? origContent,
+  PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   assert(newMessages.isNotEmpty);
   final newMessage = newMessages.first;
@@ -542,6 +546,7 @@ UpdateMessageEvent updateMessageEventMoveTo({
     origContent: origContent,
     newContent: newContent,
     flags: newMessage.flags,
+    propagateMode: propagateMode,
   );
 }
 

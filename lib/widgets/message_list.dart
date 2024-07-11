@@ -232,6 +232,12 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     narrow = widget.initNarrow;
   }
 
+  void _narrowChanged(Narrow newNarrow) {
+    setState(() {
+      narrow = newNarrow;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -289,7 +295,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               removeBottom: ComposeBox.hasComposeBox(narrow),
 
               child: Expanded(
-                child: MessageList(narrow: narrow))),
+                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
             ComposeBox(controllerKey: _composeBoxKey, narrow: narrow),
           ]))));
   }
@@ -368,9 +374,10 @@ const _kShortMessageHeight = 80;
 const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
 
 class MessageList extends StatefulWidget {
-  const MessageList({super.key, required this.narrow});
+  const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
 
   final Narrow narrow;
+  final void Function(Narrow newNarrow) onNarrowChanged;
 
   @override
   State<StatefulWidget> createState() => _MessageListState();
@@ -407,6 +414,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _modelChanged() {
+    if (model!.narrow != widget.narrow) {
+      // A message move event occurred, where propagate mode is
+      // [PropagateMode.changeAll] or [PropagateMode.changeLater].
+      widget.onNarrowChanged(model!.narrow);
+    }
     setState(() {
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
