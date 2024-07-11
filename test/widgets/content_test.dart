@@ -820,7 +820,7 @@ void main() {
       await tapText(tester, find.text('stream'));
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
       check(pushedRoutes).single.isA<WidgetRoute>()
-        .page.isA<MessageListPage>().narrow.equals(const StreamNarrow(1));
+        .page.isA<MessageListPage>().initNarrow.equals(const StreamNarrow(1));
     });
 
     testWidgets('invalid internal links are opened in browser', (tester) async {

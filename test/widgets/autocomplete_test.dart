@@ -58,7 +58,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
         child: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,
           child: MessageListPage(
-            narrow: DmNarrow(
+            initNarrow: DmNarrow(
               allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
               selfUserId: eg.selfUser.userId,
             )))))));

@@ -40,7 +40,7 @@ void main() {
           child: PerAccountStoreWidget(
             accountId: eg.selfAccount.id,
             placeholder: const LoadingPlaceholderPage(),
-            child: const MessageListPage(narrow: CombinedFeedNarrow())))));
+            child: const MessageListPage(initNarrow: CombinedFeedNarrow())))));
     await tester.pumpAndSettle();
     return messages;
   }

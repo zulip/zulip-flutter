@@ -328,7 +328,7 @@ void main() {
 
         check(pushedRoutes).last.isA<WidgetRoute>().page
           .isA<MessageListPage>()
-          .narrow.equals(expectedNarrow);
+          .initNarrow.equals(expectedNarrow);
       }
 
       testWidgets('1:1', (WidgetTester tester) async {

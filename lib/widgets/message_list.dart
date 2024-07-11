@@ -37,12 +37,12 @@ abstract class MessageListPageState {
 }
 
 class MessageListPage extends StatefulWidget {
-  const MessageListPage({super.key, required this.narrow});
+  const MessageListPage({super.key, required this.initNarrow});
 
   static Route<void> buildRoute({int? accountId, BuildContext? context,
       required Narrow narrow}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: MessageListPage(narrow: narrow));
+      page: MessageListPage(initNarrow: narrow));
   }
 
   /// The [MessageListPageState] above this context in the tree.
@@ -57,7 +57,7 @@ class MessageListPage extends StatefulWidget {
     return state!;
   }
 
-  final Narrow narrow;
+  final Narrow initNarrow;
 
   @override
   State<MessageListPage> createState() => _MessageListPageState();
@@ -68,7 +68,7 @@ const _kUnsubscribedStreamRecipientHeaderColor = Color(0xfff5f5f5);
 
 class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
   @override
-  Narrow get narrow => widget.narrow;
+  late Narrow narrow;
 
   @override
   ComposeBoxController? get composeBoxController => _composeBoxKey.currentState;
@@ -76,12 +76,18 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   final GlobalKey<ComposeBoxController> _composeBoxKey = GlobalKey();
 
   @override
+  void initState() {
+    narrow = widget.initNarrow;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
 
     final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
-    switch(widget.narrow) {
+    switch(narrow) {
       case CombinedFeedNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
@@ -103,7 +109,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     }
 
     return Scaffold(
-      appBar: AppBar(title: MessageListAppBarTitle(narrow: widget.narrow),
+      appBar: AppBar(title: MessageListAppBarTitle(narrow: narrow),
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
           ? const Border()
@@ -129,11 +135,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               //   if those details get complicated, refactor to avoid copying.
               // TODO(#311) If we have a bottom nav, it will pad the bottom
               //   inset, and this should always be true.
-              removeBottom: widget.narrow is! CombinedFeedNarrow,
+              removeBottom: narrow is! CombinedFeedNarrow,
 
               child: Expanded(
-                child: MessageList(narrow: widget.narrow))),
-            ComposeBox(controllerKey: _composeBoxKey, narrow: widget.narrow),
+                child: MessageList(narrow: narrow))),
+            ComposeBox(controllerKey: _composeBoxKey, narrow: narrow),
           ]))));
   }
 }

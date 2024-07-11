@@ -68,7 +68,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
       home: GlobalStoreWidget(
         child: PerAccountStoreWidget(
           accountId: eg.selfAccount.id,
-          child: MessageListPage(narrow: narrow))))));
+          child: MessageListPage(initNarrow: narrow))))));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();

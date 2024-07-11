@@ -362,7 +362,7 @@ void main() {
       route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
         ..page.isA<MessageListPage>()
-          .narrow.equals(SendableNarrow.ofMessage(message,
+          .initNarrow.equals(SendableNarrow.ofMessage(message,
             selfUserId: account.userId));
     }
 

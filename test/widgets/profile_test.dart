@@ -259,7 +259,7 @@ void main() {
       await tester.tap(targetWidget);
       check(pushedRoutes).last.isA<WidgetRoute>().page
         .isA<MessageListPage>()
-        .narrow.equals(DmNarrow.withUser(1, selfUserId: eg.selfUser.userId));
+        .initNarrow.equals(DmNarrow.withUser(1, selfUserId: eg.selfUser.userId));
     });
 
     testWidgets('page builds; user links render multiple avatars', (WidgetTester tester) async {
