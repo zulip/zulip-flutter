@@ -65,14 +65,14 @@ void main() {
     });
 
     testWidgets('Android', (WidgetTester tester) async {
-      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
+      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: false);
     });
 
     testWidgets('Android <13', (WidgetTester tester) async {
-      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 32);
+      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 32, release: '12');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: true);

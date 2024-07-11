@@ -161,13 +161,21 @@ abstract class BaseDeviceInfo {
 
 /// Like [device_info_plus.AndroidDeviceInfo], but without things we don't use.
 class AndroidDeviceInfo extends BaseDeviceInfo {
+  /// The Android version string, Build.VERSION.RELEASE, e.g. "14".
+  ///
+  /// Upstream documents this as an opaque string with no particular structure,
+  /// but e.g. on stock Android 14 it's "14".
+  ///
+  /// See: https://developer.android.com/reference/android/os/Build.VERSION#RELEASE
+  final String release;
+
   /// The Android SDK version.
   ///
   /// Possible values are defined in:
   ///   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
   final int sdkInt;
 
-  AndroidDeviceInfo({required this.sdkInt});
+  AndroidDeviceInfo({required this.release, required this.sdkInt});
 }
 
 /// Like [device_info_plus.IosDeviceInfo], but without things we don't use.
@@ -178,6 +186,70 @@ class IosDeviceInfo extends BaseDeviceInfo {
   final String systemVersion;
 
   IosDeviceInfo({required this.systemVersion});
+}
+
+/// Like [device_info_plus.MacOsDeviceInfo], but without things we don't use.
+class MacOsDeviceInfo extends BaseDeviceInfo {
+  /// See: https://developer.apple.com/documentation/foundation/operatingsystemversion/1414662-majorversion
+  final int majorVersion;
+
+  /// See: https://developer.apple.com/documentation/foundation/operatingsystemversion/1413801-minorversion
+  final int minorVersion;
+
+  /// See: https://developer.apple.com/documentation/foundation/operatingsystemversion/1415564-patchversion
+  final int patchVersion;
+
+  MacOsDeviceInfo({
+    required this.majorVersion,
+    required this.minorVersion,
+    required this.patchVersion,
+  });
+}
+
+/// Like [device_info_plus.WindowsDeviceInfo], currently only used to
+/// determine if we're on Windows.
+// TODO Determine a method to identify the Windows version.
+//  Currently, we do not include Windows version information because
+//  Windows OS does not provide a straightforward way to obtain
+//  recognizable version information.
+//  Here's an example of `WindowsDeviceInfo` data[1]. Based on that
+//  data, there are two possible approaches to identify the Windows
+//  version:
+//    - One approach is to use a combination of the majorVersion,
+//      minorVersion, and buildNumber fields. However, this data does
+//      not directly correspond to recognizable Windows versions
+//      (for example major=10, minor=0, build=22631 actually represents
+//      "Windows 11, 23H2"). Refer to the link in this comment[2] for
+//      Chromium's implementation of parsing Windows version numbers.
+//    - Another approach is to use the productName field. While this
+//      field contains the Windows version, it also includes extraneous
+//      information. For example, some productName strings are:
+//      "Windows 11 Pro" and "Windows 10 Home Single Language", which
+//      makes it less ideal.
+//  [1]: https://gist.github.com/rajveermalviya/58b3add437280cc7f8356f3697099b7c
+//  [2]: https://github.com/zulip/zulip-flutter/pull/724#discussion_r1628318991
+class WindowsDeviceInfo implements BaseDeviceInfo {}
+
+/// Like [device_info_plus.LinuxDeviceInfo], but without things we don't use.
+class LinuxDeviceInfo implements BaseDeviceInfo {
+  /// The operating system name, 'NAME' field in /etc/os-release.
+  ///
+  /// Examples: 'Fedora', 'Debian GNU/Linux', or just 'Linux'.
+  ///
+  /// See: https://www.freedesktop.org/software/systemd/man/latest/os-release.html#NAME=
+  final String name;
+
+  /// The operating system version, 'VERSION_ID' field in /etc/os-release.
+  ///
+  /// This string contains only the version number and excludes the
+  /// OS name and version codenames.
+  ///
+  /// Examples: '17', '11.04'.
+  ///
+  /// See: https://www.freedesktop.org/software/systemd/man/latest/os-release.html#VERSION_ID=
+  final String? versionId;
+
+  LinuxDeviceInfo({required this.name, required this.versionId});
 }
 
 /// Like [package_info_plus.PackageInfo], but without things we don't use.
@@ -251,9 +323,16 @@ class LiveZulipBinding extends ZulipBinding {
     try {
       final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
       _syncDeviceInfo = switch (info) {
-        device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
-        device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
-        _                                                  => throw UnimplementedError(),
+        device_info_plus.AndroidDeviceInfo() => AndroidDeviceInfo(release: info.version.release,
+                                                                  sdkInt: info.version.sdkInt),
+        device_info_plus.IosDeviceInfo()     => IosDeviceInfo(systemVersion: info.systemVersion),
+        device_info_plus.MacOsDeviceInfo()   => MacOsDeviceInfo(majorVersion: info.majorVersion,
+                                                                minorVersion: info.minorVersion,
+                                                                patchVersion: info.patchVersion),
+        device_info_plus.WindowsDeviceInfo() => WindowsDeviceInfo(),
+        device_info_plus.LinuxDeviceInfo()   => LinuxDeviceInfo(name: info.name,
+                                                                versionId: info.versionId),
+        _                                    => throw UnimplementedError(),
       };
     } catch (e, st) {
       assert(debugLog('Failed to prefetch device info: $e\n$st')); // TODO(log)

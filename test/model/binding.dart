@@ -207,7 +207,7 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
-  static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
+  static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
 
   void _resetDeviceInfo() {
     deviceInfoResult = _defaultDeviceInfoResult;
