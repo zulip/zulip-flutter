@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../host/android_notifications.dart';
@@ -115,6 +116,22 @@ abstract class ZulipBinding {
   /// or null if that hasn't resolved yet.
   BaseDeviceInfo? get syncDeviceInfo;
 
+  /// Provides application package information,
+  /// via package:package_info_plus.
+  ///
+  /// The returned Future resolves to null if an error is
+  /// encountered while fetching the data.
+  ///
+  /// This wraps [package_info_plus.PackageInfo.fromPlatform].
+  Future<PackageInfo?> get packageInfo;
+
+  /// Provides application package information,
+  /// via package:package_info_plus.
+  ///
+  /// This is the value [packageInfo] resolved to,
+  /// or null if that hasn't resolved yet.
+  PackageInfo? get syncPackageInfo;
+
   /// Initialize Firebase, to use for notifications.
   ///
   /// This wraps [firebase_core.Firebase.initializeApp].
@@ -163,6 +180,17 @@ class IosDeviceInfo extends BaseDeviceInfo {
   IosDeviceInfo({required this.systemVersion});
 }
 
+/// Like [package_info_plus.PackageInfo], but without things we don't use.
+class PackageInfo {
+  final String version;
+  final String buildNumber;
+
+  PackageInfo({
+    required this.version,
+    required this.buildNumber,
+  });
+}
+
 /// A concrete binding for use in the live application.
 ///
 /// The global store returned by [loadGlobalStore], and consequently by
@@ -174,6 +202,7 @@ class IosDeviceInfo extends BaseDeviceInfo {
 class LiveZulipBinding extends ZulipBinding {
   LiveZulipBinding() {
     _deviceInfo = _prefetchDeviceInfo();
+    _packageInfo = _prefetchPackageInfo();
   }
 
   /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
@@ -230,6 +259,27 @@ class LiveZulipBinding extends ZulipBinding {
       assert(debugLog('Failed to prefetch device info: $e\n$st')); // TODO(log)
     }
     return _syncDeviceInfo;
+  }
+
+  @override
+  Future<PackageInfo?> get packageInfo => _packageInfo;
+  late Future<PackageInfo?> _packageInfo;
+
+  @override
+  PackageInfo? get syncPackageInfo => _syncPackageInfo;
+  PackageInfo? _syncPackageInfo;
+
+  Future<PackageInfo?> _prefetchPackageInfo() async {
+    try {
+      final info = await package_info_plus.PackageInfo.fromPlatform();
+      _syncPackageInfo = PackageInfo(
+        version: info.version,
+        buildNumber: info.buildNumber,
+      );
+    } catch (e, st) {
+      assert(debugLog('Failed to prefetch package info: $e\n$st')); // TODO(log)
+    }
+    return _syncPackageInfo;
   }
 
   @override
