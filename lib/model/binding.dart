@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../host/android_notifications.dart';
+import '../log.dart';
 import '../widgets/store.dart';
 import 'store.dart';
 
@@ -101,8 +102,18 @@ abstract class ZulipBinding {
   /// Provides device and operating system information,
   /// via package:device_info_plus.
   ///
+  /// The returned Future resolves to null if an error is
+  /// encountered while fetching the data.
+  ///
   /// This wraps [device_info_plus.DeviceInfoPlugin.deviceInfo].
-  Future<BaseDeviceInfo> deviceInfo();
+  Future<BaseDeviceInfo?> get deviceInfo;
+
+  /// Provides device and operating system information,
+  /// via package:device_info_plus.
+  ///
+  /// This is the value [deviceInfo] resolved to,
+  /// or null if that hasn't resolved yet.
+  BaseDeviceInfo? get syncDeviceInfo;
 
   /// Initialize Firebase, to use for notifications.
   ///
@@ -161,6 +172,10 @@ class IosDeviceInfo extends BaseDeviceInfo {
 /// Methods wrapping a plugin, like [launchUrl], invoke the actual
 /// underlying plugin method.
 class LiveZulipBinding extends ZulipBinding {
+  LiveZulipBinding() {
+    _deviceInfo = _prefetchDeviceInfo();
+  }
+
   /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
   static LiveZulipBinding ensureInitialized() {
     if (ZulipBinding._instance == null) {
@@ -196,13 +211,25 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<BaseDeviceInfo> deviceInfo() async {
-    final deviceInfo = await device_info_plus.DeviceInfoPlugin().deviceInfo;
-    return switch (deviceInfo) {
-      device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
-      device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
-      _                                                  => throw UnimplementedError(),
-    };
+  Future<BaseDeviceInfo?> get deviceInfo => _deviceInfo;
+  late Future<BaseDeviceInfo?> _deviceInfo;
+
+  @override
+  BaseDeviceInfo? get syncDeviceInfo => _syncDeviceInfo;
+  BaseDeviceInfo? _syncDeviceInfo;
+
+  Future<BaseDeviceInfo?> _prefetchDeviceInfo() async {
+    try {
+      final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
+      _syncDeviceInfo = switch (info) {
+        device_info_plus.AndroidDeviceInfo(:var version)   => AndroidDeviceInfo(sdkInt: version.sdkInt),
+        device_info_plus.IosDeviceInfo(:var systemVersion) => IosDeviceInfo(systemVersion: systemVersion),
+        _                                                  => throw UnimplementedError(),
+      };
+    } catch (e, st) {
+      assert(debugLog('Failed to prefetch device info: $e\n$st')); // TODO(log)
+    }
+    return _syncDeviceInfo;
   }
 
   @override

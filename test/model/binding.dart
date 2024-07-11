@@ -204,9 +204,7 @@ class TestZulipBinding extends ZulipBinding {
     _closeInAppWebViewCallCount++;
   }
 
-  /// The value that `ZulipBinding.instance.deviceInfo()` should return.
-  ///
-  /// See also [takeDeviceInfoCalls].
+  /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
   static final _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33);
 
@@ -215,9 +213,10 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<BaseDeviceInfo> deviceInfo() {
-    return Future(() => deviceInfoResult);
-  }
+  Future<BaseDeviceInfo?> get deviceInfo async => deviceInfoResult;
+
+  @override
+  BaseDeviceInfo? get syncDeviceInfo => deviceInfoResult;
 
   void _resetFirebase() {
     _firebaseInitialized = false;

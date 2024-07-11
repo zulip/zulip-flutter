@@ -18,7 +18,7 @@ void copyWithPopup({
   required Widget successContent,
 }) async {
   await Clipboard.setData(data);
-  final deviceInfo = await ZulipBinding.instance.deviceInfo();
+  final deviceInfo = await ZulipBinding.instance.deviceInfo;
 
   if (!context.mounted) return;
 
