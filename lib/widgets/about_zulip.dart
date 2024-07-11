@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
+import '../model/binding.dart';
 import 'page.dart';
 
 class AboutZulipPage extends StatefulWidget {
@@ -22,7 +22,7 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
   void initState() {
     super.initState();
     (() async {
-      final result = await PackageInfo.fromPlatform();
+      final result = await ZulipBinding.instance.packageInfo;
       setState(() {
         _packageInfo = result;
       });
