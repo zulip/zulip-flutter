@@ -532,6 +532,31 @@ void main() {
         checkHasMessages(initialMessages);
         checkNotifiedOnce();
       });
+
+      void testMessageMove(PropagateMode propagateMode) => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: movedMessages,
+          newTopic: 'new',
+          newStreamId: otherStream.streamId,
+          propagateMode: propagateMode,
+        ));
+        checkNotifiedOnce();
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(movedMessages);
+        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+        checkNotifiedOnce();
+      });
+
+      test('follow to the new narrow when propagateMode = changeLater', () =>
+        testMessageMove(PropagateMode.changeLater));
+
+      test('follow to the new narrow when propagateMode = changeAll', () =>
+        testMessageMove(PropagateMode.changeAll));
     });
 
     group('in stream narrow', () {
@@ -581,6 +606,31 @@ void main() {
         checkHasMessages(initialMessages);
         checkNotifiedOnce();
       });
+
+      void testMessageMove(PropagateMode propagateMode) => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveFromEvent(
+          origMessages: movedMessages,
+          newTopic: 'new',
+          newStreamId: otherStream.streamId,
+          propagateMode: propagateMode,
+        ));
+        checkNotifiedOnce();
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages);
+        check(model).narrow.equals(StreamNarrow(stream.streamId));
+        checkNotNotified();
+      });
+
+      test('do not follow when propagateMode = changeLater', () =>
+        testMessageMove(PropagateMode.changeLater));
+
+      test('do not follow when propagateMode = changeAll', () =>
+        testMessageMove(PropagateMode.changeAll));
     });
 
     group('in combined feed narrow', () {

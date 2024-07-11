@@ -358,8 +358,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     super.dispose();
   }
 
+  Narrow narrow;
   final PerAccountStore store;
-  final Narrow narrow;
 
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.
@@ -527,8 +527,26 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     fetchInitial();
   }
 
-  void _messagesMovedFromNarrow(List<int> messageIds) {
+  void _handlePropagateMode(PropagateMode propagateMode, Narrow newNarrow) {
+    switch (propagateMode) {
+      case PropagateMode.changeAll:
+      case PropagateMode.changeLater:
+        narrow = newNarrow;
+        _reset();
+        fetchInitial();
+      case PropagateMode.changeOne:
+    }
+  }
+
+  void _messagesMovedFromNarrow(
+    List<int> messageIds,
+    PropagateMode propagateMode,
+    {TopicNarrow? newNarrow}
+  ) {
     if (_removeMessagesById(messageIds)) {
+      if (newNarrow != null) {
+        _handlePropagateMode(propagateMode, newNarrow);
+      }
       notifyListeners();
     }
   }
@@ -539,6 +557,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     required String origTopic,
     required String newTopic,
     required List<int> messageIds,
+    required PropagateMode propagateMode,
   }) {
     switch (narrow) {
       case DmNarrow():
@@ -558,7 +577,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
           case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds);
+          case (true,  false): _messagesMovedFromNarrow(messageIds, propagateMode);
         }
 
       case TopicNarrow(:final streamId, :final topic):
@@ -568,7 +587,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           case (false, false): return;
           case (true,  true ): return; // TODO(log) no-op move
           case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds); // TODO handle propagateMode
+          case (true,  false): _messagesMovedFromNarrow(messageIds, propagateMode,
+            newNarrow: TopicNarrow(newStreamId, newTopic));
         }
     }
   }
