@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 import 'dart:io';
 
+import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +14,7 @@ import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
+import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
@@ -63,6 +65,10 @@ void main() {
 
       // global store, per-account store
       await tester.pumpAndSettle();
+
+      final reactionChipsList = tester.element(find.byType(ReactionChipsList));
+      check(Directionality.of(reactionChipsList)).equals(textDirection);
+      check(reactionChipsList).size.isNotNull().width.equals(width);
     }
 
     // Smoke tests under various conditions.

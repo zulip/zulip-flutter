@@ -111,3 +111,13 @@ extension TypographyChecks on Subject<Typography> {
 extension InlineSpanChecks on Subject<InlineSpan> {
   Subject<TextStyle?> get style => has((x) => x.style, 'style');
 }
+
+extension SizeChecks on Subject<Size> {
+  Subject<double> get width => has((x) => x.width, 'width');
+  Subject<double> get height => has((x) => x.height, 'height');
+}
+
+extension ElementChecks on Subject<Element> {
+  Subject<Size?> get size => has((t) => t.size, 'size');
+  // TODO more
+}
