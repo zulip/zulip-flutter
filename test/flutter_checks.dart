@@ -126,3 +126,8 @@ extension MediaQueryDataChecks on Subject<MediaQueryData> {
   Subject<TextScaler> get textScaler => has((x) => x.textScaler, 'textScaler');
   // TODO more
 }
+
+extension MaterialChecks on Subject<Material> {
+  Subject<Color?> get color => has((x) => x.color, 'color');
+  // TODO more
+}

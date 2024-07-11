@@ -11,6 +11,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -214,6 +215,47 @@ void main() {
         }
       }
     }
+  });
+
+  testWidgets('Smoke test for light/dark/lerped', (tester) async {
+    await prepare();
+    await store.addUsers([eg.selfUser, eg.otherUser]);
+
+    assert(!debugFollowPlatformBrightness); // to be removed with #95
+    debugFollowPlatformBrightness = true;
+    addTearDown(() { debugFollowPlatformBrightness = false; });
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await setupChipsInBox(tester, reactions: [
+      Reaction.fromJson({
+        'user_id': eg.selfUser.userId,
+        'emoji_name': 'smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'}),
+      Reaction.fromJson({
+        'user_id': eg.otherUser.userId,
+        'emoji_name': 'tada', 'emoji_code': '1f389', 'reaction_type': 'unicode_emoji'}),
+    ]);
+
+    Color? backgroundColor(String emojiName) {
+      final material = tester.widget<Material>(find.descendant(
+        of: find.byTooltip(emojiName), matching: find.byType(Material)));
+      return material.color;
+    }
+
+    check(backgroundColor('smile')).equals(EmojiReactionTheme.light().bgSelected);
+    check(backgroundColor('tada')).equals(EmojiReactionTheme.light().bgUnselected);
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    await tester.pump();
+
+    await tester.pump(kThemeAnimationDuration * 0.4);
+    final expectedLerped = EmojiReactionTheme.light().lerp(EmojiReactionTheme.dark(), 0.4);
+    check(backgroundColor('smile')).equals(expectedLerped.bgSelected);
+    check(backgroundColor('tada')).equals(expectedLerped.bgUnselected);
+
+    await tester.pump(kThemeAnimationDuration * 0.6);
+    check(backgroundColor('smile')).equals(EmojiReactionTheme.dark().bgSelected);
+    check(backgroundColor('tada')).equals(EmojiReactionTheme.dark().bgUnselected);
   });
 
   // TODO more tests:

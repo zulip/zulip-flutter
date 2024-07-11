@@ -8,6 +8,102 @@ import 'content.dart';
 import 'store.dart';
 import 'text.dart';
 
+/// Emoji-reaction styles that differ between light and dark themes.
+class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
+  EmojiReactionTheme.light() :
+    this._(
+      bgSelected: Colors.white,
+
+      // TODO shadow effect, following web, which uses `box-shadow: inset`:
+      //   https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow#inset
+      //   Needs Flutter support for something like that:
+      //     https://github.com/flutter/flutter/issues/18636
+      //     https://github.com/flutter/flutter/issues/52999
+      //   Until then use a solid color; a much-lightened version of the shadow color.
+      //   Also adapt by making [borderUnselected] more transparent, so we'll
+      //   want to check that against web when implementing the shadow.
+      bgUnselected: const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor(),
+
+      borderSelected: Colors.black.withOpacity(0.45),
+
+      // TODO see TODO on [bgUnselected] about shadow effect
+      borderUnselected: Colors.black.withOpacity(0.05),
+
+      textSelected: const HSLColor.fromAHSL(1, 210, 0.20, 0.20).toColor(),
+      textUnselected: const HSLColor.fromAHSL(1, 210, 0.20, 0.25).toColor(),
+    );
+
+  EmojiReactionTheme.dark() :
+    this._(
+      bgSelected: Colors.black.withOpacity(0.8),
+      bgUnselected: Colors.black.withOpacity(0.3),
+      borderSelected: Colors.white.withOpacity(0.75),
+      borderUnselected: Colors.white.withOpacity(0.15),
+      textSelected: Colors.white.withOpacity(0.85),
+      textUnselected: Colors.white.withOpacity(0.75),
+    );
+
+  EmojiReactionTheme._({
+    required this.bgSelected,
+    required this.bgUnselected,
+    required this.borderSelected,
+    required this.borderUnselected,
+    required this.textSelected,
+    required this.textUnselected,
+  });
+
+  /// The [EmojiReactionTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [EmojiReactionTheme] in [ThemeData.extensions].
+  static EmojiReactionTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<EmojiReactionTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final Color bgSelected;
+  final Color bgUnselected;
+  final Color borderSelected;
+  final Color borderUnselected;
+  final Color textSelected;
+  final Color textUnselected;
+
+  @override
+  EmojiReactionTheme copyWith({
+    Color? bgSelected,
+    Color? bgUnselected,
+    Color? borderSelected,
+    Color? borderUnselected,
+    Color? textSelected,
+    Color? textUnselected,
+  }) {
+    return EmojiReactionTheme._(
+      bgSelected: bgSelected ?? this.bgSelected,
+      bgUnselected: bgUnselected ?? this.bgUnselected,
+      borderSelected: borderSelected ?? this.borderSelected,
+      borderUnselected: borderUnselected ?? this.borderUnselected,
+      textSelected: textSelected ?? this.textSelected,
+      textUnselected: textUnselected ?? this.textUnselected,
+    );
+  }
+
+  @override
+  EmojiReactionTheme lerp(EmojiReactionTheme other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return EmojiReactionTheme._(
+      bgSelected: Color.lerp(bgSelected, other.bgSelected, t)!,
+      bgUnselected: Color.lerp(bgUnselected, other.bgUnselected, t)!,
+      borderSelected: Color.lerp(borderSelected, other.borderSelected, t)!,
+      borderUnselected: Color.lerp(borderUnselected, other.borderUnselected, t)!,
+      textSelected: Color.lerp(textSelected, other.textSelected, t)!,
+      textUnselected: Color.lerp(textUnselected, other.textUnselected, t)!,
+    );
+  }
+}
+
 class ReactionChipsList extends StatelessWidget {
   const ReactionChipsList({
     super.key,
@@ -31,24 +127,6 @@ class ReactionChipsList extends StatelessWidget {
       ).toList());
   }
 }
-
-final _textColorSelected = const HSLColor.fromAHSL(1, 210, 0.20, 0.20).toColor();
-final _textColorUnselected = const HSLColor.fromAHSL(1, 210, 0.20, 0.25).toColor();
-
-const _backgroundColorSelected = Colors.white;
-// TODO shadow effect, following web, which uses `box-shadow: inset`:
-//   https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow#inset
-//   Needs Flutter support for something like that:
-//     https://github.com/flutter/flutter/issues/18636
-//     https://github.com/flutter/flutter/issues/52999
-//   Until then use a solid color; a much-lightened version of the shadow color.
-//   Also adapt by making [_borderColorUnselected] more transparent, so we'll
-//   want to check that against web when implementing the shadow.
-final _backgroundColorUnselected = const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor();
-
-final _borderColorSelected = Colors.black.withOpacity(0.45);
-// TODO see TODO on [_backgroundColorUnselected] about shadow effect
-final _borderColorUnselected = Colors.black.withOpacity(0.05);
 
 class ReactionChip extends StatelessWidget {
   final bool showName;
@@ -85,10 +163,11 @@ class ReactionChip extends StatelessWidget {
         }).join(', ')
       : userIds.length.toString();
 
-    final borderColor =     selfVoted ? _borderColorSelected       : _borderColorUnselected;
-    final labelColor =      selfVoted ? _textColorSelected         : _textColorUnselected;
-    final backgroundColor = selfVoted ? _backgroundColorSelected   : _backgroundColorUnselected;
-    final splashColor =     selfVoted ? _backgroundColorUnselected : _backgroundColorSelected;
+    final reactionTheme = EmojiReactionTheme.of(context);
+    final borderColor =     selfVoted ? reactionTheme.borderSelected : reactionTheme.borderUnselected;
+    final labelColor =      selfVoted ? reactionTheme.textSelected   : reactionTheme.textUnselected;
+    final backgroundColor = selfVoted ? reactionTheme.bgSelected     : reactionTheme.bgUnselected;
+    final splashColor =     selfVoted ? reactionTheme.bgUnselected   : reactionTheme.bgSelected;
     final highlightColor =  splashColor.withOpacity(0.5);
 
     final borderSide = BorderSide(
@@ -349,6 +428,7 @@ class _TextEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reactionTheme = EmojiReactionTheme.of(context);
     return Text(
       textAlign: TextAlign.end,
       textScaler: _textEmojiScalerClamped(context),
@@ -356,7 +436,7 @@ class _TextEmoji extends StatelessWidget {
       style: TextStyle(
         fontSize: 14 * 0.8,
         height: 1, // to be denser when we have to wrap
-        color: selected ? _textColorSelected : _textColorUnselected,
+        color: selected ? reactionTheme.textSelected : reactionTheme.textUnselected,
       ).merge(weightVariableTextStyle(context,
           wght: selected ? 600 : null)),
       // Encourage line breaks before "_" (common in these), but try not
