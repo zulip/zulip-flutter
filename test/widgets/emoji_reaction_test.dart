@@ -39,15 +39,15 @@ void main() {
 
     Future<void> setupChipsInBox(WidgetTester tester, {
       required List<Reaction> reactions,
-      double? width,
-      TextDirection? textDirection,
+      double width = 245.0, // (seen in context on an iPhone 13 Pro)
+      TextDirection textDirection = TextDirection.ltr,
     }) async {
       final message = eg.streamMessage(reactions: reactions);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Directionality(
-            textDirection: textDirection ?? TextDirection.ltr,
+            textDirection: textDirection,
             child: GlobalStoreWidget(
               child: PerAccountStoreWidget(
                 accountId: eg.selfAccount.id,
@@ -55,7 +55,7 @@ void main() {
                   child: ColoredBox(
                     color: Colors.white,
                     child: SizedBox(
-                      width: width ?? 245.0, // (seen in context on an iPhone 13 Pro)
+                      width: width,
                       child: ReactionChipsList(
                         messageId: message.id,
                         reactions: message.reactions!,
