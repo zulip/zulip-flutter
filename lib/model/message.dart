@@ -152,6 +152,7 @@ class MessageStoreImpl with MessageStore {
     final newStreamId = event.newStreamId; // null if topic-only move
     final origTopic = event.origTopic;
     final newTopic = event.newTopic;
+    final propagateMode = event.propagateMode;
 
     if (origTopic == null) {
       // There was no move.
@@ -176,6 +177,11 @@ class MessageStoreImpl with MessageStore {
     if (origStreamId == null) {
       // The `stream_id` field (aka origStreamId) is documented to be present on moves.
       assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
+      return;
+    }
+    if (propagateMode == null) {
+      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
       return;
     }
 
@@ -215,6 +221,7 @@ class MessageStoreImpl with MessageStore {
         origTopic: origTopic,
         newTopic: newTopic ?? origTopic,
         messageIds: event.messageIds,
+        propagateMode: propagateMode,
       );
     }
   }

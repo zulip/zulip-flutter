@@ -359,7 +359,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   final PerAccountStore store;
-  final Narrow narrow;
+  Narrow narrow;
 
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.
@@ -535,12 +535,24 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  void _handlePropagateMode(PropagateMode propagateMode, Narrow newNarrow) {
+    switch (propagateMode) {
+      case PropagateMode.changeAll:
+      case PropagateMode.changeLater:
+        narrow = newNarrow;
+        _reset();
+        fetchInitial();
+      case PropagateMode.changeOne:
+    }
+  }
+
   void messagesMoved({
     required int origStreamId,
     required int newStreamId,
     required String origTopic,
     required String newTopic,
     required List<int> messageIds,
+    required PropagateMode propagateMode,
   }) {
     switch (narrow) {
       case DmNarrow():
@@ -571,7 +583,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           case (false, false): return;
           case (true,  true ): return; // TODO(log) no-op move
           case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds); // TODO handle propagateMode
+          case (true,  false):
+            _messagesMovedFromNarrow(messageIds);
+            _handlePropagateMode(propagateMode, TopicNarrow(newStreamId, newTopic));
         }
     }
   }

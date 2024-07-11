@@ -60,8 +60,14 @@ extension TextChecks on Subject<Text> {
   Subject<TextStyle?> get style => has((t) => t.style, 'style');
 }
 
+extension TextEditingControllerChecks on Subject<TextEditingController> {
+  Subject<String?> get text => has((t) => t.text, 'text');
+}
+
 extension TextFieldChecks on Subject<TextField> {
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
+  Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
+  Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
 }
 
 extension TextStyleChecks on Subject<TextStyle> {
@@ -130,4 +136,8 @@ extension MediaQueryDataChecks on Subject<MediaQueryData> {
 extension MaterialChecks on Subject<Material> {
   Subject<Color?> get color => has((x) => x.color, 'color');
   // TODO more
+}
+
+extension InputDecorationChecks on Subject<InputDecoration> {
+  Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
 }
