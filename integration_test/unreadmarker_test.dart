@@ -32,7 +32,7 @@ void main() {
       newestResult(foundOldest: true, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-      child: const MessageListPage(narrow: CombinedFeedNarrow())));
+      child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
     await tester.pumpAndSettle();
     return messages;
   }

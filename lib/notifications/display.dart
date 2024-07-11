@@ -272,7 +272,7 @@ class NotificationDisplayManager {
     // TODO(nav): Better interact with existing nav stack on notif open
     navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(narrow: narrow)));
+      page: MessageListPage(initNarrow: narrow)));
     return;
   }
 
