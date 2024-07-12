@@ -396,115 +396,130 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
   }
 
   Future<void> handleEvent(Event event) async {
-    if (event is HeartbeatEvent) {
-      assert(debugLog("server event: heartbeat"));
-    } else if (event is RealmEmojiUpdateEvent) {
-      assert(debugLog("server event: realm_emoji/update"));
-      realmEmoji = event.realmEmoji;
-      notifyListeners();
-    } else if (event is AlertWordsEvent) {
-      assert(debugLog("server event: alert_words"));
-      // We don't yet store this data, so there's nothing to update.
-    } else if (event is UserSettingsUpdateEvent) {
-      assert(debugLog("server event: user_settings/update ${event.property?.name ?? '[unrecognized]'}"));
-      if (event.property == null) {
-        // unrecognized setting; do nothing
-        return;
-      }
-      switch (event.property!) {
-        case UserSettingName.twentyFourHourTime:
-          userSettings?.twentyFourHourTime        = event.value as bool;
-        case UserSettingName.displayEmojiReactionUsers:
-          userSettings?.displayEmojiReactionUsers = event.value as bool;
-        case UserSettingName.emojiset:
-          userSettings?.emojiset                  = event.value as Emojiset;
-      }
-      notifyListeners();
-    } else if (event is CustomProfileFieldsEvent) {
-      assert(debugLog("server event: custom_profile_fields"));
-      customProfileFields = _sortCustomProfileFields(event.fields);
-      notifyListeners();
-    } else if (event is RealmUserAddEvent) {
-      assert(debugLog("server event: realm_user/add"));
-      users[event.person.userId] = event.person;
-      notifyListeners();
-    } else if (event is RealmUserRemoveEvent) {
-      assert(debugLog("server event: realm_user/remove"));
-      users.remove(event.userId);
-      autocompleteViewManager.handleRealmUserRemoveEvent(event);
-      notifyListeners();
-    } else if (event is RealmUserUpdateEvent) {
-      assert(debugLog("server event: realm_user/update"));
-      final user = users[event.userId];
-      if (user == null) {
-        return; // TODO log
-      }
-      if (event.fullName != null)       user.fullName       = event.fullName!;
-      if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl!;
-      if (event.avatarVersion != null)  user.avatarVersion  = event.avatarVersion!;
-      if (event.timezone != null)       user.timezone       = event.timezone!;
-      if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;
-      if (event.role != null)           user.role           = event.role!;
-      if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
-      if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
-      if (event.newEmail != null)       user.email          = event.newEmail!;
-      if (event.customProfileField != null) {
-        final profileData = (user.profileData ??= {});
-        final update = event.customProfileField!;
-        if (update.value != null) {
-          profileData[update.id] = ProfileFieldUserData(value: update.value!, renderedValue: update.renderedValue);
-        } else {
-          profileData.remove(update.id);
+    switch (event) {
+      case HeartbeatEvent():
+        assert(debugLog("server event: heartbeat"));
+
+      case RealmEmojiUpdateEvent():
+        assert(debugLog("server event: realm_emoji/update"));
+        realmEmoji = event.realmEmoji;
+        notifyListeners();
+
+      case AlertWordsEvent():
+        assert(debugLog("server event: alert_words"));
+        // We don't yet store this data, so there's nothing to update.
+
+      case UserSettingsUpdateEvent():
+        assert(debugLog("server event: user_settings/update ${event.property?.name ?? '[unrecognized]'}"));
+        if (event.property == null) {
+          // unrecognized setting; do nothing
+          return;
         }
-        if (profileData.isEmpty) {
-          // null is equivalent to `{}` for efficiency; see [User._readProfileData].
-          user.profileData = null;
+        switch (event.property!) {
+          case UserSettingName.twentyFourHourTime:
+            userSettings?.twentyFourHourTime        = event.value as bool;
+          case UserSettingName.displayEmojiReactionUsers:
+            userSettings?.displayEmojiReactionUsers = event.value as bool;
+          case UserSettingName.emojiset:
+            userSettings?.emojiset                  = event.value as Emojiset;
         }
-      }
-      autocompleteViewManager.handleRealmUserUpdateEvent(event);
-      notifyListeners();
-    } else if (event is StreamEvent) {
-      assert(debugLog("server event: stream/${event.op}"));
-      _streams.handleStreamEvent(event);
-      notifyListeners();
-    } else if (event is SubscriptionEvent) {
-      assert(debugLog("server event: subscription/${event.op}"));
-      _streams.handleSubscriptionEvent(event);
-      notifyListeners();
-    } else if (event is UserTopicEvent) {
-      assert(debugLog("server event: user_topic"));
-      _streams.handleUserTopicEvent(event);
-      notifyListeners();
-    } else if (event is MessageEvent) {
-      assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
-      _messages.handleMessageEvent(event);
-      unreads.handleMessageEvent(event);
-      recentDmConversationsView.handleMessageEvent(event);
-      // When adding anything here (to handle [MessageEvent]),
-      // it probably belongs in [reconcileMessages] too.
-    } else if (event is UpdateMessageEvent) {
-      assert(debugLog("server event: update_message ${event.messageId}"));
-      _messages.handleUpdateMessageEvent(event);
-      unreads.handleUpdateMessageEvent(event);
-    } else if (event is DeleteMessageEvent) {
-      assert(debugLog("server event: delete_message ${event.messageIds}"));
-      _messages.handleDeleteMessageEvent(event);
-      unreads.handleDeleteMessageEvent(event);
-    } else if (event is UpdateMessageFlagsEvent) {
-      assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
-      _messages.handleUpdateMessageFlagsEvent(event);
-      unreads.handleUpdateMessageFlagsEvent(event);
-    } else if (event is TypingEvent) {
-      assert(debugLog("server event: typing/${event.op} ${event.messageType}"));
-      typingStatus.handleTypingEvent(event);
-    } else if (event is ReactionEvent) {
-      assert(debugLog("server event: reaction/${event.op}"));
-      _messages.handleReactionEvent(event);
-    } else if (event is UnexpectedEvent) {
-      assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
-    } else {
-      // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
-      throw Exception("Event object of impossible type: ${event.toString()}");
+        notifyListeners();
+
+      case CustomProfileFieldsEvent():
+        assert(debugLog("server event: custom_profile_fields"));
+        customProfileFields = _sortCustomProfileFields(event.fields);
+        notifyListeners();
+
+      case RealmUserAddEvent():
+        assert(debugLog("server event: realm_user/add"));
+        users[event.person.userId] = event.person;
+        notifyListeners();
+
+      case RealmUserRemoveEvent():
+        assert(debugLog("server event: realm_user/remove"));
+        users.remove(event.userId);
+        autocompleteViewManager.handleRealmUserRemoveEvent(event);
+        notifyListeners();
+
+      case RealmUserUpdateEvent():
+        assert(debugLog("server event: realm_user/update"));
+        final user = users[event.userId];
+        if (user == null) {
+          return; // TODO log
+        }
+        if (event.fullName != null)       user.fullName       = event.fullName!;
+        if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl!;
+        if (event.avatarVersion != null)  user.avatarVersion  = event.avatarVersion!;
+        if (event.timezone != null)       user.timezone       = event.timezone!;
+        if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;
+        if (event.role != null)           user.role           = event.role!;
+        if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
+        if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
+        if (event.newEmail != null)       user.email          = event.newEmail!;
+        if (event.customProfileField != null) {
+          final profileData = (user.profileData ??= {});
+          final update = event.customProfileField!;
+          if (update.value != null) {
+            profileData[update.id] = ProfileFieldUserData(value: update.value!, renderedValue: update.renderedValue);
+          } else {
+            profileData.remove(update.id);
+          }
+          if (profileData.isEmpty) {
+            // null is equivalent to `{}` for efficiency; see [User._readProfileData].
+            user.profileData = null;
+          }
+        }
+        autocompleteViewManager.handleRealmUserUpdateEvent(event);
+        notifyListeners();
+
+      case StreamEvent():
+        assert(debugLog("server event: stream/${event.op}"));
+        _streams.handleStreamEvent(event);
+        notifyListeners();
+
+      case SubscriptionEvent():
+        assert(debugLog("server event: subscription/${event.op}"));
+        _streams.handleSubscriptionEvent(event);
+        notifyListeners();
+
+      case UserTopicEvent():
+        assert(debugLog("server event: user_topic"));
+        _streams.handleUserTopicEvent(event);
+        notifyListeners();
+
+      case MessageEvent():
+        assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
+        _messages.handleMessageEvent(event);
+        unreads.handleMessageEvent(event);
+        recentDmConversationsView.handleMessageEvent(event);
+        // When adding anything here (to handle [MessageEvent]),
+        // it probably belongs in [reconcileMessages] too.
+
+      case UpdateMessageEvent():
+        assert(debugLog("server event: update_message ${event.messageId}"));
+        _messages.handleUpdateMessageEvent(event);
+        unreads.handleUpdateMessageEvent(event);
+
+      case DeleteMessageEvent():
+        assert(debugLog("server event: delete_message ${event.messageIds}"));
+        _messages.handleDeleteMessageEvent(event);
+        unreads.handleDeleteMessageEvent(event);
+
+      case UpdateMessageFlagsEvent():
+        assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
+        _messages.handleUpdateMessageFlagsEvent(event);
+        unreads.handleUpdateMessageFlagsEvent(event);
+
+      case TypingEvent():
+        assert(debugLog("server event: typing/${event.op} ${event.messageType}"));
+        typingStatus.handleTypingEvent(event);
+
+      case ReactionEvent():
+        assert(debugLog("server event: reaction/${event.op}"));
+        _messages.handleReactionEvent(event);
+
+      case UnexpectedEvent():
+        assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     }
   }
 
