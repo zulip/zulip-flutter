@@ -266,44 +266,33 @@ class BlockContentList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       ...nodes.map((node) {
-        if (node is LineBreakNode) {
-          // This goes in a Column.  So to get the effect of a newline,
-          // just use an empty Text.
-          return const Text('');
-        } else if (node is ThematicBreakNode) {
-          return const ThematicBreak();
-        } else if (node is ParagraphNode) {
-          return Paragraph(node: node);
-        } else if (node is HeadingNode) {
-          return Heading(node: node);
-        } else if (node is QuotationNode) {
-          return Quotation(node: node);
-        } else if (node is ListNode) {
-          return ListNodeWidget(node: node);
-        } else if (node is SpoilerNode) {
-          return Spoiler(node: node);
-        } else if (node is CodeBlockNode) {
-          return CodeBlock(node: node);
-        } else if (node is MathBlockNode) {
-          return MathBlock(node: node);
-        } else if (node is ImageNodeList) {
-          return MessageImageList(node: node);
-        } else if (node is ImageNode) {
-          assert(false,
-            "[ImageNode] not allowed in [BlockContentList]. "
-            "It should be wrapped in [ImageNodeList]."
-          );
-          return MessageImage(node: node);
-        } else if (node is InlineVideoNode) {
-          return MessageInlineVideo(node: node);
-        } else if (node is EmbedVideoNode) {
-          return MessageEmbedVideo(node: node);
-        } else if (node is UnimplementedBlockContentNode) {
-          return Text.rich(_errorUnimplemented(node, context: context));
-        } else {
-          // TODO(dart-3): Use a sealed class / pattern-matching to exclude this.
-          throw Exception("impossible BlockContentNode: ${node.debugHtmlText}");
-        }
+        return switch (node) {
+          LineBreakNode() =>
+            // This goes in a Column.  So to get the effect of a newline,
+            // just use an empty Text.
+            const Text(''),
+          ThematicBreakNode() => const ThematicBreak(),
+          ParagraphNode() => Paragraph(node: node),
+          HeadingNode() => Heading(node: node),
+          QuotationNode() => Quotation(node: node),
+          ListNode() => ListNodeWidget(node: node),
+          SpoilerNode() => Spoiler(node: node),
+          CodeBlockNode() => CodeBlock(node: node),
+          MathBlockNode() => MathBlock(node: node),
+          ImageNodeList() => MessageImageList(node: node),
+          ImageNode() => (){
+            assert(false,
+              "[ImageNode] not allowed in [BlockContentList]. "
+              "It should be wrapped in [ImageNodeList]."
+            );
+            return MessageImage(node: node);
+          }(),
+          InlineVideoNode() => MessageInlineVideo(node: node),
+          EmbedVideoNode() => MessageEmbedVideo(node: node),
+          UnimplementedBlockContentNode() =>
+            Text.rich(_errorUnimplemented(node, context: context)),
+        };
+
       }),
     ]);
   }
