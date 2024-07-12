@@ -930,44 +930,54 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildNode(InlineContentNode node) {
-    if (node is TextNode) {
-      return TextSpan(text: node.text, recognizer: _recognizer);
-    } else if (node is LineBreakInlineNode) {
-      // Each `<br/>` is followed by a newline, which browsers apparently ignore
-      // and our parser doesn't.  So don't do anything here.
-      return const TextSpan(text: "");
-    } else if (node is StrongNode) {
-      return _buildStrong(node);
-    } else if (node is DeletedNode) {
-      return _buildDeleted(node);
-    } else if (node is EmphasisNode) {
-      return _buildEmphasis(node);
-    } else if (node is LinkNode) {
-      return _buildLink(node);
-    } else if (node is InlineCodeNode) {
-      return _buildInlineCode(node);
-    } else if (node is UserMentionNode) {
-      return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: UserMention(ambientTextStyle: widget.style, node: node));
-    } else if (node is UnicodeEmojiNode) {
-      return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
-    } else if (node is ImageEmojiNode) {
-      return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: MessageImageEmoji(node: node));
-    } else if (node is MathInlineNode) {
-      return TextSpan(
-        style: widget.style
-          .merge(ContentTheme.of(_context!).textStyleInlineMath)
-          .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
-        children: [TextSpan(text: node.texSource)]);
-    } else if (node is GlobalTimeNode) {
-      return WidgetSpan(alignment: PlaceholderAlignment.middle,
-        child: GlobalTime(node: node, ambientTextStyle: widget.style));
-    } else if (node is UnimplementedInlineContentNode) {
-      return _errorUnimplemented(node, context: _context!);
-    } else {
-      // TODO(dart-3): Use a sealed class / pattern matching to eliminate this case.
-      throw Exception("impossible InlineContentNode: ${node.debugHtmlText}");
+    switch (node) {
+      case TextNode():
+        return TextSpan(text: node.text, recognizer: _recognizer);
+
+      case LineBreakInlineNode():
+        // Each `<br/>` is followed by a newline, which browsers apparently ignore
+        // and our parser doesn't.  So don't do anything here.
+        return const TextSpan(text: "");
+
+      case StrongNode():
+        return _buildStrong(node);
+
+      case DeletedNode():
+        return _buildDeleted(node);
+
+      case EmphasisNode():
+        return _buildEmphasis(node);
+
+      case LinkNode():
+        return _buildLink(node);
+
+      case InlineCodeNode():
+        return _buildInlineCode(node);
+
+      case UserMentionNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: UserMention(ambientTextStyle: widget.style, node: node));
+
+      case UnicodeEmojiNode():
+        return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
+
+      case ImageEmojiNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: MessageImageEmoji(node: node));
+
+      case MathInlineNode():
+        return TextSpan(
+          style: widget.style
+            .merge(ContentTheme.of(_context!).textStyleInlineMath)
+            .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
+          children: [TextSpan(text: node.texSource)]);
+
+      case GlobalTimeNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: GlobalTime(node: node, ambientTextStyle: widget.style));
+
+      case UnimplementedInlineContentNode():
+        return _errorUnimplemented(node, context: _context!);
     }
   }
 
