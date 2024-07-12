@@ -182,16 +182,16 @@ Future<SendMessageResult> sendMessage(
   final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
   final supportsReadBySender = connection.zulipFeatureLevel! >= 236; // TODO(server-8)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
-    if (destination is StreamDestination) ...{
-      'type': RawParameter('stream'),
-      'to': destination.streamId,
-      'topic': RawParameter(destination.topic),
-    } else if (destination is DmDestination) ...{
-      'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
-      'to': destination.userIds,
-    } else ...(
-      throw Exception('impossible destination') // TODO(dart-3) show this statically
-    ),
+    ...(switch (destination) {
+      StreamDestination() => {
+        'type': RawParameter('stream'),
+        'to': destination.streamId,
+        'topic': RawParameter(destination.topic),
+      },
+      DmDestination() => {
+        'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
+        'to': destination.userIds,
+      }}),
     'content': RawParameter(content),
     if (queueId != null) 'queue_id': queueId, // TODO should this use RawParameter?
     if (localId != null) 'local_id': localId, // TODO should this use RawParameter?
