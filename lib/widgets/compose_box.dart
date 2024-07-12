@@ -979,16 +979,15 @@ class ComposeBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final narrow = this.narrow;
-    if (narrow is StreamNarrow) {
-      return _StreamComposeBox(key: controllerKey, narrow: narrow);
-    } else if (narrow is TopicNarrow) {
-      return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
-    } else if (narrow is DmNarrow) {
-      return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
-    } else if (narrow is CombinedFeedNarrow) {
-      return const SizedBox.shrink();
-    } else {
-      throw Exception("impossible narrow"); // TODO(dart-3): show this statically
+    switch (narrow) {
+      case StreamNarrow():
+        return _StreamComposeBox(key: controllerKey, narrow: narrow);
+      case TopicNarrow():
+        return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
+      case DmNarrow():
+        return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
+      case CombinedFeedNarrow():
+        return const SizedBox.shrink();
     }
   }
 }
