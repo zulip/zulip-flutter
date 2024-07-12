@@ -86,16 +86,14 @@ void main() {
         await tester.pumpWidget(const ZulipApp());
         await tester.pump();
 
-        late StreamColorSwatch actualSwatch;
         final navigator = await ZulipApp.navigator;
-        navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) {
-          actualSwatch = colorSwatchFor(context, subscription);
-          return const Placeholder();
-        })));
+        navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) =>
+          const Placeholder())));
         await tester.pumpAndSettle();
 
+        final element = tester.element(find.byType(Placeholder));
         // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
-        check(actualSwatch).equals(expected);
+        check(colorSwatchFor(element, subscription)).equals(expected);
       });
     }
 
