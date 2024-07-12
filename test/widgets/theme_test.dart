@@ -77,27 +77,27 @@ void main() {
   });
 
   group('colorSwatchFor', () {
-    void doTest(String description, int baseColor, StreamColorSwatch expected) {
-      testWidgets('$description $baseColor', (WidgetTester tester) async {
-        addTearDown(testBinding.reset);
+    const baseColor = 0xff76ce90;
 
-        final subscription = eg.subscription(eg.stream(), color: baseColor);
+    testWidgets('light $baseColor', (WidgetTester tester) async {
+      addTearDown(testBinding.reset);
 
-        await tester.pumpWidget(const ZulipApp());
-        await tester.pump();
+      final subscription = eg.subscription(eg.stream(), color: baseColor);
 
-        final navigator = await ZulipApp.navigator;
-        navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) =>
-          const Placeholder())));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(const ZulipApp());
+      await tester.pump();
 
-        final element = tester.element(find.byType(Placeholder));
-        // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
-        check(colorSwatchFor(element, subscription)).equals(expected);
-      });
-    }
+      final navigator = await ZulipApp.navigator;
+      navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) =>
+        const Placeholder())));
+      await tester.pumpAndSettle();
 
-    doTest('light', 0xff76ce90, StreamColorSwatch.light(0xff76ce90));
+      final element = tester.element(find.byType(Placeholder));
+      // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
+      check(colorSwatchFor(element, subscription))
+        .equals(StreamColorSwatch.light(baseColor));
+    });
+
     // TODO(#95) test with Brightness.dark and lerping between light/dark
   });
 }
