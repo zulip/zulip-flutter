@@ -5,11 +5,50 @@ import 'content.dart';
 import 'stream_colors.dart';
 import 'text.dart';
 
+/// In debug mode, controls whether the UI responds to
+/// [MediaQueryData.platformBrightness].
+///
+/// Outside of debug mode, this is always false and the setter has no effect.
+// TODO(#95) when dark theme is fully implemented, simplify away;
+//   the UI should always respond.
+bool get debugFollowPlatformBrightness {
+  bool result = false;
+  assert(() {
+    result = _debugFollowPlatformBrightness;
+    return true;
+  }());
+  return result;
+}
+bool _debugFollowPlatformBrightness = false;
+set debugFollowPlatformBrightness(bool value) {
+  assert(() {
+    _debugFollowPlatformBrightness = value;
+    return true;
+  }());
+}
+
+
 ThemeData zulipThemeData(BuildContext context) {
-  final designVariables = DesignVariables();
+  final DesignVariables designVariables;
+  final List<ThemeExtension> themeExtensions;
+  Brightness brightness = debugFollowPlatformBrightness
+    ? MediaQuery.of(context).platformBrightness
+    : Brightness.light;
+  switch (brightness) {
+    case Brightness.light: {
+      designVariables = DesignVariables();
+      themeExtensions = [ContentTheme.light(context), designVariables];
+    }
+    case Brightness.dark: {
+      designVariables = DesignVariables(); // TODO(#95)
+      themeExtensions = [ContentTheme.dark(context), designVariables];
+    }
+  }
+
   return ThemeData(
+    brightness: brightness,
     typography: zulipTypography(context),
-    extensions: [ContentTheme.light(context), designVariables],
+    extensions: themeExtensions,
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
@@ -57,6 +96,7 @@ ThemeData zulipThemeData(BuildContext context) {
     // Or try this tool to see the whole palette:
     //   https://m3.material.io/theme-builder#/custom
     colorScheme: ColorScheme.fromSeed(
+      brightness: brightness,
       seedColor: kZulipBrandColor,
     ),
     scaffoldBackgroundColor: designVariables.mainBackground,
