@@ -415,7 +415,7 @@ void main() {
 
     testWidgets('can show snackbar on success', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/732
-      testBinding.deviceInfoResult = IosDeviceInfo(systemVersion: '16.0');
+      testBinding.deviceInfoResult = const IosDeviceInfo(systemVersion: '16.0');
 
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));

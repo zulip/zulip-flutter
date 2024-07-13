@@ -156,7 +156,7 @@ abstract class ZulipBinding {
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
 abstract class BaseDeviceInfo {
-  BaseDeviceInfo();
+  const BaseDeviceInfo();
 }
 
 /// Like [device_info_plus.AndroidDeviceInfo], but without things we don't use.
@@ -175,7 +175,7 @@ class AndroidDeviceInfo extends BaseDeviceInfo {
   ///   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
   final int sdkInt;
 
-  AndroidDeviceInfo({required this.release, required this.sdkInt});
+  const AndroidDeviceInfo({required this.release, required this.sdkInt});
 }
 
 /// Like [device_info_plus.IosDeviceInfo], but without things we don't use.
@@ -185,7 +185,7 @@ class IosDeviceInfo extends BaseDeviceInfo {
   /// See: https://developer.apple.com/documentation/uikit/uidevice/1620043-systemversion
   final String systemVersion;
 
-  IosDeviceInfo({required this.systemVersion});
+  const IosDeviceInfo({required this.systemVersion});
 }
 
 /// Like [device_info_plus.MacOsDeviceInfo], but without things we don't use.
@@ -199,7 +199,7 @@ class MacOsDeviceInfo extends BaseDeviceInfo {
   /// See: https://developer.apple.com/documentation/foundation/operatingsystemversion/1415564-patchversion
   final int patchVersion;
 
-  MacOsDeviceInfo({
+  const MacOsDeviceInfo({
     required this.majorVersion,
     required this.minorVersion,
     required this.patchVersion,
@@ -228,7 +228,9 @@ class MacOsDeviceInfo extends BaseDeviceInfo {
 //      makes it less ideal.
 //  [1]: https://gist.github.com/rajveermalviya/58b3add437280cc7f8356f3697099b7c
 //  [2]: https://github.com/zulip/zulip-flutter/pull/724#discussion_r1628318991
-class WindowsDeviceInfo implements BaseDeviceInfo {}
+class WindowsDeviceInfo implements BaseDeviceInfo {
+  const WindowsDeviceInfo();
+}
 
 /// Like [device_info_plus.LinuxDeviceInfo], but without things we don't use.
 class LinuxDeviceInfo implements BaseDeviceInfo {
@@ -249,7 +251,7 @@ class LinuxDeviceInfo implements BaseDeviceInfo {
   /// See: https://www.freedesktop.org/software/systemd/man/latest/os-release.html#VERSION_ID=
   final String? versionId;
 
-  LinuxDeviceInfo({required this.name, required this.versionId});
+  const LinuxDeviceInfo({required this.name, required this.versionId});
 }
 
 /// Like [package_info_plus.PackageInfo], but without things we don't use.
@@ -257,7 +259,7 @@ class PackageInfo {
   final String version;
   final String buildNumber;
 
-  PackageInfo({
+  const PackageInfo({
     required this.version,
     required this.buildNumber,
   });
@@ -329,7 +331,7 @@ class LiveZulipBinding extends ZulipBinding {
         device_info_plus.MacOsDeviceInfo()   => MacOsDeviceInfo(majorVersion: info.majorVersion,
                                                                 minorVersion: info.minorVersion,
                                                                 patchVersion: info.patchVersion),
-        device_info_plus.WindowsDeviceInfo() => WindowsDeviceInfo(),
+        device_info_plus.WindowsDeviceInfo() => const WindowsDeviceInfo(),
         device_info_plus.LinuxDeviceInfo()   => LinuxDeviceInfo(name: info.name,
                                                                 versionId: info.versionId),
         _                                    => throw UnimplementedError(),

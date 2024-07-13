@@ -58,21 +58,21 @@ void main() {
     }
 
     testWidgets('iOS', (WidgetTester tester) async {
-      testBinding.deviceInfoResult = IosDeviceInfo(systemVersion: '16.0');
+      testBinding.deviceInfoResult = const IosDeviceInfo(systemVersion: '16.0');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: true);
     });
 
     testWidgets('Android', (WidgetTester tester) async {
-      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
+      testBinding.deviceInfoResult = const AndroidDeviceInfo(sdkInt: 33, release: '13');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: false);
     });
 
     testWidgets('Android <13', (WidgetTester tester) async {
-      testBinding.deviceInfoResult = AndroidDeviceInfo(sdkInt: 32, release: '12');
+      testBinding.deviceInfoResult = const AndroidDeviceInfo(sdkInt: 32, release: '12');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: true);
