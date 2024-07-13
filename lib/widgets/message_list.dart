@@ -29,6 +29,9 @@ import 'theme.dart';
 ///
 /// To obtain one of these, see [MessageListPage.ancestorOf].
 abstract class MessageListPageState {
+  /// The narrow for this page's message list.
+  Narrow get narrow;
+
   /// The controller for this [MessageListPage]'s compose box,
   /// if this [MessageListPage] offers a compose box.
   ComposeBoxController? get composeBoxController;
@@ -65,6 +68,9 @@ class MessageListPage extends StatefulWidget {
 const _kUnsubscribedStreamRecipientHeaderColor = Color(0xfff5f5f5);
 
 class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
+  @override
+  Narrow get narrow => widget.narrow;
+
   @override
   ComposeBoxController? get composeBoxController => _composeBoxKey.currentState;
 

@@ -105,6 +105,14 @@ void main() {
         .throws<void>();
     });
 
+    testWidgets('MessageListPageState.narrow', (tester) async {
+      final stream = eg.stream();
+      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId),
+        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      check(state.narrow).equals(StreamNarrow(stream.streamId));
+    });
+
     testWidgets('composeBoxController finds compose box', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId),
