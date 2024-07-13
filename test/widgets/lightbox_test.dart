@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -14,12 +13,12 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../test_images.dart';
 import 'dialog_checks.dart';
+import 'test_app.dart';
 
 const kTestVideoUrl = "https://a/video.mp4";
 const kTestUnsupportedVideoUrl = "https://a/unsupported.mp4";
@@ -300,7 +299,10 @@ void main() {
 
     for (final (duration, expected, title) in cases) {
       testWidgets('with $title shows $expected', (tester) async {
-        await tester.pumpWidget(MaterialApp(home: VideoDurationLabel(duration)));
+        addTearDown(testBinding.reset);
+        await tester.pumpWidget(TestZulipApp(
+          child: VideoDurationLabel(duration)));
+        await tester.pump();
         final text = tester.widget<Text>(find.byType(Text));
         check(text.data)
           ..equals(VideoDurationLabel.formatDuration(duration))
@@ -359,15 +361,11 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       addTearDown(platform.reset);
 
-      await tester.pumpWidget(GlobalStoreWidget(child: MaterialApp(
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        home: PerAccountStoreWidget(
-          accountId: eg.selfAccount.id,
-          child: VideoLightboxPage(
-            routeEntranceAnimation: kAlwaysCompleteAnimation,
-            message: eg.streamMessage(),
-            src: videoSrc)))));
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: VideoLightboxPage(
+          routeEntranceAnimation: kAlwaysCompleteAnimation,
+          message: eg.streamMessage(),
+          src: videoSrc)));
       await tester.pump(); // global store
       await tester.pump(); // per-account store
       await tester.pump(); // video controller initialization

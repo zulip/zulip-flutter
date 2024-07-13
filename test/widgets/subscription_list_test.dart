@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
-import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/stream_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
@@ -12,6 +11,7 @@ import 'package:zulip/widgets/unread_count_badge.dart';
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -30,10 +30,8 @@ void main() {
     );
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
 
-    await tester.pumpWidget(const ZulipApp());
-    await tester.pump();
-    final navigator = await ZulipApp.navigator;
-    navigator.push(SubscriptionListPage.buildRoute(accountId: eg.selfAccount.id));
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      child: const SubscriptionListPage()));
 
     // global store, per-account store
     await tester.pumpAndSettle();

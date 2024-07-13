@@ -11,13 +11,13 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
+import 'test_app.dart';
 import 'text_test.dart';
 
 void main() {
@@ -46,22 +46,18 @@ void main() {
     }) async {
       final message = eg.streamMessage(reactions: reactions);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Directionality(
-            textDirection: textDirection,
-            child: GlobalStoreWidget(
-              child: PerAccountStoreWidget(
-                accountId: eg.selfAccount.id,
-                child: Center(
-                  child: ColoredBox(
-                    color: Colors.white,
-                    child: SizedBox(
-                      width: width,
-                      child: ReactionChipsList(
-                        messageId: message.id,
-                        reactions: message.reactions!,
-                      )))))))));
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: Directionality(
+          textDirection: textDirection,
+          child: Center(
+            child: ColoredBox(
+              color: Colors.white,
+              child: SizedBox(
+                width: width,
+                child: ReactionChipsList(
+                  messageId: message.id,
+                  reactions: message.reactions!,
+                )))))));
 
       // global store, per-account store
       await tester.pumpAndSettle();

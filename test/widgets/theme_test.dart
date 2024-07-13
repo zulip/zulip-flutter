@@ -23,24 +23,19 @@ void main() {
       double? ambientTextScaleFactor,
     }) async {
       testWidgets(description, (WidgetTester tester) async {
+        addTearDown(testBinding.reset);
         if (ambientTextScaleFactor != null) {
           tester.platformDispatcher.textScaleFactorTestValue = ambientTextScaleFactor;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         }
-        late final double expectedFontSize;
-        late final double expectedLetterSpacing;
-        await tester.pumpWidget(
-          Builder(builder: (context) => MaterialApp(
-            theme: zulipThemeData(context),
-            home: Builder(builder: (context) {
-              expectedFontSize = Theme.of(context).textTheme.labelLarge!.fontSize!;
-              expectedLetterSpacing = proportionalLetterSpacing(context,
-                0.01, baseFontSize: expectedFontSize);
-              return button;
-            }))));
-
-        final text = tester.renderObject<RenderParagraph>(find.text(buttonText)).text;
-        check(text.style!)
+        await tester.pumpWidget(TestZulipApp(
+          child: button));
+        await tester.pump();
+        final context = tester.element(find.text(buttonText));
+        final expectedFontSize = Theme.of(context).textTheme.labelLarge!.fontSize!;
+        final expectedLetterSpacing = proportionalLetterSpacing(context,
+          0.01, baseFontSize: expectedFontSize);
+        check((context.renderObject as RenderParagraph).text.style!)
           ..fontSize.equals(expectedFontSize)
           ..letterSpacing.equals(expectedLetterSpacing);
       });

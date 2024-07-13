@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
@@ -18,9 +17,7 @@ import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/store.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
-import 'package:zulip/widgets/theme.dart';
 import '../api/fake_api.dart';
 
 import '../example_data.dart' as eg;
@@ -32,6 +29,7 @@ import '../test_clipboard.dart';
 import '../test_share_plus.dart';
 import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
+import 'test_app.dart';
 
 /// Simulates loading a [MessageListPage] and long-pressing on [message].
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
@@ -60,15 +58,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     messages: [message],
   ).toJson());
 
-  await tester.pumpWidget(Builder(builder: (context) =>
-    MaterialApp(
-      theme: zulipThemeData(context),
-      localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-      supportedLocales: ZulipLocalizations.supportedLocales,
-      home: GlobalStoreWidget(
-        child: PerAccountStoreWidget(
-          accountId: eg.selfAccount.id,
-          child: MessageListPage(narrow: narrow))))));
+  await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    child: MessageListPage(narrow: narrow)));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();

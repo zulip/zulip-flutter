@@ -4,7 +4,6 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
@@ -21,7 +20,6 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/stream_colors.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -34,6 +32,7 @@ import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_checks.dart';
 import 'dialog_checks.dart';
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -68,15 +67,8 @@ void main() {
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
 
-    await tester.pumpWidget(Builder(builder: (context) =>
-      MaterialApp(
-        theme: zulipThemeData(context),
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        home: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            accountId: eg.selfAccount.id,
-            child: MessageListPage(narrow: narrow))))));
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      child: MessageListPage(narrow: narrow)));
 
     // global store, per-account store, and message list get loaded
     await tester.pumpAndSettle();

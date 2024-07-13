@@ -8,6 +8,7 @@ import 'package:zulip/widgets/clipboard.dart';
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../test_clipboard.dart';
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -26,17 +27,16 @@ void main() {
 
   group('copyWithPopup', () {
     Future<void> call(WidgetTester tester, {required String text}) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(builder: (context) => Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  copyWithPopup(context: context, successContent: const Text('Text copied'),
-                    data: ClipboardData(text: text));
-                },
-                child: const Text('Copy'))))),
-        ));
+      await tester.pumpWidget(TestZulipApp(
+        child: Scaffold(
+          body: Builder(builder: (context) => Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                copyWithPopup(context: context, successContent: const Text('Text copied'),
+                  data: ClipboardData(text: text));
+              },
+              child: const Text('Copy')))))));
+      await tester.pump();
       await tester.tap(find.text('Copy'));
       await tester.pump(); // copy
       await tester.pump(Duration.zero); // await platform info (awkwardly async)

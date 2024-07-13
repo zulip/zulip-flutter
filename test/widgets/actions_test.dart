@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -12,8 +11,6 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/actions.dart';
-import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -21,6 +18,7 @@ import '../model/binding.dart';
 import '../model/unreads_checks.dart';
 import '../stdlib_checks.dart';
 import 'dialog_checks.dart';
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -39,16 +37,9 @@ void main() {
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       connection = store.connection as FakeApiConnection;
 
-      await tester.pumpWidget(Builder(builder: (context) =>
-        MaterialApp(
-          theme: zulipThemeData(context),
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          home: GlobalStoreWidget(
-            child: PerAccountStoreWidget(
-              accountId: eg.selfAccount.id,
-              child: const Scaffold(
-                body: Placeholder()))))));
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const Scaffold(body: Placeholder())));
+      // global store, per-account store get loaded
       await tester.pumpAndSettle();
       context = tester.element(find.byType(Placeholder));
     }

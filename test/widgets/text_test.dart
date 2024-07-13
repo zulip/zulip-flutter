@@ -95,11 +95,14 @@ void main() {
       required FontWeight expectedFontWeight,
     }) async {
       testWidgets(description, (WidgetTester tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MediaQuery(
-              data: MediaQueryData(boldText: platformRequestsBold),
-              child: Builder(builder: (context) => Text('', style: styleBuilder(context))))));
+        addTearDown(testBinding.reset);
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+          FakeAccessibilityFeatures(boldText: platformRequestsBold);
+        addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+        await tester.pumpWidget(TestZulipApp(
+          child: Builder(builder: (context) =>
+            Text('', style: styleBuilder(context)))));
+        await tester.pump();
 
         final TextStyle? style = tester.widget<Text>(find.byType(Text)).style;
         check(style)
@@ -183,13 +186,14 @@ void main() {
       required FontWeight expectedFontWeight,
     }) async {
       testWidgets(description, (WidgetTester tester) async {
+        addTearDown(testBinding.reset);
         tester.platformDispatcher.accessibilityFeaturesTestValue =
           FakeAccessibilityFeatures(boldText: platformRequestsBold);
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(builder: (context) =>
-              Text('', style: makeStyle(context)))));
+        await tester.pumpWidget(TestZulipApp(
+          child: Builder(builder: (context) =>
+            Text('', style: makeStyle(context)))));
+        await tester.pump();
 
         final TextStyle? style = tester.widget<Text>(find.byType(Text)).style;
 
@@ -342,14 +346,15 @@ void main() {
       required double expected,
     }) async {
       testWidgets(description, (WidgetTester tester) async {
+        addTearDown(testBinding.reset);
         if (ambientTextScaleFactor != null) {
           tester.platformDispatcher.textScaleFactorTestValue = ambientTextScaleFactor;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         }
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(builder: (context) => Text('',
-              style: TextStyle(letterSpacing: getValue(context))))));
+        await tester.pumpWidget(TestZulipApp(
+          child: Builder(builder: (context) => Text('',
+            style: TextStyle(letterSpacing: getValue(context))))));
+        await tester.pump();
 
         final TextStyle? style = tester.widget<Text>(find.byType(Text)).style;
         final actualLetterSpacing = style!.letterSpacing!;

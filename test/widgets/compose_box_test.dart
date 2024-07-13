@@ -4,7 +4,6 @@ import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -12,7 +11,6 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -20,6 +18,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
 import 'dialog_checks.dart';
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -35,14 +34,8 @@ void main() {
     connection = store.connection as FakeApiConnection;
 
     final controllerKey = GlobalKey<ComposeBoxController>();
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        home: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            accountId: eg.selfAccount.id,
-            child: ComposeBox(controllerKey: controllerKey, narrow: narrow)))));
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
     await tester.pumpAndSettle();
 
     return controllerKey;

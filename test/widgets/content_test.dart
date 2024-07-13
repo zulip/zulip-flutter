@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
@@ -16,7 +15,6 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/text.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -29,6 +27,7 @@ import '../test_navigation.dart';
 import 'dialog_checks.dart';
 import 'message_list_checks.dart';
 import 'page_checks.dart';
+import 'test_app.dart';
 
 /// Simulate a nested "inner" span's style by merging all ancestor-span
 /// styles, starting from the root.
@@ -113,26 +112,18 @@ void main() {
     List<NavigatorObserver> navObservers = const [],
     bool wrapWithPerAccountStoreWidget = false,
   }) async {
-    Widget widget = child;
-
     if (wrapWithPerAccountStoreWidget) {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      widget = PerAccountStoreWidget(accountId: eg.selfAccount.id, child: widget);
     }
 
-    widget = GlobalStoreWidget(child: widget);
     addTearDown(testBinding.reset);
 
     prepareBoringImageHttpClient();
 
-    await tester.pumpWidget(
-      Builder(builder: (context) =>
-        MaterialApp(
-          theme: zulipThemeData(context),
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          navigatorObservers: navObservers,
-          home: widget)));
+    await tester.pumpWidget(TestZulipApp(
+      accountId: wrapWithPerAccountStoreWidget ? eg.selfAccount.id : null,
+      navigatorObservers: navObservers,
+      child: child));
     await tester.pump(); // global store
     if (wrapWithPerAccountStoreWidget) {
       await tester.pump();

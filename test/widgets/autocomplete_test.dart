@@ -1,6 +1,5 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -8,14 +7,13 @@ import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
+import 'test_app.dart';
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
@@ -49,19 +47,10 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 
   prepareBoringImageHttpClient();
 
-  await tester.pumpWidget(Builder(builder: (context) =>
-    MaterialApp(
-      theme: zulipThemeData(context),
-      localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-      supportedLocales: ZulipLocalizations.supportedLocales,
-      home: GlobalStoreWidget(
-        child: PerAccountStoreWidget(
-          accountId: eg.selfAccount.id,
-          child: MessageListPage(
-            narrow: DmNarrow(
-              allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
-              selfUserId: eg.selfUser.userId,
-            )))))));
+  await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    child: MessageListPage(narrow: DmNarrow(
+      allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
+      selfUserId: eg.selfUser.userId))));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();

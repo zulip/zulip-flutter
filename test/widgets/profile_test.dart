@@ -1,6 +1,5 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -10,8 +9,6 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
-import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -20,6 +17,7 @@ import '../test_navigation.dart';
 import 'message_list_checks.dart';
 import 'page_checks.dart';
 import 'profile_page_checks.dart';
+import 'test_app.dart';
 
 Future<void> setupPage(WidgetTester tester, {
   required int pageUserId,
@@ -41,16 +39,10 @@ Future<void> setupPage(WidgetTester tester, {
     await store.addUsers(users);
   }
 
-  await tester.pumpWidget(
-    GlobalStoreWidget(child: Builder(builder: (context) =>
-      MaterialApp(
-        theme: zulipThemeData(context),
-        navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        home: PerAccountStoreWidget(
-          accountId: eg.selfAccount.id,
-          child: ProfilePage(userId: pageUserId))))));
+  await tester.pumpWidget(TestZulipApp(
+    accountId: eg.selfAccount.id,
+    navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
+    child: ProfilePage(userId: pageUserId)));
 
   // global store, per-account store, and page get loaded
   await tester.pumpAndSettle();

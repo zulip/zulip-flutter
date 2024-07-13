@@ -1,5 +1,3 @@
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:zulip/api/model/events.dart';
@@ -7,13 +5,12 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../test/api/fake_api.dart';
 import '../test/example_data.dart' as eg;
 import '../test/model/binding.dart';
 import '../test/model/message_list_test.dart';
+import '../test/widgets/test_app.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -34,13 +31,8 @@ void main() {
     connection.prepare(json:
       newestResult(foundOldest: true, messages: messages).toJson());
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            accountId: eg.selfAccount.id,
-            placeholder: const LoadingPlaceholderPage(),
-            child: const MessageListPage(narrow: CombinedFeedNarrow())))));
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      child: const MessageListPage(narrow: CombinedFeedNarrow())));
     await tester.pumpAndSettle();
     return messages;
   }

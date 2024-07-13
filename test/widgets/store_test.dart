@@ -156,6 +156,8 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     Future<void> pumpWithParams({required bool light, required int accountId}) async {
+      // TODO use [TestZulipApp]
+      //   (seeing some extraneous dep changes when trying that)
       await tester.pumpWidget(
         MaterialApp(
           theme: light ? ThemeData.light() : ThemeData.dark(),

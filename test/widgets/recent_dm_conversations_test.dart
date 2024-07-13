@@ -1,7 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -11,7 +10,6 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -21,6 +19,7 @@ import '../test_navigation.dart';
 import 'content_checks.dart';
 import 'message_list_checks.dart';
 import 'page_checks.dart';
+import 'test_app.dart';
 
 Future<void> setupPage(WidgetTester tester, {
   required List<DmMessage> dmMessages,
@@ -47,15 +46,10 @@ Future<void> setupPage(WidgetTester tester, {
       fullName: newNameForSelfUser));
   }
 
-  await tester.pumpWidget(
-    GlobalStoreWidget(
-      child: MaterialApp(
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
-        home: PerAccountStoreWidget(
-          accountId: eg.selfAccount.id,
-          child: const RecentDmConversationsPage()))));
+  await tester.pumpWidget(TestZulipApp(
+    accountId: eg.selfAccount.id,
+    navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
+    child: const RecentDmConversationsPage()));
 
   // global store, per-account store, and page get loaded
   await tester.pumpAndSettle();
