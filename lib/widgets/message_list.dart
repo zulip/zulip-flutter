@@ -25,6 +25,15 @@ import 'edit_state_marker.dart';
 import 'text.dart';
 import 'theme.dart';
 
+/// The interface for the state of a [MessageListPage].
+///
+/// To obtain one of these, see [MessageListPage.ancestorOf].
+abstract class MessageListPageState {
+  /// The controller for this [MessageListPage]'s compose box,
+  /// if this [MessageListPage] offers a compose box.
+  ComposeBoxController? get composeBoxController;
+}
+
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.narrow});
 
@@ -34,14 +43,16 @@ class MessageListPage extends StatefulWidget {
       page: MessageListPage(narrow: narrow));
   }
 
-  /// A [ComposeBoxController], if this [MessageListPage] offers a compose box.
+  /// The [MessageListPageState] above this context in the tree.
   ///
   /// Uses the inefficient [BuildContext.findAncestorStateOfType];
   /// don't call this in a build method.
-  static ComposeBoxController? composeBoxControllerOf(BuildContext context) {
-    final messageListPageState = context.findAncestorStateOfType<_MessageListPageState>();
-    assert(messageListPageState != null, 'No MessageListPage ancestor');
-    return messageListPageState!._composeBoxKey.currentState;
+  // If we do find ourselves wanting this in a build method, it won't be hard
+  // to enable that: we'd just need to add an [InheritedWidget] here.
+  static MessageListPageState ancestorOf(BuildContext context) {
+    final state = context.findAncestorStateOfType<_MessageListPageState>();
+    assert(state != null, 'No MessageListPage ancestor');
+    return state!;
   }
 
   final Narrow narrow;
@@ -53,7 +64,10 @@ class MessageListPage extends StatefulWidget {
 // TODO(design) this seems ad-hoc; is there a better color?
 const _kUnsubscribedStreamRecipientHeaderColor = Color(0xfff5f5f5);
 
-class _MessageListPageState extends State<MessageListPage> {
+class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
+  @override
+  ComposeBoxController? get composeBoxController => _composeBoxKey.currentState;
+
   final GlobalKey<ComposeBoxController> _composeBoxKey = GlobalKey();
 
   @override

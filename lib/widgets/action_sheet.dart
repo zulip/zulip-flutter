@@ -26,7 +26,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc). But currently it will be constant through the life of
   // any message list, so that's fine.
-  final isComposeBoxOffered = MessageListPage.composeBoxControllerOf(context) != null;
+  final messageListPage = MessageListPage.ancestorOf(context);
+  final isComposeBoxOffered = messageListPage.composeBoxController != null;
 
   final hasThumbsUpReactionVote = message.reactions
     ?.aggregated.any((reactionWithVotes) =>
@@ -239,7 +240,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // message action sheet opened, and before "Quote and reply" was pressed.
     // Currently a compose box can't ever disappear, so this is impossible.
     ComposeBoxController composeBoxController =
-      MessageListPage.composeBoxControllerOf(messageListContext)!;
+      MessageListPage.ancestorOf(messageListContext).composeBoxController!;
     final topicController = composeBoxController.topicController;
     if (
       topicController != null
@@ -264,7 +265,8 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // This will be null only if the compose box disappeared during the
     // quotation request. Currently a compose box can't ever disappear,
     // so this is impossible.
-    composeBoxController = MessageListPage.composeBoxControllerOf(messageListContext)!;
+    composeBoxController =
+      MessageListPage.ancestorOf(messageListContext).composeBoxController!;
     composeBoxController.contentController
       .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(messageListContext), tag,
         message: message,

@@ -89,27 +89,35 @@ void main() {
   }
 
   group('MessageListPage', () {
-    testWidgets('composeBoxControllerOf finds compose box', (tester) async {
-      final stream = eg.stream();
-      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId),
-        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
-      final context = tester.element(find.text("a message"));
-      check(MessageListPage.composeBoxControllerOf(context)).isNotNull();
-    });
-
-    testWidgets('composeBoxControllerOf null when no compose box', (tester) async {
-      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
+    testWidgets('ancestorOf finds page state from message', (tester) async {
+      await setupMessageListPage(tester,
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
-      final context = tester.element(find.text("a message"));
-      check(MessageListPage.composeBoxControllerOf(context)).isNull();
+      final expectedState = tester.state<State>(find.byType(MessageListPage));
+      check(MessageListPage.ancestorOf(tester.element(find.text("a message"))))
+        .identicalTo(expectedState as MessageListPageState);
     });
 
-    testWidgets('composeBoxControllerOf throws when not a descendant of MessageListPage', (tester) async {
+    testWidgets('ancestorOf throws when not a descendant of MessageListPage', (tester) async {
       await setupMessageListPage(tester,
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
       final element = tester.element(find.byType(PerAccountStoreWidget));
-      check(() => MessageListPage.composeBoxControllerOf(element))
+      check(() => MessageListPage.ancestorOf(element))
         .throws<void>();
+    });
+
+    testWidgets('composeBoxController finds compose box', (tester) async {
+      final stream = eg.stream();
+      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId),
+        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      check(state.composeBoxController).isNotNull();
+    });
+
+    testWidgets('composeBoxController null when no compose box', (tester) async {
+      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
+        messages: [eg.streamMessage(content: "<p>a message</p>")]);
+      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      check(state.composeBoxController).isNull();
     });
   });
 
