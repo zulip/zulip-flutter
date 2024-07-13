@@ -6,14 +6,18 @@ import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 
+import '../model/binding.dart';
 import '../stdlib_checks.dart';
 import 'exception_checks.dart';
 import 'fake_api.dart';
 import '../example_data.dart' as eg;
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   test('ApiConnection.get', () async {
     Future<void> checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
@@ -24,7 +28,7 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}$expectedRelativeUrl')
           ..headers.deepEquals({
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
+            ...kFallbackUserAgentHeader,
           })
           ..body.equals('');
       });
@@ -55,7 +59,7 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
           ..headers.deepEquals({
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
+            ...kFallbackUserAgentHeader,
             if (expectContentType)
               'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
           })
@@ -88,7 +92,7 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
           ..headers.deepEquals({
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
+            ...kFallbackUserAgentHeader,
           })
           ..fields.deepEquals({})
           ..files.single.which((it) => it
@@ -121,7 +125,7 @@ void main() {
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
           ..headers.deepEquals({
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
-            ...userAgentHeader(),
+            ...kFallbackUserAgentHeader,
             if (expectContentType)
               'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
           })
@@ -306,6 +310,57 @@ void main() {
         ..causeException.isA<DistinctiveError>()
         ..message.contains("something is wrong");
       check(st.toString()).contains("distinctivelyNamedFromJson");
+    }
+  });
+
+  group('ApiConnection user-agent', () {
+    Future<void> checkUserAgent(String expectedUserAgent) async {
+      return FakeApiConnection.with_(account: eg.selfAccount, useBinding: true,
+        (connection) async {
+          connection.prepare(json: {});
+          await connection.get(kExampleRouteName, (json) => json, 'example/route', null);
+          check(connection.lastRequest!).isA<http.Request>()
+            .headers['User-Agent'].equals(expectedUserAgent);
+
+          connection.prepare(json: {});
+          await connection.post(kExampleRouteName, (json) => json, 'example/route', null);
+          check(connection.lastRequest!).isA<http.Request>()
+            .headers['User-Agent'].equals(expectedUserAgent);
+
+          connection.prepare(json: {});
+          await connection.postFileFromStream(
+            kExampleRouteName,
+            (json) => json, 'example/route',
+            Stream.value([1]), 1,
+          );
+          check(connection.lastRequest!).isA<http.MultipartRequest>()
+            .headers['User-Agent'].equals(expectedUserAgent);
+
+          connection.prepare(json: {});
+          await connection.delete(kExampleRouteName, (json) => json, 'example/route', null);
+          check(connection.lastRequest!).isA<http.Request>()
+            .headers['User-Agent'].equals(expectedUserAgent);
+      });
+    }
+
+    const packageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+
+    const testCases = [
+      ('ZulipFlutter/0.0.1+1 (Android 14)',             AndroidDeviceInfo(release: '14', sdkInt: 34),                      ),
+      ('ZulipFlutter/0.0.1+1 (iOS 17.4)',               IosDeviceInfo(systemVersion: '17.4'),                              ),
+      ('ZulipFlutter/0.0.1+1 (macOS 14.5.0)',           MacOsDeviceInfo(majorVersion: 14, minorVersion: 5, patchVersion: 0)),
+      ('ZulipFlutter/0.0.1+1 (Windows)',                WindowsDeviceInfo(),                                               ),
+      ('ZulipFlutter/0.0.1+1 (Linux; Fedora Linux 40)', LinuxDeviceInfo(name: 'Fedora Linux', versionId: '40'),            ),
+      ('ZulipFlutter/0.0.1+1 (Linux; Fedora Linux)',    LinuxDeviceInfo(name: 'Fedora Linux', versionId: null),            ),
+    ];
+
+    for (final (userAgent, deviceInfo) in testCases) {
+      test('matches $userAgent', () async {
+        testBinding.deviceInfoResult = deviceInfo;
+        testBinding.packageInfoResult = packageInfo;
+        addTearDown(testBinding.reset);
+        await checkUserAgent(userAgent);
+      });
     }
   });
 }

@@ -134,20 +134,23 @@ class FakeApiConnection extends ApiConnection {
     int? zulipFeatureLevel = eg.futureZulipFeatureLevel,
     String? email,
     String? apiKey,
+    bool useBinding = false,
   }) : this._(
          realmUrl: realmUrl ?? eg.realmUrl,
          zulipFeatureLevel: zulipFeatureLevel,
          email: email,
          apiKey: apiKey,
          client: FakeHttpClient(),
+         useBinding: useBinding,
        );
 
-  FakeApiConnection.fromAccount(Account account)
+  FakeApiConnection.fromAccount(Account account, {required bool useBinding})
     : this(
         realmUrl: account.realmUrl,
         zulipFeatureLevel: account.zulipFeatureLevel,
         email: account.email,
-        apiKey: account.apiKey);
+        apiKey: account.apiKey,
+        useBinding: useBinding);
 
   FakeApiConnection._({
     required super.realmUrl,
@@ -155,6 +158,7 @@ class FakeApiConnection extends ApiConnection {
     super.email,
     super.apiKey,
     required this.client,
+    required super.useBinding,
   }) : super(client: client);
 
   final FakeHttpClient client;
@@ -171,12 +175,16 @@ class FakeApiConnection extends ApiConnection {
     Uri? realmUrl,
     int? zulipFeatureLevel = eg.futureZulipFeatureLevel,
     Account? account,
+    bool useBinding = false,
   }) async {
     assert((account == null)
       || (realmUrl == null && zulipFeatureLevel == eg.futureZulipFeatureLevel));
     final connection = (account != null)
-      ? FakeApiConnection.fromAccount(account)
-      : FakeApiConnection(realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel);
+      ? FakeApiConnection.fromAccount(account, useBinding: useBinding)
+      : FakeApiConnection(
+          realmUrl: realmUrl,
+          zulipFeatureLevel: zulipFeatureLevel,
+          useBinding: useBinding);
     try {
       return await fn(connection);
     } finally {

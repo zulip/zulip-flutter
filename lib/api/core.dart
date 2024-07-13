@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../log.dart';
+import '../model/binding.dart';
 import '../model/localizations.dart';
 import 'exception.dart';
 
@@ -37,6 +39,7 @@ class ApiConnection {
     String? email,
     String? apiKey,
     required http.Client client,
+    required this.useBinding,
   }) : assert((email != null) == (apiKey != null)),
        _authValue = (email != null && apiKey != null)
          ? _authHeaderValue(email: email, apiKey: apiKey)
@@ -51,7 +54,7 @@ class ApiConnection {
     String? apiKey,
   }) : this(client: http.Client(),
             realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
-            email: email, apiKey: apiKey);
+            email: email, apiKey: apiKey, useBinding: true);
 
   final Uri realmUrl;
 
@@ -68,6 +71,36 @@ class ApiConnection {
   /// See:
   ///  * API docs at <https://zulip.com/api/changelog>.
   int? zulipFeatureLevel;
+
+  /// Toggles the use of a user-agent generated via [ZulipBinding].
+  ///
+  /// When set to true, the user-agent will be generated using
+  /// [ZulipBinding.deviceInfo] and [ZulipBinding.packageInfo].
+  /// Otherwise, a fallback user-agent [kFallbackUserAgentHeader] will be used.
+  final bool useBinding;
+
+  Map<String, String>? _cachedUserAgentHeader;
+
+  void addUserAgent(http.BaseRequest request) {
+    if (!useBinding) {
+      request.headers.addAll(kFallbackUserAgentHeader);
+      return;
+    }
+
+    if (_cachedUserAgentHeader != null) {
+      request.headers.addAll(_cachedUserAgentHeader!);
+      return;
+    }
+
+    final deviceInfo = ZulipBinding.instance.syncDeviceInfo;
+    final packageInfo = ZulipBinding.instance.syncPackageInfo;
+    if (deviceInfo == null || packageInfo == null) {
+      request.headers.addAll(kFallbackUserAgentHeader);
+      return;
+    }
+    _cachedUserAgentHeader = _buildUserAgentHeader(deviceInfo, packageInfo);
+    request.headers.addAll(_cachedUserAgentHeader!);
+  }
 
   final String? _authValue;
 
@@ -88,9 +121,10 @@ class ApiConnection {
     assert(debugLog("${request.method} ${request.url}"));
 
     addAuth(request);
-    request.headers.addAll(userAgentHeader());
     if (overrideUserAgent != null) {
       request.headers['User-Agent'] = overrideUserAgent;
+    } else {
+      addUserAgent(request);
     }
 
     final http.StreamedResponse response;
@@ -213,10 +247,47 @@ Map<String, String> authHeader({required String email, required String apiKey}) 
   };
 }
 
+/// Fallback user-agent header.
+///
+/// See documentation on [ApiConnection.useBinding].
+@visibleForTesting
+const kFallbackUserAgentHeader = {'User-Agent': 'ZulipFlutter'};
+
 Map<String, String> userAgentHeader() {
+  final deviceInfo = ZulipBinding.instance.syncDeviceInfo;
+  final packageInfo = ZulipBinding.instance.syncPackageInfo;
+  if (deviceInfo == null || packageInfo == null) {
+    return kFallbackUserAgentHeader;
+  }
+  return _buildUserAgentHeader(deviceInfo, packageInfo);
+}
+
+Map<String, String> _buildUserAgentHeader(BaseDeviceInfo deviceInfo, PackageInfo packageInfo) {
+  final osInfo = switch (deviceInfo) {
+    AndroidDeviceInfo(
+      :var release)       => 'Android $release', // "Android 14"
+    IosDeviceInfo(
+      :var systemVersion) => 'iOS $systemVersion', // "iOS 17.4"
+    MacOsDeviceInfo(
+      :var majorVersion,
+      :var minorVersion,
+      :var patchVersion)  => 'macOS $majorVersion.$minorVersion.$patchVersion', // "macOS 14.5.0"
+    WindowsDeviceInfo()   => 'Windows', // "Windows"
+    LinuxDeviceInfo(
+      :var name,
+      :var versionId)     => 'Linux; $name${versionId != null ? ' $versionId' : ''}', // "Linux; Fedora Linux 40" or "Linux; Fedora Linux"
+    _                     => throw UnimplementedError(),
+  };
+  final PackageInfo(:version, :buildNumber) = packageInfo;
+
+  // Possible examples:
+  //  'ZulipFlutter/0.0.15+15 (Android 14)'
+  //  'ZulipFlutter/0.0.15+15 (iOS 17.4)'
+  //  'ZulipFlutter/0.0.15+15 (macOS 14.5.0)'
+  //  'ZulipFlutter/0.0.15+15 (Windows)'
+  //  'ZulipFlutter/0.0.15+15 (Linux; Fedora Linux 40)'
   return {
-    // TODO(#467) include platform, platform version, and app version
-    'User-Agent': 'ZulipFlutter',
+    'User-Agent': 'ZulipFlutter/$version+$buildNumber ($osInfo)',
   };
 }
 

@@ -316,7 +316,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals(expectedBodyFields)
-        ..headers['User-Agent'].equals(expectedUserAgent ?? userAgentHeader()['User-Agent']!);
+        ..headers['User-Agent'].equals(expectedUserAgent ?? kFallbackUserAgentHeader['User-Agent']!);
     }
 
     test('smoke', () {
