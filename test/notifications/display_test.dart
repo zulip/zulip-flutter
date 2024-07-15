@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
@@ -107,8 +108,10 @@ void main() {
 
   group('NotificationDisplayManager show', () {
     void checkNotification(MessageFcmMessage data, {
+      required List<MessageFcmMessage> messageStyleMessages,
       required String expectedTitle,
       required String expectedTagComponent,
+      required bool expectedIsGroupConversation,
     }) {
       final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
       final expectedGroupKey = '${data.realmUri}|${data.userId}';
@@ -116,16 +119,42 @@ void main() {
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       const expectedIntentFlags =
         PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
+      final expectedSelfUserKey = '${data.realmUri}|${data.userId}';
+
+      final messageStyleMessagesChecks =
+        messageStyleMessages.mapIndexed((i, messageData) {
+          assert(messageData.realmUri == data.realmUri);
+          assert(messageData.userId == data.userId);
+
+          final expectedSenderKey =
+            '${messageData.realmUri}|${messageData.senderId}';
+          final isLast = i == (messageStyleMessages.length - 1);
+          return (Subject<Object?> it) => it.isA<MessagingStyleMessage>()
+            ..text.equals(messageData.content)
+            ..timestampMs.equals(messageData.time * 1000)
+            ..person.which((it) => it.isNotNull()
+              ..iconBitmap.which((it) => isLast ? it.isNotNull() : it.isNull())
+              ..key.equals(expectedSenderKey)
+              ..name.equals(messageData.senderFullName));
+        });
 
       check(testBinding.androidNotificationHost.takeNotifyCalls())
-        ..length.equals(2)
-        ..containsInOrder(<Condition<AndroidNotificationHostApiNotifyCall>>[
-          (it) => it
+        .deepEquals(<Condition<Object?>>[
+          (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(expectedId)
             ..tag.equals(expectedTag)
             ..channelId.equals(NotificationChannelManager.kChannelId)
-            ..contentTitle.equals(expectedTitle)
-            ..contentText.equals(data.content)
+            ..contentTitle.isNull()
+            ..contentText.isNull()
+            ..messagingStyle.which((it) => it.isNotNull()
+              ..user.which((it) => it
+                ..iconBitmap.isNull()
+                ..key.equals(expectedSelfUserKey)
+                ..name.equals('You')) // TODO(i18n)
+              ..isGroupConversation.equals(expectedIsGroupConversation)
+              ..conversationTitle.equals(expectedTitle)
+              ..messages.deepEquals(messageStyleMessagesChecks))
+            ..number.equals(messageStyleMessages.length)
             ..color.equals(kZulipBrandColor.value)
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.isNull()
@@ -137,7 +166,7 @@ void main() {
               ..requestCode.equals(expectedId)
               ..flags.equals(expectedIntentFlags)
               ..intentPayload.equals(jsonEncode(data.toJson()))),
-          (it) => it
+          (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
             ..tag.equals(expectedGroupKey)
             ..channelId.equals(NotificationChannelManager.kChannelId)
@@ -151,13 +180,14 @@ void main() {
             ..inboxStyle.which((it) => it.isNotNull()
               ..summaryText.equals(data.realmUri.toString()))
             ..autoCancel.equals(true)
-            ..contentIntent.isNull()
+            ..contentIntent.isNull(),
         ]);
     }
 
     Future<void> checkNotifications(FakeAsync async, MessageFcmMessage data, {
       required String expectedTitle,
       required String expectedTagComponent,
+      required bool expectedIsGroupConversation,
     }) async {
       // We could just call `NotificationDisplayManager.onFcmMessage`.
       // But this way is cheap, and it provides our test coverage of
@@ -166,14 +196,27 @@ void main() {
       testBinding.firebaseMessaging.onMessage.add(
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
-      checkNotification(data, expectedTitle: expectedTitle,
+      checkNotification(data,
+        messageStyleMessages: [data],
+        expectedIsGroupConversation: expectedIsGroupConversation,
+        expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
+      testBinding.androidNotificationHost.clearActiveNotifications();
 
       testBinding.firebaseMessaging.onBackgroundMessage.add(
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
-      checkNotification(data, expectedTitle: expectedTitle,
+      checkNotification(data,
+        messageStyleMessages: [data],
+        expectedIsGroupConversation: expectedIsGroupConversation,
+        expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
+    }
+
+    Future<void> receiveFcmMessage(FakeAsync async, MessageFcmMessage data) async {
+      testBinding.firebaseMessaging.onMessage.add(
+        RemoteMessage(data: data.toJson()));
+      async.flushMicrotasks();
     }
 
     test('stream message', () => awaitFakeAsync((async) async {
@@ -181,15 +224,53 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
+        expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
     }));
 
-    test('stream message, stream name omitted', () => awaitFakeAsync((async) async {
+    test('stream message: multiple messages, same topic', () => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topic = 'topic 1';
+      final message1 = eg.streamMessage(topic: topic, stream: stream);
+      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(topic: topic, stream: stream);
+      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final message3 = eg.streamMessage(topic: topic, stream: stream);
+      final data3 = messageFcmMessage(message3, streamName: stream.name);
+
+      final expectedTitle = '#${stream.name} > $topic';
+      final expectedTagComponent = 'stream:${stream.streamId}:$topic';
+
+      await receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: true,
+        expectedTitle: expectedTitle,
+        expectedTagComponent: expectedTagComponent);
+
+      await receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data1, data2],
+        expectedIsGroupConversation: true,
+        expectedTitle: expectedTitle,
+        expectedTagComponent: expectedTagComponent);
+
+      await receiveFcmMessage(async, data3);
+      checkNotification(data3,
+        messageStyleMessages: [data1, data2, data3],
+        expectedIsGroupConversation: true,
+        expectedTitle: expectedTitle,
+        expectedTagComponent: expectedTagComponent);
+    }));
+
+    test('stream message: stream name omitted', () => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
+        expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
     }));
@@ -198,6 +279,7 @@ void main() {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
+        expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     }));
@@ -207,6 +289,7 @@ void main() {
       final message = eg.dmMessage(from: eg.thirdUser,
         to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
       await checkNotifications(async, messageFcmMessage(message),
+        expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 2 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     }));
@@ -215,6 +298,7 @@ void main() {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
+        expectedIsGroupConversation: false,
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     }));
@@ -223,6 +307,7 @@ void main() {
       await init();
       final message = eg.dmMessage(from: eg.selfUser, to: []);
       await checkNotifications(async, messageFcmMessage(message),
+        expectedIsGroupConversation: false,
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     }));
@@ -403,6 +488,8 @@ extension on Subject<AndroidNotificationHostApiNotifyCall> {
   Subject<String?> get groupKey => has((x) => x.groupKey, 'groupKey');
   Subject<InboxStyle?> get inboxStyle => has((x) => x.inboxStyle, 'inboxStyle');
   Subject<bool?> get isGroupSummary => has((x) => x.isGroupSummary, 'isGroupSummary');
+  Subject<MessagingStyle?> get messagingStyle => has((x) => x.messagingStyle, 'messagingStyle');
+  Subject<int?> get number => has((x) => x.number, 'number');
   Subject<String?> get smallIconResourceName => has((x) => x.smallIconResourceName, 'smallIconResourceName');
 }
 
@@ -414,4 +501,23 @@ extension on Subject<PendingIntent> {
 
 extension on Subject<InboxStyle> {
   Subject<String> get summaryText => has((x) => x.summaryText, 'summaryText');
+}
+
+extension on Subject<MessagingStyle> {
+  Subject<Person> get user => has((x) => x.user, 'user');
+  Subject<String?> get conversationTitle => has((x) => x.conversationTitle, 'conversationTitle');
+  Subject<List<MessagingStyleMessage?>> get messages => has((x) => x.messages, 'messages');
+  Subject<bool> get isGroupConversation => has((x) => x.isGroupConversation, 'isGroupConversation');
+}
+
+extension on Subject<Person> {
+  Subject<Uint8List?> get iconBitmap => has((x) => x.iconBitmap, 'iconBitmap');
+  Subject<String> get key => has((x) => x.key, 'key');
+  Subject<String> get name => has((x) => x.name, 'name');
+}
+
+extension on Subject<MessagingStyleMessage> {
+  Subject<String> get text => has((x) => x.text, 'text');
+  Subject<int> get timestampMs => has((x) => x.timestampMs, 'timestampMs');
+  Subject<Person> get person => has((x) => x.person, 'person');
 }

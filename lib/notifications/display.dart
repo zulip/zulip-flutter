@@ -1,10 +1,11 @@
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
 
 import '../api/notifications.dart';
 import '../host/android_notifications.dart';
@@ -92,7 +93,36 @@ class NotificationDisplayManager {
   static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final title = switch (data.recipient) {
+    final groupKey = _groupKey(data);
+    final conversationKey = _conversationKey(data, groupKey);
+
+    final oldMessagingStyle = await ZulipBinding.instance.androidNotificationHost
+      .getActiveNotificationMessagingStyleByTag(conversationKey);
+
+    final MessagingStyle messagingStyle;
+    if (oldMessagingStyle != null) {
+      messagingStyle = oldMessagingStyle;
+      messagingStyle.messages =
+        oldMessagingStyle.messages.toList(); // Clone fixed-length list to growable.
+    } else {
+      messagingStyle = MessagingStyle(
+        user: Person(
+          key: _personKey(data.realmUri, data.userId),
+          name: 'You'), // TODO(i18n)
+        messages: [],
+        isGroupConversation: switch (data.recipient) {
+          FcmMessageStreamRecipient() => true,
+          FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 => true,
+          FcmMessageDmRecipient() => false,
+        });
+    }
+
+    // The title typically won't change between messages in a conversation, but we
+    // update it anyway. This means a DM sender's display name gets updated if it's
+    // changed, which is a rare edge case but probably good. The main effect is that
+    // group-DM threads (pending #794) get titled with the latest sender, rather than
+    // the first.
+    messagingStyle.conversationTitle = switch (data.recipient) {
       FcmMessageStreamRecipient(:var streamName?, :var topic) =>
         '#$streamName > $topic',
       FcmMessageStreamRecipient(:var topic) =>
@@ -103,8 +133,14 @@ class NotificationDisplayManager {
       FcmMessageDmRecipient() =>
         data.senderFullName,
     };
-    final groupKey = _groupKey(data);
-    final conversationKey = _conversationKey(data, groupKey);
+
+    messagingStyle.messages.add(MessagingStyleMessage(
+      text: data.content,
+      timestampMs: data.time * 1000,
+      person: Person(
+        key: _personKey(data.realmUri, data.senderId),
+        name: data.senderFullName,
+        iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
     await ZulipBinding.instance.androidNotificationHost.notify(
       // TODO the notification ID can be constant, instead of matching requestCode
@@ -114,12 +150,12 @@ class NotificationDisplayManager {
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
 
-      contentTitle: title,
-      contentText: data.content,
       color: kZulipBrandColor.value,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
-      // TODO(#128) inbox-style
+
+      messagingStyle: messagingStyle,
+      number: messagingStyle.messages.length,
 
       contentIntent: PendingIntent(
         // TODO make intent URLs distinct, instead of requestCode
@@ -196,6 +232,8 @@ class NotificationDisplayManager {
     return "${data.realmUri}|${data.userId}";
   }
 
+  static String _personKey(Uri realmUri, int userId) => "$realmUri|$userId";
+
   static void _onNotificationOpened(NotificationResponse response) async {
     final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
     final data = MessageFcmMessage.fromJson(payload);
@@ -237,5 +275,16 @@ class NotificationDisplayManager {
       // TODO(#82): Open at specific message, not just conversation
       page: MessageListPage(narrow: narrow)));
     return;
+  }
+
+  static Future<Uint8List?> _fetchBitmap(Uri url) async {
+    try {
+      // TODO timeout to prevent waiting indefinitely
+      final resp = await http.get(url);
+      return resp.bodyBytes;
+    } catch (e) {
+      // TODO(log)
+      return null;
+    }
   }
 }
