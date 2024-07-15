@@ -209,6 +209,7 @@ class SubscriptionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final swatch = colorSwatchFor(context, subscription);
     final hasUnreads = (unreadCount > 0);
+    final opacity = subscription.isMuted ? 0.55 : 1.0;
     return Material(
       // TODO(#95) need dark-theme color
       color: Colors.white,
@@ -222,8 +223,10 @@ class SubscriptionItem extends StatelessWidget {
           const SizedBox(width: 16),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 11),
-            child: Icon(size: 18, color: swatch.iconOnPlainBackground,
-              iconDataForStream(subscription))),
+            child: Opacity(
+              opacity: opacity,
+              child: Icon(size: 18, color: swatch.iconOnPlainBackground,
+                iconDataForStream(subscription)))),
           const SizedBox(width: 5),
           Expanded(
             child: Padding(
@@ -231,21 +234,28 @@ class SubscriptionItem extends StatelessWidget {
               // TODO(design): unclear whether bold text is applied to all subscriptions
               //   or only those with unreads:
               //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
-              child: Text(
-                style: const TextStyle(
-                  fontSize: 18,
-                  height: (20 / 18),
-                  // TODO(#95) need dark-theme color
-                  color: Color(0xFF262626),
-                ).merge(weightVariableTextStyle(context,
-                    wght: hasUnreads ? 600 : null)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                subscription.name))),
+              child: Opacity(
+                opacity: opacity,
+                child: Text(
+                  style: const TextStyle(
+                    fontSize: 18,
+                    height: (20 / 18),
+                    // TODO(#95) need dark-theme color
+                    color: Color(0xFF262626),
+                  ).merge(weightVariableTextStyle(context,
+                      wght: hasUnreads ? 600 : null)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  subscription.name)))),
           if (unreadCount > 0) ...[
             const SizedBox(width: 12),
             // TODO(#747) show @-mention indicator when it applies
-            UnreadCountBadge(count: unreadCount, backgroundColor: swatch, bold: true),
+            Opacity(
+              opacity: opacity,
+              child: UnreadCountBadge(
+                count: unreadCount,
+                backgroundColor: swatch,
+                bold: true)),
           ],
           const SizedBox(width: 16),
         ])));

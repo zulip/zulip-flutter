@@ -202,4 +202,37 @@ void main() {
     check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
       .equals(swatch);
   });
+
+  testWidgets('muted streams are displayed as faded', (tester) async {
+    void checkOpacityForStreamAndBadge(String streamName, int unreadCount, double opacity) {
+      final streamFinder = find.text(streamName);
+      final streamOpacity = tester.widget<Opacity>(
+        find.ancestor(of: streamFinder, matching: find.byType(Opacity)));
+      final badgeFinder = find.text('$unreadCount');
+      final badgeOpacity = tester.widget<Opacity>(
+        find.ancestor(of: badgeFinder, matching: find.byType(Opacity)));
+      check(streamOpacity.opacity).equals(opacity);
+      check(badgeOpacity.opacity).equals(opacity);
+    }
+
+    final stream1 = eg.stream(name: 'Stream 1');
+    final stream2 = eg.stream(name: 'Stream 2');
+    await setupStreamListPage(tester,
+      subscriptions: [
+        eg.subscription(stream1, isMuted: true),
+        eg.subscription(stream2, isMuted: false),
+      ],
+      userTopics: [
+        eg.userTopicItem(stream1, 'a', UserTopicVisibilityPolicy.unmuted),
+        eg.userTopicItem(stream2, 'b', UserTopicVisibilityPolicy.unmuted),
+      ],
+      unreadMsgs: eg.unreadMsgs(streams: [
+        UnreadStreamSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+        UnreadStreamSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [3]),
+      ]),
+    );
+
+    checkOpacityForStreamAndBadge('Stream 1', 2, 0.55);
+    checkOpacityForStreamAndBadge('Stream 2', 1, 1.0);
+  });
 }
