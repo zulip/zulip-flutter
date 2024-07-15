@@ -52,7 +52,7 @@ void main() {
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
     addTearDown(testBinding.reset);
-    streams ??= subscriptions ??= [eg.subscription(eg.stream())];
+    streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
       streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);

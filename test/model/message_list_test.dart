@@ -41,7 +41,7 @@ void main() {
 
   /// Initialize [model] and the rest of the test state.
   Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
-    final stream = eg.stream();
+    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
@@ -247,13 +247,13 @@ void main() {
   });
 
   test('MessageEvent, not in narrow', () async {
-    final stream = eg.stream(streamId: 123);
+    final stream = eg.stream();
     await prepare(narrow: StreamNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
-    final otherStream = eg.stream(streamId: 234);
+    final otherStream = eg.stream();
     await store.handleEvent(MessageEvent(id: 0,
       message: eg.streamMessage(stream: otherStream)));
     checkNotNotified();
@@ -709,7 +709,7 @@ void main() {
     // doesn't need to exercise the different reasons that messages don't.
 
     const timestamp = 1693602618;
-    final stream = eg.stream();
+    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     Message streamMessage(int id) =>
       eg.streamMessage(id: id, stream: stream, topic: 'foo', timestamp: timestamp);
     Message dmMessage(int id) =>
@@ -790,7 +790,7 @@ void main() {
 
     const t1 = 1693602618;
     const t2 = t1 + 86400;
-    final stream = eg.stream();
+    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     Message streamMessage(int id, int timestamp, User sender) =>
       eg.streamMessage(id: id, sender: sender,
         stream: stream, topic: 'foo', timestamp: timestamp);
@@ -831,8 +831,8 @@ void main() {
     });
 
     test('stream messages match just if same stream/topic', () {
-      final stream0 = eg.stream(streamId: 123);
-      final stream1 = eg.stream(streamId: 234);
+      final stream0 = eg.stream();
+      final stream1 = eg.stream();
       final messageAB = eg.streamMessage(stream: stream0, topic: 'foo');
       final messageXB = eg.streamMessage(stream: stream1, topic: 'foo');
       final messageAX = eg.streamMessage(stream: stream0, topic: 'bar');

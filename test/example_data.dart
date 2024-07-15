@@ -149,6 +149,17 @@ final User fourthUser  = user(fullName: 'Fourth User', email: 'fourth@example');
 // Streams and subscriptions.
 //
 
+/// A fresh stream ID, from a random but always strictly increasing sequence.
+int _nextStreamId() => (_lastStreamId += 1 + Random().nextInt(10));
+int _lastStreamId = 200;
+
+/// Construct an example stream.
+///
+/// If stream ID `streamId` is not given, it will be generated from a random
+/// but increasing sequence.
+/// Use an explicit `streamId` only if the ID needs to correspond to some
+/// other data in the test, or if the IDs need to increase in a different order
+/// from the calls to [stream].
 ZulipStream stream({
   int? streamId,
   String? name,
@@ -165,7 +176,7 @@ ZulipStream stream({
   int? streamWeeklyTraffic,
 }) {
   return ZulipStream(
-    streamId: streamId ?? 123, // TODO generate example IDs
+    streamId: streamId ?? _nextStreamId(),
     name: name ?? 'A stream', // TODO generate example names
     description: description ?? 'A description', // TODO generate example descriptions
     renderedDescription: renderedDescription ?? '<p>A description</p>', // TODO generate random
@@ -281,6 +292,8 @@ Map<String, dynamic> _messagePropertiesFromContent(String? content, String? cont
 int _nextMessageId() => (_lastMessageId += 1 + Random().nextInt(100));
 int _lastMessageId = 1000;
 
+const defaultStreamMessageStreamId = 123;
+
 /// Construct an example stream message.
 ///
 /// If the message ID `id` is not given, it will be generated from a random
@@ -288,6 +301,9 @@ int _lastMessageId = 1000;
 /// Use an explicit `id` only if the ID needs to correspond to some other data
 /// in the test, or if the IDs need to increase in a different order from the
 /// calls to [streamMessage] and [dmMessage].
+///
+/// The message will be in `stream` if given.  Otherwise,
+/// an example stream with ID `defaultStreamMessageStreamId` will be used.
 ///
 /// See also:
 ///  * [dmMessage], to construct an example direct message.
@@ -303,7 +319,7 @@ StreamMessage streamMessage({
   int? timestamp,
   List<MessageFlag>? flags,
 }) {
-  final effectiveStream = stream ?? _stream();
+  final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
   // of the properties as we're constructing the data.  That's probably OK

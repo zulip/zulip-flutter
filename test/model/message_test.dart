@@ -34,7 +34,7 @@ void main() {
 
   /// Initialize [store] and the rest of the test state.
   Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
-    final stream = eg.stream();
+    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
