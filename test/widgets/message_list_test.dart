@@ -88,6 +88,31 @@ void main() {
     return scrollView.controller;
   }
 
+  group('MessageListPage', () {
+    testWidgets('composeBoxControllerOf finds compose box', (tester) async {
+      final stream = eg.stream();
+      await setupMessageListPage(tester, narrow: StreamNarrow(stream.streamId),
+        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+      final context = tester.element(find.text("a message"));
+      check(MessageListPage.composeBoxControllerOf(context)).isNotNull();
+    });
+
+    testWidgets('composeBoxControllerOf null when no compose box', (tester) async {
+      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
+        messages: [eg.streamMessage(content: "<p>a message</p>")]);
+      final context = tester.element(find.text("a message"));
+      check(MessageListPage.composeBoxControllerOf(context)).isNull();
+    });
+
+    testWidgets('composeBoxControllerOf throws when not a descendant of MessageListPage', (tester) async {
+      await setupMessageListPage(tester,
+        messages: [eg.streamMessage(content: "<p>a message</p>")]);
+      final element = tester.element(find.byType(PerAccountStoreWidget));
+      check(() => MessageListPage.composeBoxControllerOf(element))
+        .throws<void>();
+    });
+  });
+
   group('presents message content appropriately', () {
     // regression test for https://github.com/zulip/zulip-flutter/issues/736
     testWidgets('content in "Combined feed" not asked to consume insets (including bottom)', (tester) async {
