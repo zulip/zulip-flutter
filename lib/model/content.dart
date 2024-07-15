@@ -297,7 +297,7 @@ class CodeBlockNode extends BlockContentNode {
   }
 }
 
-class CodeBlockSpanNode extends InlineContentNode {
+class CodeBlockSpanNode extends ContentNode {
   const CodeBlockSpanNode({super.debugHtmlNode, required this.text, required this.type});
 
   final String text;
