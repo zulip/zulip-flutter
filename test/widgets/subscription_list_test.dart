@@ -132,6 +132,18 @@ void main() {
       ]);
       check(listedStreamIds(tester)).deepEquals([1, 2, 3, 4, 5, 6]);
     });
+
+    testWidgets('muted subscriptions come last among pinned streams and among unpinned streams', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'a'), isMuted: true, pinToTop: true),
+        eg.subscription(eg.stream(streamId: 2, name: 'b'), isMuted: false, pinToTop: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'c'), isMuted: true, pinToTop: true),
+        eg.subscription(eg.stream(streamId: 4, name: 'd'), isMuted: false, pinToTop: false),
+        eg.subscription(eg.stream(streamId: 5, name: 'e'), isMuted: true, pinToTop: false),
+        eg.subscription(eg.stream(streamId: 6, name: 'f'), isMuted: false, pinToTop: false),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([2, 1, 3, 4, 6, 5]);
+    });
   });
 
   testWidgets('unread badge shows with unreads', (tester) async {

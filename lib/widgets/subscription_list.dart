@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
@@ -48,6 +47,15 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
     });
   }
 
+  void _sortSubs(List<Subscription> list) {
+    list.sort((a, b) {
+      if (a.isMuted && !b.isMuted) return 1;
+      if (!a.isMuted && b.isMuted) return -1;
+      // TODO(i18n): add locale-aware sorting
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Design referenced from:
@@ -77,9 +85,8 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
         unpinned.add(subscription);
       }
     }
-    // TODO(i18n): add locale-aware sorting
-    pinned.sortBy((subscription) => subscription.name.toLowerCase());
-    unpinned.sortBy((subscription) => subscription.name.toLowerCase());
+    _sortSubs(pinned);
+    _sortSubs(unpinned);
 
     return Scaffold(
       appBar: AppBar(title: const Text("Channels")),
