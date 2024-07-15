@@ -90,20 +90,13 @@ void main() {
   group('NotificationChannelManager', () {
     test('smoke', () async {
       await init();
-      check(notifAndroid.takeCreatedChannels()).single
+      check(testBinding.androidNotificationHost.takeCreatedChannels()).single
         ..id.equals(NotificationChannelManager.kChannelId)
         ..name.equals('Messages')
-        ..description.isNull()
-        ..groupId.isNull()
-        ..importance.equals(Importance.high)
-        ..playSound.isTrue()
-        ..sound.isNull()
-        ..enableVibration.isTrue()
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
             NotificationChannelManager.kVibrationPattern)
-        ..showBadge.isTrue()
-        ..enableLights.isTrue()
-        ..ledColor.isNull()
       ;
     });
   });
@@ -464,19 +457,12 @@ void main() {
   });
 }
 
-extension AndroidNotificationChannelChecks on Subject<AndroidNotificationChannel> {
+extension NotificationChannelChecks on Subject<NotificationChannel> {
   Subject<String> get id => has((x) => x.id, 'id');
-  Subject<String> get name => has((x) => x.name, 'name');
-  Subject<String?> get description => has((x) => x.description, 'description');
-  Subject<String?> get groupId => has((x) => x.groupId, 'groupId');
-  Subject<Importance> get importance => has((x) => x.importance, 'importance');
-  Subject<bool> get playSound => has((x) => x.playSound, 'playSound');
-  Subject<AndroidNotificationSound?> get sound => has((x) => x.sound, 'sound');
-  Subject<bool> get enableVibration => has((x) => x.enableVibration, 'enableVibration');
-  Subject<bool> get enableLights => has((x) => x.enableLights, 'enableLights');
+  Subject<int> get importance => has((x) => x.importance, 'importance');
+  Subject<String?> get name => has((x) => x.name, 'name');
+  Subject<bool?> get lightsEnabled => has((x) => x.lightsEnabled, 'lightsEnabled');
   Subject<Int64List?> get vibrationPattern => has((x) => x.vibrationPattern, 'vibrationPattern');
-  Subject<Color?> get ledColor => has((x) => x.ledColor, 'ledColor');
-  Subject<bool> get showBadge => has((x) => x.showBadge, 'showBadge');
 }
 
 extension on Subject<AndroidNotificationHostApiNotifyCall> {

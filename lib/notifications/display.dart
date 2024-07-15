@@ -53,16 +53,14 @@ class NotificationChannelManager {
   //    channel ID and delete it.  See zulip-mobile's `createNotificationChannel`
   //    in android/app/src/main/java/com/zulipmobile/notifications/NotificationChannelManager.kt .
   static Future<void> _ensureChannel() async {
-    final plugin = ZulipBinding.instance.notifications;
-    await plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(AndroidNotificationChannel(
-        kChannelId,
-        'Messages', // TODO(i18n)
-        importance: Importance.high,
-        enableLights: true,
-        vibrationPattern: kVibrationPattern,
-        // TODO(#340) sound
-      ));
+    await ZulipBinding.instance.androidNotificationHost.createNotificationChannel(NotificationChannel(
+      id: kChannelId,
+      name: 'Messages', // TODO(i18n)
+      importance: NotificationImportance.high,
+      lightsEnabled: true,
+      vibrationPattern: kVibrationPattern,
+      // TODO(#340) sound
+    ));
   }
 }
 

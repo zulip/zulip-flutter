@@ -578,10 +578,20 @@ class FakeIOSFlutterLocalNotificationsPlugin extends Fake implements IOSFlutterL
 }
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
+  /// Consume the log of calls made to [createNotificationChannel].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [createNotificationChannel] since the last call to this method.
+  List<NotificationChannel> takeCreatedChannels() {
+    final result = _createdChannels;
+    _createdChannels = [];
+    return result;
+  }
+  List<NotificationChannel> _createdChannels = [];
+
   @override
-  Future<void> createNotificationChannel(NotificationChannel channel) {
-    // TODO: implement createNotificationChannel
-    throw UnimplementedError();
+  Future<void> createNotificationChannel(NotificationChannel channel) async {
+    _createdChannels.add(channel);
   }
 
   /// Consume the log of calls made to [notify].
