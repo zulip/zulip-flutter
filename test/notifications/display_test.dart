@@ -340,6 +340,8 @@ void main() {
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      // This uses [ZulipApp] instead of [TestZulipApp] because notification
+      // logic uses `await ZulipApp.navigator`.
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       if (early) {
         check(pushedRoutes).isEmpty();

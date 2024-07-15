@@ -1,11 +1,10 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/code_block.dart';
-import 'package:zulip/widgets/page.dart';
 
 import '../model/binding.dart';
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -14,12 +13,8 @@ void main() {
     group('lerp', () {
       Future<BuildContext> contextWithZulipTheme(WidgetTester tester) async {
         addTearDown(testBinding.reset);
-        await tester.pumpWidget(const ZulipApp());
+        await tester.pumpWidget(const TestZulipApp());
         await tester.pump();
-        final navigator = await ZulipApp.navigator;
-        navigator.push(MaterialWidgetRoute(page: Builder(
-          builder: (context) => const Placeholder())));
-        await tester.pumpAndSettle();
         return tester.element(find.byType(Placeholder));
       }
 

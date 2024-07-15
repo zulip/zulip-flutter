@@ -2,8 +2,6 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/stream_colors.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -11,6 +9,7 @@ import 'package:zulip/widgets/theme.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -118,13 +117,8 @@ void main() {
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-      await tester.pumpWidget(const ZulipApp());
+      await tester.pumpWidget(const TestZulipApp());
       await tester.pump();
-
-      final navigator = await ZulipApp.navigator;
-      navigator.push(MaterialWidgetRoute(page: Builder(builder: (context) =>
-        const Placeholder())));
-      await tester.pumpAndSettle();
 
       final element = tester.element(find.byType(Placeholder));
       // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.

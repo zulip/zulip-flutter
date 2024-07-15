@@ -208,6 +208,9 @@ void main() {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
+      // ZulipApp instead of TestZulipApp because we need the navigator to push
+      // the lightbox route. The lightbox page works together with the route;
+      // it takes the route's entrance animation.
       await tester.pumpWidget(const ZulipApp());
       await tester.pump();
       final navigator = await ZulipApp.navigator;

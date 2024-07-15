@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/stream_colors.dart';
@@ -13,6 +12,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import 'test_app.dart';
 
 /// Repeatedly drags `view` by `moveStep` until `finder` is invisible.
 ///
@@ -71,11 +71,12 @@ void main() {
       await store.handleEvent(MessageEvent(id: 1, message: message));
     }
 
-    await tester.pumpWidget(
-      ZulipApp(navigatorObservers: [if (navigatorObserver != null) navigatorObserver]));
+    await tester.pumpWidget(TestZulipApp(
+      accountId: eg.selfAccount.id,
+      navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
+      child: const InboxPage(),
+    ));
     await tester.pump();
-    final navigator = await ZulipApp.navigator;
-    navigator.push(InboxPage.buildRoute(accountId: eg.selfAccount.id));
 
     // global store and per-account store get loaded
     await tester.pumpAndSettle();
