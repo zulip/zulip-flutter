@@ -108,7 +108,7 @@ class NotificationDisplayManager {
       messagingStyle = MessagingStyle(
         user: Person(
           key: _personKey(data.realmUri, data.userId),
-          name: 'You'), // TODO(i18n)
+          name: zulipLocalizations.notifSelfUser),
         messages: [],
         isGroupConversation: switch (data.recipient) {
           FcmMessageStreamRecipient() => true,

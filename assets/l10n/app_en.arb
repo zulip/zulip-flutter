@@ -479,5 +479,9 @@
       "senderFullName": {"type": "String", "example": "Alice"},
       "numOthers": {"type": "int", "example": "4"}
     }
+  },
+  "notifSelfUser": "You",
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
   }
 }

@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
@@ -76,6 +77,7 @@ MessageFcmMessage messageFcmMessage(
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
   Future<void> init() async {
     addTearDown(testBinding.reset);
@@ -150,7 +152,7 @@ void main() {
               ..user.which((it) => it
                 ..iconBitmap.isNull()
                 ..key.equals(expectedSelfUserKey)
-                ..name.equals('You')) // TODO(i18n)
+                ..name.equals(zulipLocalizations.notifSelfUser))
               ..isGroupConversation.equals(expectedIsGroupConversation)
               ..conversationTitle.equals(expectedTitle)
               ..messages.deepEquals(messageStyleMessagesChecks))
