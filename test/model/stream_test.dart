@@ -189,16 +189,6 @@ void main() {
       });
     });
 
-    UserTopicItem makeUserTopicItem(
-        ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
-      return UserTopicItem(
-        streamId: stream.streamId,
-        topicName: topic,
-        lastUpdated: 1234567890,
-        visibilityPolicy: policy,
-      );
-    }
-
     void compareTopicVisibility(PerAccountStore store, List<UserTopicItem> expected) {
       final expectedStore = eg.store(initialSnapshot: eg.initialSnapshot(
         userTopics: expected,
@@ -211,10 +201,10 @@ void main() {
       final store = eg.store(initialSnapshot: eg.initialSnapshot(
         streams: [stream1, stream2],
         userTopics: [
-          makeUserTopicItem(stream1, 'topic 1', UserTopicVisibilityPolicy.muted),
-          makeUserTopicItem(stream1, 'topic 2', UserTopicVisibilityPolicy.unmuted),
-          makeUserTopicItem(stream2, 'topic 3', UserTopicVisibilityPolicy.unknown),
-          makeUserTopicItem(stream2, 'topic 4', UserTopicVisibilityPolicy.followed),
+          eg.userTopicItem(stream1, 'topic 1', UserTopicVisibilityPolicy.muted),
+          eg.userTopicItem(stream1, 'topic 2', UserTopicVisibilityPolicy.unmuted),
+          eg.userTopicItem(stream2, 'topic 3', UserTopicVisibilityPolicy.unknown),
+          eg.userTopicItem(stream2, 'topic 4', UserTopicVisibilityPolicy.followed),
         ]));
       check(store.debugStreamStore.topicVisibility).deepEquals({
         stream1.streamId: {
@@ -233,7 +223,7 @@ void main() {
         final store = eg.store();
         await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         compareTopicVisibility(store, [
-          makeUserTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
+          eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
         ]);
       });
 
@@ -242,8 +232,8 @@ void main() {
         await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
-          makeUserTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
-          makeUserTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
+          eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
+          eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
         ]);
       });
 
@@ -252,7 +242,7 @@ void main() {
         await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
-          makeUserTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.unmuted),
+          eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.unmuted),
         ]);
       });
 
@@ -262,7 +252,7 @@ void main() {
         await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
         await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
-          makeUserTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
+          eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
         ]);
       });
 
@@ -288,9 +278,9 @@ void main() {
       final store = eg.store(initialSnapshot: eg.initialSnapshot(
         streams: [stream],
         userTopics: [
-          makeUserTopicItem(stream, 'topic 1', UserTopicVisibilityPolicy.muted),
-          makeUserTopicItem(stream, 'topic 2', UserTopicVisibilityPolicy.unmuted),
-          makeUserTopicItem(stream, 'topic 3', UserTopicVisibilityPolicy.followed),
+          eg.userTopicItem(stream, 'topic 1', UserTopicVisibilityPolicy.muted),
+          eg.userTopicItem(stream, 'topic 2', UserTopicVisibilityPolicy.unmuted),
+          eg.userTopicItem(stream, 'topic 3', UserTopicVisibilityPolicy.followed),
         ]));
       check(store.topicVisibilityPolicy(stream.streamId, 'topic 1'))
         .equals(UserTopicVisibilityPolicy.muted);

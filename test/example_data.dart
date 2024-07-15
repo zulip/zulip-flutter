@@ -233,6 +233,16 @@ Subscription subscription(
   );
 }
 
+UserTopicItem userTopicItem(
+    ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
+  return UserTopicItem(
+    streamId: stream.streamId,
+    topicName: topic,
+    lastUpdated: 1234567890,
+    visibilityPolicy: policy,
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // Messages, and pieces of messages.
 //
