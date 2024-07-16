@@ -85,6 +85,8 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         fragment.write('${element.operand.join(',')}-$suffix');
       case ApiNarrowDm():
         assert(false, 'ApiNarrowDm should have been resolved');
+      case ApiNarrowIsMentioned():
+        fragment.write(element.operand.toString());
       case ApiNarrowIsUnread():
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():

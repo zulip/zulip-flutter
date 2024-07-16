@@ -115,6 +115,13 @@ class ApiNarrowPmWith extends ApiNarrowDm {
 }
 
 // TODO: generalize into ApiNarrowIs
+class ApiNarrowIsMentioned extends ApiNarrowElement {
+  @override String get operator => 'is';
+  @override String get operand => 'mentioned';
+
+  ApiNarrowIsMentioned({super.negated});
+}
+
 class ApiNarrowIsUnread extends ApiNarrowElement {
   @override String get operator => 'is';
   @override String get operand => 'unread';
