@@ -461,6 +461,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
         if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
         if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
         if (event.newEmail != null)       user.email          = event.newEmail!;
+        if (event.isActive != null)       user.isActive       = event.isActive!;
         if (event.customProfileField != null) {
           final profileData = (user.profileData ??= {});
           final update = event.customProfileField!;
