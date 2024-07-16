@@ -180,6 +180,10 @@
   "@successMessageLinkCopied": {
     "description": "Message when link of a message was copied to the user's system clipboard."
   },
+  "errorBannerDeactivatedDmLabel": "You cannot send messages to deactivated users.",
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "composeBoxAttachFilesTooltip": "Attach files",
   "@composeBoxAttachFilesTooltip": {
     "description": "Tooltip for compose box icon to attach a file to the message."

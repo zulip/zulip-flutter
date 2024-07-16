@@ -16,6 +16,7 @@ import '../model/store.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
 import 'store.dart';
+import 'theme.dart';
 
 const double _inputVerticalPadding = 8;
 const double _sendButtonSize = 36;
@@ -850,11 +851,13 @@ class _ComposeBoxLayout extends StatelessWidget {
     required this.sendButton,
     required this.contentController,
     required this.contentFocusNode,
+    this.blockingErrorBanner,
   });
 
   final Widget? topicInput;
   final Widget contentInput;
   final Widget sendButton;
+  final Widget? blockingErrorBanner;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
@@ -883,28 +886,30 @@ class _ComposeBoxLayout extends StatelessWidget {
         minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
         child: Padding(
           padding: const EdgeInsets.only(top: 8.0),
-          child: Column(children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Expanded(
-                child: Theme(
-                  data: inputThemeData,
-                  child: Column(children: [
-                    if (topicInput != null) topicInput!,
-                    if (topicInput != null) const SizedBox(height: 8),
-                    contentInput,
-                  ]))),
-              const SizedBox(width: 8),
-              sendButton,
-            ]),
-            Theme(
-              data: themeData.copyWith(
-                iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-              child: Row(children: [
-                _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-              ])),
-          ]))));  }
+          child: blockingErrorBanner != null
+            ? SizedBox(width: double.infinity, child: blockingErrorBanner)
+            : Column(children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Expanded(
+                    child: Theme(
+                      data: inputThemeData,
+                      child: Column(children: [
+                        if (topicInput != null) topicInput!,
+                        if (topicInput != null) const SizedBox(height: 8),
+                        contentInput,
+                      ]))),
+                  const SizedBox(width: 8),
+                  sendButton,
+                ]),
+                Theme(
+                  data: themeData.copyWith(
+                    iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+                  child: Row(children: [
+                    _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                    _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                    _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                  ])),
+            ]))));  }
 }
 
 abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
@@ -973,6 +978,27 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   }
 }
 
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: designVariables.errorBannerBackground,
+        border: Border.all(color: designVariables.errorBannerBorder),
+        borderRadius: BorderRadius.circular(5)),
+      child: Text(label,
+        style: TextStyle(fontSize: 18, color: designVariables.errorBannerLabel),
+      ),
+    );
+  }
+}
+
 class _FixedDestinationComposeBox extends StatefulWidget {
   const _FixedDestinationComposeBox({super.key, required this.narrow});
 
@@ -998,6 +1024,19 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
     super.dispose();
   }
 
+  Widget? _errorBanner(BuildContext context) {
+    if (widget.narrow case DmNarrow(:final otherRecipientIds)) {
+      final store = PerAccountStoreWidget.of(context);
+      final hasDeactivatedUser = otherRecipientIds.any((id) =>
+        !(store.users[id]?.isActive ?? true));
+      if (hasDeactivatedUser) {
+        return _ErrorBanner(label: ZulipLocalizations.of(context)
+          .errorBannerDeactivatedDmLabel);
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return _ComposeBoxLayout(
@@ -1013,7 +1052,8 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
         topicController: null,
         contentController: _contentController,
         getDestination: () => widget.narrow.destination,
-      ));
+      ),
+      blockingErrorBanner: _errorBanner(context));
   }
 }
 

@@ -141,6 +141,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       channelColorSwatches: ChannelColorSwatches.light,
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+      errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
+      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.57, 0.33).toColor(),
+      errorBannerLabel: const HSLColor.fromAHSL(1, 4, 0.58, 0.33).toColor(),
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
       sectionCollapseIcon: const Color(0x7f1e2e48),
@@ -163,6 +166,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       // TODO(#95) need proper dark-theme color (this is ad hoc)
       atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
+      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
+      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
       loginOrDivider: const Color(0xff424242),
       loginOrDividerText: const Color(0xffa8a8a8),
       // TODO(#95) need proper dark-theme color (this is ad hoc)
@@ -185,6 +191,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.channelColorSwatches,
     required this.atMentionMarker,
     required this.dmHeaderBg,
+    required this.errorBannerBackground,
+    required this.errorBannerBorder,
+    required this.errorBannerLabel,
     required this.loginOrDivider,
     required this.loginOrDividerText,
     required this.sectionCollapseIcon,
@@ -218,6 +227,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
   final Color atMentionMarker;
   final Color dmHeaderBg;
+  final Color errorBannerBackground;
+  final Color errorBannerBorder;
+  final Color errorBannerLabel;
   final Color loginOrDivider; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color sectionCollapseIcon;
@@ -238,6 +250,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     ChannelColorSwatches? channelColorSwatches,
     Color? atMentionMarker,
     Color? dmHeaderBg,
+    Color? errorBannerBackground,
+    Color? errorBannerBorder,
+    Color? errorBannerLabel,
     Color? loginOrDivider,
     Color? loginOrDividerText,
     Color? sectionCollapseIcon,
@@ -257,6 +272,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
+      errorBannerBackground: errorBannerBackground ?? this.errorBannerBackground,
+      errorBannerBorder: errorBannerBorder ?? this.errorBannerBorder,
+      errorBannerLabel: errorBannerLabel ?? this.errorBannerLabel,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
@@ -283,6 +301,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
+      errorBannerBackground: Color.lerp(errorBannerBackground, other.errorBannerBackground, t)!,
+      errorBannerBorder: Color.lerp(errorBannerBorder, other.errorBannerBorder, t)!,
+      errorBannerLabel: Color.lerp(errorBannerLabel, other.errorBannerLabel, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
