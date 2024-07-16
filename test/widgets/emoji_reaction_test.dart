@@ -42,18 +42,8 @@ void main() {
     Future<void> setupChipsInBox(WidgetTester tester, {
       required List<Reaction> reactions,
       double width = 245.0, // (seen in context on an iPhone 13 Pro)
-      TextDirection textDirection = TextDirection.ltr,
     }) async {
       final message = eg.streamMessage(reactions: reactions);
-
-      final locale = switch (textDirection) {
-        TextDirection.ltr => const Locale('en'),
-        TextDirection.rtl => const Locale('ar'),
-      };
-      tester.platformDispatcher.localeTestValue = locale;
-      tester.platformDispatcher.localesTestValue = [locale];
-      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
-      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: Center(
@@ -68,7 +58,6 @@ void main() {
       await tester.pumpAndSettle(); // global store, per-account store
 
       final reactionChipsList = tester.element(find.byType(ReactionChipsList));
-      check(Directionality.of(reactionChipsList)).equals(textDirection);
       check(reactionChipsList).size.isNotNull().width.equals(width);
     }
 
@@ -106,6 +95,15 @@ void main() {
                 tester.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
                 addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
+                final locale = switch (textDirection) {
+                  TextDirection.ltr => const Locale('en'),
+                  TextDirection.rtl => const Locale('ar'),
+                };
+                tester.platformDispatcher.localeTestValue = locale;
+                tester.platformDispatcher.localesTestValue = [locale];
+                addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+                addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
                 await prepare();
 
                 await store.addUsers(users);
@@ -126,7 +124,10 @@ void main() {
                   ..statusCode = HttpStatus.ok
                   ..content = kSolidBlueAvatar;
 
-                await setupChipsInBox(tester, textDirection: textDirection, reactions: reactions);
+                await setupChipsInBox(tester, reactions: reactions);
+
+                final reactionChipsList = tester.element(find.byType(ReactionChipsList));
+                check(Directionality.of(reactionChipsList)).equals(textDirection);
 
                 // TODO(upstream) Do these in an addTearDown, once we can:
                 //   https://github.com/flutter/flutter/issues/123189
