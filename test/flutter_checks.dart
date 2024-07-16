@@ -121,3 +121,8 @@ extension ElementChecks on Subject<Element> {
   Subject<Size?> get size => has((t) => t.size, 'size');
   // TODO more
 }
+
+extension MediaQueryDataChecks on Subject<MediaQueryData> {
+  Subject<TextScaler> get textScaler => has((x) => x.textScaler, 'textScaler');
+  // TODO more
+}

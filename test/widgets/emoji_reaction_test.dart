@@ -127,6 +127,8 @@ void main() {
                 await setupChipsInBox(tester, reactions: reactions);
 
                 final reactionChipsList = tester.element(find.byType(ReactionChipsList));
+                check(MediaQuery.of(reactionChipsList))
+                  .textScaler.equals(TextScaler.linear(textScaleFactor));
                 check(Directionality.of(reactionChipsList)).equals(textDirection);
 
                 // TODO(upstream) Do these in an addTearDown, once we can:
