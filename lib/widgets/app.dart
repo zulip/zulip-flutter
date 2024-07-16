@@ -278,6 +278,12 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: const MentionsNarrow())),
+            child: Text(zulipLocalizations.mentionsPageTitle)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.push(context,
               InboxPage.buildRoute(context: context)),
             child: const Text("Inbox")), // TODO(i18n)
           const SizedBox(height: 16),
