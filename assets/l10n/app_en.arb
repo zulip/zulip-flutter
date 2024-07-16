@@ -472,6 +472,10 @@
   "@combinedFeedPageTitle": {
     "description": "Title for the page of combined feed."
   },
+  "mentionsPageTitle": "Mentions",
+  "@mentionsPageTitle": {
+    "description": "Title for the page of @-mentions."
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",

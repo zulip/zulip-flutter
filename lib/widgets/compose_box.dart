@@ -1025,13 +1025,14 @@ class ComposeBox extends StatelessWidget {
 
   static bool hasComposeBox(Narrow narrow) {
     switch (narrow) {
-      case CombinedFeedNarrow():
-        return false;
-
       case ChannelNarrow():
       case TopicNarrow():
       case DmNarrow():
         return true;
+
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+        return false;
     }
   }
 
@@ -1046,6 +1047,7 @@ class ComposeBox extends StatelessWidget {
       case DmNarrow():
         return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
       case CombinedFeedNarrow():
+      case MentionsNarrow():
         return const SizedBox.shrink();
     }
   }

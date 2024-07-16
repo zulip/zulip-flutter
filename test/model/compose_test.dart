@@ -231,6 +231,14 @@ hello
         .equals(store.realmUrl.resolve('#narrow/near/1'));
     });
 
+    test('MentionsNarrow', () {
+      final store = eg.store();
+      check(narrowLink(store, const MentionsNarrow()))
+        .equals(store.realmUrl.resolve('#narrow/is/mentioned'));
+      check(narrowLink(store, const MentionsNarrow(), nearMessageId: 1))
+        .equals(store.realmUrl.resolve('#narrow/is/mentioned/near/1'));
+    });
+
     test('ChannelNarrow / TopicNarrow', () {
       void checkNarrow(String expectedFragment, {
         required int streamId,
@@ -298,9 +306,6 @@ hello
         '#narrow/dm/1,2-dm/near/12345',
         '#narrow/pm-with/1,2-pm/near/12345');
     });
-
-    // TODO other Narrow subclasses as we add them:
-    //   starred, mentioned; searches; arbitrary
   });
 
   group('mention', () {

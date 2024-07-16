@@ -135,6 +135,19 @@ void main() {
       final padding = MediaQuery.of(element).padding;
       check(padding).equals(EdgeInsets.zero);
     });
+
+    testWidgets('content in MentionsNarrow not asked to consume insets (including bottom)', (tester) async {
+      const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
+      tester.view.viewInsets = fakePadding;
+      tester.view.padding = fakePadding;
+
+      await setupMessageListPage(tester, narrow: const MentionsNarrow(),
+        messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html, flags: [MessageFlag.mentioned])]);
+
+      final element = tester.element(find.byType(CodeBlock));
+      final padding = MediaQuery.of(element).padding;
+      check(padding).equals(EdgeInsets.zero);
+    });
   });
 
   testWidgets('smoke test for light/dark/lerped', (tester) async {
@@ -628,7 +641,16 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
-      testWidgets('do not show stream name in ChannelNarrow', (tester) async {
+      testWidgets('show channel name in MentionsNarrow', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const MentionsNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList('stream name')).length.equals(1);
+        check(findInMessageList('topic name')).length.equals(1);
+      });
+
+      testWidgets('do not show channel name in ChannelNarrow', (tester) async {
         await setupMessageListPage(tester,
           narrow: ChannelNarrow(stream.streamId),
           messages: [message], streams: [stream]);

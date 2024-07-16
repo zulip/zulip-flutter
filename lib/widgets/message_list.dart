@@ -235,6 +235,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     bool removeAppBarBottomBorder = false;
     switch(widget.narrow) {
       case CombinedFeedNarrow():
+      case MentionsNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
       case ChannelNarrow(:final streamId):
@@ -319,6 +320,9 @@ class MessageListAppBarTitle extends StatelessWidget {
     switch (narrow) {
       case CombinedFeedNarrow():
         return Text(zulipLocalizations.combinedFeedPageTitle);
+
+      case MentionsNarrow():
+        return Text(zulipLocalizations.mentionsPageTitle);
 
       case ChannelNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
@@ -808,6 +812,7 @@ class RecipientHeader extends StatelessWidget {
   static bool _containsDifferentChannels(Narrow narrow) {
     switch (narrow) {
       case CombinedFeedNarrow():
+      case MentionsNarrow():
         return true;
 
       case ChannelNarrow():

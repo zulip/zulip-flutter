@@ -149,4 +149,17 @@ void main() {
       check(narrow123.containsMessage(dm(user3, [user1, user2]))).isTrue();
     });
   });
+
+  group('MentionsNarrow', () {
+    test('containsMessage', () {
+      const narrow = MentionsNarrow();
+
+      check(narrow.containsMessage(
+        eg.streamMessage(flags: []))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(flags:[MessageFlag.mentioned]))).isTrue();
+      check(narrow.containsMessage(
+        eg.streamMessage(flags: [MessageFlag.wildcardMentioned]))).isTrue();
+    });
+  });
 }

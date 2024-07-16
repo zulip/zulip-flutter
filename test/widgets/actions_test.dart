@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
@@ -247,6 +248,26 @@ void main() {
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
       markNarrowAsRead(context, narrow, true); // TODO move legacy-server check inside markNarrowAsRead
+      await tester.pump(Duration.zero);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags')
+        ..bodyFields.deepEquals({
+            'messages': jsonEncode([message.id]),
+            'op': 'add',
+            'flag': 'read',
+          });
+    });
+
+    testWidgets('MentionsNarrow on legacy server', (WidgetTester tester) async {
+      const narrow = MentionsNarrow();
+      final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
+      final unreadMsgs = eg.unreadMsgs(mentions: [message.id]);
+      await prepare(tester, unreadMsgs: unreadMsgs);
+      connection.zulipFeatureLevel = 154;
+      connection.prepare(json:
+        UpdateMessageFlagsResult(messages: [message.id]).toJson());
+      markNarrowAsRead(context, narrow, true);  // TODO move legacy-server check inside markNarrowAsRead
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')

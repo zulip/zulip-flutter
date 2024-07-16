@@ -286,4 +286,34 @@ class DmNarrow extends Narrow implements SendableNarrow {
   int get hashCode => Object.hash('DmNarrow', _key);
 }
 
-// TODO other narrow types: starred, mentioned; searches; arbitrary
+class MentionsNarrow extends Narrow {
+  const MentionsNarrow();
+
+  @override
+  bool containsMessage(Message message) {
+    return message.flags.any((flag) =>
+      switch (flag) {
+        MessageFlag.mentioned => true,
+        MessageFlag.wildcardMentioned => true,
+        MessageFlag.read => false,
+        MessageFlag.starred => false,
+        MessageFlag.collapsed => false,
+        MessageFlag.hasAlertWord => false,
+        MessageFlag.historical => false,
+        MessageFlag.unknown => false,
+      });
+  }
+
+  @override
+  ApiNarrow apiEncode() => [ApiNarrowIsMentioned()];
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! MentionsNarrow) return false;
+    // Conceptually there's only one value of this type.
+    return true;
+  }
+
+  @override
+  int get hashCode => 'MentionsNarrow'.hashCode;
+}

@@ -377,6 +377,12 @@ void main() {
       await setupToMessageActionSheet(tester, message: message, narrow: const CombinedFeedNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
     });
+
+    testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
+      check(findQuoteAndReplyButton(tester)).isNull();
+    });
   });
 
   group('CopyMessageTextButton', () {

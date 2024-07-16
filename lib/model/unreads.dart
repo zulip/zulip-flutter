@@ -193,6 +193,8 @@ class Unreads extends ChangeNotifier {
 
   int countInDmNarrow(DmNarrow narrow) => dms[narrow]?.length ?? 0;
 
+  int countInMentionsNarrow() => mentions.length;
+
   int countInNarrow(Narrow narrow) {
     switch (narrow) {
       case CombinedFeedNarrow():
@@ -203,6 +205,8 @@ class Unreads extends ChangeNotifier {
         return countInTopicNarrow(narrow.streamId, narrow.topic);
       case DmNarrow():
         return countInDmNarrow(narrow);
+      case MentionsNarrow():
+        return countInMentionsNarrow();
     }
   }
 

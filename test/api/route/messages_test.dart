@@ -188,6 +188,9 @@ void main() {
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
+      checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
+        {'operator': 'is', 'operand': 'mentioned'},
+      ]));
 
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
         {'operator': 'dm', 'operand': [123, 234]},

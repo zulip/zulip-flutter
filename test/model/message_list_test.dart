@@ -734,6 +734,46 @@ void main() {
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
     });
+
+    test('in MentionsNarrow', () async {
+      final stream = eg.stream(streamId: 1, name: 'muted stream');
+      const mutedTopic = 'muted';
+      await prepare(narrow: const MentionsNarrow());
+      await store.addStream(stream);
+      await store.addUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
+
+      List<Message> getMessages(int startingId) => [
+        eg.streamMessage(id: startingId,
+          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
+        eg.streamMessage(id: startingId + 1,
+          stream: stream, topic: mutedTopic, flags: [MessageFlag.mentioned]),
+        eg.dmMessage(id: startingId + 2,
+          from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+      ];
+
+      // Check filtering on fetchInitial…
+      await prepareMessages(foundOldest: false, messages: getMessages(201));
+      final expected = <int>[];
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..addAll([201, 202, 203]));
+
+      // … and on fetchOlder…
+      connection.prepare(json: olderResult(
+        anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..insertAll(0, [101, 102, 103]));
+
+      // … and on MessageEvent.
+      final messages = getMessages(301);
+      for (var i = 0; i < 3; i += 1) {
+        await store.handleEvent(MessageEvent(id: 0, message: messages[i]));
+        checkNotifiedOnce();
+        check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
+      }
+    });
   });
 
   test('recipient headers are maintained consistently', () async {
@@ -979,6 +1019,7 @@ void checkInvariants(MessageListView model) {
           .isTrue();
       case TopicNarrow():
       case DmNarrow():
+      case MentionsNarrow():
     }
   }
 

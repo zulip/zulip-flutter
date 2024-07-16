@@ -134,5 +134,12 @@ Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async 
         messages: unreadDms,
         op: UpdateMessageFlagsOp.add,
         flag: MessageFlag.read);
+    case MentionsNarrow():
+      final unreadMentions = store.unreads.mentions.toList();
+      if (unreadMentions.isEmpty) return;
+      await updateMessageFlags(connection,
+        messages: unreadMentions,
+        op: UpdateMessageFlagsOp.add,
+        flag: MessageFlag.read);
   }
 }
