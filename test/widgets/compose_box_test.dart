@@ -15,6 +15,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
+import 'dialog_checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -217,6 +218,24 @@ void main() {
       });
       final errorDialogs = tester.widgetList(find.byType(AlertDialog));
       check(errorDialogs).isEmpty();
+    });
+
+    testWidgets('ZulipApiException', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (message) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {
+            'result': 'error',
+            'code': 'BAD_REQUEST',
+            'msg': 'You do not have permission to initiate direct message conversations.',
+          });
+      });
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorMessageNotSent,
+        expectedMessage: zulipLocalizations.errorServerMessage(
+          'You do not have permission to initiate direct message conversations.'),
+      )));
     });
   });
 }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/compose.dart';
@@ -716,7 +717,7 @@ class _SendButtonState extends State<_SendButton> {
       || widget.contentController.hasValidationErrors.value;
   }
 
-  void _send() {
+  void _send() async {
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
@@ -735,9 +736,26 @@ class _SendButtonState extends State<_SendButton> {
 
     final store = PerAccountStoreWidget.of(context);
     final content = widget.contentController.textNormalized;
-    store.sendMessage(destination: widget.getDestination(), content: content);
 
     widget.contentController.clear();
+
+    try {
+      // TODO(#720) clear content input only on success response;
+      //   while waiting, put input(s) and send button into a disabled
+      //   "working on it" state (letting input text be selected for copying).
+      await store.sendMessage(destination: widget.getDestination(), content: content);
+    } on ApiRequestException catch (e) {
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorMessageNotSent,
+        message: message);
+      return;
+    }
   }
 
   @override
