@@ -39,7 +39,7 @@ class Unreads extends ChangeNotifier {
   factory Unreads({
     required UnreadMessagesSnapshot initial,
     required int selfUserId,
-    required ChannelStore streamStore,
+    required ChannelStore channelStore,
   }) {
     final streams = <int, Map<String, QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
@@ -63,7 +63,7 @@ class Unreads extends ChangeNotifier {
     }
 
     return Unreads._(
-      streamStore: streamStore,
+      channelStore: channelStore,
       streams: streams,
       dms: dms,
       mentions: mentions,
@@ -73,7 +73,7 @@ class Unreads extends ChangeNotifier {
   }
 
   Unreads._({
-    required this.streamStore,
+    required this.channelStore,
     required this.streams,
     required this.dms,
     required this.mentions,
@@ -81,7 +81,7 @@ class Unreads extends ChangeNotifier {
     required this.selfUserId,
   });
 
-  final ChannelStore streamStore;
+  final ChannelStore channelStore;
 
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
@@ -136,7 +136,7 @@ class Unreads extends ChangeNotifier {
     }
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
-        if (streamStore.isTopicVisible(streamId, topic)) {
+        if (channelStore.isTopicVisible(streamId, topic)) {
           c = c + messageIds.length;
         }
       }
@@ -158,7 +158,7 @@ class Unreads extends ChangeNotifier {
     if (topics == null) return 0;
     int c = 0;
     for (final entry in topics.entries) {
-      if (streamStore.isTopicVisible(streamId, entry.key)) {
+      if (channelStore.isTopicVisible(streamId, entry.key)) {
         c = c + entry.value.length;
       }
     }
@@ -179,7 +179,7 @@ class Unreads extends ChangeNotifier {
     if (topics == null) return 0;
     int c = 0;
     for (final entry in topics.entries) {
-      if (streamStore.isTopicVisibleInStream(streamId, entry.key)) {
+      if (channelStore.isTopicVisibleInStream(streamId, entry.key)) {
         c = c + entry.value.length;
       }
     }

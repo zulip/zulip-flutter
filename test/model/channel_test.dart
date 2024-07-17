@@ -193,8 +193,8 @@ void main() {
       final expectedStore = eg.store(initialSnapshot: eg.initialSnapshot(
         userTopics: expected,
       ));
-      check(store.debugStreamStore.topicVisibility)
-        .deepEquals(expectedStore.debugStreamStore.topicVisibility);
+      check(store.debugChannelStore.topicVisibility)
+        .deepEquals(expectedStore.debugChannelStore.topicVisibility);
     }
 
     test('data structure', () {
@@ -206,7 +206,7 @@ void main() {
           eg.userTopicItem(stream2, 'topic 3', UserTopicVisibilityPolicy.unknown),
           eg.userTopicItem(stream2, 'topic 4', UserTopicVisibilityPolicy.followed),
         ]));
-      check(store.debugStreamStore.topicVisibility).deepEquals({
+      check(store.debugChannelStore.topicVisibility).deepEquals({
         stream1.streamId: {
           'topic 1': UserTopicVisibilityPolicy.muted,
           'topic 2': UserTopicVisibilityPolicy.unmuted,

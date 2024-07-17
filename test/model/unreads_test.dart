@@ -16,7 +16,7 @@ void main() {
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Unreads model;
-  late PerAccountStore streamStore; // TODO reduce this to ChannelStore
+  late PerAccountStore channelStore; // TODO reduce this to ChannelStore
   late int notifiedCount;
 
   void checkNotified({required int count}) {
@@ -37,10 +37,10 @@ void main() {
       oldUnreadsMissing: false,
     ),
   }) {
-    streamStore = eg.store();
+    channelStore = eg.store();
     notifiedCount = 0;
     model = Unreads(initial: initial,
-        selfUserId: eg.selfUser.userId, streamStore: streamStore)
+        selfUserId: eg.selfUser.userId, channelStore: channelStore)
       ..addListener(() {
         notifiedCount++;
       });
@@ -157,11 +157,11 @@ void main() {
       final stream2 = eg.stream(streamId: 2, name: 'stream 2');
       final stream3 = eg.stream(streamId: 3, name: 'stream 3');
       prepare();
-      await streamStore.addStreams([stream1, stream2, stream3]);
-      await streamStore.addSubscription(eg.subscription(stream1));
-      await streamStore.addSubscription(eg.subscription(stream2));
-      await streamStore.addSubscription(eg.subscription(stream3, isMuted: true));
-      await streamStore.addUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await channelStore.addStreams([stream1, stream2, stream3]);
+      await channelStore.addSubscription(eg.subscription(stream1));
+      await channelStore.addSubscription(eg.subscription(stream2));
+      await channelStore.addSubscription(eg.subscription(stream3, isMuted: true));
+      await channelStore.addUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
@@ -177,10 +177,10 @@ void main() {
     test('countInStream/Narrow', () async {
       final stream = eg.stream();
       prepare();
-      await streamStore.addStream(stream);
-      await streamStore.addSubscription(eg.subscription(stream));
-      await streamStore.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
-      await streamStore.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
+      await channelStore.addStream(stream);
+      await channelStore.addSubscription(eg.subscription(stream));
+      await channelStore.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
+      await channelStore.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
@@ -192,7 +192,7 @@ void main() {
       check(model.countInStream      (stream.streamId)).equals(5);
       check(model.countInStreamNarrow(stream.streamId)).equals(5);
 
-      await streamStore.handleEvent(SubscriptionUpdateEvent(id: 1,
+      await channelStore.handleEvent(SubscriptionUpdateEvent(id: 1,
         streamId: stream.streamId,
         property: SubscriptionProperty.isMuted, value: true));
       check(model.countInStream      (stream.streamId)).equals(2);

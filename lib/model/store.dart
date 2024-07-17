@@ -226,7 +226,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
-    final streams = ChannelStoreImpl(initialSnapshot: initialSnapshot);
+    final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
@@ -247,12 +247,12 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
         selfUserId: account.userId,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
-      streams: streams,
+      channels: channels,
       messages: MessageStoreImpl(),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         selfUserId: account.userId,
-        streamStore: streams,
+        channelStore: channels,
       ),
       recentDmConversationsView: RecentDmConversationsView(
         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
@@ -272,7 +272,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     required this.userSettings,
     required this.users,
     required this.typingStatus,
-    required ChannelStoreImpl streams,
+    required ChannelStoreImpl channels,
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
@@ -280,7 +280,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
        _globalStore = globalStore,
-       _streams = streams,
+       _channels = channels,
        _messages = messages;
 
   ////////////////////////////////////////////////////////////////
@@ -331,19 +331,19 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   // Streams, topics, and stuff about them.
 
   @override
-  Map<int, ZulipStream> get streams => _streams.streams;
+  Map<int, ZulipStream> get streams => _channels.streams;
   @override
-  Map<String, ZulipStream> get streamsByName => _streams.streamsByName;
+  Map<String, ZulipStream> get streamsByName => _channels.streamsByName;
   @override
-  Map<int, Subscription> get subscriptions => _streams.subscriptions;
+  Map<int, Subscription> get subscriptions => _channels.subscriptions;
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
-    _streams.topicVisibilityPolicy(streamId, topic);
+    _channels.topicVisibilityPolicy(streamId, topic);
 
-  final ChannelStoreImpl _streams;
+  final ChannelStoreImpl _channels;
 
   @visibleForTesting
-  ChannelStoreImpl get debugStreamStore => _streams;
+  ChannelStoreImpl get debugChannelStore => _channels;
 
   ////////////////////////////////
   // Messages, and summaries of messages.
@@ -474,17 +474,17 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
 
       case StreamEvent():
         assert(debugLog("server event: stream/${event.op}"));
-        _streams.handleStreamEvent(event);
+        _channels.handleStreamEvent(event);
         notifyListeners();
 
       case SubscriptionEvent():
         assert(debugLog("server event: subscription/${event.op}"));
-        _streams.handleSubscriptionEvent(event);
+        _channels.handleSubscriptionEvent(event);
         notifyListeners();
 
       case UserTopicEvent():
         assert(debugLog("server event: user_topic"));
-        _streams.handleUserTopicEvent(event);
+        _channels.handleUserTopicEvent(event);
         notifyListeners();
 
       case MessageEvent():
