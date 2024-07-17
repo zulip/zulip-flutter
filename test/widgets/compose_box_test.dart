@@ -1,21 +1,33 @@
 import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/store.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../stdlib_checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  late PerAccountStore store;
+  late FakeApiConnection connection;
+
   Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, Narrow narrow) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    connection = store.connection as FakeApiConnection;
 
     final controllerKey = GlobalKey<ComposeBoxController>();
     await tester.pumpWidget(
@@ -169,6 +181,42 @@ void main() {
         TopicNarrow.ofMessage(eg.streamMessage()));
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: false);
+    });
+  });
+
+  group('message-send request response', () {
+    Future<void> setupAndTapSend(WidgetTester tester, {
+      required void Function(int messageId) prepareResponse,
+    }) async {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await prepareComposeBox(tester, const TopicNarrow(123, 'some topic'));
+
+      final contentInputFinder = find.byWidgetPredicate(
+        (widget) => widget is TextField && widget.controller is ComposeContentController);
+      await tester.enterText(contentInputFinder, 'hello world');
+
+      prepareResponse(456);
+      await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+            'type': 'stream',
+            'to': '123',
+            'topic': 'some topic',
+            'content': 'hello world',
+            'read_by_sender': 'true',
+          });
+    }
+
+    testWidgets('success', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(id: messageId).toJson());
+      });
+      final errorDialogs = tester.widgetList(find.byType(AlertDialog));
+      check(errorDialogs).isEmpty();
     });
   });
 }
