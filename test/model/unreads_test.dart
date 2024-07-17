@@ -153,9 +153,9 @@ void main() {
 
   group('count helpers', () {
     test('countInCombinedFeedNarrow', () async {
-      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
-      final stream3 = eg.stream(streamId: 3, name: 'stream 3');
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
+      final stream3 = eg.stream();
       prepare();
       await channelStore.addStreams([stream1, stream2, stream3]);
       await channelStore.addSubscription(eg.subscription(stream1));

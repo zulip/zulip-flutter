@@ -618,8 +618,8 @@ void main() {
 
   group('Update Narrow on message move', () {
     const topic = 'foo';
-    final channel = eg.stream(name: 'move test stream');
-    final otherChannel = eg.stream(name: 'other move test stream');
+    final channel = eg.stream();
+    final otherChannel = eg.stream();
     final narrow = TopicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {

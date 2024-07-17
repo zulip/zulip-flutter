@@ -183,11 +183,14 @@ ZulipStream stream({
 }) {
   _checkPositive(streamId, 'stream ID');
   _checkPositive(firstMessageId, 'message ID');
+  var effectiveStreamId = streamId ?? _nextStreamId();
+  var effectiveName = name ?? 'stream $effectiveStreamId';
+  var effectiveDescription = description ?? 'Description of $effectiveName';
   return ZulipStream(
-    streamId: streamId ?? _nextStreamId(),
-    name: name ?? 'A stream', // TODO generate example names
-    description: description ?? 'A description', // TODO generate example descriptions
-    renderedDescription: renderedDescription ?? '<p>A description</p>', // TODO generate random
+    streamId: effectiveStreamId,
+    name: effectiveName,
+    description: effectiveDescription,
+    renderedDescription: renderedDescription ?? '<p>$effectiveDescription</p>',
     dateCreated: dateCreated ?? 1686774898,
     firstMessageId: firstMessageId,
     inviteOnly: inviteOnly ?? false,

@@ -34,8 +34,8 @@ void main() {
     }
 
     test('initial', () {
-      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
       checkUnified(eg.store(initialSnapshot: eg.initialSnapshot(
         streams: [stream1, stream2],
         subscriptions: [eg.subscription(stream1)],
@@ -43,8 +43,8 @@ void main() {
     });
 
     test('added by events', () async {
-      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
       final store = eg.store();
       checkUnified(store);
 
@@ -106,8 +106,8 @@ void main() {
   });
 
   group('topic visibility', () {
-    final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-    final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+    final stream1 = eg.stream();
+    final stream2 = eg.stream();
 
     group('getter topicVisibilityPolicy', () {
       test('with nothing for stream', () {

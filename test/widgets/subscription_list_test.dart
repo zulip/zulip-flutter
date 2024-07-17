@@ -284,10 +284,10 @@ void main() {
       check(wght).equals(expectedWght);
     }
 
-    final unmutedStreamWithUnmutedUnreads =   eg.stream(name: 'Unmuted stream with unmuted unreads');
-    final unmutedStreamWithNoUnmutedUnreads = eg.stream(name: 'Unmuted stream with no unmuted unreads');
-    final mutedStreamWithUnmutedUnreads =     eg.stream(name: 'Muted stream with unmuted unreads');
-    final mutedStreamWithNoUnmutedUnreads =   eg.stream(name: 'Muted stream with no unmuted unreads');
+    final unmutedStreamWithUnmutedUnreads =   eg.stream();
+    final unmutedStreamWithNoUnmutedUnreads = eg.stream();
+    final mutedStreamWithUnmutedUnreads =     eg.stream();
+    final mutedStreamWithNoUnmutedUnreads =   eg.stream();
 
     await setupStreamListPage(tester,
       subscriptions: [

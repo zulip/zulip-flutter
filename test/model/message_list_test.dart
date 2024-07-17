@@ -467,8 +467,8 @@ void main() {
   });
 
   group('messagesMoved', () {
-    final stream = eg.stream(streamId: 1, name: 'test stream');
-    final otherStream = eg.stream(streamId: 2, name: 'other stream');
+    final stream = eg.stream();
+    final otherStream = eg.stream();
 
     void checkHasMessages(Iterable<Message> messages) {
       check(model.messages.map((e) => e.id)).deepEquals(messages.map((e) => e.id));
@@ -1094,8 +1094,8 @@ void main() {
 
   group('stream/topic muting', () {
     test('in CombinedFeedNarrow', () async {
-      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
       await prepare(narrow: const CombinedFeedNarrow());
       await store.addStreams([stream1, stream2]);
       await store.addSubscription(eg.subscription(stream1));
@@ -1157,7 +1157,7 @@ void main() {
     });
 
     test('in ChannelNarrow', () async {
-      final stream = eg.stream(streamId: 1, name: 'stream 1');
+      final stream = eg.stream();
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
@@ -1204,7 +1204,7 @@ void main() {
     });
 
     test('in TopicNarrow', () async {
-      final stream = eg.stream(streamId: 1, name: 'stream 1');
+      final stream = eg.stream();
       await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
@@ -1236,7 +1236,7 @@ void main() {
     });
 
     test('in MentionsNarrow', () async {
-      final stream = eg.stream(streamId: 1, name: 'muted stream');
+      final stream = eg.stream();
       const mutedTopic = 'muted';
       await prepare(narrow: const MentionsNarrow());
       await store.addStream(stream);
