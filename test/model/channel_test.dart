@@ -5,7 +5,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/model/stream.dart';
+import 'package:zulip/model/channel.dart';
 
 import '../example_data.dart' as eg;
 import 'test_store.dart';
@@ -14,7 +14,7 @@ void main() {
   group('Unified stream/sub data', () {
     /// Check that `streams`, `streamsByName`, and `subscriptions` all agree
     /// and point to the same objects where applicable.
-    void checkUnified(StreamStore store) {
+    void checkUnified(ChannelStore store) {
       check(store.streamsByName).length.equals(store.streams.length);
       for (final MapEntry(key: streamId, value: stream)
            in store.streams.entries) {

@@ -163,7 +163,7 @@ void main() {
   });
 
   group('PerAccountStore.handleEvent', () {
-    // Mostly this method just dispatches to StreamStore and MessageStore etc.,
+    // Mostly this method just dispatches to ChannelStore and MessageStore etc.,
     // and so most of the tests live in the test files for those
     // (but they call the handleEvent method because it's the entry point).
 

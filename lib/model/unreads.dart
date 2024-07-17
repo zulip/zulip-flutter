@@ -9,7 +9,7 @@ import '../api/model/events.dart';
 import '../log.dart';
 import 'algorithms.dart';
 import 'narrow.dart';
-import 'stream.dart';
+import 'channel.dart';
 
 /// The view-model for unread messages.
 ///
@@ -39,7 +39,7 @@ class Unreads extends ChangeNotifier {
   factory Unreads({
     required UnreadMessagesSnapshot initial,
     required int selfUserId,
-    required StreamStore streamStore,
+    required ChannelStore streamStore,
   }) {
     final streams = <int, Map<String, QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
@@ -81,7 +81,7 @@ class Unreads extends ChangeNotifier {
     required this.selfUserId,
   });
 
-  final StreamStore streamStore;
+  final ChannelStore streamStore;
 
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
@@ -145,7 +145,7 @@ class Unreads extends ChangeNotifier {
   }
 
   /// The "strict" unread count for this stream,
-  /// using [StreamStore.isTopicVisible].
+  /// using [ChannelStore.isTopicVisible].
   ///
   /// If the stream is muted, this will count only topics that are
   /// actively unmuted.
@@ -166,7 +166,7 @@ class Unreads extends ChangeNotifier {
   }
 
   /// The "broad" unread count for this stream,
-  /// using [StreamStore.isTopicVisibleInStream].
+  /// using [ChannelStore.isTopicVisibleInStream].
   ///
   /// This includes topics that have no visibility policy of their own,
   /// even if the stream itself is muted.

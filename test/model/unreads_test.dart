@@ -16,7 +16,7 @@ void main() {
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Unreads model;
-  late PerAccountStore streamStore; // TODO reduce this to StreamStore
+  late PerAccountStore streamStore; // TODO reduce this to ChannelStore
   late int notifiedCount;
 
   void checkNotified({required int count}) {

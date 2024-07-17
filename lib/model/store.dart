@@ -23,7 +23,7 @@ import 'database.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
-import 'stream.dart';
+import 'channel.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
 
@@ -201,7 +201,7 @@ abstract class GlobalStore extends ChangeNotifier {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
+class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -226,7 +226,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
-    final streams = StreamStoreImpl(initialSnapshot: initialSnapshot);
+    final streams = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
@@ -272,7 +272,7 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
     required this.userSettings,
     required this.users,
     required this.typingStatus,
-    required StreamStoreImpl streams,
+    required ChannelStoreImpl streams,
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
@@ -340,10 +340,10 @@ class PerAccountStore extends ChangeNotifier with StreamStore, MessageStore {
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
     _streams.topicVisibilityPolicy(streamId, topic);
 
-  final StreamStoreImpl _streams;
+  final ChannelStoreImpl _streams;
 
   @visibleForTesting
-  StreamStoreImpl get debugStreamStore => _streams;
+  ChannelStoreImpl get debugStreamStore => _streams;
 
   ////////////////////////////////
   // Messages, and summaries of messages.

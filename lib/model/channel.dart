@@ -2,13 +2,13 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 
-/// The portion of [PerAccountStore] for streams, topics, and stuff about them.
+/// The portion of [PerAccountStore] for channels, topics, and stuff about them.
 ///
 /// This type is useful for expressing the needs of other parts of the
 /// implementation of [PerAccountStore], to avoid circularity.
 ///
-/// The data structures described here are implemented at [StreamStoreImpl].
-mixin StreamStore {
+/// The data structures described here are implemented at [ChannelStoreImpl].
+mixin ChannelStore {
   Map<int, ZulipStream> get streams;
   Map<String, ZulipStream> get streamsByName;
   Map<int, Subscription> get subscriptions;
@@ -67,13 +67,13 @@ mixin StreamStore {
   }
 }
 
-/// The implementation of [StreamStore] that does the work.
+/// The implementation of [ChannelStore] that does the work.
 ///
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
-/// or through the mixin [StreamStore] which describes its interface.
-class StreamStoreImpl with StreamStore {
-  factory StreamStoreImpl({required InitialSnapshot initialSnapshot}) {
+/// or through the mixin [ChannelStore] which describes its interface.
+class ChannelStoreImpl with ChannelStore {
+  factory ChannelStoreImpl({required InitialSnapshot initialSnapshot}) {
     final subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
       (subscription) => MapEntry(subscription.streamId, subscription)));
 
@@ -92,7 +92,7 @@ class StreamStoreImpl with StreamStore {
       forStream[item.topicName] = item.visibilityPolicy;
     }
 
-    return StreamStoreImpl._(
+    return ChannelStoreImpl._(
       streams: streams,
       streamsByName: streams.map((_, stream) => MapEntry(stream.name, stream)),
       subscriptions: subscriptions,
@@ -100,7 +100,7 @@ class StreamStoreImpl with StreamStore {
     );
   }
 
-  StreamStoreImpl._({
+  ChannelStoreImpl._({
     required this.streams,
     required this.streamsByName,
     required this.subscriptions,

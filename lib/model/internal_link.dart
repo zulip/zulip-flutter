@@ -4,7 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 import '../api/model/narrow.dart';
 import 'narrow.dart';
 import 'store.dart';
-import 'stream.dart';
+import 'channel.dart';
 
 part 'internal_link.g.dart';
 
@@ -245,7 +245,7 @@ enum _NarrowOperator {
 ///
 /// Returns null if the operand has an unexpected shape, or has the old shape
 /// (stream name but no ID) and we don't know of a stream by the given name.
-int? _parseStreamOperand(String operand, StreamStore store) {
+int? _parseStreamOperand(String operand, ChannelStore store) {
   // "New" (2018) format: ${stream_id}-${stream_name} .
   final match = RegExp(r'^(\d+)(?:-.*)?$').firstMatch(operand);
   final newFormatStreamId = (match != null) ? int.parse(match.group(1)!, radix: 10) : null;
