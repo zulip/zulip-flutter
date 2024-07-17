@@ -156,10 +156,10 @@ class ChannelStoreImpl with ChannelStore {
     switch (event) {
       case SubscriptionAddEvent():
         for (final subscription in event.subscriptions) {
-          assert(streams.containsKey(subscription.streamId)
-            && streams[subscription.streamId] is! Subscription);
-          assert(streamsByName.containsKey(subscription.name)
-            && streamsByName[subscription.name] is! Subscription);
+          assert(streams.containsKey(subscription.streamId));
+          assert(streams[subscription.streamId] is! Subscription);
+          assert(streamsByName.containsKey(subscription.name));
+          assert(streamsByName[subscription.name] is! Subscription);
           assert(!subscriptions.containsKey(subscription.streamId));
           streams[subscription.streamId] = subscription;
           streamsByName[subscription.name] = subscription;
