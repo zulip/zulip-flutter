@@ -5,6 +5,7 @@ import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import 'algorithms.dart';
+import 'channel.dart';
 import 'content.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -156,6 +157,38 @@ mixin _MessageSequence {
     contents.add(parseContent(message.content));
     assert(contents.length == messages.length);
     _processMessage(messages.length - 1);
+  }
+
+  /// Removes all messages from the list that satisfy [test].
+  ///
+  /// Returns true if any messages were removed, false otherwise.
+  bool _removeMessagesWhere(bool Function(Message) test) {
+    // Before we find a message to remove, there's no need to copy elements.
+    // This is like the loop below, but simplified for `target == candidate`.
+    int candidate = 0;
+    while (true) {
+      if (candidate == messages.length) return false;
+      if (test(messages[candidate])) break;
+      candidate++;
+    }
+
+    int target = candidate;
+    candidate++;
+    assert(contents.length == messages.length);
+    while (candidate < messages.length) {
+      if (test(messages[candidate])) {
+        candidate++;
+        continue;
+      }
+      messages[target] = messages[candidate];
+      contents[target] = contents[candidate];
+      target++; candidate++;
+    }
+    messages.length = target;
+    contents.length = target;
+    assert(contents.length == messages.length);
+    _reprocessAll();
+    return true;
   }
 
   /// Removes the given messages, if present.
@@ -389,6 +422,24 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Whether this event could affect the result that [_messageVisible]
+  /// would ever have returned for any possible message in this message list.
+  VisibilityEffect _canAffectVisibility(UserTopicEvent event) {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+        return store.willChangeIfTopicVisible(event);
+
+      case ChannelNarrow(:final streamId):
+        if (event.streamId != streamId) return VisibilityEffect.none;
+        return store.willChangeIfTopicVisibleInStream(event);
+
+      case TopicNarrow():
+      case DmNarrow():
+      case MentionsNarrow():
+        return VisibilityEffect.none;
+    }
+  }
+
   /// Whether [_messageVisible] is true for all possible messages.
   ///
   /// This is useful for an optimization.
@@ -474,6 +525,31 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         _updateEndMarkers();
         notifyListeners();
       }
+    }
+  }
+
+  void handleUserTopicEvent(UserTopicEvent event) {
+    switch (_canAffectVisibility(event)) {
+      case VisibilityEffect.none:
+        return;
+
+      case VisibilityEffect.muted:
+        if (_removeMessagesWhere((message) =>
+            (message is StreamMessage
+             && message.streamId == event.streamId
+             && message.topic == event.topicName))) {
+          notifyListeners();
+        }
+
+      case VisibilityEffect.unmuted:
+        // TODO get the newly-unmuted messages from the message store
+        // For now, we simplify the task by just refetching this message list
+        // from scratch.
+        if (fetched) {
+          _reset();
+          notifyListeners();
+          fetchInitial();
+        }
     }
   }
 

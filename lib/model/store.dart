@@ -503,6 +503,8 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
 
       case UserTopicEvent():
         assert(debugLog("server event: user_topic"));
+        _messages.handleUserTopicEvent(event);
+        // Update _channels last, so other handlers can compare to the old value.
         _channels.handleUserTopicEvent(event);
         notifyListeners();
 

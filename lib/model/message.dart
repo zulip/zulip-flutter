@@ -82,6 +82,12 @@ class MessageStoreImpl with MessageStore {
     }
   }
 
+  void handleUserTopicEvent(UserTopicEvent event) {
+    for (final view in _messageListViews) {
+      view.handleUserTopicEvent(event);
+    }
+  }
+
   void handleMessageEvent(MessageEvent event) {
     // If the message is one we already know about (from a fetch),
     // clobber it with the one from the event system.

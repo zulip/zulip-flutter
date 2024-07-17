@@ -311,6 +311,179 @@ void main() {
     check(model).fetched.isFalse();
   });
 
+  group('UserTopicEvent', () {
+    // The ChannelStore.willChangeIfTopicVisible/InStream methods have their own
+    // thorough unit tests.  So these tests focus on the rest of the logic.
+
+    final stream = eg.stream();
+    const String topic = 'foo';
+
+    Future<void> setVisibility(UserTopicVisibilityPolicy policy) async {
+      await store.handleEvent(eg.userTopicEvent(stream.streamId, topic, policy));
+    }
+
+    /// (Should run after `prepare`.)
+    Future<void> prepareMutes([
+      bool streamMuted = false,
+      UserTopicVisibilityPolicy policy = UserTopicVisibilityPolicy.none,
+    ]) async {
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream, isMuted: streamMuted));
+      await setVisibility(policy);
+    }
+
+    void checkHasMessageIds(Iterable<int> messageIds) {
+      check(model.messages.map((m) => m.id)).deepEquals(messageIds);
+    }
+
+    test('mute a visible topic', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes();
+      final otherStream = eg.stream();
+      await store.addStream(otherStream);
+      await store.addSubscription(eg.subscription(otherStream));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
+        eg.streamMessage(id: 2, stream: stream, topic: topic),
+        eg.streamMessage(id: 3, stream: otherStream, topic: 'elsewhere'),
+        eg.dmMessage(    id: 4, from: eg.otherUser, to: [eg.selfUser]),
+      ]);
+      checkHasMessageIds([1, 2, 3, 4]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 3, 4]);
+    });
+
+    test('in CombinedFeedNarrow, use combined-feed visibility', () async {
+      // Compare the parallel ChannelNarrow test below.
+      await prepare(narrow: const CombinedFeedNarrow());
+      // Mute the stream, so that combined-feed vs. stream visibility differ.
+      await prepareMutes(true, UserTopicVisibilityPolicy.followed);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: topic),
+      ]);
+      checkHasMessageIds([1]);
+
+      // Dropping from followed to none hides the message
+      // (whereas it'd have no effect in a stream narrow).
+      await setVisibility(UserTopicVisibilityPolicy.none);
+      checkNotifiedOnce();
+      checkHasMessageIds([]);
+
+      // Dropping from none to muted has no further effect
+      // (whereas it'd hide the message in a stream narrow).
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([]);
+    });
+
+    test('in ChannelNarrow, use stream visibility', () async {
+      // Compare the parallel CombinedFeedNarrow test above.
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      // Mute the stream, so that combined-feed vs. stream visibility differ.
+      await prepareMutes(true, UserTopicVisibilityPolicy.followed);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: topic),
+      ]);
+      checkHasMessageIds([1]);
+
+      // Dropping from followed to none has no effect
+      // (whereas it'd hide the message in the combined feed).
+      await setVisibility(UserTopicVisibilityPolicy.none);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+
+      // Dropping from none to muted hides the message
+      // (whereas it'd have no effect in a stream narrow).
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotifiedOnce();
+      checkHasMessageIds([]);
+    });
+
+    test('in TopicNarrow, stay visible', () async {
+      await prepare(narrow: TopicNarrow(stream.streamId, topic));
+      await prepareMutes();
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: topic),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('in DmNarrow, do nothing (smoke test)', () async {
+      await prepare(narrow:
+        DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      await prepareMutes();
+      await prepareMessages(foundOldest: true, messages: [
+        eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('no affected messages -> no notification', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes();
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('unmute a topic -> refetch from scratch', () => awaitFakeAsync((async) async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes(true);
+      final messages = [
+        eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
+        eg.streamMessage(id: 2, stream: stream, topic: topic),
+      ];
+      await prepareMessages(foundOldest: true, messages: messages);
+      checkHasMessageIds([1]);
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      await setVisibility(UserTopicVisibilityPolicy.unmuted);
+      checkNotifiedOnce();
+      check(model).fetched.isFalse();
+      checkHasMessageIds([]);
+
+      async.elapse(Duration.zero);
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 2]);
+    }));
+
+    test('unmute a topic before initial fetch completes -> do nothing', () => awaitFakeAsync((async) async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes(true);
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream, topic: topic),
+      ];
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      final fetchFuture = model.fetchInitial();
+
+      await setVisibility(UserTopicVisibilityPolicy.unmuted);
+      checkNotNotified();
+
+      // The new policy does get applied when the fetch eventually completes.
+      await fetchFuture;
+      checkNotifiedOnce();
+      checkHasMessageIds([1]);
+    }));
+  });
+
   group('DeleteMessageEvent', () {
     final stream = eg.stream();
     final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
