@@ -916,7 +916,7 @@ void main() {
         await tester.pumpAndSettle(); // process pending timers
       });
 
-      testWidgets('markAllMessagesAsRead uses is:unread optimization', (WidgetTester tester) async {
+      testWidgets('markNarrowAsRead uses is:unread optimization', (WidgetTester tester) async {
         const narrow = CombinedFeedNarrow();
         await setupMessageListPage(tester,
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
