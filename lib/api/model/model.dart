@@ -481,7 +481,6 @@ sealed class Message {
   final String senderRealmStr;
   @JsonKey(name: 'subject')
   String topic;
-  // final List<string> submessages; // TODO handle
   final int timestamp;
   String get type;
 
