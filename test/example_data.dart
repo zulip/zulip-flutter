@@ -559,6 +559,14 @@ ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
   );
 }
 
+final pollWidgetDataFavoriteLetter = {
+  'widget_type': 'poll',
+  'extra_data': {
+    'question': 'favorite letter',
+    'options': ['A', 'B', 'C'],
+  }
+};
+
 ////////////////////////////////////////////////////////////////
 // The entire per-account or global state.
 //
