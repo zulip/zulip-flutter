@@ -30,7 +30,6 @@ import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../flutter_checks.dart';
-import '../model/unreads_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_checks.dart';
@@ -882,6 +881,10 @@ void main() {
     });
 
     group('onPressed behavior', () {
+      // The markNarrowAsRead function has detailed unit tests of its own.
+      // These tests cover functionality that's outside that function,
+      // and a couple of smoke tests showing this button is wired up to it.
+
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(streams: [
         UnreadStreamSnapshot(streamId: message.streamId, topic: message.topic,
@@ -916,34 +919,7 @@ void main() {
         await tester.pumpAndSettle(); // process pending timers
       });
 
-      testWidgets('markNarrowAsRead uses is:unread optimization', (WidgetTester tester) async {
-        const narrow = CombinedFeedNarrow();
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-          processedCount: 11, updatedCount: 3,
-          firstProcessedId: null, lastProcessedId: null,
-          foundOldest: true, foundNewest: true).toJson());
-        await tester.tap(find.byType(MarkAsReadWidget));
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields.deepEquals({
-              'anchor': 'oldest',
-              'include_anchor': 'false',
-              'num_before': '0',
-              'num_after': '1000',
-              'narrow': json.encode([{'operator': 'is', 'operand': 'unread'}]),
-              'op': 'add',
-              'flag': 'read',
-            });
-
-        await tester.pumpAndSettle(); // process pending timers
-      });
-
-      testWidgets('markNarrowAsRead pagination', (WidgetTester tester) async {
+      testWidgets('pagination', (WidgetTester tester) async {
         // Check that `lastProcessedId` returned from an initial
         // response is used as `anchorId` for the subsequent request.
         final narrow = TopicNarrow.ofMessage(message);
@@ -956,19 +932,10 @@ void main() {
           firstProcessedId: 1, lastProcessedId: 1989,
           foundOldest: true, foundNewest: false).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields.deepEquals({
-              'anchor': 'oldest',
-              'include_anchor': 'false',
-              'num_before': '0',
-              'num_after': '1000',
-              'narrow': jsonEncode(apiNarrow),
-              'op': 'add',
-              'flag': 'read',
-            });
+          ..bodyFields['anchor'].equals('oldest');
 
         connection.prepare(json: UpdateMessageFlagsForNarrowResult(
           processedCount: 20, updatedCount: 10,
@@ -979,15 +946,7 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields.deepEquals({
-              'anchor': '1989',
-              'include_anchor': 'false',
-              'num_before': '0',
-              'num_after': '1000',
-              'narrow': jsonEncode(apiNarrow),
-              'op': 'add',
-              'flag': 'read',
-            });
+          ..bodyFields['anchor'].equals('1989');
       });
 
       testWidgets('markNarrowAsRead on mark-all-as-read when Unreads.oldUnreadsMissing: true', (tester) async {
@@ -1004,128 +963,6 @@ void main() {
         await tester.tap(find.byType(MarkAsReadWidget));
         await tester.pumpAndSettle();
         check(store.unreads.oldUnreadsMissing).isFalse();
-      });
-
-      testWidgets('markNarrowAsRead on invalid response', (WidgetTester tester) async {
-        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-        final narrow = TopicNarrow.ofMessage(message);
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-          processedCount: 1000, updatedCount: 0,
-          firstProcessedId: null, lastProcessedId: null,
-          foundOldest: true, foundNewest: false).toJson());
-        await tester.tap(find.byType(MarkAsReadWidget));
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields.deepEquals({
-              'anchor': 'oldest',
-              'include_anchor': 'false',
-              'num_before': '0',
-              'num_after': '1000',
-              'narrow': jsonEncode(apiNarrow),
-              'op': 'add',
-              'flag': 'read',
-            });
-
-        await tester.pumpAndSettle();
-        checkErrorDialog(tester,
-          expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
-          expectedMessage: zulipLocalizations.errorInvalidResponse);
-      });
-
-      testWidgets('CombinedFeedNarrow on legacy server', (WidgetTester tester) async {
-        const narrow = CombinedFeedNarrow();
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        // Might as well test with oldUnreadsMissing: true.
-        store.unreads.oldUnreadsMissing = true;
-
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json: {});
-        await tester.tap(find.byType(MarkAsReadWidget));
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/mark_all_as_read')
-          ..bodyFields.deepEquals({});
-
-        await tester.pumpAndSettle(); // process pending timers
-
-        // Check that [Unreads.handleAllMessagesReadSuccess] wasn't called;
-        // in the legacy protocol, that'd be redundant with the mark-read event.
-        check(store.unreads).oldUnreadsMissing.isTrue();
-      });
-
-      testWidgets('StreamNarrow on legacy server', (WidgetTester tester) async {
-        final narrow = StreamNarrow(message.streamId);
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json: {});
-        await tester.tap(find.byType(MarkAsReadWidget));
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/mark_stream_as_read')
-          ..bodyFields.deepEquals({
-              'stream_id': message.streamId.toString(),
-            });
-
-        await tester.pumpAndSettle(); // process pending timers
-      });
-
-      testWidgets('TopicNarrow on legacy server', (WidgetTester tester) async {
-        final narrow = TopicNarrow.ofMessage(message);
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json: {});
-        await tester.tap(find.byType(MarkAsReadWidget));
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/mark_topic_as_read')
-          ..bodyFields.deepEquals({
-              'stream_id': narrow.streamId.toString(),
-              'topic_name': narrow.topic,
-            });
-
-        await tester.pumpAndSettle(); // process pending timers
-      });
-
-      testWidgets('DmNarrow on legacy server', (WidgetTester tester) async {
-        final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-        final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
-        final unreadMsgs = eg.unreadMsgs(dms: [
-          UnreadDmSnapshot(otherUserId: eg.otherUser.userId,
-            unreadMessageIds: [message.id]),
-        ]);
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json:
-          UpdateMessageFlagsResult(messages: [message.id]).toJson());
-        await tester.tap(find.byType(MarkAsReadWidget));
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags')
-          ..bodyFields.deepEquals({
-              'messages': jsonEncode([message.id]),
-              'op': 'add',
-              'flag': 'read',
-            });
-
-        await tester.pumpAndSettle(); // process pending timers
       });
 
       testWidgets('catch-all api errors', (WidgetTester tester) async {
