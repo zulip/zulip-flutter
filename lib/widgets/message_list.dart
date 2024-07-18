@@ -277,11 +277,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               context: context,
 
               // The compose box, when present, pads the bottom inset.
-              // TODO this copies the details of when the compose box is shown;
-              //   if those details get complicated, refactor to avoid copying.
               // TODO(#311) If we have a bottom nav, it will pad the bottom
               //   inset, and this should always be true.
-              removeBottom: widget.narrow is! CombinedFeedNarrow,
+              removeBottom: ComposeBox.hasComposeBox(widget.narrow),
 
               child: Expanded(
                 child: MessageList(narrow: widget.narrow))),
@@ -514,7 +512,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           return _buildItem(data, i);
         }));
 
-    if (widget.narrow is CombinedFeedNarrow) {
+    if (!ComposeBox.hasComposeBox(widget.narrow)) {
       // TODO(#311) If we have a bottom nav, it will pad the bottom
       //   inset, and this shouldn't be necessary
       sliver = SliverSafeArea(sliver: sliver);

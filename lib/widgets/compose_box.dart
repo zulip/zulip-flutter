@@ -1023,6 +1023,18 @@ class ComposeBox extends StatelessWidget {
   final GlobalKey<ComposeBoxController>? controllerKey;
   final Narrow narrow;
 
+  static bool hasComposeBox(Narrow narrow) {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+        return false;
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final narrow = this.narrow;
