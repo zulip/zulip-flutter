@@ -1,8 +1,11 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
@@ -61,7 +64,44 @@ void main() {
     expectErrorFromText('email@example.com', ServerUrlValidationError.noUseEmail);
   });
 
-  // TODO test AddAccountPage
+  group('AddAccountPage server URL helper text', () {
+    Future<void> prepareAddAccountPage(WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
+        home: AddAccountPage(),
+      ));
+    }
+
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+    Future<Finder> findHelperText(WidgetTester tester) async {
+      return find.text(zulipLocalizations.serverUrlDocLinkLabel);
+    }
+
+    testWidgets('launches URL when helper text is tapped', (tester) async {
+      await prepareAddAccountPage(tester);
+      await tester.tap(await findHelperText(tester));
+
+      check(testBinding.takeLaunchUrlCalls()).single.equals((
+        url: AddAccountPage.serverUrlHelpUrl,
+        mode: LaunchMode.platformDefault,
+      ));
+    });
+
+    testWidgets('shows error dialog when URL fails to open', (tester) async {
+      await prepareAddAccountPage(tester);
+      testBinding.launchUrlResult = false;
+      await tester.tap(await findHelperText(tester));
+      await tester.pump();
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorUnableToOpenLinkTitle,
+        expectedMessage: zulipLocalizations.errorUnableToOpenLinkMessage(
+          AddAccountPage.serverUrlHelpUrl.toString(),
+        ))));
+    });
+  });
 
   group('LoginPage', () {
     late FakeApiConnection connection;

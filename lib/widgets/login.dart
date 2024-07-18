@@ -15,6 +15,7 @@ import '../model/store.dart';
 import 'app.dart';
 import 'dialog.dart';
 import 'input.dart';
+import 'launch_url.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -107,6 +108,9 @@ class ServerUrlTextEditingController extends TextEditingController {
 
 class AddAccountPage extends StatefulWidget {
   const AddAccountPage({super.key});
+
+  static final Uri serverUrlHelpUrl =
+    Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url');
 
   static Route<void> buildRoute() {
     return _LoginSequenceRoute(page: const AddAccountPage());
@@ -213,7 +217,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              // TODO(#109) Link to doc about what a "server URL" is and how to find it
               // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
               TextField(
                 controller: _controller,
@@ -229,7 +232,17 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 decoration: InputDecoration(
                   labelText: zulipLocalizations.loginServerUrlInputLabel,
                   errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
+                  helper: GestureDetector(
+                    onTap: () {
+                      launchUrlWithoutRealm(context, AddAccountPage.serverUrlHelpUrl);
+                    },
+                    child: Text(
+                      // Restate Material default
+                      // (`_InputDecoratorDefaultsM3.helperText` upstream)…
+                      style: Theme.of(context).textTheme.bodySmall!
+                        // …but use blue because this is a link.
+                        .apply(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()),
+                      zulipLocalizations.serverUrlDocLinkLabel)),
                   hintText: 'your-org.zulipchat.com')),
               const SizedBox(height: 8),
               ElevatedButton(
