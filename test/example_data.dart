@@ -408,6 +408,14 @@ DmMessage dmMessage({
   }) as Map<String, dynamic>);
 }
 
+const pollWidgetDataFavoriteLetter = {
+  'widget_type': 'poll',
+  'extra_data': {
+    'question': 'favorite letter',
+    'options': ['A', 'B', 'C'],
+  }
+};
+
 ////////////////////////////////////////////////////////////////
 // Aggregate data structures.
 //

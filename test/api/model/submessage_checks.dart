@@ -7,3 +7,33 @@ extension SubmessageChecks on Subject<Submessage> {
   Subject<Object?> get content => has((e) => e.content, 'content');
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
 }
+
+extension WidgetDataChecks on Subject<WidgetData> {
+  Subject<WidgetType> get widgetType => has((e) => e.widgetType, 'widgetType');
+}
+
+extension PollWidgetDataChecks on Subject<PollWidgetData> {
+  Subject<PollWidgetExtraData> get extraData => has((e) => e.extraData, 'extraData');
+}
+
+extension PollWidgetExtraDataChecks on Subject<PollWidgetExtraData> {
+  Subject<String> get question => has((e) => e.question, 'question');
+  Subject<List<String>> get options => has((e) => e.options, 'options');
+}
+
+extension PollEventChecks on Subject<PollEventSubmessage> {
+  Subject<PollEventSubmessageType> get type => has((e) => e.type, 'type');
+}
+
+extension PollOptionEventChecks on Subject<PollNewOptionEventSubmessage> {
+  Subject<String> get option => has((e) => e.option, 'option');
+}
+
+extension PollQuestionEventChecks on Subject<PollQuestionEventSubmessage> {
+  Subject<String> get question => has((e) => e.question, 'question');
+}
+
+extension PollVoteEventChecks on Subject<PollVoteEventSubmessage> {
+  Subject<String> get key => has((e) => e.key, 'key');
+  Subject<PollVoteOp> get op => has((e) => e.op, 'op');
+}
