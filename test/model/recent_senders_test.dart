@@ -77,60 +77,42 @@ void main() {
     }
 
     group('single tracker', () {
-      test('batch goes before the existing messages', () {
+      void checkHandleMessagesSingle(List<int> oldIds, List<int> newIds) {
         checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
+          for (final id in oldIds)
+            eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: id),
         ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
+          for (final id in newIds)
+            eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: id),
         ]);
+      }
+
+      test('batch goes before the existing messages', () {
+        checkHandleMessagesSingle([300, 400], [100, 200]);
       });
 
       test('batch goes after the existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 600),
-        ]);
+        checkHandleMessagesSingle([300, 400], [500, 600]);
       });
 
       test('batch is interspersed among the existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-        ]);
+        checkHandleMessagesSingle([200, 400], [100, 300, 500]);
       });
 
       test('batch contains some of already-existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-        ]);
+        checkHandleMessagesSingle([200, 300, 400], [100, 200, 400, 500]);
       });
+    });
 
-      test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 400),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-        ]);
-      });
+    test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
+      checkHandleMessages([
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
+      ], [
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 400),
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
+      ]);
     });
 
     group('multiple trackers', () {
