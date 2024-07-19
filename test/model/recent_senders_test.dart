@@ -57,10 +57,10 @@ void main() {
 
   group('RecentSenders.handleMessages', () {
     late RecentSenders model;
-    final stream1 = eg.stream(streamId: 1);
-    final stream2 = eg.stream(streamId: 2);
-    final user10 = eg.user(userId: 10);
-    final user20 = eg.user(userId: 20);
+    final streamA = eg.stream();
+    final streamB = eg.stream();
+    final userX = eg.user();
+    final userY = eg.user();
 
     void setupModel(List<Message> messages) {
       model = RecentSenders();
@@ -81,10 +81,10 @@ void main() {
       void checkHandleMessagesSingle(List<int> oldIds, List<int> newIds) {
         checkHandleMessages([
           for (final id in oldIds)
-            eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: id),
+            eg.streamMessage(stream: streamA, topic: 'a', sender: userX, id: id),
         ], [
           for (final id in newIds)
-            eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: id),
+            eg.streamMessage(stream: streamA, topic: 'a', sender: userX, id: id),
         ]);
       }
 
@@ -107,51 +107,51 @@ void main() {
 
     test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
       checkHandleMessages([], [
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
+        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
+        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
       ]);
     });
 
     test('add new sender', () {
       checkHandleMessages(
-        [eg.streamMessage(stream: stream1, topic: 'a', sender: user10)],
-        [eg.streamMessage(stream: stream1, topic: 'a', sender: user20)]);
+        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userY)]);
     });
 
     test('add new topic', () {
       checkHandleMessages(
-        [eg.streamMessage(stream: stream1, topic: 'a', sender: user10)],
-        [eg.streamMessage(stream: stream1, topic: 'b', sender: user10)]);
+        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.streamMessage(stream: streamA, topic: 'other', sender: userX)]);
     });
 
     test('add new stream', () {
       checkHandleMessages(
-        [eg.streamMessage(stream: stream1, topic: 'a', sender: user10)],
-        [eg.streamMessage(stream: stream2, topic: 'a', sender: user10)]);
+        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.streamMessage(stream: streamB, topic: 'thing', sender: userX)]);
     });
 
     test('multiple conversations and senders interspersed', () {
       checkHandleMessages([], [
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
-        eg.streamMessage(stream: stream1, topic: 'b', sender: user10),
-        eg.streamMessage(stream: stream2, topic: 'a', sender: user10),
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user20),
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
+        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
+        eg.streamMessage(stream: streamA, topic: 'other', sender: userX),
+        eg.streamMessage(stream: streamB, topic: 'thing', sender: userX),
+        eg.streamMessage(stream: streamA, topic: 'thing', sender: userY),
+        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
       ]);
     });
   });
 
   test('RecentSenders.handleDeleteMessageEvent', () {
     final model = RecentSenders();
-    final stream1 = eg.stream(streamId: 1);
-    final user1 = eg.user(userId: 1);
-    final user2 = eg.user(userId: 2);
+    final stream = eg.stream();
+    final userX = eg.user();
+    final userY = eg.user();
 
     final messages = [
-      eg.streamMessage(stream: stream1, topic: 'a', sender: user1, id: 100),
-      eg.streamMessage(stream: stream1, topic: 'b', sender: user1, id: 200),
-      eg.streamMessage(stream: stream1, topic: 'a', sender: user2, id: 300),
+      eg.streamMessage(stream: stream, topic: 'thing', sender: userX),
+      eg.streamMessage(stream: stream, topic: 'other', sender: userX),
+      eg.streamMessage(stream: stream, topic: 'thing', sender: userY),
     ];
 
     model.handleMessages(messages);
