@@ -545,5 +545,13 @@
   "messageIsMovedLabel": "MOVED",
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "pollWidgetQuestionMissing": "No question.",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "pollWidgetOptionsMissing": "This poll has no options yet.",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
   }
 }
