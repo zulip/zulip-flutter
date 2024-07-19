@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -571,26 +572,31 @@ class MessageImage extends StatelessWidget {
     final message = InheritedMessage.of(context);
 
     // TODO image hover animation
-    final src = node.srcUrl;
-
+    final srcUrl = node.srcUrl;
+    final thumbnailUrl = node.thumbnailUrl;
     final store = PerAccountStoreWidget.of(context);
-    final resolvedSrc = store.tryResolveUrl(src);
+    final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
+    final resolvedThumbnailUrl = thumbnailUrl == null
+      ? null : store.tryResolveUrl(thumbnailUrl);
+
     // TODO if src fails to parse, show an explicit "broken image"
 
     return MessageMediaContainer(
-      onTap: resolvedSrc == null ? null : () { // TODO(log)
+      onTap: resolvedSrcUrl == null ? null : () { // TODO(log)
         Navigator.of(context).push(getLightboxRoute(
           context: context,
           message: message,
-          src: resolvedSrc,
+          src: resolvedSrcUrl,
           mediaType: MediaType.image));
       },
-      child: resolvedSrc == null ? null : LightboxHero(
-        message: message,
-        src: resolvedSrc,
-        child: RealmContentNetworkImage(
-          resolvedSrc,
-          filterQuality: FilterQuality.medium)));
+      child: node.loading
+        ? const CupertinoActivityIndicator()
+        : resolvedSrcUrl == null ? null : LightboxHero(
+            message: message,
+            src: resolvedSrcUrl,
+            child: RealmContentNetworkImage(
+              resolvedThumbnailUrl ?? resolvedSrcUrl,
+              filterQuality: FilterQuality.medium)));
   }
 }
 

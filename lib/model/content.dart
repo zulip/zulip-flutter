@@ -351,26 +351,51 @@ class ImageNodeList extends BlockContentNode {
 }
 
 class ImageNode extends BlockContentNode {
-  const ImageNode({super.debugHtmlNode, required this.srcUrl});
+  const ImageNode({
+    super.debugHtmlNode,
+    required this.srcUrl,
+    required this.thumbnailUrl,
+    required this.loading,
+  });
 
-  /// The unmodified `src` attribute for the image.
+  /// The canonical source URL of the image.
   ///
-  /// This may be a relative URL string.  It also may not work without adding
+  /// This may be a relative URL string. It also may not work without adding
   /// authentication credentials to the request.
   final String srcUrl;
 
+  /// The thumbnail URL of the image.
+  ///
+  /// This may be a relative URL string. It also may not work without adding
+  /// authentication credentials to the request.
+  ///
+  /// This will be null if the server hasn't yet generated a thumbnail,
+  /// or is a version that doesn't offer thumbnails.
+  /// It will also be null when [loading] is true.
+  final String? thumbnailUrl;
+
+  /// A flag to indicate whether to show the placeholder.
+  ///
+  /// Typically it will be `true` while Server is generating thumbnails.
+  final bool loading;
+
   @override
   bool operator ==(Object other) {
-    return other is ImageNode && other.srcUrl == srcUrl;
+    return other is ImageNode
+      && other.srcUrl == srcUrl
+      && other.thumbnailUrl == thumbnailUrl
+      && other.loading == loading;
   }
 
   @override
-  int get hashCode => Object.hash('ImageNode', srcUrl);
+  int get hashCode => Object.hash('ImageNode', srcUrl, thumbnailUrl, loading);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('srcUrl', srcUrl));
+    properties.add(StringProperty('thumbnailUrl', thumbnailUrl));
+    properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
   }
 }
 
@@ -1014,7 +1039,7 @@ class _ZulipContentParser {
 
   BlockContentNode parseImageNode(dom.Element divElement) {
     assert(_debugParserContext == _ParserContext.block);
-    final imgElement = () {
+    final elements = () {
       assert(divElement.localName == 'div'
           && divElement.className == 'message_inline_image');
 
@@ -1028,21 +1053,51 @@ class _ZulipContentParser {
       final grandchild = child.nodes[0];
       if (grandchild is! dom.Element) return null;
       if (grandchild.localName != 'img') return null;
-      if (grandchild.className.isNotEmpty) return null;
-      return grandchild;
+      return (child, grandchild);
     }();
 
     final debugHtmlNode = kDebugMode ? divElement : null;
-    if (imgElement == null) {
+    if (elements == null) {
       return UnimplementedBlockContentNode(htmlNode: divElement);
     }
 
+    final (linkElement, imgElement) = elements;
+    final href = linkElement.attributes['href'];
+    if (href == null) {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+    if (imgElement.className == 'image-loading-placeholder') {
+      return ImageNode(
+        srcUrl: href,
+        thumbnailUrl: null,
+        loading: true,
+        debugHtmlNode: debugHtmlNode);
+    }
     final src = imgElement.attributes['src'];
     if (src == null) {
       return UnimplementedBlockContentNode(htmlNode: divElement);
     }
 
-    return ImageNode(srcUrl: src, debugHtmlNode: debugHtmlNode);
+    final String srcUrl;
+    final String? thumbnailUrl;
+    if (src.startsWith('/user_uploads/thumbnail/')) {
+      srcUrl = href;
+      thumbnailUrl = src;
+    } else if (src.startsWith('/external_content/')
+        || src.startsWith('https://uploads.zulipusercontent.net/')) {
+      srcUrl = src;
+      thumbnailUrl = null;
+    } else if (href == src)  {
+      srcUrl = src;
+      thumbnailUrl = null;
+    } else {
+      return UnimplementedBlockContentNode(htmlNode: divElement);
+    }
+    return ImageNode(
+      srcUrl: srcUrl,
+      thumbnailUrl: thumbnailUrl,
+      loading: false,
+      debugHtmlNode: debugHtmlNode);
   }
 
   static final _videoClassNameRegexp = () {

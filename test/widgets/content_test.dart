@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -312,7 +313,23 @@ void main() {
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => eg.realmUrl.resolve(n.thumbnailUrl!).toString()));
+    });
+
+    testWidgets('single image no thumbnail', (tester) async {
+      const example = ContentExample.imageSingleNoThumbnail;
+      await prepare(tester, example.html);
+      final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
         .deepEquals(expectedImages.map((n) => n.srcUrl));
+    });
+
+    testWidgets('single image loading placeholder', (tester) async {
+      const example = ContentExample.imageSingleLoadingPlaceholder;
+      await prepare(tester, example.html);
+      await tester.ensureVisible(find.byType(CupertinoActivityIndicator));
     });
 
     testWidgets('image with invalid src URL', (tester) async {
@@ -329,6 +346,16 @@ void main() {
 
     testWidgets('multiple images', (tester) async {
       const example = ContentExample.imageCluster;
+      await prepare(tester, example.html);
+      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
+      final images = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(images.map((i) => i.src.toString()).toList())
+        .deepEquals(expectedImages.map((n) => eg.realmUrl.resolve(n.thumbnailUrl!).toString()));
+    });
+
+    testWidgets('multiple images no thumbnails', (tester) async {
+      const example = ContentExample.imageClusterNoThumbnails;
       await prepare(tester, example.html);
       final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
       final images = tester.widgetList<RealmContentNetworkImage>(
