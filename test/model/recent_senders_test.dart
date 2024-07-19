@@ -71,8 +71,7 @@ void main() {
       setupModel(oldMessages);
       model.handleMessages(newMessages);
       final expectedMessages = [...oldMessages, ...newMessages]
-        ..removeWhere((m) => m is! StreamMessage)
-        ..sort((m1, m2) => m1.id.compareTo(m2.id));
+        ..removeWhere((m) => m is! StreamMessage);
       checkMatchesMessages(model, expectedMessages);
     }
 
