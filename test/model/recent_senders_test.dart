@@ -58,7 +58,9 @@ void main() {
   group('RecentSenders.handleMessages', () {
     late RecentSenders model;
     final stream1 = eg.stream(streamId: 1);
+    final stream2 = eg.stream(streamId: 2);
     final user10 = eg.user(userId: 10);
+    final user20 = eg.user(userId: 20);
 
     void setupModel(List<Message> messages) {
       model = RecentSenders();
@@ -104,75 +106,39 @@ void main() {
     });
 
     test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
-      checkHandleMessages([
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-      ], [
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 400),
-        eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
+      checkHandleMessages([], [
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
       ]);
     });
 
-    group('multiple trackers', () {
-      test('batch goes before the existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 500),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 600),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-        ]);
-      });
+    test('add new sender', () {
+      checkHandleMessages(
+        [eg.streamMessage(stream: stream1, topic: 'a', sender: user10)],
+        [eg.streamMessage(stream: stream1, topic: 'a', sender: user20)]);
+    });
 
-      test('batch goes after the existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 600),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 700),
-        ]);
-      });
+    test('add new topic', () {
+      checkHandleMessages(
+        [eg.streamMessage(stream: stream1, topic: 'a', sender: user10)],
+        [eg.streamMessage(stream: stream1, topic: 'b', sender: user10)]);
+    });
 
-      test('batch is interspersed among the existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 500),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 700),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 600),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 800),
-        ]);
-      });
+    test('add new stream', () {
+      checkHandleMessages(
+        [eg.streamMessage(stream: stream1, topic: 'a', sender: user10)],
+        [eg.streamMessage(stream: stream2, topic: 'a', sender: user10)]);
+    });
 
-      test('batch contains some of already-existing messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 300),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 500),
-        ]);
-      });
-
-      test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
-        checkHandleMessages([
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 200),
-        ], [
-          eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 200),
-          eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-        ]);
-      });
+    test('multiple conversations and senders interspersed', () {
+      checkHandleMessages([], [
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
+        eg.streamMessage(stream: stream1, topic: 'b', sender: user10),
+        eg.streamMessage(stream: stream2, topic: 'a', sender: user10),
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user20),
+        eg.streamMessage(stream: stream1, topic: 'a', sender: user10),
+      ]);
     });
   });
 
