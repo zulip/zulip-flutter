@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../log.dart';
+import 'events.dart';
 
 part 'submessage.g.dart';
 
@@ -401,6 +402,17 @@ class Poll {
   /// Contains the text of all options from [_options].
   final Set<String> _existingOptionTexts = {};
   final Map<PollOptionKey, PollOption> _options = {};
+
+  void handleSubmessageEvent(SubmessageEvent event) {
+    final PollEventSubmessage? pollEventSubmessage;
+    try {
+      pollEventSubmessage = PollEventSubmessage.fromJson(jsonDecode(event.content) as Map<String, Object?>);
+    } catch (e) {
+      assert(debugLog('Malformed submessage event data for poll: $e\n${jsonEncode(event)}')); // TODO(log)
+      return;
+    }
+    _applyEvent(event.senderId, pollEventSubmessage);
+  }
 
   void _applyEvent(int senderId, PollEventSubmessage event) {
     switch (event) {

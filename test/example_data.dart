@@ -647,6 +647,21 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
     })));
 }
 
+SubmessageEvent submessageEvent(
+  int messageId,
+  int senderId, {
+  required SubmessageData? content,
+}) {
+  return SubmessageEvent(
+    id: 0,
+    msgType: SubmessageType.widget,
+    content: jsonEncode(content),
+    messageId: messageId,
+    senderId: senderId,
+    submessageId: 100,
+  );
+}
+
 TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
   switch (narrow) {
     case TopicNarrow():

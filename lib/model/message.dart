@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../log.dart';
@@ -305,6 +307,23 @@ class MessageStoreImpl with MessageStore {
           userId: event.userId,
         );
     }
+
+    for (final view in _messageListViews) {
+      view.notifyListenersIfMessagePresent(event.messageId);
+    }
+  }
+
+  void handleSubmessageEvent(SubmessageEvent event) {
+    final message = messages[event.messageId];
+    if (message == null) return;
+
+    final poll = message.poll;
+    if (poll == null) {
+      assert(debugLog('Missing poll for submessage event:\n${jsonEncode(event)}')); // TODO(log)
+      return;
+    }
+
+    poll.handleSubmessageEvent(event);
 
     for (final view in _messageListViews) {
       view.notifyListenersIfMessagePresent(event.messageId);

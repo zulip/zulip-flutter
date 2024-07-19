@@ -592,6 +592,231 @@ void main() {
     Subject<Poll> checkPoll(Message message) =>
       check(store.messages[message.id]).isNotNull().poll.isNotNull();
 
+    group('handleSubmessageEvent', () {
+      Future<Message> preparePollMessage({
+        String? question,
+        List<PollOption>? options,
+        User? messageSender,
+      }) async {
+        final effectiveMessageSender = messageSender ?? eg.selfUser;
+        final message = eg.streamMessage(sender: effectiveMessageSender);
+        final submessages = [
+          eg.submessage(senderId: effectiveMessageSender.userId,
+            content: eg.pollWidgetData(
+              question: question ?? 'example question',
+              options: (options != null)
+                ? options.map((e) => e.text).toList()
+                : ['foo', 'bar'])),
+          if (options != null)
+            for (int i = 0; i < options.length; i++)
+              ...[
+                for (final voter in options[i].voters)
+                  eg.submessage(senderId: voter,
+                    content: PollVoteEventSubmessage(
+                      key: PollEventSubmessage.optionKey(senderId: null, idx: i),
+                      op: PollVoteOp.add)),
+              ],
+        ];
+        await prepare();
+        // Perform a single-message initial message fetch for [messageList] with
+        // submessages.
+        connection.prepare(json:
+          newestResult(foundOldest: true, messages: []).toJson()
+            ..['messages'] = [{
+              ...message.toJson(),
+              "submessages": submessages.map(deepToJson).toList(),
+            }]);
+        await messageList.fetchInitial();
+        checkNotifiedOnce();
+        return message;
+      }
+
+      test('message is unknown', () async {
+        await prepare();
+        await store.handleEvent(eg.submessageEvent(1000, eg.selfUser.userId,
+          content: PollQuestionEventSubmessage(question: 'New question')));
+        checkNotNotified();
+      });
+
+      test('message has no submessages', () async {
+        final message = eg.streamMessage();
+        await prepare();
+        await prepareMessages([message]);
+        await store.handleEvent(eg.submessageEvent(message.id, eg.otherUser.userId,
+          content: PollQuestionEventSubmessage(question: 'New question')));
+        checkNotNotified();
+        check(store.messages[message.id]).isNotNull().poll.isNull();
+      });
+
+      test('ignore submessage event with malformed content', () async {
+        final message = await preparePollMessage(question: 'Old question');
+        await store.handleEvent(SubmessageEvent(
+          id: 0, msgType: SubmessageType.widget, submessageId: 123,
+          messageId: message.id,
+          senderId: eg.selfUser.userId,
+          content: jsonEncode({
+            'type': 'question',
+            // Invalid type for question
+            'question': 100,
+          })));
+        checkNotifiedOnce();
+        checkPoll(message).question.equals('Old question');
+      });
+
+      group('question event', () {
+        test('update question', () async {
+          final message = await preparePollMessage(question: 'Old question');
+          await store.handleEvent(eg.submessageEvent(message.id, eg.selfUser.userId,
+            content: PollQuestionEventSubmessage(question: 'New question')));
+          checkNotifiedOnce();
+          checkPoll(message).question.equals('New question');
+        });
+
+        test('unauthorized question edits', () async {
+          final message = await preparePollMessage(
+            question: 'Old question',
+            messageSender: eg.otherUser,
+          );
+          checkPoll(message).question.equals('Old question');
+          await store.handleEvent(eg.submessageEvent(message.id, eg.selfUser.userId,
+            content: PollQuestionEventSubmessage(question: 'edit')));
+          checkPoll(message).question.equals('Old question');
+        });
+      });
+
+      group('new option event', () {
+        late Message message;
+
+        Future<void> handleNewOptionEvent(User sender, {
+          required String option,
+          required int idx,
+        }) async {
+          await store.handleEvent(eg.submessageEvent(message.id, sender.userId,
+            content: PollNewOptionEventSubmessage(option: option, idx: idx)));
+          checkNotifiedOnce();
+        }
+
+        test('add option', () async {
+          message = await preparePollMessage(
+            options: [eg.pollOption(text: 'bar', voters: [])]);
+          await handleNewOptionEvent(eg.otherUser, option: 'baz', idx: 0);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('bar'),
+            conditionPollOption('baz'),
+          ]);
+        });
+
+        test('option with duplicate text ignored', () async {
+          message = await preparePollMessage(
+            options: [eg.pollOption(text: 'existing', voters: [])]);
+          checkPoll(message).options.deepEquals([conditionPollOption('existing')]);
+          await handleNewOptionEvent(eg.otherUser, option: 'existing', idx: 0);
+          checkPoll(message).options.deepEquals([conditionPollOption('existing')]);
+        });
+
+        test('option index limit exceeded', () async{
+          message = await preparePollMessage(
+            question: 'favorite number',
+            options: List.generate(1001, (i) => eg.pollOption(text: '$i', voters: [])),
+          );
+          checkPoll(message).options.length.equals(1001);
+          await handleNewOptionEvent(eg.otherUser, option: 'baz', idx: 1001);
+          checkPoll(message).options.length.equals(1001);
+        });
+      });
+
+      group('vote event', () {
+        late Message message;
+
+        Future<void> handleVoteEvent(String key, PollVoteOp op, User voter) async {
+          await store.handleEvent(eg.submessageEvent(message.id, voter.userId,
+            content: PollVoteEventSubmessage(key: key, op: op)));
+          checkNotifiedOnce();
+        }
+
+        test('add votes', () async {
+          message = await preparePollMessage();
+
+          String optionKey(int index) =>
+            PollEventSubmessage.optionKey(senderId: null, idx: index);
+
+          await handleVoteEvent(optionKey(0), PollVoteOp.add, eg.otherUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.otherUser.userId]),
+            conditionPollOption('bar', voters: []),
+          ]);
+
+          await handleVoteEvent(optionKey(1), PollVoteOp.add, eg.otherUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.otherUser.userId]),
+            conditionPollOption('bar', voters: [eg.otherUser.userId]),
+          ]);
+
+          await handleVoteEvent(optionKey(0), PollVoteOp.add, eg.selfUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.otherUser.userId, eg.selfUser.userId]),
+            conditionPollOption('bar', voters: [eg.otherUser.userId]),
+          ]);
+        });
+
+        test('remove votes', () async {
+          message = await preparePollMessage(options: [
+            eg.pollOption(text: 'foo', voters: [eg.otherUser.userId, eg.selfUser.userId]),
+            eg.pollOption(text: 'bar', voters: [eg.selfUser.userId]),
+          ]);
+
+          String optionKey(int index) =>
+            PollEventSubmessage.optionKey(senderId: null, idx: index);
+
+          await handleVoteEvent(optionKey(0), PollVoteOp.remove, eg.otherUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.selfUser.userId]),
+            conditionPollOption('bar', voters: [eg.selfUser.userId]),
+          ]);
+
+          await handleVoteEvent(optionKey(1), PollVoteOp.remove, eg.selfUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.selfUser.userId]),
+            conditionPollOption('bar', voters: []),
+          ]);
+        });
+
+        test('vote for unknown options', () async {
+          message = await preparePollMessage(options: [
+            eg.pollOption(text: 'foo', voters: [eg.selfUser.userId]),
+            eg.pollOption(text: 'bar', voters: []),
+          ]);
+
+          final unknownOptionKey = PollEventSubmessage.optionKey(
+            senderId: eg.selfUser.userId,
+            idx: 10,
+          );
+
+          await handleVoteEvent(unknownOptionKey, PollVoteOp.remove, eg.selfUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.selfUser.userId]),
+            conditionPollOption('bar', voters: []),
+          ]);
+
+          await handleVoteEvent(unknownOptionKey, PollVoteOp.add, eg.selfUser);
+          checkPoll(message).options.deepEquals([
+            conditionPollOption('foo', voters: [eg.selfUser.userId]),
+            conditionPollOption('bar', voters: []),
+          ]);
+        });
+
+        test('ignore invalid vote op', () async {
+          message = await preparePollMessage(
+            options: [eg.pollOption(text: 'foo', voters: [])]);
+          checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
+          await handleVoteEvent(
+            PollEventSubmessage.optionKey(senderId: null, idx: 0),
+            PollVoteOp.unknown, eg.otherUser);
+          checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
+        });
+      });
+    });
+
     group('handleMessageEvent with initial submessages', () {
       late Message message;
 

@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 import '../../model/algorithms.dart';
 import 'json.dart';
 import 'model.dart';
+import 'submessage.dart';
 
 part 'events.g.dart';
 
@@ -63,6 +64,7 @@ sealed class Event {
           case 'remove': return UpdateMessageFlagsRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'submessage': return SubmessageEvent.fromJson(json);
       case 'typing': return TypingEvent.fromJson(json);
       case 'reaction': return ReactionEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
@@ -940,6 +942,41 @@ class UpdateMessageFlagsMessageDetail {
   }
 
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsMessageDetailToJson(this);
+}
+
+/// A Zulip event of type `submessage`: https://zulip.com/api/get-events#submessage
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SubmessageEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'submessage';
+
+  @JsonKey(unknownEnumValue: SubmessageType.unknown)
+  final SubmessageType msgType;
+  /// [SubmessageData] encoded in JSON.
+  // We cannot parse the String into one of the [SubmessageData] classes because
+  // information from other submessages are required. Specifically, we need
+  // the parsed [WidgetData] from the first [Message.submessages] of the
+  // corresponding message.
+  final String content;
+  final int messageId;
+  final int senderId;
+  final int submessageId;
+
+  SubmessageEvent({
+    required super.id,
+    required this.msgType,
+    required this.content,
+    required this.messageId,
+    required this.senderId,
+    required this.submessageId,
+  });
+
+  factory SubmessageEvent.fromJson(Map<String, dynamic> json) =>
+    _$SubmessageEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SubmessageEventToJson(this);
 }
 
 /// A Zulip event of type `typing`:

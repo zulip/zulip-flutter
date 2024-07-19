@@ -537,6 +537,10 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
         _messages.handleUpdateMessageFlagsEvent(event);
         unreads.handleUpdateMessageFlagsEvent(event);
 
+      case SubmessageEvent():
+        assert(debugLog("server event: submessage ${event.content}"));
+        _messages.handleSubmessageEvent(event);
+
       case TypingEvent():
         assert(debugLog("server event: typing/${event.op} ${event.messageType}"));
         typingStatus.handleTypingEvent(event);

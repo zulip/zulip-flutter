@@ -570,6 +570,33 @@ Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
       'topic': instance.topic,
     };
 
+SubmessageEvent _$SubmessageEventFromJson(Map<String, dynamic> json) =>
+    SubmessageEvent(
+      id: (json['id'] as num).toInt(),
+      msgType: $enumDecode(_$SubmessageTypeEnumMap, json['msg_type'],
+          unknownValue: SubmessageType.unknown),
+      content: json['content'] as String,
+      messageId: (json['message_id'] as num).toInt(),
+      senderId: (json['sender_id'] as num).toInt(),
+      submessageId: (json['submessage_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SubmessageEventToJson(SubmessageEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'msg_type': _$SubmessageTypeEnumMap[instance.msgType]!,
+      'content': instance.content,
+      'message_id': instance.messageId,
+      'sender_id': instance.senderId,
+      'submessage_id': instance.submessageId,
+    };
+
+const _$SubmessageTypeEnumMap = {
+  SubmessageType.widget: 'widget',
+  SubmessageType.unknown: 'unknown',
+};
+
 TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
       id: (json['id'] as num).toInt(),
       op: $enumDecode(_$TypingOpEnumMap, json['op']),
