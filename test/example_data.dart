@@ -588,6 +588,21 @@ final pollWidgetDataFavoriteLetter = {
   }
 };
 
+SubmessageEvent submessageEvent(
+  int messageId,
+  int senderId,
+  {required Object? content}
+) {
+  return SubmessageEvent(
+    id: 1,
+    msgType: SubmessageType.widget,
+    content: deepToJson(content),
+    messageId: messageId,
+    senderId: senderId,
+    submessageId: 1,
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // The entire per-account or global state.
 //

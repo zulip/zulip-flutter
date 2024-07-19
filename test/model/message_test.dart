@@ -2,12 +2,15 @@ import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/model/widget.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
+import '../api/model/widget_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
 import 'message_list_test.dart';
@@ -551,6 +554,196 @@ void main() {
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
+    });
+  });
+
+  group('handleSubmessageEvent', () {
+    late StreamMessage streamMessage;
+
+    Future<void> preparePollMessage({List<Option>? options}) async {
+      List<Option> effectiveOptions = options
+        ?? [Option(text: 'foo'), Option(text: 'bar')];
+      const messageId = 123;
+      streamMessage = eg.streamMessage(
+        id: messageId,
+        sender: eg.selfUser,
+        submessages: [
+          eg.submessage(
+            messageId: messageId,
+            senderId: eg.selfUser.userId,
+            content: PollWidgetData(extraData: PollWidgetExtraData(
+              question: 'Favorite word',
+              options: effectiveOptions.map((e) => e.text).toList(),
+            )),
+          ),
+          for (int i = 0; i < effectiveOptions.length; i++)
+            ...[
+              for (final voter in effectiveOptions[i].voters)
+              eg.submessage(
+                messageId: messageId,
+                senderId: voter,
+                content: PollVoteEvent(
+                  key: PollEvent.optionKey(senderId: null, optionIndex: i),
+                  op: VoteOp.add,
+                )
+              )
+            ]
+        ]);
+      await prepare();
+      await prepareMessages([streamMessage]);
+    }
+
+    test('message is unknown', () async {
+      await prepare();
+      await store.handleEvent(
+        eg.submessageEvent(1000, eg.otherUser.userId, content: {})
+      );
+      checkNotNotified();
+    });
+
+    test('message has no submessages', () async {
+      final streamMessage = eg.streamMessage(id: 123);
+      await prepare();
+      await prepareMessages([streamMessage]);
+      await store.handleEvent(
+        eg.submessageEvent(
+          streamMessage.id,
+          eg.otherUser.userId,
+          content: PollQuestionEvent(question: 'New question')));
+      checkNotNotified();
+      check(store.messages[123]).isNotNull().poll.isNull();
+    });
+
+    test('ignore submessage event with malformed content', () async {
+      await preparePollMessage();
+      await store.handleEvent(
+        eg.submessageEvent(
+          streamMessage.id,
+          eg.selfUser.userId,
+          content: {
+            'type': 'question',
+            // Invalid type for question
+            'question': 123,
+          }));
+      checkNotNotified();
+      check(store.messages[123]).isNotNull().poll.isNotNull();
+    });
+
+    test('update question', () async {
+      await preparePollMessage();
+      await store.handleEvent(
+        eg.submessageEvent(
+          streamMessage.id,
+          eg.selfUser.userId,
+          content: PollQuestionEvent(question: 'New question')));
+      checkNotifiedOnce();
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .question.equals('New question');
+    });
+
+    test('add option', () async {
+      await preparePollMessage();
+      await store.handleEvent(
+        eg.submessageEvent(
+          streamMessage.id,
+          eg.otherUser.userId,
+          content: PollOptionEvent(option: 'new', latestOptionIndex: 0),
+        ));
+      checkNotifiedOnce();
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option(text: 'foo'),
+          Option(text: 'bar'),
+          Option(text: 'new'),
+        ]);
+    });
+
+    Future<void> handleVoteEvent(String key, VoteOp op, User voter) async {
+      await store.handleEvent(
+        eg.submessageEvent(
+          streamMessage.id,
+          voter.userId,
+          content: PollVoteEvent(key: key, op: op),
+        ));
+      checkNotifiedOnce();
+    }
+
+    test('add votes', () async {
+      await preparePollMessage();
+
+      String optionKey(int index) =>
+        PollEvent.optionKey(senderId: null, optionIndex: index);
+
+      await handleVoteEvent(optionKey(0), VoteOp.add, eg.otherUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.otherUser.userId]),
+          Option.withVoters('bar', []),
+        ]);
+
+      await handleVoteEvent(optionKey(1), VoteOp.add, eg.otherUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.otherUser.userId]),
+          Option.withVoters('bar', [eg.otherUser.userId]),
+        ]);
+
+      await handleVoteEvent(optionKey(0), VoteOp.add, eg.selfUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.otherUser.userId, eg.selfUser.userId]),
+          Option.withVoters('bar', [eg.otherUser.userId]),
+        ]);
+    });
+
+    test('remove votes', () async {
+      await preparePollMessage(options: [
+        Option.withVoters('foo', [eg.otherUser.userId, eg.selfUser.userId]),
+        Option.withVoters('bar', [eg.selfUser.userId]),
+      ]);
+
+      String optionKey(int index) =>
+        PollEvent.optionKey(senderId: null, optionIndex: index);
+
+      await handleVoteEvent(optionKey(0), VoteOp.remove, eg.otherUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.selfUser.userId]),
+          Option.withVoters('bar', [eg.selfUser.userId]),
+        ]);
+
+      await handleVoteEvent(optionKey(1), VoteOp.remove, eg.selfUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.selfUser.userId]),
+          Option.withVoters('bar', []),
+        ]);
+    });
+
+    test('vote for unknown options', () async {
+      await preparePollMessage(options: [
+        Option.withVoters('foo', [eg.selfUser.userId]),
+        Option.withVoters('bar', []),
+      ]);
+
+      final unknownOptionKey = PollEvent.optionKey(
+        senderId: eg.selfUser.userId,
+        optionIndex: 10,
+      );
+
+      await handleVoteEvent(unknownOptionKey, VoteOp.remove, eg.selfUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.selfUser.userId]),
+          Option.withVoters('bar', []),
+        ]);
+
+      await handleVoteEvent(unknownOptionKey, VoteOp.add, eg.selfUser);
+      check(store.messages[123]).isNotNull().poll.isNotNull()
+        .options.deepEquals([
+          Option.withVoters('foo', [eg.selfUser.userId]),
+          Option.withVoters('bar', []),
+        ]);
     });
   });
 }

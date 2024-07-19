@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/model/submessage.dart';
 import '../log.dart';
 import 'message_list.dart';
 
@@ -262,6 +265,26 @@ class MessageStoreImpl with MessageStore {
           userId: event.userId,
         );
     }
+
+    for (final view in _messageListViews) {
+      view.notifyListenersIfMessagePresent(event.messageId);
+    }
+  }
+
+  void handleSubmessageEvent(SubmessageEvent event) {
+    final poll = messages[event.messageId]?.poll;
+    if (poll == null) return;
+    PollEvent? pollEvent;
+    try {
+      pollEvent = PollEvent.fromJson(event.content as Map<String, Object?>);
+    } on TypeError catch (e) {
+      assert(debugLog('Malformed submessage event data for poll: $e\n${jsonEncode(event)}')); // TODO(log)
+      return;
+    }
+    poll.applyEvent(
+      event.senderId,
+      pollEvent,
+    );
 
     for (final view in _messageListViews) {
       view.notifyListenersIfMessagePresent(event.messageId);
