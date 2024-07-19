@@ -18,6 +18,7 @@ import 'dialog.dart';
 import 'icons.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
+import 'poll.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -41,6 +42,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
+      colorPollNames: const HSLColor.fromAHSL(1, 0, 0, .45).toColor(),
+      colorPollVoteCountBackground: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
+      colorPollVoteCountBorder: const HSLColor.fromAHSL(1, 156, 0.28, 0.7).toColor(),
+      colorPollVoteCountText: const HSLColor.fromAHSL(1, 156, 0.41, 0.4).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -66,6 +71,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
+      colorPollNames: const HSLColor.fromAHSL(1, 236, .15, .7).toColor(),
+      colorPollVoteCountBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
+      colorPollVoteCountBorder: const HSLColor.fromAHSL(1, 185, 0.35, 0.35).toColor(),
+      colorPollVoteCountText: const HSLColor.fromAHSL(1, 185, 0.35, 0.65).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
@@ -90,6 +99,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorGlobalTimeBorder,
     required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
+    required this.colorPollNames,
+    required this.colorPollVoteCountBackground,
+    required this.colorPollVoteCountBorder,
+    required this.colorPollVoteCountText,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
     required this.codeBlockTextStyles,
@@ -115,6 +128,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorGlobalTimeBorder;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
+  final Color colorPollNames;
+  final Color colorPollVoteCountBackground;
+  final Color colorPollVoteCountBorder;
+  final Color colorPollVoteCountText;
   final Color colorThematicBreak;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
@@ -166,6 +183,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorGlobalTimeBorder,
     Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
+    Color? colorPollNames,
+    Color? colorPollVoteCountBackground,
+    Color? colorPollVoteCountBorder,
+    Color? colorPollVoteCountText,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
     CodeBlockTextStyles? codeBlockTextStyles,
@@ -181,6 +202,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
+      colorPollNames: colorPollNames ?? this.colorPollNames,
+      colorPollVoteCountBackground: colorPollVoteCountBackground ?? this.colorPollVoteCountBackground,
+      colorPollVoteCountBorder: colorPollVoteCountBorder ?? this.colorPollVoteCountBorder,
+      colorPollVoteCountText: colorPollVoteCountText ?? this.colorPollVoteCountText,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
@@ -204,6 +229,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
+      colorPollNames: Color.lerp(colorPollNames, other.colorPollNames, t)!,
+      colorPollVoteCountBackground: Color.lerp(colorPollVoteCountBackground, other.colorPollVoteCountBackground, t)!,
+      colorPollVoteCountBorder: Color.lerp(colorPollVoteCountBorder, other.colorPollVoteCountBorder, t)!,
+      colorPollVoteCountText: Color.lerp(colorPollVoteCountText, other.colorPollVoteCountText, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
       textStyleError: TextStyle.lerp(textStyleError, other.textStyleError, t)!,
@@ -222,17 +251,20 @@ const double kBaseFontSize = 17;
 /// This does not include metadata like the sender's name and avatar, the time,
 /// or the message's status as starred or edited.
 class MessageContent extends StatelessWidget {
-  const MessageContent({super.key, required this.message, required this.content});
+  const MessageContent({super.key, required this.message, required ZulipMessageContent content}) : _content = content;
 
   final Message message;
-  final ZulipContent content;
+  final ZulipMessageContent _content;
 
   @override
   Widget build(BuildContext context) {
     return InheritedMessage(message: message,
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
-        child: BlockContentList(nodes: content.nodes)));
+        child: switch(_content) {
+          ZulipContent() => BlockContentList(nodes: _content.nodes),
+          PollContent() => PollWidget(poll: message.poll!),
+        }));
   }
 }
 

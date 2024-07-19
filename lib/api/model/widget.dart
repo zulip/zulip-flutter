@@ -1,4 +1,5 @@
 import '../../log.dart';
+import '../../model/store.dart';
 import 'submessage.dart';
 
 /// States of a poll Zulip widget.
@@ -111,6 +112,9 @@ class Option {
 
   final String text;
   final Set<int> voters = {};
+
+  Iterable<String> getVoterNames(PerAccountStore store, String fallback) =>
+    voters.map((userId) => store.users[userId]?.fullName ?? fallback);
 
   @override
   bool operator ==(Object other) {

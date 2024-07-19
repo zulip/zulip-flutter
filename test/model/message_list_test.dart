@@ -584,12 +584,12 @@ void main() {
     model.contents[0] = const ZulipContent(nodes: [
       ParagraphNode(links: null, nodes: [TextNode('something outdated')])
     ]);
-    check(model.contents[0]).not((it) => it.equalsNode(correctContent));
+    check(model.contents[0]).isA<ZulipContent>().not((it) => it.equalsNode(correctContent));
 
     model.reassemble();
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
-    check(model.contents[0]).equalsNode(correctContent);
+    check(model.contents[0]).isA<ZulipContent>().equalsNode(correctContent);
   });
 
   group('stream/topic muting', () {
@@ -1028,7 +1028,7 @@ void checkInvariants(MessageListView model) {
 
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
-    check(model.contents[i])
+    check(model.contents[i]).isA<ZulipContent>()
       .equalsNode(parseContent(model.messages[i].content));
   }
 
@@ -1053,7 +1053,7 @@ void checkInvariants(MessageListView model) {
     }
     check(model.items[i++]).isA<MessageListMessageItem>()
       ..message.identicalTo(model.messages[j])
-      ..content.identicalTo(model.contents[j])
+      ..content.identicalTo(model.contents[j] as ZulipContent)
       ..showSender.equals(
         forcedShowSender || model.messages[j].senderId != model.messages[j-1].senderId)
       ..isLastInBlock.equals(
@@ -1078,7 +1078,7 @@ extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparator
 
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
   Subject<Message> get message => has((x) => x.message, 'message');
-  Subject<ZulipContent> get content => has((x) => x.content, 'content');
+  Subject<ZulipMessageContent> get content => has((x) => x.content, 'content');
   Subject<bool> get showSender => has((x) => x.showSender, 'showSender');
   Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
 }
@@ -1087,7 +1087,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<PerAccountStore> get store => has((x) => x.store, 'store');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
-  Subject<List<ZulipContent>> get contents => has((x) => x.contents, 'contents');
+  Subject<List<ZulipMessageContent>> get contents => has((x) => x.contents, 'contents');
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
