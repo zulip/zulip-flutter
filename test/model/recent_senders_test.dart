@@ -67,193 +67,130 @@ void main() {
       }
     }
 
+    void checkHandleMessages(List<Message> oldMessages, List<Message> newMessages) {
+      setupModel(oldMessages);
+      model.handleMessages(newMessages);
+      final expectedMessages = [...oldMessages, ...newMessages]
+        ..removeWhere((m) => m is! StreamMessage)
+        ..sort((m1, m2) => m1.id.compareTo(m2.id));
+      checkMatchesMessages(model, expectedMessages);
+    }
+
     group('single tracker', () {
       test('batch goes before the existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch goes after the existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 600),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch is interspersed among the existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch contains some of already-existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-        ];
-        setupModel(existingMessages);
-
-        final dmMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 400);
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          dmMessage,
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 400),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages..remove(dmMessage)]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
     });
 
     group('multiple trackers', () {
       test('batch goes before the existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 500),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 600),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch goes after the existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 600),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 400),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 500),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 700),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch is interspersed among the existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 500),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 700),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 600),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 800),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch contains some of already-existing messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 300),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-        ];
-        setupModel(existingMessages);
-
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 500),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
 
       test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
-        final existingMessages = [
+        checkHandleMessages([
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 100),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 200),
-        ];
-        setupModel(existingMessages);
-
-        final dmMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 200);
-        final messages = [
+        ], [
           eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
-          dmMessage,
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], id: 200),
           eg.streamMessage(stream: stream1, topic: 'b', sender: user10, id: 400),
-        ];
-        model.handleMessages(messages);
-
-        checkMatchesMessages(model,
-          [...existingMessages, ...messages..remove(dmMessage)]..sort((m1, m2) => m1.id.compareTo(m2.id)));
+        ]);
       });
     });
   });
