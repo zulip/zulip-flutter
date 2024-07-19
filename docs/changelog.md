@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* (Android) Much richer notifications: multiple messages per
+  conversation, sender names and avatars, and more. (#128, #569,
+  #571, #572)
+* Full support for image thumbnails, a feature of the upcoming Zulip Server
+  9.0 which should greatly reduce Zulip's network consumption on messages
+  with images. (#799)
+* New "Copy link to message" option in message menu. (#673)
+* The channels screen shows muted channels as muted. (#424)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* New test suite `tools/check android` that does the Android
+  build and runs the Android linter. (#772, PR #797)
+
+* The User-Agent header in HTTP requests to the server now includes
+  the app version and the OS name and version. (#467)
+
+* Resolved: PR #728, PR #727, #736, #569, #571, #572, #393, #749,
+  #771, #120, #673, #732, PR #789, #772, PR #797, #743, #467, #424,
+  #128, #616, #815, #799
+
+
 ## 0.0.16 (2024-06-13)
 
 ### Highlights for users
