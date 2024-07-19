@@ -587,6 +587,7 @@ class MessageImage extends StatelessWidget {
           context: context,
           message: message,
           src: resolvedSrcUrl,
+          thumbnailUrl: resolvedThumbnailUrl,
           mediaType: MediaType.image));
       },
       child: node.loading
@@ -617,6 +618,7 @@ class MessageInlineVideo extends StatelessWidget {
           context: context,
           message: message,
           src: resolvedSrc,
+          thumbnailUrl: null,
           mediaType: MediaType.video));
       },
       child: Container(

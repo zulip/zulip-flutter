@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
@@ -91,12 +92,17 @@ class _LightboxPageLayout extends StatefulWidget {
   const _LightboxPageLayout({
     required this.routeEntranceAnimation,
     required this.message,
+    required this.buildAppBarBottom,
     required this.buildBottomAppBar,
     required this.child,
   });
 
   final Animation<double> routeEntranceAnimation;
   final Message message;
+
+  /// For [AppBar.bottom].
+  final PreferredSizeWidget? Function(BuildContext context) buildAppBarBottom;
+
   final Widget? Function(
     BuildContext context, Color color, double elevation) buildBottomAppBar;
   final Widget child;
@@ -171,7 +177,8 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
               // Make smaller, like a subtitle
               style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-          ])));
+          ])),
+        bottom: widget.buildAppBarBottom(context));
     }
 
     Widget? bottomAppBar;
@@ -209,17 +216,30 @@ class _ImageLightboxPage extends StatefulWidget {
     required this.routeEntranceAnimation,
     required this.message,
     required this.src,
+    required this.thumbnailUrl,
   });
 
   final Animation<double> routeEntranceAnimation;
   final Message message;
   final Uri src;
+  final Uri? thumbnailUrl;
 
   @override
   State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
 }
 
 class _ImageLightboxPageState extends State<_ImageLightboxPage> {
+  double? _loadingProgress;
+
+  PreferredSizeWidget? _buildAppBarBottom(BuildContext context) {
+    if (_loadingProgress == null) {
+      return null;
+    }
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(4.0),
+      child: LinearProgressIndicator(minHeight: 4.0, value: _loadingProgress));
+  }
+
   Widget _buildBottomAppBar(BuildContext context, Color color, double elevation) {
     return BottomAppBar(
       color: color,
@@ -232,11 +252,45 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
     );
   }
 
+  Widget _frameBuilder(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
+    if (widget.thumbnailUrl == null) return child;
+
+    // The full image is available, so display it.
+    if (frame != null) return child;
+
+    // Display the thumbnail image while original image is downloading.
+    return RealmContentNetworkImage(widget.thumbnailUrl!,
+      filterQuality: FilterQuality.medium);
+  }
+
+  Widget _loadingBuilder(BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+    if (widget.thumbnailUrl == null) return child;
+
+    // `loadingProgress` becomes null when Image has finished downloading.
+    final double? progress = loadingProgress?.expectedTotalBytes == null ? null
+      : loadingProgress!.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!;
+
+    if (progress != _loadingProgress) {
+      _loadingProgress = progress;
+      // The [Image.network] API lets us learn progress information only at
+      // its build time.  That's too late for updating the progress indicator,
+      // so delay that update to the next frame.  For discussion, see:
+      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/addPostFrameCallback/near/1893539
+      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/addPostFrameCallback/near/1894124
+      SchedulerBinding.instance.scheduleFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {});
+      });
+    }
+    return child;
+  }
+
   @override
   Widget build(BuildContext context) {
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
+      buildAppBarBottom: _buildAppBarBottom,
       buildBottomAppBar: _buildBottomAppBar,
       child: SizedBox.expand(
         child: InteractiveViewer(
@@ -244,7 +298,14 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
             child: LightboxHero(
               message: widget.message,
               src: widget.src,
-              child: RealmContentNetworkImage(widget.src, filterQuality: FilterQuality.medium))))));
+              child: RealmContentNetworkImage(widget.src,
+                filterQuality: FilterQuality.medium,
+                frameBuilder: _frameBuilder,
+                loadingBuilder: _loadingBuilder),
+            ),
+          ),
+        ),
+      ));
   }
 }
 
@@ -457,6 +518,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
+      buildAppBarBottom: (context) => null,
       buildBottomAppBar: _buildBottomAppBar,
       child: SafeArea(
         child: Center(
@@ -484,6 +546,7 @@ Route<void> getLightboxRoute({
   BuildContext? context,
   required Message message,
   required Uri src,
+  required Uri? thumbnailUrl,
   required MediaType mediaType,
 }) {
   return AccountPageRouteBuilder(
@@ -500,7 +563,8 @@ Route<void> getLightboxRoute({
         MediaType.image => _ImageLightboxPage(
           routeEntranceAnimation: animation,
           message: message,
-          src: src),
+          src: src,
+          thumbnailUrl: thumbnailUrl),
         MediaType.video => VideoLightboxPage(
           routeEntranceAnimation: animation,
           message: message,
