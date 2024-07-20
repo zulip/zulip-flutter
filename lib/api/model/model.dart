@@ -493,14 +493,14 @@ sealed class Message {
   @JsonKey(name: 'match_subject')
   final String? matchTopic;
 
-  static MessageEditState _messageEditStateFromJson(dynamic json) {
+  static MessageEditState _messageEditStateFromJson(Object? json) {
     // This is a no-op so that [MessageEditState._readFromMessage]
     // can return the enum value directly.
     return json as MessageEditState;
   }
 
-  static Reactions? _reactionsFromJson(dynamic json) {
-    final list = (json as List<dynamic>);
+  static Reactions? _reactionsFromJson(Object? json) {
+    final list = (json as List<Object?>);
     return list.isNotEmpty ? Reactions.fromJson(list) : null;
   }
 
@@ -508,8 +508,8 @@ sealed class Message {
     return value ?? [];
   }
 
-  static List<MessageFlag> _flagsFromJson(dynamic json) {
-    final list = json as List<dynamic>;
+  static List<MessageFlag> _flagsFromJson(Object? json) {
+    final list = json as List<Object?>;
     return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
   }
 
