@@ -940,16 +940,26 @@ class _InlineContentBuilder {
         return const TextSpan(text: "");
 
       case StrongNode():
-        return _buildStrong(node);
+        return _buildNodes(node.nodes,
+          style: bolderWghtTextStyle(widget.style, by: 200));
 
       case DeletedNode():
-        return _buildDeleted(node);
+        return _buildNodes(node.nodes,
+          style: const TextStyle(decoration: TextDecoration.lineThrough));
 
       case EmphasisNode():
-        return _buildEmphasis(node);
+        return _buildNodes(node.nodes,
+          style: const TextStyle(fontStyle: FontStyle.italic));
 
       case LinkNode():
-        return _buildLink(node);
+        final recognizer = widget.linkRecognizers?[node];
+        assert(recognizer != null);
+        _pushRecognizer(recognizer);
+        final result = _buildNodes(node.nodes,
+          // Web has the same color in light and dark mode.
+          style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+        _popRecognizer();
+        return result;
 
       case InlineCodeNode():
         return _buildInlineCode(node);
@@ -979,26 +989,6 @@ class _InlineContentBuilder {
       case UnimplementedInlineContentNode():
         return _errorUnimplemented(node, context: _context!);
     }
-  }
-
-  InlineSpan _buildStrong(StrongNode node) => _buildNodes(node.nodes,
-    style: bolderWghtTextStyle(widget.style, by: 200));
-
-  InlineSpan _buildDeleted(DeletedNode node) => _buildNodes(node.nodes,
-    style: const TextStyle(decoration: TextDecoration.lineThrough));
-
-  InlineSpan _buildEmphasis(EmphasisNode node) => _buildNodes(node.nodes,
-    style: const TextStyle(fontStyle: FontStyle.italic));
-
-  InlineSpan _buildLink(LinkNode node) {
-    final recognizer = widget.linkRecognizers?[node];
-    assert(recognizer != null);
-    _pushRecognizer(recognizer);
-    final result = _buildNodes(node.nodes,
-      // Web has the same color in light and dark mode.
-      style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
-    _popRecognizer();
-    return result;
   }
 
   InlineSpan _buildInlineCode(InlineCodeNode node) {
