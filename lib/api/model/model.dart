@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../log.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
+import 'submessage.dart';
+import 'widget.dart';
 
 export 'json.dart' show JsonNullable;
 export 'reaction.dart';
@@ -481,6 +486,9 @@ sealed class Message {
   final String senderRealmStr;
   @JsonKey(name: 'subject')
   final String topic;
+  /// Poll data if "submessages" describe a poll, `null` otherwise.
+  @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: _pollFromJson, toJson: _pollToJson)
+  Poll? poll;
   final int timestamp;
   String get type;
 
@@ -510,6 +518,52 @@ sealed class Message {
   static List<MessageFlag> _flagsFromJson(Object? json) {
     final list = json as List<Object?>;
     return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
+  }
+
+  static List<Submessage>? _submessagesFromJson(Object? json) {
+    final list = json as List<Object?>;
+    return list.isNotEmpty
+      ? list.map((e) => Submessage.fromJson(e as Map<String, Object?>)).toList()
+      : null;
+  }
+
+  static Poll? _readPoll(Map<Object?, Object?> json, String key) {
+    final submessages = _submessagesFromJson(json[key]);
+    // If empty, [submessages] is converted to null.
+    assert(submessages == null || submessages.isNotEmpty);
+    if (submessages == null) return null;
+
+    final messageId = (json['id'] as num).toInt();
+    assert(submessages.every((e) => e.messageId == messageId));
+
+    final senderId = (json['sender_id'] as num).toInt();
+    assert(submessages.first.senderId == senderId);
+
+    final widgetData = WidgetData.fromJson(submessages.first.content);
+    try {
+      switch (widgetData) {
+        case PollWidgetData():
+          return Poll.fromSubmessages(
+            submessages,
+            senderId: senderId,
+            widgetData: widgetData
+          );
+        case UnsupportedWidgetData():
+          assert(debugLog('Unsupported widgetData: ${widgetData.json}'));
+      }
+    } on TypeError catch (e) {
+      assert(debugLog('Malformed data of widget type ${widgetData.widgetType}: $e\n${jsonEncode(submessages)}')); // TODO(log)
+    }
+    return null;
+  }
+
+  static Poll? _pollFromJson(Object? json) {
+    // Simple type cast since [_readPoll] does the heavy-lifting.
+    return json as Poll?;
+  }
+
+  static List<Submessage> _pollToJson(Poll? poll) {
+    return poll?.submessages ?? [];
   }
 
   Message({

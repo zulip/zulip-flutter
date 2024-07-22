@@ -283,7 +283,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       matchTopic: json['match_subject'] as String?,
       displayRecipient: json['display_recipient'] as String,
       streamId: (json['stream_id'] as num).toInt(),
-    );
+    )..poll = Message._pollFromJson(Message._readPoll(json, 'submessages'));
 
 Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
     <String, dynamic>{
@@ -301,6 +301,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'sender_id': instance.senderId,
       'sender_realm_str': instance.senderRealmStr,
       'subject': instance.topic,
+      'submessages': Message._pollToJson(instance.poll),
       'timestamp': instance.timestamp,
       'flags': instance.flags,
       'match_content': instance.matchContent,
@@ -351,7 +352,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       matchTopic: json['match_subject'] as String?,
       displayRecipient: const DmRecipientListConverter()
           .fromJson(json['display_recipient'] as List),
-    );
+    )..poll = Message._pollFromJson(Message._readPoll(json, 'submessages'));
 
 Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'client': instance.client,
@@ -368,6 +369,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'sender_id': instance.senderId,
       'sender_realm_str': instance.senderRealmStr,
       'subject': instance.topic,
+      'submessages': Message._pollToJson(instance.poll),
       'timestamp': instance.timestamp,
       'flags': instance.flags,
       'match_content': instance.matchContent,
