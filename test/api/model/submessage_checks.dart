@@ -37,3 +37,13 @@ extension PollVoteEventChecks on Subject<PollVoteEventSubmessage> {
   Subject<String> get key => has((e) => e.key, 'key');
   Subject<PollVoteOp> get op => has((e) => e.op, 'op');
 }
+
+extension PollChecks on Subject<Poll> {
+  Subject<String> get question => has((e) => e.question, 'question');
+  Subject<Iterable<PollOption>> get options => has((e) => e.options, 'options');
+}
+
+extension PollOptionChecks on Subject<PollOption> {
+  Subject<String> get text => has((e) => e.text, 'text');
+  Subject<Set<int>> get voters => has((e) => e.voters, 'voters');
+}

@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
+import 'submessage.dart';
 
 export 'json.dart' show JsonNullable;
 export 'reaction.dart';
@@ -533,6 +534,9 @@ sealed class Message {
   final String senderRealmStr;
   @JsonKey(name: 'subject')
   String topic;
+  /// Poll data if "submessages" describe a poll, `null` otherwise.
+  @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
+  Poll? poll;
   final int timestamp;
   String get type;
 
@@ -562,6 +566,13 @@ sealed class Message {
   static List<MessageFlag> _flagsFromJson(Object? json) {
     final list = json as List<Object?>;
     return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
+  }
+
+  static Poll? _readPoll(Map<Object?, Object?> json, String key) {
+    return Submessage.parseSubmessagesJson(
+      json['submessages'] as List<Object?>? ?? [],
+      messageSenderId: (json['sender_id'] as num).toInt(),
+    );
   }
 
   Message({

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:zulip/api/model/events.dart';
@@ -343,6 +344,7 @@ StreamMessage streamMessage({
   List<Reaction>? reactions,
   int? timestamp,
   List<MessageFlag>? flags,
+  List<Submessage>? submessages,
 }) {
   _checkPositive(id, 'message ID');
   final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
@@ -362,6 +364,7 @@ StreamMessage streamMessage({
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? 'example topic',
+    'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
   }) as Map<String, dynamic>);
@@ -386,6 +389,7 @@ DmMessage dmMessage({
   int? lastEditTimestamp,
   int? timestamp,
   List<MessageFlag>? flags,
+  List<Submessage>? submessages,
 }) {
   _checkPositive(id, 'message ID');
   assert(!to.any((user) => user.userId == from.userId));
@@ -401,6 +405,7 @@ DmMessage dmMessage({
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
+    'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
     'type': 'private',
   }) as Map<String, dynamic>);
@@ -413,6 +418,21 @@ PollWidgetData pollWidgetData({
   return PollWidgetData(
     extraData: PollWidgetExtraData(question: question, options: options));
 }
+
+Submessage submessage({
+  SubmessageType? msgType,
+  required SubmessageData? content,
+  int? senderId,
+}) {
+  return Submessage(
+    msgType: msgType ?? SubmessageType.widget,
+    content: jsonEncode(content),
+    senderId: senderId ?? selfUser.userId,
+  );
+}
+
+PollOption pollOption({required String text, required Iterable<int> voters}) =>
+    PollOption(text: text)..voters.addAll(voters);
 
 ////////////////////////////////////////////////////////////////
 // Aggregate data structures.

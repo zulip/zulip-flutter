@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
+
+import '../../log.dart';
 
 part 'submessage.g.dart';
 
@@ -40,6 +44,30 @@ class Submessage {
   //   * the index of this submessage in [Message.submessages];
   //   * the parsed [WidgetType] from the first [Message.submessages].
   final String content;
+
+  /// Parse a JSON list into a [Poll].
+  // TODO: Use a generalized return type when supporting other Zulip widgets.
+  static Poll? parseSubmessagesJson(List<Object?> json, {
+    required int messageSenderId,
+  }) {
+    final submessages = json.map((e) => Submessage.fromJson(e as Map<String, Object?>)).toList();
+    if (submessages.isEmpty) return null;
+
+    assert(submessages.first.senderId == messageSenderId);
+
+    final widgetData = WidgetData.fromJson(jsonDecode(submessages.first.content));
+    switch (widgetData) {
+      case PollWidgetData():
+        return Poll.fromSubmessages(
+          widgetData: widgetData,
+          pollEventSubmessages: submessages.skip(1),
+          messageSenderId: messageSenderId,
+        );
+      case UnsupportedWidgetData():
+        assert(debugLog('Unsupported widgetData: ${widgetData.json}'));
+        return null;
+    }
+  }
 
   factory Submessage.fromJson(Map<String, Object?> json) =>
     _$SubmessageFromJson(json);
@@ -318,4 +346,127 @@ class UnknownPollEventSubmessage extends PollEventSubmessage {
 
   @override
   Map<String, Object?> toJson() => json;
+}
+
+/// States of a poll Zulip widget.
+///
+/// See also:
+/// - https://zulip.com/help/create-a-poll
+/// - https://github.com/zulip/zulip/blob/304d948416465c1a085122af5d752f03d6797003/web/shared/src/poll_data.ts
+class Poll {
+  /// Construct a poll from submessages.
+  ///
+  /// For a poll Zulip widget, the first submessage's content contains a
+  /// [PollWidgetData], and all the following submessages' content each contains
+  /// a [PollEventSubmessage].
+  factory Poll.fromSubmessages({
+    required PollWidgetData widgetData,
+    required Iterable<Submessage> pollEventSubmessages,
+    required int messageSenderId,
+  }) {
+    final poll = Poll._(
+      messageSenderId: messageSenderId,
+      question: widgetData.extraData.question,
+      options: widgetData.extraData.options,
+    );
+
+    for (final submessage in pollEventSubmessages) {
+      final event = PollEventSubmessage.fromJson(jsonDecode(submessage.content) as Map<String, Object?>);
+      poll._applyEvent(submessage.senderId, event);
+    }
+    return poll;
+  }
+
+  Poll._({
+    required this.messageSenderId,
+    required this.question,
+    required List<String> options,
+  }) {
+    for (int index = 0; index < options.length; index += 1) {
+      // Initial poll options use a placeholder senderId.
+      // See [PollEventSubmessage.optionKey] for details.
+      _addOption(senderId: null, idx: index, option: options[index]);
+    }
+  }
+
+  final int messageSenderId;
+  String question;
+
+  /// The limit of options any single user can add to a poll.
+  ///
+  /// See https://github.com/zulip/zulip/blob/304d948416465c1a085122af5d752f03d6797003/web/shared/src/poll_data.ts#L69-L71
+  static const _maxIdx = 1000;
+
+  Iterable<PollOption> get options => _options.values;
+  /// Contains the text of all options from [_options].
+  final Set<String> _existingOptionTexts = {};
+  final Map<PollOptionKey, PollOption> _options = {};
+
+  void _applyEvent(int senderId, PollEventSubmessage event) {
+    switch (event) {
+      case PollNewOptionEventSubmessage():
+        _addOption(senderId: senderId, idx: event.idx, option: event.option);
+
+      case PollQuestionEventSubmessage():
+        if (senderId != messageSenderId) {
+          // Only the message owner can edit the question.
+          assert(debugLog('unexpected poll data: user $senderId is not allowed to edit the question')); // TODO(log)
+          return;
+        }
+
+        question = event.question;
+
+      case PollVoteEventSubmessage():
+        final option = _options[event.key];
+        if (option == null) {
+          assert(debugLog('vote for unknown key ${event.key}')); // TODO(log)
+          return;
+        }
+
+        switch (event.op) {
+          case PollVoteOp.add:
+            option.voters.add(senderId);
+          case PollVoteOp.remove:
+            option.voters.remove(senderId);
+          case PollVoteOp.unknown:
+            assert(debugLog('unknown vote op ${event.op}')); // TODO(log)
+        }
+
+      case UnknownPollEventSubmessage():
+    }
+  }
+
+  void _addOption({required int? senderId, required int idx, required String option}) {
+    if (idx > _maxIdx || idx < 0) return;
+
+    // The web client suppresses duplicate options, which can be created through
+    // the /poll command as there is no server-side validation.
+    if (_existingOptionTexts.contains(option)) return;
+
+    final key = PollEventSubmessage.optionKey(senderId: senderId, idx: idx);
+    assert(!_options.containsKey(key));
+    _options[key] = PollOption(text: option);
+    _existingOptionTexts.add(option);
+  }
+
+  static Poll? fromJson(Object? json) {
+    // [Submessage.parseSubmessagesJson] does all the heavy lifting for parsing.
+    return json as Poll?;
+  }
+
+  static List<Submessage> toJson(Poll? poll) {
+    // Rather than maintaining a up-to-date submessages list, return as if it is
+    // empty, because we are not sending the submessages to the server anyway.
+    return [];
+  }
+}
+
+class PollOption {
+  PollOption({required this.text});
+
+  final String text;
+  final Set<int> voters = {};
+
+  @override
+  String toString() => 'PollOption(text: $text, voters: {${voters.join(', ')}})';
 }

@@ -114,4 +114,7 @@ void main() {
       'key': PollEventSubmessage.optionKey(senderId: null, idx: 0)
     })).isA<PollVoteEventSubmessage>().op.equals(PollVoteOp.unknown);
   });
+
+  // Parsing polls with PollEventSubmessages are tested in
+  // `test/model/message_test.dart` in the "handleSubmessageEvent" test.
 }

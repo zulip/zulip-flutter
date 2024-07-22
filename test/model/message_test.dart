@@ -1,13 +1,17 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
+import '../api/model/submessage_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
 import 'message_list_test.dart';
@@ -52,10 +56,14 @@ void main() {
   /// Perform the initial message fetch for [messageList].
   ///
   /// The test case must have already called [prepare] to initialize the state.
+  ///
+  /// This does not support submessages. Use [prepareMessageWithSubmessages]
+  /// instead if needed.
   Future<void> prepareMessages(
     List<Message> messages, {
     bool foundOldest = false,
   }) async {
+    assert(messages.every((message) => message.poll == null));
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
     await messageList.fetchInitial();
@@ -574,6 +582,116 @@ void main() {
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
+    });
+  });
+
+  group('handle Poll related events', () {
+    Condition<Object?> conditionPollOption(String text, {Iterable<int>? voters}) =>
+      (it) => it.isA<PollOption>()..text.equals(text)..voters.deepEquals(voters ?? []);
+
+    Subject<Poll> checkPoll(Message message) =>
+      check(store.messages[message.id]).isNotNull().poll.isNotNull();
+
+    group('handleMessageEvent with initial submessages', () {
+      late Message message;
+
+      final defaultPollWidgetData = eg.pollWidgetData(
+        question: 'example question',
+        options: ['foo', 'bar'],
+      );
+
+      final defaultOptionConditions = [
+        conditionPollOption('foo'),
+        conditionPollOption('bar'),
+      ];
+
+      Future<void> handlePollMessageEvent({
+        SubmessageData? widgetData,
+        List<(User sender, PollEventSubmessage event)> events = const [],
+      }) async {
+        message = eg.streamMessage(sender: eg.otherUser, submessages: [
+          eg.submessage(
+            content: widgetData ?? defaultPollWidgetData,
+            senderId: eg.otherUser.userId),
+          for (final (sender, event) in events)
+            eg.submessage(content: event, senderId: sender.userId),
+        ]);
+
+        await prepare();
+        await store.handleEvent(MessageEvent(id: 0, message: message));
+      }
+
+      test('smoke', () async {
+        await handlePollMessageEvent();
+        checkPoll(message)
+          ..question.equals(defaultPollWidgetData.extraData.question)
+          ..options.deepEquals(defaultOptionConditions);
+      });
+
+      test('contains new question event', () async {
+        await handlePollMessageEvent(events: [
+          (eg.otherUser, PollQuestionEventSubmessage(question: 'new question')),
+        ]);
+        checkPoll(message)
+          ..question.equals('new question')
+          ..options.deepEquals(defaultOptionConditions);
+      });
+
+      test('contains new option event', () async {
+        await handlePollMessageEvent(events: [
+          (eg.otherUser, PollNewOptionEventSubmessage(idx: 3, option: 'baz')),
+          (eg.selfUser,  PollNewOptionEventSubmessage(idx: 0, option: 'quz')),
+        ]);
+        checkPoll(message)
+          ..question.equals(defaultPollWidgetData.extraData.question)
+          ..options.deepEquals([
+            ...defaultOptionConditions,
+            conditionPollOption('baz'),
+            conditionPollOption('quz'),
+          ]);
+      });
+
+      test('contains vote events on initial canned options', () async {
+        await handlePollMessageEvent(events: [
+          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,1', op: PollVoteOp.add)),
+          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,2', op: PollVoteOp.add)),
+          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,2', op: PollVoteOp.remove)),
+          (eg.selfUser,  PollVoteEventSubmessage(key: 'canned,1', op: PollVoteOp.add)),
+        ]);
+        checkPoll(message)
+          ..question.equals(defaultPollWidgetData.extraData.question)
+          ..options.deepEquals([
+            conditionPollOption('foo'),
+            conditionPollOption('bar', voters: [eg.otherUser.userId, eg.selfUser.userId]),
+          ]);
+      });
+
+      test('contains vote events on post-creation options', () async {
+        await handlePollMessageEvent(events: [
+          (eg.otherUser, PollNewOptionEventSubmessage(idx: 0, option: 'baz')),
+          (eg.otherUser, PollVoteEventSubmessage(key: '${eg.otherUser.userId},0', op: PollVoteOp.add)),
+          (eg.selfUser,  PollVoteEventSubmessage(key: '${eg.otherUser.userId},0', op: PollVoteOp.add)),
+        ]);
+        checkPoll(message)
+          ..question.equals(defaultPollWidgetData.extraData.question)
+          ..options.deepEquals([
+            ...defaultOptionConditions,
+            conditionPollOption('baz', voters: [eg.otherUser.userId, eg.selfUser.userId]),
+          ]);
+      });
+
+      test('content with invalid widget_type', () async {
+        message = eg.streamMessage(sender: eg.otherUser, submessages: [
+          Submessage(
+            msgType: SubmessageType.widget,
+            content: jsonEncode({'widget_type': 'other'}),
+            senderId: eg.otherUser.userId,
+          ),
+        ]);
+        await prepare();
+        await store.handleEvent(MessageEvent(id: 0, message: message));
+        check(store.messages[message.id]).isNotNull().poll.isNull();
+      });
     });
   });
 }

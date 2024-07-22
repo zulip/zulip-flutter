@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/submessage.dart';
 
 extension UserChecks on Subject<User> {
   Subject<int> get userId => has((x) => x.userId, 'userId');
@@ -39,6 +40,7 @@ extension MessageChecks on Subject<Message> {
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<String> get senderRealmStr => has((e) => e.senderRealmStr, 'senderRealmStr');
   Subject<String> get topic => has((e) => e.topic, 'topic');
+  Subject<Poll?> get poll => has((e) => e.poll, 'poll');
   Subject<int> get timestamp => has((e) => e.timestamp, 'timestamp');
   Subject<String> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
