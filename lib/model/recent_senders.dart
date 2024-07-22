@@ -34,13 +34,13 @@ class RecentSenders {
   /// [messages] should be sorted by [id] ascendingly, which are, the way app
   /// receives and handles messages.
   void handleMessages(List<Message> messages) {
-    final messagesByUserInStream = <(int, int), List<int>>{};
-    final messagesByUserInTopic = <(int, String, int), List<int>>{};
+    final messagesByUserInStream = <(int, int), QueueList<int>>{};
+    final messagesByUserInTopic = <(int, String, int), QueueList<int>>{};
     for (final message in messages) {
       if (message is! StreamMessage) continue;
       final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
-      (messagesByUserInStream[(streamId, senderId)] ??= []).add(messageId);
-      (messagesByUserInTopic[(streamId, topic, senderId)] ??= []).add(messageId);
+      (messagesByUserInStream[(streamId, senderId)] ??= QueueList()).add(messageId);
+      (messagesByUserInTopic[(streamId, topic, senderId)] ??= QueueList()).add(messageId);
     }
 
     for (final entry in messagesByUserInStream.entries) {
@@ -128,9 +128,9 @@ class MessageIdTracker {
   /// Add the messages IDs to the tracker list at the proper place, if not present.
   ///
   /// [newIds] should be sorted ascendingly.
-  void addAll(List<int> newIds) {
+  void addAll(QueueList<int> newIds) {
     if (ids.isEmpty) {
-      ids = QueueList.from(newIds);
+      ids = newIds;
       return;
     }
     ids = setUnion(ids, newIds);
