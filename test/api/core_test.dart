@@ -81,7 +81,7 @@ void main() {
   });
 
   test('ApiConnection.postFileFromStream', () async {
-    Future<void> checkRequest(List<List<int>> content, int length, String? filename) {
+    Future<void> checkRequest(List<List<int>> content, int length, {String? filename}) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(json: {});
         await connection.postFileFromStream(
@@ -105,14 +105,14 @@ void main() {
       });
     }
 
-    checkRequest([], 0, null);
-    checkRequest(['asdf'.codeUnits], 4, null);
-    checkRequest(['asd'.codeUnits, 'f'.codeUnits], 4, null);
+    checkRequest([], 0, filename: null);
+    checkRequest(['asdf'.codeUnits], 4, filename: null);
+    checkRequest(['asd'.codeUnits, 'f'.codeUnits], 4, filename: null);
 
-    checkRequest(['asdf'.codeUnits], 4, 'info.txt');
+    checkRequest(['asdf'.codeUnits], 4, filename: 'info.txt');
 
-    checkRequest(['asdf'.codeUnits], 1, null); // nothing on client side catches a wrong length
-    checkRequest(['asdf'.codeUnits], 100, null);
+    checkRequest(['asdf'.codeUnits], 1, filename: null); // nothing on client side catches a wrong length
+    checkRequest(['asdf'.codeUnits], 100, filename: null);
   });
 
   test('ApiConnection.delete', () async {
