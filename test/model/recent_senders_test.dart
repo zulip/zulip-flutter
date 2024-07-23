@@ -4,7 +4,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/recent_senders.dart';
 import '../example_data.dart' as eg;
 
-/// [messages] should be sorted by [id] ascendingly.
+/// [messages] should be sorted by [id] ascending.
 void checkMatchesMessages(RecentSenders model, List<Message> messages) {
   final Map<int, Map<int, Set<int>>> messagesByUserInStream = {};
   final Map<int, Map<String, Map<int, Set<int>>>> messagesByUserInTopic = {};

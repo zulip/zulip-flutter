@@ -101,7 +101,7 @@ class RecentSenders {
 
 @visibleForTesting
 class MessageIdTracker {
-  /// A list of distinct message IDs, sorted ascendingly.
+  /// A list of distinct message IDs, sorted ascending.
   @visibleForTesting
   QueueList<int> ids = QueueList();
 
@@ -128,7 +128,7 @@ class MessageIdTracker {
 
   /// Add the messages IDs to the tracker list at the proper place, if not present.
   ///
-  /// [newIds] should be sorted ascendingly.
+  /// [newIds] should be sorted ascending.
   void addAll(QueueList<int> newIds) {
     if (ids.isEmpty) {
       ids = newIds;
