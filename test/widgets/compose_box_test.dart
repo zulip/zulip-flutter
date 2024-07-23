@@ -270,6 +270,8 @@ void main() {
 
         testBinding.pickFilesResult = FilePickerResult([PlatformFile(
           readStream: Stream.fromIterable(['asdf'.codeUnits]),
+          // TODO test inference of MIME type from initial bytes, when
+          //   it can't be inferred from path
           path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
           name: 'image.jpg',
           size: 12345,
@@ -295,6 +297,7 @@ void main() {
             ..field.equals('file')
             ..length.equals(12345)
             ..filename.equals('image.jpg')
+            ..contentType.asString.equals('image/jpeg')
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
               .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
           );
@@ -322,6 +325,8 @@ void main() {
         checkAppearsLoading(tester, false);
 
         testBinding.pickImageResult = XFile.fromData(
+          // TODO test inference of MIME type when it's missing here
+          mimeType: 'image/jpeg',
           utf8.encode('asdf'),
           name: 'image.jpg',
           length: 12345,
@@ -348,6 +353,7 @@ void main() {
             ..field.equals('file')
             ..length.equals(12345)
             ..filename.equals('image.jpg')
+            ..contentType.asString.equals('image/jpeg')
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
               .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
           );

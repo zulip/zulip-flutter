@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
+import 'package:mime/mime.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -421,11 +424,17 @@ class _FixedDestinationContentInput extends StatelessWidget {
 /// A convenience class to represent data from the generic file picker,
 /// the media library, and the camera, in a single form.
 class _File {
-  _File({required this.content, required this.length, required this.filename});
+  _File({
+    required this.content,
+    required this.length,
+    required this.filename,
+    required this.mimeType,
+  });
 
   final Stream<List<int>> content;
   final int length;
   final String filename;
+  final String? mimeType;
 }
 
 Future<void> _uploadFiles({
@@ -472,14 +481,14 @@ Future<void> _uploadFiles({
   }
 
   for (final (tag, file) in uploadsInProgress) {
-    final _File(:content, :length, :filename) = file;
+    final _File(:content, :length, :filename, :mimeType) = file;
     Uri? url;
     try {
       final result = await uploadFile(store.connection,
         content: content,
         length: length,
         filename: filename,
-        contentType: null, // TODO(#829)
+        contentType: mimeType,
       );
       url = Uri.parse(result.uri);
     } catch (e) {
@@ -577,7 +586,22 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 
   return result.files.map((f) {
     assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-    return _File(content: f.readStream!, length: f.size, filename: f.name);
+    final mimeType = lookupMimeType(
+      // Seems like the path shouldn't be required; we still want to look for
+      // matches on `headerBytes`. Thankfully we can still do that, by calling
+      // lookupMimeType with the empty string as the path. That's a value that
+      // doesn't map to any particular type, so the path will be effectively
+      // ignored, as desired. Upstream comment:
+      //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
+      f.path ?? '',
+      headerBytes: f.bytes?.take(defaultMagicNumbersMaxLength).toList(),
+    );
+    return _File(
+      content: f.readStream!,
+      length: f.size,
+      filename: f.name,
+      mimeType: mimeType,
+    );
   });
 }
 
@@ -662,7 +686,27 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     }
     final length = await result.length();
 
-    return [_File(content: result.openRead(), length: length, filename: result.name)];
+    List<int>? headerBytes;
+    try {
+      headerBytes = await result.openRead(
+        0,
+        // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
+        // than the file's length. We can *probably* trust our `length` to be
+        // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
+        // rather sacrifice this part of the MIME lookup than throw the whole
+        // upload. So, the try/catch.
+        min(defaultMagicNumbersMaxLength, length)
+      ).expand((l) => l).toList();
+    } catch (e) {
+      // TODO(log)
+    }
+    return [_File(
+      content: result.openRead(),
+      length: length,
+      filename: result.name,
+      mimeType: result.mimeType
+        ?? lookupMimeType(result.path, headerBytes: headerBytes),
+    )];
   }
 }
 
