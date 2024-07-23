@@ -476,7 +476,11 @@ Future<void> _uploadFiles({
     Uri? url;
     try {
       final result = await uploadFile(store.connection,
-        content: content, length: length, filename: filename);
+        content: content,
+        length: length,
+        filename: filename,
+        contentType: null, // TODO(#829)
+      );
       url = Uri.parse(result.uri);
     } catch (e) {
       if (!context.mounted) return;

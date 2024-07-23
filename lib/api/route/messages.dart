@@ -262,9 +262,10 @@ Future<UploadFileResult> uploadFile(
   required Stream<List<int>> content,
   required int length,
   required String filename,
+  required String? contentType,
 }) {
   return connection.postFileFromStream('uploadFile', UploadFileResult.fromJson, 'user_uploads',
-    content, length, filename: filename);
+    content, length, filename: filename, contentType: contentType);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

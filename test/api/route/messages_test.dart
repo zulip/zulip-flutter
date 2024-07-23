@@ -414,6 +414,55 @@ void main() {
     });
   });
 
+  group('uploadFile', () {
+    Future<void> checkUploadFile(FakeApiConnection connection, {
+      required List<List<int>> content,
+      required int length,
+      required String filename,
+      required String? contentType,
+    }) async {
+      connection.prepare(json:
+        UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/$filename').toJson());
+      await uploadFile(connection,
+        content: Stream.fromIterable(content),
+        length: length,
+        filename: filename,
+        contentType: contentType);
+      check(connection.lastRequest).isA<http.MultipartRequest>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/user_uploads')
+        ..files.single.which((it) => it
+          ..field.equals('file')
+          ..length.equals(length)
+          ..filename.equals(filename)
+          ..contentType.asString.equals(contentType ?? 'application/octet-stream')
+          ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+            .completes((it) => it.deepEquals(content.expand((l) => l))));
+    }
+
+    test('with mime type', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkUploadFile(connection,
+          content: ['asdf'.codeUnits],
+          length: 4,
+          filename: 'image.jpg',
+          contentType: 'image/jpeg',
+        );
+      });
+    });
+
+    test('without mime type', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkUploadFile(connection,
+          content: ['asdf'.codeUnits],
+          length: 4,
+          filename: 'some_file',
+          contentType: null,
+        );
+      });
+    });
+  });
+
   group('addReaction', () {
     Future<void> checkAddReaction(FakeApiConnection connection, {
       required int messageId,
