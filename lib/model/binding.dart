@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
@@ -13,6 +14,7 @@ import '../widgets/store.dart';
 import 'store.dart';
 
 export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
+export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
 /// Alias for [url_launcher.LaunchMode].
 typedef UrlLaunchMode = url_launcher.LaunchMode;
@@ -163,6 +165,14 @@ abstract class ZulipBinding {
     bool allowMultiple,
     bool withReadStream,
     file_picker.FileType type,
+  });
+
+  /// Pick files from the camera or media library, via package:image_picker.
+  ///
+  /// This wraps [image_picker.pickImage].
+  Future<image_picker.XFile?> pickImage({
+    required image_picker.ImageSource source,
+    bool requestFullMetadata,
   });
 }
 
@@ -413,5 +423,14 @@ class LiveZulipBinding extends ZulipBinding {
       withReadStream: withReadStream,
       type: type,
     );
+  }
+
+  @override
+  Future<image_picker.XFile?> pickImage({
+    required image_picker.ImageSource source,
+    bool requestFullMetadata = true,
+  }) async {
+    return image_picker.ImagePicker()
+      .pickImage(source: source, requestFullMetadata: requestFullMetadata);
   }
 }

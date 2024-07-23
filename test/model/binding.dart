@@ -74,6 +74,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetFirebase();
     _resetNotifications();
     _resetPickFiles();
+    _resetPickImage();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -327,6 +328,45 @@ class TestZulipBinding extends ZulipBinding {
   }) async {
     (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
     return pickFilesResult;
+  }
+
+  /// The value that `ZulipBinding.instance.pickImage()` should return.
+  ///
+  /// See also [takePickImageCalls].
+  XFile? pickImageResult;
+
+  void _resetPickImage() {
+    pickImageResult = null;
+    _pickImageCalls = null;
+  }
+
+  /// Consume the log of calls made to `ZulipBinding.instance.pickImage()`.
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to `ZulipBinding.instance.pickImage()` since the last call to
+  /// either this method or [reset].
+  ///
+  /// See also [pickImageResult].
+  List<({
+    ImageSource source,
+    bool requestFullMetadata,
+  })> takePickImageCalls() {
+    final result = _pickImageCalls;
+    _pickImageCalls = null;
+    return result ?? [];
+  }
+  List<({
+    ImageSource source,
+    bool requestFullMetadata,
+  })>? _pickImageCalls;
+
+  @override
+  Future<XFile?> pickImage({
+    required ImageSource source,
+    bool requestFullMetadata = true,
+  }) async {
+    (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
+    return pickImageResult;
   }
 }
 

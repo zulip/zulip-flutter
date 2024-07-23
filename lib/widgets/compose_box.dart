@@ -2,7 +2,6 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -624,7 +623,6 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final picker = ImagePicker();
     final XFile? result;
     try {
       // Ideally we'd open a platform interface that lets you choose between
@@ -632,7 +630,8 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       // option: https://github.com/flutter/flutter/issues/89159
       // so just stick with images for now. We could add another button for
       // videos, but we don't want too many buttons.
-      result = await picker.pickImage(source: ImageSource.camera, requestFullMetadata: false);
+      result = await ZulipBinding.instance.pickImage(
+        source: ImageSource.camera, requestFullMetadata: false);
     } catch (e) {
       if (!context.mounted) return [];
       if (e is PlatformException && e.code == 'camera_access_denied') {
