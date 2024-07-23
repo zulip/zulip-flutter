@@ -1,5 +1,4 @@
 import 'package:app_settings/app_settings.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -8,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../model/binding.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -542,7 +542,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type) async {
   FilePickerResult? result;
   try {
-    result = await FilePicker.platform
+    result = await ZulipBinding.instance
       .pickFiles(allowMultiple: true, withReadStream: true, type: type);
   } catch (e) {
     if (!context.mounted) return [];

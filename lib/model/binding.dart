@@ -1,4 +1,5 @@
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
+import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,8 @@ import '../host/android_notifications.dart';
 import '../log.dart';
 import '../widgets/store.dart';
 import 'store.dart';
+
+export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
 
 /// Alias for [url_launcher.LaunchMode].
 typedef UrlLaunchMode = url_launcher.LaunchMode;
@@ -152,6 +155,15 @@ abstract class ZulipBinding {
 
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
+
+  /// Pick files from the media library, via package:file_picker.
+  ///
+  /// This wraps [file_picker.pickFiles].
+  Future<file_picker.FilePickerResult?> pickFiles({
+    bool allowMultiple,
+    bool withReadStream,
+    file_picker.FileType type,
+  });
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -389,4 +401,17 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
+
+  @override
+  Future<file_picker.FilePickerResult?> pickFiles({
+    bool allowMultiple = false,
+    bool withReadStream = false,
+    file_picker.FileType type = file_picker.FileType.any,
+  }) async {
+    return file_picker.FilePicker.platform.pickFiles(
+      allowMultiple: allowMultiple,
+      withReadStream: withReadStream,
+      type: type,
+    );
+  }
 }

@@ -73,6 +73,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetPackageInfo();
     _resetFirebase();
     _resetNotifications();
+    _resetPickFiles();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -284,6 +285,48 @@ class TestZulipBinding extends ZulipBinding {
   @override
   FakeAndroidNotificationHostApi get androidNotificationHost {
     return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
+  }
+
+  /// The value that `ZulipBinding.instance.pickFiles()` should return.
+  ///
+  /// See also [takePickFilesCalls].
+  FilePickerResult? pickFilesResult;
+
+  void _resetPickFiles() {
+    pickFilesResult = null;
+    _pickFilesCalls = null;
+  }
+
+  /// Consume the log of calls made to `ZulipBinding.instance.pickFiles()`.
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to `ZulipBinding.instance.pickFiles()` since the last call to
+  /// either this method or [reset].
+  ///
+  /// See also [pickFilesResult].
+  List<({
+    bool? allowMultiple,
+    bool? withReadStream,
+    FileType? type,
+  })> takePickFilesCalls() {
+    final result = _pickFilesCalls;
+    _pickFilesCalls = null;
+    return result ?? [];
+  }
+  List<({
+    bool? allowMultiple,
+    bool? withReadStream,
+    FileType? type,
+  })>? _pickFilesCalls;
+
+  @override
+  Future<FilePickerResult?> pickFiles({
+    bool? allowMultiple,
+    bool? withReadStream,
+    FileType? type,
+  }) async {
+    (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
+    return pickFilesResult;
   }
 }
 
