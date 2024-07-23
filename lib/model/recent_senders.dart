@@ -5,10 +5,10 @@ import '../api/model/events.dart';
 import '../api/model/model.dart';
 import 'algorithms.dart';
 
-/// A data structure to keep track of stream and topic messages of users (senders).
+/// Tracks the latest messages sent by each user, in each stream and topic.
 ///
 /// Use [latestMessageIdOfSenderInStream] and [latestMessageIdOfSenderInTopic]
-/// to get the relevant data.
+/// for queries.
 class RecentSenders {
   // streamSenders[streamId][senderId] = MessageIdTracker
   @visibleForTesting
@@ -18,21 +18,24 @@ class RecentSenders {
   @visibleForTesting
   final Map<int, Map<String, Map<int, MessageIdTracker>>> topicSenders = {};
 
+  /// The latest message the given user sent to the given stream,
+  /// or null if no such message is known.
   int? latestMessageIdOfSenderInStream({
     required int streamId,
     required int senderId,
   }) => streamSenders[streamId]?[senderId]?.maxId;
 
+  /// The latest message the given user sent to the given topic,
+  /// or null if no such message is known.
   int? latestMessageIdOfSenderInTopic({
     required int streamId,
     required String topic,
     required int senderId,
   }) => topicSenders[streamId]?[topic]?[senderId]?.maxId;
 
-  /// Records the necessary data from each message if it is a [StreamMessage].
+  /// Records the necessary data from a batch of just-fetched messages.
   ///
-  /// [messages] should be sorted by [id] ascendingly, which are, the way app
-  /// receives and handles messages.
+  /// The messages must be sorted by [Message.id] ascending.
   void handleMessages(List<Message> messages) {
     final messagesByUserInStream = <(int, int), QueueList<int>>{};
     final messagesByUserInTopic = <(int, String, int), QueueList<int>>{};
@@ -55,9 +58,7 @@ class RecentSenders {
     }
   }
 
-  /// Records the necessary data from [message] if it is a [StreamMessage].
-  ///
-  /// If [message] is not a [StreamMessage], this is a no-op.
+  /// Records the necessary data from a new message.
   void handleMessage(Message message) {
     if (message is! StreamMessage) return;
     final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
