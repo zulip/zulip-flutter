@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -236,6 +240,126 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+    });
+  });
+
+  group('uploads', () {
+    void checkAppearsLoading(WidgetTester tester, bool expected) {
+      final sendButtonElement = tester.element(find.ancestor(
+        of: find.byIcon(Icons.send),
+        matching: find.byType(IconButton)));
+      final sendButtonWidget = sendButtonElement.widget as IconButton;
+      final colorScheme = Theme.of(sendButtonElement).colorScheme;
+      final expectedForegroundColor = expected
+        ? colorScheme.onSurface.withOpacity(0.38)
+        : colorScheme.onPrimary;
+      check(sendButtonWidget.color).equals(expectedForegroundColor);
+    }
+
+    group('attach from media library', () {
+      testWidgets('success', (tester) async {
+        final controllerKey = await prepareComposeBox(tester, StreamNarrow(eg.stream().streamId));
+        final composeBoxController = controllerKey.currentState!;
+
+        // (When we check that the send button looks disabled, it should be because
+        // the file is uploading, not a pre-existing reason.)
+        composeBoxController.topicController!.value = const TextEditingValue(text: 'some topic');
+        composeBoxController.contentController.value = const TextEditingValue(text: 'see image: ');
+        await tester.pump();
+        checkAppearsLoading(tester, false);
+
+        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+          readStream: Stream.fromIterable(['asdf'.codeUnits]),
+          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
+          name: 'image.jpg',
+          size: 12345,
+        )]);
+        connection.prepare(delay: const Duration(seconds: 1), json:
+          UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+        await tester.tap(find.byIcon(Icons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.allowMultiple).equals(true);
+        check(call.type).equals(FileType.media);
+
+        final errorDialogs = tester.widgetList(find.byType(AlertDialog));
+        check(errorDialogs).isEmpty();
+
+        check(composeBoxController.contentController.text)
+          .equals('see image: [Uploading image.jpg...]()\n\n');
+        // (the request is checked more thoroughly in API tests)
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          ..method.equals('POST')
+          ..files.single.which((it) => it
+            ..field.equals('file')
+            ..length.equals(12345)
+            ..filename.equals('image.jpg')
+            ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+              .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+          );
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(composeBoxController.contentController.text)
+          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+        checkAppearsLoading(tester, false);
+      });
+
+      // TODO test what happens when selecting/uploading fails
+    });
+
+    group('attach from camera', () {
+      testWidgets('success', (tester) async {
+        final controllerKey = await prepareComposeBox(tester, StreamNarrow(eg.stream().streamId));
+        final composeBoxController = controllerKey.currentState!;
+
+        // (When we check that the send button looks disabled, it should be because
+        // the file is uploading, not a pre-existing reason.)
+        composeBoxController.topicController!.value = const TextEditingValue(text: 'some topic');
+        composeBoxController.contentController.value = const TextEditingValue(text: 'see image: ');
+        await tester.pump();
+        checkAppearsLoading(tester, false);
+
+        testBinding.pickImageResult = XFile.fromData(
+          utf8.encode('asdf'),
+          name: 'image.jpg',
+          length: 12345,
+          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
+        );
+        connection.prepare(delay: const Duration(seconds: 1), json:
+          UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+        await tester.tap(find.byIcon(Icons.camera_alt));
+        await tester.pump();
+        final call = testBinding.takePickImageCalls().single;
+        check(call.source).equals(ImageSource.camera);
+        check(call.requestFullMetadata).equals(false);
+
+        final errorDialogs = tester.widgetList(find.byType(AlertDialog));
+        check(errorDialogs).isEmpty();
+
+        check(composeBoxController.contentController.text)
+          .equals('see image: [Uploading image.jpg...]()\n\n');
+        // (the request is checked more thoroughly in API tests)
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          ..method.equals('POST')
+          ..files.single.which((it) => it
+            ..field.equals('file')
+            ..length.equals(12345)
+            ..filename.equals('image.jpg')
+            ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+              .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+          );
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(composeBoxController.contentController.text)
+          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+        checkAppearsLoading(tester, false);
+      });
+
+      // TODO test what happens when capturing/uploading fails
     });
   });
 }
