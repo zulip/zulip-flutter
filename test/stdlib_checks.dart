@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 extension ListChecks<T> on Subject<List<T>> {
   Subject<T> operator [](int index) => has((l) => l[index], '[$index]');
@@ -136,6 +137,10 @@ extension HttpMultipartFileChecks on Subject<http.MultipartFile> {
   Subject<String> get field => has((f) => f.field, 'field');
   Subject<int> get length => has((f) => f.length, 'length');
   Subject<String?> get filename => has((f) => f.filename, 'filename');
-  // TODO Subject<MediaType> get contentType => has((f) => f.contentType, 'contentType');
+  Subject<MediaType> get contentType => has((f) => f.contentType, 'contentType');
   Subject<bool> get isFinalized => has((f) => f.isFinalized, 'isFinalized');
+}
+
+extension MediaTypeChecks on Subject<MediaType> {
+  Subject<String> get asString => has((x) => x.toString(), 'toString'); // TODO(checks): what's a good convention for this?
 }

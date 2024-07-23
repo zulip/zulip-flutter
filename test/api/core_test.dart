@@ -81,12 +81,17 @@ void main() {
   });
 
   test('ApiConnection.postFileFromStream', () async {
-    Future<void> checkRequest(List<List<int>> content, int length, {String? filename}) {
+    Future<void> checkRequest(List<List<int>> content, int length,
+        {String? filename, String? contentType, bool isContentTypeInvalid = false}) {
       return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(json: {});
         await connection.postFileFromStream(
           kExampleRouteName, (json) => json, 'example/route',
-          Stream.fromIterable(content), length, filename: filename);
+          Stream.fromIterable(content), length,
+            filename: filename, contentType: contentType);
+        final expectedContentType = (contentType != null && !isContentTypeInvalid)
+          ? contentType
+          : 'application/octet-stream';
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
           ..url.asString.equals('${eg.realmUrl.origin}/api/v1/example/route')
@@ -99,6 +104,7 @@ void main() {
             ..field.equals('file')
             ..length.equals(length)
             ..filename.equals(filename)
+            ..contentType.asString.equals(expectedContentType)
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
               .completes((it) => it.deepEquals(content.expand((l) => l)))
           );
@@ -110,6 +116,10 @@ void main() {
     checkRequest(['asd'.codeUnits, 'f'.codeUnits], 4, filename: null);
 
     checkRequest(['asdf'.codeUnits], 4, filename: 'info.txt');
+    checkRequest(['asdf'.codeUnits], 4,
+      filename: 'image.jpg', contentType: 'image/jpeg');
+    checkRequest(['asdf'.codeUnits], 4,
+      filename: 'image.jpg', contentType: 'asdfjkl;', isContentTypeInvalid: true);
 
     checkRequest(['asdf'.codeUnits], 1, filename: null); // nothing on client side catches a wrong length
     checkRequest(['asdf'.codeUnits], 100, filename: null);

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../log.dart';
 import '../model/binding.dart';
@@ -192,10 +193,20 @@ class ApiConnection {
   }
 
   Future<T> postFileFromStream<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      String path, Stream<List<int>> content, int length, {String? filename}) async {
+      String path, Stream<List<int>> content, int length,
+      {String? filename, String? contentType}) async {
     final url = realmUrl.replace(path: "/api/v1/$path");
+    MediaType? parsedContentType;
+    if (contentType != null) {
+      try {
+        parsedContentType = MediaType.parse(contentType);
+      } on FormatException {
+        // TODO log
+      }
+    }
     final request = http.MultipartRequest('POST', url)
-      ..files.add(http.MultipartFile('file', content, length, filename: filename));
+      ..files.add(http.MultipartFile('file', content, length,
+        filename: filename, contentType: parsedContentType));
     return send(routeName, fromJson, request);
   }
 
