@@ -78,23 +78,23 @@ class RecentSenders {
     }
 
     final DeleteMessageEvent(:streamId!, :topic!) = event;
-    final sendersByStream = streamSenders[streamId];
-    final topicsByStream = topicSenders[streamId];
-    final sendersByTopic = topicsByStream?[topic];
+    final sendersInStream = streamSenders[streamId];
+    final topicsInStream = topicSenders[streamId];
+    final sendersInTopic = topicsInStream?[topic];
     for (final entry in messagesByUser.entries) {
       final MapEntry(key: senderId, value: messages) = entry;
 
-      final messagesBySenderInStream = sendersByStream?[senderId];
-      messagesBySenderInStream?.removeAll(messages);
-      if (messagesBySenderInStream?.maxId == null) sendersByStream?.remove(senderId);
+      final streamTracker = sendersInStream?[senderId];
+      streamTracker?.removeAll(messages);
+      if (streamTracker?.maxId == null) sendersInStream?.remove(senderId);
 
-      final messagesBySenderInTopic = sendersByTopic?[senderId];
-      messagesBySenderInTopic?.removeAll(messages);
-      if (messagesBySenderInTopic?.maxId == null) sendersByTopic?.remove(senderId);
+      final topicTracker = sendersInTopic?[senderId];
+      topicTracker?.removeAll(messages);
+      if (topicTracker?.maxId == null) sendersInTopic?.remove(senderId);
     }
-    if (sendersByStream?.isEmpty ?? false) streamSenders.remove(streamId);
-    if (sendersByTopic?.isEmpty ?? false) topicsByStream?.remove(topic);
-    if (topicsByStream?.isEmpty ?? false) topicSenders.remove(streamId);
+    if (sendersInStream?.isEmpty ?? false) streamSenders.remove(streamId);
+    if (sendersInTopic?.isEmpty ?? false) topicsInStream?.remove(topic);
+    if (topicsInStream?.isEmpty ?? false) topicSenders.remove(streamId);
   }
 }
 
