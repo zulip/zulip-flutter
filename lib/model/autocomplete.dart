@@ -187,6 +187,30 @@ class MentionAutocompleteView extends ChangeNotifier {
     required PerAccountStore store,
     required Narrow narrow,
   }) {
+    return store.users.values.toList()
+      ..sort(_comparator(store: store, narrow: narrow));
+  }
+
+  /// Compare the users the same way they would be sorted as
+  /// autocomplete candidates.
+  ///
+  /// This behaves the same as the comparator used for sorting in
+  /// [_usersByRelevance], but calling this for each comparison would be a bit
+  /// less efficient because some of the logic is independent of the users and
+  /// can be precomputed.
+  ///
+  /// This is useful for tests in order to distinguish "A comes before B"
+  /// from "A ranks equal to B, and the sort happened to put A before B",
+  /// particularly because [List.sort] makes no guarantees about the order
+  /// of items that compare equal.
+  int debugCompareUsers(User userA, User userB) {
+    return _comparator(store: store, narrow: narrow)(userA, userB);
+  }
+
+  static int Function(User, User) _comparator({
+    required PerAccountStore store,
+    required Narrow narrow,
+  }) {
     int? streamId;
     String? topic;
     switch (narrow) {
@@ -200,12 +224,9 @@ class MentionAutocompleteView extends ChangeNotifier {
       case CombinedFeedNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
-
-    return store.users.values.toList()
-      ..sort((userA, userB) => _compareByRelevance(userA, userB,
-          streamId: streamId,
-          topic: topic,
-          store: store));
+    return (userA, userB) => _compareByRelevance(userA, userB,
+      streamId: streamId, topic: topic,
+      store: store);
   }
 
   static int _compareByRelevance(User userA, User userB, {
