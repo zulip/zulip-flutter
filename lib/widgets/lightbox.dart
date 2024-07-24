@@ -536,18 +536,10 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
   }
 }
 
-enum MediaType {
-  video,
-  image
-}
-
-Route<void> getLightboxRoute({
-  int? accountId,
-  BuildContext? context,
-  required Message message,
-  required Uri src,
-  required Uri? thumbnailUrl,
-  required MediaType mediaType,
+Route<void> _getLightboxRoute({
+  required int? accountId,
+  required BuildContext? context,
+  required RoutePageBuilder pageBuilder,
 }) {
   return AccountPageRouteBuilder(
     accountId: accountId,
@@ -559,17 +551,7 @@ Route<void> getLightboxRoute({
       Animation<double> secondaryAnimation,
     ) {
       // TODO(#40): Drag down to close?
-      return switch (mediaType) {
-        MediaType.image => _ImageLightboxPage(
-          routeEntranceAnimation: animation,
-          message: message,
-          src: src,
-          thumbnailUrl: thumbnailUrl),
-        MediaType.video => VideoLightboxPage(
-          routeEntranceAnimation: animation,
-          message: message,
-          src: src),
-      };
+      return pageBuilder(context, animation, secondaryAnimation);
     },
     transitionsBuilder: (
       BuildContext context,
@@ -582,4 +564,40 @@ Route<void> getLightboxRoute({
         child: child);
     },
   );
+}
+
+Route<void> getImageLightboxRoute({
+  int? accountId,
+  BuildContext? context,
+  required Message message,
+  required Uri src,
+  required Uri? thumbnailUrl,
+}) {
+  return _getLightboxRoute(
+    accountId: accountId,
+    context: context,
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return _ImageLightboxPage(
+        routeEntranceAnimation: animation,
+        message: message,
+        src: src,
+        thumbnailUrl: thumbnailUrl);
+    });
+}
+
+Route<void> getVideoLightboxRoute({
+  int? accountId,
+  BuildContext? context,
+  required Message message,
+  required Uri src,
+}) {
+  return _getLightboxRoute(
+    accountId: accountId,
+    context: context,
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return VideoLightboxPage(
+        routeEntranceAnimation: animation,
+        message: message,
+        src: src);
+    });
 }

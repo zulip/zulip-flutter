@@ -572,12 +572,11 @@ class MessageImage extends StatelessWidget {
 
     return MessageMediaContainer(
       onTap: resolvedSrcUrl == null ? null : () { // TODO(log)
-        Navigator.of(context).push(getLightboxRoute(
+        Navigator.of(context).push(getImageLightboxRoute(
           context: context,
           message: message,
           src: resolvedSrcUrl,
-          thumbnailUrl: resolvedThumbnailUrl,
-          mediaType: MediaType.image));
+          thumbnailUrl: resolvedThumbnailUrl));
       },
       child: node.loading
         ? const CupertinoActivityIndicator()
@@ -603,12 +602,10 @@ class MessageInlineVideo extends StatelessWidget {
 
     return MessageMediaContainer(
       onTap: resolvedSrc == null ? null : () { // TODO(log)
-        Navigator.of(context).push(getLightboxRoute(
+        Navigator.of(context).push(getVideoLightboxRoute(
           context: context,
           message: message,
-          src: resolvedSrc,
-          thumbnailUrl: null,
-          mediaType: MediaType.video));
+          src: resolvedSrc));
       },
       child: Container(
         color: Colors.black, // Web has the same color in light and dark mode.
