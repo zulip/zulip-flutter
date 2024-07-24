@@ -250,11 +250,11 @@ class MentionAutocompleteView extends ChangeNotifier {
       if (result != 0) return result;
     }
 
-    final aMessageId = recentSenders.latestMessageIdOfSenderInStream(
-      streamId: streamId, senderId: userA.userId);
-    final bMessageId = recentSenders.latestMessageIdOfSenderInStream(
-      streamId: streamId, senderId: userB.userId);
-    return -compareRecentMessageIds(aMessageId, bMessageId);
+    return -compareRecentMessageIds(
+      recentSenders.latestMessageIdOfSenderInStream(
+        streamId: streamId, senderId: userA.userId),
+      recentSenders.latestMessageIdOfSenderInStream(
+        streamId: streamId, senderId: userB.userId));
   }
 
   /// Determines which of the two users is more recent in DM conversations.
