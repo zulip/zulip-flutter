@@ -411,24 +411,22 @@ void main() {
         return resultAB;
       }
 
-      test('prioritizes the user with more recent activity in the topic', () async {
+      test('favor user most recent in topic', () async {
         await prepare(messages: [message(userA, topic1), message(userB, topic1)]);
         check(compareAB(topic: topic1)).isGreaterThan(0);
       });
 
-      test('no activity in topic -> prioritizes the user with more recent '
-          'activity in the stream', () async {
+      test('no activity in topic -> favor user most recent in stream', () async {
         await prepare(messages: [message(userA, topic1), message(userB, topic1)]);
         check(compareAB(topic: topic2)).isGreaterThan(0);
       });
 
-      test('no topic provided -> prioritizes the user with more recent '
-          'activity in the stream', () async {
+      test('no topic provided -> favor user most recent in stream', () async {
         await prepare(messages: [message(userA, topic1), message(userB, topic2)]);
         check(compareAB(topic: null)).isGreaterThan(0);
       });
 
-      test('no activity in topic/stream -> prioritizes none', () async {
+      test('no activity in topic/stream -> favor none', () async {
         await prepare(messages: []);
         check(compareAB(topic: null)).equals(0);
       });
