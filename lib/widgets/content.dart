@@ -576,7 +576,9 @@ class MessageImage extends StatelessWidget {
           context: context,
           message: message,
           src: resolvedSrcUrl,
-          thumbnailUrl: resolvedThumbnailUrl));
+          thumbnailUrl: resolvedThumbnailUrl,
+          originalWidth: node.originalWidth,
+          originalHeight: node.originalHeight));
       },
       child: node.loading
         ? const CupertinoActivityIndicator()

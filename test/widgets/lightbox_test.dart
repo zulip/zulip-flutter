@@ -216,6 +216,8 @@ void main() {
         message: message ?? eg.streamMessage(),
         src: src,
         thumbnailUrl: thumbnailUrl,
+        originalHeight: null,
+        originalWidth: null,
       ));
       await tester.pump(); // per-account store
       await tester.pump(const Duration(milliseconds: 301)); // nav transition

@@ -217,12 +217,16 @@ class _ImageLightboxPage extends StatefulWidget {
     required this.message,
     required this.src,
     required this.thumbnailUrl,
+    required this.originalWidth,
+    required this.originalHeight,
   });
 
   final Animation<double> routeEntranceAnimation;
   final Message message;
   final Uri src;
   final Uri? thumbnailUrl;
+  final double? originalWidth;
+  final double? originalHeight;
 
   @override
   State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
@@ -259,8 +263,14 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
     if (frame != null) return child;
 
     // Display the thumbnail image while original image is downloading.
-    return RealmContentNetworkImage(widget.thumbnailUrl!,
-      filterQuality: FilterQuality.medium);
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: widget.originalWidth,
+        height: widget.originalHeight,
+        child: RealmContentNetworkImage(widget.thumbnailUrl!,
+          filterQuality: FilterQuality.medium,
+          fit: BoxFit.contain)));
   }
 
   Widget _loadingBuilder(BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
@@ -301,11 +311,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
               child: RealmContentNetworkImage(widget.src,
                 filterQuality: FilterQuality.medium,
                 frameBuilder: _frameBuilder,
-                loadingBuilder: _loadingBuilder),
-            ),
-          ),
-        ),
-      ));
+                loadingBuilder: _loadingBuilder))))));
   }
 }
 
@@ -572,6 +578,8 @@ Route<void> getImageLightboxRoute({
   required Message message,
   required Uri src,
   required Uri? thumbnailUrl,
+  required double? originalWidth,
+  required double? originalHeight,
 }) {
   return _getLightboxRoute(
     accountId: accountId,
@@ -581,7 +589,9 @@ Route<void> getImageLightboxRoute({
         routeEntranceAnimation: animation,
         message: message,
         src: src,
-        thumbnailUrl: thumbnailUrl);
+        thumbnailUrl: thumbnailUrl,
+        originalWidth: originalWidth,
+        originalHeight: originalHeight);
     });
 }
 
