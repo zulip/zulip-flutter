@@ -370,7 +370,7 @@ void main() {
       await store.addMessages(messages);
     }
 
-    group('MentionAutocompleteView.compareRecentMessageIds', () {
+    group('compareRecentMessageIds', () {
       test('both a and b are non-null', () async {
         check(MentionAutocompleteView.compareRecentMessageIds(2, 5)).isLessThan(0);
         check(MentionAutocompleteView.compareRecentMessageIds(5, 2)).isGreaterThan(0);
@@ -387,7 +387,7 @@ void main() {
       });
     });
 
-    group('MentionAutocompleteView.compareByRecency', () {
+    group('compareByRecency', () {
       final userA = eg.otherUser;
       final userB = eg.thirdUser;
       final stream = eg.stream();
@@ -438,7 +438,7 @@ void main() {
       });
     });
 
-    group('MentionAutocompleteView.compareByDms', () {
+    group('compareByDms', () {
       const idA = 1;
       const idB = 2;
 
