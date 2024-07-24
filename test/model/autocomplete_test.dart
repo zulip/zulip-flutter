@@ -491,6 +491,82 @@ void main() {
       });
     });
 
+    group('ranking across signals', () {
+      void checkPrecedes(Narrow narrow, User userA, Iterable<User> usersB) {
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
+        for (final userB in usersB) {
+          check(view.debugCompareUsers(userA, userB)).isLessThan(0);
+          check(view.debugCompareUsers(userB, userA)).isGreaterThan(0);
+        }
+      }
+
+      void checkRankEqual(Narrow narrow, List<User> users) {
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
+        for (int i = 0; i < users.length; i++) {
+          for (int j = i + 1; j < users.length; j++) {
+            check(view.debugCompareUsers(users[i], users[j])).equals(0);
+            check(view.debugCompareUsers(users[j], users[i])).equals(0);
+          }
+        }
+      }
+
+      test('TopicNarrow: topic recency > stream recency > DM recency', () async {
+        final users = List.generate(5, (i) => eg.user());
+        final stream = eg.stream();
+        final narrow = TopicNarrow(stream.streamId, 'this');
+        await prepare(users: users, messages: [
+          eg.streamMessage(sender: users[1], stream: stream, topic: 'this'),
+          eg.streamMessage(sender: users[0], stream: stream, topic: 'this'),
+          eg.streamMessage(sender: users[2], stream: stream, topic: 'other'),
+          eg.streamMessage(sender: users[1], stream: stream, topic: 'other'),
+          eg.dmMessage(from: users[3], to: [users[4], eg.selfUser]),
+          eg.dmMessage(from: users[2], to: [eg.selfUser]),
+        ]);
+        checkPrecedes(narrow, users[0], users.skip(1));
+        checkPrecedes(narrow, users[1], users.skip(2));
+        checkPrecedes(narrow, users[2], users.skip(3));
+        checkRankEqual(narrow, [users[3], users[4]]);
+      });
+
+      test('StreamNarrow: stream recency > DM recency', () async {
+        final users = List.generate(4, (i) => eg.user());
+        final stream = eg.stream();
+        final narrow = StreamNarrow(stream.streamId);
+        await prepare(users: users, messages: [
+          eg.streamMessage(sender: users[1], stream: stream),
+          eg.streamMessage(sender: users[0], stream: stream),
+          eg.dmMessage(from: users[2], to: [users[3], eg.selfUser]),
+          eg.dmMessage(from: users[1], to: [eg.selfUser]),
+        ]);
+        checkPrecedes(narrow, users[0], users.skip(1));
+        checkPrecedes(narrow, users[1], users.skip(2));
+        checkRankEqual(narrow, [users[2], users[3]]);
+      });
+
+      test('DmNarrow: DM recency > this-conversation recency or stream recency', () async {
+        final users = List.generate(4, (i) => eg.user());
+        await prepare(users: users, messages: [
+          eg.dmMessage(from: users[3], to: [eg.selfUser]),
+          eg.dmMessage(from: users[1], to: [users[2], eg.selfUser]),
+          eg.dmMessage(from: users[0], to: [eg.selfUser]),
+          eg.streamMessage(sender: users[1]),
+          eg.streamMessage(sender: users[2]),
+          eg.streamMessage(sender: users[3]),
+        ]);
+        for (final narrow in [
+          DmNarrow.withUser(users[3].userId, selfUserId: eg.selfUser.userId),
+          DmNarrow.withOtherUsers([users[1].userId, users[2].userId],
+            selfUserId: eg.selfUser.userId),
+          DmNarrow.withUser(users[1].userId, selfUserId: eg.selfUser.userId),
+        ]) {
+          checkPrecedes(narrow, users[0], users.skip(1));
+          checkRankEqual(narrow, [users[1], users[2]]);
+          checkPrecedes(narrow, users[1], users.skip(3));
+          checkPrecedes(narrow, users[2], users.skip(3));
+        }
+      });
+    });
+
     group('autocomplete suggests relevant users in the intended order', () {
       // The order should be:
       // 1. Users most recent in the current topic/stream.
