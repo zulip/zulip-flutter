@@ -356,6 +356,8 @@ class ImageNode extends BlockContentNode {
     required this.srcUrl,
     required this.thumbnailUrl,
     required this.loading,
+    required this.originalWidth,
+    required this.originalHeight,
   });
 
   /// The canonical source URL of the image.
@@ -379,16 +381,25 @@ class ImageNode extends BlockContentNode {
   /// Typically it will be `true` while Server is generating thumbnails.
   final bool loading;
 
+  /// The width of the canonical image.
+  final double? originalWidth;
+
+  /// The height of the canonical image.
+  final double? originalHeight;
+
   @override
   bool operator ==(Object other) {
     return other is ImageNode
       && other.srcUrl == srcUrl
       && other.thumbnailUrl == thumbnailUrl
-      && other.loading == loading;
+      && other.loading == loading
+      && other.originalWidth == originalWidth
+      && other.originalHeight == originalHeight;
   }
 
   @override
-  int get hashCode => Object.hash('ImageNode', srcUrl, thumbnailUrl, loading);
+  int get hashCode => Object.hash('ImageNode',
+    srcUrl, thumbnailUrl, loading, originalWidth, originalHeight);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -396,6 +407,8 @@ class ImageNode extends BlockContentNode {
     properties.add(StringProperty('srcUrl', srcUrl));
     properties.add(StringProperty('thumbnailUrl', thumbnailUrl));
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
+    properties.add(DoubleProperty('originalWidth', originalWidth));
+    properties.add(DoubleProperty('originalHeight', originalHeight));
   }
 }
 
@@ -1037,6 +1050,8 @@ class _ZulipContentParser {
     return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
   }
 
+  static final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
+
   BlockContentNode parseImageNode(dom.Element divElement) {
     assert(_debugParserContext == _ParserContext.block);
     final elements = () {
@@ -1071,6 +1086,8 @@ class _ZulipContentParser {
         srcUrl: href,
         thumbnailUrl: null,
         loading: true,
+        originalWidth: null,
+        originalHeight: null,
         debugHtmlNode: debugHtmlNode);
     }
     final src = imgElement.attributes['src'];
@@ -1093,10 +1110,32 @@ class _ZulipContentParser {
     } else {
       return UnimplementedBlockContentNode(htmlNode: divElement);
     }
+
+    double? originalWidth, originalHeight;
+    final originalDimensions = imgElement.attributes['data-original-dimensions'];
+    if (originalDimensions != null) {
+      // Server encodes this string as "{width}x{height}" (eg. "300x400")
+      final match = _imageDimensionsRegExp.firstMatch(originalDimensions);
+      if (match != null) {
+        final width = int.tryParse(match.group(1)!, radix: 10);
+        final height = int.tryParse(match.group(2)!, radix: 10);
+        if (width != null && height != null) {
+          originalWidth = width.toDouble();
+          originalHeight = height.toDouble();
+        }
+      }
+
+      if (originalWidth == null || originalHeight == null) {
+        return UnimplementedBlockContentNode(htmlNode: divElement);
+      }
+    }
+
     return ImageNode(
       srcUrl: srcUrl,
       thumbnailUrl: thumbnailUrl,
       loading: false,
+      originalWidth: originalWidth,
+      originalHeight: originalHeight,
       debugHtmlNode: debugHtmlNode);
   }
 

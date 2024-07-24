@@ -263,7 +263,8 @@ class ContentExample {
         ]),
         ImageNodeList([
           ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
-            thumbnailUrl: null, loading: false),
+            thumbnailUrl: null, loading: false,
+            originalWidth: null, originalHeight: null),
         ]),
       ],
       content: [ParagraphNode(links: null, nodes: [TextNode('hello world')])],
@@ -421,6 +422,22 @@ class ContentExample {
 
   static const imageSingle = ContentExample(
     'single image',
+    // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1900103
+    "[image.jpg](/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg)",
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg" title="image.jpg">'
+        '<img data-original-dimensions="6000x4000" src="/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp"></a></div>', [
+    ImageNodeList([
+      ImageNode(srcUrl: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
+        thumbnailUrl: '/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp',
+        loading: false,
+        originalWidth: 6000,
+        originalHeight: 4000),
+    ]),
+  ]);
+
+  static const imageSingleNoDimensions = ContentExample(
+    'single image no dimensions',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
     "[image.jpg](/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg)",
     '<div class="message_inline_image">'
@@ -429,7 +446,9 @@ class ContentExample {
     ImageNodeList([
       ImageNode(srcUrl: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
         thumbnailUrl: '/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp',
-        loading: false),
+        loading: false,
+        originalWidth: null,
+        originalHeight: null),
     ]),
   ]);
 
@@ -441,7 +460,8 @@ class ContentExample {
         '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"></a></div>', [
     ImageNodeList([
       ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
   ]);
 
@@ -454,7 +474,8 @@ class ContentExample {
         '<img class="image-loading-placeholder" src="/static/images/loading/loader-black.svg"></a></div>', [
     ImageNodeList([
       ImageNode(srcUrl: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
-        thumbnailUrl: null, loading: true),
+        thumbnailUrl: null, loading: true,
+        originalWidth: null, originalHeight: null),
     ]),
   ]);
 
@@ -467,7 +488,8 @@ class ContentExample {
       '<img src="/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
     ImageNodeList([
       ImageNode(srcUrl: '/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
   ]);
 
@@ -478,7 +500,9 @@ class ContentExample {
       '<a href="::not a URL::">'
         '<img src="::not a URL::"></a></div>', [
     ImageNodeList([
-      ImageNode(srcUrl: '::not a URL::', thumbnailUrl: null, loading: false),
+      ImageNode(srcUrl: '::not a URL::',
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
   ]);
 
@@ -504,10 +528,14 @@ class ContentExample {
     ImageNodeList([
       ImageNode(srcUrl: '/user_uploads/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg',
         thumbnailUrl: '/user_uploads/thumbnail/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg/840x560.webp',
-        loading: false),
+        loading: false,
+        originalWidth: null,
+        originalHeight: null),
       ImageNode(srcUrl: '/user_uploads/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg',
         thumbnailUrl: '/user_uploads/thumbnail/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg/840x560.webp',
-        loading: false),
+        loading: false,
+        originalWidth: null,
+        originalHeight: null),
     ]),
   ]);
 
@@ -531,9 +559,11 @@ class ContentExample {
     ]),
     ImageNodeList([
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/f535ba07f95b99a83aa48e44fd62bbb6c6cf6615/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d33',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/8f63bc2632a0e41be3f457d86c077e61b4a03e7e/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d34',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
   ]);
 
@@ -558,9 +588,11 @@ class ContentExample {
     ]),
     ImageNodeList([
       ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
       ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
     ParagraphNode(links: null, nodes: [
       TextNode('more content'),
@@ -596,9 +628,11 @@ class ContentExample {
     ]),
     ImageNodeList([
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/34b2695ca83af76204b0b25a8f2019ee35ec38fa/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e67',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/d200fb112aaccbff9df767373a201fa59601f362/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d31',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
     ParagraphNode(links: null, nodes: [
       TextNode('Test'),
@@ -611,9 +645,11 @@ class ContentExample {
     ]),
     ImageNodeList([
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/c4db87e81348dac94eacaa966b46d968b34029cc/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d32',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
       ImageNode(srcUrl: 'https://uploads.zulipusercontent.net/51b70540cf6a5b3c8a0b919c893b8abddd447e88/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d33',
-        thumbnailUrl: null, loading: false),
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
     ]),
   ]);
 
@@ -628,7 +664,8 @@ class ContentExample {
     ListNode(ListStyle.unordered, [[
       ImageNodeList([
         ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-          thumbnailUrl: null, loading: false),
+          thumbnailUrl: null, loading: false,
+          originalWidth: null, originalHeight: null),
       ]),
     ]]),
   ]);
@@ -654,9 +691,11 @@ class ContentExample {
       ]),
       ImageNodeList([
         ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-          thumbnailUrl: null, loading: false),
+          thumbnailUrl: null, loading: false,
+          originalWidth: null, originalHeight: null),
         ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2',
-          thumbnailUrl: null, loading: false),
+          thumbnailUrl: null, loading: false,
+          originalWidth: null, originalHeight: null),
       ]),
     ]]),
   ]);
@@ -680,7 +719,8 @@ class ContentExample {
       ]),
       const ImageNodeList([
         ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-          thumbnailUrl: null, loading: false),
+          thumbnailUrl: null, loading: false,
+          originalWidth: null, originalHeight: null),
       ]),
       blockUnimplemented('more text'),
     ]]),
@@ -1117,6 +1157,7 @@ void main() {
   testParseExample(ContentExample.mathBlockInQuote);
 
   testParseExample(ContentExample.imageSingle);
+  testParseExample(ContentExample.imageSingleNoDimensions);
   testParseExample(ContentExample.imageSingleNoThumbnail);
   testParseExample(ContentExample.imageSingleLoadingPlaceholder);
   testParseExample(ContentExample.imageSingleExternal);
