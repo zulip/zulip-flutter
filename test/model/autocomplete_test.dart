@@ -416,6 +416,12 @@ void main() {
         check(compareAB(topic: topic1)).isGreaterThan(0);
       });
 
+      test('favor most recent in topic ahead of most recent in stream', () async {
+        await prepare(messages: [
+          message(userA, topic1), message(userB, topic1), message(userA, topic2)]);
+        check(compareAB(topic: topic1)).isGreaterThan(0);
+      });
+
       test('no activity in topic -> favor user most recent in stream', () async {
         await prepare(messages: [message(userA, topic1), message(userB, topic1)]);
         check(compareAB(topic: topic2)).isGreaterThan(0);
