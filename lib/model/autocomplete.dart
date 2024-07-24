@@ -187,20 +187,20 @@ class MentionAutocompleteView extends ChangeNotifier {
     required PerAccountStore store,
     required Narrow narrow,
   }) {
-    final (int?, String?) streamAndTopic;
+    int? streamId;
+    String? topic;
     switch (narrow) {
       case StreamNarrow():
-        streamAndTopic = (narrow.streamId, null);
+        streamId = narrow.streamId;
       case TopicNarrow():
-        streamAndTopic = (narrow.streamId, narrow.topic);
+        streamId = narrow.streamId;
+        topic = narrow.topic;
       case DmNarrow():
-        streamAndTopic = (null, null);
+        break;
       case CombinedFeedNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
-        streamAndTopic = (null, null);
     }
 
-    final (streamId, topic) = streamAndTopic;
     return store.users.values.toList()
       ..sort((userA, userB) => _compareByRelevance(userA, userB,
           streamId: streamId,
