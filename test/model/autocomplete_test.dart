@@ -399,8 +399,16 @@ void main() {
       }
 
       int compareAB({required String? topic}) {
-        return MentionAutocompleteView.compareByRecency(userA, userB,
+        final resultAB = MentionAutocompleteView.compareByRecency(userA, userB,
           streamId: stream.streamId, topic: topic, store: store);
+        final resultBA = MentionAutocompleteView.compareByRecency(userB, userA,
+          streamId: stream.streamId, topic: topic, store: store);
+        switch (resultAB) {
+          case <0: check(resultBA).isGreaterThan(0);
+          case >0: check(resultBA).isLessThan(0);
+          default: check(resultBA).equals(0);
+        }
+        return resultAB;
       }
 
       test('prioritizes the user with more recent activity in the topic', () async {
