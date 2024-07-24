@@ -395,44 +395,28 @@ void main() {
       const topic2 = 'topic2';
 
       Message message(User sender, String topic) {
-        return eg.streamMessage(
-          sender: sender,
-          stream: stream,
-          topic: topic,
-        );
+        return eg.streamMessage(sender: sender, stream: stream, topic: topic);
       }
 
       int compareAB({required String? topic}) {
         return MentionAutocompleteView.compareByRecency(userA, userB,
-          streamId: stream.streamId,
-          topic: topic,
-          store: store,
-        );
+          streamId: stream.streamId, topic: topic, store: store);
       }
 
       test('prioritizes the user with more recent activity in the topic', () async {
-        await prepare(messages: [
-          message(userA, topic1),
-          message(userB, topic1),
-        ]);
+        await prepare(messages: [message(userA, topic1), message(userB, topic1)]);
         check(compareAB(topic: topic1)).isGreaterThan(0);
       });
 
       test('no activity in topic -> prioritizes the user with more recent '
           'activity in the stream', () async {
-        await prepare(messages: [
-          message(userA, topic1),
-          message(userB, topic1),
-        ]);
+        await prepare(messages: [message(userA, topic1), message(userB, topic1)]);
         check(compareAB(topic: topic2)).isGreaterThan(0);
       });
 
       test('no topic provided -> prioritizes the user with more recent '
           'activity in the stream', () async {
-        await prepare(messages: [
-          message(userA, topic1),
-          message(userB, topic2),
-        ]);
+        await prepare(messages: [message(userA, topic1), message(userB, topic2)]);
         check(compareAB(topic: null)).isGreaterThan(0);
       });
 
