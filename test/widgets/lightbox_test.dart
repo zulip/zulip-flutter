@@ -9,12 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:video_player/video_player.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../test_images.dart';
 import 'dialog_checks.dart';
 
 const kTestVideoUrl = "https://a/video.mp4";
@@ -193,6 +197,87 @@ class FakeVideoPlayerPlatform extends Fake
 
 void main() {
   TestZulipBinding.ensureInitialized();
+
+  group('_ImageLightboxPage', () {
+    final src = Uri.parse('https://chat.example/lightbox-image.png');
+
+    Future<void> setupPage(WidgetTester tester, {
+      Message? message,
+      required Uri? thumbnailUrl,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      await tester.pumpWidget(const ZulipApp());
+      await tester.pump();
+      final navigator = await ZulipApp.navigator;
+      navigator.push(getLightboxRoute(
+        accountId: eg.selfAccount.id,
+        message: message ?? eg.streamMessage(),
+        src: src,
+        thumbnailUrl: thumbnailUrl,
+        mediaType: MediaType.image,
+      ));
+      await tester.pump(); // per-account store
+      await tester.pump(const Duration(milliseconds: 301)); // nav transition
+    }
+
+    testWidgets('shows image', (tester) async {
+      prepareBoringImageHttpClient();
+      await setupPage(tester, thumbnailUrl: null);
+
+      final image = tester.widget<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(image.src).equals(src);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('app bar shows sender name and date', (tester) async {
+      prepareBoringImageHttpClient();
+      final timestamp = DateTime.parse("2024-07-23 23:12:24").millisecondsSinceEpoch ~/ 1000;
+      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      // We're looking for a RichText, in the app bar, with both the
+      // sender's name and the timestamp.
+      final labelTextWidget = tester.widget<RichText>(
+        find.descendant(of: find.byType(AppBar).last,
+          matching: find.textContaining(findRichText: true,
+            eg.otherUser.fullName)));
+      check(labelTextWidget.text.toPlainText())
+        .contains('Jul 23, 2024 23:12:24');
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('header and footer hidden and shown by tapping image', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage(sender: eg.otherUser);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      tester.widget(find.byType(AppBar));
+      tester.widget(find.byType(BottomAppBar));
+
+      await tester.tap(find.byType(ZulipApp));
+      await tester.pump();
+      check(tester.widgetList(find.byType(AppBar))).isEmpty();
+      check(tester.widgetList(find.byType(BottomAppBar))).isEmpty();
+
+      await tester.tap(find.byType(ZulipApp));
+      await tester.pump();
+      tester.widget(find.byType(AppBar));
+      tester.widget(find.byType(BottomAppBar));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    // TODO test _CopyLinkButton
+    // TODO test thumbnail gets shown, then gets replaced when main image loads
+    // TODO test image is scaled down to fit, but not up
+    // TODO test image doesn't change size when header and footer hidden/shown
+    // TODO test image doesn't show in inset area by default, but does if user zooms/pans it there
+  });
 
   group('VideoDurationLabel', () {
     const cases = [
