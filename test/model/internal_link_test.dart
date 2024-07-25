@@ -221,6 +221,20 @@ void main() {
       testExpectedNarrows(testCases, streams: streams);
     });
 
+    group('"/#narrow/is/mentioned returns expected MentionsNarrow', () {
+      final testCases = [
+        ('/#narrow/is/mentioned',                                     const MentionsNarrow()),
+        ('/#narrow/is/mentioned/near/1',                              const MentionsNarrow()),
+        ('/#narrow/is/mentioned/with/2',                              const MentionsNarrow()),
+        ('/#narrow/channel/7-test-here/is/mentioned',                 null),
+        ('/#narrow/channel/check/topic/test/is/mentioned',            null),
+        ('/#narrow/topic/test/is/mentioned',                          null),
+        ('/#narrow/dm/17327-Chris-Bobbe-(Test-Account)/is/mentioned', null),
+        ('/#narrow/-is/mentioned',                                    null),
+      ];
+      testExpectedNarrows(testCases, streams: streams);
+    });
+
     group('unexpected link shapes are rejected', () {
       final testCases = [
         ('/#narrow/stream/name/topic/',           null), // missing operand

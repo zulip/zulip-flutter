@@ -154,6 +154,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   ApiNarrowStream? streamElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
+  ApiNarrowIsMentioned? isMentionedElement;
 
   for (var i = 0; i < segments.length; i += 2) {
     final (operator, negated) = _parseOperator(segments[i]);
@@ -181,6 +182,10 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (dmIds == null) return null;
         dmElement = ApiNarrowDm(dmIds, negated: negated);
 
+      case _NarrowOperator.is_:
+        if (isMentionedElement != null) return null;
+        if (operand == 'mentioned') isMentionedElement = ApiNarrowIsMentioned();
+
       case _NarrowOperator.near: // TODO(#82): support for near
       case _NarrowOperator.with_: // TODO(#683): support for with
         continue;
@@ -190,7 +195,10 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     }
   }
 
-  if (dmElement != null) {
+  if (isMentionedElement != null) {
+    if (streamElement != null || topicElement != null || dmElement != null) return null;
+    return const MentionsNarrow();
+  } else if (dmElement != null) {
     if (streamElement != null || topicElement != null) return null;
     return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
   } else if (streamElement != null) {
@@ -212,6 +220,9 @@ enum _NarrowOperator {
   // cannot use `with` as it is a reserved keyword in Dart
   @JsonValue('with')
   with_,
+  // cannot use `is` as it is a reserved keyword in Dart
+  @JsonValue('is')
+  is_,
   pmWith,
   stream,
   channel,
