@@ -13,6 +13,7 @@
 #   $ git log --format='%an %ae' --author=$NAME | uniq -c
 
 Chris Bobbe <cbobbe@zulip.com> <csbobbe@gmail.com>
+Lalit Kumar Singh <lalitkumarsingh3716@gmail.com>
 Greg Price <greg@zulip.com> <gnprice@gmail.com>
 Rajesh Malviya <rajveer0malviya@gmail.com>
 Shu Chen <shu@zulip.com> <shu.chen@freelancedreams.com>
