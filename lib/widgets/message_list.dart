@@ -807,12 +807,24 @@ class RecipientHeader extends StatelessWidget {
   final Message message;
   final Narrow narrow;
 
+  static bool _containsDifferentChannels(Narrow narrow) {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+        return true;
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
       StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: narrow is CombinedFeedNarrow),
+        showStream: _containsDifferentChannels(narrow)),
       DmMessage() => DmRecipientHeader(message: message),
     };
   }
