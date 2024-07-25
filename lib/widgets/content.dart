@@ -522,12 +522,8 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
                   ]))),
               FadeTransition(
                 opacity: _animation,
-                child: const SizedBox(height: 0, width: double.infinity,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        // Web has the same color in light and dark mode.
-                        bottom: BorderSide(width: 1, color: Color(0xff808080))))))),
+                // Web has the same color in light and dark mode.
+                child: const Divider(color: Color(0xff808080), height: 0)),
               SizeTransition(
                 sizeFactor: _animation,
                 axis: Axis.vertical,
