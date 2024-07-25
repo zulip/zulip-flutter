@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -16,6 +17,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -26,11 +28,14 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, Narrow narrow) async {
+  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester,
+      {required Narrow narrow, List<User> users = const []}) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+    await store.addUsers([eg.selfUser, ...users]);
     connection = store.connection as FakeApiConnection;
 
     final controllerKey = GlobalKey<ComposeBoxController>();
@@ -169,14 +174,14 @@ void main() {
 
     testWidgets('_StreamComposeBox', (tester) async {
       final key = await prepareComposeBox(tester,
-        ChannelNarrow(eg.stream().streamId));
+        narrow: ChannelNarrow(eg.stream().streamId));
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
       final key = await prepareComposeBox(tester,
-        TopicNarrow.ofMessage(eg.streamMessage()));
+        narrow: TopicNarrow.ofMessage(eg.streamMessage()));
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: false);
     });
@@ -187,7 +192,7 @@ void main() {
       required void Function(int messageId) prepareResponse,
     }) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, const TopicNarrow(123, 'some topic'));
+      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
 
       final contentInputFinder = find.byWidgetPredicate(
         (widget) => widget is TextField && widget.controller is ComposeContentController);
@@ -251,7 +256,7 @@ void main() {
 
     group('attach from media library', () {
       testWidgets('success', (tester) async {
-        final controllerKey = await prepareComposeBox(tester, ChannelNarrow(eg.stream().streamId));
+        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
@@ -307,7 +312,7 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
-        final controllerKey = await prepareComposeBox(tester, ChannelNarrow(eg.stream().streamId));
+        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
