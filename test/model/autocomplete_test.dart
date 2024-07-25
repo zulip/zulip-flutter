@@ -599,9 +599,19 @@ void main() {
         streamMessage(id: 60, senderId: 4),
       ];
 
-      Future<void> prepareStore({bool includeMessageHistory = false}) async {
+      Future<void> prepareStore() async {
         await prepare(users: users, dmConversations: dmConversations,
-          messages: includeMessageHistory ? messages : []);
+          messages: messages);
+      }
+
+      Future<void> fetchInitialMessagesIn(Narrow narrow) async {
+        final connection = store.connection as FakeApiConnection;
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: messages.where((m) => m.topic == topic).toList(),
+        ).toJson());
+        final messageList = MessageListView.init(store: store, narrow: narrow);
+        await messageList.fetchInitial();
       }
 
       Future<void> checkResultsIn(Narrow narrow, {required List<int> expected}) async {
@@ -617,31 +627,9 @@ void main() {
         check(results).deepEquals(expected);
       }
 
-      late FakeApiConnection connection;
-      late MessageListView messageList;
-
-      Future<void> fetchInitialMessagesIn(Narrow narrow) async {
-        connection = store.connection as FakeApiConnection;
-        connection.prepare(json: newestResult(
-          foundOldest: false,
-          messages: narrow is StreamNarrow
-            ? messages
-            : messages.where((m) => m.topic == topic).toList(),
-        ).toJson());
-        messageList = MessageListView.init(store: store, narrow: narrow);
-        await messageList.fetchInitial();
-      }
-
-      Future<void> checkInitialResultsIn(Narrow narrow,
-          {required List<int> expected, bool includeStream = false}) async {
-        assert(narrow is! StreamNarrow || !includeStream);
-        await prepareStore(includeMessageHistory: includeStream);
-        await fetchInitialMessagesIn(narrow);
-        await checkResultsIn(narrow, expected: expected);
-      }
-
-      await checkInitialResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2],
-        includeStream: true);
+      await prepareStore();
+      await fetchInitialMessagesIn(topicNarrow);
+      await checkResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2]);
     });
   });
 }
