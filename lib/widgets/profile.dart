@@ -6,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../api/model/model.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
+import 'app_bar.dart';
 import 'content.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -69,7 +70,9 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(user.fullName)),
+      appBar: ZulipAppBar(
+        title: Text(user.fullName),
+        isLoading: store.isLoading),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -87,8 +90,11 @@ class _ProfileErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Error')),
+      appBar: ZulipAppBar(
+        title: const Text('Error'),
+        isLoading: store.isLoading),
       body: const SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),

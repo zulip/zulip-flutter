@@ -4,6 +4,7 @@ import '../api/model/model.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import 'app_bar.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -160,7 +161,9 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Inbox')),
+      appBar: ZulipAppBar(
+        title: const Text('Inbox'),
+        isLoading: store.isLoading),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,
