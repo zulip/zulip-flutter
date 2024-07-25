@@ -614,22 +614,24 @@ void main() {
         await messageList.fetchInitial();
       }
 
-      Future<void> checkResultsIn(Narrow narrow, {required List<int> expected}) async {
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
-
+      Future<Iterable<int>> getResults(
+          Narrow narrow, MentionAutocompleteQuery query) async {
         bool done = false;
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
         view.addListener(() { done = true; });
-        view.query = MentionAutocompleteQuery('');
+        view.query = query;
         await Future(() {});
         check(done).isTrue();
         final results = view.results
           .map((e) => (e as UserMentionAutocompleteResult).userId);
-        check(results).deepEquals(expected);
+        view.dispose();
+        return results;
       }
 
       await prepareStore();
       await fetchInitialMessagesIn(topicNarrow);
-      await checkResultsIn(topicNarrow, expected: [1, 5, 4, 2, 3]);
+      check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
+        .deepEquals([1, 5, 4, 2, 3]);
     });
   });
 }
