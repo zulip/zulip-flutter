@@ -92,12 +92,22 @@ Two specific points to expand on:
 
 ### Setting up
 
+Running the app requires only a standard Flutter setup,
+using the Flutter `main` channel:
+
 1. Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install)
    for your platform of choice.
 2. Switch to the latest version of Flutter by running `flutter channel main`
    and `flutter upgrade` (see [Flutter version](#flutter-version) below).
 3. Ensure Flutter is correctly configured by running `flutter doctor`.
 4. Start the app with `flutter run`, or from your IDE.
+
+Parts of our test suite require an additional dependency:
+
+5. Install SQLite, for example by running `sudo apt install libsqlite3-dev`.
+
+For more details and help with unusual configurations,
+see our [full setup guide](docs/setup.md).
 
 
 ### Flutter version
