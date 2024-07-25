@@ -575,46 +575,11 @@ void main() {
     });
 
     test('final results end-to-end', () async {
-      // The order should be:
-      // 1. Users most recent in the current topic/stream.
-      // 2. Users most recent in the DM conversations.
-
-      final stream = eg.stream();
-      const topic = 'topic';
-      final topicNarrow = TopicNarrow(stream.streamId, topic);
-
-      final users = [
-        eg.user(userId: 1, fullName: 'User One'),
-        eg.user(userId: 2, fullName: 'User Two'),
-        eg.user(userId: 3, fullName: 'User Three'),
-        eg.user(userId: 4, fullName: 'User Four'),
-        eg.user(userId: 5, fullName: 'User Five'),
-      ];
-
-      final dmConversations = [
-        RecentDmConversation(userIds: [4],    maxMessageId: 300),
-        RecentDmConversation(userIds: [1],    maxMessageId: 200),
-        RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
-      ];
-
-      StreamMessage streamMessage({required int id, required int senderId, String? topic}) =>
-        eg.streamMessage(id: id, sender: users[senderId-1], topic: topic, stream: stream);
-
-      final messages = [
-        streamMessage(id: 50, senderId: 1, topic: topic),
-        streamMessage(id: 60, senderId: 5),
-      ];
-
-      Future<void> prepareStore() async {
-        await prepare(users: users, dmConversations: dmConversations,
-          messages: messages);
-      }
-
-      Future<void> fetchInitialMessagesIn(Narrow narrow) async {
+      Future<void> fetchInitialMessagesIn(Narrow narrow, List<Message> messages) async {
         final connection = store.connection as FakeApiConnection;
         connection.prepare(json: newestResult(
           foundOldest: false,
-          messages: messages.where((m) => m.topic == topic).toList(),
+          messages: messages,
         ).toJson());
         final messageList = MessageListView.init(store: store, narrow: narrow);
         await messageList.fetchInitial();
@@ -634,11 +599,38 @@ void main() {
         return results;
       }
 
-      await prepareStore();
-      await fetchInitialMessagesIn(topicNarrow);
+      final stream = eg.stream();
+      const topic = 'topic';
+      final topicNarrow = TopicNarrow(stream.streamId, topic);
+
+      final users = [
+        eg.user(userId: 1, fullName: 'User One'),
+        eg.user(userId: 2, fullName: 'User Two'),
+        eg.user(userId: 3, fullName: 'User Three'),
+        eg.user(userId: 4, fullName: 'User Four'),
+        eg.user(userId: 5, fullName: 'User Five'),
+      ];
+
+      final messages = [
+        eg.streamMessage(id: 50, sender: users[1-1], stream: stream, topic: topic),
+        eg.streamMessage(id: 60, sender: users[5-1], stream: stream),
+      ];
+
+      await prepare(users: users, messages: messages, dmConversations: [
+        RecentDmConversation(userIds: [4],    maxMessageId: 300),
+        RecentDmConversation(userIds: [1],    maxMessageId: 200),
+        RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
+      ]);
+      await fetchInitialMessagesIn(topicNarrow,
+        messages.where((m) => m.topic == topic).toList());
+
       // Check the ranking of the full list of users.
+      // The order should be:
+      // 1. Users most recent in the current topic/stream.
+      // 2. Users most recent in the DM conversations.
       check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
         .deepEquals([1, 5, 4, 2, 3]);
+
       // Check the ranking applies also to results filtered by a query.
       check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
         .deepEquals([2, 3]);
