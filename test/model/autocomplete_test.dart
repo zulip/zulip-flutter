@@ -565,6 +565,13 @@ void main() {
           checkPrecedes(narrow, users[2], users.skip(3));
         }
       });
+
+      test('CombinedFeedNarrow gives error', () async {
+        await prepare(users: [eg.user(), eg.user()], messages: []);
+        const narrow = CombinedFeedNarrow();
+        check(() => MentionAutocompleteView.init(store: store, narrow: narrow))
+          .throws<AssertionError>();
+      });
     });
 
     group('autocomplete suggests relevant users in the intended order', () {
@@ -722,16 +729,6 @@ void main() {
 
           await checkResultsIn(dmNarrow, expected: [1, 3, 0, 2, 4]);
         });
-      });
-
-      test('CombinedFeedNarrow', () async {
-        await prepareStore();
-        // As we do not expect a compose box in [CombinedFeedNarrow], it should
-        // not proceed to show any results.
-        await check(checkResultsIn(
-          const CombinedFeedNarrow(),
-          expected: [0, 1, 2, 3, 4])
-        ).throws();
       });
     });
   });
