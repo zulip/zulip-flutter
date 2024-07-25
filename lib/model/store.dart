@@ -297,6 +297,15 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
+  bool get isLoading => _isLoading;
+  bool _isLoading = false;
+  @visibleForTesting
+  set isLoading(bool value) {
+    if (_isLoading == value) return;
+    _isLoading = value;
+    notifyListeners();
+  }
+
   ////////////////////////////////
   // Data attached to the realm or the server.
 
@@ -770,6 +779,7 @@ class UpdateMachine {
         result = await getEvents(store.connection,
           queueId: queueId, lastEventId: lastEventId);
       } catch (e) {
+        store.isLoading = true;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
@@ -797,6 +807,7 @@ class UpdateMachine {
         }
       }
 
+      store.isLoading = false;
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);
