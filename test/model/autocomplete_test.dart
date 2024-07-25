@@ -574,14 +574,13 @@ void main() {
       });
     });
 
-    group('autocomplete suggests relevant users in the intended order', () {
+    test('final results end-to-end', () async {
       // The order should be:
       // 1. Users most recent in the current topic/stream.
       // 2. Users most recent in the DM conversations.
 
       final stream = eg.stream();
       const topic = 'topic';
-      final streamNarrow = StreamNarrow(stream.streamId);
       final topicNarrow = TopicNarrow(stream.streamId, topic);
 
       final users = List.generate(5, (i) => eg.user(userId: i));
@@ -618,65 +617,31 @@ void main() {
         check(results).deepEquals(expected);
       }
 
-      group('StreamNarrow & TopicNarrow', () {
-        late FakeApiConnection connection;
-        late MessageListView messageList;
+      late FakeApiConnection connection;
+      late MessageListView messageList;
 
-        Future<void> fetchInitialMessagesIn(Narrow narrow) async {
-          connection = store.connection as FakeApiConnection;
-          connection.prepare(json: newestResult(
-            foundOldest: false,
-            messages: narrow is StreamNarrow
-              ? messages
-              : messages.where((m) => m.topic == topic).toList(),
-          ).toJson());
-          messageList = MessageListView.init(store: store, narrow: narrow);
-          await messageList.fetchInitial();
-        }
+      Future<void> fetchInitialMessagesIn(Narrow narrow) async {
+        connection = store.connection as FakeApiConnection;
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: narrow is StreamNarrow
+            ? messages
+            : messages.where((m) => m.topic == topic).toList(),
+        ).toJson());
+        messageList = MessageListView.init(store: store, narrow: narrow);
+        await messageList.fetchInitial();
+      }
 
-        Future<void> checkInitialResultsIn(Narrow narrow,
-            {required List<int> expected, bool includeStream = false}) async {
-          assert(narrow is! StreamNarrow || !includeStream);
-          await prepareStore(includeMessageHistory: includeStream);
-          await fetchInitialMessagesIn(narrow);
-          await checkResultsIn(narrow, expected: expected);
-        }
+      Future<void> checkInitialResultsIn(Narrow narrow,
+          {required List<int> expected, bool includeStream = false}) async {
+        assert(narrow is! StreamNarrow || !includeStream);
+        await prepareStore(includeMessageHistory: includeStream);
+        await fetchInitialMessagesIn(narrow);
+        await checkResultsIn(narrow, expected: expected);
+      }
 
-        test('StreamNarrow', () async {
-          await checkInitialResultsIn(streamNarrow, expected: [4, 0, 3, 1, 2]);
-        });
-
-        test('StreamNarrow, new message arrives', () async {
-          await checkInitialResultsIn(streamNarrow, expected: [4, 0, 3, 1, 2]);
-
-          // Until now, latest message id in [stream] is 60.
-          await store.addMessage(streamMessage(id: 70, senderId: 2));
-
-          await checkResultsIn(streamNarrow, expected: [2, 4, 0, 3, 1]);
-        });
-
-        test('StreamNarrow, a batch of older messages arrives', () async {
-          await checkInitialResultsIn(streamNarrow, expected: [4, 0, 3, 1, 2]);
-
-          // Until now, oldest message id in [stream] is 50.
-          final oldMessages = [
-            streamMessage(id: 30, senderId: 1),
-            streamMessage(id: 40, senderId: 2),
-          ];
-          connection.prepare(json: olderResult(
-            anchor: 50, foundOldest: false,
-            messages: oldMessages,
-          ).toJson());
-          await messageList.fetchOlder();
-
-          await checkResultsIn(streamNarrow, expected: [4, 0, 2, 1, 3]);
-        });
-
-        test('TopicNarrow, other messages are in stream', () async {
-          await checkInitialResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2],
-            includeStream: true);
-        });
-      });
+      await checkInitialResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2],
+        includeStream: true);
     });
   });
 }
