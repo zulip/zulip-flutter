@@ -8,14 +8,11 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
-import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
-import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
-import 'message_list_test.dart';
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
@@ -575,16 +572,6 @@ void main() {
     });
 
     test('final results end-to-end', () async {
-      Future<void> fetchInitialMessagesIn(Narrow narrow, List<Message> messages) async {
-        final connection = store.connection as FakeApiConnection;
-        connection.prepare(json: newestResult(
-          foundOldest: false,
-          messages: messages,
-        ).toJson());
-        final messageList = MessageListView.init(store: store, narrow: narrow);
-        await messageList.fetchInitial();
-      }
-
       Future<Iterable<int>> getResults(
           Narrow narrow, MentionAutocompleteQuery query) async {
         bool done = false;
@@ -611,18 +598,14 @@ void main() {
         eg.user(userId: 5, fullName: 'User Five'),
       ];
 
-      final messages = [
+      await prepare(users: users, messages: [
         eg.streamMessage(id: 50, sender: users[1-1], stream: stream, topic: topic),
         eg.streamMessage(id: 60, sender: users[5-1], stream: stream),
-      ];
-
-      await prepare(users: users, messages: messages, dmConversations: [
+      ], dmConversations: [
         RecentDmConversation(userIds: [4],    maxMessageId: 300),
         RecentDmConversation(userIds: [1],    maxMessageId: 200),
         RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
       ]);
-      await fetchInitialMessagesIn(topicNarrow,
-        messages.where((m) => m.topic == topic).toList());
 
       // Check the ranking of the full list of users.
       // The order should be:
