@@ -583,7 +583,13 @@ void main() {
       const topic = 'topic';
       final topicNarrow = TopicNarrow(stream.streamId, topic);
 
-      final users = List.generate(5, (i) => eg.user(userId: 1 + i));
+      final users = [
+        eg.user(userId: 1, fullName: 'User One'),
+        eg.user(userId: 2, fullName: 'User Two'),
+        eg.user(userId: 3, fullName: 'User Three'),
+        eg.user(userId: 4, fullName: 'User Four'),
+        eg.user(userId: 5, fullName: 'User Five'),
+      ];
 
       final dmConversations = [
         RecentDmConversation(userIds: [4],    maxMessageId: 300),
@@ -630,8 +636,14 @@ void main() {
 
       await prepareStore();
       await fetchInitialMessagesIn(topicNarrow);
+      // Check the ranking of the full list of users.
       check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
         .deepEquals([1, 5, 4, 2, 3]);
+      // Check the ranking applies also to results filtered by a query.
+      check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
+        .deepEquals([2, 3]);
+      check(await getResults(topicNarrow, MentionAutocompleteQuery('f')))
+        .deepEquals([5, 4]);
     });
   });
 }
