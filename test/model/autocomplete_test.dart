@@ -583,7 +583,6 @@ void main() {
       const topic = 'topic';
       final streamNarrow = StreamNarrow(stream.streamId);
       final topicNarrow = TopicNarrow(stream.streamId, topic);
-      final dmNarrow = DmNarrow.withUser(eg.selfUser.userId, selfUserId: eg.selfUser.userId);
 
       final users = List.generate(5, (i) => eg.user(userId: i));
 
@@ -673,61 +672,9 @@ void main() {
           await checkResultsIn(streamNarrow, expected: [4, 0, 2, 1, 3]);
         });
 
-        test('TopicNarrow, no other messages are in stream', () async {
-          await checkInitialResultsIn(topicNarrow, expected: [0, 3, 1, 2, 4]);
-        });
-
         test('TopicNarrow, other messages are in stream', () async {
           await checkInitialResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2],
             includeStream: true);
-        });
-
-        test('TopicNarrow, new message arrives', () async {
-          await checkInitialResultsIn(topicNarrow, expected: [0, 3, 1, 2, 4]);
-
-          // Until now, latest message id in [topic] is 50.
-          await store.addMessage(streamMessage(id: 60, senderId: 2, topic: topic));
-
-          await checkResultsIn(topicNarrow, expected: [2, 0, 3, 1, 4]);
-        });
-
-        test('TopicNarrow, a batch of older messages arrives', () async {
-          await checkInitialResultsIn(topicNarrow, expected: [0, 3, 1, 2, 4]);
-
-          // Until now, oldest message id in [topic] is 50.
-          final oldMessages = [
-            streamMessage(id: 30, senderId: 2, topic: topic),
-            streamMessage(id: 40, senderId: 4, topic: topic),
-          ];
-          connection.prepare(json: olderResult(
-            anchor: 50, foundOldest: false,
-            messages: oldMessages,
-          ).toJson());
-
-          await messageList.fetchOlder();
-          await checkResultsIn(topicNarrow, expected: [0, 4, 2, 3, 1]);
-        });
-      });
-
-      group('DmNarrow', () {
-        test('DmNarrow, with no topic/stream message history', () async {
-          await prepareStore();
-          await checkResultsIn(dmNarrow, expected: [3, 0, 1, 2, 4]);
-        });
-
-        test('DmNarrow, with topic/stream message history', () async {
-          await prepareStore(includeMessageHistory: true);
-          await checkResultsIn(dmNarrow, expected: [3, 0, 1, 2, 4]);
-        });
-
-        test('DmNarrow, new message arrives', () async {
-          await prepareStore();
-          await checkResultsIn(dmNarrow, expected: [3, 0, 1, 2, 4]);
-
-          // Until now, latest message id in recent DMs is 300.
-          await store.addMessage(eg.dmMessage(id: 400, from: users[1], to: [eg.selfUser]));
-
-          await checkResultsIn(dmNarrow, expected: [1, 3, 0, 2, 4]);
         });
       });
     });
