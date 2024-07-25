@@ -583,20 +583,20 @@ void main() {
       const topic = 'topic';
       final topicNarrow = TopicNarrow(stream.streamId, topic);
 
-      final users = List.generate(5, (i) => eg.user(userId: i));
+      final users = List.generate(5, (i) => eg.user(userId: 1 + i));
 
       final dmConversations = [
-        RecentDmConversation(userIds: [3],    maxMessageId: 300),
-        RecentDmConversation(userIds: [0],    maxMessageId: 200),
-        RecentDmConversation(userIds: [0, 1], maxMessageId: 100),
+        RecentDmConversation(userIds: [4],    maxMessageId: 300),
+        RecentDmConversation(userIds: [1],    maxMessageId: 200),
+        RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
       ];
 
       StreamMessage streamMessage({required int id, required int senderId, String? topic}) =>
-        eg.streamMessage(id: id, sender: users[senderId], topic: topic, stream: stream);
+        eg.streamMessage(id: id, sender: users[senderId-1], topic: topic, stream: stream);
 
       final messages = [
-        streamMessage(id: 50, senderId: 0, topic: topic),
-        streamMessage(id: 60, senderId: 4),
+        streamMessage(id: 50, senderId: 1, topic: topic),
+        streamMessage(id: 60, senderId: 5),
       ];
 
       Future<void> prepareStore() async {
@@ -629,7 +629,7 @@ void main() {
 
       await prepareStore();
       await fetchInitialMessagesIn(topicNarrow);
-      await checkResultsIn(topicNarrow, expected: [0, 4, 3, 1, 2]);
+      await checkResultsIn(topicNarrow, expected: [1, 5, 4, 2, 3]);
     });
   });
 }
