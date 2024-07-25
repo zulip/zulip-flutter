@@ -13,6 +13,7 @@ import '../model/store.dart';
 import '../model/typing_status.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
+import 'app_bar.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'dialog.dart';
@@ -268,7 +269,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     }
 
     return Scaffold(
-      appBar: AppBar(title: MessageListAppBarTitle(narrow: narrow),
+      appBar: ZulipAppBar(
+        title: MessageListAppBarTitle(narrow: narrow),
+        isLoading: store.isLoading,
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
           ? const Border()

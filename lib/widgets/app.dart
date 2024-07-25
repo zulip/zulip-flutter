@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
+import 'app_bar.dart';
 import 'inbox.dart';
 import 'login.dart';
 import 'message_list.dart';
@@ -252,7 +253,9 @@ class HomePage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
+      appBar: ZulipAppBar(
+        title: const Text("Home"),
+        isLoading: store.isLoading),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(

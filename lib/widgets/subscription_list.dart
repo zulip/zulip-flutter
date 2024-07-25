@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
+import 'app_bar.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -89,7 +90,9 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
     _sortSubs(unpinned);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Channels")),
+      appBar: ZulipAppBar(
+        title: const Text("Channels"),
+        isLoading: store.isLoading),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,
