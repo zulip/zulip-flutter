@@ -1061,5 +1061,4 @@ class MessageWithPossibleSender extends StatelessWidget {
 // TODO web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
-// TODO(#95) need dark-theme color (this one comes from the Figma)
-final _kMessageTimestampColor = const HSLColor.fromAHSL(1, 0, 0, 0.5).toColor();
+final _kMessageTimestampColor = const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor();
