@@ -534,7 +534,6 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 // Give the buttons a constant color regardless of whether their
                 // state is disabled, pressed, etc.  We handle those states
                 // separately, via MarkAsReadAnimation.
-                // TODO(#95) need dark-theme colors (foreground and background)
                 foregroundColor: WidgetStateColor.resolveWith((_) => Colors.white),
                 backgroundColor: WidgetStateColor.resolveWith((_) => _UnreadMarker.color),
               ),
