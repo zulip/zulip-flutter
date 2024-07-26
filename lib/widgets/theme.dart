@@ -4,7 +4,7 @@ import '../api/model/model.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
 import 'message_list.dart';
-import 'stream_colors.dart';
+import 'channel_colors.dart';
 import 'text.dart';
 
 /// In debug mode, controls whether the UI responds to

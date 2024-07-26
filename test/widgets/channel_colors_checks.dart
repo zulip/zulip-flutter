@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:checks/checks.dart';
-import 'package:zulip/widgets/stream_colors.dart';
+import 'package:zulip/widgets/channel_colors.dart';
 
 extension StreamColorSwatchChecks on Subject<StreamColorSwatch> {
   Subject<Color> get base => has((s) => s.base, 'base');

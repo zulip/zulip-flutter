@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/stream_colors.dart';
+import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 

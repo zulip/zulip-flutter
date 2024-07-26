@@ -1,9 +1,9 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/stream_colors.dart';
+import 'package:zulip/widgets/channel_colors.dart';
 
-import 'stream_colors_checks.dart';
+import 'channel_colors_checks.dart';
 
 void main() {
   group('StreamColorSwatches', () {

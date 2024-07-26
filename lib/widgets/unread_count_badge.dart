@@ -1,7 +1,7 @@
 
 import 'package:flutter/widgets.dart';
 
-import 'stream_colors.dart';
+import 'channel_colors.dart';
 import 'text.dart';
 
 /// A widget to display a given number of unreads in a conversation.

@@ -6,7 +6,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
-import 'package:zulip/widgets/stream_colors.dart';
+import 'package:zulip/widgets/channel_colors.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';

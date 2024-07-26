@@ -19,7 +19,7 @@ import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/stream_colors.dart';
+import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
