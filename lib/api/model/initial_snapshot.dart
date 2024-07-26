@@ -229,7 +229,7 @@ class UnreadMessagesSnapshot {
   @JsonKey(name: 'pms')
   final List<UnreadDmSnapshot> dms;
 
-  final List<UnreadStreamSnapshot> streams;
+  final List<UnreadChannelSnapshot> streams;
   final List<UnreadHuddleSnapshot> huddles;
 
   // Unlike other lists of message IDs here, [mentions] is *not* sorted.
@@ -277,21 +277,21 @@ class UnreadDmSnapshot {
 
 /// An item in [UnreadMessagesSnapshot.streams].
 @JsonSerializable(fieldRename: FieldRename.snake)
-class UnreadStreamSnapshot {
+class UnreadChannelSnapshot {
   final String topic;
   final int streamId;
   final List<int> unreadMessageIds;
 
-  UnreadStreamSnapshot({
+  UnreadChannelSnapshot({
     required this.topic,
     required this.streamId,
     required this.unreadMessageIds,
   }) : assert(isSortedWithoutDuplicates(unreadMessageIds));
 
-  factory UnreadStreamSnapshot.fromJson(Map<String, dynamic> json) =>
-    _$UnreadStreamSnapshotFromJson(json);
+  factory UnreadChannelSnapshot.fromJson(Map<String, dynamic> json) =>
+    _$UnreadChannelSnapshotFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UnreadStreamSnapshotToJson(this);
+  Map<String, dynamic> toJson() => _$UnreadChannelSnapshotToJson(this);
 }
 
 /// An item in [UnreadMessagesSnapshot.huddles].

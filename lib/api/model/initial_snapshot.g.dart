@@ -200,7 +200,7 @@ UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(
           .map((e) => UnreadDmSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
       streams: (json['streams'] as List<dynamic>)
-          .map((e) => UnreadStreamSnapshot.fromJson(e as Map<String, dynamic>))
+          .map((e) => UnreadChannelSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
       huddles: (json['huddles'] as List<dynamic>)
           .map((e) => UnreadHuddleSnapshot.fromJson(e as Map<String, dynamic>))
@@ -238,9 +238,9 @@ Map<String, dynamic> _$UnreadDmSnapshotToJson(UnreadDmSnapshot instance) =>
       'unread_message_ids': instance.unreadMessageIds,
     };
 
-UnreadStreamSnapshot _$UnreadStreamSnapshotFromJson(
+UnreadChannelSnapshot _$UnreadChannelSnapshotFromJson(
         Map<String, dynamic> json) =>
-    UnreadStreamSnapshot(
+    UnreadChannelSnapshot(
       topic: json['topic'] as String,
       streamId: (json['stream_id'] as num).toInt(),
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
@@ -248,8 +248,8 @@ UnreadStreamSnapshot _$UnreadStreamSnapshotFromJson(
           .toList(),
     );
 
-Map<String, dynamic> _$UnreadStreamSnapshotToJson(
-        UnreadStreamSnapshot instance) =>
+Map<String, dynamic> _$UnreadChannelSnapshotToJson(
+        UnreadChannelSnapshot instance) =>
     <String, dynamic>{
       'topic': instance.topic,
       'stream_id': instance.streamId,

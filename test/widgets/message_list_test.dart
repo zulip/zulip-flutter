@@ -866,7 +866,7 @@ void main() {
     testWidgets('from unread to read', (WidgetTester tester) async {
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(streams:[
-        UnreadStreamSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
+        UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
       ]);
       await setupMessageListPage(tester, messages: [message], unreadMsgs: unreadMsgs);
       check(isMarkAsReadButtonVisible(tester)).isTrue();
@@ -884,7 +884,7 @@ void main() {
     testWidgets("messages don't shift position", (WidgetTester tester) async {
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(streams:[
-        UnreadStreamSnapshot(topic: message.topic, streamId: message.streamId,
+        UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId,
           unreadMessageIds: [message.id])
       ]);
       await setupMessageListPage(tester,
@@ -913,7 +913,7 @@ void main() {
 
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(streams: [
-        UnreadStreamSnapshot(streamId: message.streamId, topic: message.topic,
+        UnreadChannelSnapshot(streamId: message.streamId, topic: message.topic,
           unreadMessageIds: [message.id]),
       ]);
 

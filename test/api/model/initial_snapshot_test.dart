@@ -15,14 +15,14 @@ void main() {
     })).throws<AssertionError>();
   });
 
-  test('UnreadStreamSnapshot: require sorted unreadMessageIds', () {
-    check(() => UnreadStreamSnapshot.fromJson({
+  test('UnreadChannelSnapshot: require sorted unreadMessageIds', () {
+    check(() => UnreadChannelSnapshot.fromJson({
       'topic': 'a',
       'stream_id': 1,
       'unread_message_ids': [1, 2, 3],
     })).returnsNormally();
 
-    check(() => UnreadStreamSnapshot.fromJson({
+    check(() => UnreadChannelSnapshot.fromJson({
       'topic': 'a',
       'stream_id': 1,
       'unread_message_ids': [11, 2, 3],
