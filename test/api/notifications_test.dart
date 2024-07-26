@@ -76,7 +76,7 @@ void main() {
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
         ..senderFullName.equals(streamJson['sender_full_name']!)
         ..zulipMessageId.equals(12345)
-        ..recipient.isA<FcmMessageStreamRecipient>().which((it) => it
+        ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..streamId.equals(42)
           ..streamName.equals(streamJson['stream']!)
           ..topic.equals(streamJson['topic']!))
@@ -94,7 +94,7 @@ void main() {
 
     test('optional fields missing cause no error', () {
       check(parse({ ...streamJson }..remove('stream')))
-        .recipient.isA<FcmMessageStreamRecipient>().which((it) => it
+        .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..streamId.equals(42)
           ..streamName.isNull());
     });
@@ -251,7 +251,7 @@ extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
   Subject<String> get content => has((x) => x.content, 'content');
 }
 
-extension FcmMessageStreamRecipientChecks on Subject<FcmMessageStreamRecipient> {
+extension FcmMessageChannelRecipientChecks on Subject<FcmMessageChannelRecipient> {
   Subject<int> get streamId => has((x) => x.streamId, 'streamId');
   Subject<String?> get streamName => has((x) => x.streamName, 'streamName');
   Subject<String> get topic => has((x) => x.topic, 'topic');

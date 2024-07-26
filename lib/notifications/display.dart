@@ -111,7 +111,7 @@ class NotificationDisplayManager {
           name: zulipLocalizations.notifSelfUser),
         messages: [],
         isGroupConversation: switch (data.recipient) {
-          FcmMessageStreamRecipient() => true,
+          FcmMessageChannelRecipient() => true,
           FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 => true,
           FcmMessageDmRecipient() => false,
         });
@@ -123,9 +123,9 @@ class NotificationDisplayManager {
     // group-DM threads (pending #794) get titled with the latest sender, rather than
     // the first.
     messagingStyle.conversationTitle = switch (data.recipient) {
-      FcmMessageStreamRecipient(:var streamName?, :var topic) =>
+      FcmMessageChannelRecipient(:var streamName?, :var topic) =>
         '#$streamName > $topic',
-      FcmMessageStreamRecipient(:var topic) =>
+      FcmMessageChannelRecipient(:var topic) =>
         '#(unknown channel) > $topic', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
@@ -220,7 +220,7 @@ class NotificationDisplayManager {
 
   static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
-      FcmMessageStreamRecipient(:var streamId, :var topic) => 'stream:$streamId:$topic',
+      FcmMessageChannelRecipient(:var streamId, :var topic) => 'stream:$streamId:$topic',
       FcmMessageDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
     };
     return '$groupKey|$conversation';
@@ -263,7 +263,7 @@ class NotificationDisplayManager {
     if (account == null) return; // TODO(log)
 
     final narrow = switch (data.recipient) {
-      FcmMessageStreamRecipient(:var streamId, :var topic) =>
+      FcmMessageChannelRecipient(:var streamId, :var topic) =>
         TopicNarrow(streamId, topic),
       FcmMessageDmRecipient(:var allRecipientIds) =>
         DmNarrow(allRecipientIds: allRecipientIds, selfUserId: account.userId),

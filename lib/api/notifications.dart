@@ -142,7 +142,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
         break;
       case FcmMessageDmRecipient(:var allRecipientIds):
         result['pm_users'] = const _IntListConverter().toJson(allRecipientIds);
-      case FcmMessageStreamRecipient():
+      case FcmMessageChannelRecipient():
         result['stream_id'] = const _IntConverter().toJson(recipient.streamId);
         if (recipient.streamName != null) result['stream'] = recipient.streamName;
         result['topic'] = recipient.topic;
@@ -159,7 +159,7 @@ sealed class FcmMessageRecipient {
     // There's also a `recipient_type` field, but we don't really need it.
     // The presence or absence of `stream_id` is just as informative.
     return json.containsKey('stream_id')
-      ? FcmMessageStreamRecipient.fromJson(json)
+      ? FcmMessageChannelRecipient.fromJson(json)
       : FcmMessageDmRecipient.fromJson(json);
   }
 }
@@ -167,7 +167,7 @@ sealed class FcmMessageRecipient {
 /// An [FcmMessageRecipient] for a Zulip message to a stream.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 @_IntConverter()
-class FcmMessageStreamRecipient extends FcmMessageRecipient {
+class FcmMessageChannelRecipient extends FcmMessageRecipient {
   // Sending the stream ID in notifications is new in Zulip Server 5.
   // But handling the lack of it would add complication, and we don't strictly
   // need to -- we intend (#268) to cut pre-server-5 support before beta release.
@@ -182,10 +182,10 @@ class FcmMessageStreamRecipient extends FcmMessageRecipient {
 
   final String topic;
 
-  FcmMessageStreamRecipient({required this.streamId, required this.streamName, required this.topic});
+  FcmMessageChannelRecipient({required this.streamId, required this.streamName, required this.topic});
 
-  factory FcmMessageStreamRecipient.fromJson(Map<String, dynamic> json) =>
-    _$FcmMessageStreamRecipientFromJson(json);
+  factory FcmMessageChannelRecipient.fromJson(Map<String, dynamic> json) =>
+    _$FcmMessageChannelRecipientFromJson(json);
 }
 
 /// An [FcmMessageRecipient] for a Zulip message that was a DM.
