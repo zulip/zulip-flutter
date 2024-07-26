@@ -28,6 +28,7 @@ import 'theme.dart';
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.light() :
     this._(
+      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       streamMessageBgDefault: Colors.white,
 
       // TODO(design) this seems ad-hoc; is there a better color?
@@ -36,6 +37,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme.dark() :
     this._(
+      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
 
       // TODO(design) this is ad-hoc and untested; is there a better color?
@@ -43,6 +45,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     );
 
   MessageListTheme._({
+    required this.dmRecipientHeaderBg,
     required this.streamMessageBgDefault,
     required this.unsubscribedStreamRecipientHeaderBg,
   });
@@ -57,15 +60,18 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return extension!;
   }
 
+  final Color dmRecipientHeaderBg;
   final Color streamMessageBgDefault;
   final Color unsubscribedStreamRecipientHeaderBg;
 
   @override
   MessageListTheme copyWith({
+    Color? dmRecipientHeaderBg,
     Color? streamMessageBgDefault,
     Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
+      dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       unsubscribedStreamRecipientHeaderBg: unsubscribedStreamRecipientHeaderBg ?? this.unsubscribedStreamRecipientHeaderBg,
     );
@@ -77,6 +83,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       return this;
     }
     return MessageListTheme._(
+      dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
     );
@@ -153,7 +160,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         removeAppBarBottomBorder = true;
 
       case DmNarrow():
-        appBarBackgroundColor = _kDmRecipientHeaderColor;
+        appBarBackgroundColor = messageListTheme.dmRecipientHeaderBg;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed?)
         removeAppBarBottomBorder = true;
@@ -901,12 +908,14 @@ class DmRecipientHeader extends StatelessWidget {
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 
+    final messageListTheme = MessageListTheme.of(context);
+
     return GestureDetector(
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
       child: ColoredBox(
-        color: _kDmRecipientHeaderColor,
+        color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 11),
           child: Row(
@@ -926,10 +935,6 @@ class DmRecipientHeader extends StatelessWidget {
             ]))));
   }
 }
-
-// TODO(#95): web uses different color in dark mode
-// --color-background-private-message-header in web/styles/app_variables.css
-final _kDmRecipientHeaderColor = const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
