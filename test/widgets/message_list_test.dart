@@ -406,7 +406,7 @@ void main() {
 
       testWidgets('show stream name from stream data when known', (tester) async {
         final streamBefore = eg.stream(name: 'old stream name');
-        // TODO(#182) this test would be more realistic using a StreamUpdateEvent
+        // TODO(#182) this test would be more realistic using a ChannelUpdateEvent
         final streamAfter = ZulipStream.fromJson({
           ...(deepToJson(streamBefore) as Map<String, dynamic>),
           'name': 'new stream name',

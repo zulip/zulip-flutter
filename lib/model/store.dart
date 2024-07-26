@@ -477,9 +477,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
         notifyListeners();
 
-      case StreamEvent():
+      case ChannelEvent():
         assert(debugLog("server event: stream/${event.op}"));
-        _channels.handleStreamEvent(event);
+        _channels.handleChannelEvent(event);
         notifyListeners();
 
       case SubscriptionEvent():

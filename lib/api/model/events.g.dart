@@ -195,30 +195,30 @@ Json? _$JsonConverterToJson<Json, Value>(
 ) =>
     value == null ? null : toJson(value);
 
-StreamCreateEvent _$StreamCreateEventFromJson(Map<String, dynamic> json) =>
-    StreamCreateEvent(
+ChannelCreateEvent _$ChannelCreateEventFromJson(Map<String, dynamic> json) =>
+    ChannelCreateEvent(
       id: (json['id'] as num).toInt(),
       streams: (json['streams'] as List<dynamic>)
           .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$StreamCreateEventToJson(StreamCreateEvent instance) =>
+Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
       'streams': instance.streams,
     };
 
-StreamDeleteEvent _$StreamDeleteEventFromJson(Map<String, dynamic> json) =>
-    StreamDeleteEvent(
+ChannelDeleteEvent _$ChannelDeleteEventFromJson(Map<String, dynamic> json) =>
+    ChannelDeleteEvent(
       id: (json['id'] as num).toInt(),
       streams: (json['streams'] as List<dynamic>)
           .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$StreamDeleteEventToJson(StreamDeleteEvent instance) =>
+Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,

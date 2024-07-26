@@ -37,8 +37,8 @@ sealed class Event {
         }
       case 'stream':
         switch (json['op'] as String) {
-          case 'create': return StreamCreateEvent.fromJson(json);
-          case 'delete': return StreamDeleteEvent.fromJson(json);
+          case 'create': return ChannelCreateEvent.fromJson(json);
+          case 'delete': return ChannelDeleteEvent.fromJson(json);
           // TODO(#182): case 'update': …
           default: return UnexpectedEvent.fromJson(json);
         }
@@ -332,51 +332,51 @@ class RealmUserUpdateEvent extends RealmUserEvent {
 ///
 /// The corresponding API docs are in several places for
 /// different values of `op`; see subclasses.
-sealed class StreamEvent extends Event {
+sealed class ChannelEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
 
   String get op;
 
-  StreamEvent({required super.id});
+  ChannelEvent({required super.id});
 }
 
-/// A [StreamEvent] with op `create`: https://zulip.com/api/get-events#stream-create
+/// A [ChannelEvent] with op `create`: https://zulip.com/api/get-events#stream-create
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamCreateEvent extends StreamEvent {
+class ChannelCreateEvent extends ChannelEvent {
   @override
   String get op => 'create';
 
   final List<ZulipStream> streams;
 
-  StreamCreateEvent({required super.id, required this.streams});
+  ChannelCreateEvent({required super.id, required this.streams});
 
-  factory StreamCreateEvent.fromJson(Map<String, dynamic> json) =>
-    _$StreamCreateEventFromJson(json);
+  factory ChannelCreateEvent.fromJson(Map<String, dynamic> json) =>
+    _$ChannelCreateEventFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$StreamCreateEventToJson(this);
+  Map<String, dynamic> toJson() => _$ChannelCreateEventToJson(this);
 }
 
-/// A [StreamEvent] with op `delete`: https://zulip.com/api/get-events#stream-delete
+/// A [ChannelEvent] with op `delete`: https://zulip.com/api/get-events#stream-delete
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamDeleteEvent extends StreamEvent {
+class ChannelDeleteEvent extends ChannelEvent {
   @override
   String get op => 'delete';
 
   final List<ZulipStream> streams;
 
-  StreamDeleteEvent({required super.id, required this.streams});
+  ChannelDeleteEvent({required super.id, required this.streams});
 
-  factory StreamDeleteEvent.fromJson(Map<String, dynamic> json) =>
-    _$StreamDeleteEventFromJson(json);
+  factory ChannelDeleteEvent.fromJson(Map<String, dynamic> json) =>
+    _$ChannelDeleteEventFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$StreamDeleteEventToJson(this);
+  Map<String, dynamic> toJson() => _$ChannelDeleteEventToJson(this);
 }
 
-// TODO(#182) StreamUpdateEvent, for a [StreamEvent] with op `update`:
+// TODO(#182) ChannelUpdateEvent, for a [ChannelEvent] with op `update`:
 //   https://zulip.com/api/get-events#stream-update
 
 /// A Zulip event of type `subscription`.

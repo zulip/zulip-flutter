@@ -129,9 +129,9 @@ class ChannelStoreImpl with ChannelStore {
     return false;
   }
 
-  void handleStreamEvent(StreamEvent event) {
+  void handleChannelEvent(ChannelEvent event) {
     switch (event) {
-      case StreamCreateEvent():
+      case ChannelCreateEvent():
         assert(event.streams.every((stream) =>
           !streams.containsKey(stream.streamId)
           && !streamsByName.containsKey(stream.name)));
@@ -140,7 +140,7 @@ class ChannelStoreImpl with ChannelStore {
         // (Don't touch `subscriptions`. If the user is subscribed to the stream,
         // details will come in a later `subscription` event.)
 
-      case StreamDeleteEvent():
+      case ChannelDeleteEvent():
         for (final stream in event.streams) {
           assert(identical(streams[stream.streamId], streamsByName[stream.name]));
           assert(subscriptions[stream.streamId] == null

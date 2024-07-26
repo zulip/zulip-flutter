@@ -134,7 +134,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addStreams(List<ZulipStream> streams) async {
-    await handleEvent(StreamCreateEvent(id: 1, streams: streams));
+    await handleEvent(ChannelCreateEvent(id: 1, streams: streams));
   }
 
   Future<void> addSubscription(Subscription subscription) async {
