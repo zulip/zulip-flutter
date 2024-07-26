@@ -29,15 +29,22 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.light() :
     this._(
       streamMessageBgDefault: Colors.white,
+
+      // TODO(design) this seems ad-hoc; is there a better color?
+      unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
     );
 
   MessageListTheme.dark() :
     this._(
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+
+      // TODO(design) this is ad-hoc and untested; is there a better color?
+      unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
     );
 
   MessageListTheme._({
     required this.streamMessageBgDefault,
+    required this.unsubscribedStreamRecipientHeaderBg,
   });
 
   /// The [MessageListTheme] from the context's active theme.
@@ -51,13 +58,16 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }
 
   final Color streamMessageBgDefault;
+  final Color unsubscribedStreamRecipientHeaderBg;
 
   @override
   MessageListTheme copyWith({
     Color? streamMessageBgDefault,
+    Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
+      unsubscribedStreamRecipientHeaderBg: unsubscribedStreamRecipientHeaderBg ?? this.unsubscribedStreamRecipientHeaderBg,
     );
   }
 
@@ -68,6 +78,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     }
     return MessageListTheme._(
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
+      unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
     );
   }
 }
@@ -111,9 +122,6 @@ class MessageListPage extends StatefulWidget {
   State<MessageListPage> createState() => _MessageListPageState();
 }
 
-// TODO(design) this seems ad-hoc; is there a better color?
-const _kUnsubscribedStreamRecipientHeaderColor = Color(0xfff5f5f5);
-
 class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
   @override
   Narrow get narrow => widget.narrow;
@@ -126,6 +134,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final messageListTheme = MessageListTheme.of(context);
 
     final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
@@ -138,7 +147,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         final subscription = store.subscriptions[streamId];
         appBarBackgroundColor = subscription != null
           ? colorSwatchFor(context, subscription).barBackground
-          : _kUnsubscribedStreamRecipientHeaderColor;
+          : messageListTheme.unsubscribedStreamRecipientHeaderBg;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -791,6 +800,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 
     final topic = message.topic;
 
+    final messageListTheme = MessageListTheme.of(context);
+
     final subscription = store.subscriptions[message.streamId];
     final Color backgroundColor;
     final Color iconColor;
@@ -799,7 +810,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       backgroundColor = swatch.barBackground;
       iconColor = swatch.iconOnBarBackground;
     } else {
-      backgroundColor = _kUnsubscribedStreamRecipientHeaderColor;
+      backgroundColor = messageListTheme.unsubscribedStreamRecipientHeaderBg;
       iconColor = _kRecipientHeaderTextColor;
     }
 
