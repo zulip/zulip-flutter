@@ -167,9 +167,10 @@ class MessageStoreImpl with MessageStore {
       return;
     }
 
-    if (newTopic == null) {
-      // The `subject` field (aka newTopic) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no newTopic')); // TODO(log)
+    if (newStreamId == null && newTopic == null) {
+      // If neither the channel nor topic name changed, nothing moved.
+      // In that case `orig_subject` (aka origTopic) should have been null.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
       return;
     }
     if (origStreamId == null) {
@@ -179,7 +180,7 @@ class MessageStoreImpl with MessageStore {
     }
 
     if (newStreamId == null
-        && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic)) {
+        && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!)) {
       // The topic was only resolved/unresolved.
       // No change to the messages' editState.
       return;
