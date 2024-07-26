@@ -24,6 +24,54 @@ import 'edit_state_marker.dart';
 import 'text.dart';
 import 'theme.dart';
 
+/// Message-list styles that differ between light and dark themes.
+class MessageListTheme extends ThemeExtension<MessageListTheme> {
+  MessageListTheme.light() :
+    this._(
+      streamMessageBgDefault: Colors.white,
+    );
+
+  MessageListTheme.dark() :
+    this._(
+      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    );
+
+  MessageListTheme._({
+    required this.streamMessageBgDefault,
+  });
+
+  /// The [MessageListTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [MessageListTheme] in [ThemeData.extensions].
+  static MessageListTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<MessageListTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final Color streamMessageBgDefault;
+
+  @override
+  MessageListTheme copyWith({
+    Color? streamMessageBgDefault,
+  }) {
+    return MessageListTheme._(
+      streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
+    );
+  }
+
+  @override
+  MessageListTheme lerp(MessageListTheme other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return MessageListTheme._(
+      streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
+    );
+  }
+}
+
 /// The interface for the state of a [MessageListPage].
 ///
 /// To obtain one of these, see [MessageListPage.ancestorOf].
@@ -618,7 +666,10 @@ class DateSeparator extends StatelessWidget {
     // to align with the vertically centered divider lines.
     const textBottomPadding = 2.0;
 
-    return ColoredBox(color: Colors.white,
+    final messageListTheme = MessageListTheme.of(context);
+
+    // TODO(#681) use different color for DM messages
+    return ColoredBox(color: messageListTheme.streamMessageBgDefault,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
@@ -658,13 +709,14 @@ class MessageItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = item.message;
+    final messageListTheme = MessageListTheme.of(context);
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
       child: _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
         child: ColoredBox(
-          color: Colors.white,
+          color: messageListTheme.streamMessageBgDefault,
           child: Column(children: [
             MessageWithPossibleSender(item: item),
             if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),

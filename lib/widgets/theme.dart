@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
+import 'message_list.dart';
 import 'stream_colors.dart';
 import 'text.dart';
 
@@ -38,13 +39,21 @@ ThemeData zulipThemeData(BuildContext context) {
   switch (brightness) {
     case Brightness.light: {
       designVariables = DesignVariables.light();
-      themeExtensions =
-        [ContentTheme.light(context), designVariables, EmojiReactionTheme.light()];
+      themeExtensions = [
+        ContentTheme.light(context),
+        designVariables,
+        EmojiReactionTheme.light(),
+        MessageListTheme.light(),
+      ];
     }
     case Brightness.dark: {
       designVariables = DesignVariables.dark();
-      themeExtensions =
-        [ContentTheme.dark(context), designVariables, EmojiReactionTheme.dark()];
+      themeExtensions = [
+        ContentTheme.dark(context),
+        designVariables,
+        EmojiReactionTheme.dark(),
+        MessageListTheme.dark(),
+      ];
     }
   }
 

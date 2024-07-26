@@ -20,6 +20,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/stream_colors.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -134,6 +135,39 @@ void main() {
       final padding = MediaQuery.of(element).padding;
       check(padding).equals(EdgeInsets.zero);
     });
+  });
+
+  testWidgets('smoke test for light/dark/lerped', (tester) async {
+    assert(!debugFollowPlatformBrightness); // to be removed with #95
+    debugFollowPlatformBrightness = true;
+    addTearDown(() { debugFollowPlatformBrightness = false; });
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    final message = eg.streamMessage();
+    await setupMessageListPage(tester, messages: [message]);
+
+    Color backgroundColor() {
+      final coloredBoxFinder = find.descendant(
+        of: find.byWidgetPredicate((w) => w is MessageItem && w.item.message.id == message.id),
+        matching: find.byType(ColoredBox),
+      );
+      final widget = tester.widget<ColoredBox>(coloredBoxFinder);
+      return widget.color;
+    }
+
+    check(backgroundColor()).equals(MessageListTheme.light().streamMessageBgDefault);
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    await tester.pump();
+
+    await tester.pump(kThemeAnimationDuration * 0.4);
+    final expectedLerped = MessageListTheme.light().lerp(MessageListTheme.dark(), 0.4);
+    check(backgroundColor()).equals(expectedLerped.streamMessageBgDefault);
+
+    await tester.pump(kThemeAnimationDuration * 0.6);
+    check(backgroundColor()).equals(MessageListTheme.dark().streamMessageBgDefault);
   });
 
   group('fetch older messages on scroll', () {
