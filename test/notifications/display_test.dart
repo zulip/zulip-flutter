@@ -97,7 +97,7 @@ void main() {
         ..groupId.isNull()
         ..importance.equals(Importance.high)
         ..playSound.isTrue()
-        ..sound.isNull()
+        ..sound.equals(NotificationChannelManager.kDefaultSound)
         ..enableVibration.isTrue()
         ..vibrationPattern.isNotNull().deepEquals(
             NotificationChannelManager.kVibrationPattern)

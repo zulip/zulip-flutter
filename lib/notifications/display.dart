@@ -22,7 +22,7 @@ import '../widgets/theme.dart';
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
   @visibleForTesting
-  static const kChannelId = 'messages-1';
+  static const kChannelId = 'messages-2';
 
   /// The vibration pattern we set for notifications.
   // We try to set a vibration pattern that, with the phone in one's pocket,
@@ -30,6 +30,9 @@ class NotificationChannelManager {
   // Discussion: https://chat.zulip.org/#narrow/stream/48-mobile/topic/notification.20vibration.20pattern/near/1284530
   @visibleForTesting
   static final kVibrationPattern = Int64List.fromList([0, 125, 100, 450]);
+
+  @visibleForTesting
+  static const kDefaultSound = RawResourceAndroidNotificationSound('chime3');
 
   /// Create our notification channel, if it doesn't already exist.
   //
@@ -54,14 +57,37 @@ class NotificationChannelManager {
   //    in android/app/src/main/java/com/zulipmobile/notifications/NotificationChannelManager.kt .
   static Future<void> _ensureChannel() async {
     final plugin = ZulipBinding.instance.notifications;
-    await plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(AndroidNotificationChannel(
+    final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin == null) {
+      // TODO(log)
+      return;
+    }
+
+    // Delete any older channels.
+    var found = false;
+    final channels = await androidPlugin.getNotificationChannels();
+    if (channels != null) {
+      for (final channel in channels) {
+        if (channel.id == kChannelId) {
+          found = true;
+        } else {
+          await androidPlugin.deleteNotificationChannel(channel.id);
+        }
+      }
+    }
+    if (found) {
+      // The channel already exists, nothing to do.
+      return;
+    }
+
+    // The channel doesn't exists, create it.
+    await androidPlugin.createNotificationChannel(AndroidNotificationChannel(
         kChannelId,
         'Messages', // TODO(i18n)
         importance: Importance.high,
         enableLights: true,
         vibrationPattern: kVibrationPattern,
-        // TODO(#340) sound
+        sound: kDefaultSound,
       ));
   }
 }
