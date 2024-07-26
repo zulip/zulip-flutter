@@ -23,44 +23,44 @@ import 'text_test.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  late PerAccountStore store;
+
+  Future<void> prepare() async {
+    addTearDown(testBinding.reset);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+    await store.addUser(eg.selfUser);
+
+    // TODO do this more centrally, or put in reusable helper
+    final Future<ByteData> font = rootBundle.load('assets/Source_Sans_3/SourceSans3VF-Upright.otf');
+    final fontLoader = FontLoader('Source Sans 3')..addFont(font);
+    await fontLoader.load();
+  }
+
+  Future<void> setupChipsInBox(WidgetTester tester, {
+    required List<Reaction> reactions,
+    double width = 245.0, // (seen in context on an iPhone 13 Pro)
+  }) async {
+    final message = eg.streamMessage(reactions: reactions);
+
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      child: Center(
+        child: ColoredBox(
+          color: Colors.white,
+          child: SizedBox(
+            width: width,
+            child: ReactionChipsList(
+              messageId: message.id,
+              reactions: message.reactions!,
+            ))))));
+    await tester.pumpAndSettle(); // global store, per-account store
+
+    final reactionChipsList = tester.element(find.byType(ReactionChipsList));
+    check(reactionChipsList).size.isNotNull().width.equals(width);
+  }
+
   group('ReactionChipsList', () {
-    late PerAccountStore store;
-
-    Future<void> prepare() async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      await store.addUser(eg.selfUser);
-
-      // TODO do this more centrally, or put in reusable helper
-      final Future<ByteData> font = rootBundle.load('assets/Source_Sans_3/SourceSans3VF-Upright.otf');
-      final fontLoader = FontLoader('Source Sans 3')..addFont(font);
-      await fontLoader.load();
-    }
-
-    Future<void> setupChipsInBox(WidgetTester tester, {
-      required List<Reaction> reactions,
-      double width = 245.0, // (seen in context on an iPhone 13 Pro)
-    }) async {
-      final message = eg.streamMessage(reactions: reactions);
-
-      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-        child: Center(
-          child: ColoredBox(
-            color: Colors.white,
-            child: SizedBox(
-              width: width,
-              child: ReactionChipsList(
-                messageId: message.id,
-                reactions: message.reactions!,
-              ))))));
-      await tester.pumpAndSettle(); // global store, per-account store
-
-      final reactionChipsList = tester.element(find.byType(ReactionChipsList));
-      check(reactionChipsList).size.isNotNull().width.equals(width);
-    }
-
     // Smoke tests under various conditions.
     for (final displayEmojiReactionUsers in [true, false]) {
       for (final emojiset in [Emojiset.text, Emojiset.google]) {
