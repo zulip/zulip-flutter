@@ -31,6 +31,14 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       streamMessageBgDefault: Colors.white,
 
+      // From the Figma mockup at:
+      //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
+      // See discussion about design at:
+      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+      // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
+      // in both light and dark theme.)
+      unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+
       // TODO(design) this seems ad-hoc; is there a better color?
       unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
     );
@@ -40,6 +48,14 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
 
+      // 0.75 opacity from here:
+      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
+      // Discussion, some weeks after the discussion linked on the light variant:
+      //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+      // where Vlad includes screenshots that look like they're from there.
+      unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
+
+
       // TODO(design) this is ad-hoc and untested; is there a better color?
       unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
     );
@@ -47,6 +63,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme._({
     required this.dmRecipientHeaderBg,
     required this.streamMessageBgDefault,
+    required this.unreadMarker,
     required this.unsubscribedStreamRecipientHeaderBg,
   });
 
@@ -62,17 +79,20 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   final Color dmRecipientHeaderBg;
   final Color streamMessageBgDefault;
+  final Color unreadMarker;
   final Color unsubscribedStreamRecipientHeaderBg;
 
   @override
   MessageListTheme copyWith({
     Color? dmRecipientHeaderBg,
     Color? streamMessageBgDefault,
+    Color? unreadMarker,
     Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
+      unreadMarker: unreadMarker ?? this.unreadMarker,
       unsubscribedStreamRecipientHeaderBg: unsubscribedStreamRecipientHeaderBg ?? this.unsubscribedStreamRecipientHeaderBg,
     );
   }
@@ -85,6 +105,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return MessageListTheme._(
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
+      unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
     );
   }
@@ -568,6 +589,8 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
     final unreadCount = store.unreads.countInNarrow(widget.narrow);
     final areMessagesRead = unreadCount == 0;
 
+    final messageListTheme = MessageListTheme.of(context);
+
     return IgnorePointer(
       ignoring: areMessagesRead,
       child: MarkAsReadAnimation(
@@ -600,7 +623,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 // state is disabled, pressed, etc.  We handle those states
                 // separately, via MarkAsReadAnimation.
                 foregroundColor: WidgetStateColor.resolveWith((_) => Colors.white),
-                backgroundColor: WidgetStateColor.resolveWith((_) => _UnreadMarker.color),
+                backgroundColor: WidgetStateColor.resolveWith((_) => messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
@@ -747,21 +770,9 @@ class _UnreadMarker extends StatelessWidget {
   final bool isRead;
   final Widget child;
 
-  // The color hsl(227deg 78% 59%) comes from the Figma mockup at:
-  //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
-  // See discussion about design at:
-  //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
-  // TODO(#95) use opacity 0.75 in dark theme? Discussion, a few weeks after the
-  //   above-linked discussion:
-  //     https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
-  //   where Vlad includes screenshots that look like they're from the Figma here:
-  //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&t=81Z9nyeJmsdmLgq4-0
-  // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
-  // in both light and dark theme.)
-  static final color = const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor();
-
   @override
   Widget build(BuildContext context) {
+    final messageListTheme = MessageListTheme.of(context);
     return Stack(
       children: [
         child,
@@ -778,7 +789,7 @@ class _UnreadMarker extends StatelessWidget {
             curve: Curves.easeOut,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: color,
+                color: messageListTheme.unreadMarker,
                 // TODO(#95): Don't show this extra border in dark mode, see:
                 //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
                 border: Border(left: BorderSide(
