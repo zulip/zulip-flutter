@@ -453,7 +453,8 @@ class ScrollToBottomButton extends StatelessWidget {
         tooltip: "Scroll to bottom",
         icon: const Icon(Icons.expand_circle_down_rounded),
         iconSize: 40,
-        color: const HSLColor.fromAHSL(0.5,240,0.96,0.68).toColor(),
+        // Web has the same color in light and dark mode.
+        color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
         onPressed: _navigateToBottom));
   }
 }
