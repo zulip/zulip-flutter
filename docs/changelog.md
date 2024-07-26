@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* Attaching an image or video to a message works properly with
+  the new Zulip Server 9.0. (#829)
+* When opening an image in the lightbox with the new
+  Zulip Server 9.0, the image is shown at full scale from the
+  beginning. (#830)
+* Autocomplete for @-mentions now prioritizes showing users
+  recently active in the same conversation or channel. (#828)
+
+
+### Highlights for developers
+
+* New supplemental setup instructions for doing development on
+  a remote cloud server. (PR #802)
+
+* Resolved: #829, PR #828, #830
+
+
 ## 0.0.17 (2024-07-19)
 
 ### Highlights for users
