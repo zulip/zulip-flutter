@@ -46,21 +46,26 @@ void main() {
     }) async {
       final message = eg.streamMessage(reactions: reactions);
 
-      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-        child: Directionality(
-          textDirection: textDirection,
-          child: Center(
-            child: ColoredBox(
-              color: Colors.white,
-              child: SizedBox(
-                width: width,
-                child: ReactionChipsList(
-                  messageId: message.id,
-                  reactions: message.reactions!,
-                )))))));
+      final locale = switch (textDirection) {
+        TextDirection.ltr => const Locale('en'),
+        TextDirection.rtl => const Locale('ar'),
+      };
+      tester.platformDispatcher.localeTestValue = locale;
+      tester.platformDispatcher.localesTestValue = [locale];
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
-      // global store, per-account store
-      await tester.pumpAndSettle();
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: Center(
+          child: ColoredBox(
+            color: Colors.white,
+            child: SizedBox(
+              width: width,
+              child: ReactionChipsList(
+                messageId: message.id,
+                reactions: message.reactions!,
+              ))))));
+      await tester.pumpAndSettle(); // global store, per-account store
 
       final reactionChipsList = tester.element(find.byType(ReactionChipsList));
       check(Directionality.of(reactionChipsList)).equals(textDirection);
