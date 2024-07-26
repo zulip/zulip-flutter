@@ -320,6 +320,229 @@ void main() {
     });
   });
 
+  group('MarkAsReadWidget', () {
+    bool isMarkAsReadButtonVisible(WidgetTester tester) {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final finder = find.text(
+        zulipLocalizations.markAllAsReadLabel).hitTestable();
+      return finder.evaluate().isNotEmpty;
+    }
+
+    testWidgets('from read to unread', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      await setupMessageListPage(tester, messages: [message]);
+      check(isMarkAsReadButtonVisible(tester)).isFalse();
+
+      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+        MessageFlag.read, [message]));
+      await tester.pumpAndSettle();
+      check(isMarkAsReadButtonVisible(tester)).isTrue();
+    });
+
+    testWidgets('from unread to read', (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      final unreadMsgs = eg.unreadMsgs(channels:[
+        UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
+      ]);
+      await setupMessageListPage(tester, messages: [message], unreadMsgs: unreadMsgs);
+      check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: MessageFlag.read,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pumpAndSettle();
+      check(isMarkAsReadButtonVisible(tester)).isFalse();
+    });
+
+    testWidgets("messages don't shift position", (WidgetTester tester) async {
+      final message = eg.streamMessage(flags: []);
+      final unreadMsgs = eg.unreadMsgs(channels:[
+        UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId,
+          unreadMessageIds: [message.id])
+      ]);
+      await setupMessageListPage(tester,
+        messages: [message], unreadMsgs: unreadMsgs);
+      check(isMarkAsReadButtonVisible(tester)).isTrue();
+      check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
+      final before = tester.getTopLeft(find.byType(MessageItem)).dy;
+
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: MessageFlag.read,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pumpAndSettle();
+      check(isMarkAsReadButtonVisible(tester)).isFalse();
+      check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
+      final after = tester.getTopLeft(find.byType(MessageItem)).dy;
+      check(after).equals(before);
+    });
+
+    group('onPressed behavior', () {
+      // The markNarrowAsRead function has detailed unit tests of its own.
+      // These tests cover functionality that's outside that function,
+      // and a couple of smoke tests showing this button is wired up to it.
+
+      final message = eg.streamMessage(flags: []);
+      final unreadMsgs = eg.unreadMsgs(channels: [
+        UnreadChannelSnapshot(streamId: message.streamId, topic: message.topic,
+          unreadMessageIds: [message.id]),
+      ]);
+
+      group('MarkAsReadAnimation', () {
+        void checkAppearsLoading(WidgetTester tester, bool expected) {
+          final semantics = tester.firstWidget<Semantics>(find.descendant(
+            of: find.byType(MarkAsReadWidget),
+            matching: find.byType(Semantics)));
+          check(semantics.properties.enabled).equals(!expected);
+
+          final opacity = tester.widget<AnimatedOpacity>(find.descendant(
+            of: find.byType(MarkAsReadWidget),
+            matching: find.byType(AnimatedOpacity)));
+          check(opacity.opacity).equals(expected ? 0.5 : 1.0);
+        }
+
+        testWidgets('loading is changed correctly', (WidgetTester tester) async {
+          final narrow = TopicNarrow.ofMessage(message);
+          await setupMessageListPage(tester,
+            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+          check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+          connection.prepare(
+            delay: const Duration(milliseconds: 2000),
+            json: UpdateMessageFlagsForNarrowResult(
+              processedCount: 11, updatedCount: 3,
+              firstProcessedId: null, lastProcessedId: null,
+              foundOldest: true, foundNewest: true).toJson());
+
+          checkAppearsLoading(tester, false);
+
+          await tester.tap(find.byType(MarkAsReadWidget));
+          await tester.pump();
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(milliseconds: 2000));
+          checkAppearsLoading(tester, false);
+        });
+
+        testWidgets('loading is changed correctly if request fails', (WidgetTester tester) async {
+          final narrow = TopicNarrow.ofMessage(message);
+          await setupMessageListPage(tester,
+            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+          check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+          connection.prepare(httpStatus: 400, json: {
+            'code': 'BAD_REQUEST',
+            'msg': 'Invalid message(s)',
+            'result': 'error',
+          });
+
+          checkAppearsLoading(tester, false);
+
+          await tester.tap(find.byType(MarkAsReadWidget));
+          await tester.pump();
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(milliseconds: 2000));
+          checkAppearsLoading(tester, false);
+        });
+      });
+
+      testWidgets('smoke test on modern server', (WidgetTester tester) async {
+        final narrow = TopicNarrow.ofMessage(message);
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 11, updatedCount: 3,
+          firstProcessedId: null, lastProcessedId: null,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(find.byType(MarkAsReadWidget));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields.deepEquals({
+              'anchor': 'oldest',
+              'include_anchor': 'false',
+              'num_before': '0',
+              'num_after': '1000',
+              'narrow': jsonEncode(apiNarrow),
+              'op': 'add',
+              'flag': 'read',
+            });
+
+        await tester.pumpAndSettle(); // process pending timers
+      });
+
+      testWidgets('pagination', (WidgetTester tester) async {
+        // Check that `lastProcessedId` returned from an initial
+        // response is used as `anchorId` for the subsequent request.
+        final narrow = TopicNarrow.ofMessage(message);
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 1000, updatedCount: 890,
+          firstProcessedId: 1, lastProcessedId: 1989,
+          foundOldest: true, foundNewest: false).toJson());
+        await tester.tap(find.byType(MarkAsReadWidget));
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields['anchor'].equals('oldest');
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 20, updatedCount: 10,
+          firstProcessedId: 2000, lastProcessedId: 2023,
+          foundOldest: false, foundNewest: true).toJson());
+        await tester.pumpAndSettle();
+        check(find.bySubtype<SnackBar>().evaluate()).length.equals(1);
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields['anchor'].equals('1989');
+      });
+
+      testWidgets('markNarrowAsRead on mark-all-as-read when Unreads.oldUnreadsMissing: true', (tester) async {
+        const narrow = CombinedFeedNarrow();
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+        store.unreads.oldUnreadsMissing = true;
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 11, updatedCount: 3,
+          firstProcessedId: null, lastProcessedId: null,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pumpAndSettle();
+        check(store.unreads.oldUnreadsMissing).isFalse();
+      });
+
+      testWidgets('catch-all api errors', (WidgetTester tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        const narrow = CombinedFeedNarrow();
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        connection.prepare(exception: http.ClientException('Oops'));
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pumpAndSettle();
+        checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
+          expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
+      });
+    });
+  });
+
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
       final stream = eg.stream(name: 'stream name');
@@ -841,229 +1064,6 @@ void main() {
       check(getAnimation(tester, newMessage.id))
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.dismissed);
-    });
-  });
-
-  group('MarkAsReadWidget', () {
-    bool isMarkAsReadButtonVisible(WidgetTester tester) {
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      final finder = find.text(
-        zulipLocalizations.markAllAsReadLabel).hitTestable();
-      return finder.evaluate().isNotEmpty;
-    }
-
-    testWidgets('from read to unread', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
-      await setupMessageListPage(tester, messages: [message]);
-      check(isMarkAsReadButtonVisible(tester)).isFalse();
-
-      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
-        MessageFlag.read, [message]));
-      await tester.pumpAndSettle();
-      check(isMarkAsReadButtonVisible(tester)).isTrue();
-    });
-
-    testWidgets('from unread to read', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
-      final unreadMsgs = eg.unreadMsgs(channels:[
-        UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
-      ]);
-      await setupMessageListPage(tester, messages: [message], unreadMsgs: unreadMsgs);
-      check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-      await store.handleEvent(UpdateMessageFlagsAddEvent(
-        id: 1,
-        flag: MessageFlag.read,
-        messages: [message.id],
-        all: false,
-      ));
-      await tester.pumpAndSettle();
-      check(isMarkAsReadButtonVisible(tester)).isFalse();
-    });
-
-    testWidgets("messages don't shift position", (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
-      final unreadMsgs = eg.unreadMsgs(channels:[
-        UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId,
-          unreadMessageIds: [message.id])
-      ]);
-      await setupMessageListPage(tester,
-        messages: [message], unreadMsgs: unreadMsgs);
-      check(isMarkAsReadButtonVisible(tester)).isTrue();
-      check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
-      final before = tester.getTopLeft(find.byType(MessageItem)).dy;
-
-      await store.handleEvent(UpdateMessageFlagsAddEvent(
-        id: 1,
-        flag: MessageFlag.read,
-        messages: [message.id],
-        all: false,
-      ));
-      await tester.pumpAndSettle();
-      check(isMarkAsReadButtonVisible(tester)).isFalse();
-      check(tester.widgetList(find.byType(MessageItem))).length.equals(1);
-      final after = tester.getTopLeft(find.byType(MessageItem)).dy;
-      check(after).equals(before);
-    });
-
-    group('onPressed behavior', () {
-      // The markNarrowAsRead function has detailed unit tests of its own.
-      // These tests cover functionality that's outside that function,
-      // and a couple of smoke tests showing this button is wired up to it.
-
-      final message = eg.streamMessage(flags: []);
-      final unreadMsgs = eg.unreadMsgs(channels: [
-        UnreadChannelSnapshot(streamId: message.streamId, topic: message.topic,
-          unreadMessageIds: [message.id]),
-      ]);
-
-      group('MarkAsReadAnimation', () {
-        void checkAppearsLoading(WidgetTester tester, bool expected) {
-          final semantics = tester.firstWidget<Semantics>(find.descendant(
-            of: find.byType(MarkAsReadWidget),
-            matching: find.byType(Semantics)));
-          check(semantics.properties.enabled).equals(!expected);
-
-          final opacity = tester.widget<AnimatedOpacity>(find.descendant(
-            of: find.byType(MarkAsReadWidget),
-            matching: find.byType(AnimatedOpacity)));
-          check(opacity.opacity).equals(expected ? 0.5 : 1.0);
-        }
-
-        testWidgets('loading is changed correctly', (WidgetTester tester) async {
-          final narrow = TopicNarrow.ofMessage(message);
-          await setupMessageListPage(tester,
-            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-          check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-          connection.prepare(
-            delay: const Duration(milliseconds: 2000),
-            json: UpdateMessageFlagsForNarrowResult(
-              processedCount: 11, updatedCount: 3,
-              firstProcessedId: null, lastProcessedId: null,
-              foundOldest: true, foundNewest: true).toJson());
-
-          checkAppearsLoading(tester, false);
-
-          await tester.tap(find.byType(MarkAsReadWidget));
-          await tester.pump();
-          checkAppearsLoading(tester, true);
-
-          await tester.pump(const Duration(milliseconds: 2000));
-          checkAppearsLoading(tester, false);
-        });
-
-        testWidgets('loading is changed correctly if request fails', (WidgetTester tester) async {
-          final narrow = TopicNarrow.ofMessage(message);
-          await setupMessageListPage(tester,
-            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-          check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-          connection.prepare(httpStatus: 400, json: {
-            'code': 'BAD_REQUEST',
-            'msg': 'Invalid message(s)',
-            'result': 'error',
-          });
-
-          checkAppearsLoading(tester, false);
-
-          await tester.tap(find.byType(MarkAsReadWidget));
-          await tester.pump();
-          checkAppearsLoading(tester, true);
-
-          await tester.pump(const Duration(milliseconds: 2000));
-          checkAppearsLoading(tester, false);
-        });
-      });
-
-      testWidgets('smoke test on modern server', (WidgetTester tester) async {
-        final narrow = TopicNarrow.ofMessage(message);
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-          processedCount: 11, updatedCount: 3,
-          firstProcessedId: null, lastProcessedId: null,
-          foundOldest: true, foundNewest: true).toJson());
-        await tester.tap(find.byType(MarkAsReadWidget));
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields.deepEquals({
-              'anchor': 'oldest',
-              'include_anchor': 'false',
-              'num_before': '0',
-              'num_after': '1000',
-              'narrow': jsonEncode(apiNarrow),
-              'op': 'add',
-              'flag': 'read',
-            });
-
-        await tester.pumpAndSettle(); // process pending timers
-      });
-
-      testWidgets('pagination', (WidgetTester tester) async {
-        // Check that `lastProcessedId` returned from an initial
-        // response is used as `anchorId` for the subsequent request.
-        final narrow = TopicNarrow.ofMessage(message);
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-          processedCount: 1000, updatedCount: 890,
-          firstProcessedId: 1, lastProcessedId: 1989,
-          foundOldest: true, foundNewest: false).toJson());
-        await tester.tap(find.byType(MarkAsReadWidget));
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields['anchor'].equals('oldest');
-
-        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-          processedCount: 20, updatedCount: 10,
-          firstProcessedId: 2000, lastProcessedId: 2023,
-          foundOldest: false, foundNewest: true).toJson());
-        await tester.pumpAndSettle();
-        check(find.bySubtype<SnackBar>().evaluate()).length.equals(1);
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags/narrow')
-          ..bodyFields['anchor'].equals('1989');
-      });
-
-      testWidgets('markNarrowAsRead on mark-all-as-read when Unreads.oldUnreadsMissing: true', (tester) async {
-        const narrow = CombinedFeedNarrow();
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-        store.unreads.oldUnreadsMissing = true;
-
-        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-          processedCount: 11, updatedCount: 3,
-          firstProcessedId: null, lastProcessedId: null,
-          foundOldest: true, foundNewest: true).toJson());
-        await tester.tap(find.byType(MarkAsReadWidget));
-        await tester.pumpAndSettle();
-        check(store.unreads.oldUnreadsMissing).isFalse();
-      });
-
-      testWidgets('catch-all api errors', (WidgetTester tester) async {
-        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-        const narrow = CombinedFeedNarrow();
-        await setupMessageListPage(tester,
-          narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
-        check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-        connection.prepare(exception: http.ClientException('Oops'));
-        await tester.tap(find.byType(MarkAsReadWidget));
-        await tester.pumpAndSettle();
-        checkErrorDialog(tester,
-          expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
-          expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
-      });
     });
   });
 }
