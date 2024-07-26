@@ -16,6 +16,7 @@ import 'package:zulip/model/store.dart';
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'content_checks.dart';
 import 'recent_senders_test.dart' as recent_senders_test;
@@ -310,6 +311,179 @@ void main() {
     check(model).fetched.isFalse();
   });
 
+  group('UserTopicEvent', () {
+    // The ChannelStore.willChangeIfTopicVisible/InStream methods have their own
+    // thorough unit tests.  So these tests focus on the rest of the logic.
+
+    final stream = eg.stream();
+    const String topic = 'foo';
+
+    Future<void> setVisibility(UserTopicVisibilityPolicy policy) async {
+      await store.handleEvent(eg.userTopicEvent(stream.streamId, topic, policy));
+    }
+
+    /// (Should run after `prepare`.)
+    Future<void> prepareMutes([
+      bool streamMuted = false,
+      UserTopicVisibilityPolicy policy = UserTopicVisibilityPolicy.none,
+    ]) async {
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream, isMuted: streamMuted));
+      await setVisibility(policy);
+    }
+
+    void checkHasMessageIds(Iterable<int> messageIds) {
+      check(model.messages.map((m) => m.id)).deepEquals(messageIds);
+    }
+
+    test('mute a visible topic', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes();
+      final otherStream = eg.stream();
+      await store.addStream(otherStream);
+      await store.addSubscription(eg.subscription(otherStream));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
+        eg.streamMessage(id: 2, stream: stream, topic: 'foo'),
+        eg.streamMessage(id: 3, stream: otherStream, topic: 'elsewhere'),
+        eg.dmMessage(    id: 4, from: eg.otherUser, to: [eg.selfUser]),
+      ]);
+      checkHasMessageIds([1, 2, 3, 4]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 3, 4]);
+    });
+
+    test('in CombinedFeedNarrow, use combined-feed visibility', () async {
+      // Compare the parallel StreamNarrow test below.
+      await prepare(narrow: const CombinedFeedNarrow());
+      // Mute the stream, so that combined-feed vs. stream visibility differ.
+      await prepareMutes(true, UserTopicVisibilityPolicy.followed);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ]);
+      checkHasMessageIds([1]);
+
+      // Dropping from followed to none hides the message
+      // (whereas it'd have no effect in a stream narrow).
+      await setVisibility(UserTopicVisibilityPolicy.none);
+      checkNotifiedOnce();
+      checkHasMessageIds([]);
+
+      // Dropping from none to muted has no further effect
+      // (whereas it'd hide the message in a stream narrow).
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([]);
+    });
+
+    test('in StreamNarrow, use stream visibility', () async {
+      // Compare the parallel CombinedFeedNarrow test above.
+      await prepare(narrow: StreamNarrow(stream.streamId));
+      // Mute the stream, so that combined-feed vs. stream visibility differ.
+      await prepareMutes(true, UserTopicVisibilityPolicy.followed);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ]);
+      checkHasMessageIds([1]);
+
+      // Dropping from followed to none has no effect
+      // (whereas it'd hide the message in the combined feed).
+      await setVisibility(UserTopicVisibilityPolicy.none);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+
+      // Dropping from none to muted hides the message
+      // (whereas it'd have no effect in a stream narrow).
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotifiedOnce();
+      checkHasMessageIds([]);
+    });
+
+    test('in TopicNarrow, stay visible', () async {
+      await prepare(narrow: TopicNarrow(stream.streamId, 'foo'));
+      await prepareMutes();
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('in DmNarrow, do nothing (smoke test)', () async {
+      await prepare(narrow:
+        DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      await prepareMutes();
+      await prepareMessages(foundOldest: true, messages: [
+        eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('no affected messages -> no notification', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes();
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setVisibility(UserTopicVisibilityPolicy.muted);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('unmute a topic -> refetch from scratch', () => awaitFakeAsync((async) async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes(true);
+      final messages = [
+        eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
+        eg.streamMessage(id: 2, stream: stream, topic: 'foo'),
+      ];
+      await prepareMessages(foundOldest: true, messages: messages);
+      checkHasMessageIds([1]);
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      await setVisibility(UserTopicVisibilityPolicy.unmuted);
+      checkNotifiedOnce();
+      check(model).fetched.isFalse();
+      checkHasMessageIds([]);
+
+      async.elapse(Duration.zero);
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 2]);
+    }));
+
+    test('unmute a topic before initial fetch completes -> do nothing', () => awaitFakeAsync((async) async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMutes(true);
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ];
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      final fetchFuture = model.fetchInitial();
+
+      await setVisibility(UserTopicVisibilityPolicy.unmuted);
+      checkNotNotified();
+
+      // The new policy does get applied when the fetch eventually completes.
+      await fetchFuture;
+      checkNotifiedOnce();
+      checkHasMessageIds([1]);
+    }));
+  });
+
   group('DeleteMessageEvent', () {
     final stream = eg.stream();
     final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
@@ -465,6 +639,356 @@ void main() {
     });
   });
 
+  group('messagesMoved', () {
+    final stream = eg.stream();
+    final otherStream = eg.stream();
+
+    void checkHasMessages(Iterable<Message> messages) {
+      check(model.messages.map((e) => e.id)).deepEquals(messages.map((e) => e.id));
+    }
+
+    Future<void> prepareNarrow(Narrow narrow, List<Message> messages) async {
+      await prepare(narrow: narrow);
+      for (final streamToAdd in [stream, otherStream]) {
+        final subscription = eg.subscription(streamToAdd);
+        await store.addStream(streamToAdd);
+        await store.addSubscription(subscription);
+      }
+      if (messages.isNotEmpty) {
+        await prepareMessages(foundOldest: false, messages: messages);
+      }
+      checkHasMessages(messages);
+    }
+
+    group('in topic narrow', () {
+      final narrow = TopicNarrow(stream.streamId, 'topic');
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+
+      test('internal move', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: movedMessages[0].topic
+        ));
+        checkNotified(count: 2);
+        checkHasMessages(initialMessages + movedMessages);
+      });
+
+      test('moved into narrow', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: 'other',
+        ));
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 2));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('moved from narrow', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: 'new',
+          origTopic: movedMessages[0].topic,
+        ));
+        checkHasMessages(initialMessages);
+        checkNotifiedOnce();
+      });
+    });
+
+    group('in stream narrow', () {
+      final narrow = StreamNarrow(stream.streamId);
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+
+      test('internal move', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: 'new',
+          origTopic: movedMessages[0].topic
+        ));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotified(count: 2);
+      });
+
+      test('moved into narrow', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: 'new',
+          origTopic: movedMessages[0].topic,
+          newStreamId: stream.streamId,
+          origStreamId: otherStream.streamId,
+        ));
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 2));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('moved from narrow', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: 'new',
+          origTopic: movedMessages[0].topic,
+          newStreamId: otherStream.streamId,
+          origStreamId: stream.streamId,
+        ));
+        checkHasMessages(initialMessages);
+        checkNotifiedOnce();
+      });
+    });
+
+    group('in combined narrow', () {
+      const narrow = CombinedFeedNarrow();
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+
+      test('internal move among streams', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        await store.handleEvent(eg.updateMessageMoveEvent(initialMessages,
+          newTopic: initialMessages[0].topic,
+          origTopic: initialMessages[0].topic,
+          newStreamId: otherStream.streamId,
+          origStreamId: stream.streamId,
+        ));
+        checkHasMessages(initialMessages);
+        checkNotified(count: 2);
+      }));
+
+      test('internal move among topics', () async {
+        await prepareNarrow(narrow, initialMessages + movedMessages);
+
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: 'new',
+          origTopic: movedMessages[0].topic
+        ));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotified(count: 2);
+      });
+    });
+
+    group('fetch races', (){
+      final narrow = StreamNarrow(stream.streamId);
+      final olderMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+
+      test('fetchOlder, _reset, fetchOlder returns, move fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 1), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages,
+        ).toJson());
+        final fetchFuture = model.fetchOlder();
+        check(model).fetchingOlder.isTrue();
+        checkHasMessages(initialMessages);
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: movedMessages[0].topic,
+          newStreamId: stream.streamId,
+          origStreamId: otherStream.streamId,
+        ));
+        check(model).fetchingOlder.isFalse();
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        await fetchFuture;
+        checkHasMessages([]);
+        checkNotNotified();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('fetchOlder, _reset, move fetch finishes, fetchOlder returns', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages,
+        ).toJson());
+        final fetchFuture = model.fetchOlder();
+        checkHasMessages(initialMessages);
+        check(model).fetchingOlder.isTrue();
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: movedMessages[0].topic,
+          newStreamId: stream.streamId,
+          origStreamId: otherStream.streamId,
+        ));
+        checkHasMessages([]);
+        check(model).fetchingOlder.isFalse();
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+
+        await fetchFuture;
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotNotified();
+      }));
+
+      test('fetchInitial, _reset, initial fetch finishes, move fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, []);
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages,
+        ).toJson());
+        final fetchFuture = model.fetchInitial();
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: movedMessages[0].topic,
+          newStreamId: stream.streamId,
+          origStreamId: otherStream.streamId,
+        ));
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+        checkNotifiedOnce();
+
+        await fetchFuture;
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+        checkNotNotified();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('fetchInitial, _reset, move fetch finishes, initial fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, []);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages,
+        ).toJson());
+        final fetchFuture = model.fetchInitial();
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: movedMessages[0].topic,
+          newStreamId: stream.streamId,
+          origStreamId: otherStream.streamId,
+        ));
+        checkHasMessages([]);
+        check(model).fetched.isFalse();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        check(model).fetched.isTrue();
+
+        await fetchFuture;
+        checkHasMessages(initialMessages + movedMessages);
+      }));
+
+      test('fetchOlder #1, _reset, move fetch finishes, fetchOlder #2, '
+        'fetchOlder #1 finishes, fetchOlder #2 finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages,
+        ).toJson());
+        final fetchFuture1 = model.fetchOlder();
+        checkHasMessages(initialMessages);
+        check(model).fetchingOlder.isTrue();
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        await store.handleEvent(eg.updateMessageMoveEvent(movedMessages,
+          newTopic: movedMessages[0].topic,
+          origTopic: movedMessages[0].topic,
+          newStreamId: stream.streamId,
+          origStreamId: otherStream.streamId,
+        ));
+        checkHasMessages([]);
+        check(model).fetchingOlder.isFalse();
+        checkNotifiedOnce();
+
+        async.elapse(const Duration(seconds: 1));
+        checkNotifiedOnce();
+
+        connection.prepare(delay: const Duration(seconds: 2), json: olderResult(
+          anchor: model.messages[0].id,
+          foundOldest: true,
+          messages: olderMessages
+        ).toJson());
+        final fetchFuture2 = model.fetchOlder();
+        checkHasMessages(initialMessages + movedMessages);
+        check(model).fetchingOlder.isTrue();
+        checkNotifiedOnce();
+
+        await fetchFuture1;
+        checkHasMessages(initialMessages + movedMessages);
+        // The older fetchOlder call should not override fetchingOlder set by
+        // the new fetchOlder call, nor should it notify the listeners.
+        check(model).fetchingOlder.isTrue();
+        checkNotNotified();
+
+        await fetchFuture2;
+        checkHasMessages(olderMessages + initialMessages + movedMessages);
+        check(model).fetchingOlder.isFalse();
+        checkNotifiedOnce();
+      }));
+    });
+  });
+
   group('regression tests for #455', () {
     test('reaction events handled once, even when message is in two message lists', () async {
       final stream = eg.stream();
@@ -594,8 +1118,8 @@ void main() {
 
   group('stream/topic muting', () {
     test('in CombinedFeedNarrow', () async {
-      final stream1 = eg.stream(streamId: 1, name: 'stream 1');
-      final stream2 = eg.stream(streamId: 2, name: 'stream 2');
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
       await prepare(narrow: const CombinedFeedNarrow());
       await store.addStreams([stream1, stream2]);
       await store.addSubscription(eg.subscription(stream1));
@@ -657,7 +1181,7 @@ void main() {
     });
 
     test('in StreamNarrow', () async {
-      final stream = eg.stream(streamId: 1, name: 'stream 1');
+      final stream = eg.stream();
       await prepare(narrow: StreamNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
@@ -704,7 +1228,7 @@ void main() {
     });
 
     test('in TopicNarrow', () async {
-      final stream = eg.stream(streamId: 1, name: 'stream 1');
+      final stream = eg.stream();
       await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));

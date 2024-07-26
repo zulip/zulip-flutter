@@ -175,11 +175,14 @@ ZulipStream stream({
   int? canRemoveSubscribersGroup,
   int? streamWeeklyTraffic,
 }) {
+  var effectiveStreamId = streamId ?? _nextStreamId();
+  var effectiveName = name ?? 'stream $effectiveStreamId';
+  var effectiveDescription = description ?? 'Description of $effectiveName';
   return ZulipStream(
-    streamId: streamId ?? _nextStreamId(),
-    name: name ?? 'A stream', // TODO generate example names
-    description: description ?? 'A description', // TODO generate example descriptions
-    renderedDescription: renderedDescription ?? '<p>A description</p>', // TODO generate random
+    streamId: effectiveStreamId,
+    name: effectiveName,
+    description: effectiveDescription,
+    renderedDescription: renderedDescription ?? '<p>$effectiveDescription</p>',
     dateCreated: dateCreated ?? 1686774898,
     firstMessageId: firstMessageId,
     inviteOnly: inviteOnly ?? false,
@@ -416,6 +419,17 @@ const _unreadMsgs = unreadMsgs;
 // Events.
 //
 
+UserTopicEvent userTopicEvent(
+    int streamId, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
+  return UserTopicEvent(
+    id: 1,
+    streamId: streamId,
+    topicName: topic,
+    lastUpdated: 1234567890,
+    visibilityPolicy: visibilityPolicy,
+  );
+}
+
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);
   final streamId = messages.first.streamId;
@@ -465,6 +479,7 @@ UpdateMessageEvent updateMessageEditEvent(
 
 UpdateMessageEvent updateMessageMoveEvent(
   List<Message> messages, {
+  int? origStreamId,
   int? newStreamId,
   String? origTopic,
   String? newTopic,
@@ -472,6 +487,9 @@ UpdateMessageEvent updateMessageMoveEvent(
   String? newContent,
 }) {
   assert(messages.isNotEmpty);
+  assert(origTopic != null, 'origTopic required for a message move');
+  assert(newTopic != null, 'newTopic required for a message move');
+
   final origMessage = messages[0];
   final messageId = origMessage.id;
   return UpdateMessageEvent(
@@ -482,7 +500,7 @@ UpdateMessageEvent updateMessageMoveEvent(
     messageIds: messages.map((message) => message.id).toList(),
     flags: origMessage.flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origStreamId ?? (origMessage is StreamMessage ? origMessage.streamId : null),
     newStreamId: newStreamId,
     propagateMode: null,
     origTopic: origTopic,
