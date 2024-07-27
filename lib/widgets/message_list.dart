@@ -32,6 +32,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+      senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
       streamMessageBgDefault: Colors.white,
       streamRecipientHeaderChevronRight: Colors.black.withOpacity(0.3),
 
@@ -55,6 +56,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
+      senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       streamRecipientHeaderChevronRight: Colors.white.withOpacity(0.3),
 
@@ -76,6 +78,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dateSeparatorText,
     required this.dmRecipientHeaderBg,
     required this.recipientHeaderText,
+    required this.senderName,
     required this.streamMessageBgDefault,
     required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
@@ -97,6 +100,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dateSeparatorText;
   final Color dmRecipientHeaderBg;
   final Color recipientHeaderText;
+  final Color senderName;
   final Color streamMessageBgDefault;
   final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
@@ -109,6 +113,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? dateSeparatorText,
     Color? dmRecipientHeaderBg,
     Color? recipientHeaderText,
+    Color? senderName,
     Color? streamMessageBgDefault,
     Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
@@ -120,6 +125,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
+      senderName: senderName ?? this.senderName,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
@@ -138,6 +144,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
+      senderName: Color.lerp(senderName, other.senderName, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
@@ -1088,6 +1095,7 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
     final message = item.message;
@@ -1118,7 +1126,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                         fontFamily: 'Source Sans 3',
                         fontSize: 18,
                         height: (22 / 18),
-                        color: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
+                        color: messageListTheme.senderName,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
