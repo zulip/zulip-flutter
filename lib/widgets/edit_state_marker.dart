@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
 import 'icons.dart';
+import 'message_list.dart';
 import 'text.dart';
-import 'theme.dart';
 
 class EditStateMarker extends StatelessWidget {
   const EditStateMarker({
@@ -44,7 +44,7 @@ class _EditStateMarkerPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
+    final messageListTheme = MessageListTheme.of(context);
 
     final IconData icon;
     final Offset offset;
@@ -69,6 +69,6 @@ class _EditStateMarkerPill extends StatelessWidget {
       child: Transform.translate(
         offset: offset,
         child: Icon(
-          icon, size: 16, color: designVariables.editedMovedMarkerCollapsed)));
+          icon, size: 16, color: messageListTheme.editedMovedMarkerCollapsed)));
   }
 }
