@@ -197,7 +197,7 @@ class Unreads extends ChangeNotifier {
     switch (narrow) {
       case CombinedFeedNarrow():
         return countInCombinedFeedNarrow();
-      case StreamNarrow():
+      case ChannelNarrow():
         return countInStreamNarrow(narrow.streamId);
       case TopicNarrow():
         return countInTopicNarrow(narrow.streamId, narrow.topic);

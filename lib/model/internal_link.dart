@@ -196,7 +196,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     if (topicElement != null) {
       return TopicNarrow(streamId, topicElement.operand);
     } else {
-      return StreamNarrow(streamId);
+      return ChannelNarrow(streamId);
     }
   }
   return null;

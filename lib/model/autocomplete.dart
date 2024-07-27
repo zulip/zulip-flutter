@@ -214,7 +214,7 @@ class MentionAutocompleteView extends ChangeNotifier {
     int? streamId;
     String? topic;
     switch (narrow) {
-      case StreamNarrow():
+      case ChannelNarrow():
         streamId = narrow.streamId;
       case TopicNarrow():
         streamId = narrow.streamId;

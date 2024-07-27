@@ -231,7 +231,7 @@ hello
         .equals(store.realmUrl.resolve('#narrow/near/1'));
     });
 
-    test('StreamNarrow / TopicNarrow', () {
+    test('ChannelNarrow / TopicNarrow', () {
       void checkNarrow(String expectedFragment, {
         required int streamId,
         required String name,
@@ -242,7 +242,7 @@ hello
         final store = eg.store();
         await store.addStream(eg.stream(streamId: streamId, name: name));
         final narrow = topic == null
-          ? StreamNarrow(streamId)
+          ? ChannelNarrow(streamId)
           : TopicNarrow(streamId, topic);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
           .equals(store.realmUrl.resolve(expectedFragment));

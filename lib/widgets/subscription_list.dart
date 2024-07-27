@@ -217,7 +217,7 @@ class SubscriptionItem extends StatelessWidget {
         onTap: () {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: StreamNarrow(subscription.streamId)));
+              narrow: ChannelNarrow(subscription.streamId)));
         },
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),

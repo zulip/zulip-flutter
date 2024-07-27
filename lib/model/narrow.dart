@@ -65,8 +65,8 @@ class CombinedFeedNarrow extends Narrow {
   int get hashCode => 'CombinedFeedNarrow'.hashCode;
 }
 
-class StreamNarrow extends Narrow {
-  const StreamNarrow(this.streamId);
+class ChannelNarrow extends Narrow {
+  const ChannelNarrow(this.streamId);
 
   final int streamId;
 
@@ -79,16 +79,16 @@ class StreamNarrow extends Narrow {
   ApiNarrow apiEncode() => [ApiNarrowStream(streamId)];
 
   @override
-  String toString() => 'StreamNarrow($streamId)';
+  String toString() => 'ChannelNarrow($streamId)';
 
   @override
   bool operator ==(Object other) {
-    if (other is! StreamNarrow) return false;
+    if (other is! ChannelNarrow) return false;
     return other.streamId == streamId;
   }
 
   @override
-  int get hashCode => Object.hash('StreamNarrow', streamId);
+  int get hashCode => Object.hash('ChannelNarrow', streamId);
 }
 
 class TopicNarrow extends Narrow implements SendableNarrow {

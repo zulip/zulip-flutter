@@ -159,11 +159,11 @@ void main() {
       eg.stream(streamId: 123, name: 'topic'),
     ];
 
-    group('"/#narrow/stream/<...>" returns expected StreamNarrow', () {
+    group('"/#narrow/stream/<...>" returns expected ChannelNarrow', () {
       const testCases = [
-        ('/#narrow/stream/check',   StreamNarrow(1)),
-        ('/#narrow/stream/stream/', StreamNarrow(5)),
-        ('/#narrow/stream/topic/',  StreamNarrow(123)),
+        ('/#narrow/stream/check',   ChannelNarrow(1)),
+        ('/#narrow/stream/stream/', ChannelNarrow(5)),
+        ('/#narrow/stream/topic/',  ChannelNarrow(123)),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -185,8 +185,8 @@ void main() {
 
     group('Both `stream` and `channel` can be used interchangeably', () {
       const testCases = [
-        ('/#narrow/stream/check',                         StreamNarrow(1)),
-        ('/#narrow/channel/check',                        StreamNarrow(1)),
+        ('/#narrow/stream/check',                         ChannelNarrow(1)),
+        ('/#narrow/channel/check',                        ChannelNarrow(1)),
         ('/#narrow/stream/check/topic/test',              TopicNarrow(1, 'test')),
         ('/#narrow/channel/check/topic/test',             TopicNarrow(1, 'test')),
         ('/#narrow/stream/check/topic/test/near/378333',  TopicNarrow(1, 'test')),
@@ -267,9 +267,9 @@ void main() {
         eg.stream(streamId: 3, name: 'some.stream'),
       ];
       const testCases = [
-        ('/#narrow/stream/some_stream',                    StreamNarrow(1)),
-        ('/#narrow/stream/some.20stream',                  StreamNarrow(2)),
-        ('/#narrow/stream/some.2Estream',                  StreamNarrow(3)),
+        ('/#narrow/stream/some_stream',                    ChannelNarrow(1)),
+        ('/#narrow/stream/some.20stream',                  ChannelNarrow(2)),
+        ('/#narrow/stream/some.2Estream',                  ChannelNarrow(3)),
         ('/#narrow/stream/some_stream/topic/some_topic',   TopicNarrow(1, 'some_topic')),
         ('/#narrow/stream/some_stream/topic/some.20topic', TopicNarrow(1, 'some topic')),
         ('/#narrow/stream/some_stream/topic/some.2Etopic', TopicNarrow(1, 'some.topic')),
@@ -280,7 +280,7 @@ void main() {
 
   group('parseInternalLink edge cases', () {
     void testExpectedStreamNarrow(String testCase, int? streamId) {
-      final streamNarrow = (streamId != null) ? StreamNarrow(streamId) : null;
+      final streamNarrow = (streamId != null) ? ChannelNarrow(streamId) : null;
       testExpectedNarrows([(testCase, streamNarrow)], streams: [
         eg.stream(streamId: 1, name: "general"),
       ]);
@@ -316,11 +316,11 @@ void main() {
         eg.stream(streamId: 5, name: '--help'),
       ];
       const testCases = [
-        ('#narrow/stream/test-team/', StreamNarrow(1)),
-        ('#narrow/stream/311/',       StreamNarrow(2)),
-        ('#narrow/stream/311-/',      StreamNarrow(3)),
-        ('#narrow/stream/311-help/',  StreamNarrow(4)),
-        ('#narrow/stream/--help/',    StreamNarrow(5)),
+        ('#narrow/stream/test-team/', ChannelNarrow(1)),
+        ('#narrow/stream/311/',       ChannelNarrow(2)),
+        ('#narrow/stream/311-/',      ChannelNarrow(3)),
+        ('#narrow/stream/311-help/',  ChannelNarrow(4)),
+        ('#narrow/stream/--help/',    ChannelNarrow(5)),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -333,9 +333,9 @@ void main() {
         eg.stream(streamId: 311, name: 'collider'),
       ];
       const testCases = [
-        ('#narrow/stream/311/',      StreamNarrow(311)),
-        ('#narrow/stream/311-/',     StreamNarrow(311)),
-        ('#narrow/stream/311-help/', StreamNarrow(311)),
+        ('#narrow/stream/311/',      ChannelNarrow(311)),
+        ('#narrow/stream/311-/',     ChannelNarrow(311)),
+        ('#narrow/stream/311-help/', ChannelNarrow(311)),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -349,11 +349,11 @@ void main() {
         eg.stream(streamId: 5, name: 'topic'),
       ];
       const testCases = [
-        ('#narrow/stream/check/',         StreamNarrow(1)),
-        ('#narrow/stream/bot.20testing/', StreamNarrow(2)),
-        ('#narrow/stream/check.2EAPI/',   StreamNarrow(3)),
-        ('#narrow/stream/stream/',        StreamNarrow(4)),
-        ('#narrow/stream/topic/',         StreamNarrow(5)),
+        ('#narrow/stream/check/',         ChannelNarrow(1)),
+        ('#narrow/stream/bot.20testing/', ChannelNarrow(2)),
+        ('#narrow/stream/check.2EAPI/',   ChannelNarrow(3)),
+        ('#narrow/stream/stream/',        ChannelNarrow(4)),
+        ('#narrow/stream/topic/',         ChannelNarrow(5)),
 
         ('#narrow/stream/check.API/',     null),
       ];

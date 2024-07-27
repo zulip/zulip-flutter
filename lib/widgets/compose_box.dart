@@ -321,7 +321,7 @@ class _StreamContentInput extends StatefulWidget {
     required this.focusNode,
   });
 
-  final StreamNarrow narrow;
+  final ChannelNarrow narrow;
   final ComposeContentController controller;
   final ComposeTopicController topicController;
   final FocusNode focusNode;
@@ -921,7 +921,7 @@ class _StreamComposeBox extends StatefulWidget {
   const _StreamComposeBox({super.key, required this.narrow});
 
   /// The narrow on view in the message list.
-  final StreamNarrow narrow;
+  final ChannelNarrow narrow;
 
   @override
   State<_StreamComposeBox> createState() => _StreamComposeBoxState();
@@ -1027,7 +1027,7 @@ class ComposeBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final narrow = this.narrow;
     switch (narrow) {
-      case StreamNarrow():
+      case ChannelNarrow():
         return _StreamComposeBox(key: controllerKey, narrow: narrow);
       case TopicNarrow():
         return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);

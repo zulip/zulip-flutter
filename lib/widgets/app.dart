@@ -295,7 +295,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.push(context,
                 MessageListPage.buildRoute(context: context,
-                  narrow: StreamNarrow(testStreamId!))),
+                  narrow: ChannelNarrow(testStreamId!))),
               child: const Text("#test here")), // scaffolding hack, see above
           ],
         ])));

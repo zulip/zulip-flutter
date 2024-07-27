@@ -181,7 +181,7 @@ void main() {
       }
 
       checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
-      checkNarrow(const StreamNarrow(12).apiEncode(), jsonEncode([
+      checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
       ]));
       checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([

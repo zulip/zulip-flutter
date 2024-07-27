@@ -290,7 +290,7 @@ void main() {
 
     testWidgets('in stream narrow', (WidgetTester tester) async {
       final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: StreamNarrow(message.streamId));
+      await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;

@@ -203,9 +203,9 @@ void main() {
       check(store.unreads).oldUnreadsMissing.isTrue();
     });
 
-    testWidgets('StreamNarrow on legacy server', (WidgetTester tester) async {
+    testWidgets('ChannelNarrow on legacy server', (WidgetTester tester) async {
       final stream = eg.stream();
-      final narrow = StreamNarrow(stream.streamId);
+      final narrow = ChannelNarrow(stream.streamId);
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});

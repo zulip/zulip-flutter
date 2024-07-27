@@ -169,7 +169,7 @@ void main() {
 
     testWidgets('_StreamComposeBox', (tester) async {
       final key = await prepareComposeBox(tester,
-        StreamNarrow(eg.stream().streamId));
+        ChannelNarrow(eg.stream().streamId));
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: true);
     });
@@ -251,7 +251,7 @@ void main() {
 
     group('attach from media library', () {
       testWidgets('success', (tester) async {
-        final controllerKey = await prepareComposeBox(tester, StreamNarrow(eg.stream().streamId));
+        final controllerKey = await prepareComposeBox(tester, ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
@@ -307,7 +307,7 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
-        final controllerKey = await prepareComposeBox(tester, StreamNarrow(eg.stream().streamId));
+        final controllerKey = await prepareComposeBox(tester, ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because

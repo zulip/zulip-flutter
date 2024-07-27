@@ -120,7 +120,7 @@ Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async 
   switch (narrow) {
     case CombinedFeedNarrow():
       await markAllAsRead(connection);
-    case StreamNarrow(:final streamId):
+    case ChannelNarrow(:final streamId):
       await markStreamAsRead(connection, streamId: streamId);
     case TopicNarrow(:final streamId, :final topic):
       await markTopicAsRead(connection, streamId: streamId, topicName: topic);

@@ -85,7 +85,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       case CombinedFeedNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
-      case StreamNarrow(:final streamId):
+      case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final subscription = store.subscriptions[streamId];
         appBarBackgroundColor = subscription != null
@@ -170,7 +170,7 @@ class MessageListAppBarTitle extends StatelessWidget {
       case CombinedFeedNarrow():
         return Text(zulipLocalizations.combinedFeedPageTitle);
 
-      case StreamNarrow(:var streamId):
+      case ChannelNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
         final streamName = stream?.name ?? '(unknown channel)';
@@ -761,7 +761,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: StreamNarrow(message.streamId))),
+            narrow: ChannelNarrow(message.streamId))),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

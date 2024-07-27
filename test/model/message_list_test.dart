@@ -276,7 +276,7 @@ void main() {
 
   test('MessageEvent', () async {
     final stream = eg.stream();
-    await prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -289,7 +289,7 @@ void main() {
 
   test('MessageEvent, not in narrow', () async {
     final stream = eg.stream();
-    await prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -303,7 +303,7 @@ void main() {
 
   test('MessageEvent, before fetch', () async {
     final stream = eg.stream();
-    await prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: ChannelNarrow(stream.streamId));
     await store.handleEvent(MessageEvent(id: 0,
       message: eg.streamMessage(stream: stream)));
     checkNotNotified();
@@ -315,7 +315,7 @@ void main() {
     final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
 
     test('in narrow', () async {
-      await prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages);
 
       check(model).messages.length.equals(30);
@@ -325,7 +325,7 @@ void main() {
     });
 
     test('not all in narrow', () async {
-      await prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages.sublist(5));
 
       check(model).messages.length.equals(25);
@@ -335,7 +335,7 @@ void main() {
     });
 
     test('not in narrow', () async {
-      await prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages.sublist(5));
 
       check(model).messages.length.equals(25);
@@ -345,7 +345,7 @@ void main() {
     });
 
     test('complete message deletion', () async {
-      await prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages.sublist(0, 25));
 
       check(model).messages.length.equals(25);
@@ -355,7 +355,7 @@ void main() {
     });
 
     test('non-consecutive message deletion', () async {
-      await prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages);
       final messagesToDelete = messages.sublist(2, 5) + messages.sublist(10, 15);
 
@@ -446,7 +446,7 @@ void main() {
 
     test('message absent', () async {
       final stream = eg.stream();
-      final narrow = StreamNarrow(stream.streamId);
+      final narrow = ChannelNarrow(stream.streamId);
       await prepare(narrow: narrow);
 
       final messagesInNarrow = List<Message>.generate(10,
@@ -475,7 +475,7 @@ void main() {
 
       int notifiedCount1 = 0;
       final model1 = MessageListView.init(store: store,
-          narrow: StreamNarrow(stream.streamId))
+          narrow: ChannelNarrow(stream.streamId))
         ..addListener(() => notifiedCount1++);
 
       int notifiedCount2 = 0;
@@ -570,7 +570,7 @@ void main() {
 
   test('reassemble', () async {
     final stream = eg.stream();
-    await prepare(narrow: StreamNarrow(stream.streamId));
+    await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
     await store.handleEvent(MessageEvent(id: 0,
@@ -656,9 +656,9 @@ void main() {
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(305));
     });
 
-    test('in StreamNarrow', () async {
+    test('in ChannelNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'stream 1');
-      await prepare(narrow: StreamNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
       await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
@@ -974,7 +974,7 @@ void checkInvariants(MessageListView model) {
       case CombinedFeedNarrow():
         check(model.store.isTopicVisible(message.streamId, message.topic))
           .isTrue();
-      case StreamNarrow():
+      case ChannelNarrow():
         check(model.store.isTopicVisibleInStream(message.streamId, message.topic))
           .isTrue();
       case TopicNarrow():

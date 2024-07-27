@@ -363,7 +363,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           DmMessage() => true,
         };
 
-      case StreamNarrow(:final streamId):
+      case ChannelNarrow(:final streamId):
         assert(message is StreamMessage && message.streamId == streamId);
         if (message is! StreamMessage) return false;
         return store.isTopicVisibleInStream(streamId, message.topic);
@@ -380,7 +380,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   bool get _allMessagesVisible {
     switch (narrow) {
       case CombinedFeedNarrow():
-      case StreamNarrow():
+      case ChannelNarrow():
         return false;
 
       case TopicNarrow():
