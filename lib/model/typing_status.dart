@@ -64,7 +64,7 @@ class TypingStatus extends ChangeNotifier {
   void handleTypingEvent(TypingEvent event) {
     SendableNarrow narrow = switch (event.messageType) {
       MessageType.direct => DmNarrow(
-        allRecipientIds: event.recipientIds!..sort(), selfUserId: selfUserId),
+        allRecipientIds: event.recipientIds!, selfUserId: selfUserId),
       MessageType.stream => TopicNarrow(event.streamId!, event.topic!),
     };
 

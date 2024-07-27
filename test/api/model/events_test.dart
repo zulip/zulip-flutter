@@ -241,5 +241,12 @@ void main() {
       check(() => TypingEvent.fromJson({
         ...baseJson, 'message_type': 'stream', 'stream_id': 123})).throws<void>();
     });
+
+    test('direct type sort recipient ids', () {
+      check(TypingEvent.fromJson({
+        ...directMessageJson,
+        'recipients': [4, 10, 8, 2, 1].map((e) => {'user_id': e, 'email': '$e@example.com'}).toList(),
+      })).recipientIds.isNotNull().deepEquals([1, 2, 4, 8, 10]);
+    });
   });
 }

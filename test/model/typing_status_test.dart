@@ -97,23 +97,6 @@ void main() {
       checkTypists({groupNarrow: [eg.otherUser, eg.thirdUser]});
       checkNotifiedOnce();
     });
-
-    test('sort dm recipients', () {
-      prepareModel(selfUserId: 5);
-      final recipientIds = [5, 4, 10, 8, 2, 1];
-
-      final eventUnsorted = TypingEvent(id: 1, op: TypingOp.start,
-        senderId: 1,
-        messageType: MessageType.direct,
-        recipientIds: recipientIds,
-        streamId: null, topic: null);
-      // DmNarrow's constructor expects the recipient IDs to be sorted,
-      // and [model.handleTypingEvent] should handle that.
-      model.handleTypingEvent(eventUnsorted);
-      check(model.typistIdsInNarrow(
-        DmNarrow(allRecipientIds: recipientIds..sort(), selfUserId: 5),
-      )).single.equals(1);
-    });
   });
 
   group('handle typing stop events', () {

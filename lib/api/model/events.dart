@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../model/algorithms.dart';
 import 'json.dart';
 import 'model.dart';
 
@@ -900,7 +901,7 @@ class TypingEvent extends Event {
     required this.recipientIds,
     required this.streamId,
     required this.topic,
-  });
+  }) : assert(isSortedWithoutDuplicates(recipientIds ?? []));
 
   static Object? _readSenderId(Map<Object?, Object?> json, String key) {
     return (json['sender'] as Map<String, dynamic>)['user_id'];
@@ -909,7 +910,7 @@ class TypingEvent extends Event {
   static List<int>? _recipientIdsFromJson(Object? json) {
     if (json == null) return null;
     return (json as List<Object?>).map(
-      (item) => (item as Map<String, Object?>)['user_id'] as int).toList();
+      (item) => (item as Map<String, Object?>)['user_id'] as int).toList()..sort();
   }
 
   factory TypingEvent.fromJson(Map<String, dynamic> json) {
