@@ -1131,10 +1131,10 @@ class MessageWithPossibleSender extends StatelessWidget {
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
                     const SizedBox(width: 5),
-                    const Icon(
+                    Icon(
                       ZulipIcons.bot,
                       size: 15,
-                      color: Color.fromARGB(255, 159, 173, 173),
+                      color: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
                     ),
                   ],
                 ]))),
