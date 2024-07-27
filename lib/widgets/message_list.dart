@@ -29,6 +29,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.light() :
     this._(
       dateSeparator: Colors.black,
+      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       streamMessageBgDefault: Colors.white,
@@ -51,6 +52,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.dark() :
     this._(
       dateSeparator: Colors.white,
+      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -71,6 +73,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme._({
     required this.dateSeparator,
+    required this.dateSeparatorText,
     required this.dmRecipientHeaderBg,
     required this.recipientHeaderText,
     required this.streamMessageBgDefault,
@@ -91,6 +94,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }
 
   final Color dateSeparator;
+  final Color dateSeparatorText;
   final Color dmRecipientHeaderBg;
   final Color recipientHeaderText;
   final Color streamMessageBgDefault;
@@ -102,6 +106,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   @override
   MessageListTheme copyWith({
     Color? dateSeparator,
+    Color? dateSeparatorText,
     Color? dmRecipientHeaderBg,
     Color? recipientHeaderText,
     Color? streamMessageBgDefault,
@@ -112,6 +117,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }) {
     return MessageListTheme._(
       dateSeparator: dateSeparator ?? this.dateSeparator,
+      dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
@@ -129,6 +135,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     }
     return MessageListTheme._(
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
+      dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
@@ -1015,10 +1022,11 @@ class DateText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Text(
       style: TextStyle(
-        color: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+        color: messageListTheme.dateSeparatorText,
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:
