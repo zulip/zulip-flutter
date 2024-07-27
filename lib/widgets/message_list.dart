@@ -32,6 +32,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       streamMessageBgDefault: Colors.white,
+      streamRecipientHeaderChevronRight: Colors.black.withOpacity(0.3),
 
       // From the Figma mockup at:
       //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
@@ -53,6 +54,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+      streamRecipientHeaderChevronRight: Colors.white.withOpacity(0.3),
 
       // 0.75 opacity from here:
       //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
@@ -72,6 +74,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dmRecipientHeaderBg,
     required this.recipientHeaderText,
     required this.streamMessageBgDefault,
+    required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
     required this.unreadMarkerGap,
     required this.unsubscribedStreamRecipientHeaderBg,
@@ -91,6 +94,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dmRecipientHeaderBg;
   final Color recipientHeaderText;
   final Color streamMessageBgDefault;
+  final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
   final Color unreadMarkerGap;
   final Color unsubscribedStreamRecipientHeaderBg;
@@ -101,6 +105,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? dmRecipientHeaderBg,
     Color? recipientHeaderText,
     Color? streamMessageBgDefault,
+    Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
     Color? unreadMarkerGap,
     Color? unsubscribedStreamRecipientHeaderBg,
@@ -110,6 +115,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
+      streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
       unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
       unsubscribedStreamRecipientHeaderBg: unsubscribedStreamRecipientHeaderBg ?? this.unsubscribedStreamRecipientHeaderBg,
@@ -126,6 +132,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
+      streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
       unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
@@ -886,7 +893,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               // Icon is 16px wide here so horizontal padding is 1px.
               padding: const EdgeInsets.symmetric(horizontal: 1),
               child: Icon(size: 16,
-                color: Colors.black.withOpacity(0.3),
+                color: messageListTheme.streamRecipientHeaderChevronRight,
                 ZulipIcons.chevron_right)),
           ]));
     }
