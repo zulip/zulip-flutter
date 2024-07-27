@@ -30,6 +30,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     this._(
       dateSeparator: Colors.black,
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+      recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       streamMessageBgDefault: Colors.white,
 
       // From the Figma mockup at:
@@ -50,6 +51,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     this._(
       dateSeparator: Colors.white,
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+      recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
 
       // 0.75 opacity from here:
@@ -68,6 +70,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme._({
     required this.dateSeparator,
     required this.dmRecipientHeaderBg,
+    required this.recipientHeaderText,
     required this.streamMessageBgDefault,
     required this.unreadMarker,
     required this.unreadMarkerGap,
@@ -86,6 +89,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   final Color dateSeparator;
   final Color dmRecipientHeaderBg;
+  final Color recipientHeaderText;
   final Color streamMessageBgDefault;
   final Color unreadMarker;
   final Color unreadMarkerGap;
@@ -95,6 +99,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme copyWith({
     Color? dateSeparator,
     Color? dmRecipientHeaderBg,
+    Color? recipientHeaderText,
     Color? streamMessageBgDefault,
     Color? unreadMarker,
     Color? unreadMarkerGap,
@@ -103,6 +108,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return MessageListTheme._(
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
+      recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       unreadMarker: unreadMarker ?? this.unreadMarker,
       unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
@@ -118,6 +124,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return MessageListTheme._(
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
+      recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
@@ -841,7 +848,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = messageListTheme.unsubscribedStreamRecipientHeaderBg;
-      iconColor = _kRecipientHeaderTextColor;
+      iconColor = messageListTheme.recipientHeaderText;
     }
 
     final Widget streamWidget;
@@ -947,7 +954,7 @@ class DmRecipientHeader extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Icon(
-                  color: _kRecipientHeaderTextColor,
+                  color: messageListTheme.recipientHeaderText,
                   size: 16,
                   ZulipIcons.user)),
               Expanded(
@@ -961,13 +968,12 @@ class DmRecipientHeader extends StatelessWidget {
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
-    color: _kRecipientHeaderTextColor,
+    color: MessageListTheme.of(context).recipientHeaderText,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
   ).merge(weightVariableTextStyle(context, wght: 600));
 }
-final _kRecipientHeaderTextColor = const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor();
 
 class RecipientHeaderDate extends StatelessWidget {
   const RecipientHeaderDate({super.key, required this.message});
