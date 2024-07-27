@@ -31,6 +31,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.black,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
       senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
@@ -56,6 +57,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.white,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+      messageTimestamp: const HSLColor.fromAHSL(0.6, 0, 0, 1).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
       senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
@@ -79,6 +81,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dateSeparator,
     required this.dateSeparatorText,
     required this.dmRecipientHeaderBg,
+    required this.messageTimestamp,
     required this.recipientHeaderText,
     required this.senderBotIcon,
     required this.senderName,
@@ -102,6 +105,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dateSeparator;
   final Color dateSeparatorText;
   final Color dmRecipientHeaderBg;
+  final Color messageTimestamp;
   final Color recipientHeaderText;
   final Color senderBotIcon;
   final Color senderName;
@@ -116,6 +120,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? dateSeparator,
     Color? dateSeparatorText,
     Color? dmRecipientHeaderBg,
+    Color? messageTimestamp,
     Color? recipientHeaderText,
     Color? senderBotIcon,
     Color? senderName,
@@ -129,6 +134,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
+      messageTimestamp: messageTimestamp ?? this.messageTimestamp,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
       senderName: senderName ?? this.senderName,
@@ -149,6 +155,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
+      messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
       senderName: Color.lerp(senderName, other.senderName, t)!,
@@ -1148,7 +1155,7 @@ class MessageWithPossibleSender extends StatelessWidget {
           const SizedBox(width: 4),
           Text(time,
             style: TextStyle(
-              color: _kMessageTimestampColor,
+              color: messageListTheme.messageTimestamp,
               fontFamily: 'Source Sans 3',
               fontSize: 16,
               height: (18 / 16),
@@ -1187,5 +1194,3 @@ class MessageWithPossibleSender extends StatelessWidget {
 
 // TODO web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
-
-final _kMessageTimestampColor = const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor();
