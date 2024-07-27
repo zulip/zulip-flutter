@@ -505,10 +505,9 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
 
     return IgnorePointer(
       ignoring: areMessagesRead,
-      child: AnimatedOpacity(
-        opacity: areMessagesRead ? 0 : _loading ? 0.5 : 1,
-        duration: Duration(milliseconds: areMessagesRead ? 2000 : 300),
-        curve: Curves.easeOut,
+      child: MarkAsReadAnimation(
+        loading: _loading,
+        hidden: areMessagesRead,
         child: SizedBox(width: double.infinity,
           // Design referenced from:
           //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
@@ -541,6 +540,28 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
               onPressed: _loading ? null : () => _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
               label: Text(zulipLocalizations.markAllAsReadLabel))))));
+  }
+}
+
+class MarkAsReadAnimation extends StatelessWidget {
+  final bool loading;
+  final bool hidden;
+  final Widget child;
+
+  const MarkAsReadAnimation({
+    super.key,
+    required this.loading,
+    required this.hidden,
+    required this.child
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: hidden ? 0 : loading ? 0.5 : 1,
+      duration: Duration(milliseconds: hidden ? 2000 : 300),
+      curve: Curves.easeOut,
+      child: child);
   }
 }
 
