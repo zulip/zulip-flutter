@@ -883,6 +883,65 @@ void main() {
           unreadMessageIds: [message.id]),
       ]);
 
+      group('MarkAsReadAnimation', () {
+        void checkAppearsLoading(WidgetTester tester, bool expected) {
+          final semantics = tester.firstWidget<Semantics>(find.descendant(
+            of: find.byType(MarkAsReadWidget),
+            matching: find.byType(Semantics)));
+          check(semantics.properties.enabled).equals(!expected);
+
+          final opacity = tester.widget<AnimatedOpacity>(find.descendant(
+            of: find.byType(MarkAsReadWidget),
+            matching: find.byType(AnimatedOpacity)));
+          check(opacity.opacity).equals(expected ? 0.5 : 1.0);
+        }
+
+        testWidgets('loading is changed correctly', (WidgetTester tester) async {
+          final narrow = TopicNarrow.ofMessage(message);
+          await setupMessageListPage(tester,
+            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+          check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+          connection.prepare(
+            delay: const Duration(milliseconds: 2000),
+            json: UpdateMessageFlagsForNarrowResult(
+              processedCount: 11, updatedCount: 3,
+              firstProcessedId: null, lastProcessedId: null,
+              foundOldest: true, foundNewest: true).toJson());
+
+          checkAppearsLoading(tester, false);
+
+          await tester.tap(find.byType(MarkAsReadWidget));
+          await tester.pump();
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(milliseconds: 2000));
+          checkAppearsLoading(tester, false);
+        });
+
+        testWidgets('loading is changed correctly if request fails', (WidgetTester tester) async {
+          final narrow = TopicNarrow.ofMessage(message);
+          await setupMessageListPage(tester,
+            narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
+          check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+          connection.prepare(httpStatus: 400, json: {
+            'code': 'BAD_REQUEST',
+            'msg': 'Invalid message(s)',
+            'result': 'error',
+          });
+
+          checkAppearsLoading(tester, false);
+
+          await tester.tap(find.byType(MarkAsReadWidget));
+          await tester.pump();
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(milliseconds: 2000));
+          checkAppearsLoading(tester, false);
+        });
+      });
+
       testWidgets('smoke test on modern server', (WidgetTester tester) async {
         final narrow = TopicNarrow.ofMessage(message);
         await setupMessageListPage(tester,

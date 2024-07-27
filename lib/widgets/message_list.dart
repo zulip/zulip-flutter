@@ -458,10 +458,17 @@ class ScrollToBottomButton extends StatelessWidget {
   }
 }
 
-class MarkAsReadWidget extends StatelessWidget {
+class MarkAsReadWidget extends StatefulWidget {
   const MarkAsReadWidget({super.key, required this.narrow});
 
   final Narrow narrow;
+
+  @override
+  State<MarkAsReadWidget> createState() => _MarkAsReadWidgetState();
+}
+
+class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
+  bool _loading = false;
 
   void _handlePress(BuildContext context) async {
     if (!context.mounted) return;
@@ -469,19 +476,22 @@ class MarkAsReadWidget extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final connection = store.connection;
     final useLegacy = connection.zulipFeatureLevel! < 155;
+    setState(() => _loading = true);
 
     try {
-      await markNarrowAsRead(context, narrow, useLegacy);
+      await markNarrowAsRead(context, widget.narrow, useLegacy);
     } catch (e) {
       if (!context.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorMarkAsReadFailedTitle,
         message: e.toString()); // TODO(#741): extract user-facing message better
       return;
+    } finally {
+      setState(() => _loading = false);
     }
     if (!context.mounted) return;
-    if (narrow is CombinedFeedNarrow && !useLegacy) {
+    if (widget.narrow is CombinedFeedNarrow && !useLegacy) {
       PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
     }
   }
@@ -490,13 +500,13 @@ class MarkAsReadWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final unreadCount = store.unreads.countInNarrow(narrow);
+    final unreadCount = store.unreads.countInNarrow(widget.narrow);
     final areMessagesRead = unreadCount == 0;
 
     return IgnorePointer(
       ignoring: areMessagesRead,
       child: AnimatedOpacity(
-        opacity: areMessagesRead ? 0 : 1,
+        opacity: areMessagesRead ? 0 : _loading ? 0.5 : 1,
         duration: Duration(milliseconds: areMessagesRead ? 2000 : 300),
         curve: Curves.easeOut,
         child: SizedBox(width: double.infinity,
@@ -507,8 +517,6 @@ class MarkAsReadWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
-                // TODO(#95) need dark-theme colors (foreground and background)
-                backgroundColor: _UnreadMarker.color,
                 minimumSize: const Size.fromHeight(38),
                 textStyle:
                   // Restate [FilledButton]'s default, which inherits from
@@ -522,11 +530,17 @@ class MarkAsReadWidget extends StatelessWidget {
                     height: (23 / 18))
                   .merge(weightVariableTextStyle(context, wght: 400))),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+              ).copyWith(
+                // Give the buttons a constant color regardless of whether their
+                // state is disabled, pressed, etc.  We handle those states
+                // separately, via MarkAsReadAnimation.
+                // TODO(#95) need dark-theme colors (foreground and background)
+                foregroundColor: WidgetStateColor.resolveWith((_) => Colors.white),
+                backgroundColor: WidgetStateColor.resolveWith((_) => _UnreadMarker.color),
               ),
-              onPressed: () => _handlePress(context),
+              onPressed: _loading ? null : () => _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
-              label: Text(zulipLocalizations.markAllAsReadLabel))))),
-    );
+              label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }
 
