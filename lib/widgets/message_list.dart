@@ -58,8 +58,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.white,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      // TODO(#95) need dark-theme color
-      editedMovedMarkerCollapsed: const Color.fromARGB(128, 146, 167, 182),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      editedMovedMarkerCollapsed: const Color.fromARGB(128, 214, 202, 194),
       messageTimestamp: const HSLColor.fromAHSL(0.6, 0, 0, 1).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
