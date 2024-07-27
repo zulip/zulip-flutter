@@ -559,7 +559,7 @@ class MarkAsReadAnimation extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedOpacity(
       opacity: hidden ? 0 : loading ? 0.5 : 1,
-      duration: Duration(milliseconds: hidden ? 2000 : 300),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOut,
       child: child);
   }
