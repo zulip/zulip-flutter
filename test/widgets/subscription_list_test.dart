@@ -27,7 +27,7 @@ void main() {
     addTearDown(testBinding.reset);
     final initialSnapshot = eg.initialSnapshot(
       subscriptions: subscriptions,
-      streams: subscriptions.toList(),
+      streams: subscriptions,
       userTopics: userTopics,
       unreadMsgs: unreadMsgs,
     );
