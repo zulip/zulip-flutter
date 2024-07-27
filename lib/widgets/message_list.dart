@@ -516,6 +516,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
+                splashFactory: NoSplash.splashFactory,
                 minimumSize: const Size.fromHeight(38),
                 textStyle:
                   // Restate [FilledButton]'s default, which inherits from
@@ -543,7 +544,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
   }
 }
 
-class MarkAsReadAnimation extends StatelessWidget {
+class MarkAsReadAnimation extends StatefulWidget {
   final bool loading;
   final bool hidden;
   final Widget child;
@@ -556,12 +557,33 @@ class MarkAsReadAnimation extends StatelessWidget {
   });
 
   @override
+  State<MarkAsReadAnimation> createState() => _MarkAsReadAnimationState();
+}
+
+class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
+  bool _isPressed = false;
+
+  void _setIsPressed(bool isPressed) {
+    setState(() {
+      _isPressed = isPressed;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: hidden ? 0 : loading ? 0.5 : 1,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOut,
-      child: child);
+    return GestureDetector(
+      onTapDown: (_) => _setIsPressed(true),
+      onTapUp: (_) => _setIsPressed(false),
+      onTapCancel: () => _setIsPressed(false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: AnimatedOpacity(
+          opacity: widget.hidden ? 0 : widget.loading ? 0.5 : 1,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+          child: widget.child)));
   }
 }
 
