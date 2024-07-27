@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
+import '../log.dart';
 import 'narrow.dart';
 
 /// The model for tracking the typing status organized by narrows.
@@ -38,6 +39,10 @@ class TypingStatus extends ChangeNotifier {
   }
 
   bool _addTypist(SendableNarrow narrow, int typistUserId) {
+    if (typistUserId == selfUserId) {
+      assert(debugLog('typing status: adding self as typist'));
+      return false;
+    }
     final narrowTimerMap = _timerMapsByNarrow[narrow] ??= {};
     final typistTimer = narrowTimerMap[typistUserId];
     final isNewTypist = typistTimer == null;

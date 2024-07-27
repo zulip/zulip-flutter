@@ -97,6 +97,15 @@ void main() {
       checkTypists({groupNarrow: [eg.otherUser, eg.thirdUser]});
       checkNotifiedOnce();
     });
+
+    test('ignore adding self as typist', () {
+      prepareModel();
+
+      model.handleTypingEvent(
+        eg.typingEvent(groupNarrow, TypingOp.start, eg.selfUser.userId));
+      checkTypists({});
+      checkNotNotified();
+    });
   });
 
   group('handle typing stop events', () {

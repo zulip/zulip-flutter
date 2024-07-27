@@ -901,7 +901,7 @@ class TypingEvent extends Event {
     required this.recipientIds,
     required this.streamId,
     required this.topic,
-  }) : assert(isSortedWithoutDuplicates(recipientIds ?? []));
+  }) : assert(recipientIds == null || isSortedWithoutDuplicates(recipientIds));
 
   static Object? _readSenderId(Map<Object?, Object?> json, String key) {
     return (json['sender'] as Map<String, dynamic>)['user_id'];
