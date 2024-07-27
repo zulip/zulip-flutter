@@ -40,6 +40,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       // in both light and dark theme.)
       unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
 
+      unreadMarkerGap: Colors.white.withOpacity(0.6),
+
       // TODO(design) this seems ad-hoc; is there a better color?
       unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
     );
@@ -57,6 +59,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       // where Vlad includes screenshots that look like they're from there.
       unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
 
+      unreadMarkerGap: Colors.transparent,
 
       // TODO(design) this is ad-hoc and untested; is there a better color?
       unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
@@ -67,6 +70,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dmRecipientHeaderBg,
     required this.streamMessageBgDefault,
     required this.unreadMarker,
+    required this.unreadMarkerGap,
     required this.unsubscribedStreamRecipientHeaderBg,
   });
 
@@ -84,6 +88,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dmRecipientHeaderBg;
   final Color streamMessageBgDefault;
   final Color unreadMarker;
+  final Color unreadMarkerGap;
   final Color unsubscribedStreamRecipientHeaderBg;
 
   @override
@@ -92,6 +97,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? dmRecipientHeaderBg,
     Color? streamMessageBgDefault,
     Color? unreadMarker,
+    Color? unreadMarkerGap,
     Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
@@ -99,6 +105,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       unreadMarker: unreadMarker ?? this.unreadMarker,
+      unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
       unsubscribedStreamRecipientHeaderBg: unsubscribedStreamRecipientHeaderBg ?? this.unsubscribedStreamRecipientHeaderBg,
     );
   }
@@ -113,6 +120,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
+      unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
       unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
     );
   }
@@ -796,11 +804,9 @@ class _UnreadMarker extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: messageListTheme.unreadMarker,
-                // TODO(#95): Don't show this extra border in dark mode, see:
-                //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
                 border: Border(left: BorderSide(
                   width: 1,
-                  color: Colors.white.withOpacity(0.6))))))),
+                  color: messageListTheme.unreadMarkerGap)))))),
       ]);
   }
 }
