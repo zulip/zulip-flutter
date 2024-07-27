@@ -28,6 +28,7 @@ import 'theme.dart';
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.light() :
     this._(
+      dateSeparator: Colors.black,
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       streamMessageBgDefault: Colors.white,
 
@@ -45,6 +46,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme.dark() :
     this._(
+      dateSeparator: Colors.white,
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
 
@@ -61,6 +63,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     );
 
   MessageListTheme._({
+    required this.dateSeparator,
     required this.dmRecipientHeaderBg,
     required this.streamMessageBgDefault,
     required this.unreadMarker,
@@ -77,6 +80,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return extension!;
   }
 
+  final Color dateSeparator;
   final Color dmRecipientHeaderBg;
   final Color streamMessageBgDefault;
   final Color unreadMarker;
@@ -84,12 +88,14 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   @override
   MessageListTheme copyWith({
+    Color? dateSeparator,
     Color? dmRecipientHeaderBg,
     Color? streamMessageBgDefault,
     Color? unreadMarker,
     Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
+      dateSeparator: dateSeparator ?? this.dateSeparator,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       unreadMarker: unreadMarker ?? this.unreadMarker,
@@ -103,6 +109,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       return this;
     }
     return MessageListTheme._(
+      dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
@@ -696,9 +703,6 @@ class DateSeparator extends StatelessWidget {
 
   final Message message;
 
-  // TODO(#95) in dark theme, use white, following web
-  static const _line = BorderSide(width: 0, color: Colors.black);
-
   @override
   Widget build(BuildContext context) {
     // This makes the small-caps text vertically centered,
@@ -707,27 +711,29 @@ class DateSeparator extends StatelessWidget {
 
     final messageListTheme = MessageListTheme.of(context);
 
+    final line = BorderSide(width: 0, color: messageListTheme.dateSeparator);
+
     // TODO(#681) use different color for DM messages
     return ColoredBox(color: messageListTheme.streamMessageBgDefault,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
-          const Expanded(
+          Expanded(
             child: SizedBox(height: 0,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border(
-                    bottom: _line))))),
+                    bottom: line))))),
           Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
             child: DateText(
               fontSize: 16,
               height: (16 / 16),
               timestamp: message.timestamp)),
-          const SizedBox(height: 0, width: 12,
+          SizedBox(height: 0, width: 12,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: _line)))),
+                  bottom: line)))),
         ])),
     );
   }
