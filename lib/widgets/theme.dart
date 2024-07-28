@@ -134,7 +134,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: const Color(0xff666699),
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
-      streamColorSwatches: StreamColorSwatches.light,
+      streamColorSwatches: ChannelColorSwatches.light,
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     );
 
@@ -145,7 +145,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: const Color(0xff7070c2),
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
-      streamColorSwatches: StreamColorSwatches.dark,
+      streamColorSwatches: ChannelColorSwatches.dark,
       // TODO(#95) unchanged in dark theme?
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     );
@@ -177,7 +177,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color title;
 
   // Not exactly from the Figma design, but from Vlad anyway.
-  final StreamColorSwatches streamColorSwatches;
+  final ChannelColorSwatches streamColorSwatches;
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
   final Color star;
@@ -189,7 +189,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? icon,
     Color? mainBackground,
     Color? title,
-    StreamColorSwatches? streamColorSwatches,
+    ChannelColorSwatches? streamColorSwatches,
     Color? star,
   }) {
     return DesignVariables._(
@@ -214,7 +214,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: Color.lerp(icon, other.icon, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
-      streamColorSwatches: StreamColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
+      streamColorSwatches: ChannelColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
       star: Color.lerp(star, other.star, t)!,
     );
   }
@@ -222,7 +222,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
 /// The theme-appropriate [ChannelColorSwatch] based on [subscription.color].
 ///
-/// For how this value is cached, see [StreamColorSwatches.forBaseColor].
+/// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
 ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
   return DesignVariables.of(context)
     .streamColorSwatches.forBaseColor(subscription.color);

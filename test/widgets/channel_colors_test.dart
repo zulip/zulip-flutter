@@ -6,9 +6,9 @@ import 'package:zulip/widgets/channel_colors.dart';
 import 'channel_colors_checks.dart';
 
 void main() {
-  group('StreamColorSwatches', () {
+  group('ChannelColorSwatches', () {
     test('.light', () {
-      final instance = StreamColorSwatches.light;
+      final instance = ChannelColorSwatches.light;
 
       const base1 = 0xff76ce90;
       final swatch1 = instance.forBaseColor(base1);
@@ -24,7 +24,7 @@ void main() {
 
     // TODO deduplicate with corresponding light-theme test?
     test('.dark', () {
-      final instance = StreamColorSwatches.dark;
+      final instance = ChannelColorSwatches.dark;
 
       const base1 = 0xff76ce90;
       final swatch1 = instance.forBaseColor(base1);
@@ -40,16 +40,16 @@ void main() {
 
     group('lerp', () {
       test('on identical instances', () {
-        final light = StreamColorSwatches.light;
-        check(StreamColorSwatches.lerp(light, light, 0.5)).identicalTo(light);
+        final light = ChannelColorSwatches.light;
+        check(ChannelColorSwatches.lerp(light, light, 0.5)).identicalTo(light);
 
-        final dark = StreamColorSwatches.dark;
-        check(StreamColorSwatches.lerp(dark, dark, 0.5)).identicalTo(dark);
+        final dark = ChannelColorSwatches.dark;
+        check(ChannelColorSwatches.lerp(dark, dark, 0.5)).identicalTo(dark);
       });
 
       test('from light to dark', () {
-        final instance = StreamColorSwatches
-          .lerp(StreamColorSwatches.light, StreamColorSwatches.dark, 0.4);
+        final instance = ChannelColorSwatches
+          .lerp(ChannelColorSwatches.light, ChannelColorSwatches.dark, 0.4);
 
         const base1 = 0xff76ce90;
         final swatch1 = instance.forBaseColor(base1);

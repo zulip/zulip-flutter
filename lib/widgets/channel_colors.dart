@@ -8,12 +8,12 @@ import 'color.dart';
 
 /// A lazily-computed map from a stream's base color to a
 /// corresponding [ChannelColorSwatch].
-abstract class StreamColorSwatches {
-  /// The [StreamColorSwatches] for the light theme.
-  static final StreamColorSwatches light = _StreamColorSwatchesLight();
+abstract class ChannelColorSwatches {
+  /// The [ChannelColorSwatches] for the light theme.
+  static final ChannelColorSwatches light = _ChannelColorSwatchesLight();
 
-  /// The [StreamColorSwatches] for the dark theme.
-  static final StreamColorSwatches dark = _StreamColorSwatchesDark();
+  /// The [ChannelColorSwatches] for the dark theme.
+  static final ChannelColorSwatches dark = _ChannelColorSwatchesDark();
 
   final Map<int, ChannelColorSwatch> _cache = {};
 
@@ -23,7 +23,7 @@ abstract class StreamColorSwatches {
 
   ChannelColorSwatch _computeForBaseColor(int base);
 
-  /// Gives a [StreamColorSwatches], lerped between [a] and [b] at [t].
+  /// Gives a [ChannelColorSwatches], lerped between [a] and [b] at [t].
   ///
   /// If [a] and [b] are [identical], returns [this].
   ///
@@ -33,37 +33,37 @@ abstract class StreamColorSwatches {
   /// This computation is cached on the instance
   /// in order to save work building [t]'s animation frame when there are
   /// multiple UI elements using the same [subscription.color].
-  static StreamColorSwatches lerp(StreamColorSwatches a, StreamColorSwatches b, double t) {
+  static ChannelColorSwatches lerp(ChannelColorSwatches a, ChannelColorSwatches b, double t) {
     // This short-circuit helps when [a] and [b]
-    // are both [StreamColorSwatches.light]
-    // or both [StreamColorSwatches.dark].
+    // are both [ChannelColorSwatches.light]
+    // or both [ChannelColorSwatches.dark].
     // Empirically, [lerp] is called even when the theme hasn't changed,
     // so this is an important optimization.
     if (identical(a, b)) return a;
 
-    return _StreamColorSwatchesLerped(a, b, t);
+    return _ChannelColorSwatchesLerped(a, b, t);
   }
 }
 
-class _StreamColorSwatchesLight extends StreamColorSwatches {
-  _StreamColorSwatchesLight();
+class _ChannelColorSwatchesLight extends ChannelColorSwatches {
+  _ChannelColorSwatchesLight();
 
   @override
   ChannelColorSwatch _computeForBaseColor(int base) => ChannelColorSwatch.light(base);
 }
 
-class _StreamColorSwatchesDark extends StreamColorSwatches {
-  _StreamColorSwatchesDark();
+class _ChannelColorSwatchesDark extends ChannelColorSwatches {
+  _ChannelColorSwatchesDark();
 
   @override
   ChannelColorSwatch _computeForBaseColor(int base) => ChannelColorSwatch.dark(base);
 }
 
-class _StreamColorSwatchesLerped extends StreamColorSwatches {
-  _StreamColorSwatchesLerped(this.a, this.b, this.t);
+class _ChannelColorSwatchesLerped extends ChannelColorSwatches {
+  _ChannelColorSwatchesLerped(this.a, this.b, this.t);
 
-  final StreamColorSwatches a;
-  final StreamColorSwatches b;
+  final ChannelColorSwatches a;
+  final ChannelColorSwatches b;
   final double t;
 
   @override
