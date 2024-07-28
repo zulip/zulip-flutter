@@ -29,11 +29,6 @@ import '../test_navigation.dart';
 import '../widgets/message_list_checks.dart';
 import '../widgets/page_checks.dart';
 
-FakeAndroidFlutterLocalNotificationsPlugin get notifAndroid =>
-  testBinding.notifications
-    .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-    as FakeAndroidFlutterLocalNotificationsPlugin;
-
 MessageFcmMessage messageFcmMessage(
   Message zulipMessage, {
   String? streamName,

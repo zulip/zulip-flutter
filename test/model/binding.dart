@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
-import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_notifications.dart';
@@ -513,34 +512,6 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
     return true;
   }
 
-  FlutterLocalNotificationsPlatform? _platform;
-
-  @override
-  T? resolvePlatformSpecificImplementation<T extends FlutterLocalNotificationsPlatform>() {
-    // This follows the logic of the base class's implementation,
-    // but supplies our fakes for the per-platform classes.
-    assert(initializationSettings != null);
-    assert(T != FlutterLocalNotificationsPlatform);
-    if (kIsWeb) return null;
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        assert(_platform == null || _platform is FakeAndroidFlutterLocalNotificationsPlugin);
-        if (T != AndroidFlutterLocalNotificationsPlugin) return null;
-        return (_platform ??= FakeAndroidFlutterLocalNotificationsPlugin()) as T?;
-
-      case TargetPlatform.iOS:
-        assert(_platform == null || _platform is FakeIOSFlutterLocalNotificationsPlugin);
-        if (T != IOSFlutterLocalNotificationsPlugin) return null;
-        return (_platform ??= FakeIOSFlutterLocalNotificationsPlugin()) as T?;
-
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.fuchsia:
-        return null;
-    }
-  }
-
   /// The value to be returned by [getNotificationAppLaunchDetails].
   NotificationAppLaunchDetails? appLaunchDetails;
 
@@ -554,27 +525,6 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
       onDidReceiveNotificationResponse!(details);
     }
   }
-}
-
-class FakeAndroidFlutterLocalNotificationsPlugin extends Fake implements AndroidFlutterLocalNotificationsPlugin {
-  /// Consume the log of calls made to [createNotificationChannel].
-  ///
-  /// This returns a list of the arguments to all calls made
-  /// to [createNotificationChannel] since the last call to this method.
-  List<AndroidNotificationChannel> takeCreatedChannels() {
-    final result = _createdChannels;
-    _createdChannels = [];
-    return result;
-  }
-  List<AndroidNotificationChannel> _createdChannels = [];
-
-  @override
-  Future<void> createNotificationChannel(AndroidNotificationChannel notificationChannel) async {
-    _createdChannels.add(notificationChannel);
-  }
-}
-
-class FakeIOSFlutterLocalNotificationsPlugin extends Fake implements IOSFlutterLocalNotificationsPlugin {
 }
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
