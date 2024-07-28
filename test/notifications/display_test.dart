@@ -279,6 +279,66 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     })));
 
+    test('stream message: multiple messages, different topics', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topicA = 'topic A';
+      const topicB = 'topic B';
+      final message1 = eg.streamMessage(topic: topicA, stream: stream);
+      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(topic: topicB, stream: stream);
+      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final message3 = eg.streamMessage(topic: topicA, stream: stream);
+      final data3 = messageFcmMessage(message3, streamName: stream.name);
+
+      await receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topicA',
+        expectedTagComponent: 'stream:${stream.streamId}:$topicA');
+
+      await receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data2],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topicB',
+        expectedTagComponent: 'stream:${stream.streamId}:$topicB');
+
+      await receiveFcmMessage(async, data3);
+      checkNotification(data3,
+        messageStyleMessages: [data1, data3],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topicA',
+        expectedTagComponent: 'stream:${stream.streamId}:$topicA');
+    })));
+
+    test('stream message: conversation stays same when stream is renamed', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      var stream = eg.stream(streamId: 1, name: 'Before');
+      const topic = 'topic';
+      final message1 = eg.streamMessage(topic: topic, stream: stream);
+      final data1 = messageFcmMessage(message1, streamName: stream.name);
+
+      await receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#Before > $topic',
+        expectedTagComponent: 'stream:${stream.streamId}:$topic');
+
+      stream = eg.stream(streamId: 1, name: 'After');
+      final message2 = eg.streamMessage(topic: topic, stream: stream);
+      final data2 = messageFcmMessage(message2, streamName: stream.name);
+
+      await receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data1, data2],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#After > $topic',
+        expectedTagComponent: 'stream:${stream.streamId}:$topic');
+    })));
+
     test('stream message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
@@ -308,6 +368,30 @@ void main() {
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     })));
 
+    test('group DM: title updates with latest sender', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final message1 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser]);
+      final data1 = messageFcmMessage(message1);
+      final message2 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
+      final data2 = messageFcmMessage(message2);
+
+      final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
+
+      await receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: true,
+        expectedTitle: "${eg.otherUser.fullName} to you and 1 other",
+        expectedTagComponent: expectedTagComponent);
+
+      await receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data1, data2],
+        expectedIsGroupConversation: true,
+        expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
+        expectedTagComponent: expectedTagComponent);
+    })));
+
     test('1:1 DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
@@ -315,6 +399,60 @@ void main() {
         expectedIsGroupConversation: false,
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+    })));
+
+    test('1:1 DM: title updates when sender name changes', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final otherUser = eg.user(fullName: 'Before');
+      final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
+      final data1 = messageFcmMessage(message1);
+
+      final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
+
+      await receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: false,
+        expectedTitle: 'Before',
+        expectedTagComponent: expectedTagComponent);
+
+      otherUser.fullName = 'After';
+      final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
+      final data2 = messageFcmMessage(message2);
+
+      await receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data1, data2],
+        expectedIsGroupConversation: false,
+        expectedTitle: 'After',
+        expectedTagComponent: expectedTagComponent);
+    })));
+
+    test('1:1 DM: conversation stays same when sender email changes', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final otherUser = eg.user(email: 'before@example.com');
+      final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
+      final data1 = messageFcmMessage(message1);
+
+      final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
+
+      await receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: false,
+        expectedTitle: otherUser.fullName,
+        expectedTagComponent: expectedTagComponent);
+
+      otherUser.email = 'after@example.com';
+      final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
+      final data2 = messageFcmMessage(message2);
+
+      await receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data1, data2],
+        expectedIsGroupConversation: false,
+        expectedTitle: otherUser.fullName,
+        expectedTagComponent: expectedTagComponent);
     })));
 
     test('1:1 DM: sender avatar loading fails, remote error', () => runWithHttpClient(
