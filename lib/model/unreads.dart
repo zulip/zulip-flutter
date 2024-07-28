@@ -33,7 +33,7 @@ import 'channel.dart';
 // TODO handle moved messages
 // TODO When [oldUnreadsMissing], if you load a message list with very old unreads,
 //   sync to those unreads, because the user has shown an interest in them.
-// TODO When loading a message list with stream messages, check all the stream
+// TODO When loading a message list with channel messages, check all the stream
 //   messages and refresh [mentions] (see [mentions] dartdoc).
 class Unreads extends ChangeNotifier {
   factory Unreads({
@@ -86,7 +86,7 @@ class Unreads extends ChangeNotifier {
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
 
-  /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
+  /// Unread channel messages, as: stream ID → topic → message IDs (sorted).
   final Map<int, Map<String, QueueList<int>>> streams;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).

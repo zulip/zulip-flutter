@@ -83,7 +83,7 @@ void main() {
     // TODO: Message should really only differ from `message`
     //   in its content / content_type, not in `id` or anything else.
     (store.connection as FakeApiConnection).prepare(delay: delay, json:
-      GetMessageResult(message: eg.streamMessage(contentMarkdown: rawContent)).toJson());
+      GetMessageResult(message: eg.channelMessage(contentMarkdown: rawContent)).toJson());
   }
 
   void prepareRawContentResponseError(PerAccountStore store) {
@@ -103,7 +103,7 @@ void main() {
     }
 
     testWidgets('success', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -123,7 +123,7 @@ void main() {
     });
 
     testWidgets('request has an error', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -157,7 +157,7 @@ void main() {
     }
 
     testWidgets('star success', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -177,7 +177,7 @@ void main() {
     });
 
     testWidgets('unstar success', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.channelMessage(flags: [MessageFlag.starred]);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -197,7 +197,7 @@ void main() {
     });
 
     testWidgets('star request has an error', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
@@ -218,7 +218,7 @@ void main() {
     });
 
     testWidgets('unstar request has an error', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.channelMessage(flags: [MessageFlag.starred]);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
@@ -289,7 +289,7 @@ void main() {
     }
 
     testWidgets('in channel narrow', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -307,7 +307,7 @@ void main() {
     });
 
     testWidgets('in topic narrow', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -344,7 +344,7 @@ void main() {
     });
 
     testWidgets('request has an error', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -373,7 +373,7 @@ void main() {
     });
 
     testWidgets('not offered in CombinedFeedNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: const CombinedFeedNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
     });
@@ -394,7 +394,7 @@ void main() {
     }
 
     testWidgets('success', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -408,7 +408,7 @@ void main() {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/732
       testBinding.deviceInfoResult = const IosDeviceInfo(systemVersion: '16.0');
 
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -430,7 +430,7 @@ void main() {
     });
 
     testWidgets('request has an error', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -461,7 +461,7 @@ void main() {
     }
 
     testWidgets('copies message link to clipboard', (tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       final narrow = TopicNarrow.ofMessage(message);
       await setupToMessageActionSheet(tester, message: message, narrow: narrow);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -492,7 +492,7 @@ void main() {
 
     testWidgets('request succeeds; sharing succeeds', (WidgetTester tester) async {
       final mockSharePlus = setupMockSharePlus();
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -504,7 +504,7 @@ void main() {
 
     testWidgets('request succeeds; sharing fails', (WidgetTester tester) async {
       final mockSharePlus = setupMockSharePlus();
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -520,7 +520,7 @@ void main() {
 
     testWidgets('request has an error', (WidgetTester tester) async {
       final mockSharePlus = setupMockSharePlus();
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 

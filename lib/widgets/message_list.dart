@@ -811,7 +811,7 @@ class RecipientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      ChannelMessage() => StreamMessageRecipientHeader(message: message,
+      ChannelMessage() => ChannelMessageRecipientHeader(message: message,
         showStream: narrow is CombinedFeedNarrow),
       DmMessage() => DmRecipientHeader(message: message),
     };
@@ -923,8 +923,8 @@ class _UnreadMarker extends StatelessWidget {
   }
 }
 
-class StreamMessageRecipientHeader extends StatelessWidget {
-  const StreamMessageRecipientHeader({
+class ChannelMessageRecipientHeader extends StatelessWidget {
+  const ChannelMessageRecipientHeader({
     super.key,
     required this.message,
     required this.showStream,

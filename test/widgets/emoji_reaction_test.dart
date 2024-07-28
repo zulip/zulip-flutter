@@ -43,7 +43,7 @@ void main() {
     required List<Reaction> reactions,
     double width = 245.0, // (seen in context on an iPhone 13 Pro)
   }) async {
-    final message = eg.streamMessage(reactions: reactions);
+    final message = eg.channelMessage(reactions: reactions);
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: Center(

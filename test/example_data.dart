@@ -302,22 +302,22 @@ Map<String, dynamic> _messagePropertiesFromContent(String? content, String? cont
 int _nextMessageId() => (_lastMessageId += 1 + Random().nextInt(100));
 int _lastMessageId = 1000;
 
-const defaultStreamMessageStreamId = 123;
+const defaultChannelMessageStreamId = 123;
 
-/// Construct an example stream message.
+/// Construct an example stream channel.
 ///
 /// If the message ID `id` is not given, it will be generated from a random
 /// but increasing sequence, which is shared with [dmMessage].
 /// Use an explicit `id` only if the ID needs to correspond to some other data
 /// in the test, or if the IDs need to increase in a different order from the
-/// calls to [streamMessage] and [dmMessage].
+/// calls to [channelMessage] and [dmMessage].
 ///
 /// The message will be in `stream` if given.  Otherwise,
-/// an example stream with ID `defaultStreamMessageStreamId` will be used.
+/// an example stream with ID `defaultChannelMessageStreamId` will be used.
 ///
 /// See also:
 ///  * [dmMessage], to construct an example direct message.
-ChannelMessage streamMessage({
+ChannelMessage channelMessage({
   int? id,
   User? sender,
   ZulipStream? stream,
@@ -329,7 +329,7 @@ ChannelMessage streamMessage({
   int? timestamp,
   List<MessageFlag>? flags,
 }) {
-  final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
+  final effectiveStream = stream ?? _stream(streamId: defaultChannelMessageStreamId);
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
   // of the properties as we're constructing the data.  That's probably OK
@@ -354,13 +354,13 @@ ChannelMessage streamMessage({
 /// Construct an example direct message.
 ///
 /// If the message ID `id` is not given, it will be generated from a random
-/// but increasing sequence, which is shared with [streamMessage].
+/// but increasing sequence, which is shared with [channelMessage].
 /// Use an explicit `id` only if the ID needs to correspond to some other data
 /// in the test, or if the IDs need to increase in a different order from the
-/// calls to [streamMessage] and [dmMessage].
+/// calls to [channelMessage] and [dmMessage].
 ///
 /// See also:
-///  * [streamMessage], to construct an example stream message.
+///  * [channelMessage], to construct an example channel message.
 DmMessage dmMessage({
   int? id,
   required User from,

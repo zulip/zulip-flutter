@@ -87,7 +87,7 @@ void main() {
     required int count,
     required List<MessageFlag> flags,
   }) {
-    return List.generate(count, (index) => eg.streamMessage(
+    return List.generate(count, (index) => eg.channelMessage(
       stream: stream, topic: '${stream.name} topic $index', flags: flags));
   }
 
@@ -103,9 +103,9 @@ void main() {
       subscriptions: [sub1, sub2],
       users: [eg.selfUser, eg.otherUser, eg.thirdUser, eg.fourthUser],
       unreadMessages: [
-        eg.streamMessage(stream: stream1, topic: 'specific topic', flags: []),
+        eg.channelMessage(stream: stream1, topic: 'specific topic', flags: []),
         ...generateChannelMessages(stream: stream1, count: 10, flags: []),
-        eg.streamMessage(stream: stream2, flags: []),
+        eg.channelMessage(stream: stream2, flags: []),
         ...generateChannelMessages(stream: stream2, count: 40, flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: []),
@@ -200,7 +200,7 @@ void main() {
         await setupPage(tester,
           streams: [stream],
           subscriptions: [subscription],
-          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+          unreadMessages: [eg.channelMessage(stream: stream, topic: 'lunch')]);
         check(tester.widgetList(find.text('lunch'))).length.equals(1);
       });
 
@@ -210,7 +210,7 @@ void main() {
         await setupPage(tester,
           streams: [stream],
           subscriptions: [subscription],
-          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+          unreadMessages: [eg.channelMessage(stream: stream, topic: 'lunch')]);
         await store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(0);
@@ -222,7 +222,7 @@ void main() {
         await setupPage(tester,
           streams: [stream],
           subscriptions: [subscription],
-          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+          unreadMessages: [eg.channelMessage(stream: stream, topic: 'lunch')]);
         check(tester.widgetList(find.text('lunch'))).length.equals(0);
       });
 
@@ -232,7 +232,7 @@ void main() {
         await setupPage(tester,
           streams: [stream],
           subscriptions: [subscription],
-          unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
+          unreadMessages: [eg.channelMessage(stream: stream, topic: 'lunch')]);
         await store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(1);
@@ -256,7 +256,7 @@ void main() {
         await setupPage(tester,
           streams: [stream],
           subscriptions: [subscription],
-          unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
+          unreadMessages: [eg.channelMessage(stream: stream, topic: topic,
             flags: [MessageFlag.mentioned])]);
 
         check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
@@ -268,7 +268,7 @@ void main() {
         await setupPage(tester,
           streams: [stream],
           subscriptions: [subscription],
-          unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
+          unreadMessages: [eg.channelMessage(stream: stream, topic: topic,
             flags: [])]);
 
         check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
@@ -476,7 +476,7 @@ void main() {
           await setupPage(tester,
             streams: [stream],
             subscriptions: [eg.subscription(stream, color: initialColor)],
-            unreadMessages: [eg.streamMessage(stream: stream, topic: 'specific topic', flags: [])]);
+            unreadMessages: [eg.channelMessage(stream: stream, topic: 'specific topic', flags: [])]);
 
           checkAppearsUncollapsed(tester, stream.streamId, find.text('specific topic'));
 

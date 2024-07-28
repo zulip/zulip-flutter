@@ -76,7 +76,7 @@ void main() {
   });
 
   test('message: move flags into message object', () {
-    final message = eg.streamMessage();
+    final message = eg.channelMessage();
     MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
       'type': 'message',
       'id': 1,
@@ -89,7 +89,7 @@ void main() {
   });
 
   group('update_message', () {
-    final message = eg.streamMessage();
+    final message = eg.channelMessage();
     final baseJson = {
       'id': 1,
       'type': 'update_message',
@@ -121,7 +121,7 @@ void main() {
     });
   });
 
-  test('delete_message: require streamId and topic for stream messages', () {
+  test('delete_message: require streamId and topic for channel messages', () {
     check(() => DeleteMessageEvent.fromJson({
       'id': 1,
       'type': 'delete_message',

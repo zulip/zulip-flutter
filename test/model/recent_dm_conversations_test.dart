@@ -61,12 +61,12 @@ void main() {
           ..latestMessagesByRecipient.deepEquals({1: 200, 2: 100});
       });
 
-      test('stream message -> do nothing', () {
+      test('channel message -> do nothing', () {
         bool listenersNotified = false;
         final expected = setupView();
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: eg.streamMessage()))
+          ..handleMessageEvent(MessageEvent(id: 1, message: eg.channelMessage()))
         ) ..map.deepEquals(expected.map)
           ..sorted.deepEquals(expected.sorted)
           ..latestMessagesByRecipient.deepEquals(expected.latestMessagesByRecipient);

@@ -338,7 +338,7 @@ hello
   test('quoteAndReply / quoteAndReplyPlaceholder', () async {
     final sender = eg.user(userId: 123, fullName: 'Full Name');
     final stream = eg.stream(streamId: 1, name: 'test here');
-    final message = eg.streamMessage(sender: sender, stream: stream, topic: 'some topic');
+    final message = eg.channelMessage(sender: sender, stream: stream, topic: 'some topic');
     final store = eg.store();
     await store.addStream(stream);
     await store.addUser(sender);

@@ -34,7 +34,7 @@ void main() {
 
   /// Initialize [store] and the rest of the test state.
   Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
-    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
+    final stream = eg.stream(streamId: eg.defaultChannelMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
@@ -73,8 +73,8 @@ void main() {
     test('from empty', () async {
       await prepare();
       check(store.messages).isEmpty();
-      final message1 = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message1 = eg.channelMessage();
+      final message2 = eg.channelMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       final messages = [message1, message2, message3];
       store.reconcileMessages(messages);
@@ -88,12 +88,12 @@ void main() {
 
     test('from not-empty', () async {
       await prepare();
-      final message1 = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message1 = eg.channelMessage();
+      final message2 = eg.channelMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       final messages = [message1, message2, message3];
       await addMessages(messages);
-      final newMessage = eg.streamMessage();
+      final newMessage = eg.channelMessage();
       store.reconcileMessages([newMessage]);
       check(messages).deepEquals(
         [message1, message2, message3]
@@ -106,10 +106,10 @@ void main() {
 
     test('on ID collision, new message does not clobber old in store.messages', () async {
       await prepare();
-      final message = eg.streamMessage(id: 1, content: '<p>foo</p>');
+      final message = eg.channelMessage(id: 1, content: '<p>foo</p>');
       await addMessages([message]);
       check(store.messages).deepEquals({1: message});
-      final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
+      final newMessage = eg.channelMessage(id: 1, content: '<p>bar</p>');
       final messages = [newMessage];
       store.reconcileMessages(messages);
       check(messages).single.identicalTo(message);
@@ -122,7 +122,7 @@ void main() {
       await prepare();
       check(store.messages).isEmpty();
 
-      final newMessage = eg.streamMessage();
+      final newMessage = eg.channelMessage();
       await store.handleEvent(MessageEvent(id: 1, message: newMessage));
       check(store.messages).deepEquals({
         newMessage.id: newMessage,
@@ -132,8 +132,8 @@ void main() {
     test('from not-empty', () async {
       await prepare();
       final messages = [
-        eg.streamMessage(),
-        eg.streamMessage(),
+        eg.channelMessage(),
+        eg.channelMessage(),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
       ];
       await addMessages(messages);
@@ -141,7 +141,7 @@ void main() {
         for (final m in messages) m.id: m,
       });
 
-      final newMessage = eg.streamMessage();
+      final newMessage = eg.channelMessage();
       await store.handleEvent(MessageEvent(id: 1, message: newMessage));
       check(store.messages).deepEquals({
         for (final m in messages) m.id: m,
@@ -151,11 +151,11 @@ void main() {
 
     test('new message clobbers old on ID collision', () async {
       await prepare();
-      final message = eg.streamMessage(id: 1, content: '<p>foo</p>');
+      final message = eg.channelMessage(id: 1, content: '<p>foo</p>');
       await addMessages([message]);
       check(store.messages).deepEquals({1: message});
 
-      final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
+      final newMessage = eg.channelMessage(id: 1, content: '<p>bar</p>');
       await store.handleEvent(MessageEvent(id: 1, message: newMessage));
       check(store.messages).deepEquals({1: newMessage});
     });
@@ -165,8 +165,8 @@ void main() {
     test('update timestamps on all messages', () async {
       const t1 = 1718748879;
       const t2 = t1 + 60;
-      final message1 = eg.streamMessage(lastEditTimestamp: null);
-      final message2 = eg.streamMessage(lastEditTimestamp: t1);
+      final message1 = eg.channelMessage(lastEditTimestamp: null);
+      final message2 = eg.channelMessage(lastEditTimestamp: t1);
       // This event is a bit artificial, but convenient.
       // TODO use a realistic move-messages event here
       final updateEvent = Event.fromJson({
@@ -191,7 +191,7 @@ void main() {
     });
 
     test('update a message', () async {
-      final originalMessage = eg.streamMessage(
+      final originalMessage = eg.channelMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
         flags: [MessageFlag.starred],
@@ -222,7 +222,7 @@ void main() {
     });
 
     test('ignore when message unknown', () async {
-      final originalMessage = eg.streamMessage(
+      final originalMessage = eg.channelMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
         messageId: originalMessage.id + 1,
@@ -240,7 +240,7 @@ void main() {
 
     // TODO(server-5): Cut legacy case for rendering-only message update
     Future<void> checkRenderingOnly({required bool legacy}) async {
-      final originalMessage = eg.streamMessage(
+      final originalMessage = eg.channelMessage(
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
@@ -273,8 +273,8 @@ void main() {
     });
 
     group('Handle message edit state update', () {
-      final message = eg.streamMessage();
-      final otherMessage = eg.streamMessage();
+      final message = eg.channelMessage();
+      final otherMessage = eg.channelMessage();
 
       Future<void> sendEvent(Message message, UpdateMessageEvent event) async {
         await prepare();
@@ -365,7 +365,7 @@ void main() {
     group('add flag', () {
       test('message is unknown', () async {
         await prepare();
-        final message = eg.streamMessage(flags: []);
+        final message = eg.channelMessage(flags: []);
         await prepareMessages([message]);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
         checkNotNotified();
@@ -374,8 +374,8 @@ void main() {
 
       test('affected message, unaffected message, absent message', () async {
         await prepare();
-        final message1 = eg.streamMessage(flags: []);
-        final message2 = eg.streamMessage(flags: []);
+        final message1 = eg.channelMessage(flags: []);
+        final message2 = eg.channelMessage(flags: []);
         await prepareMessages([message1, message2]);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [message2.id, 3]));
         checkNotifiedOnce();
@@ -386,8 +386,8 @@ void main() {
 
       test('all: true; we have some known messages', () async {
         await prepare();
-        final message1 = eg.streamMessage(flags: []);
-        final message2 = eg.streamMessage(flags: []);
+        final message1 = eg.channelMessage(flags: []);
+        final message2 = eg.channelMessage(flags: []);
         await prepareMessages([message1, message2]);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
         checkNotifiedOnce();
@@ -404,7 +404,7 @@ void main() {
       });
 
       test('other flags not clobbered', () async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.channelMessage(flags: [MessageFlag.starred]);
         await prepare();
         await prepareMessages([message]);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
@@ -417,7 +417,7 @@ void main() {
     group('remove flag', () {
       test('message is unknown', () async {
         await prepare();
-        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        final message = eg.channelMessage(flags: [MessageFlag.read]);
         await prepareMessages([message]);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
         checkNotNotified();
@@ -427,9 +427,9 @@ void main() {
 
       test('affected message, unaffected message, absent message', () async {
         await prepare();
-        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
-        final message2 = eg.streamMessage(flags: [MessageFlag.read]);
-        final message3 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message1 = eg.channelMessage(flags: [MessageFlag.read]);
+        final message2 = eg.channelMessage(flags: [MessageFlag.read]);
+        final message3 = eg.channelMessage(flags: [MessageFlag.read]);
         await prepareMessages([message1, message2]);
         await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message2, message3]));
         checkNotifiedOnce();
@@ -439,7 +439,7 @@ void main() {
       });
 
       test('other flags not affected', () async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
+        final message = eg.channelMessage(flags: [MessageFlag.starred, MessageFlag.read]);
         await prepare();
         await prepareMessages([message]);
         await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message]));
@@ -452,8 +452,8 @@ void main() {
 
   group('handleDeleteMessageEvent', () {
     test('delete an unknown message', () async {
-      final message1 = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message1 = eg.channelMessage();
+      final message2 = eg.channelMessage();
       await prepare();
       await prepareMessages([message1]);
       await store.handleEvent(eg.deleteMessageEvent([message2]));
@@ -462,8 +462,8 @@ void main() {
     });
 
     test('delete messages', () async {
-      final message1 = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message1 = eg.channelMessage();
+      final message2 = eg.channelMessage();
       await prepare();
       await prepareMessages([message1, message2]);
       await store.handleEvent(eg.deleteMessageEvent([message1, message2]));
@@ -472,9 +472,9 @@ void main() {
     });
 
     test('delete an unknown message with a known message', () async {
-      final message1 = eg.streamMessage();
-      final message2 = eg.streamMessage();
-      final message3 = eg.streamMessage();
+      final message1 = eg.channelMessage();
+      final message2 = eg.channelMessage();
+      final message3 = eg.channelMessage();
       await prepare();
       await prepareMessages([message1, message2]);
       await store.handleEvent(eg.deleteMessageEvent([message2, message3]));
@@ -485,7 +485,7 @@ void main() {
 
   group('handleReactionEvent', () {
     test('add reaction', () async {
-      final originalMessage = eg.streamMessage(reactions: []);
+      final originalMessage = eg.channelMessage(reactions: []);
       await prepare();
       await prepareMessages([originalMessage]);
       final message = store.messages.values.single;
@@ -499,7 +499,7 @@ void main() {
     });
 
     test('add reaction; message is unknown', () async {
-      final someMessage = eg.streamMessage(reactions: []);
+      final someMessage = eg.channelMessage(reactions: []);
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
@@ -528,7 +528,7 @@ void main() {
       final reaction4 = Reaction(reactionType: ReactionType.unicodeEmoji,
         emojiName: 'hello',         emojiCode: '1f44b', userId: 1);
 
-      final originalMessage = eg.streamMessage(
+      final originalMessage = eg.channelMessage(
         reactions: [reaction2, reaction3, reaction4]);
       await prepare();
       await prepareMessages([originalMessage]);
@@ -543,7 +543,7 @@ void main() {
     });
 
     test('remove reaction; message is unknown', () async {
-      final someMessage = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
+      final someMessage = eg.channelMessage(reactions: [eg.unicodeEmojiReaction]);
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(

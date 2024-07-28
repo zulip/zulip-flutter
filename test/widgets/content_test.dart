@@ -105,7 +105,7 @@ void main() {
   }
 
   Widget messageContent(String html) {
-    return MessageContent(message: eg.streamMessage(content: html),
+    return MessageContent(message: eg.channelMessage(content: html),
        content: parseContent(html));
   }
 

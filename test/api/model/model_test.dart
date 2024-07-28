@@ -119,7 +119,7 @@ void main() {
 
   group('Message', () {
     Map<String, dynamic> baseStreamJson() =>
-      deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+      deepToJson(eg.channelMessage()) as Map<String, dynamic>;
 
     test('subject -> topic', () {
       check(baseStreamJson()).not((it) => it.containsKey('topic'));
@@ -137,7 +137,7 @@ void main() {
 
     test('no crash on unrecognized flag', () {
       final m1 = Message.fromJson(
-        (deepToJson(eg.streamMessage()) as Map<String, dynamic>)
+        (deepToJson(eg.channelMessage()) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
       check(m1).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
@@ -217,7 +217,7 @@ void main() {
   });
 
   group('MessageEditState', () {
-    Map<String, dynamic> baseJson() => deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+    Map<String, dynamic> baseJson() => deepToJson(eg.channelMessage()) as Map<String, dynamic>;
 
     group('Edit history is absent', () {
       test('Message with no evidence of an edit history -> none', () {

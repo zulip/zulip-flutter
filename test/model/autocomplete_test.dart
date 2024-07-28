@@ -394,7 +394,7 @@ void main() {
       const topic2 = 'topic2';
 
       Message message(User sender, String topic) {
-        return eg.streamMessage(sender: sender, stream: stream, topic: topic);
+        return eg.channelMessage(sender: sender, stream: stream, topic: topic);
       }
 
       int compareAB({required String? topic}) {
@@ -514,10 +514,10 @@ void main() {
         final stream = eg.stream();
         final narrow = TopicNarrow(stream.streamId, 'this');
         await prepare(users: users, messages: [
-          eg.streamMessage(sender: users[1], stream: stream, topic: 'this'),
-          eg.streamMessage(sender: users[0], stream: stream, topic: 'this'),
-          eg.streamMessage(sender: users[2], stream: stream, topic: 'other'),
-          eg.streamMessage(sender: users[1], stream: stream, topic: 'other'),
+          eg.channelMessage(sender: users[1], stream: stream, topic: 'this'),
+          eg.channelMessage(sender: users[0], stream: stream, topic: 'this'),
+          eg.channelMessage(sender: users[2], stream: stream, topic: 'other'),
+          eg.channelMessage(sender: users[1], stream: stream, topic: 'other'),
           eg.dmMessage(from: users[3], to: [users[4], eg.selfUser]),
           eg.dmMessage(from: users[2], to: [eg.selfUser]),
         ]);
@@ -532,8 +532,8 @@ void main() {
         final stream = eg.stream();
         final narrow = ChannelNarrow(stream.streamId);
         await prepare(users: users, messages: [
-          eg.streamMessage(sender: users[1], stream: stream),
-          eg.streamMessage(sender: users[0], stream: stream),
+          eg.channelMessage(sender: users[1], stream: stream),
+          eg.channelMessage(sender: users[0], stream: stream),
           eg.dmMessage(from: users[2], to: [users[3], eg.selfUser]),
           eg.dmMessage(from: users[1], to: [eg.selfUser]),
         ]);
@@ -548,9 +548,9 @@ void main() {
           eg.dmMessage(from: users[3], to: [eg.selfUser]),
           eg.dmMessage(from: users[1], to: [users[2], eg.selfUser]),
           eg.dmMessage(from: users[0], to: [eg.selfUser]),
-          eg.streamMessage(sender: users[1]),
-          eg.streamMessage(sender: users[2]),
-          eg.streamMessage(sender: users[3]),
+          eg.channelMessage(sender: users[1]),
+          eg.channelMessage(sender: users[2]),
+          eg.channelMessage(sender: users[3]),
         ]);
         for (final narrow in [
           DmNarrow.withUser(users[3].userId, selfUserId: eg.selfUser.userId),
@@ -601,8 +601,8 @@ void main() {
       ];
 
       await prepare(users: users, messages: [
-        eg.streamMessage(id: 50, sender: users[1-1], stream: stream, topic: topic),
-        eg.streamMessage(id: 60, sender: users[5-1], stream: stream, topic: 'other $topic'),
+        eg.channelMessage(id: 50, sender: users[1-1], stream: stream, topic: topic),
+        eg.channelMessage(id: 60, sender: users[5-1], stream: stream, topic: 'other $topic'),
       ], dmConversations: [
         RecentDmConversation(userIds: [4],    maxMessageId: 300),
         RecentDmConversation(userIds: [1],    maxMessageId: 200),

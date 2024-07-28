@@ -45,7 +45,7 @@ void main() {
     }
 
     testWidgets('smoke test on modern server', (tester) async {
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+      final narrow = TopicNarrow.ofMessage(eg.channelMessage());
       await prepare(tester);
       connection.prepare(json: UpdateMessageFlagsForNarrowResult(
         processedCount: 11, updatedCount: 3,
@@ -95,7 +95,7 @@ void main() {
     testWidgets('pagination', (WidgetTester tester) async {
       // Check that `lastProcessedId` returned from an initial
       // response is used as `anchorId` for the subsequent request.
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+      final narrow = TopicNarrow.ofMessage(eg.channelMessage());
       await prepare(tester);
 
       connection.prepare(json: UpdateMessageFlagsForNarrowResult(
@@ -155,7 +155,7 @@ void main() {
 
     testWidgets('on invalid response', (WidgetTester tester) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+      final narrow = TopicNarrow.ofMessage(eg.channelMessage());
       await prepare(tester);
       connection.prepare(json: UpdateMessageFlagsForNarrowResult(
         processedCount: 1000, updatedCount: 0,
@@ -220,7 +220,7 @@ void main() {
     });
 
     testWidgets('TopicNarrow on legacy server', (WidgetTester tester) async {
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+      final narrow = TopicNarrow.ofMessage(eg.channelMessage());
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});

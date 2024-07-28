@@ -42,7 +42,7 @@ void main() {
 
   /// Initialize [model] and the rest of the test state.
   Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
-    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
+    final stream = eg.stream(streamId: eg.defaultChannelMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
@@ -96,7 +96,7 @@ void main() {
     connection.prepare(json: newestResult(
       foundOldest: false,
       messages: List.generate(kMessageListFetchBatchSize,
-        (i) => eg.streamMessage()),
+        (i) => eg.channelMessage()),
     ).toJson());
     final fetchFuture = model.fetchInitial();
     check(model).fetched.isFalse();
@@ -119,7 +119,7 @@ void main() {
     await prepare();
     connection.prepare(json: newestResult(
       foundOldest: true,
-      messages: List.generate(30, (i) => eg.streamMessage()),
+      messages: List.generate(30, (i) => eg.channelMessage()),
     ).toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
@@ -147,9 +147,9 @@ void main() {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     final messages = [
-      eg.streamMessage(),
+      eg.channelMessage(),
       // Not subscribed to the stream with id 10.
-      eg.streamMessage(stream: eg.stream(streamId: 10)),
+      eg.channelMessage(stream: eg.stream(streamId: 10)),
     ];
     connection.prepare(json: newestResult(
       foundOldest: false,
@@ -165,11 +165,11 @@ void main() {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+      messages: List.generate(100, (i) => eg.channelMessage(id: 1000 + i)));
 
     connection.prepare(json: olderResult(
       anchor: 1000, foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+      messages: List.generate(100, (i) => eg.channelMessage(id: 900 + i)),
     ).toJson());
     final fetchFuture = model.fetchOlder();
     checkNotifiedOnce();
@@ -193,11 +193,11 @@ void main() {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+      messages: List.generate(100, (i) => eg.channelMessage(id: 1000 + i)));
 
     connection.prepare(json: olderResult(
       anchor: 1000, foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+      messages: List.generate(100, (i) => eg.channelMessage(id: 900 + i)),
     ).toJson());
     final fetchFuture = model.fetchOlder();
     checkNotifiedOnce();
@@ -221,7 +221,7 @@ void main() {
   test('fetchOlder nop when already haveOldest true', () async {
     await prepare(narrow: const CombinedFeedNarrow());
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage()));
+      List.generate(30, (i) => eg.channelMessage()));
     check(model)
       ..haveOldest.isTrue()
       ..messages.length.equals(30);
@@ -239,12 +239,12 @@ void main() {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     await prepareMessages(foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+      messages: List.generate(100, (i) => eg.channelMessage(id: 1000 + i)));
 
     // The old behavior is to include the anchor message regardless of includeAnchor.
     connection.prepare(json: olderResult(
       anchor: 1000, foundOldest: false, foundAnchor: true,
-      messages: List.generate(101, (i) => eg.streamMessage(id: 900 + i)),
+      messages: List.generate(101, (i) => eg.channelMessage(id: 900 + i)),
     ).toJson());
     await model.fetchOlder();
     checkNotified(count: 2);
@@ -257,12 +257,12 @@ void main() {
   test('fetchOlder, recent senders track all the messages', () async {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
-    final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
+    final initialMessages = List.generate(10, (i) => eg.channelMessage(id: 100 + i));
     await prepareMessages(foundOldest: false, messages: initialMessages);
 
-    final oldMessages = List.generate(10, (i) => eg.streamMessage(id: 89 + i))
+    final oldMessages = List.generate(10, (i) => eg.channelMessage(id: 89 + i))
       // Not subscribed to the stream with id 10.
-      ..add(eg.streamMessage(id: 99, stream: eg.stream(streamId: 10)));
+      ..add(eg.channelMessage(id: 99, stream: eg.stream(streamId: 10)));
     connection.prepare(json: olderResult(
       anchor: 100, foundOldest: false,
       messages: oldMessages,
@@ -278,11 +278,11 @@ void main() {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+      List.generate(30, (i) => eg.channelMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
     await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: stream)));
+      message: eg.channelMessage(stream: stream)));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
   });
@@ -291,12 +291,12 @@ void main() {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+      List.generate(30, (i) => eg.channelMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
     final otherStream = eg.stream();
     await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: otherStream)));
+      message: eg.channelMessage(stream: otherStream)));
     checkNotNotified();
     check(model).messages.length.equals(30);
   });
@@ -305,14 +305,14 @@ void main() {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
     await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: stream)));
+      message: eg.channelMessage(stream: stream)));
     checkNotNotified();
     check(model).fetched.isFalse();
   });
 
   group('DeleteMessageEvent', () {
     final stream = eg.stream();
-    final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
+    final messages = List.generate(30, (i) => eg.channelMessage(stream: stream));
 
     test('in narrow', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
@@ -374,7 +374,7 @@ void main() {
     test('message present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMessages(foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
+        messages: List.generate(100, (i) => eg.channelMessage(id: 100 + i)));
       model.notifyListenersIfMessagePresent(150);
       checkNotifiedOnce();
     });
@@ -382,7 +382,7 @@ void main() {
     test('message absent', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMessages(foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i))
+        messages: List.generate(100, (i) => eg.channelMessage(id: 100 + i))
           .where((m) => m.id != 150).toList());
       model.notifyListenersIfMessagePresent(150);
       checkNotNotified();
@@ -391,7 +391,7 @@ void main() {
     test('message absent (older than window)', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMessages(foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
+        messages: List.generate(100, (i) => eg.channelMessage(id: 100 + i)));
       model.notifyListenersIfMessagePresent(50);
       checkNotNotified();
     });
@@ -399,14 +399,14 @@ void main() {
     test('message absent (newer than window)', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMessages(foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
+        messages: List.generate(100, (i) => eg.channelMessage(id: 100 + i)));
       model.notifyListenersIfMessagePresent(250);
       checkNotNotified();
     });
   });
 
   group('notifyListenersIfAnyMessagePresent', () {
-    final messages = List.generate(100, (i) => eg.streamMessage(id: 100 + i));
+    final messages = List.generate(100, (i) => eg.channelMessage(id: 100 + i));
 
     test('all messages present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
@@ -436,7 +436,7 @@ void main() {
     test('message present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMessages(foundOldest: false,
-        messages: List.generate(10, (i) => eg.streamMessage(id: 10 + i)));
+        messages: List.generate(10, (i) => eg.channelMessage(id: 10 + i)));
 
       final message = model.messages[5];
       await store.handleEvent(eg.updateMessageEditEvent(message,
@@ -450,7 +450,7 @@ void main() {
       await prepare(narrow: narrow);
 
       final messagesInNarrow = List<Message>.generate(10,
-        (i) => eg.streamMessage(id: 10 + i, stream: stream));
+        (i) => eg.channelMessage(id: 10 + i, stream: stream));
       check(messagesInNarrow.every(narrow.containsMessage)).isTrue();
 
       final messageNotInNarrow = eg.dmMessage(id: 100, from: eg.otherUser, to: [eg.selfUser]);
@@ -486,11 +486,11 @@ void main() {
       for (final m in [model1, model2]) {
         connection.prepare(json: newestResult(
           foundOldest: false,
-          messages: [eg.streamMessage(stream: stream, topic: 'hello')]).toJson());
+          messages: [eg.channelMessage(stream: stream, topic: 'hello')]).toJson());
         await m.fetchInitial();
       }
 
-      final message = eg.streamMessage(stream: stream, topic: 'hello');
+      final message = eg.channelMessage(stream: stream, topic: 'hello');
       await store.handleEvent(MessageEvent(id: 0, message: message));
 
       await store.handleEvent(
@@ -514,7 +514,7 @@ void main() {
       await store.addSubscription(eg.subscription(stream));
       connection = store.connection as FakeApiConnection;
 
-      final message = eg.streamMessage(stream: stream);
+      final message = eg.channelMessage(stream: stream);
 
       await store.addMessage(Message.fromJson(message.toJson()));
       await store.handleEvent(mkEvent(message));
@@ -572,9 +572,9 @@ void main() {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+      List.generate(30, (i) => eg.channelMessage(stream: stream)));
     await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: stream)));
+      message: eg.channelMessage(stream: stream)));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
 
@@ -605,10 +605,10 @@ void main() {
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
-        eg.streamMessage(id: 201, stream: stream1, topic: 'A'),
-        eg.streamMessage(id: 202, stream: stream1, topic: 'B'),
-        eg.streamMessage(id: 203, stream: stream2, topic: 'C'),
-        eg.streamMessage(id: 204, stream: stream2, topic: 'D'),
+        eg.channelMessage(id: 201, stream: stream1, topic: 'A'),
+        eg.channelMessage(id: 202, stream: stream1, topic: 'B'),
+        eg.channelMessage(id: 203, stream: stream2, topic: 'C'),
+        eg.channelMessage(id: 204, stream: stream2, topic: 'D'),
         eg.dmMessage(    id: 205, from: eg.otherUser, to: [eg.selfUser]),
       ]);
       final expected = <int>[];
@@ -618,10 +618,10 @@ void main() {
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: [
-          eg.streamMessage(id: 101, stream: stream1, topic: 'A'),
-          eg.streamMessage(id: 102, stream: stream1, topic: 'B'),
-          eg.streamMessage(id: 103, stream: stream2, topic: 'C'),
-          eg.streamMessage(id: 104, stream: stream2, topic: 'D'),
+          eg.channelMessage(id: 101, stream: stream1, topic: 'A'),
+          eg.channelMessage(id: 102, stream: stream1, topic: 'B'),
+          eg.channelMessage(id: 103, stream: stream2, topic: 'C'),
+          eg.channelMessage(id: 104, stream: stream2, topic: 'D'),
           eg.dmMessage(    id: 105, from: eg.otherUser, to: [eg.selfUser]),
         ]).toJson());
       await model.fetchOlder();
@@ -631,22 +631,22 @@ void main() {
 
       // … and on MessageEvent.
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 301, stream: stream1, topic: 'A')));
+        message: eg.channelMessage(id: 301, stream: stream1, topic: 'A')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
 
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 302, stream: stream1, topic: 'B')));
+        message: eg.channelMessage(id: 302, stream: stream1, topic: 'B')));
       checkNotNotified();
       check(model.messages.map((m) => m.id)).deepEquals(expected);
 
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 303, stream: stream2, topic: 'C')));
+        message: eg.channelMessage(id: 303, stream: stream2, topic: 'C')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(303));
 
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 304, stream: stream2, topic: 'D')));
+        message: eg.channelMessage(id: 304, stream: stream2, topic: 'D')));
       checkNotNotified();
       check(model.messages.map((m) => m.id)).deepEquals(expected);
 
@@ -666,9 +666,9 @@ void main() {
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
-        eg.streamMessage(id: 201, stream: stream, topic: 'A'),
-        eg.streamMessage(id: 202, stream: stream, topic: 'B'),
-        eg.streamMessage(id: 203, stream: stream, topic: 'C'),
+        eg.channelMessage(id: 201, stream: stream, topic: 'A'),
+        eg.channelMessage(id: 202, stream: stream, topic: 'B'),
+        eg.channelMessage(id: 203, stream: stream, topic: 'C'),
       ]);
       final expected = <int>[];
       check(model.messages.map((m) => m.id))
@@ -677,9 +677,9 @@ void main() {
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: [
-          eg.streamMessage(id: 101, stream: stream, topic: 'A'),
-          eg.streamMessage(id: 102, stream: stream, topic: 'B'),
-          eg.streamMessage(id: 103, stream: stream, topic: 'C'),
+          eg.channelMessage(id: 101, stream: stream, topic: 'A'),
+          eg.channelMessage(id: 102, stream: stream, topic: 'B'),
+          eg.channelMessage(id: 103, stream: stream, topic: 'C'),
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
@@ -688,17 +688,17 @@ void main() {
 
       // … and on MessageEvent.
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 301, stream: stream, topic: 'A')));
+        message: eg.channelMessage(id: 301, stream: stream, topic: 'A')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
 
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 302, stream: stream, topic: 'B')));
+        message: eg.channelMessage(id: 302, stream: stream, topic: 'B')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(302));
 
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 303, stream: stream, topic: 'C')));
+        message: eg.channelMessage(id: 303, stream: stream, topic: 'C')));
       checkNotNotified();
       check(model.messages.map((m) => m.id)).deepEquals(expected);
     });
@@ -712,7 +712,7 @@ void main() {
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
-        eg.streamMessage(id: 201, stream: stream, topic: 'A'),
+        eg.channelMessage(id: 201, stream: stream, topic: 'A'),
       ]);
       final expected = <int>[];
       check(model.messages.map((m) => m.id))
@@ -721,7 +721,7 @@ void main() {
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: [
-          eg.streamMessage(id: 101, stream: stream, topic: 'A'),
+          eg.channelMessage(id: 101, stream: stream, topic: 'A'),
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
@@ -730,7 +730,7 @@ void main() {
 
       // … and on MessageEvent.
       await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(id: 301, stream: stream, topic: 'A')));
+        message: eg.channelMessage(id: 301, stream: stream, topic: 'A')));
       checkNotifiedOnce();
       check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
     });
@@ -750,9 +750,9 @@ void main() {
     // doesn't need to exercise the different reasons that messages don't.
 
     const timestamp = 1693602618;
-    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
-    Message streamMessage(int id) =>
-      eg.streamMessage(id: id, stream: stream, topic: 'foo', timestamp: timestamp);
+    final stream = eg.stream(streamId: eg.defaultChannelMessageStreamId);
+    Message channelMessage(int id) =>
+      eg.channelMessage(id: id, stream: stream, topic: 'foo', timestamp: timestamp);
     Message dmMessage(int id) =>
       eg.dmMessage(id: id, from: eg.selfUser, to: [], timestamp: timestamp);
 
@@ -760,7 +760,7 @@ void main() {
     await prepare();
     connection.prepare(json: newestResult(
       foundOldest: false,
-      messages: [streamMessage(10), streamMessage(11), dmMessage(12)],
+      messages: [channelMessage(10), channelMessage(11), dmMessage(12)],
     ).toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
@@ -769,7 +769,7 @@ void main() {
     connection.prepare(json: olderResult(
       anchor: model.messages[0].id,
       foundOldest: false,
-      messages: [streamMessage(7), streamMessage(8), dmMessage(9)],
+      messages: [channelMessage(7), channelMessage(8), dmMessage(9)],
     ).toJson());
     await model.fetchOlder();
     checkNotified(count: 2);
@@ -778,17 +778,17 @@ void main() {
     connection.prepare(json: olderResult(
       anchor: model.messages[0].id,
       foundOldest: false,
-      messages: [streamMessage(6)],
+      messages: [channelMessage(6)],
     ).toJson());
     await model.fetchOlder();
     checkNotified(count: 2);
 
     // Then test MessageEvent, where a new header is needed…
-    await store.handleEvent(MessageEvent(id: 0, message: streamMessage(13)));
+    await store.handleEvent(MessageEvent(id: 0, message: channelMessage(13)));
     checkNotifiedOnce();
 
     // … and where it's not.
-    await store.handleEvent(MessageEvent(id: 0, message: streamMessage(14)));
+    await store.handleEvent(MessageEvent(id: 0, message: channelMessage(14)));
     checkNotifiedOnce();
 
     // Then test UpdateMessageEvent edits, where a header is and remains needed…
@@ -812,7 +812,7 @@ void main() {
     connection.prepare(json: olderResult(
       anchor: model.messages[0].id,
       foundOldest: true,
-      messages: [streamMessage(5)],
+      messages: [channelMessage(5)],
     ).toJson());
     await model.fetchOlder();
     checkNotified(count: 2);
@@ -831,9 +831,9 @@ void main() {
 
     const t1 = 1693602618;
     const t2 = t1 + 86400;
-    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
-    Message streamMessage(int id, int timestamp, User sender) =>
-      eg.streamMessage(id: id, sender: sender,
+    final stream = eg.stream(streamId: eg.defaultChannelMessageStreamId);
+    Message channelMessage(int id, int timestamp, User sender) =>
+      eg.channelMessage(id: id, sender: sender,
         stream: stream, topic: 'foo', timestamp: timestamp);
     Message dmMessage(int id, int timestamp, User sender) =>
       eg.dmMessage(id: id, from: sender, timestamp: timestamp,
@@ -841,9 +841,9 @@ void main() {
 
     await prepare();
     await prepareMessages(foundOldest: true, messages: [
-      streamMessage(1, t1, eg.selfUser),  // first message, so show sender
-      streamMessage(2, t1, eg.selfUser),  // hide sender
-      streamMessage(3, t1, eg.otherUser), // no recipient header, but new sender
+      channelMessage(1, t1, eg.selfUser),  // first message, so show sender
+      channelMessage(2, t1, eg.selfUser),  // hide sender
+      channelMessage(3, t1, eg.otherUser), // no recipient header, but new sender
       dmMessage(4,     t1, eg.otherUser), // same sender, but new recipient
       dmMessage(5,     t2, eg.otherUser), // same sender/recipient, but new day
     ]);
@@ -864,19 +864,19 @@ void main() {
   });
 
   group('haveSameRecipient', () {
-    test('stream messages vs DMs, no match', () {
+    test('channel messages vs DMs, no match', () {
       final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
-      final streamMessage = eg.streamMessage();
-      check(haveSameRecipient(streamMessage, dmMessage)).isFalse();
-      check(haveSameRecipient(dmMessage, streamMessage)).isFalse();
+      final channelMessage = eg.channelMessage();
+      check(haveSameRecipient(channelMessage, dmMessage)).isFalse();
+      check(haveSameRecipient(dmMessage, channelMessage)).isFalse();
     });
 
-    test('stream messages match just if same stream/topic', () {
+    test('channel messages match just if same stream/topic', () {
       final stream0 = eg.stream();
       final stream1 = eg.stream();
-      final messageAB = eg.streamMessage(stream: stream0, topic: 'foo');
-      final messageXB = eg.streamMessage(stream: stream1, topic: 'foo');
-      final messageAX = eg.streamMessage(stream: stream0, topic: 'bar');
+      final messageAB = eg.channelMessage(stream: stream0, topic: 'foo');
+      final messageXB = eg.channelMessage(stream: stream1, topic: 'foo');
+      final messageAX = eg.channelMessage(stream: stream0, topic: 'bar');
       check(haveSameRecipient(messageAB, messageAB)).isTrue();
       check(haveSameRecipient(messageAB, messageXB)).isFalse();
       check(haveSameRecipient(messageXB, messageAB)).isFalse();
@@ -940,8 +940,8 @@ void main() {
             final time0 = groups[i0][j0];
             final time1 = groups[i1][j1];
             check(because: 'times $time0, $time1', messagesSameDay(
-              eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time0)),
-              eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time1)),
+              eg.channelMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time0)),
+              eg.channelMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time1)),
             )).equals(i0 == i1);
             check(because: 'times $time0, $time1', messagesSameDay(
               eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time0)),

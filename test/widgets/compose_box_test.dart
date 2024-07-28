@@ -176,7 +176,7 @@ void main() {
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
       final key = await prepareComposeBox(tester,
-        TopicNarrow.ofMessage(eg.streamMessage()));
+        TopicNarrow.ofMessage(eg.channelMessage()));
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: false);
     });

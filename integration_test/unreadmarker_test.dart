@@ -27,7 +27,7 @@ void main() {
 
     // prepare message list data
     final messages = List.generate(messageCount,
-      (i) => eg.streamMessage(flags: [MessageFlag.read]));
+      (i) => eg.channelMessage(flags: [MessageFlag.read]));
     connection.prepare(json:
       newestResult(foundOldest: true, messages: messages).toJson());
 

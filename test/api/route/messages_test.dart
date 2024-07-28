@@ -50,7 +50,7 @@ void main() {
 
     test('modern; message found', () {
       return FakeApiConnection.with_((connection) async {
-        final message = eg.streamMessage();
+        final message = eg.channelMessage();
         final fakeResult = GetMessageResult(message: message);
         connection.prepare(json: fakeResult.toJson());
         final result = await checkGetMessageCompat(connection,
@@ -64,7 +64,7 @@ void main() {
 
     test('modern; message not found', () {
       return FakeApiConnection.with_((connection) async {
-        final message = eg.streamMessage();
+        final message = eg.channelMessage();
         final fakeResponseJson = {
           'code': 'BAD_REQUEST',
           'msg': 'Invalid message(s)',
@@ -82,7 +82,7 @@ void main() {
 
     test('legacy; message found', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
-        final message = eg.streamMessage();
+        final message = eg.channelMessage();
         final fakeResult = GetMessagesResult(
           anchor: message.id,
           foundNewest: false,
@@ -103,7 +103,7 @@ void main() {
 
     test('legacy; message not found', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
-        final message = eg.streamMessage();
+        final message = eg.channelMessage();
         final fakeResult = GetMessagesResult(
           anchor: message.id,
           foundNewest: false,
@@ -141,7 +141,7 @@ void main() {
       return result;
     }
 
-    final fakeResult = GetMessageResult(message: eg.streamMessage());
+    final fakeResult = GetMessageResult(message: eg.channelMessage());
 
     test('applyMarkdown true', () {
       return FakeApiConnection.with_((connection) async {
@@ -489,7 +489,7 @@ void main() {
     test('unicode emoji', () {
       return FakeApiConnection.with_((connection) async {
         await checkAddReaction(connection,
-          messageId: eg.streamMessage().id,
+          messageId: eg.channelMessage().id,
           reaction: eg.unicodeEmojiReaction,
           expectedReactionType: 'unicode_emoji');
       });
@@ -498,7 +498,7 @@ void main() {
     test('realm emoji', () {
       return FakeApiConnection.with_((connection) async {
         await checkAddReaction(connection,
-          messageId: eg.streamMessage().id,
+          messageId: eg.channelMessage().id,
           reaction: eg.realmEmojiReaction,
           expectedReactionType: 'realm_emoji');
       });
@@ -507,7 +507,7 @@ void main() {
     test('Zulip extra emoji', () {
       return FakeApiConnection.with_((connection) async {
         await checkAddReaction(connection,
-          messageId: eg.streamMessage().id,
+          messageId: eg.channelMessage().id,
           reaction: eg.zulipExtraEmojiReaction,
           expectedReactionType: 'zulip_extra_emoji');
       });
@@ -540,7 +540,7 @@ void main() {
     test('unicode emoji', () {
       return FakeApiConnection.with_((connection) async {
         await checkRemoveReaction(connection,
-          messageId: eg.streamMessage().id,
+          messageId: eg.channelMessage().id,
           reaction: eg.unicodeEmojiReaction,
           expectedReactionType: 'unicode_emoji');
       });
@@ -549,7 +549,7 @@ void main() {
     test('realm emoji', () {
       return FakeApiConnection.with_((connection) async {
         await checkRemoveReaction(connection,
-          messageId: eg.streamMessage().id,
+          messageId: eg.channelMessage().id,
           reaction: eg.realmEmojiReaction,
           expectedReactionType: 'realm_emoji');
       });
@@ -558,7 +558,7 @@ void main() {
     test('Zulip extra emoji', () {
       return FakeApiConnection.with_((connection) async {
         await checkRemoveReaction(connection,
-          messageId: eg.streamMessage().id,
+          messageId: eg.channelMessage().id,
           reaction: eg.zulipExtraEmojiReaction,
           expectedReactionType: 'zulip_extra_emoji');
       });

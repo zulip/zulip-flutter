@@ -233,25 +233,25 @@ void main() {
       async.flushMicrotasks();
     }
 
-    test('stream message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+    test('channel message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
-      final message = eg.streamMessage(stream: stream);
+      final message = eg.channelMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
     })));
 
-    test('stream message: multiple messages, same topic', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+    test('channel message: multiple messages, same topic', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       const topic = 'topic 1';
-      final message1 = eg.streamMessage(topic: topic, stream: stream);
+      final message1 = eg.channelMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
-      final message2 = eg.streamMessage(topic: topic, stream: stream);
+      final message2 = eg.channelMessage(topic: topic, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
-      final message3 = eg.streamMessage(topic: topic, stream: stream);
+      final message3 = eg.channelMessage(topic: topic, stream: stream);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
 
       final expectedTitle = '#${stream.name} > $topic';
@@ -279,16 +279,16 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     })));
 
-    test('stream message: multiple messages, different topics', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+    test('channel message: multiple messages, different topics', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       const topicA = 'topic A';
       const topicB = 'topic B';
-      final message1 = eg.streamMessage(topic: topicA, stream: stream);
+      final message1 = eg.channelMessage(topic: topicA, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
-      final message2 = eg.streamMessage(topic: topicB, stream: stream);
+      final message2 = eg.channelMessage(topic: topicB, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
-      final message3 = eg.streamMessage(topic: topicA, stream: stream);
+      final message3 = eg.channelMessage(topic: topicA, stream: stream);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
 
       await receiveFcmMessage(async, data1);
@@ -313,11 +313,11 @@ void main() {
         expectedTagComponent: 'stream:${stream.streamId}:$topicA');
     })));
 
-    test('stream message: conversation stays same when stream is renamed', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+    test('channel message: conversation stays same when stream is renamed', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       var stream = eg.stream(streamId: 1, name: 'Before');
       const topic = 'topic';
-      final message1 = eg.streamMessage(topic: topic, stream: stream);
+      final message1 = eg.channelMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
 
       await receiveFcmMessage(async, data1);
@@ -328,7 +328,7 @@ void main() {
         expectedTagComponent: 'stream:${stream.streamId}:$topic');
 
       stream = eg.stream(streamId: 1, name: 'After');
-      final message2 = eg.streamMessage(topic: topic, stream: stream);
+      final message2 = eg.channelMessage(topic: topic, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
 
       await receiveFcmMessage(async, data2);
@@ -339,10 +339,10 @@ void main() {
         expectedTagComponent: 'stream:${stream.streamId}:$topic');
     })));
 
-    test('stream message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+    test('channel message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
-      final message = eg.streamMessage(stream: stream);
+      final message = eg.channelMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
         expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
@@ -556,10 +556,10 @@ void main() {
       pushedRoutes.clear();
     }
 
-    testWidgets('stream message', (tester) async {
+    testWidgets('channel message', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
-      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
+      await checkOpenNotification(tester, eg.selfAccount, eg.channelMessage());
     });
 
     testWidgets('direct message', (tester) async {
@@ -571,14 +571,14 @@ void main() {
 
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
-      await openNotification(tester, eg.selfAccount, eg.streamMessage());
+      await openNotification(tester, eg.selfAccount, eg.channelMessage());
       check(pushedRoutes).isEmpty();
     });
 
     testWidgets('mismatching account', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
-      await openNotification(tester, eg.otherAccount, eg.streamMessage());
+      await openNotification(tester, eg.otherAccount, eg.channelMessage());
       check(pushedRoutes).isEmpty();
     });
 
@@ -598,16 +598,16 @@ void main() {
       }
       await prepare(tester);
 
-      await checkOpenNotification(tester, accounts[0], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[1], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[2], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[3], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[0], eg.channelMessage());
+      await checkOpenNotification(tester, accounts[1], eg.channelMessage());
+      await checkOpenNotification(tester, accounts[2], eg.channelMessage());
+      await checkOpenNotification(tester, accounts[3], eg.channelMessage());
     });
 
     testWidgets('wait for app to become ready', (tester) async {
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester, early: true);
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await openNotification(tester, eg.selfAccount, message);
       // The app should still not be ready (or else this test won't work right).
       check(ZulipApp.ready.value).isFalse();
@@ -626,7 +626,7 @@ void main() {
     testWidgets('at app launch', (tester) async {
       // Set up a value for `getNotificationLaunchDetails` to return.
       final account = eg.selfAccount;
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       final response = NotificationResponse(
         notificationResponseType: NotificationResponseType.selectedNotification,
         payload: jsonEncode(messageFcmMessage(message, account: account)));

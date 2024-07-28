@@ -9,8 +9,8 @@ import 'narrow_checks.dart';
 
 void main() {
   group('SendableNarrow', () {
-    test('ofMessage: stream message', () {
-      final message = eg.streamMessage();
+    test('ofMessage: channel message', () {
+      final message = eg.channelMessage();
       final actual = SendableNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
       check(actual).equals(TopicNarrow.ofMessage(message));
     });
@@ -25,7 +25,7 @@ void main() {
   group('TopicNarrow', () {
     test('ofMessage', () {
       final stream = eg.stream();
-      final message = eg.streamMessage(stream: stream);
+      final message = eg.channelMessage(stream: stream);
       final actual = TopicNarrow.ofMessage(message);
       check(actual).equals(TopicNarrow(stream.streamId, message.topic));
     });
@@ -122,9 +122,9 @@ void main() {
       final narrow123 = DmNarrow(allRecipientIds: [1, 2, 3], selfUserId: 2);
 
       Message dm(User from, List<User> to) => eg.dmMessage(from: from, to: to);
-      final streamMessage = eg.streamMessage(sender: user2);
+      final channelMessage = eg.channelMessage(sender: user2);
 
-      check(narrow2.containsMessage(streamMessage)).isFalse();
+      check(narrow2.containsMessage(channelMessage)).isFalse();
       check(narrow2.containsMessage(dm(user2, []))).isTrue();
       check(narrow2.containsMessage(dm(user1, [user2]))).isFalse();
       check(narrow2.containsMessage(dm(user2, [user1]))).isFalse();
@@ -132,7 +132,7 @@ void main() {
       check(narrow2.containsMessage(dm(user2, [user1, user3]))).isFalse();
       check(narrow2.containsMessage(dm(user3, [user1, user2]))).isFalse();
 
-      check(narrow12.containsMessage(streamMessage)).isFalse();
+      check(narrow12.containsMessage(channelMessage)).isFalse();
       check(narrow12.containsMessage(dm(user2, []))).isFalse();
       check(narrow12.containsMessage(dm(user1, [user2]))).isTrue();
       check(narrow12.containsMessage(dm(user2, [user1]))).isTrue();
@@ -140,7 +140,7 @@ void main() {
       check(narrow12.containsMessage(dm(user2, [user1, user3]))).isFalse();
       check(narrow12.containsMessage(dm(user3, [user1, user2]))).isFalse();
 
-      check(narrow123.containsMessage(streamMessage)).isFalse();
+      check(narrow123.containsMessage(channelMessage)).isFalse();
       check(narrow123.containsMessage(dm(user2, []))).isFalse();
       check(narrow123.containsMessage(dm(user1, [user2]))).isFalse();
       check(narrow123.containsMessage(dm(user2, [user1]))).isFalse();

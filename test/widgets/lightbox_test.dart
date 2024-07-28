@@ -215,7 +215,7 @@ void main() {
       final navigator = await ZulipApp.navigator;
       navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
-        message: message ?? eg.streamMessage(),
+        message: message ?? eg.channelMessage(),
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalHeight: null,
@@ -239,7 +239,7 @@ void main() {
     testWidgets('app bar shows sender name and date', (tester) async {
       prepareBoringImageHttpClient();
       final timestamp = DateTime.parse("2024-07-23 23:12:24").millisecondsSinceEpoch ~/ 1000;
-      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
+      final message = eg.channelMessage(sender: eg.otherUser, timestamp: timestamp);
       await setupPage(tester, message: message, thumbnailUrl: null);
 
       // We're looking for a RichText, in the app bar, with both the
@@ -256,7 +256,7 @@ void main() {
 
     testWidgets('header and footer hidden and shown by tapping image', (tester) async {
       prepareBoringImageHttpClient();
-      final message = eg.streamMessage(sender: eg.otherUser);
+      final message = eg.channelMessage(sender: eg.otherUser);
       await setupPage(tester, message: message, thumbnailUrl: null);
 
       tester.widget(find.byType(AppBar));
@@ -364,7 +364,7 @@ void main() {
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: VideoLightboxPage(
           routeEntranceAnimation: kAlwaysCompleteAnimation,
-          message: eg.streamMessage(),
+          message: eg.channelMessage(),
           src: videoSrc)));
       await tester.pump(); // global store
       await tester.pump(); // per-account store

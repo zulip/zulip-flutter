@@ -52,7 +52,7 @@ void main() {
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
     addTearDown(testBinding.reset);
-    streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
+    streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultChannelMessageStreamId))];
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
       streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -63,7 +63,7 @@ void main() {
     await store.addUsers(users ?? []);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
-      return eg.streamMessage(sender: eg.selfUser);
+      return eg.channelMessage(sender: eg.selfUser);
     });
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
@@ -83,7 +83,7 @@ void main() {
   group('MessageListPage', () {
     testWidgets('ancestorOf finds page state from message', (tester) async {
       await setupMessageListPage(tester,
-        messages: [eg.streamMessage(content: "<p>a message</p>")]);
+        messages: [eg.channelMessage(content: "<p>a message</p>")]);
       final expectedState = tester.state<State>(find.byType(MessageListPage));
       check(MessageListPage.ancestorOf(tester.element(find.text("a message"))))
         .identicalTo(expectedState as MessageListPageState);
@@ -91,7 +91,7 @@ void main() {
 
     testWidgets('ancestorOf throws when not a descendant of MessageListPage', (tester) async {
       await setupMessageListPage(tester,
-        messages: [eg.streamMessage(content: "<p>a message</p>")]);
+        messages: [eg.channelMessage(content: "<p>a message</p>")]);
       final element = tester.element(find.byType(PerAccountStoreWidget));
       check(() => MessageListPage.ancestorOf(element))
         .throws<void>();
@@ -100,7 +100,7 @@ void main() {
     testWidgets('MessageListPageState.narrow', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
-        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+        messages: [eg.channelMessage(stream: stream, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
     });
@@ -108,14 +108,14 @@ void main() {
     testWidgets('composeBoxController finds compose box', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
-        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+        messages: [eg.channelMessage(stream: stream, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxController).isNotNull();
     });
 
     testWidgets('composeBoxController null when no compose box', (tester) async {
       await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
-        messages: [eg.streamMessage(content: "<p>a message</p>")]);
+        messages: [eg.channelMessage(content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxController).isNull();
     });
@@ -129,7 +129,7 @@ void main() {
       tester.view.padding = fakePadding;
 
       await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
-        messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html)]);
+        messages: [eg.channelMessage(content: ContentExample.codeBlockPlain.html)]);
 
       final element = tester.element(find.byType(CodeBlock));
       final padding = MediaQuery.of(element).padding;
@@ -145,7 +145,7 @@ void main() {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-    final message = eg.streamMessage();
+    final message = eg.channelMessage();
     await setupMessageListPage(tester, messages: [message]);
 
     Color backgroundColor() {
@@ -176,7 +176,7 @@ void main() {
 
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
-        messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+        messages: List.generate(300, (i) => eg.channelMessage(id: 950 + i, sender: eg.selfUser)));
       check(itemCount(tester)).equals(303);
 
       // Fling-scroll upward...
@@ -185,7 +185,7 @@ void main() {
 
       // ... and we should fetch more messages as we go.
       connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
+        messages: List.generate(100, (i) => eg.channelMessage(id: 850 + i, sender: eg.selfUser))).toJson());
       await tester.pump(const Duration(seconds: 3)); // Fast-forward to end of fling.
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
 
@@ -195,7 +195,7 @@ void main() {
 
     testWidgets('observe double-fetch glitch', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+        messages: List.generate(100, (i) => eg.channelMessage(id: 950 + i, sender: eg.selfUser)));
       check(itemCount(tester)).equals(101);
 
       // Fling-scroll upward...
@@ -204,7 +204,7 @@ void main() {
 
       // ... and we fetch more messages as we go.
       connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
+        messages: List.generate(100, (i) => eg.channelMessage(id: 850 + i, sender: eg.selfUser))).toJson());
       for (int i = 0; i < 30; i++) {
         // Find the point in the fling where the fetch starts.
         await tester.pump(const Duration(milliseconds: 100));
@@ -216,7 +216,7 @@ void main() {
       // On the next frame, we promptly fetch *another* batch.
       // This is a glitch and it'd be nicer if we didn't.
       connection.prepare(json: olderResult(anchor: 850, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
+        messages: List.generate(100, (i) => eg.channelMessage(id: 750 + i, sender: eg.selfUser))).toJson());
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(Duration.zero);
       check(itemCount(tester)).equals(301);
@@ -226,9 +226,9 @@ void main() {
     testWidgets("avoid getting distracted by nested viewports' metrics", (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/507
       await setupMessageListPage(tester, foundOldest: false, messages: [
-        ...List.generate(300, (i) => eg.streamMessage(id: 1000 + i)),
-        eg.streamMessage(id: 1301, content: ContentExample.codeBlockPlain.html),
-        ...List.generate(100, (i) => eg.streamMessage(id: 1302 + i)),
+        ...List.generate(300, (i) => eg.channelMessage(id: 1000 + i)),
+        eg.channelMessage(id: 1301, content: ContentExample.codeBlockPlain.html),
+        ...List.generate(100, (i) => eg.channelMessage(id: 1302 + i)),
       ]);
       final lastRequest = connection.lastRequest;
       check(itemCount(tester)).equals(404);
@@ -337,12 +337,12 @@ void main() {
       from: eg.selfUser, to: [eg.otherUser, eg.thirdUser, eg.fourthUser]);
     final dmNarrow = DmNarrow.ofMessage(dmMessage, selfUserId: eg.selfUser.userId);
 
-    final streamMessage = eg.streamMessage();
-    final topicNarrow = TopicNarrow.ofMessage(streamMessage);
+    final channelMessage = eg.channelMessage();
+    final topicNarrow = TopicNarrow.ofMessage(channelMessage);
 
     for (final (description, message, narrow) in [
       ('typing in dm',    dmMessage,      dmNarrow),
-      ('typing in topic', streamMessage,  topicNarrow),
+      ('typing in topic', channelMessage,  topicNarrow),
     ]) {
       testWidgets(description, (tester) async {
         await setupMessageListPage(tester,
@@ -371,10 +371,10 @@ void main() {
     }
 
     testWidgets('unknown user typing', (tester) async {
-      final streamMessage = eg.streamMessage();
-      final narrow = TopicNarrow.ofMessage(streamMessage);
+      final channelMessage = eg.channelMessage();
+      final narrow = TopicNarrow.ofMessage(channelMessage);
       await setupMessageListPage(tester,
-        narrow: narrow, users: [], messages: [streamMessage]);
+        narrow: narrow, users: [], messages: [channelMessage]);
       await checkTyping(tester,
         eg.typingEvent(narrow, TypingOp.start, 1000),
         expected: '(unknown user) is typing…',
@@ -393,7 +393,7 @@ void main() {
     }
 
     testWidgets('from read to unread', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.channelMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(isMarkAsReadButtonVisible(tester)).isFalse();
 
@@ -404,7 +404,7 @@ void main() {
     });
 
     testWidgets('from unread to read', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(channels:[
         UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
       ]);
@@ -422,7 +422,7 @@ void main() {
     });
 
     testWidgets("messages don't shift position", (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(channels:[
         UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId,
           unreadMessageIds: [message.id])
@@ -451,7 +451,7 @@ void main() {
       // These tests cover functionality that's outside that function,
       // and a couple of smoke tests showing this button is wired up to it.
 
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(channels: [
         UnreadChannelSnapshot(streamId: message.streamId, topic: message.topic,
           unreadMessageIds: [message.id]),
@@ -608,9 +608,9 @@ void main() {
   });
 
   group('recipient headers', () {
-    group('StreamMessageRecipientHeader', () {
+    group('ChannelMessageRecipientHeader', () {
       final stream = eg.stream(name: 'stream name');
-      final message = eg.streamMessage(stream: stream, topic: 'topic name');
+      final message = eg.channelMessage(stream: stream, topic: 'topic name');
 
       FinderResult<Element> findInMessageList(String text) {
         // Stream name shows up in [AppBar] so need to avoid matching that
@@ -650,12 +650,12 @@ void main() {
         final subscription = eg.subscription(stream, color: Colors.red.value);
         final swatch = ChannelColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
-          messages: [eg.streamMessage(stream: subscription)],
+          messages: [eg.channelMessage(stream: subscription)],
           subscriptions: [subscription]);
         await tester.pump();
         check(tester.widget<ColoredBox>(
           find.descendant(
-            of: find.byType(StreamMessageRecipientHeader),
+            of: find.byType(ChannelMessageRecipientHeader),
             matching: find.byType(ColoredBox),
         ))).color.equals(swatch.barBackground);
       });
@@ -665,7 +665,7 @@ void main() {
         final subscription = eg.subscription(stream, color: Colors.red.value);
         final swatch = ChannelColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
-          messages: [eg.streamMessage(stream: subscription)],
+          messages: [eg.channelMessage(stream: subscription)],
           subscriptions: [subscription]);
         await tester.pump();
         check(tester.widget<Icon>(find.byIcon(ZulipIcons.globe)))
@@ -675,11 +675,11 @@ void main() {
       testWidgets('normal streams show hash icon', (tester) async {
         final stream = eg.stream(isWebPublic: false, inviteOnly: false);
         await setupMessageListPage(tester,
-          messages: [eg.streamMessage(stream: stream)],
+          messages: [eg.channelMessage(stream: stream)],
           subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(find.descendant(
-          of: find.byType(StreamMessageRecipientHeader),
+          of: find.byType(ChannelMessageRecipientHeader),
           matching: find.byIcon(ZulipIcons.hash_sign),
         ).evaluate()).length.equals(1);
       });
@@ -687,11 +687,11 @@ void main() {
       testWidgets('public streams show globe icon', (tester) async {
         final stream = eg.stream(isWebPublic: true);
         await setupMessageListPage(tester,
-          messages: [eg.streamMessage(stream: stream)],
+          messages: [eg.channelMessage(stream: stream)],
           subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(find.descendant(
-          of: find.byType(StreamMessageRecipientHeader),
+          of: find.byType(ChannelMessageRecipientHeader),
           matching: find.byIcon(ZulipIcons.globe),
         ).evaluate()).length.equals(1);
       });
@@ -699,11 +699,11 @@ void main() {
       testWidgets('private streams show lock icon', (tester) async {
         final stream = eg.stream(inviteOnly: true);
         await setupMessageListPage(tester,
-          messages: [eg.streamMessage(stream: stream)],
+          messages: [eg.channelMessage(stream: stream)],
           subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(find.descendant(
-          of: find.byType(StreamMessageRecipientHeader),
+          of: find.byType(ChannelMessageRecipientHeader),
           matching: find.byIcon(ZulipIcons.lock),
         ).evaluate()).length.equals(1);
       });
@@ -712,14 +712,14 @@ void main() {
         // This can perfectly well happen, because message fetches can race
         // with events.
         // … Though not actually with CombinedFeedNarrow, because that shows
-        // stream messages only in subscribed streams, hence only known streams.
+        // channel messages only in subscribed streams, hence only known streams.
         // See skip comment below.
         final stream = eg.stream(name: 'stream name');
         await setupMessageListPage(tester,
           narrow: const CombinedFeedNarrow(),
           subscriptions: [],
           messages: [
-            eg.streamMessage(stream: stream),
+            eg.channelMessage(stream: stream),
           ]);
         await tester.pump();
         tester.widget(find.text('stream name'));
@@ -736,7 +736,7 @@ void main() {
           narrow: const CombinedFeedNarrow(),
           subscriptions: [eg.subscription(streamAfter)],
           messages: [
-            eg.streamMessage(stream: streamBefore),
+            eg.channelMessage(stream: streamBefore),
           ]);
         await tester.pump();
         tester.widget(find.text('new stream name'));
@@ -791,7 +791,7 @@ void main() {
 
     testWidgets('show dates', (tester) async {
       await setupMessageListPage(tester, messages: [
-        eg.streamMessage(timestamp: 1671409088),
+        eg.channelMessage(timestamp: 1671409088),
         eg.dmMessage(timestamp: 1661219322, from: eg.selfUser, to: []),
       ]);
       // We show the dates in the user's timezone.  Dart's standard library
@@ -904,7 +904,7 @@ void main() {
 
       await setupMessageListPage(
         tester,
-        messages: users.map((user) => eg.streamMessage(sender: user)).toList(),
+        messages: users.map((user) => eg.channelMessage(sender: user)).toList(),
         users: users,
       );
 
@@ -918,13 +918,13 @@ void main() {
 
   group('Starred messages', () {
     testWidgets('unstarred message', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       await setupMessageListPage(tester, messages: [message]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).isEmpty();
     });
 
     testWidgets('starred message', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.channelMessage(flags: [MessageFlag.starred]);
       await setupMessageListPage(tester, messages: [message]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
     });
@@ -937,14 +937,14 @@ void main() {
     }
 
     testWidgets('no edited or moved messages', (WidgetTester tester) async {
-      final message = eg.streamMessage();
+      final message = eg.channelMessage();
       await setupMessageListPage(tester, messages: [message]);
       checkMarkersCount(edited: 0, moved: 0);
     });
 
     testWidgets('edited and moved messages from events', (WidgetTester tester) async {
-      final message = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message = eg.channelMessage();
+      final message2 = eg.channelMessage();
       await setupMessageListPage(tester, messages: [message, message2]);
       checkMarkersCount(edited: 0, moved: 0);
 
@@ -997,11 +997,11 @@ void main() {
 
     testWidgets('edit state updates do not affect layout', (WidgetTester tester) async {
       final messages = [
-        eg.streamMessage(),
-        eg.streamMessage(
+        eg.channelMessage(),
+        eg.channelMessage(
           reactions: [eg.unicodeEmojiReaction, eg.realmEmojiReaction],
           flags: [MessageFlag.starred]),
-        eg.streamMessage(),
+        eg.channelMessage(),
       ];
       final ChannelMessage messageWithMarker = messages[1];
       await setupMessageListPage(tester, messages: messages);
@@ -1035,7 +1035,7 @@ void main() {
     }
 
     testWidgets('from read to unread', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.channelMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
         ..value.equals(0.0)
@@ -1055,7 +1055,7 @@ void main() {
     });
 
     testWidgets('from unread to read', (WidgetTester tester) async {
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
         ..value.equals(1.0)
@@ -1083,7 +1083,7 @@ void main() {
       // as the number of items changes in MessageList. See
       // `findChildIndexCallback` passed into [SliverStickyHeaderList]
       // at [_MessageListState._buildListView].
-      final message = eg.streamMessage(flags: []);
+      final message = eg.channelMessage(flags: []);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
         ..value.equals(1.0)
@@ -1108,7 +1108,7 @@ void main() {
         ..status.equals(AnimationStatus.forward);
 
       // introduce new message
-      final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
+      final newMessage = eg.channelMessage(flags:[MessageFlag.read]);
       await store.handleEvent(MessageEvent(id: 0, message: newMessage));
       await tester.pump(); // process handleEvent
       check(find.byType(MessageItem).evaluate()).length.equals(2);

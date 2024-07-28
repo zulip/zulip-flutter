@@ -40,11 +40,11 @@ void main() {
   });
 
   group('RecentSenders.handleMessage', () {
-    test('stream message gets included', () {
+    test('channel message gets included', () {
       final model = RecentSenders();
-      final streamMessage = eg.streamMessage();
-      model.handleMessage(streamMessage);
-      checkMatchesMessages(model, [streamMessage]);
+      final channelMessage = eg.channelMessage();
+      model.handleMessage(channelMessage);
+      checkMatchesMessages(model, [channelMessage]);
     });
 
     test('DM message gets ignored', () {
@@ -81,10 +81,10 @@ void main() {
       void checkHandleMessagesSingle(List<int> oldIds, List<int> newIds) {
         checkHandleMessages([
           for (final id in oldIds)
-            eg.streamMessage(stream: streamA, topic: 'a', sender: userX, id: id),
+            eg.channelMessage(stream: streamA, topic: 'a', sender: userX, id: id),
         ], [
           for (final id in newIds)
-            eg.streamMessage(stream: streamA, topic: 'a', sender: userX, id: id),
+            eg.channelMessage(stream: streamA, topic: 'a', sender: userX, id: id),
         ]);
       }
 
@@ -105,39 +105,39 @@ void main() {
       });
     });
 
-    test('batch with both DM and stream messages -> ignores DM, processes stream messages', () {
+    test('batch with both DM and channel messages -> ignores DM, processes channel messages', () {
       checkHandleMessages([], [
-        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
+        eg.channelMessage(stream: streamA, topic: 'thing', sender: userX),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
-        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
+        eg.channelMessage(stream: streamA, topic: 'thing', sender: userX),
       ]);
     });
 
     test('add new sender', () {
       checkHandleMessages(
-        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
-        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userY)]);
+        [eg.channelMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.channelMessage(stream: streamA, topic: 'thing', sender: userY)]);
     });
 
     test('add new topic', () {
       checkHandleMessages(
-        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
-        [eg.streamMessage(stream: streamA, topic: 'other', sender: userX)]);
+        [eg.channelMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.channelMessage(stream: streamA, topic: 'other', sender: userX)]);
     });
 
     test('add new stream', () {
       checkHandleMessages(
-        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
-        [eg.streamMessage(stream: streamB, topic: 'thing', sender: userX)]);
+        [eg.channelMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.channelMessage(stream: streamB, topic: 'thing', sender: userX)]);
     });
 
     test('multiple conversations and senders interspersed', () {
       checkHandleMessages([], [
-        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
-        eg.streamMessage(stream: streamA, topic: 'other', sender: userX),
-        eg.streamMessage(stream: streamB, topic: 'thing', sender: userX),
-        eg.streamMessage(stream: streamA, topic: 'thing', sender: userY),
-        eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
+        eg.channelMessage(stream: streamA, topic: 'thing', sender: userX),
+        eg.channelMessage(stream: streamA, topic: 'other', sender: userX),
+        eg.channelMessage(stream: streamB, topic: 'thing', sender: userX),
+        eg.channelMessage(stream: streamA, topic: 'thing', sender: userY),
+        eg.channelMessage(stream: streamA, topic: 'thing', sender: userX),
       ]);
     });
   });
@@ -149,9 +149,9 @@ void main() {
     final userY = eg.user();
 
     final messages = [
-      eg.streamMessage(stream: stream, topic: 'thing', sender: userX),
-      eg.streamMessage(stream: stream, topic: 'other', sender: userX),
-      eg.streamMessage(stream: stream, topic: 'thing', sender: userY),
+      eg.channelMessage(stream: stream, topic: 'thing', sender: userX),
+      eg.channelMessage(stream: stream, topic: 'other', sender: userX),
+      eg.channelMessage(stream: stream, topic: 'thing', sender: userY),
     ];
 
     model.handleMessages(messages);
@@ -169,9 +169,9 @@ void main() {
     final user10 = eg.user(userId: 10);
 
     final messages = [
-      eg.streamMessage(stream: stream1, sender: user10, id: 100),
-      eg.streamMessage(stream: stream1, sender: user10, id: 200),
-      eg.streamMessage(stream: stream1, sender: user10, id: 300),
+      eg.channelMessage(stream: stream1, sender: user10, id: 100),
+      eg.channelMessage(stream: stream1, sender: user10, id: 200),
+      eg.channelMessage(stream: stream1, sender: user10, id: 300),
     ];
 
     model.handleMessages(messages);
@@ -192,8 +192,8 @@ void main() {
     final user10 = eg.user(userId: 10);
 
     final messages = [
-      eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
-      eg.streamMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
+      eg.channelMessage(stream: stream1, topic: 'a', sender: user10, id: 200),
+      eg.channelMessage(stream: stream1, topic: 'a', sender: user10, id: 300),
     ];
 
     model.handleMessages(messages);
