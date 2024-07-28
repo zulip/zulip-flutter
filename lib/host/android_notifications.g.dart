@@ -15,6 +15,54 @@ PlatformException _createConnectionError(String channelName) {
   );
 }
 
+/// Corresponds to `androidx.core.app.NotificationChannelCompat`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationChannelCompat
+class NotificationChannel {
+  NotificationChannel({
+    required this.id,
+    required this.importance,
+    this.name,
+    this.lightsEnabled,
+    this.vibrationPattern,
+  });
+
+  String id;
+
+  /// Specifies the importance level of notifications
+  /// to be posted on this channel.
+  ///
+  /// Must be a valid constant from [NotificationImportance].
+  int importance;
+
+  String? name;
+
+  bool? lightsEnabled;
+
+  Int64List? vibrationPattern;
+
+  Object encode() {
+    return <Object?>[
+      id,
+      importance,
+      name,
+      lightsEnabled,
+      vibrationPattern,
+    ];
+  }
+
+  static NotificationChannel decode(Object result) {
+    result as List<Object?>;
+    return NotificationChannel(
+      id: result[0]! as String,
+      importance: result[1]! as int,
+      name: result[2] as String?,
+      lightsEnabled: result[3] as bool?,
+      vibrationPattern: result[4] as Int64List?,
+    );
+  }
+}
+
 /// Corresponds to `android.app.PendingIntent`.
 ///
 /// See: https://developer.android.com/reference/android/app/PendingIntent
@@ -197,20 +245,23 @@ class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
-    if (value is PendingIntent) {
+    if (value is NotificationChannel) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else     if (value is InboxStyle) {
+    } else     if (value is PendingIntent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else     if (value is Person) {
+    } else     if (value is InboxStyle) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else     if (value is MessagingStyleMessage) {
+    } else     if (value is Person) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else     if (value is MessagingStyle) {
+    } else     if (value is MessagingStyleMessage) {
       buffer.putUint8(133);
+      writeValue(buffer, value.encode());
+    } else     if (value is MessagingStyle) {
+      buffer.putUint8(134);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -221,14 +272,16 @@ class _PigeonCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 129: 
-        return PendingIntent.decode(readValue(buffer)!);
+        return NotificationChannel.decode(readValue(buffer)!);
       case 130: 
-        return InboxStyle.decode(readValue(buffer)!);
+        return PendingIntent.decode(readValue(buffer)!);
       case 131: 
-        return Person.decode(readValue(buffer)!);
+        return InboxStyle.decode(readValue(buffer)!);
       case 132: 
-        return MessagingStyleMessage.decode(readValue(buffer)!);
+        return Person.decode(readValue(buffer)!);
       case 133: 
+        return MessagingStyleMessage.decode(readValue(buffer)!);
+      case 134: 
         return MessagingStyle.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -248,6 +301,31 @@ class AndroidNotificationHostApi {
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
   final String __pigeon_messageChannelSuffix;
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannel(androidx.core.app.NotificationChannelCompat)
+  Future<void> createNotificationChannel(NotificationChannel channel) async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannel$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[channel]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
 
   /// Corresponds to `android.app.NotificationManager.notify`,
   /// combined with `androidx.core.app.NotificationCompat.Builder`.

@@ -8,6 +8,34 @@ import 'package:pigeon/pigeon.dart';
   kotlinOptions: KotlinOptions(package: 'com.zulip.flutter'),
 ))
 
+/// Corresponds to `androidx.core.app.NotificationChannelCompat`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationChannelCompat
+class NotificationChannel {
+  /// Corresponds to `androidx.core.app.NotificationChannelCompat.Builder`
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationChannelCompat.Builder
+  NotificationChannel({
+    required this.id,
+    required this.importance,
+    this.name,
+    this.lightsEnabled,
+    this.vibrationPattern,
+  });
+
+  final String id;
+
+  /// Specifies the importance level of notifications
+  /// to be posted on this channel.
+  ///
+  /// Must be a valid constant from [NotificationImportance].
+  final int importance;
+
+  final String? name;
+  final bool? lightsEnabled;
+  final Int64List? vibrationPattern;
+}
+
 /// Corresponds to `android.app.PendingIntent`.
 ///
 /// See: https://developer.android.com/reference/android/app/PendingIntent
@@ -96,6 +124,11 @@ class MessagingStyle {
 
 @HostApi()
 abstract class AndroidNotificationHostApi {
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannel(androidx.core.app.NotificationChannelCompat)
+  void createNotificationChannel(NotificationChannel channel);
+
   /// Corresponds to `android.app.NotificationManager.notify`,
   /// combined with `androidx.core.app.NotificationCompat.Builder`.
   ///

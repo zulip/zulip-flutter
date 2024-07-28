@@ -1,5 +1,40 @@
 export './android_notifications.g.dart';
 
+/// For use in [NotificationChannel.importance].
+///
+/// See:
+///   https://developer.android.com/reference/android/app/NotificationChannel#setImportance(int)
+///   https://developer.android.com/reference/android/app/NotificationChannel#getImportance()
+abstract class NotificationImportance {
+  /// Corresponds to `IMPORTANCE_UNSPECIFIED`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_UNSPECIFIED()
+  static const unspecified = -1000;
+
+  /// Corresponds to `IMPORTANCE_NONE`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_NONE()
+  static const none = 0;
+
+  /// Corresponds to `IMPORTANCE_MIN`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_MIN()
+  static const min = 1;
+
+  /// Corresponds to `IMPORTANCE_LOW`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_LOW()
+  static const low = 2;
+
+  /// Corresponds to `IMPORTANCE_DEFAULT`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_DEFAULT()
+  static const default_ = 3;
+
+  /// Corresponds to `IMPORTANCE_HIGH`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_HIGH()
+  static const high = 4;
+
+  /// Corresponds to `IMPORTANCE_MAX`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#IMPORTANCE_MAX()
+  static const max = 5;
+}
+
 /// For use in [PendingIntent.flags].
 ///
 /// See: https://developer.android.com/reference/android/app/PendingIntent#constants_1

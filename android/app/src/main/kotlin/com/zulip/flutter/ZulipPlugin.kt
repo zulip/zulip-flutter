@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.Keep
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -42,6 +43,16 @@ fun toPigeonPerson(person: androidx.core.app.Person): Person {
 
 private class AndroidNotificationHost(val context: Context)
         : AndroidNotificationHostApi {
+    override fun createNotificationChannel(channel: NotificationChannel) {
+        val notificationChannel = NotificationChannelCompat
+            .Builder(channel.id, channel.importance.toInt()).apply {
+                channel.name?.let { setName(it) }
+                channel.lightsEnabled?.let { setLightsEnabled(it) }
+                channel.vibrationPattern?.let { setVibrationPattern(it) }
+            }.build()
+        NotificationManagerCompat.from(context).createNotificationChannel(notificationChannel)
+    }
+
     @SuppressLint(
         // If permission is missing, `notify` will throw an exception.
         // Which hopefully will propagate to Dart, and then it's up to Dart code to handle it.

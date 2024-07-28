@@ -45,6 +45,49 @@ class FlutterError (
 ) : Throwable()
 
 /**
+ * Corresponds to `androidx.core.app.NotificationChannelCompat`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/NotificationChannelCompat
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class NotificationChannel (
+  val id: String,
+  /**
+   * Specifies the importance level of notifications
+   * to be posted on this channel.
+   *
+   * Must be a valid constant from [NotificationImportance].
+   */
+  val importance: Long,
+  val name: String? = null,
+  val lightsEnabled: Boolean? = null,
+  val vibrationPattern: LongArray? = null
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): NotificationChannel {
+      val id = __pigeon_list[0] as String
+      val importance = __pigeon_list[1].let { num -> if (num is Int) num.toLong() else num as Long }
+      val name = __pigeon_list[2] as String?
+      val lightsEnabled = __pigeon_list[3] as Boolean?
+      val vibrationPattern = __pigeon_list[4] as LongArray?
+      return NotificationChannel(id, importance, name, lightsEnabled, vibrationPattern)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      id,
+      importance,
+      name,
+      lightsEnabled,
+      vibrationPattern,
+    )
+  }
+}
+
+/**
  * Corresponds to `android.app.PendingIntent`.
  *
  * See: https://developer.android.com/reference/android/app/PendingIntent
@@ -218,25 +261,30 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
     return when (type) {
       129.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PendingIntent.fromList(it)
+          NotificationChannel.fromList(it)
         }
       }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          InboxStyle.fromList(it)
+          PendingIntent.fromList(it)
         }
       }
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Person.fromList(it)
+          InboxStyle.fromList(it)
         }
       }
       132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          MessagingStyleMessage.fromList(it)
+          Person.fromList(it)
         }
       }
       133.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MessagingStyleMessage.fromList(it)
+        }
+      }
+      134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           MessagingStyle.fromList(it)
         }
@@ -246,24 +294,28 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is PendingIntent -> {
+      is NotificationChannel -> {
         stream.write(129)
         writeValue(stream, value.toList())
       }
-      is InboxStyle -> {
+      is PendingIntent -> {
         stream.write(130)
         writeValue(stream, value.toList())
       }
-      is Person -> {
+      is InboxStyle -> {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is MessagingStyleMessage -> {
+      is Person -> {
         stream.write(132)
         writeValue(stream, value.toList())
       }
-      is MessagingStyle -> {
+      is MessagingStyleMessage -> {
         stream.write(133)
+        writeValue(stream, value.toList())
+      }
+      is MessagingStyle -> {
+        stream.write(134)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -273,6 +325,12 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface AndroidNotificationHostApi {
+  /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
+   *
+   * See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannel(androidx.core.app.NotificationChannelCompat)
+   */
+  fun createNotificationChannel(channel: NotificationChannel)
   /**
    * Corresponds to `android.app.NotificationManager.notify`,
    * combined with `androidx.core.app.NotificationCompat.Builder`.
@@ -317,6 +375,24 @@ interface AndroidNotificationHostApi {
     @JvmOverloads
     fun setUp(binaryMessenger: BinaryMessenger, api: AndroidNotificationHostApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannel$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val channelArg = args[0] as NotificationChannel
+            val wrapped: List<Any?> = try {
+              api.createNotificationChannel(channelArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
       run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.notify$separatedMessageChannelSuffix", codec)
         if (api != null) {
