@@ -176,7 +176,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
       streamPostPolicy:
-          $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
+          $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
       canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
               json, 'can_remove_subscribers_group') as num?)
           ?.toInt(),
@@ -200,12 +200,12 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
 
-const _$StreamPostPolicyEnumMap = {
-  StreamPostPolicy.any: 1,
-  StreamPostPolicy.administrators: 2,
-  StreamPostPolicy.fullMembers: 3,
-  StreamPostPolicy.moderators: 4,
-  StreamPostPolicy.unknown: null,
+const _$ChannelPostPolicyEnumMap = {
+  ChannelPostPolicy.any: 1,
+  ChannelPostPolicy.administrators: 2,
+  ChannelPostPolicy.fullMembers: 3,
+  ChannelPostPolicy.moderators: 4,
+  ChannelPostPolicy.unknown: null,
 };
 
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
@@ -220,7 +220,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
       streamPostPolicy:
-          $enumDecode(_$StreamPostPolicyEnumMap, json['stream_post_policy']),
+          $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
       canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
               json, 'can_remove_subscribers_group') as num?)
           ?.toInt(),

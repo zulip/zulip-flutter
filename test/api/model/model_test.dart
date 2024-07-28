@@ -78,7 +78,7 @@ void main() {
       'is_web_public': false,
       'history_public_to_subscribers': true,
       'message_retention_days': null,
-      'stream_post_policy': StreamPostPolicy.any.apiValue,
+      'stream_post_policy': ChannelPostPolicy.any.apiValue,
       // 'can_remove_subscribers_group': null,
       'stream_weekly_traffic': null,
     });

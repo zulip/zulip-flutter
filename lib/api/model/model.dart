@@ -321,7 +321,7 @@ class ZulipStream {
   final bool historyPublicToSubscribers;
   final int? messageRetentionDays;
 
-  final StreamPostPolicy streamPostPolicy;
+  final ChannelPostPolicy streamPostPolicy;
   // final bool isAnnouncementOnly; // deprecated for `streamPostPolicy`; ignore
 
   // TODO(server-6): `canRemoveSubscribersGroupId` added in FL 142
@@ -364,14 +364,14 @@ class ZulipStream {
 /// For docs, search for "stream_post_policy"
 /// in <https://zulip.com/api/get-stream-by-id>
 @JsonEnum(valueField: 'apiValue')
-enum StreamPostPolicy {
+enum ChannelPostPolicy {
   any(apiValue: 1),
   administrators(apiValue: 2),
   fullMembers(apiValue: 3),
   moderators(apiValue: 4),
   unknown(apiValue: null);
 
-  const StreamPostPolicy({
+  const ChannelPostPolicy({
     required this.apiValue,
   });
 
