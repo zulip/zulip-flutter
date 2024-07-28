@@ -144,16 +144,16 @@ class Unreads extends ChangeNotifier {
     return c;
   }
 
-  /// The "strict" unread count for this stream,
+  /// The "strict" unread count for this channel,
   /// using [ChannelStore.isTopicVisible].
   ///
-  /// If the stream is muted, this will count only topics that are
+  /// If the channel is muted, this will count only topics that are
   /// actively unmuted.
   ///
   /// For a count that's appropriate in UI contexts that are focused
-  /// specifically on this stream, see [countInChannelNarrow].
+  /// specifically on this channel, see [countInChannelNarrow].
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
-  int countInStream(int streamId) {
+  int countInChannel(int streamId) {
     final topics = streams[streamId];
     if (topics == null) return 0;
     int c = 0;
@@ -165,14 +165,14 @@ class Unreads extends ChangeNotifier {
     return c;
   }
 
-  /// The "broad" unread count for this stream,
+  /// The "broad" unread count for this channel,
   /// using [ChannelStore.isTopicVisibleInStream].
   ///
   /// This includes topics that have no visibility policy of their own,
-  /// even if the stream itself is muted.
+  /// even if the channel itself is muted.
   ///
   /// For a count that's appropriate in UI contexts that are not already
-  /// focused on this stream, see [countInStream].
+  /// focused on this channel, see [countInChannel].
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInChannelNarrow(int streamId) {
     final topics = streams[streamId];

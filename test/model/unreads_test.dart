@@ -189,13 +189,13 @@ void main() {
         eg.streamMessage(stream: stream, topic: 'b', flags: []),
         eg.streamMessage(stream: stream, topic: 'c', flags: []),
       ]);
-      check(model.countInStream       (stream.streamId)).equals(5);
+      check(model.countInChannel      (stream.streamId)).equals(5);
       check(model.countInChannelNarrow(stream.streamId)).equals(5);
 
       await channelStore.handleEvent(SubscriptionUpdateEvent(id: 1,
         streamId: stream.streamId,
         property: SubscriptionProperty.isMuted, value: true));
-      check(model.countInStream       (stream.streamId)).equals(2);
+      check(model.countInChannel      (stream.streamId)).equals(2);
       check(model.countInChannelNarrow(stream.streamId)).equals(5);
     });
 
