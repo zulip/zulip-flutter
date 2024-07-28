@@ -134,7 +134,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: const Color(0xff666699),
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
-      streamColorSwatches: ChannelColorSwatches.light,
+      channelColorSwatches: ChannelColorSwatches.light,
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     );
 
@@ -145,7 +145,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: const Color(0xff7070c2),
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
-      streamColorSwatches: ChannelColorSwatches.dark,
+      channelColorSwatches: ChannelColorSwatches.dark,
       // TODO(#95) unchanged in dark theme?
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     );
@@ -156,7 +156,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.icon,
     required this.mainBackground,
     required this.title,
-    required this.streamColorSwatches,
+    required this.channelColorSwatches,
     required this.star,
   });
 
@@ -177,7 +177,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color title;
 
   // Not exactly from the Figma design, but from Vlad anyway.
-  final ChannelColorSwatches streamColorSwatches;
+  final ChannelColorSwatches channelColorSwatches;
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
   final Color star;
@@ -189,7 +189,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? icon,
     Color? mainBackground,
     Color? title,
-    ChannelColorSwatches? streamColorSwatches,
+    ChannelColorSwatches? channelColorSwatches,
     Color? star,
   }) {
     return DesignVariables._(
@@ -198,7 +198,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: icon ?? this.icon,
       mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
-      streamColorSwatches: streamColorSwatches ?? this.streamColorSwatches,
+      channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       star: star ?? this.star,
     );
   }
@@ -214,7 +214,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       icon: Color.lerp(icon, other.icon, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
-      streamColorSwatches: ChannelColorSwatches.lerp(streamColorSwatches, other.streamColorSwatches, t),
+      channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       star: Color.lerp(star, other.star, t)!,
     );
   }
@@ -225,5 +225,5 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 /// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
 ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
   return DesignVariables.of(context)
-    .streamColorSwatches.forBaseColor(subscription.color);
+    .channelColorSwatches.forBaseColor(subscription.color);
 }
