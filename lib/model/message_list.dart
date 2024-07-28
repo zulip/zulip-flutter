@@ -266,7 +266,7 @@ mixin _MessageSequence {
 
 @visibleForTesting
 bool haveSameRecipient(Message prevMessage, Message message) {
-  if (prevMessage is StreamMessage && message is StreamMessage) {
+  if (prevMessage is ChannelMessage && message is ChannelMessage) {
     if (prevMessage.streamId != message.streamId) return false;
     if (prevMessage.topic != message.topic) return false;
   } else if (prevMessage is DmMessage && message is DmMessage) {
@@ -279,7 +279,7 @@ bool haveSameRecipient(Message prevMessage, Message message) {
   return true;
 
   // switch ((prevMessage, message)) {
-  //   case (StreamMessage(), StreamMessage()):
+  //   case (ChannelMessage(), ChannelMessage()):
   //     // TODO(dart-3): this doesn't type-narrow prevMessage and message
   //   case (DmMessage(), DmMessage()):
   //     // …
@@ -358,14 +358,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     switch (narrow) {
       case CombinedFeedNarrow():
         return switch (message) {
-          StreamMessage() =>
+          ChannelMessage() =>
             store.isTopicVisible(message.streamId, message.topic),
           DmMessage() => true,
         };
 
       case ChannelNarrow(:final streamId):
-        assert(message is StreamMessage && message.streamId == streamId);
-        if (message is! StreamMessage) return false;
+        assert(message is ChannelMessage && message.streamId == streamId);
+        if (message is! ChannelMessage) return false;
         return store.isTopicVisibleInStream(streamId, message.topic);
 
       case TopicNarrow():

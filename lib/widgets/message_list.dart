@@ -811,7 +811,7 @@ class RecipientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message,
+      ChannelMessage() => StreamMessageRecipientHeader(message: message,
         showStream: narrow is CombinedFeedNarrow),
       DmMessage() => DmRecipientHeader(message: message),
     };
@@ -930,7 +930,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     required this.showStream,
   });
 
-  final StreamMessage message;
+  final ChannelMessage message;
   final bool showStream;
 
   @override

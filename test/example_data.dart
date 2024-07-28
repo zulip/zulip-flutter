@@ -317,7 +317,7 @@ const defaultStreamMessageStreamId = 123;
 ///
 /// See also:
 ///  * [dmMessage], to construct an example direct message.
-StreamMessage streamMessage({
+ChannelMessage streamMessage({
   int? id,
   User? sender,
   ZulipStream? stream,
@@ -335,7 +335,7 @@ StreamMessage streamMessage({
   // of the properties as we're constructing the data.  That's probably OK
   // because (a) this is only for tests; (b) the types do get checked
   // dynamically in the constructor, so any ill-typing won't propagate further.
-  return StreamMessage.fromJson(deepToJson({
+  return ChannelMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(sender),
     ..._messagePropertiesFromContent(content, contentMarkdown),
@@ -416,7 +416,7 @@ const _unreadMsgs = unreadMsgs;
 // Events.
 //
 
-DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
+DeleteMessageEvent deleteMessageEvent(List<ChannelMessage> messages) {
   assert(messages.isNotEmpty);
   final streamId = messages.first.streamId;
   final topic = messages.first.topic;
@@ -450,7 +450,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
     editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origMessage is ChannelMessage ? origMessage.streamId : null,
     newStreamId: null,
     propagateMode: null,
     origTopic: null,
@@ -482,7 +482,7 @@ UpdateMessageEvent updateMessageMoveEvent(
     messageIds: messages.map((message) => message.id).toList(),
     flags: origMessage.flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
+    origStreamId: origMessage is ChannelMessage ? origMessage.streamId : null,
     newStreamId: newStreamId,
     propagateMode: null,
     origTopic: origTopic,
@@ -510,7 +510,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
       return MapEntry(
         message.id,
         switch (message) {
-          StreamMessage() => UpdateMessageFlagsMessageDetail(
+          ChannelMessage() => UpdateMessageFlagsMessageDetail(
             type: MessageType.stream,
             mentioned: mentioned,
             streamId: message.streamId,

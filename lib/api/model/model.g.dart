@@ -260,8 +260,8 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'color': instance.color,
     };
 
-StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
-    StreamMessage(
+ChannelMessage _$ChannelMessageFromJson(Map<String, dynamic> json) =>
+    ChannelMessage(
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
@@ -285,7 +285,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       streamId: (json['stream_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
+Map<String, dynamic> _$ChannelMessageToJson(ChannelMessage instance) =>
     <String, dynamic>{
       'client': instance.client,
       'content': instance.content,

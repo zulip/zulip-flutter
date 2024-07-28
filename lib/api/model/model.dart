@@ -536,7 +536,7 @@ sealed class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
-    if (type == 'stream') return StreamMessage.fromJson(json);
+    if (type == 'stream') return ChannelMessage.fromJson(json);
     if (type == 'private') return DmMessage.fromJson(json);
     throw Exception("Message.fromJson: unexpected message type $type");
   }
@@ -571,7 +571,7 @@ enum MessageFlag {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamMessage extends Message {
+class ChannelMessage extends Message {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
@@ -579,7 +579,7 @@ class StreamMessage extends Message {
   final String displayRecipient;
   final int streamId;
 
-  StreamMessage({
+  ChannelMessage({
     required super.client,
     required super.content,
     required super.contentType,
@@ -602,11 +602,11 @@ class StreamMessage extends Message {
     required this.streamId,
   });
 
-  factory StreamMessage.fromJson(Map<String, dynamic> json) =>
-    _$StreamMessageFromJson(json);
+  factory ChannelMessage.fromJson(Map<String, dynamic> json) =>
+    _$ChannelMessageFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$StreamMessageToJson(this);
+  Map<String, dynamic> toJson() => _$ChannelMessageToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

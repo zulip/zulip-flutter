@@ -1003,7 +1003,7 @@ void main() {
           flags: [MessageFlag.starred]),
         eg.streamMessage(),
       ];
-      final StreamMessage messageWithMarker = messages[1];
+      final ChannelMessage messageWithMarker = messages[1];
       await setupMessageListPage(tester, messages: messages);
       final rectsBefore = captureMessageRects(tester, messages, messageWithMarker);
       checkMarkersCount(edited: 0, moved: 0);

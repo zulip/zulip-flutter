@@ -66,7 +66,7 @@ void main() {
         continue;
       }
       switch (message) {
-        case StreamMessage():
+        case ChannelMessage():
           final perTopic = expectedStreams[message.streamId] ??= {};
           final messageIds = perTopic[message.topic] ??= QueueList();
           messageIds.add(message.id);
@@ -440,7 +440,7 @@ void main() {
       final expectedRemainingMessages = Set.of(messages);
       for (final message in messages) {
         final event = switch (message) {
-          StreamMessage() => DeleteMessageEvent(
+          ChannelMessage() => DeleteMessageEvent(
             id: 0,
             messageType: MessageType.stream,
             messageIds: [message.id],

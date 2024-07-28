@@ -213,7 +213,7 @@ class Unreads extends ChangeNotifier {
     }
 
     switch (message) {
-      case StreamMessage():
+      case ChannelMessage():
         _addLastInStreamTopic(message.id, message.streamId, message.topic);
       case DmMessage():
         final narrow = DmNarrow.ofMessage(message, selfUserId: selfUserId);

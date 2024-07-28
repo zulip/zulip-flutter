@@ -41,7 +41,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUser(eg.user(userId: message.senderId));
-  if (message is StreamMessage) {
+  if (message is ChannelMessage) {
     final stream = eg.stream(streamId: message.streamId);
     await store.addStream(stream);
     await store.addSubscription(eg.subscription(stream));

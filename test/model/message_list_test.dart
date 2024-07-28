@@ -969,7 +969,7 @@ void checkInvariants(MessageListView model) {
     check(model.store.messages)[message.id].isNotNull().identicalTo(message);
     check(model.narrow.containsMessage(message)).isTrue();
 
-    if (message is! StreamMessage) continue;
+    if (message is! ChannelMessage) continue;
     switch (model.narrow) {
       case CombinedFeedNarrow():
         check(model.store.isTopicVisible(message.streamId, message.topic))

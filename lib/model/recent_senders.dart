@@ -40,8 +40,8 @@ class RecentSenders {
     final messagesByUserInStream = <(int, int), QueueList<int>>{};
     final messagesByUserInTopic = <(int, String, int), QueueList<int>>{};
     for (final message in messages) {
-      if (message is! StreamMessage) continue;
-      final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
+      if (message is! ChannelMessage) continue;
+      final ChannelMessage(:streamId, :topic, :senderId, id: int messageId) = message;
       (messagesByUserInStream[(streamId, senderId)] ??= QueueList()).add(messageId);
       (messagesByUserInTopic[(streamId, topic, senderId)] ??= QueueList()).add(messageId);
     }
@@ -60,8 +60,8 @@ class RecentSenders {
 
   /// Records the necessary data from a new message.
   void handleMessage(Message message) {
-    if (message is! StreamMessage) return;
-    final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
+    if (message is! ChannelMessage) return;
+    final ChannelMessage(:streamId, :topic, :senderId, id: int messageId) = message;
     ((streamSenders[streamId] ??= {})
       [senderId] ??= MessageIdTracker()).add(messageId);
     (((topicSenders[streamId] ??= {})[topic] ??= {})
@@ -73,7 +73,7 @@ class RecentSenders {
 
     final messagesByUser = <int, List<int>>{};
     for (final id in event.messageIds) {
-      final message = cachedMessages[id] as StreamMessage?;
+      final message = cachedMessages[id] as ChannelMessage?;
       if (message == null) continue;
       (messagesByUser[message.senderId] ??= []).add(id);
     }

@@ -245,7 +245,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (
       topicController != null
       && topicController.textNormalized == kNoTopicTopic
-      && message is StreamMessage
+      && message is ChannelMessage
     ) {
       topicController.value = TextEditingValue(text: message.topic);
     }

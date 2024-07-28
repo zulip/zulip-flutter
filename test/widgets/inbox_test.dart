@@ -82,7 +82,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  List<StreamMessage> generateStreamMessages({
+  List<ChannelMessage> generateChannelMessages({
     required ZulipStream stream,
     required int count,
     required List<MessageFlag> flags,
@@ -104,9 +104,9 @@ void main() {
       users: [eg.selfUser, eg.otherUser, eg.thirdUser, eg.fourthUser],
       unreadMessages: [
         eg.streamMessage(stream: stream1, topic: 'specific topic', flags: []),
-        ...generateStreamMessages(stream: stream1, count: 10, flags: []),
+        ...generateChannelMessages(stream: stream1, count: 10, flags: []),
         eg.streamMessage(stream: stream2, flags: []),
-        ...generateStreamMessages(stream: stream2, count: 40, flags: []),
+        ...generateChannelMessages(stream: stream2, count: 40, flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: []),
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),

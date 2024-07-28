@@ -29,7 +29,7 @@ sealed class Narrow {
 sealed class SendableNarrow extends Narrow {
   factory SendableNarrow.ofMessage(Message message, {required int selfUserId}) {
     switch (message) {
-      case StreamMessage():
+      case ChannelMessage():
         return TopicNarrow.ofMessage(message);
       case DmMessage():
         return DmNarrow.ofMessage(message, selfUserId: selfUserId);
@@ -72,7 +72,7 @@ class ChannelNarrow extends Narrow {
 
   @override
   bool containsMessage(Message message) {
-    return message is StreamMessage && message.streamId == streamId;
+    return message is ChannelMessage && message.streamId == streamId;
   }
 
   @override
@@ -94,7 +94,7 @@ class ChannelNarrow extends Narrow {
 class TopicNarrow extends Narrow implements SendableNarrow {
   const TopicNarrow(this.streamId, this.topic);
 
-  factory TopicNarrow.ofMessage(StreamMessage message) {
+  factory TopicNarrow.ofMessage(ChannelMessage message) {
     return TopicNarrow(message.streamId, message.topic);
   }
 
@@ -103,7 +103,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
 
   @override
   bool containsMessage(Message message) {
-    return (message is StreamMessage
+    return (message is ChannelMessage
       && message.streamId == streamId && message.topic == topic);
   }
 

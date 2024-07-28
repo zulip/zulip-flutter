@@ -9,11 +9,11 @@ void checkMatchesMessages(RecentSenders model, List<Message> messages) {
   final Map<int, Map<int, Set<int>>> messagesByUserInStream = {};
   final Map<int, Map<String, Map<int, Set<int>>>> messagesByUserInTopic = {};
   for (final message in messages) {
-    if (message is! StreamMessage) {
+    if (message is! ChannelMessage) {
       throw UnsupportedError('Message of type ${message.runtimeType} is not expected.');
     }
 
-    final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
+    final ChannelMessage(:streamId, :topic, :senderId, id: int messageId) = message;
 
     ((messagesByUserInStream[streamId] ??= {})
       [senderId] ??= {}).add(messageId);
@@ -73,7 +73,7 @@ void main() {
       setupModel(oldMessages);
       model.handleMessages(newMessages);
       final expectedMessages = [...oldMessages, ...newMessages]
-        ..removeWhere((m) => m is! StreamMessage);
+        ..removeWhere((m) => m is! ChannelMessage);
       checkMatchesMessages(model, expectedMessages);
     }
 
