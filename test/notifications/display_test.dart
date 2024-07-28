@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
@@ -8,6 +9,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/host/android_notifications.dart';
@@ -25,6 +28,7 @@ import 'package:zulip/widgets/theme.dart';
 import '../fake_async.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
+import '../test_images.dart';
 import '../test_navigation.dart';
 import '../widgets/message_list_checks.dart';
 import '../widgets/page_checks.dart';
@@ -74,6 +78,24 @@ void main() {
   TestZulipBinding.ensureInitialized();
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
+  http.Client makeFakeHttpClient({http.Response? response, Exception? exception}) {
+    return http_testing.MockClient((request) async {
+      assert((response != null) ^ (exception != null));
+      if (exception != null) throw exception;
+      return response!; // TODO return 404 on non avatar urls
+    });
+  }
+
+  final fakeHttpClientGivingSuccess = makeFakeHttpClient(
+    response: http.Response.bytes(kSolidBlueAvatar, HttpStatus.ok));
+
+  T runWithHttpClient<T>(
+    T Function() callback, {
+    http.Client Function()? httpClientFactory,
+  }) {
+    return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
+  }
+
   Future<void> init() async {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
@@ -102,6 +124,7 @@ void main() {
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
+      List<int>? expectedIconBitmap = kSolidBlueAvatar,
     }) {
       final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
       final expectedGroupKey = '${data.realmUri}|${data.userId}';
@@ -123,7 +146,8 @@ void main() {
             ..text.equals(messageData.content)
             ..timestampMs.equals(messageData.time * 1000)
             ..person.which((it) => it.isNotNull()
-              ..iconBitmap.which((it) => isLast ? it.isNotNull() : it.isNull())
+              ..iconBitmap.which((it) => (isLast && expectedIconBitmap != null)
+                ? it.isNotNull().deepEquals(expectedIconBitmap) : it.isNull())
               ..key.equals(expectedSenderKey)
               ..name.equals(messageData.senderFullName));
         });
@@ -209,7 +233,7 @@ void main() {
       async.flushMicrotasks();
     }
 
-    test('stream message', () => awaitFakeAsync((async) async {
+    test('stream message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
@@ -217,9 +241,9 @@ void main() {
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
-    }));
+    })));
 
-    test('stream message: multiple messages, same topic', () => awaitFakeAsync((async) async {
+    test('stream message: multiple messages, same topic', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       const topic = 'topic 1';
@@ -253,9 +277,9 @@ void main() {
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
-    }));
+    })));
 
-    test('stream message: stream name omitted', () => awaitFakeAsync((async) async {
+    test('stream message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
@@ -263,18 +287,18 @@ void main() {
         expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
-    }));
+    })));
 
-    test('group DM: 3 users', () => awaitFakeAsync((async) async {
+    test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    }));
+    })));
 
-    test('group DM: more than 3 users', () => awaitFakeAsync((async) async {
+    test('group DM: more than 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser,
         to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
@@ -282,25 +306,57 @@ void main() {
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 2 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    }));
+    })));
 
-    test('1:1 DM', () => awaitFakeAsync((async) async {
+    test('1:1 DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: false,
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    }));
+    })));
 
-    test('self-DM', () => awaitFakeAsync((async) async {
+    test('1:1 DM: sender avatar loading fails, remote error', () => runWithHttpClient(
+      () => awaitFakeAsync((async) async {
+        await init();
+        final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        final data = messageFcmMessage(message);
+        await receiveFcmMessage(async, data);
+        checkNotification(data,
+          messageStyleMessages: [data],
+          expectedIsGroupConversation: false,
+          expectedTitle: eg.otherUser.fullName,
+          expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+          expectedIconBitmap: null); // Failed to fetch avatar photo
+      }),
+      httpClientFactory: () => makeFakeHttpClient(
+        response: http.Response.bytes([], HttpStatus.internalServerError))));
+
+    test('1:1 DM: sender avatar loading fails, local error', () => runWithHttpClient(
+      () => awaitFakeAsync((async) async {
+        await init();
+        final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        final data = messageFcmMessage(message);
+        await receiveFcmMessage(async, data);
+        checkNotification(data,
+          messageStyleMessages: [data],
+          expectedIsGroupConversation: false,
+          expectedTitle: eg.otherUser.fullName,
+          expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+          expectedIconBitmap: null); // Failed to fetch avatar photo
+      }),
+      httpClientFactory: () => makeFakeHttpClient(
+        exception: http.ClientException('Network failure'))));
+
+    test('self-DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.selfUser, to: []);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: false,
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
-    }));
+    })));
   });
 
   group('NotificationDisplayManager open', () {

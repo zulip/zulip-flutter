@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
@@ -279,10 +280,12 @@ class NotificationDisplayManager {
     try {
       // TODO timeout to prevent waiting indefinitely
       final resp = await http.get(url);
-      return resp.bodyBytes;
+      if (resp.statusCode == HttpStatus.ok) {
+        return resp.bodyBytes;
+      }
     } catch (e) {
       // TODO(log)
-      return null;
     }
+    return null;
   }
 }
