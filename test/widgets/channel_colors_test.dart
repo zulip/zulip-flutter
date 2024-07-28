@@ -460,17 +460,17 @@ void main() {
       final swatchB = ChannelColorSwatch.dark(0xff76ce90);
       for (final t in [0.0, 0.5, 1.0, -0.1, 1.1]) {
         final result = ChannelColorSwatch.lerp(swatchA, swatchB, t)!;
-        for (final variant in StreamColorVariant.values) {
+        for (final variant in ChannelColorVariant.values) {
           final (subject, expected) = switch (variant) {
-            StreamColorVariant.base => (check(result).base,
+            ChannelColorVariant.base => (check(result).base,
               Color.lerp(swatchA.base, swatchB.base, t)!),
-            StreamColorVariant.unreadCountBadgeBackground => (check(result).unreadCountBadgeBackground,
+            ChannelColorVariant.unreadCountBadgeBackground => (check(result).unreadCountBadgeBackground,
               Color.lerp(swatchA.unreadCountBadgeBackground, swatchB.unreadCountBadgeBackground, t)!),
-            StreamColorVariant.iconOnPlainBackground => (check(result).iconOnPlainBackground,
+            ChannelColorVariant.iconOnPlainBackground => (check(result).iconOnPlainBackground,
               Color.lerp(swatchA.iconOnPlainBackground, swatchB.iconOnPlainBackground, t)!),
-            StreamColorVariant.iconOnBarBackground => (check(result).iconOnBarBackground,
+            ChannelColorVariant.iconOnBarBackground => (check(result).iconOnBarBackground,
               Color.lerp(swatchA.iconOnBarBackground, swatchB.iconOnBarBackground, t)!),
-            StreamColorVariant.barBackground => (check(result).barBackground,
+            ChannelColorVariant.barBackground => (check(result).barBackground,
               Color.lerp(swatchA.barBackground, swatchB.barBackground, t)!),
           };
           subject.equals(expected);

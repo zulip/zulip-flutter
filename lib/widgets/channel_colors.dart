@@ -76,52 +76,52 @@ class _ChannelColorSwatchesLerped extends ChannelColorSwatches {
 ///
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
-class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
+class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
   ChannelColorSwatch.light(int base) : this._(base, _computeLight(base));
   ChannelColorSwatch.dark(int base) : this._(base, _computeDark(base));
 
   const ChannelColorSwatch._(int base, this._swatch) : super(base, _swatch);
 
-  final Map<StreamColorVariant, Color> _swatch;
+  final Map<ChannelColorVariant, Color> _swatch;
 
   /// The [Subscription.color] int that the swatch is based on.
-  Color get base => this[StreamColorVariant.base]!;
+  Color get base => this[ChannelColorVariant.base]!;
 
-  Color get unreadCountBadgeBackground => this[StreamColorVariant.unreadCountBadgeBackground]!;
+  Color get unreadCountBadgeBackground => this[ChannelColorVariant.unreadCountBadgeBackground]!;
 
   /// The stream icon on a plain-colored surface, such as white.
   ///
   /// For the icon on a [barBackground]-colored surface,
   /// use [iconOnBarBackground] instead.
-  Color get iconOnPlainBackground => this[StreamColorVariant.iconOnPlainBackground]!;
+  Color get iconOnPlainBackground => this[ChannelColorVariant.iconOnPlainBackground]!;
 
   /// The stream icon on a [barBackground]-colored surface.
   ///
   /// For the icon on a plain surface, use [iconOnPlainBackground] instead.
   /// This color is chosen to enhance contrast with [barBackground]:
   ///   <https://github.com/zulip/zulip/pull/27485>
-  Color get iconOnBarBackground => this[StreamColorVariant.iconOnBarBackground]!;
+  Color get iconOnBarBackground => this[ChannelColorVariant.iconOnBarBackground]!;
 
   /// The background color of a bar representing a stream, like a recipient bar.
   ///
   /// Use this in the message list, the "Inbox" view, and the "Streams" view.
-  Color get barBackground => this[StreamColorVariant.barBackground]!;
+  Color get barBackground => this[ChannelColorVariant.barBackground]!;
 
-  static Map<StreamColorVariant, Color> _computeLight(int base) {
+  static Map<ChannelColorVariant, Color> _computeLight(int base) {
     final baseAsColor = Color(base);
 
     final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
     final clamped20to75AsHsl = HSLColor.fromColor(clamped20to75);
 
     return {
-      StreamColorVariant.base: baseAsColor,
+      ChannelColorVariant.base: baseAsColor,
 
       // Follows `.unread-count` in Vlad's replit:
       //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
       //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
       //
       // TODO fix bug where our results differ from the replit's (see unit tests)
-      StreamColorVariant.unreadCountBadgeBackground:
+      ChannelColorVariant.unreadCountBadgeBackground:
         clampLchLightness(baseAsColor, 30, 70)
           .withOpacity(0.3),
 
@@ -129,14 +129,14 @@ class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
       //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
       //
       // TODO fix bug where our results differ from the replit's (see unit tests)
-      StreamColorVariant.iconOnPlainBackground: clamped20to75,
+      ChannelColorVariant.iconOnPlainBackground: clamped20to75,
 
       // Follows `.recepeient__icon` in Vlad's replit:
       //   <https://replit.com/@VladKorobov/zulip-topic-feed-colors#script.js>
       //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1624484>
       //
       // TODO fix bug where our results differ from the replit's (see unit tests)
-      StreamColorVariant.iconOnBarBackground:
+      ChannelColorVariant.iconOnBarBackground:
         clamped20to75AsHsl
           .withLightness(clampDouble(clamped20to75AsHsl.lightness - 0.12, 0.0, 1.0))
           .toColor(),
@@ -149,14 +149,14 @@ class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
       //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
       //   which does ordinary RGB mixing. Investigate and send a PR?
       // TODO fix bug where our results differ from the replit's (see unit tests)
-      StreamColorVariant.barBackground:
+      ChannelColorVariant.barBackground:
         LabColor.fromColor(const Color(0xfff9f9f9))
           .interpolate(LabColor.fromColor(clamped20to75), 0.22)
           .toColor(),
     };
   }
 
-  static Map<StreamColorVariant, Color> _computeDark(int base) {
+  static Map<ChannelColorVariant, Color> _computeDark(int base) {
     final baseAsColor = Color(base);
 
     final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
@@ -166,11 +166,11 @@ class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
       // on, and how the resulting values are a little off sometimes. The
       // comments mostly apply here too.
 
-      StreamColorVariant.base: baseAsColor,
-      StreamColorVariant.unreadCountBadgeBackground:
+      ChannelColorVariant.base: baseAsColor,
+      ChannelColorVariant.unreadCountBadgeBackground:
         clampLchLightness(baseAsColor, 30, 70)
           .withOpacity(0.3),
-      StreamColorVariant.iconOnPlainBackground: clamped20to75,
+      ChannelColorVariant.iconOnPlainBackground: clamped20to75,
 
       // Follows the web app (as of zulip/zulip@db03369ac); see
       // get_stream_privacy_icon_color in web/src/stream_color.ts.
@@ -185,9 +185,9 @@ class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
       //   https://chat.zulip.org/#narrow/stream/101-design/topic/UI.20redesign.3A.20recipient.20bar.20colors/near/1675786
       //
       // TODO fix bug where our results are unexpected (see unit tests)
-      StreamColorVariant.iconOnBarBackground: clamped20to75,
+      ChannelColorVariant.iconOnBarBackground: clamped20to75,
 
-      StreamColorVariant.barBackground:
+      ChannelColorVariant.barBackground:
         LabColor.fromColor(const Color(0xff000000))
           .interpolate(LabColor.fromColor(clamped20to75), 0.38)
           .toColor(),
@@ -199,7 +199,7 @@ class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
     if (identical(a, b)) {
       return a;
     }
-    final Map<StreamColorVariant, Color> swatch;
+    final Map<ChannelColorVariant, Color> swatch;
     if (b == null) {
       swatch = a!._swatch.map((key, color) => MapEntry(key, Color.lerp(color, null, t)!));
     } else {
@@ -214,7 +214,7 @@ class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
 }
 
 @visibleForTesting
-enum StreamColorVariant {
+enum ChannelColorVariant {
   base,
   unreadCountBadgeBackground,
   iconOnPlainBackground,
