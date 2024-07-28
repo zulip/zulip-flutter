@@ -149,7 +149,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   assert(segments.isNotEmpty);
   assert(segments.length.isEven);
 
-  ApiNarrowChannel? streamElement;
+  ApiNarrowChannel? channelElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
 
@@ -160,10 +160,10 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     switch (operator) {
       case _NarrowOperator.stream:
       case _NarrowOperator.channel:
-        if (streamElement != null) return null;
+        if (channelElement != null) return null;
         final streamId = _parseStreamOperand(operand, store);
         if (streamId == null) return null;
-        streamElement = ApiNarrowChannel(streamId, negated: negated);
+        channelElement = ApiNarrowChannel(streamId, negated: negated);
 
       case _NarrowOperator.topic:
       case _NarrowOperator.subject:
@@ -189,10 +189,10 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   }
 
   if (dmElement != null) {
-    if (streamElement != null || topicElement != null) return null;
+    if (channelElement != null || topicElement != null) return null;
     return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
-  } else if (streamElement != null) {
-    final streamId = streamElement.operand;
+  } else if (channelElement != null) {
+    final streamId = channelElement.operand;
     if (topicElement != null) {
       return TopicNarrow(streamId, topicElement.operand);
     } else {
