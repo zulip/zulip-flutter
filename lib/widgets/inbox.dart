@@ -441,7 +441,7 @@ class _StreamHeaderItem extends _HeaderItem {
       pageState.collapseStream(subscription.streamId);
     }
   }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open stream narrow
+  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open channel narrow
 }
 
 class _StreamSection extends StatelessWidget {

@@ -288,7 +288,7 @@ void main() {
       check(contentController).not((it) => it.validationErrors.contains(ContentValidationError.quoteAndReplyInProgress));
     }
 
-    testWidgets('in stream narrow', (WidgetTester tester) async {
+    testWidgets('in channel narrow', (WidgetTester tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);

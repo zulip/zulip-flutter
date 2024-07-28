@@ -913,7 +913,7 @@ abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
   FocusNode get contentFocusNode;
 }
 
-/// A compose box for use in a stream narrow.
+/// A compose box for use in a channel narrow.
 ///
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.

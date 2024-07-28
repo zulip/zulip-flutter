@@ -279,30 +279,30 @@ void main() {
   });
 
   group('parseInternalLink edge cases', () {
-    void testExpectedStreamNarrow(String testCase, int? streamId) {
-      final streamNarrow = (streamId != null) ? ChannelNarrow(streamId) : null;
-      testExpectedNarrows([(testCase, streamNarrow)], streams: [
+    void testExpectedChannelNarrow(String testCase, int? streamId) {
+      final channelNarrow = (streamId != null) ? ChannelNarrow(streamId) : null;
+      testExpectedNarrows([(testCase, channelNarrow)], streams: [
         eg.stream(streamId: 1, name: "general"),
       ]);
     }
 
     group('basic', () {
-      testExpectedStreamNarrow('#narrow/stream/1-general',         1);
+      testExpectedChannelNarrow('#narrow/stream/1-general',         1);
     });
 
     group('if stream not found, use stream ID anyway', () {
-      testExpectedStreamNarrow('#narrow/stream/123-topic',         123);
+      testExpectedChannelNarrow('#narrow/stream/123-topic',         123);
     });
 
     group('on stream link with wrong name, ID wins', () {
-      testExpectedStreamNarrow('#narrow/stream/1-nonsense',        1);
-      testExpectedStreamNarrow('#narrow/stream/1-',                1);
+      testExpectedChannelNarrow('#narrow/stream/1-nonsense',        1);
+      testExpectedChannelNarrow('#narrow/stream/1-',                1);
     });
 
     group('on malformed stream link: reject', () {
-      testExpectedStreamNarrow('#narrow/stream/-1',                null);
-      testExpectedStreamNarrow('#narrow/stream/1nonsense-general', null);
-      testExpectedStreamNarrow('#narrow/stream/-general',          null);
+      testExpectedChannelNarrow('#narrow/stream/-1',                null);
+      testExpectedChannelNarrow('#narrow/stream/1nonsense-general', null);
+      testExpectedChannelNarrow('#narrow/stream/-general',          null);
     });
   });
 

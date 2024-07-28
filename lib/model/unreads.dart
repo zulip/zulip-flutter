@@ -151,7 +151,7 @@ class Unreads extends ChangeNotifier {
   /// actively unmuted.
   ///
   /// For a count that's appropriate in UI contexts that are focused
-  /// specifically on this stream, see [countInStreamNarrow].
+  /// specifically on this stream, see [countInChannelNarrow].
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInStream(int streamId) {
     final topics = streams[streamId];
@@ -174,7 +174,7 @@ class Unreads extends ChangeNotifier {
   /// For a count that's appropriate in UI contexts that are not already
   /// focused on this stream, see [countInStream].
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
-  int countInStreamNarrow(int streamId) {
+  int countInChannelNarrow(int streamId) {
     final topics = streams[streamId];
     if (topics == null) return 0;
     int c = 0;
@@ -198,7 +198,7 @@ class Unreads extends ChangeNotifier {
       case CombinedFeedNarrow():
         return countInCombinedFeedNarrow();
       case ChannelNarrow():
-        return countInStreamNarrow(narrow.streamId);
+        return countInChannelNarrow(narrow.streamId);
       case TopicNarrow():
         return countInTopicNarrow(narrow.streamId, narrow.topic);
       case DmNarrow():
