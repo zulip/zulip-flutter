@@ -7,7 +7,7 @@ import '../api/model/model.dart';
 import 'color.dart';
 
 /// A lazily-computed map from a stream's base color to a
-/// corresponding [StreamColorSwatch].
+/// corresponding [ChannelColorSwatch].
 abstract class StreamColorSwatches {
   /// The [StreamColorSwatches] for the light theme.
   static final StreamColorSwatches light = _StreamColorSwatchesLight();
@@ -15,13 +15,13 @@ abstract class StreamColorSwatches {
   /// The [StreamColorSwatches] for the dark theme.
   static final StreamColorSwatches dark = _StreamColorSwatchesDark();
 
-  final Map<int, StreamColorSwatch> _cache = {};
+  final Map<int, ChannelColorSwatch> _cache = {};
 
-  /// Gives the [StreamColorSwatch] for a [subscription.color].
-  StreamColorSwatch forBaseColor(int base) =>
+  /// Gives the [ChannelColorSwatch] for a [subscription.color].
+  ChannelColorSwatch forBaseColor(int base) =>
     _cache[base] ??= _computeForBaseColor(base);
 
-  StreamColorSwatch _computeForBaseColor(int base);
+  ChannelColorSwatch _computeForBaseColor(int base);
 
   /// Gives a [StreamColorSwatches], lerped between [a] and [b] at [t].
   ///
@@ -29,7 +29,7 @@ abstract class StreamColorSwatches {
   ///
   /// Else returns an instance whose [forBaseColor] will call
   /// [a.forBaseColor] and [b.forBaseColor]
-  /// and return [StreamColorSwatch.lerp]'s result on those.
+  /// and return [ChannelColorSwatch.lerp]'s result on those.
   /// This computation is cached on the instance
   /// in order to save work building [t]'s animation frame when there are
   /// multiple UI elements using the same [subscription.color].
@@ -49,14 +49,14 @@ class _StreamColorSwatchesLight extends StreamColorSwatches {
   _StreamColorSwatchesLight();
 
   @override
-  StreamColorSwatch _computeForBaseColor(int base) => StreamColorSwatch.light(base);
+  ChannelColorSwatch _computeForBaseColor(int base) => ChannelColorSwatch.light(base);
 }
 
 class _StreamColorSwatchesDark extends StreamColorSwatches {
   _StreamColorSwatchesDark();
 
   @override
-  StreamColorSwatch _computeForBaseColor(int base) => StreamColorSwatch.dark(base);
+  ChannelColorSwatch _computeForBaseColor(int base) => ChannelColorSwatch.dark(base);
 }
 
 class _StreamColorSwatchesLerped extends StreamColorSwatches {
@@ -67,8 +67,8 @@ class _StreamColorSwatchesLerped extends StreamColorSwatches {
   final double t;
 
   @override
-  StreamColorSwatch _computeForBaseColor(int base) =>
-    StreamColorSwatch.lerp(a.forBaseColor(base), b.forBaseColor(base), t)!;
+  ChannelColorSwatch _computeForBaseColor(int base) =>
+    ChannelColorSwatch.lerp(a.forBaseColor(base), b.forBaseColor(base), t)!;
 }
 
 
@@ -76,11 +76,11 @@ class _StreamColorSwatchesLerped extends StreamColorSwatches {
 ///
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
-class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
-  StreamColorSwatch.light(int base) : this._(base, _computeLight(base));
-  StreamColorSwatch.dark(int base) : this._(base, _computeDark(base));
+class ChannelColorSwatch extends ColorSwatch<StreamColorVariant> {
+  ChannelColorSwatch.light(int base) : this._(base, _computeLight(base));
+  ChannelColorSwatch.dark(int base) : this._(base, _computeDark(base));
 
-  const StreamColorSwatch._(int base, this._swatch) : super(base, _swatch);
+  const ChannelColorSwatch._(int base, this._swatch) : super(base, _swatch);
 
   final Map<StreamColorVariant, Color> _swatch;
 
@@ -195,7 +195,7 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
   }
 
   /// Copied from [ColorSwatch.lerp].
-  static StreamColorSwatch? lerp(StreamColorSwatch? a, StreamColorSwatch? b, double t) {
+  static ChannelColorSwatch? lerp(ChannelColorSwatch? a, ChannelColorSwatch? b, double t) {
     if (identical(a, b)) {
       return a;
     }
@@ -209,7 +209,7 @@ class StreamColorSwatch extends ColorSwatch<StreamColorVariant> {
         swatch = a._swatch.map((key, color) => MapEntry(key, Color.lerp(color, b[key], t)!));
       }
     }
-    return StreamColorSwatch._(Color.lerp(a, b, t)!.value, swatch);
+    return ChannelColorSwatch._(Color.lerp(a, b, t)!.value, swatch);
   }
 }
 

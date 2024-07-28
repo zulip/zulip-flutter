@@ -21,7 +21,7 @@ class UnreadCountBadge extends StatelessWidget {
 
   /// The badge's background color.
   ///
-  /// Pass a [StreamColorSwatch] if this badge represents messages in one
+  /// Pass a [ChannelColorSwatch] if this badge represents messages in one
   /// specific stream. The appropriate color from the swatch will be used.
   ///
   /// If null, the default neutral background will be used.
@@ -30,7 +30,7 @@ class UnreadCountBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveBackgroundColor = switch (backgroundColor) {
-      StreamColorSwatch(unreadCountBadgeBackground: var color) => color,
+      ChannelColorSwatch(unreadCountBadgeBackground: var color) => color,
       Color() => backgroundColor,
       // TODO(#95) need dark-theme color
       null => const Color.fromRGBO(102, 102, 153, 0.15),

@@ -220,10 +220,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }
 }
 
-/// The theme-appropriate [StreamColorSwatch] based on [subscription.color].
+/// The theme-appropriate [ChannelColorSwatch] based on [subscription.color].
 ///
 /// For how this value is cached, see [StreamColorSwatches.forBaseColor].
-StreamColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
+ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
   return DesignVariables.of(context)
     .streamColorSwatches.forBaseColor(subscription.color);
 }

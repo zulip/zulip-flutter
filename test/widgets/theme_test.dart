@@ -118,21 +118,21 @@ void main() {
       final element = tester.element(find.byType(Placeholder));
       // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
       check(colorSwatchFor(element, subscription))
-        .equals(StreamColorSwatch.light(baseColor));
+        .equals(ChannelColorSwatch.light(baseColor));
 
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       await tester.pump();
 
       await tester.pump(kThemeAnimationDuration * 0.4);
       check(colorSwatchFor(element, subscription))
-        .equals(StreamColorSwatch.lerp(
-          StreamColorSwatch.light(baseColor),
-          StreamColorSwatch.dark(baseColor),
+        .equals(ChannelColorSwatch.lerp(
+          ChannelColorSwatch.light(baseColor),
+          ChannelColorSwatch.dark(baseColor),
           0.4)!);
 
       await tester.pump(kThemeAnimationDuration * 0.6);
       check(colorSwatchFor(element, subscription))
-        .equals(StreamColorSwatch.dark(baseColor));
+        .equals(ChannelColorSwatch.dark(baseColor));
     });
   });
 }

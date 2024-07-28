@@ -425,9 +425,9 @@ void main() {
           check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.equals(
-            StreamColorSwatch.light(subscription.color).iconOnBarBackground);
+            ChannelColorSwatch.light(subscription.color).iconOnBarBackground);
           check(streamHeaderBackgroundColor(tester, streamId))
-            .isNotNull().equals(StreamColorSwatch.light(subscription.color).barBackground);
+            .isNotNull().equals(ChannelColorSwatch.light(subscription.color).barBackground);
           check(tester.widgetList(findSectionContent)).isNotEmpty();
         }
 
@@ -448,7 +448,7 @@ void main() {
           check(collapseIcon).icon.equals(ZulipIcons.arrow_right);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.equals(
-            StreamColorSwatch.light(subscription.color).iconOnPlainBackground);
+            ChannelColorSwatch.light(subscription.color).iconOnPlainBackground);
           check(streamHeaderBackgroundColor(tester, streamId))
             .isNotNull().equals(Colors.white);
           check(tester.widgetList(findSectionContent)).isEmpty();
@@ -481,7 +481,7 @@ void main() {
           checkAppearsUncollapsed(tester, stream.streamId, find.text('specific topic'));
 
           check(streamHeaderBackgroundColor(tester, 1))
-            .equals(StreamColorSwatch.light(initialColor).barBackground);
+            .equals(ChannelColorSwatch.light(initialColor).barBackground);
 
           final newColor = Colors.orange.value;
           store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
@@ -489,7 +489,7 @@ void main() {
           await tester.pump();
 
           check(streamHeaderBackgroundColor(tester, 1))
-            .equals(StreamColorSwatch.light(newColor).barBackground);
+            .equals(ChannelColorSwatch.light(newColor).barBackground);
         });
 
         testWidgets('collapse stream section when partially offscreen: '

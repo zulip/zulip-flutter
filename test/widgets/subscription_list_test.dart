@@ -190,7 +190,7 @@ void main() {
       UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
     ]);
     final subscription = eg.subscription(stream, color: Colors.red.value);
-    final swatch = StreamColorSwatch.light(subscription.color);
+    final swatch = ChannelColorSwatch.light(subscription.color);
     await setupStreamListPage(tester, subscriptions: [
       subscription,
     ], unreadMsgs: unreadMsgs);

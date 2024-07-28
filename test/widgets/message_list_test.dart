@@ -361,7 +361,7 @@ void main() {
 
       testWidgets('color of recipient header background', (tester) async {
         final subscription = eg.subscription(stream, color: Colors.red.value);
-        final swatch = StreamColorSwatch.light(subscription.color);
+        final swatch = ChannelColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: subscription)],
           subscriptions: [subscription]);
@@ -376,7 +376,7 @@ void main() {
       testWidgets('color of stream icon', (tester) async {
         final stream = eg.stream(isWebPublic: true);
         final subscription = eg.subscription(stream, color: Colors.red.value);
-        final swatch = StreamColorSwatch.light(subscription.color);
+        final swatch = ChannelColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: subscription)],
           subscriptions: [subscription]);
