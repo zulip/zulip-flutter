@@ -320,9 +320,9 @@ class ZulipStream {
   final bool isWebPublic; // present since 2.1, according to /api/changelog
   final bool historyPublicToSubscribers;
   final int? messageRetentionDays;
-
-  final ChannelPostPolicy streamPostPolicy;
-  // final bool isAnnouncementOnly; // deprecated for `streamPostPolicy`; ignore
+  @JsonKey(name: 'stream_post_policy')
+  final ChannelPostPolicy channelPostPolicy;
+  // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
 
   // TODO(server-6): `canRemoveSubscribersGroupId` added in FL 142
   // TODO(server-8): in FL 197 renamed to `canRemoveSubscribersGroup`
@@ -348,7 +348,7 @@ class ZulipStream {
     required this.isWebPublic,
     required this.historyPublicToSubscribers,
     required this.messageRetentionDays,
-    required this.streamPostPolicy,
+    required this.channelPostPolicy,
     required this.canRemoveSubscribersGroup,
     required this.streamWeeklyTraffic,
   });
@@ -419,7 +419,7 @@ class Subscription extends ZulipStream {
     required super.isWebPublic,
     required super.historyPublicToSubscribers,
     required super.messageRetentionDays,
-    required super.streamPostPolicy,
+    required super.channelPostPolicy,
     required super.canRemoveSubscribersGroup,
     required super.streamWeeklyTraffic,
     required this.desktopNotifications,

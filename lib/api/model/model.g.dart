@@ -175,7 +175,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       isWebPublic: json['is_web_public'] as bool,
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
-      streamPostPolicy:
+      channelPostPolicy:
           $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
       canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
               json, 'can_remove_subscribers_group') as num?)
@@ -195,7 +195,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
-      'stream_post_policy': instance.streamPostPolicy,
+      'stream_post_policy': instance.channelPostPolicy,
       'can_remove_subscribers_group': instance.canRemoveSubscribersGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
@@ -219,7 +219,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       isWebPublic: json['is_web_public'] as bool,
       historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
       messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
-      streamPostPolicy:
+      channelPostPolicy:
           $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
       canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
               json, 'can_remove_subscribers_group') as num?)
@@ -247,7 +247,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
-      'stream_post_policy': instance.streamPostPolicy,
+      'stream_post_policy': instance.channelPostPolicy,
       'can_remove_subscribers_group': instance.canRemoveSubscribersGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
       'desktop_notifications': instance.desktopNotifications,
