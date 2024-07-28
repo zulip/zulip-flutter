@@ -126,6 +126,9 @@ void main() {
       required bool expectedIsGroupConversation,
       List<int>? expectedIconBitmap = kSolidBlueAvatar,
     }) {
+      assert(messageStyleMessages.every((e) => e.userId == data.userId));
+      assert(messageStyleMessages.every((e) => e.realmUri == data.realmUri));
+
       final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
       final expectedGroupKey = '${data.realmUri}|${data.userId}';
       final expectedId =
@@ -136,9 +139,6 @@ void main() {
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
-          assert(messageData.realmUri == data.realmUri);
-          assert(messageData.userId == data.userId);
-
           final expectedSenderKey =
             '${messageData.realmUri}|${messageData.senderId}';
           final isLast = i == (messageStyleMessages.length - 1);
