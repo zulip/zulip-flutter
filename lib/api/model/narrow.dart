@@ -34,14 +34,14 @@ sealed class ApiNarrowElement {
   };
 }
 
-class ApiNarrowStream extends ApiNarrowElement {
+class ApiNarrowChannel extends ApiNarrowElement {
   @override String get operator => 'stream';
 
   @override final int operand;
 
-  ApiNarrowStream(this.operand, {super.negated});
+  ApiNarrowChannel(this.operand, {super.negated});
 
-  factory ApiNarrowStream.fromJson(Map<String, dynamic> json) => ApiNarrowStream(
+  factory ApiNarrowChannel.fromJson(Map<String, dynamic> json) => ApiNarrowChannel(
     json['operand'] as int,
     negated: json['negated'] as bool? ?? false,
   );

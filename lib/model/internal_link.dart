@@ -70,7 +70,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
     fragment.write('${element.operator}/');
 
     switch (element) {
-      case ApiNarrowStream():
+      case ApiNarrowChannel():
         final streamId = element.operand;
         final name = store.streams[streamId]?.name ?? 'unknown';
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
@@ -149,7 +149,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   assert(segments.isNotEmpty);
   assert(segments.length.isEven);
 
-  ApiNarrowStream? streamElement;
+  ApiNarrowChannel? streamElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
 
@@ -163,7 +163,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (streamElement != null) return null;
         final streamId = _parseStreamOperand(operand, store);
         if (streamId == null) return null;
-        streamElement = ApiNarrowStream(streamId, negated: negated);
+        streamElement = ApiNarrowChannel(streamId, negated: negated);
 
       case _NarrowOperator.topic:
       case _NarrowOperator.subject:
