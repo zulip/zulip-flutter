@@ -6,7 +6,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import '../api/model/model.dart';
 import 'color.dart';
 
-/// A lazily-computed map from a stream's base color to a
+/// A lazily-computed map from a channel's base color to a
 /// corresponding [ChannelColorSwatch].
 abstract class ChannelColorSwatches {
   /// The [ChannelColorSwatches] for the light theme.
@@ -72,7 +72,7 @@ class _ChannelColorSwatchesLerped extends ChannelColorSwatches {
 }
 
 
-/// A [ColorSwatch] with colors related to a base stream color.
+/// A [ColorSwatch] with colors related to a base channel color.
 ///
 /// Use this in UI code for colors related to [Subscription.color],
 /// such as the background of an unread count badge.
@@ -89,22 +89,22 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
 
   Color get unreadCountBadgeBackground => this[ChannelColorVariant.unreadCountBadgeBackground]!;
 
-  /// The stream icon on a plain-colored surface, such as white.
+  /// The channel icon on a plain-colored surface, such as white.
   ///
   /// For the icon on a [barBackground]-colored surface,
   /// use [iconOnBarBackground] instead.
   Color get iconOnPlainBackground => this[ChannelColorVariant.iconOnPlainBackground]!;
 
-  /// The stream icon on a [barBackground]-colored surface.
+  /// The channel icon on a [barBackground]-colored surface.
   ///
   /// For the icon on a plain surface, use [iconOnPlainBackground] instead.
   /// This color is chosen to enhance contrast with [barBackground]:
   ///   <https://github.com/zulip/zulip/pull/27485>
   Color get iconOnBarBackground => this[ChannelColorVariant.iconOnBarBackground]!;
 
-  /// The background color of a bar representing a stream, like a recipient bar.
+  /// The background color of a bar representing a channel, like a recipient bar.
   ///
-  /// Use this in the message list, the "Inbox" view, and the "Streams" view.
+  /// Use this in the message list, the "Inbox" view, and the "Channels" view.
   Color get barBackground => this[ChannelColorVariant.barBackground]!;
 
   static Map<ChannelColorVariant, Color> _computeLight(int base) {
