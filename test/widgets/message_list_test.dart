@@ -1019,20 +1019,25 @@ void main() {
 
     testWidgets('edit state updates do not affect layout', (WidgetTester tester) async {
       final messages = [
-        eg.streamMessage(),
+        eg.streamMessage(topic: 'orig'),
         eg.streamMessage(
+          topic: 'orig',
           reactions: [eg.unicodeEmojiReaction, eg.realmEmojiReaction],
           flags: [MessageFlag.starred]),
-        eg.streamMessage(),
+        eg.streamMessage(topic: 'orig'),
       ];
       final StreamMessage messageWithMarker = messages[1];
       await setupMessageListPage(tester, messages: messages);
       final rectsBefore = captureMessageRects(tester, messages, messageWithMarker);
       checkMarkersCount(edited: 0, moved: 0);
 
-      // TODO(#150): [messageWithMarker]'s topic in store is inconsistent with the event. This will be fixed soon.
-      await store.handleEvent(eg.updateMessageEventMoveTo(
-        origTopic: 'old', newMessages: [messageWithMarker]));
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: [store.messages[messageWithMarker.id] as StreamMessage],
+        newTopic: 'new'));
+      await tester.pump();
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: [store.messages[messageWithMarker.id] as StreamMessage],
+        newTopic: 'orig'));
       await tester.pump();
       check(captureMessageRects(tester, messages, messageWithMarker))
         .deepEquals(rectsBefore);
