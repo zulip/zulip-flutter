@@ -229,7 +229,8 @@ class UnreadMessagesSnapshot {
   @JsonKey(name: 'pms')
   final List<UnreadDmSnapshot> dms;
 
-  final List<UnreadChannelSnapshot> streams;
+  @JsonKey(name: 'streams')
+  final List<UnreadChannelSnapshot> channels;
   final List<UnreadHuddleSnapshot> huddles;
 
   // Unlike other lists of message IDs here, [mentions] is *not* sorted.
@@ -240,7 +241,7 @@ class UnreadMessagesSnapshot {
   const UnreadMessagesSnapshot({
     required this.count,
     required this.dms,
-    required this.streams,
+    required this.channels,
     required this.huddles,
     required this.mentions,
     required this.oldUnreadsMissing,
@@ -275,7 +276,7 @@ class UnreadDmSnapshot {
   Map<String, dynamic> toJson() => _$UnreadDmSnapshotToJson(this);
 }
 
-/// An item in [UnreadMessagesSnapshot.streams].
+/// An item in [UnreadMessagesSnapshot.channels].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnreadChannelSnapshot {
   final String topic;

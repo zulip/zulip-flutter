@@ -199,7 +199,7 @@ UnreadMessagesSnapshot _$UnreadMessagesSnapshotFromJson(
       dms: (json['pms'] as List<dynamic>)
           .map((e) => UnreadDmSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
-      streams: (json['streams'] as List<dynamic>)
+      channels: (json['streams'] as List<dynamic>)
           .map((e) => UnreadChannelSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
       huddles: (json['huddles'] as List<dynamic>)
@@ -216,7 +216,7 @@ Map<String, dynamic> _$UnreadMessagesSnapshotToJson(
     <String, dynamic>{
       'count': instance.count,
       'pms': instance.dms,
-      'streams': instance.streams,
+      'streams': instance.channels,
       'huddles': instance.huddles,
       'mentions': instance.mentions,
       'old_unreads_missing': instance.oldUnreadsMissing,

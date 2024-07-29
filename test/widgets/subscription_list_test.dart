@@ -146,7 +146,7 @@ void main() {
 
   testWidgets('unread badge shows with unreads', (tester) async {
     final stream = eg.stream();
-    final unreadMsgs = eg.unreadMsgs(streams: [
+    final unreadMsgs = eg.unreadMsgs(channels: [
       UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
     ]);
     await setupStreamListPage(tester, subscriptions: [
@@ -157,7 +157,7 @@ void main() {
 
   testWidgets('unread badge counts unmuted only', (tester) async {
     final stream = eg.stream();
-    final unreadMsgs = eg.unreadMsgs(streams: [
+    final unreadMsgs = eg.unreadMsgs(channels: [
       UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
       UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
     ]);
@@ -177,7 +177,7 @@ void main() {
 
   testWidgets('unread badge does not show with no unreads', (tester) async {
     final stream = eg.stream();
-    final unreadMsgs = eg.unreadMsgs(streams: []);
+    final unreadMsgs = eg.unreadMsgs(channels: []);
     await setupStreamListPage(tester, subscriptions: [
       eg.subscription(stream),
     ], unreadMsgs: unreadMsgs);
@@ -186,7 +186,7 @@ void main() {
 
   testWidgets('color propagates to icon and badge', (tester) async {
     final stream = eg.stream();
-    final unreadMsgs = eg.unreadMsgs(streams: [
+    final unreadMsgs = eg.unreadMsgs(channels: [
       UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
     ]);
     final subscription = eg.subscription(stream, color: Colors.red.value);
@@ -224,7 +224,7 @@ void main() {
         eg.userTopicItem(stream1, 'a', UserTopicVisibilityPolicy.unmuted),
         eg.userTopicItem(stream2, 'b', UserTopicVisibilityPolicy.unmuted),
       ],
-      unreadMsgs: eg.unreadMsgs(streams: [
+      unreadMsgs: eg.unreadMsgs(channels: [
         UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
         UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [3]),
       ]),

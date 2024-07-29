@@ -45,10 +45,10 @@ class Unreads extends ChangeNotifier {
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
-    for (final unreadStreamSnapshot in initial.streams) {
-      final streamId = unreadStreamSnapshot.streamId;
-      final topic = unreadStreamSnapshot.topic;
-      (streams[streamId] ??= {})[topic] = QueueList.from(unreadStreamSnapshot.unreadMessageIds);
+    for (final unreadChannelSnapshot in initial.channels) {
+      final streamId = unreadChannelSnapshot.streamId;
+      final topic = unreadChannelSnapshot.topic;
+      (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
     }
 
     for (final unreadDmSnapshot in initial.dms) {

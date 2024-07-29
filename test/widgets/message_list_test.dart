@@ -865,7 +865,7 @@ void main() {
 
     testWidgets('from unread to read', (WidgetTester tester) async {
       final message = eg.streamMessage(flags: []);
-      final unreadMsgs = eg.unreadMsgs(streams:[
+      final unreadMsgs = eg.unreadMsgs(channels:[
         UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
       ]);
       await setupMessageListPage(tester, messages: [message], unreadMsgs: unreadMsgs);
@@ -883,7 +883,7 @@ void main() {
 
     testWidgets("messages don't shift position", (WidgetTester tester) async {
       final message = eg.streamMessage(flags: []);
-      final unreadMsgs = eg.unreadMsgs(streams:[
+      final unreadMsgs = eg.unreadMsgs(channels:[
         UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId,
           unreadMessageIds: [message.id])
       ]);
@@ -912,7 +912,7 @@ void main() {
       // and a couple of smoke tests showing this button is wired up to it.
 
       final message = eg.streamMessage(flags: []);
-      final unreadMsgs = eg.unreadMsgs(streams: [
+      final unreadMsgs = eg.unreadMsgs(channels: [
         UnreadChannelSnapshot(streamId: message.streamId, topic: message.topic,
           unreadMessageIds: [message.id]),
       ]);

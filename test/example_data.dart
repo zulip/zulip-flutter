@@ -396,7 +396,7 @@ DmMessage dmMessage({
 UnreadMessagesSnapshot unreadMsgs({
   int? count,
   List<UnreadDmSnapshot>? dms,
-  List<UnreadChannelSnapshot>? streams,
+  List<UnreadChannelSnapshot>? channels,
   List<UnreadHuddleSnapshot>? huddles,
   List<int>? mentions,
   bool? oldUnreadsMissing,
@@ -404,7 +404,7 @@ UnreadMessagesSnapshot unreadMsgs({
   return UnreadMessagesSnapshot(
     count: count ?? 0,
     dms: dms ?? [],
-    streams: streams ?? [],
+    channels: channels ?? [],
     huddles: huddles ?? [],
     mentions: mentions ?? [],
     oldUnreadsMissing: oldUnreadsMissing ?? false,

@@ -30,7 +30,7 @@ void main() {
   void prepare({
     UnreadMessagesSnapshot initial = const UnreadMessagesSnapshot(
       count: 0,
-      streams: [],
+      channels: [],
       dms: [],
       huddles: [],
       mentions: [],
@@ -113,7 +113,7 @@ void main() {
 
       prepare(initial: UnreadMessagesSnapshot(
         count: 0,
-        streams: [
+        channels: [
           UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
           UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
           UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
