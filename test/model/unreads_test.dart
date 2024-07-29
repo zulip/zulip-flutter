@@ -827,7 +827,7 @@ void main() {
     });
 
     group('mark as unread', () {
-      mkEvent(Iterable<Message> messages) =>
+      UpdateMessageFlagsEvent mkEvent(Iterable<Message> messages) =>
         eg.updateMessageFlagsRemoveEvent(MessageFlag.read, messages);
 
       test('usual cases', () {
