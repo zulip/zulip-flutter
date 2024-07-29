@@ -7,7 +7,7 @@ import 'model_checks.dart';
 void main() {
   group('Reactions', () {
     // helper to cut out "it()..isA<ReactionWithVotes>()" goo for callers
-    matchesReactions(List<Reaction> reactions) {
+    Condition<Object?> matchesReactions(List<Reaction> reactions) {
       return (Subject<Object?> it) => it.isA<ReactionWithVotes>().matchesReactions(reactions);
     }
 
