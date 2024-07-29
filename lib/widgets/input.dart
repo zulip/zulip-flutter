@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// A space to use for [InputDecoration.helperText] so the layout doesn't jump.
 ///

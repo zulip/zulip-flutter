@@ -1,5 +1,5 @@
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'stream_colors.dart';
 import 'text.dart';
