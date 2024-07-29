@@ -5,7 +5,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
