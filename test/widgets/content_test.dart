@@ -79,6 +79,10 @@ TextStyle? mergedStyleOfSubstring(InlineSpan rootSpan, Pattern substringPattern)
     });
 }
 
+/// A callback that finds some target subspan within the given span,
+/// and reports the target's font size.
+typedef TargetFontSizeFinder = double Function(InlineSpan rootSpan);
+
 void main() {
   // For testing a new content feature:
   //
@@ -495,9 +499,9 @@ void main() {
 
   testContentSmoke(ContentExample.mathBlock);
 
-  /// Make a [targetFontSizeFinder] for [checkFontSizeRatio],
+  /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
   /// from a target [Pattern] (such as a string).
-  mkTargetFontSizeFinderFromPattern(Pattern targetPattern)
+  TargetFontSizeFinder mkTargetFontSizeFinderFromPattern(Pattern targetPattern)
     => (InlineSpan rootSpan)
     => mergedStyleOfSubstring(rootSpan, targetPattern)!.fontSize!;
 
@@ -512,7 +516,7 @@ void main() {
   /// in [GlobalTime].)
   Future<void> checkFontSizeRatio(WidgetTester tester, {
     required String targetHtml,
-    required double Function(InlineSpan rootSpan) targetFontSizeFinder,
+    required TargetFontSizeFinder targetFontSizeFinder,
   }) async {
     await prepareContent(tester, plainContent(
       '<h1>header-plain $targetHtml</h1>\n'
