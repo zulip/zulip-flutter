@@ -483,5 +483,13 @@
   "notifSelfUser": "You",
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "messageIsEdited": "Edited",
+  "@messageIsEdited": {
+    "description": "Text that appears on a marker next to an edited message."
+  },
+  "messageIsMoved": "Moved",
+  "@messageIsMoved": {
+    "description": "Text that appears on a marker next to a moved message."
   }
 }
