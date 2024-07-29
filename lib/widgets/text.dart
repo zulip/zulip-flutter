@@ -73,7 +73,7 @@ Typography zulipTypography(BuildContext context) {
     // Set [TextStyle.debugLabel] for all styles, like:
     //   "zulipTypography black titleMedium"
 
-    mkAddLabel(String debugTextThemeLabel)
+    TextStyleConverter mkAddLabel(String debugTextThemeLabel)
       => (TextStyle? maybeInputStyle, String debugStyleLabel)
       => maybeInputStyle?.copyWith(debugLabel: '$debugTextThemeLabel $debugStyleLabel');
 
@@ -119,9 +119,11 @@ TextTheme _weightVariableTextTheme(BuildContext context, TextTheme input) {
   return _convertTextTheme(input, convert);
 }
 
+typedef TextStyleConverter = TextStyle? Function(TextStyle?, String debugStyleLabel);
+
 TextTheme _convertTextTheme(
   TextTheme input,
-  TextStyle? Function(TextStyle?, String debugStyleLabel) converter,
+  TextStyleConverter converter,
 ) => TextTheme(
   displayLarge:   converter(input.displayLarge,   'displayLarge'),
   displayMedium:  converter(input.displayMedium,  'displayMedium'),
