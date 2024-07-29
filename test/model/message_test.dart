@@ -345,7 +345,7 @@ void main() {
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
 
-      test('message stream moved update', () async {
+      test('message stream moved without topic change', () async {
         await prepareOrigMessages(origTopic: 'topic');
         await store.handleEvent(eg.updateMessageMoveEvent(
           origMessages,
