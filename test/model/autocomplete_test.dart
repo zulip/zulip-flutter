@@ -16,9 +16,11 @@ import '../example_data.dart' as eg;
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
+typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
+
 void main() {
   group('ComposeContentController.autocompleteIntent', () {
-    parseMarkedText(String markedText) {
+    MarkedTextParse parseMarkedText(String markedText) {
       final TextSelection selection;
       int? expectedSyntaxStart;
       final textBuffer = StringBuffer();
