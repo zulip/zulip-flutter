@@ -45,7 +45,7 @@ void main() {
     group('insertPadded', () {
       // Like `parseMarkedText` in test/model/autocomplete_test.dart,
       //   but a bit different -- could maybe deduplicate some.
-      parseMarkedText(String markedText) {
+      TextEditingValue parseMarkedText(String markedText) {
         final textBuffer = StringBuffer();
         int? insertionPoint;
         int i = 0;
@@ -70,7 +70,7 @@ void main() {
       ///
       /// In valueBefore, represent the insertion point as "^".
       /// In expectedValue, represent the collapsed selection as "^".
-      testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
+      void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
         test(description, () {
           final controller = ComposeContentController();
           controller.value = parseMarkedText(valueBefore);

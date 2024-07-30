@@ -27,7 +27,7 @@ void main() {
   group('ServerUrlTextEditingController.tryParse', () {
     final controller = ServerUrlTextEditingController();
 
-    expectUrlFromText(String text, String expectedUrl) {
+    void expectUrlFromText(String text, String expectedUrl) {
       test('text "$text" gives URL "$expectedUrl"', () {
         controller.text = text;
         final result = controller.tryParse();
@@ -36,7 +36,7 @@ void main() {
       });
     }
 
-    expectErrorFromText(String text, ServerUrlValidationError expectedError) {
+    void expectErrorFromText(String text, ServerUrlValidationError expectedError) {
       test('text "$text" gives error "$expectedError"', () {
         controller.text = text;
         final result = controller.tryParse();

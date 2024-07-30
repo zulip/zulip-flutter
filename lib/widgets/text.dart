@@ -39,7 +39,7 @@ import 'package:flutter/material.dart';
 Typography zulipTypography(BuildContext context) {
   final typography = Theme.of(context).typography;
 
-  convertGeometry(TextTheme inputTextTheme) {
+  TextTheme convertGeometry(TextTheme inputTextTheme) {
     TextTheme result = _weightVariableTextTheme(context, inputTextTheme);
 
     result = _convertTextTheme(result, (maybeInputStyle, _) =>

@@ -41,7 +41,7 @@ void main() {
     });
 
     group('message event (new message)', () {
-      setupView() {
+      RecentDmConversationsView setupView() {
         return RecentDmConversationsView(selfUserId: eg.selfUser.userId,
           initial: [
             RecentDmConversation(userIds: [1],    maxMessageId: 200),

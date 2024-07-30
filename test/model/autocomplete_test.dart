@@ -66,7 +66,7 @@ void main() {
     ///
     /// For example, "~@chris^" means the text is "@chris", the selection is
     /// collapsed at index 6, and we expect the syntax to start at index 0.
-    doTest(String markedText, MentionAutocompleteQuery? expectedQuery) {
+    void doTest(String markedText, MentionAutocompleteQuery? expectedQuery) {
       final description = expectedQuery != null
         ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
         : 'no query in ${jsonEncode(markedText)}';
@@ -311,7 +311,7 @@ void main() {
   });
 
   group('MentionAutocompleteQuery.testUser', () {
-    doCheck(String rawQuery, User user, bool expected) {
+    void doCheck(String rawQuery, User user, bool expected) {
       final result = MentionAutocompleteQuery(rawQuery)
         .testUser(user, AutocompleteDataCache());
       expected ? check(result).isTrue() : check(result).isFalse();
