@@ -307,7 +307,7 @@ void main() {
   });
 
   test('wghtFromTextStyle', () {
-    doCheck(TextStyle style, double? expected) {
+    void doCheck(TextStyle style, double? expected) {
       check(wghtFromTextStyle(style)).equals(expected);
     }
 
