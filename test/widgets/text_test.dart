@@ -33,11 +33,11 @@ void main() {
       return result;
     }
 
-    matchesFontFamilies(Subject<TextStyle> it) => it
+    void matchesFontFamilies(Subject<TextStyle> it) => it
       ..fontFamily.equals(kDefaultFontFamily)
       ..fontFamilyFallback.isNotNull().deepEquals(defaultFontFamilyFallback);
 
-    matchesWeight(FontWeight weight) => (Subject<TextStyle> it) => it
+    Condition<TextStyle> matchesWeight(FontWeight weight) => (Subject<TextStyle> it) => it
       ..fontWeight.equals(weight)
       ..fontVariations.isNotNull().contains(
           FontVariation('wght', wghtFromFontWeight(weight)));
