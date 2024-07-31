@@ -34,8 +34,7 @@ class UnreadCountBadge extends StatelessWidget {
     final effectiveBackgroundColor = switch (backgroundColor) {
       ChannelColorSwatch(unreadCountBadgeBackground: var color) => color,
       Color() => backgroundColor,
-      // TODO(#95) need dark-theme color
-      null => const Color.fromRGBO(102, 102, 153, 0.15),
+      null => designVariables.bgCounterUnread,
     };
 
     return DecoratedBox(
@@ -50,13 +49,9 @@ class UnreadCountBadge extends StatelessWidget {
             fontSize: 16,
             height: (18 / 16),
             fontFeatures: const [FontFeature.enable('smcp')], // small caps
-
-            // From the Figma:
-            //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=171-12359&mode=design&t=JKrw76SGUF51nSJG-0
-            // TODO(#95) need dark-theme color
             color: backgroundColor is ChannelColorSwatch
               ? designVariables.unreadCountBadgeTextForChannel
-              : const Color(0xFF222222),
+              : designVariables.labelCounterUnread,
           ).merge(weightVariableTextStyle(context,
               wght: bold ? 600 : null)),
           count.toString())));

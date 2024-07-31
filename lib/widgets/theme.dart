@@ -129,9 +129,11 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.light() :
     this._(
+      bgCounterUnread: const Color(0xff666699).withOpacity(0.15),
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: const Color(0x33000000),
       icon: const Color(0xff666699),
+      labelCounterUnread: const Color(0xff222222),
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
@@ -143,9 +145,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   DesignVariables.dark() :
     this._(
+      bgCounterUnread: const Color(0xff666699).withOpacity(0.37),
       bgTopBar: const Color(0xff242424),
       borderBar: Colors.black.withOpacity(0.41),
       icon: const Color(0xff7070c2),
+      labelCounterUnread: const Color(0xffffffff).withOpacity(0.7),
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
@@ -157,9 +161,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     );
 
   DesignVariables._({
+    required this.bgCounterUnread,
     required this.bgTopBar,
     required this.borderBar,
     required this.icon,
+    required this.labelCounterUnread,
     required this.mainBackground,
     required this.title,
     required this.channelColorSwatches,
@@ -179,9 +185,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     return extension!;
   }
 
+  final Color bgCounterUnread;
   final Color bgTopBar;
   final Color borderBar;
   final Color icon;
+  final Color labelCounterUnread;
   final Color mainBackground;
   final Color title;
 
@@ -196,9 +204,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   @override
   DesignVariables copyWith({
+    Color? bgCounterUnread,
     Color? bgTopBar,
     Color? borderBar,
     Color? icon,
+    Color? labelCounterUnread,
     Color? mainBackground,
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
@@ -208,9 +218,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? unreadCountBadgeTextForChannel,
   }) {
     return DesignVariables._(
+      bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       icon: icon ?? this.icon,
+      labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
@@ -227,9 +239,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       return this;
     }
     return DesignVariables._(
+      bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
+      labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
