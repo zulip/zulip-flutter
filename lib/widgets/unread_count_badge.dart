@@ -1,8 +1,8 @@
-
 import 'package:flutter/widgets.dart';
 
 import 'channel_colors.dart';
 import 'text.dart';
+import 'theme.dart';
 
 /// A widget to display a given number of unreads in a conversation.
 ///
@@ -29,6 +29,8 @@ class UnreadCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
     final effectiveBackgroundColor = switch (backgroundColor) {
       ChannelColorSwatch(unreadCountBadgeBackground: var color) => color,
       Color() => backgroundColor,
@@ -44,22 +46,17 @@ class UnreadCountBadge extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 1),
         child: Text(
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             height: (18 / 16),
-            fontFeatures: [FontFeature.enable('smcp')], // small caps
+            fontFeatures: const [FontFeature.enable('smcp')], // small caps
 
             // From the Figma:
             //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=171-12359&mode=design&t=JKrw76SGUF51nSJG-0
-            // TODO or, when background is stream-colored, follow Vlad's replit?
-            //     https://replit.com/@VladKorobov/zulip-sidebar#script.js
-            //   which would mean:
-            //   - in light mode use `Color.fromRGBO(0, 0, 0, 0.9)`
-            //   - in dark mode use `Color.fromRGBO(255, 255, 255, 0.9)`
-            //   The web app doesn't (yet?) use stream-colored unread markers
-            //   so we can't take direction from there.
             // TODO(#95) need dark-theme color
-            color: Color(0xFF222222),
+            color: backgroundColor is ChannelColorSwatch
+              ? designVariables.unreadCountBadgeTextForChannel
+              : const Color(0xFF222222),
           ).merge(weightVariableTextStyle(context,
               wght: bold ? 600 : null)),
           count.toString())));

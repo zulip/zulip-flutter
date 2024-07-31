@@ -138,6 +138,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      unreadCountBadgeTextForChannel: Colors.black.withOpacity(0.9),
     );
 
   DesignVariables.dark() :
@@ -152,6 +153,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: const Color(0xffa8a8a8),
       // TODO(#95) unchanged in dark theme?
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      unreadCountBadgeTextForChannel: Colors.white.withOpacity(0.9),
     );
 
   DesignVariables._({
@@ -164,6 +166,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.loginOrDivider,
     required this.loginOrDividerText,
     required this.star,
+    required this.unreadCountBadgeTextForChannel,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -189,6 +192,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color loginOrDivider; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color star;
+  final Color unreadCountBadgeTextForChannel;
 
   @override
   DesignVariables copyWith({
@@ -201,6 +205,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? loginOrDivider,
     Color? loginOrDividerText,
     Color? star,
+    Color? unreadCountBadgeTextForChannel,
   }) {
     return DesignVariables._(
       bgTopBar: bgTopBar ?? this.bgTopBar,
@@ -212,6 +217,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       star: star ?? this.star,
+      unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
     );
   }
 
@@ -230,6 +236,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       star: Color.lerp(star, other.star, t)!,
+      unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
     );
   }
 }
