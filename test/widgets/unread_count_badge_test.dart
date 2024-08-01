@@ -5,20 +5,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
+import '../model/binding.dart';
+import 'test_app.dart';
+
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('UnreadCountBadge', () {
     testWidgets('smoke test; no crash', (tester) async {
-      await tester.pumpWidget(
-        const Directionality(textDirection: TextDirection.ltr,
-          child: UnreadCountBadge(count: 1, backgroundColor: null)));
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(const TestZulipApp(
+        child: UnreadCountBadge(count: 1, backgroundColor: null)));
+      await tester.pump();
       tester.widget(find.text("1"));
     });
 
     group('background', () {
       Future<void> prepare(WidgetTester tester, Color? backgroundColor) async {
-        await tester.pumpWidget(
-          Directionality(textDirection: TextDirection.ltr,
-            child: UnreadCountBadge(count: 1, backgroundColor: backgroundColor)));
+        addTearDown(testBinding.reset);
+        await tester.pumpWidget(TestZulipApp(
+          child: UnreadCountBadge(count: 1, backgroundColor: backgroundColor)));
+        await tester.pump();
       }
 
       Color? findBackgroundColor(WidgetTester tester) {
