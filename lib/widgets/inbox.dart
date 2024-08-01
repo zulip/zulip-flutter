@@ -245,9 +245,11 @@ abstract class _HeaderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
     return Material(
-      // TODO(#95) need dark-theme color
-      color: collapsed ? Colors.white : uncollapsedBackgroundColor(context),
+      color: collapsed
+        ? designVariables.background // TODO(design) check if this is the right variable
+        : uncollapsedBackgroundColor(context),
       child: InkWell(
         // TODO use onRowTap to handle taps that are not on the collapse button.
         //   Probably we should give the collapse button a 44px or 48px square
@@ -258,8 +260,7 @@ abstract class _HeaderItem extends StatelessWidget {
         onTap: onCollapseButtonTap,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Padding(padding: const EdgeInsets.all(10),
-            // TODO(#95) need dark-theme color
-            child: Icon(size: 20, color: const Color(0x7F1D2E48),
+            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
               collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
           Icon(size: 18,
             color: collapsed
@@ -270,11 +271,11 @@ abstract class _HeaderItem extends StatelessWidget {
           Expanded(child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Text(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 height: (20 / 17),
-                // TODO(#95) need dark-theme color
-                color: Color(0xFF222222),
+                // TODO(design) check if this is the right variable
+                color: designVariables.labelMenuButton,
               ).merge(weightVariableTextStyle(context, wght: 600)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -302,9 +303,9 @@ class _AllDmsHeaderItem extends _HeaderItem {
   @override String get title => 'Direct messages'; // TODO(i18n)
   @override IconData get icon => ZulipIcons.user;
 
-  // TODO(#95) need dark-theme colors
-  @override Color collapsedIconColor(context) => const Color(0xFF222222);
-  @override Color uncollapsedIconColor(context) => const Color(0xFF222222);
+  // TODO(design) check if this is the right variable for these
+  @override Color collapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
+  @override Color uncollapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
 
   @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
   @override Color? unreadCountBadgeBackgroundColor(context) => null;
@@ -368,6 +369,8 @@ class _DmItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
 
+    final designVariables = DesignVariables.of(context);
+
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
       [] => selfUser.fullName,
       [var otherUserId] => store.users[otherUserId]?.fullName ?? '(unknown user)',
@@ -379,8 +382,7 @@ class _DmItem extends StatelessWidget {
     };
 
     return Material(
-      // TODO(#95) need dark-theme color
-      color: Colors.white,
+      color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
           Navigator.push(context,
@@ -392,11 +394,11 @@ class _DmItem extends StatelessWidget {
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
-                  // TODO(#95) need dark-theme color
-                  color: Color(0xFF222222),
+                  // TODO(design) check if this is the right variable
+                  color: designVariables.labelMenuButton,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -501,9 +503,10 @@ class _TopicItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[streamId]!;
 
+    final designVariables = DesignVariables.of(context);
+
     return Material(
-      // TODO(#95) need dark-theme color
-      color: Colors.white,
+      color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
@@ -516,11 +519,11 @@ class _TopicItem extends StatelessWidget {
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
-                  // TODO(#95) need dark-theme color
-                  color: Color(0xFF222222),
+                  // TODO(design) check if this is the right variable
+                  color: designVariables.labelMenuButton,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -538,15 +541,13 @@ class _TopicItem extends StatelessWidget {
 class _AtMentionMarker extends StatelessWidget {
   const _AtMentionMarker();
 
-  // TODO(#95) need dark-theme color
-  static final markerColor = const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor();
-
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
     // Design for at-mention marker based on Figma screen:
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: 4),
-      child: Icon(ZulipIcons.at_sign, size: 14, color: markerColor));
+      child: Icon(ZulipIcons.at_sign, size: 14, color: designVariables.atMentionMarker));
   }
 }
