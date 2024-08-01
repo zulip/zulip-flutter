@@ -6,6 +6,7 @@ import 'package:zulip/api/model/widget.dart';
 
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
+import '../../test_log.dart';
 import 'model_checks.dart';
 import 'widget_checks.dart';
 
@@ -163,20 +164,22 @@ void main() {
         .poll.isNull();
     });
 
-    test('handle malformed poll events', () {
-      check(Message.fromJson(
-        (deepToJson(eg.streamMessage(
-          id: 123,
-          sender: eg.selfUser,
-        )) as Map<String, Object?>)..['submessages'] = deepToJson([
-          eg.submessage(messageId: 123, content: eg.pollWidgetDataFavoriteLetter),
-          eg.submessage(messageId: 123, content: {
-            // Required field 'key' is missing
-            'type': 'vote',
-            'op': 1,
-          }),
-        ])
-      )).poll.isNull();
+    test('handle malformed poll events', () async {
+      (await checkLogs(() {
+        check(Message.fromJson(
+          (deepToJson(eg.streamMessage(
+            id: 123,
+            sender: eg.selfUser,
+          )) as Map<String, Object?>)..['submessages'] = deepToJson([
+            eg.submessage(messageId: 123, content: eg.pollWidgetDataFavoriteLetter),
+            eg.submessage(messageId: 123, content: {
+              // Required field 'key' is missing
+              'type': 'vote',
+              'op': 1,
+            }),
+          ])
+        )).poll.isNull();
+      })).single.contains('Malformed data of widget type WidgetType.poll');
     });
 
     test('no poll if submessages is empty', () {
