@@ -139,6 +139,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
@@ -157,6 +158,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       loginOrDivider: const Color(0xff424242),
       loginOrDividerText: const Color(0xffa8a8a8),
       // TODO(#95) unchanged in dark theme?
@@ -175,6 +177,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.mainBackground,
     required this.title,
     required this.channelColorSwatches,
+    required this.dmHeaderBg,
     required this.loginOrDivider,
     required this.loginOrDividerText,
     required this.star,
@@ -205,6 +208,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final ChannelColorSwatches channelColorSwatches;
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
+  final Color dmHeaderBg;
   final Color loginOrDivider; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color star;
@@ -222,6 +226,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? mainBackground,
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
+    Color? dmHeaderBg,
     Color? loginOrDivider,
     Color? loginOrDividerText,
     Color? star,
@@ -238,6 +243,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
+      dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       star: star ?? this.star,
@@ -261,6 +267,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
+      dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       star: Color.lerp(star, other.star, t)!,

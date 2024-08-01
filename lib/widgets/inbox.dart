@@ -306,7 +306,7 @@ class _AllDmsHeaderItem extends _HeaderItem {
   @override Color collapsedIconColor(context) => const Color(0xFF222222);
   @override Color uncollapsedIconColor(context) => const Color(0xFF222222);
 
-  @override Color uncollapsedBackgroundColor(context) => const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor();
+  @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
   @override Color? unreadCountBadgeBackgroundColor(context) => null;
 
   @override Future<void> onCollapseButtonTap() async {
