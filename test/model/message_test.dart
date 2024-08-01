@@ -13,6 +13,7 @@ import '../api/model/model_checks.dart';
 import '../api/model/widget_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
+import '../test_log.dart';
 import 'message_list_test.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
@@ -616,15 +617,18 @@ void main() {
 
     test('ignore submessage event with malformed content', () async {
       await preparePollMessage();
-      await store.handleEvent(
-        eg.submessageEvent(
-          streamMessage.id,
-          eg.selfUser.userId,
-          content: {
-            'type': 'question',
-            // Invalid type for question
-            'question': 123,
-          }));
+      await checkLogs(() async {
+        await store.handleEvent(
+          eg.submessageEvent(
+            streamMessage.id,
+            eg.selfUser.userId,
+            content: {
+              'type': 'question',
+              // Invalid type for question
+              'question': 123,
+            }));
+      })..length.equals(2)
+        ..last.contains('Malformed submessage event data for poll');
       checkNotNotified();
       check(store.messages[123]).isNotNull().poll.isNotNull();
     });
