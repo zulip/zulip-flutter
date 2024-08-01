@@ -18,6 +18,7 @@ import 'input.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
   _LoginSequenceRoute({
@@ -626,16 +627,16 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
 }
 
 // Loosely based on the corresponding element in the web app.
-// TODO(#95) need dark-theme colors
 class OrDivider extends StatelessWidget {
   const OrDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
 
-    const divider = Expanded(
-      child: Divider(color: Color(0xffdedede), thickness: 2));
+    final divider = Expanded(
+      child: Divider(color: designVariables.loginOrDivider, thickness: 2));
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -645,8 +646,8 @@ class OrDivider extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Text(zulipLocalizations.loginMethodDivider,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xff575757),
+            style: TextStyle(
+              color: designVariables.loginOrDividerText,
               height: 1.5,
             ).merge(weightVariableTextStyle(context, wght: 600)))),
         divider,
