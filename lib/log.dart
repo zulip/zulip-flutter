@@ -4,6 +4,10 @@
 /// This has an effect only in a debug build.
 bool debugLogEnabled = false;
 
+/// Used for log inspection in tests.
+@visibleForTesting
+List<String>? logHistory;
+
 /// Print a log message, if debug logging is enabled.
 ///
 /// In a debug build, if [debugLogEnabled] is true, this prints the given
@@ -26,6 +30,7 @@ bool debugLog(String message) {
     if (debugLogEnabled) {
       print(message); // ignore: avoid_print
     }
+    logHistory?.add(message);
     return true;
   }());
   return true;
