@@ -414,6 +414,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
@@ -425,13 +426,17 @@ class _LoginPageState extends State<LoginPage> {
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;
           return OutlinedButton.icon(
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer)),
             icon: icon != null
               ? Image.network(icon, width: 24, height: 24)
               : null,
             onPressed: !_inProgress
               ? () => _beginWebAuth(method)
               : null,
-            label: Text(zulipLocalizations.signInWithFoo(method.displayName)));
+            label: Text(
+              style: TextStyle(color: colorScheme.onSecondaryContainer),
+              zulipLocalizations.signInWithFoo(method.displayName)));
         }),
       ],
     ]);
