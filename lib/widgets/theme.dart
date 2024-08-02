@@ -144,6 +144,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.57, 0.33).toColor(),
       errorBannerLabel: const HSLColor.fromAHSL(1, 4, 0.58, 0.33).toColor(),
+      groupDmConversationIcon: Colors.black.withOpacity(0.5),
+      groupDmConversationIconBg: const Color(0x33808080),
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
       sectionCollapseIcon: const Color(0x7f1e2e48),
@@ -169,6 +171,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
       errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      groupDmConversationIcon: Colors.white.withOpacity(0.5),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      groupDmConversationIconBg: const Color(0x33cccccc),
       loginOrDivider: const Color(0xff424242),
       loginOrDividerText: const Color(0xffa8a8a8),
       // TODO(#95) need proper dark-theme color (this is ad hoc)
@@ -194,6 +200,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.errorBannerBackground,
     required this.errorBannerBorder,
     required this.errorBannerLabel,
+    required this.groupDmConversationIcon,
+    required this.groupDmConversationIconBg,
     required this.loginOrDivider,
     required this.loginOrDividerText,
     required this.sectionCollapseIcon,
@@ -230,6 +238,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color errorBannerBackground;
   final Color errorBannerBorder;
   final Color errorBannerLabel;
+  final Color groupDmConversationIcon;
+  final Color groupDmConversationIconBg;
   final Color loginOrDivider; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color sectionCollapseIcon;
@@ -253,6 +263,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? errorBannerBackground,
     Color? errorBannerBorder,
     Color? errorBannerLabel,
+    Color? groupDmConversationIcon,
+    Color? groupDmConversationIconBg,
     Color? loginOrDivider,
     Color? loginOrDividerText,
     Color? sectionCollapseIcon,
@@ -275,6 +287,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       errorBannerBackground: errorBannerBackground ?? this.errorBannerBackground,
       errorBannerBorder: errorBannerBorder ?? this.errorBannerBorder,
       errorBannerLabel: errorBannerLabel ?? this.errorBannerLabel,
+      groupDmConversationIcon: groupDmConversationIcon ?? this.groupDmConversationIcon,
+      groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
@@ -304,6 +318,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       errorBannerBackground: Color.lerp(errorBannerBackground, other.errorBannerBackground, t)!,
       errorBannerBorder: Color.lerp(errorBannerBorder, other.errorBannerBorder, t)!,
       errorBannerLabel: Color.lerp(errorBannerLabel, other.errorBannerLabel, t)!,
+      groupDmConversationIcon: Color.lerp(groupDmConversationIcon, other.groupDmConversationIcon, t)!,
+      groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
