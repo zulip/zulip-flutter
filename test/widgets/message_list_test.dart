@@ -271,7 +271,7 @@ void main() {
         matching: find.byTooltip("Scroll to bottom")));
     }
 
-    testWidgets('scrolling changes visibility', (WidgetTester tester) async {
+    testWidgets('scrolling changes visibility', (tester) async {
       await setupMessageListPage(tester, messageCount: 10);
 
       final scrollController = findMessageListScrollController(tester)!;
@@ -288,7 +288,7 @@ void main() {
       check(isButtonVisible(tester)).equals(false);
     });
 
-    testWidgets('dimension updates changes visibility', (WidgetTester tester) async {
+    testWidgets('dimension updates changes visibility', (tester) async {
       await setupMessageListPage(tester, messageCount: 100);
 
       final scrollController = findMessageListScrollController(tester)!;
@@ -310,7 +310,7 @@ void main() {
       check(isButtonVisible(tester)).equals(false);
     });
 
-    testWidgets('button functionality', (WidgetTester tester) async {
+    testWidgets('button functionality', (tester) async {
       await setupMessageListPage(tester, messageCount: 10);
 
       final scrollController = findMessageListScrollController(tester)!;
@@ -401,7 +401,7 @@ void main() {
       return finder.evaluate().isNotEmpty;
     }
 
-    testWidgets('from read to unread', (WidgetTester tester) async {
+    testWidgets('from read to unread', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(isMarkAsReadButtonVisible(tester)).isFalse();
@@ -412,7 +412,7 @@ void main() {
       check(isMarkAsReadButtonVisible(tester)).isTrue();
     });
 
-    testWidgets('from unread to read', (WidgetTester tester) async {
+    testWidgets('from unread to read', (tester) async {
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(channels:[
         UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId, unreadMessageIds: [message.id])
@@ -430,7 +430,7 @@ void main() {
       check(isMarkAsReadButtonVisible(tester)).isFalse();
     });
 
-    testWidgets("messages don't shift position", (WidgetTester tester) async {
+    testWidgets("messages don't shift position", (tester) async {
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(channels:[
         UnreadChannelSnapshot(topic: message.topic, streamId: message.streamId,
@@ -479,7 +479,7 @@ void main() {
           check(opacity.opacity).equals(expected ? 0.5 : 1.0);
         }
 
-        testWidgets('loading is changed correctly', (WidgetTester tester) async {
+        testWidgets('loading is changed correctly', (tester) async {
           final narrow = TopicNarrow.ofMessage(message);
           await setupMessageListPage(tester,
             narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
@@ -502,7 +502,7 @@ void main() {
           checkAppearsLoading(tester, false);
         });
 
-        testWidgets('loading is changed correctly if request fails', (WidgetTester tester) async {
+        testWidgets('loading is changed correctly if request fails', (tester) async {
           final narrow = TopicNarrow.ofMessage(message);
           await setupMessageListPage(tester,
             narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
@@ -525,7 +525,7 @@ void main() {
         });
       });
 
-      testWidgets('smoke test on modern server', (WidgetTester tester) async {
+      testWidgets('smoke test on modern server', (tester) async {
         final narrow = TopicNarrow.ofMessage(message);
         await setupMessageListPage(tester,
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
@@ -553,7 +553,7 @@ void main() {
         await tester.pumpAndSettle(); // process pending timers
       });
 
-      testWidgets('pagination', (WidgetTester tester) async {
+      testWidgets('pagination', (tester) async {
         // Check that `lastProcessedId` returned from an initial
         // response is used as `anchorId` for the subsequent request.
         final narrow = TopicNarrow.ofMessage(message);
@@ -599,7 +599,7 @@ void main() {
         check(store.unreads.oldUnreadsMissing).isFalse();
       });
 
-      testWidgets('catch-all api errors', (WidgetTester tester) async {
+      testWidgets('catch-all api errors', (tester) async {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         const narrow = CombinedFeedNarrow();
         await setupMessageListPage(tester,
@@ -635,7 +635,7 @@ void main() {
         propagateMode: PropagateMode.changeAll));
     }
 
-    testWidgets('compose box send message after move', (WidgetTester tester) async {
+    testWidgets('compose box send message after move', (tester) async {
       final message = eg.streamMessage(stream: channel, topic: topic, content: 'Message to move');
       await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel, otherChannel]);
 
@@ -670,7 +670,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Move to narrow with existing messages', (WidgetTester tester) async {
+    testWidgets('Move to narrow with existing messages', (tester) async {
       final message = eg.streamMessage(stream: channel, topic: topic, content: 'Message to move');
       await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
       check(find.textContaining('Existing message').evaluate()).length.equals(0);
@@ -1024,13 +1024,13 @@ void main() {
   });
 
   group('Starred messages', () {
-    testWidgets('unstarred message', (WidgetTester tester) async {
+    testWidgets('unstarred message', (tester) async {
       final message = eg.streamMessage(flags: []);
       await setupMessageListPage(tester, messages: [message]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).isEmpty();
     });
 
-    testWidgets('starred message', (WidgetTester tester) async {
+    testWidgets('starred message', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.starred]);
       await setupMessageListPage(tester, messages: [message]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
@@ -1043,13 +1043,13 @@ void main() {
       check(find.byIcon(ZulipIcons.message_moved).evaluate()).length.equals(moved);
     }
 
-    testWidgets('no edited or moved messages', (WidgetTester tester) async {
+    testWidgets('no edited or moved messages', (tester) async {
       final message = eg.streamMessage();
       await setupMessageListPage(tester, messages: [message]);
       checkMarkersCount(edited: 0, moved: 0);
     });
 
-    testWidgets('edited and moved messages from events', (WidgetTester tester) async {
+    testWidgets('edited and moved messages from events', (tester) async {
       final message = eg.streamMessage(topic: 'old');
       final message2 = eg.streamMessage(topic: 'old');
       await setupMessageListPage(tester, messages: [message, message2]);
@@ -1102,7 +1102,7 @@ void main() {
       return result;
     }
 
-    testWidgets('edit state updates do not affect layout', (WidgetTester tester) async {
+    testWidgets('edit state updates do not affect layout', (tester) async {
       final messages = [
         eg.streamMessage(topic: 'orig'),
         eg.streamMessage(
@@ -1147,7 +1147,7 @@ void main() {
       return widget.opacity;
     }
 
-    testWidgets('from read to unread', (WidgetTester tester) async {
+    testWidgets('from read to unread', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
@@ -1167,7 +1167,7 @@ void main() {
         ..status.equals(AnimationStatus.completed);
     });
 
-    testWidgets('from unread to read', (WidgetTester tester) async {
+    testWidgets('from unread to read', (tester) async {
       final message = eg.streamMessage(flags: []);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
@@ -1191,7 +1191,7 @@ void main() {
         ..status.equals(AnimationStatus.completed);
     });
 
-    testWidgets('animation state persistence', (WidgetTester tester) async {
+    testWidgets('animation state persistence', (tester) async {
       // Check that _UnreadMarker maintains its in-progress animation
       // as the number of items changes in MessageList. See
       // `findChildIndexCallback` passed into [SliverStickyHeaderList]

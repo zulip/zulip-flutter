@@ -102,7 +102,7 @@ void main() {
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
-    testWidgets('success', (WidgetTester tester) async {
+    testWidgets('success', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -122,7 +122,7 @@ void main() {
           });
     });
 
-    testWidgets('request has an error', (WidgetTester tester) async {
+    testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -156,7 +156,7 @@ void main() {
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
-    testWidgets('star success', (WidgetTester tester) async {
+    testWidgets('star success', (tester) async {
       final message = eg.streamMessage(flags: []);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -176,7 +176,7 @@ void main() {
         });
     });
 
-    testWidgets('unstar success', (WidgetTester tester) async {
+    testWidgets('unstar success', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.starred]);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -196,7 +196,7 @@ void main() {
         });
     });
 
-    testWidgets('star request has an error', (WidgetTester tester) async {
+    testWidgets('star request has an error', (tester) async {
       final message = eg.streamMessage(flags: []);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -217,7 +217,7 @@ void main() {
         expectedMessage: 'Invalid message(s)')));
     });
 
-    testWidgets('unstar request has an error', (WidgetTester tester) async {
+    testWidgets('unstar request has an error', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.starred]);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -288,7 +288,7 @@ void main() {
       check(contentController).not((it) => it.validationErrors.contains(ContentValidationError.quoteAndReplyInProgress));
     }
 
-    testWidgets('in channel narrow', (WidgetTester tester) async {
+    testWidgets('in channel narrow', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -306,7 +306,7 @@ void main() {
         valueBefore: valueBefore, message: message, rawContent: 'Hello world');
     });
 
-    testWidgets('in topic narrow', (WidgetTester tester) async {
+    testWidgets('in topic narrow', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -324,7 +324,7 @@ void main() {
         valueBefore: valueBefore, message: message, rawContent: 'Hello world');
     });
 
-    testWidgets('in DM narrow', (WidgetTester tester) async {
+    testWidgets('in DM narrow', (tester) async {
       final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
       await setupToMessageActionSheet(tester,
         message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
@@ -343,7 +343,7 @@ void main() {
         valueBefore: valueBefore, message: message, rawContent: 'Hello world');
     });
 
-    testWidgets('request has an error', (WidgetTester tester) async {
+    testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -372,13 +372,13 @@ void main() {
       ));
     });
 
-    testWidgets('not offered in CombinedFeedNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
+    testWidgets('not offered in CombinedFeedNarrow (composing to reply is not yet supported)', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: const CombinedFeedNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
     });
 
-    testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
+    testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
@@ -399,7 +399,7 @@ void main() {
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
-    testWidgets('success', (WidgetTester tester) async {
+    testWidgets('success', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -435,7 +435,7 @@ void main() {
         matching: find.text(zulipLocalizations.successMessageTextCopied)));
     });
 
-    testWidgets('request has an error', (WidgetTester tester) async {
+    testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -496,7 +496,7 @@ void main() {
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
-    testWidgets('request succeeds; sharing succeeds', (WidgetTester tester) async {
+    testWidgets('request succeeds; sharing succeeds', (tester) async {
       final mockSharePlus = setupMockSharePlus();
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
@@ -508,7 +508,7 @@ void main() {
       check(mockSharePlus.sharedString).equals('Hello world');
     });
 
-    testWidgets('request succeeds; sharing fails', (WidgetTester tester) async {
+    testWidgets('request succeeds; sharing fails', (tester) async {
       final mockSharePlus = setupMockSharePlus();
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
@@ -524,7 +524,7 @@ void main() {
         expectedTitle: 'Sharing failed')));
     });
 
-    testWidgets('request has an error', (WidgetTester tester) async {
+    testWidgets('request has an error', (tester) async {
       final mockSharePlus = setupMockSharePlus();
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));

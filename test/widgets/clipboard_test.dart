@@ -57,21 +57,21 @@ void main() {
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expected);
     }
 
-    testWidgets('iOS', (WidgetTester tester) async {
+    testWidgets('iOS', (tester) async {
       testBinding.deviceInfoResult = const IosDeviceInfo(systemVersion: '16.0');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: true);
     });
 
-    testWidgets('Android', (WidgetTester tester) async {
+    testWidgets('Android', (tester) async {
       testBinding.deviceInfoResult = const AndroidDeviceInfo(sdkInt: 33, release: '13');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');
       await checkSnackBar(tester, expected: false);
     });
 
-    testWidgets('Android <13', (WidgetTester tester) async {
+    testWidgets('Android <13', (tester) async {
       testBinding.deviceInfoResult = const AndroidDeviceInfo(sdkInt: 32, release: '12');
       await call(tester, text: 'asdf');
       await checkClipboardText('asdf');

@@ -81,7 +81,7 @@ void main() {
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
 
-    testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
+    testWidgets('options appear, disappear, and change correctly', (tester) async {
       final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
       final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
       final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png');

@@ -483,7 +483,7 @@ void main() {
     testFontWeight('syntax highlighting: non-bold span',
       expectedWght: 400,
       content: plainContent(ContentExample.codeBlockHighlightedShort.html),
-      styleFinder: (WidgetTester tester) {
+      styleFinder: (tester) {
         final root = tester.renderObject<RenderParagraph>(find.textContaining('class')).text;
         return mergedStyleOfSubstring(root, 'class')!;
       });
@@ -491,7 +491,7 @@ void main() {
     testFontWeight('syntax highlighting: bold span',
       expectedWght: 700,
       content: plainContent(ContentExample.codeBlockHighlightedShort.html),
-      styleFinder: (WidgetTester tester) {
+      styleFinder: (tester) {
         final root = tester.renderObject<RenderParagraph>(find.textContaining('A')).text;
         return mergedStyleOfSubstring(root, 'A')!;
       });
@@ -986,7 +986,7 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('throws if no `PerAccountStoreWidget` ancestor', (WidgetTester tester) async {
+    testWidgets('throws if no `PerAccountStoreWidget` ancestor', (tester) async {
       await tester.pumpWidget(
         RealmContentNetworkImage(Uri.parse('https://zulip.invalid/path/to/image.png'), filterQuality: FilterQuality.medium));
       check(tester.takeException()).isA<AssertionError>();
