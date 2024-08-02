@@ -11,7 +11,6 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -221,9 +220,6 @@ void main() {
     await prepare();
     await store.addUsers([eg.selfUser, eg.otherUser]);
 
-    assert(!debugFollowPlatformBrightness); // to be removed with #95
-    debugFollowPlatformBrightness = true;
-    addTearDown(() { debugFollowPlatformBrightness = false; });
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
