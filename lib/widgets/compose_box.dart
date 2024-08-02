@@ -853,13 +853,16 @@ class _ComposeBoxContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    return Material(
-      color: colorScheme.surfaceContainerHighest,
-      child: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: child)));
+    // TODO(design): Maybe put a max width on the compose box, like we do on
+    //   the message list itself
+    return SizedBox(width: double.infinity,
+      child: Material(
+        color: colorScheme.surfaceContainerHighest,
+        child: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: child))));
   }
 }
 
@@ -1052,9 +1055,7 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
   Widget build(BuildContext context) {
     final errorBanner = _errorBanner(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(
-        child: SizedBox(width: double.infinity,
-          child: errorBanner));
+      return _ComposeBoxContainer(child: errorBanner);
     }
 
     return _ComposeBoxLayout(
