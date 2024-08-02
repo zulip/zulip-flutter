@@ -870,13 +870,11 @@ class _ComposeBoxLayout extends StatelessWidget {
     required this.sendButton,
     required this.contentController,
     required this.contentFocusNode,
-    this.blockingErrorBanner,
   });
 
   final Widget? topicInput;
   final Widget contentInput;
   final Widget sendButton;
-  final Widget? blockingErrorBanner;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
@@ -900,30 +898,28 @@ class _ComposeBoxLayout extends StatelessWidget {
     );
 
     return _ComposeBoxContainer(
-      child: blockingErrorBanner != null
-        ? SizedBox(width: double.infinity, child: blockingErrorBanner)
-        : Column(children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Expanded(
-                child: Theme(
-                  data: inputThemeData,
-                  child: Column(children: [
-                    if (topicInput != null) topicInput!,
-                    if (topicInput != null) const SizedBox(height: 8),
-                    contentInput,
-                  ]))),
-              const SizedBox(width: 8),
-              sendButton,
-            ]),
-            Theme(
-              data: themeData.copyWith(
-                iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-              child: Row(children: [
-                _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-              ])),
-          ]));
+      child: Column(children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Expanded(
+            child: Theme(
+              data: inputThemeData,
+              child: Column(children: [
+                if (topicInput != null) topicInput!,
+                if (topicInput != null) const SizedBox(height: 8),
+                contentInput,
+              ]))),
+          const SizedBox(width: 8),
+          sendButton,
+        ]),
+        Theme(
+          data: themeData.copyWith(
+            iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+          child: Row(children: [
+            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+          ])),
+      ]));
   }
 }
 
@@ -1054,6 +1050,13 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
 
   @override
   Widget build(BuildContext context) {
+    final errorBanner = _errorBanner(context);
+    if (errorBanner != null) {
+      return _ComposeBoxContainer(
+        child: SizedBox(width: double.infinity,
+          child: errorBanner));
+    }
+
     return _ComposeBoxLayout(
       contentController: _contentController,
       contentFocusNode: _contentFocusNode,
@@ -1067,8 +1070,7 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
         topicController: null,
         contentController: _contentController,
         getDestination: () => widget.narrow.destination,
-      ),
-      blockingErrorBanner: _errorBanner(context));
+      ));
   }
 }
 
