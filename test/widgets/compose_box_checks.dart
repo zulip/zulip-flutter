@@ -8,7 +8,7 @@ extension ComposeContentControllerChecks on Subject<ComposeContentController> {
 
 extension AutocompleteIntentChecks on Subject<AutocompleteIntent> {
   Subject<int> get syntaxStart => has((i) => i.syntaxStart, 'syntaxStart');
-  Subject<MentionAutocompleteQuery> get query => has((i) => i.query, 'query');
+  Subject<AutocompleteQuery> get query => has((i) => i.query, 'query');
 }
 
 extension UserMentionAutocompleteResultChecks on Subject<UserMentionAutocompleteResult> {
