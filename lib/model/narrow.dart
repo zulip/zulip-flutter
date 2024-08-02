@@ -291,17 +291,21 @@ class MentionsNarrow extends Narrow {
 
   @override
   bool containsMessage(Message message) {
-    return message.flags.any((flag) =>
+    return message.flags.any((flag) {
       switch (flag) {
-        MessageFlag.mentioned => true,
-        MessageFlag.wildcardMentioned => true,
-        MessageFlag.read => false,
-        MessageFlag.starred => false,
-        MessageFlag.collapsed => false,
-        MessageFlag.hasAlertWord => false,
-        MessageFlag.historical => false,
-        MessageFlag.unknown => false,
-      });
+        case MessageFlag.mentioned:
+        case MessageFlag.wildcardMentioned:
+          return true;
+
+        case MessageFlag.read:
+        case MessageFlag.starred:
+        case MessageFlag.collapsed:
+        case MessageFlag.hasAlertWord:
+        case MessageFlag.historical:
+        case MessageFlag.unknown:
+          return false;
+      }
+    });
   }
 
   @override
