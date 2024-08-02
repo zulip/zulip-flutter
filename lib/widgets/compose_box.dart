@@ -844,6 +844,25 @@ class _SendButtonState extends State<_SendButton> {
   }
 }
 
+class _ComposeBoxContainer extends StatelessWidget {
+  const _ComposeBoxContainer({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerHighest,
+      child: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: child)));
+  }
+}
+
 class _ComposeBoxLayout extends StatelessWidget {
   const _ComposeBoxLayout({
     required this.topicInput,
@@ -880,36 +899,32 @@ class _ComposeBoxLayout extends StatelessWidget {
       ),
     );
 
-    return Material(
-      color: colorScheme.surfaceContainerHighest,
-      child: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: blockingErrorBanner != null
-            ? SizedBox(width: double.infinity, child: blockingErrorBanner)
-            : Column(children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Expanded(
-                    child: Theme(
-                      data: inputThemeData,
-                      child: Column(children: [
-                        if (topicInput != null) topicInput!,
-                        if (topicInput != null) const SizedBox(height: 8),
-                        contentInput,
-                      ]))),
-                  const SizedBox(width: 8),
-                  sendButton,
-                ]),
-                Theme(
-                  data: themeData.copyWith(
-                    iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-                  child: Row(children: [
-                    _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                    _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                    _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-                  ])),
-            ]))));  }
+    return _ComposeBoxContainer(
+      child: blockingErrorBanner != null
+        ? SizedBox(width: double.infinity, child: blockingErrorBanner)
+        : Column(children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                child: Theme(
+                  data: inputThemeData,
+                  child: Column(children: [
+                    if (topicInput != null) topicInput!,
+                    if (topicInput != null) const SizedBox(height: 8),
+                    contentInput,
+                  ]))),
+              const SizedBox(width: 8),
+              sendButton,
+            ]),
+            Theme(
+              data: themeData.copyWith(
+                iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+              child: Row(children: [
+                _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+              ])),
+          ]));
+  }
 }
 
 abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
