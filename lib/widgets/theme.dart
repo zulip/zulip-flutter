@@ -7,35 +7,10 @@ import 'message_list.dart';
 import 'channel_colors.dart';
 import 'text.dart';
 
-/// In debug mode, controls whether the UI responds to
-/// [MediaQueryData.platformBrightness].
-///
-/// Outside of debug mode, this is always false and the setter has no effect.
-// TODO(#95) when dark theme is fully implemented, simplify away;
-//   the UI should always respond.
-bool get debugFollowPlatformBrightness {
-  bool result = false;
-  assert(() {
-    result = _debugFollowPlatformBrightness;
-    return true;
-  }());
-  return result;
-}
-bool _debugFollowPlatformBrightness = false;
-set debugFollowPlatformBrightness(bool value) {
-  assert(() {
-    _debugFollowPlatformBrightness = value;
-    return true;
-  }());
-}
-
-
 ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
   final List<ThemeExtension> themeExtensions;
-  Brightness brightness = debugFollowPlatformBrightness
-    ? MediaQuery.of(context).platformBrightness
-    : Brightness.light;
+  Brightness brightness = MediaQuery.of(context).platformBrightness;
   switch (brightness) {
     case Brightness.light: {
       designVariables = DesignVariables.light();

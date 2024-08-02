@@ -106,9 +106,6 @@ void main() {
 
       final subscription = eg.subscription(eg.stream(), color: baseColor);
 
-      assert(!debugFollowPlatformBrightness); // to be removed with #95
-      debugFollowPlatformBrightness = true;
-      addTearDown(() { debugFollowPlatformBrightness = false; });
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 

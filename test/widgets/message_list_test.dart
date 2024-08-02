@@ -21,7 +21,6 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -152,10 +151,6 @@ void main() {
   });
 
   testWidgets('smoke test for light/dark/lerped', (tester) async {
-    assert(!debugFollowPlatformBrightness); // to be removed with #95
-    debugFollowPlatformBrightness = true;
-    addTearDown(() { debugFollowPlatformBrightness = false; });
-
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
