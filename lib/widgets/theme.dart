@@ -150,6 +150,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: const Color(0xff575757),
       sectionCollapseIcon: const Color(0x7f1e2e48),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
       unreadCountBadgeTextForChannel: Colors.black.withOpacity(0.9),
     );
 
@@ -181,6 +183,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       sectionCollapseIcon: const Color(0x7fb6c8e2),
       // TODO(#95) unchanged in dark theme?
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
+      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
       unreadCountBadgeTextForChannel: Colors.white.withOpacity(0.9),
     );
 
@@ -206,6 +212,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.loginOrDividerText,
     required this.sectionCollapseIcon,
     required this.star,
+    required this.subscriptionListHeaderLine,
+    required this.subscriptionListHeaderText,
     required this.unreadCountBadgeTextForChannel,
   });
 
@@ -244,6 +252,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color loginOrDividerText; // TODO(#95) need proper dark-theme color (this is ad hoc)
   final Color sectionCollapseIcon;
   final Color star;
+  final Color subscriptionListHeaderLine;
+  final Color subscriptionListHeaderText;
   final Color unreadCountBadgeTextForChannel;
 
   @override
@@ -269,6 +279,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? loginOrDividerText,
     Color? sectionCollapseIcon,
     Color? star,
+    Color? subscriptionListHeaderLine,
+    Color? subscriptionListHeaderText,
     Color? unreadCountBadgeTextForChannel,
   }) {
     return DesignVariables._(
@@ -293,6 +305,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
+      subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
+      subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
       unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
     );
   }
@@ -324,6 +338,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
+      subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
+      subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
       unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
     );
   }
