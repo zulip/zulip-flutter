@@ -669,7 +669,9 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
       padding: const EdgeInsetsDirectional.only(start: 16, top: 2),
       child: Text(text,
         style: const TextStyle(
-          color: HslColor(0, 0, 53), fontStyle: FontStyle.italic)));
+          // Web has the same color in light and dark mode.
+          color: HslColor(0, 0, 53),
+          fontStyle: FontStyle.italic)));
   }
 }
 
