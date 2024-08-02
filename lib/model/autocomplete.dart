@@ -320,11 +320,7 @@ class MentionAutocompleteView extends ChangeNotifier {
     };
   }
 
-  /// Compares the bot status of two users and returns an integer indicating their order.
-  ///
-  /// Returns `-1` if `userA` is human and `userB` is bot, returns `1` if `userA`
-  /// is bot and `userB` is human, and returns `0` if both users have the same
-  /// bot status.
+  /// Comparator that puts non-bots before bots.
   @visibleForTesting
   static int compareByBotStatus(User userA, User userB) {
     return switch ((userA.isBot, userB.isBot)) {
@@ -334,11 +330,7 @@ class MentionAutocompleteView extends ChangeNotifier {
     };
   }
 
-  /// Compares the two users by [User.fullName] case-insensitively.
-  ///
-  /// Returns a negative number if `userA`'s `fullName` comes first alphabetically,
-  /// returns a positive number if `userB`'s `fullName` comes first alphabetically,
-  /// and returns `0` if both users have identical `fullName`.
+  /// Comparator that orders alphabetically by [User.fullName].
   @visibleForTesting
   static int compareByAlphabeticalOrder(User userA, User userB,
       {required PerAccountStore store}) {
