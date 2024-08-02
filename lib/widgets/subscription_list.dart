@@ -240,8 +240,16 @@ class SubscriptionItem extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     height: (20 / 18),
+                    // The old, soon-to-be-outdated Figma has #262626:
+                    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=171-12359&t=OgFPAdLiXz9OEzCF-0
+                    // That might be accidental, though. The same page has
+                    // #222222 for the topics. The "Inbox" page in that Figma
+                    // has #222222 for the "Private messages" header, but yeah,
+                    // #262626 for the channel headers. Hmm...on our "Inbox",
+                    // looks like we just took #222222 for both those headers.
+                    // Anyway, eager to have the updated Figma to work from.
                     // TODO(#95) need dark-theme color
-                    color: Color(0xFF262626),
+                    color: Color(0xff222222),
                   ).merge(weightVariableTextStyle(context,
                       wght: hasUnreads ? 600 : null)),
                   maxLines: 1,
