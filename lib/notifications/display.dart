@@ -220,7 +220,8 @@ class NotificationDisplayManager {
         ' id: ${statusBarNotification.id}, tag: ${statusBarNotification.tag},'
         ' notification: (group: ${notification.group}, extras: ${notification.extras}))'));
 
-      final rawZulipMessageId = notification.extras[_extraZulipMessageId] as String;
+      final rawZulipMessageId = notification.extras[_extraZulipMessageId];
+      if (rawZulipMessageId is! String) continue;
       final zulipMessageId = int.parse(rawZulipMessageId, radix: 10);
       if (data.zulipMessageIds.contains(zulipMessageId)) {
         // The latest Zulip message in this conversation was read.

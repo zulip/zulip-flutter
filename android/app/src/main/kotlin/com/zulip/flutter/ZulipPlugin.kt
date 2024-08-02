@@ -12,13 +12,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
-import java.io.Serializable
 
 private const val TAG = "ZulipPlugin"
 
-private fun Bundle.asMap(): Map<String, Serializable?>  {
+private fun Bundle.stringsMap(): Map<String, CharSequence?>  {
     return keySet().associateWith {
-        try { get(it) as Serializable? }
+        try { get(it) as CharSequence? }
         catch (e: Throwable) { null }
     }
 }
@@ -138,7 +137,7 @@ private class AndroidNotificationHost(val context: Context)
                 tag = it.tag,
                 notification = Notification(
                     group = it.notification.group,
-                    extras = it.notification.extras.asMap() as Map<String?, Any?>,
+                    extras = it.notification.extras.stringsMap() as Map<String?, Any?>,
                 )
             )
         }
