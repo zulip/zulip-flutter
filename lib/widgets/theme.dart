@@ -10,7 +10,7 @@ import 'text.dart';
 ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
   final List<ThemeExtension> themeExtensions;
-  Brightness brightness = MediaQuery.of(context).platformBrightness;
+  Brightness brightness = MediaQuery.platformBrightnessOf(context);
   switch (brightness) {
     case Brightness.light: {
       designVariables = DesignVariables.light();
