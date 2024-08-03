@@ -88,6 +88,36 @@ data class NotificationChannel (
 }
 
 /**
+ * Corresponds to `android.content.Intent`
+ *
+ * See:
+ *   https://developer.android.com/reference/android/content/Intent
+ *   https://developer.android.com/reference/android/content/Intent#Intent(java.lang.String,%20android.net.Uri,%20android.content.Context,%20java.lang.Class%3C?%3E)
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class AndroidIntent (
+  val action: String,
+  val uri: String
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): AndroidIntent {
+      val action = __pigeon_list[0] as String
+      val uri = __pigeon_list[1] as String
+      return AndroidIntent(action, uri)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      action,
+      uri,
+    )
+  }
+}
+
+/**
  * Corresponds to `android.app.PendingIntent`.
  *
  * See: https://developer.android.com/reference/android/app/PendingIntent
@@ -96,11 +126,7 @@ data class NotificationChannel (
  */
 data class PendingIntent (
   val requestCode: Long,
-  /**
-   * A value set on an extra on the Intent, and passed to
-   * the on-notification-opened callback.
-   */
-  val intentPayload: String,
+  val intent: AndroidIntent,
   /**
    * A combination of flags from [PendingIntent.flags], and others associated
    * with `Intent`; see Android docs for `PendingIntent.getActivity`.
@@ -112,15 +138,15 @@ data class PendingIntent (
     @Suppress("LocalVariableName")
     fun fromList(__pigeon_list: List<Any?>): PendingIntent {
       val requestCode = __pigeon_list[0].let { num -> if (num is Int) num.toLong() else num as Long }
-      val intentPayload = __pigeon_list[1] as String
+      val intent = __pigeon_list[1] as AndroidIntent
       val flags = __pigeon_list[2].let { num -> if (num is Int) num.toLong() else num as Long }
-      return PendingIntent(requestCode, intentPayload, flags)
+      return PendingIntent(requestCode, intent, flags)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       requestCode,
-      intentPayload,
+      intent,
       flags,
     )
   }
@@ -266,25 +292,30 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
       }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PendingIntent.fromList(it)
+          AndroidIntent.fromList(it)
         }
       }
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          InboxStyle.fromList(it)
+          PendingIntent.fromList(it)
         }
       }
       132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Person.fromList(it)
+          InboxStyle.fromList(it)
         }
       }
       133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          MessagingStyleMessage.fromList(it)
+          Person.fromList(it)
         }
       }
       134.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MessagingStyleMessage.fromList(it)
+        }
+      }
+      135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           MessagingStyle.fromList(it)
         }
@@ -298,24 +329,28 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
         stream.write(129)
         writeValue(stream, value.toList())
       }
-      is PendingIntent -> {
+      is AndroidIntent -> {
         stream.write(130)
         writeValue(stream, value.toList())
       }
-      is InboxStyle -> {
+      is PendingIntent -> {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is Person -> {
+      is InboxStyle -> {
         stream.write(132)
         writeValue(stream, value.toList())
       }
-      is MessagingStyleMessage -> {
+      is Person -> {
         stream.write(133)
         writeValue(stream, value.toList())
       }
-      is MessagingStyle -> {
+      is MessagingStyleMessage -> {
         stream.write(134)
+        writeValue(stream, value.toList())
+      }
+      is MessagingStyle -> {
+        stream.write(135)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
