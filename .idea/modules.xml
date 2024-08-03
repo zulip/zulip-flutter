@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/zulip.iml" filepath="$PROJECT_DIR$/.idea/zulip.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/zulip_android.iml" filepath="$PROJECT_DIR$/android/zulip_android.iml" />
     </modules>
   </component>
 </project>

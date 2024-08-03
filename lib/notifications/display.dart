@@ -84,7 +84,7 @@ class NotificationDisplayManager {
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
-      case RemoveFcmMessage(): break; // TODO(#341) handle
+      case RemoveFcmMessage(): _onRemoveFcmMessage(data);
       case UnexpectedFcmMessage(): break; // TODO(log)
     }
   }
@@ -156,6 +156,10 @@ class NotificationDisplayManager {
       messagingStyle: messagingStyle,
       number: messagingStyle.messages.length,
 
+      extras: {
+        _extraZulipMessageId: data.zulipMessageId.toString(),
+      },
+
       contentIntent: PendingIntent(
         // TODO make intent URLs distinct, instead of requestCode
         //   (This way is a legacy of flutter_local_notifications.)
@@ -201,6 +205,34 @@ class NotificationDisplayManager {
       autoCancel: true,
     );
   }
+
+  static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
+    assert(debugLog('notif remove zulipMessageIds: ${data.zulipMessageIds}'));
+
+    final api = AndroidNotificationHostApi();
+    final notifs = await api.getActiveNotifications();
+    for (final statusBarNotification in notifs) {
+      if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
+      final notification = statusBarNotification.notification;
+
+      // Sadly we don't get toString on Pigeon data classes: flutter#59027
+      assert(debugLog('  existing notif'
+        ' id: ${statusBarNotification.id}, tag: ${statusBarNotification.tag},'
+        ' notification: (group: ${notification.group}, extras: ${notification.extras}))'));
+
+      final rawZulipMessageId = notification.extras[_extraZulipMessageId];
+      if (rawZulipMessageId is! String) continue;
+      final zulipMessageId = int.parse(rawZulipMessageId, radix: 10);
+      if (data.zulipMessageIds.contains(zulipMessageId)) {
+        // The latest Zulip message in this conversation was read.
+        // That's our cue to cancel the notification for the conversation.
+        await api.cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+        assert(debugLog('  … notif cancelled.'));
+      }
+    }
+  }
+
+  static const _extraZulipMessageId = 'zulipMessageId';
 
   /// A notification ID, derived as a hash of the given string key.
   ///
