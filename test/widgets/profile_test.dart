@@ -71,12 +71,14 @@ void main() {
 
   group('ProfilePage', () {
     testWidgets('page builds; profile page renders', (WidgetTester tester) async {
-      final user = eg.user(userId: 1, fullName: 'test user');
+      final user = eg.user(userId: 1, fullName: 'test user',
+        deliveryEmail: 'testuser@example.com');
 
       await setupPage(tester, users: [user], pageUserId: user.userId);
 
       check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
       check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
+      check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
     });
 
     testWidgets('page builds; profile page renders with profileData', (WidgetTester tester) async {
