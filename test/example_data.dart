@@ -575,6 +575,7 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  EmailAddressVisibility? emailAddressVisibility,
   int? serverTypingStartedExpiryPeriodMilliseconds,
   int? serverTypingStoppedWaitPeriodMilliseconds,
   int? serverTypingStartedWaitPeriodMilliseconds,
@@ -599,6 +600,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    emailAddressVisibility: EmailAddressVisibility.everyone,
     serverTypingStartedExpiryPeriodMilliseconds:
       serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
     serverTypingStoppedWaitPeriodMilliseconds:
