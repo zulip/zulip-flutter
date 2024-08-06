@@ -22,6 +22,7 @@ import '../notifications/receive.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'emoji.dart';
+import 'localizations.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
@@ -912,10 +913,28 @@ class UpdateMachine {
     }());
   }
 
+  /// This controls when we start to report transient errors to the user when
+  /// polling.
+  ///
+  /// At the 6th failure, the expected time elapsed since the first failure
+  /// will be 1.55 seocnds.
+  static const transientFailureCountNotifyThreshold = 5;
+
   void poll() async {
     assert(!_disposed);
 
     BackoffMachine? backoffMachine;
+    int accumulatedTransientFailureCount = 0;
+
+    /// This only reports transient errors after reaching
+    /// a pre-defined threshold of retries.
+    void maybeReportTransientError(String? message, {String? details}) {
+      accumulatedTransientFailureCount++;
+      if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+        reportErrorToUserBriefly(message, details: details);
+      }
+    }
+
     while (true) {
       if (_debugLoopSignal != null) {
         await _debugLoopSignal!.future;
@@ -935,6 +954,8 @@ class UpdateMachine {
         if (_disposed) return;
 
         store.isLoading = true;
+        final localizations = GlobalLocalizations.zulipLocalizations;
+        final serverUrl = store.connection.realmUrl.origin;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
@@ -946,7 +967,10 @@ class UpdateMachine {
           case Server5xxException() || NetworkException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
-            // TODO tell user if transient polling errors persist
+            maybeReportTransientError(
+              localizations.errorConnectingToServerShort,
+              details: localizations.errorConnectingToServerDetails(
+                serverUrl, e.toString()));
             await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
@@ -954,7 +978,11 @@ class UpdateMachine {
           default:
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
-            // TODO tell user on non-transient error in polling
+            // TODO(#186): Handle unrecoverable failures
+            reportErrorToUserBriefly(
+              localizations.errorConnectingToServerShort,
+              details: localizations.errorConnectingToServerDetails(
+                serverUrl, e.toString()));
             await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
@@ -978,6 +1006,9 @@ class UpdateMachine {
       // and failures, the successes themselves should space out the requests.
       backoffMachine = null;
       store.isLoading = false;
+      // Dismiss existing errors, if any.
+      reportErrorToUserBriefly(null);
+      accumulatedTransientFailureCount = 0;
 
       final events = result.events;
       for (final event in events) {

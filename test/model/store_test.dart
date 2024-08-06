@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
@@ -12,6 +13,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -651,6 +653,70 @@ void main() {
 
     test('retries on MalformedServerResponseException', () {
       checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+    });
+
+    group('report error', () {
+      String? lastReportedError;
+      String? takeLastReportedError() {
+        final result = lastReportedError;
+        lastReportedError = null;
+        return result;
+      }
+
+      /// This is an alternative to [ZulipApp]'s implementation of
+      /// [reportErrorToUserBriefly] for testing.
+      Future<void> logAndReportErrorToUserBriefly(String? message, {
+        String? details,
+      }) async {
+        if (message == null) return;
+        lastReportedError = '$message\n$details';
+      }
+
+      Future<void> prepare() async {
+        reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
+        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
+        await prepareStore(lastEventId: 1);
+        updateMachine.debugPauseLoop();
+        updateMachine.poll();
+      }
+
+      void pollAndFail(FakeAsync async) {
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(store).isLoading.isTrue();
+      }
+
+      test('report non-transient errors', () => awaitFakeAsync((async) async {
+        await prepare();
+
+        connection.prepare(httpStatus: 400, json: {
+          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+        pollAndFail(async);
+        check(takeLastReportedError()).isNotNull().startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      }));
+
+      test('report transient errors', () => awaitFakeAsync((async) async {
+        await prepare();
+
+        // There should be no user visible error messages during these retries.
+        for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+          connection.prepare(httpStatus: 500, body: 'splat');
+          pollAndFail(async);
+          check(takeLastReportedError()).isNull();
+          // This skips the pending polling backoff.
+          async.flushTimers();
+        }
+
+        connection.prepare(httpStatus: 500, body: 'splat');
+        pollAndFail(async);
+        check(takeLastReportedError()).isNotNull().startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      }));
     });
   });
 
