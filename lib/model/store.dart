@@ -760,6 +760,8 @@ class UpdateMachine {
 
   void poll() async {
     final backoffMachine = BackoffMachine();
+    int accumlatedTransientFailureCount = 0;
+    const transientFailureCountNotifyThreshold = 10;
 
     while (true) {
       if (_debugLoopSignal != null) {
@@ -787,8 +789,11 @@ class UpdateMachine {
           case Server5xxException() || NetworkException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
-            // TODO tell user if transient polling errors persist
             // TODO reset to short backoff eventually
+            accumlatedTransientFailureCount++;
+            if (accumlatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+              reportErrorToUserInDialog('Failed to reach server. Will retry: $e');
+            }
             await backoffMachine.wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
@@ -804,6 +809,7 @@ class UpdateMachine {
       }
 
       store.isLoading = false;
+      accumlatedTransientFailureCount = 0;
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);
