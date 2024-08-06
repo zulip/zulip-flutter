@@ -64,6 +64,14 @@ class InitialSnapshot {
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
 
+  /// The number of days until a user's account is treated as a full member.
+  ///
+  /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
+  ///
+  /// For how to determine if a user is a full member, see:
+  ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
+  final int realmWaitingPeriodThreshold;
+
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
   final int maxFileUploadSizeMib;
@@ -115,6 +123,7 @@ class InitialSnapshot {
     required this.streams,
     required this.userSettings,
     required this.userTopics,
+    required this.realmWaitingPeriodThreshold,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.realmUsers,
