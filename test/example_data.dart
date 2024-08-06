@@ -789,6 +789,7 @@ InitialSnapshot initialSnapshot({
   List<ZulipStream>? streams,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  int? realmWaitingPeriodThreshold,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   Uri? serverEmojiDataUrl,
@@ -822,6 +823,7 @@ InitialSnapshot initialSnapshot({
       emojiset: Emojiset.google,
     ),
     userTopics: userTopics,
+    realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl
