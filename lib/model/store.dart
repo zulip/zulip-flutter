@@ -236,6 +236,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       realmEmoji: initialSnapshot.realmEmoji,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
+      emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       accountId: accountId,
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
@@ -269,6 +270,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     required this.realmDefaultExternalAccounts,
     required this.realmEmoji,
     required this.customProfileFields,
+    required this.emailAddressVisibility,
     required this.accountId,
     required this.selfUserId,
     required this.userSettings,
@@ -311,6 +313,8 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   Map<String, RealmEmojiItem> realmEmoji;
   List<CustomProfileField> customProfileFields;
+  /// For docs, please see [InitialSnapshot.emailAddressVisibility].
+  final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
 
   ////////////////////////////////
   // Data attached to the self-account on the realm.
