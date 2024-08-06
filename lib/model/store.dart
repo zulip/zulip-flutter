@@ -796,7 +796,7 @@ class UpdateMachine {
           default:
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
-            // TODO tell user on non-transient error in polling
+            reportErrorToUserInDialog('Error loading server data. Will retry: $e');
             await backoffMachine.wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
