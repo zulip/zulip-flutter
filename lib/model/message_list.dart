@@ -371,6 +371,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case TopicNarrow():
       case DmNarrow():
       case MentionsNarrow():
+      case StarredMessagesNarrow():
         return true;
     }
   }
@@ -387,6 +388,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case TopicNarrow():
       case DmNarrow():
       case MentionsNarrow():
+      case StarredMessagesNarrow():
         return true;
     }
   }

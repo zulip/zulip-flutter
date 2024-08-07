@@ -1072,6 +1072,7 @@ class ComposeBox extends StatelessWidget {
 
       case CombinedFeedNarrow():
       case MentionsNarrow():
+      case StarredMessagesNarrow():
         return false;
     }
   }
@@ -1088,6 +1089,7 @@ class ComposeBox extends StatelessWidget {
         return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
       case CombinedFeedNarrow():
       case MentionsNarrow():
+      case StarredMessagesNarrow():
         return const SizedBox.shrink();
     }
   }

@@ -125,8 +125,9 @@ void main() {
   group('presents message content appropriately', () {
     // regression test for https://github.com/zulip/zulip-flutter/issues/736
     final testCases = [
-      ("Combined feed", const CombinedFeedNarrow(), <MessageFlag>[]),
-      ("MentionsNarrow", const MentionsNarrow(),    [MessageFlag.mentioned]),
+      ("Combined feed",         const CombinedFeedNarrow(),    <MessageFlag>[]),
+      ("MentionsNarrow",        const MentionsNarrow(),        [MessageFlag.mentioned]),
+      ("StarredMessagesNarrow", const StarredMessagesNarrow(), [MessageFlag.starred]),
     ];
     for (final (narrowName, narrow, flags) in testCases) {
       testWidgets('content in $narrowName not asked to consume insets (including bottom)', (tester) async {
@@ -629,11 +630,14 @@ void main() {
       group('show channel name conditionally', () {
         final mentionedMessage =
           eg.streamMessage(stream: stream, topic: 'topic name', flags: [MessageFlag.mentioned]);
+        final starredMessage =
+          eg.streamMessage(stream: stream, topic: 'topic name', flags: [MessageFlag.starred]);
         final testCases = [
-          (true,  'CombinedFeedNarrow', const CombinedFeedNarrow(),     message),
-          (true,  'MentionsNarrow',     const MentionsNarrow(),         mentionedMessage),
-          (false, 'ChannelNarrow',      ChannelNarrow(stream.streamId), message),
-          (false, 'TopicNarrow',        TopicNarrow.ofMessage(message), message)
+          (true,  'CombinedFeedNarrow',    const CombinedFeedNarrow(),     message),
+          (true,  'MentionsNarrow',        const MentionsNarrow(),         mentionedMessage),
+          (true,  'StarredMessagesNarrow', const StarredMessagesNarrow(),  starredMessage),
+          (false, 'ChannelNarrow',         ChannelNarrow(stream.streamId), message),
+          (false, 'TopicNarrow',           TopicNarrow.ofMessage(message), message)
         ];
 
         for (final (showChannelName, narrowName, narrow, message) in testCases) {

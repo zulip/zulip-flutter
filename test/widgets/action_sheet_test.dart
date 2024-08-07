@@ -374,8 +374,9 @@ void main() {
 
     group('composing to reply is not yet supported', () {
       final testCases = [
-        ('CombinedFeedNarrow', const CombinedFeedNarrow(), eg.streamMessage()),
-        ('MentionsNarrow',     const MentionsNarrow(),     eg.streamMessage(flags: [MessageFlag.mentioned])),
+        ('CombinedFeedNarrow',    const CombinedFeedNarrow(),    eg.streamMessage()),
+        ('MentionsNarrow',        const MentionsNarrow(),        eg.streamMessage(flags: [MessageFlag.mentioned])),
+        ('StarredMessagesNarrow', const StarredMessagesNarrow(), eg.streamMessage(flags: [MessageFlag.starred])),
       ];
 
       for (final (narrowName, narrow, message) in testCases) {
