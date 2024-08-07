@@ -217,3 +217,44 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
             Text(label)])));
   }
 }
+
+class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult, String> {
+  const TopicAutocomplete({
+    super.key,
+    required this.streamId,
+    required ComposeTopicController controller,
+    required super.focusNode,
+    required this.contentFocusNode,
+    required super.fieldViewBuilder,
+  }) : super(controller: controller);
+
+  final  FocusNode contentFocusNode;
+
+  final int streamId;
+
+  @override
+  ComposeTopicController get controller => super.controller as ComposeTopicController;
+
+  @override
+  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
+
+  @override
+  TopicAutocompleteView initViewModel(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    return TopicAutocompleteView.init(store: store, streamId: streamId);
+  }
+  @override
+  Widget buildItem(BuildContext context, int index, TopicAutocompleteResult option) => InkWell(
+    onTap: () {
+      final intent = autocompleteIntent();
+      if (intent == null) return;
+      final label = option.topic;
+      controller.value = intent.textEditingValue.replaced(TextRange(
+        start: intent.syntaxStart,
+        end: intent.textEditingValue.text.length), label);
+      contentFocusNode.requestFocus();
+    },
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Text(option.topic)));
+}
