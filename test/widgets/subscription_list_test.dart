@@ -154,6 +154,7 @@ void main() {
       eg.subscription(stream),
     ], unreadMsgs: unreadMsgs);
     check(find.byType(UnreadCountBadge).evaluate()).length.equals(1);
+    check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
   testWidgets('unread badge counts unmuted only', (tester) async {
@@ -174,6 +175,7 @@ void main() {
     check(tester.widget<Text>(find.descendant(
         of: find.byType(UnreadCountBadge), matching: find.byType(Text))))
       .data.equals('1');
+    check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
   testWidgets('unread badge does not show with no unreads', (tester) async {
@@ -183,6 +185,46 @@ void main() {
       eg.subscription(stream),
     ], unreadMsgs: unreadMsgs);
     check(find.byType(UnreadCountBadge).evaluate()).length.equals(0);
+    check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
+  });
+
+  testWidgets('muted unread badge shows when unreads are visible in channel but not inbox', (tester) async {
+    final stream = eg.stream();
+    final unreadMsgs = eg.unreadMsgs(channels: [
+      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [eg.subscription(stream, isMuted: true)],
+      userTopics: [eg.userTopicItem(stream, 'b', UserTopicVisibilityPolicy.none)],
+      unreadMsgs: unreadMsgs);
+
+    check(find.byType(MutedUnreadBadge).evaluate().length).equals(1);
+  });
+
+  testWidgets('muted unread badge does not show when unreads are visible in both channel & inbox', (tester) async {
+    final stream = eg.stream();
+    final unreadMsgs = eg.unreadMsgs(channels: [
+      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [eg.subscription(stream, isMuted: false)],
+      userTopics: [eg.userTopicItem(stream, 'b', UserTopicVisibilityPolicy.none)],
+      unreadMsgs: unreadMsgs);
+
+    check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
+  });
+
+  testWidgets('muted unread badge does not show when unreads are not visible in channel nor inbox', (tester) async {
+    final stream = eg.stream();
+    final unreadMsgs = eg.unreadMsgs(channels: [
+      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+    ]);
+    await setupStreamListPage(tester,
+      subscriptions: [eg.subscription(stream, isMuted: true)],
+      userTopics: [eg.userTopicItem(stream, 'b', UserTopicVisibilityPolicy.muted)],
+      unreadMsgs: unreadMsgs);
+
+    check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
   testWidgets('color propagates to icon and badge', (tester) async {

@@ -189,8 +189,11 @@ class _SubscriptionList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final subscription = subscriptions[index];
         final unreadCount = unreadsModel!.countInChannel(subscription.streamId);
-        // TODO(#712): if stream muted, show a dot for unreads
-        return SubscriptionItem(subscription: subscription, unreadCount: unreadCount);
+        final showMutedUnreadBadge = unreadCount == 0
+          && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
+        return SubscriptionItem(subscription: subscription,
+          unreadCount: unreadCount,
+          showMutedUnreadBadge: showMutedUnreadBadge);
     });
   }
 }
@@ -201,10 +204,12 @@ class SubscriptionItem extends StatelessWidget {
     super.key,
     required this.subscription,
     required this.unreadCount,
+    required this.showMutedUnreadBadge,
   });
 
   final Subscription subscription;
   final int unreadCount;
+  final bool showMutedUnreadBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +255,7 @@ class SubscriptionItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   subscription.name)))),
-          if (unreadCount > 0) ...[
+          if (hasUnreads) ...[
             const SizedBox(width: 12),
             // TODO(#747) show @-mention indicator when it applies
             Opacity(
@@ -259,6 +264,10 @@ class SubscriptionItem extends StatelessWidget {
                 count: unreadCount,
                 backgroundColor: swatch,
                 bold: true)),
+          ] else if (showMutedUnreadBadge) ...[
+            const SizedBox(width: 12),
+            // TODO(#747) show @-mention indicator when it applies
+            const MutedUnreadBadge(),
           ],
           const SizedBox(width: 16),
         ])));

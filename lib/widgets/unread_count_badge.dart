@@ -57,3 +57,18 @@ class UnreadCountBadge extends StatelessWidget {
           count.toString())));
   }
 }
+
+class MutedUnreadBadge extends StatelessWidget {
+  const MutedUnreadBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      margin: const EdgeInsetsDirectional.only(end: 3),
+      decoration: BoxDecoration(
+        color: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
+        shape: BoxShape.circle));
+  }
+}
