@@ -229,6 +229,7 @@ void main() {
       for (final operand in IsOperand.values) {
         List<(String, Narrow?)> sharedCases(Narrow? narrow) => [
             ('/#narrow/is/$operand',                                     narrow),
+            ('/#narrow/is/$operand/is/$operand',                         narrow),
             ('/#narrow/is/$operand/near/1',                              narrow),
             ('/#narrow/is/$operand/with/2',                              narrow),
             ('/#narrow/channel/7-test-here/is/$operand',                 null),
