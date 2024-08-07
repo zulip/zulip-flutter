@@ -5,6 +5,7 @@ import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
 import 'algorithms.dart';
+import 'internal_link.dart';
 
 /// A Zulip narrow.
 sealed class Narrow {
@@ -309,7 +310,7 @@ class MentionsNarrow extends Narrow {
   }
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowIsMentioned()];
+  ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.mentioned)];
 
   @override
   bool operator ==(Object other) {

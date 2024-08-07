@@ -85,9 +85,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         fragment.write('${element.operand.join(',')}-$suffix');
       case ApiNarrowDm():
         assert(false, 'ApiNarrowDm should have been resolved');
-      case ApiNarrowIsMentioned():
-        fragment.write(element.operand.toString());
-      case ApiNarrowIsUnread():
+      case ApiNarrowIs():
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():
         fragment.write(element.operand.toString());
@@ -154,7 +152,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   ApiNarrowStream? streamElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
-  ApiNarrowIsMentioned? isMentionedElement;
+  ApiNarrowIs? isMentionedElement;
 
   for (var i = 0; i < segments.length; i += 2) {
     final (operator, negated) = _parseOperator(segments[i]);
@@ -184,7 +182,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
 
       case _NarrowOperator.is_:
         if (isMentionedElement != null) return null;
-        if (operand == 'mentioned') isMentionedElement = ApiNarrowIsMentioned();
+        if (operand == 'mentioned') isMentionedElement = ApiNarrowIs(IsOperand.mentioned);
         return null;
 
       case _NarrowOperator.near: // TODO(#82): support for near
@@ -292,4 +290,29 @@ List<int>? _parseDmOperand(String operand) {
   } on FormatException {
     return null;
   }
+}
+
+/// An operand value of "is" operator.
+///
+/// See also:
+///   - https://zulip.com/api/construct-narrow
+///   - https://zulip.com/help/search-for-messages#search-your-important-messages
+///   - https://zulip.com/help/search-for-messages#search-by-message-status
+@JsonEnum(alwaysCreate: true)
+enum IsOperand {
+  dm,
+  private, // This is deprecated in FL 177 and equivalent to [dm].
+  alerted,
+  mentioned,
+  starred,
+  followed,
+  resolved,
+  unread,
+  unknown;
+
+  static IsOperand fromRawString(String raw) => $enumDecode(
+    _$IsOperandEnumMap, raw, unknownValue: unknown);
+
+  @override
+  String toString() => _$IsOperandEnumMap[this]!;
 }
