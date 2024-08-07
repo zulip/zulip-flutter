@@ -54,7 +54,7 @@ void main() {
         foundOldest: true, foundNewest: true).toJson());
       markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -208,7 +208,7 @@ void main() {
     const progressMessage = 'progressMessage';
     const onFailedTitle = 'onFailedTitle';
     final narrow = TopicNarrow.ofMessage(eg.streamMessage());
-    final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+    final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
 
     Future<bool> invokeUpdateMessageFlagsStartingFromAnchor() =>
       updateMessageFlagsStartingFromAnchor(

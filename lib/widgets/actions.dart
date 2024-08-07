@@ -41,7 +41,7 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     // The server applies the same optimization within the (deprecated)
     // specialized endpoints for marking messages as read; see
     // `do_mark_stream_messages_as_read` in `zulip:zerver/actions/message_flags.py`.
-    apiNarrow: narrow.apiEncode()..add(ApiNarrowIsUnread()),
+    apiNarrow: narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread)),
     // Use [AnchorCode.oldest], because [AnchorCode.firstUnread]
     // will be the oldest non-muted unread message, which would
     // result in muted unreads older than the first unread not

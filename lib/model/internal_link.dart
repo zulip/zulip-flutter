@@ -85,9 +85,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         fragment.write('${element.operand.join(',')}-$suffix');
       case ApiNarrowDm():
         assert(false, 'ApiNarrowDm should have been resolved');
-      case ApiNarrowIsMentioned():
-        fragment.write(element.operand.toString());
-      case ApiNarrowIsUnread():
+      case ApiNarrowIs():
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():
         fragment.write(element.operand.toString());
@@ -154,7 +152,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   ApiNarrowStream? streamElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
-  ApiNarrowIsMentioned? isMentionedElement;
+  ApiNarrowIs? isMentionedElement;
 
   for (var i = 0; i < segments.length; i += 2) {
     final (operator, negated) = _parseOperator(segments[i]);
@@ -185,7 +183,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
       case _NarrowOperator.is_:
         if (isMentionedElement != null) return null;
         if (operand == 'mentioned') {
-          isMentionedElement = ApiNarrowIsMentioned();
+          isMentionedElement = ApiNarrowIs(IsOperand.mentioned);
         } else {
           return null;
         }

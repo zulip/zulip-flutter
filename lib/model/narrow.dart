@@ -309,7 +309,7 @@ class MentionsNarrow extends Narrow {
   }
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowIsMentioned()];
+  ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.mentioned)];
 
   @override
   bool operator ==(Object other) {

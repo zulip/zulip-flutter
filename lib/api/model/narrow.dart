@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'narrow.g.dart';
+
 typedef ApiNarrow = List<ApiNarrowElement>;
 
 /// Resolve any [ApiNarrowDm] elements appropriately.
@@ -114,19 +118,44 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
 
-// TODO: generalize into ApiNarrowIs
-class ApiNarrowIsMentioned extends ApiNarrowElement {
+class ApiNarrowIs extends ApiNarrowElement {
   @override String get operator => 'is';
-  @override String get operand => 'mentioned';
 
-  ApiNarrowIsMentioned({super.negated});
+  @override final IsOperand operand;
+
+  ApiNarrowIs(this.operand, {super.negated});
+
+  factory ApiNarrowIs.fromJson(Map<String, dynamic> json) => ApiNarrowIs(
+    IsOperand.fromRawString(json['operand'] as String),
+    negated: json['negated'] as bool? ?? false,
+  );
 }
 
-class ApiNarrowIsUnread extends ApiNarrowElement {
-  @override String get operator => 'is';
-  @override String get operand => 'unread';
+/// An operand value of "is" operator.
+///
+/// See also:
+///   - https://zulip.com/api/construct-narrow
+///   - https://zulip.com/help/search-for-messages#search-your-important-messages
+///   - https://zulip.com/help/search-for-messages#search-by-message-status
+@JsonEnum(alwaysCreate: true)
+enum IsOperand {
+  dm,        // TODO(server-7) new in FL 177
+  private,   // TODO(server-7) deprecated in FL 177, equivalent to [dm].
+  alerted,
+  mentioned,
+  starred,
+  followed,  // TODO(server-9) new in FL 265
+  resolved,
+  unread,
+  unknown;
 
-  ApiNarrowIsUnread({super.negated});
+  static IsOperand fromRawString(String raw) => $enumDecode(
+    _$IsOperandEnumMap, raw, unknownValue: unknown);
+
+  @override
+  String toString() => _$IsOperandEnumMap[this]!;
+
+  String toJson() => toString();
 }
 
 class ApiNarrowMessageId extends ApiNarrowElement {
