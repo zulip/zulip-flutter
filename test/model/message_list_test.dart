@@ -1447,6 +1447,44 @@ void main() {
         check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
       }
     });
+
+    test('in StarredMessagesNarrow', () async {
+      final stream = eg.stream(streamId: 1, name: 'muted stream');
+      const mutedTopic = 'muted';
+      await prepare(narrow: const StarredMessagesNarrow());
+      await store.addStream(stream);
+      await store.addUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
+
+      List<Message> getMessages(int startingId) => [
+        eg.streamMessage(id: startingId,
+          stream: stream, topic: mutedTopic, flags: [MessageFlag.starred]),
+        eg.dmMessage(id: startingId + 1,
+          from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.starred]),
+      ];
+
+      // Check filtering on fetchInitial…
+      await prepareMessages(foundOldest: false, messages: getMessages(201));
+      final expected = <int>[];
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..addAll([201, 202]));
+
+      // … and on fetchOlder…
+      connection.prepare(json: olderResult(
+        anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(model.messages.map((m) => m.id))
+        .deepEquals(expected..insertAll(0, [101, 102]));
+
+      // … and on MessageEvent.
+      final messages = getMessages(301);
+      for (var i = 0; i < 2; i += 1) {
+        await store.handleEvent(MessageEvent(id: 0, message: messages[i]));
+        checkNotifiedOnce();
+        check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
+      }
+    });
   });
 
   test('recipient headers are maintained consistently', () async {
@@ -1693,6 +1731,7 @@ void checkInvariants(MessageListView model) {
       case TopicNarrow():
       case DmNarrow():
       case MentionsNarrow():
+      case StarredMessagesNarrow():
     }
   }
 

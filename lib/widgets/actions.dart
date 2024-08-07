@@ -214,5 +214,8 @@ Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async 
         messages: unreadMentions,
         op: UpdateMessageFlagsOp.add,
         flag: MessageFlag.read);
+    case StarredMessagesNarrow():
+      // TODO: Implement unreads handling.
+      return;
   }
 }

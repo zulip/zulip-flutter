@@ -499,6 +499,10 @@
   "@mentionsPageTitle": {
     "description": "Title for the page of @-mentions."
   },
+  "starredMessagesPageTitle": "Starred messages",
+  "@starredMessagesPageTitle": {
+    "description": "Title for the page of starred messages."
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",

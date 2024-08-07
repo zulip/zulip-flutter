@@ -679,6 +679,13 @@ void main() {
         check(() => MentionAutocompleteView.init(store: store, narrow: narrow))
           .throws<AssertionError>();
       });
+
+      test('StarredMessagesNarrow gives error', () async {
+        await prepare(users: [eg.user(), eg.user()], messages: []);
+        const narrow = StarredMessagesNarrow();
+        check(() => MentionAutocompleteView.init(store: store, narrow: narrow))
+          .throws<AssertionError>();
+      });
     });
 
     test('final results end-to-end', () async {

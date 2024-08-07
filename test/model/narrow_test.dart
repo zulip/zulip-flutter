@@ -162,4 +162,15 @@ void main() {
         eg.streamMessage(flags: [MessageFlag.wildcardMentioned]))).isTrue();
     });
   });
+
+  group('StarredMessagesNarrow', () {
+    test('containsMessage', () {
+      const narrow = StarredMessagesNarrow();
+
+      check(narrow.containsMessage(
+        eg.streamMessage(flags: []))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(flags:[MessageFlag.starred]))).isTrue();
+    });
+  });
 }

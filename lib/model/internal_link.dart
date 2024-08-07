@@ -199,10 +199,11 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     switch (isElementOperands.single) {
       case IsOperand.mentioned:
         return const MentionsNarrow();
+      case IsOperand.starred:
+        return const StarredMessagesNarrow();
       case IsOperand.dm:
       case IsOperand.private:
       case IsOperand.alerted:
-      case IsOperand.starred:
       case IsOperand.followed:
       case IsOperand.resolved:
       case IsOperand.unread:

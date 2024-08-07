@@ -242,10 +242,11 @@ void main() {
         switch (operand) {
           case IsOperand.mentioned:
             testCases = sharedCases(const MentionsNarrow());
+          case IsOperand.starred:
+            testCases = sharedCases(const StarredMessagesNarrow());
           case IsOperand.dm:
           case IsOperand.private:
           case IsOperand.alerted:
-          case IsOperand.starred:
           case IsOperand.followed:
           case IsOperand.resolved:
           case IsOperand.unread:

@@ -321,3 +321,25 @@ class MentionsNarrow extends Narrow {
   @override
   int get hashCode => 'MentionsNarrow'.hashCode;
 }
+
+class StarredMessagesNarrow extends Narrow {
+  const StarredMessagesNarrow();
+
+  @override
+  ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.starred)];
+
+  @override
+  bool containsMessage(Message message) {
+    return message.flags.contains(MessageFlag.starred);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! StarredMessagesNarrow) return false;
+    // Conceptually there's only one value of this type.
+    return true;
+  }
+
+  @override
+  int get hashCode => 'StarredMessagesNarrow'.hashCode;
+}

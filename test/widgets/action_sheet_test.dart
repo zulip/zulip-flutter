@@ -392,6 +392,12 @@ void main() {
       await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
     });
+
+    testWidgets('not offered in StarredMessagesNarrow (composing to reply is not yet supported)', (tester) async {
+      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
+      check(findQuoteAndReplyButton(tester)).isNull();
+    });
   });
 
   group('MarkAsUnread', () {

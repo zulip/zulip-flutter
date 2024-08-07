@@ -272,6 +272,12 @@ class MessageStoreImpl with MessageStore {
           view.notifyListenersIfAnyMessagePresent(event.messages);
           // TODO(#818): Support MentionsNarrow live-updates when handling
           //   @-mention flags.
+
+          // To make it easier to re-star a message, we opt-out from supporting
+          // live-updates when starred flag is removed.
+          //
+          // TODO: Support StarredMessagesNarrow live-updates when starred flag
+          //   is added.
         }
       }
     }

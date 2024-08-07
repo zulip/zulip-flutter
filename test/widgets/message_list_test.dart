@@ -727,6 +727,15 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
+      testWidgets('show channel name in StarredMessagesNarrow', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const StarredMessagesNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList('stream name')).length.equals(1);
+        check(findInMessageList('topic name')).length.equals(1);
+      });
+
       testWidgets('do not show channel name in ChannelNarrow', (tester) async {
         await setupMessageListPage(tester,
           narrow: ChannelNarrow(stream.streamId),

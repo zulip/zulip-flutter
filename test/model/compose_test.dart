@@ -239,6 +239,14 @@ hello
         .equals(store.realmUrl.resolve('#narrow/is/mentioned/near/1'));
     });
 
+    test('StarredMessagesNarrow', () {
+      final store = eg.store();
+      check(narrowLink(store, const StarredMessagesNarrow()))
+        .equals(store.realmUrl.resolve('#narrow/is/starred'));
+      check(narrowLink(store, const StarredMessagesNarrow(), nearMessageId: 1))
+        .equals(store.realmUrl.resolve('#narrow/is/starred/near/1'));
+    });
+
     test('ChannelNarrow / TopicNarrow', () {
       void checkNarrow(String expectedFragment, {
         required int streamId,

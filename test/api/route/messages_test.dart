@@ -191,6 +191,9 @@ void main() {
       checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
         {'operator': 'is', 'operand': 'mentioned'},
       ]));
+      checkNarrow(const StarredMessagesNarrow().apiEncode(), jsonEncode([
+        {'operator': 'is', 'operand': 'starred'},
+      ]));
 
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
         {'operator': 'dm', 'operand': [123, 234]},
