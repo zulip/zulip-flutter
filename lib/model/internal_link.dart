@@ -181,9 +181,8 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         dmElement = ApiNarrowDm(dmIds, negated: negated);
 
       case _NarrowOperator.is_:
-        final isElementOperand = IsOperand.fromRawString(operand);
-        if (isElementOperands.contains(isElementOperand)) return null;
-        isElementOperands.add(isElementOperand);
+        // It is fine to have duplicates of the same [IsOperand].
+        isElementOperands.add(IsOperand.fromRawString(operand));
 
       case _NarrowOperator.near: // TODO(#82): support for near
       case _NarrowOperator.with_: // TODO(#683): support for with
