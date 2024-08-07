@@ -6,6 +6,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
 import '../flutter_checks.dart';
@@ -232,5 +233,44 @@ void main() {
 
     checkOpacityForStreamAndBadge('Stream 1', 2, 0.55);
     checkOpacityForStreamAndBadge('Stream 2', 1, 1.0);
+  });
+
+  testWidgets('stream name of unmuted streams with unmuted unreads is bold', (tester) async {
+    void checkStreamNameWght(String streamName, double? expectedWght) {
+      final streamFinder = find.text(streamName);
+      final wght = wghtFromTextStyle(tester.widget<Text>(streamFinder).style!);
+      check(wght).equals(expectedWght);
+    }
+
+    final unmutedStreamWithUnmutedUnreads =   eg.stream(name: 'Unmuted stream with unmuted unreads');
+    final unmutedStreamWithNoUnmutedUnreads = eg.stream(name: 'Unmuted stream with no unmuted unreads');
+    final mutedStreamWithUnmutedUnreads =     eg.stream(name: 'Muted stream with unmuted unreads');
+    final mutedStreamWithNoUnmutedUnreads =   eg.stream(name: 'Muted stream with no unmuted unreads');
+
+    await setupStreamListPage(tester,
+      subscriptions: [
+        eg.subscription(unmutedStreamWithUnmutedUnreads,   isMuted: false),
+        eg.subscription(unmutedStreamWithNoUnmutedUnreads, isMuted: false),
+        eg.subscription(mutedStreamWithUnmutedUnreads,     isMuted: true),
+        eg.subscription(mutedStreamWithNoUnmutedUnreads,   isMuted: true),
+      ],
+      userTopics: [
+        eg.userTopicItem(unmutedStreamWithUnmutedUnreads,   'a', UserTopicVisibilityPolicy.unmuted),
+        eg.userTopicItem(unmutedStreamWithNoUnmutedUnreads, 'b', UserTopicVisibilityPolicy.muted),
+        eg.userTopicItem(mutedStreamWithUnmutedUnreads,     'c', UserTopicVisibilityPolicy.unmuted),
+        eg.userTopicItem(mutedStreamWithNoUnmutedUnreads,   'd', UserTopicVisibilityPolicy.muted),
+      ],
+      unreadMsgs: eg.unreadMsgs(channels: [
+        UnreadChannelSnapshot(streamId: unmutedStreamWithUnmutedUnreads.streamId,   topic: 'a', unreadMessageIds: [1]),
+        UnreadChannelSnapshot(streamId: unmutedStreamWithNoUnmutedUnreads.streamId, topic: 'b', unreadMessageIds: [2]),
+        UnreadChannelSnapshot(streamId: mutedStreamWithUnmutedUnreads.streamId,     topic: 'c', unreadMessageIds: [3]),
+        UnreadChannelSnapshot(streamId: mutedStreamWithNoUnmutedUnreads.streamId,   topic: 'd', unreadMessageIds: [4]),
+      ]),
+    );
+
+    checkStreamNameWght(unmutedStreamWithUnmutedUnreads.name,   600);
+    checkStreamNameWght(unmutedStreamWithNoUnmutedUnreads.name, 400);
+    checkStreamNameWght(mutedStreamWithUnmutedUnreads.name,     400);
+    checkStreamNameWght(mutedStreamWithNoUnmutedUnreads.name,   400);
   });
 }

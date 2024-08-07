@@ -246,7 +246,7 @@ class SubscriptionItem extends StatelessWidget {
                     // TODO(design) check if this is the right variable
                     color: designVariables.labelMenuButton,
                   ).merge(weightVariableTextStyle(context,
-                      wght: hasUnreads ? 600 : null)),
+                      wght: hasUnreads && !subscription.isMuted ? 600 : null)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   subscription.name)))),
