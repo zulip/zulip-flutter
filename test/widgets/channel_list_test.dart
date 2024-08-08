@@ -91,8 +91,18 @@ void main() {
         return stream;
     }
 
+    Future<Subscription> prepareSingleSubscription(WidgetTester tester) async {
+        final stream = eg.subscription(eg.stream());
+        await setupChannelListPage(tester, streams: [stream], subscriptions: [stream]);
+        return stream;
+    }
+
     Future<void> tapSubscribeButton(WidgetTester tester) async {
       await tester.tap(find.byIcon(Icons.add));
+    }
+
+    Future<void> tapUnsubscribeButton(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.check));
     }
 
     Future<void> waitAndCheckSnackbarIsShown(WidgetTester tester, String message) async {
@@ -108,17 +118,20 @@ void main() {
         alreadySubscribed: {}).toJson());
 
       check(find.byIcon(Icons.add).evaluate()).isNotEmpty();
+      check(find.byIcon(Icons.check).evaluate()).isEmpty();
 
       await store.handleEvent(SubscriptionAddEvent(id: 1,
         subscriptions: [eg.subscription(stream)]));
       await tester.pumpAndSettle();
 
       check(find.byIcon(Icons.add).evaluate()).isEmpty();
+      check(find.byIcon(Icons.check).evaluate()).isNotEmpty();
 
       await store.handleEvent(SubscriptionRemoveEvent(id: 2, streamIds: [stream.streamId]));
       await tester.pumpAndSettle();
 
       check(find.byIcon(Icons.add).evaluate()).isNotEmpty();
+      check(find.byIcon(Icons.check).evaluate()).isEmpty();
     });
 
     group('subscribe', () {
@@ -190,6 +203,67 @@ void main() {
 
         checkErrorDialog(tester,
           expectedTitle: zulipLocalizations.errorFailedToSubscribedToChannel(stream.name),
+          expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
+      });
+    });
+
+    group('unsubscribe', () {
+      testWidgets('is shown only for streams that user is subscribed to', (tester) async {
+        final streams = [eg.stream(), eg.stream(), eg.subscription(eg.stream())];
+        final subscriptions = [streams[2]];
+        await setupChannelListPage(tester, streams: streams, subscriptions: subscriptions.cast());
+
+        check(find.byIcon(Icons.check).evaluate().length).equals(1);
+      });
+
+      testWidgets('smoke api', (tester) async {
+        final stream = await prepareSingleSubscription(tester);
+        connection.prepare(json: UnsubscribeFromChannelsResult(
+          removed: [stream.name],
+          notRemoved: []).toJson());
+        await tapUnsubscribeButton(tester);
+
+        await tester.pump(Duration.zero);
+        await tester.pumpAndSettle();
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('DELETE')
+          ..url.path.equals('/api/v1/users/me/subscriptions')
+          ..bodyFields.deepEquals({
+              'subscriptions':  jsonEncode([stream.name])
+            });
+      });
+
+      testWidgets('shows a snackbar when subscription passes', (WidgetTester tester) async {
+        final stream = await prepareSingleSubscription(tester);
+        connection.prepare(json: UnsubscribeFromChannelsResult(
+          removed: [stream.name],
+          notRemoved: []).toJson());
+        await tapUnsubscribeButton(tester);
+
+        await waitAndCheckSnackbarIsShown(tester,
+          zulipLocalizations.messageUnsubscribedFromChannel(stream.name));
+      });
+
+      testWidgets('shows a snackbar when subscription fails', (WidgetTester tester) async {
+        final stream = await prepareSingleSubscription(tester);
+        connection.prepare(json: UnsubscribeFromChannelsResult(
+          removed: [],
+          notRemoved: [stream.name]).toJson());
+        await tapUnsubscribeButton(tester);
+
+        await waitAndCheckSnackbarIsShown(tester,
+          zulipLocalizations.errorFailedToUnsubscribedFromChannel(stream.name));
+      });
+
+      testWidgets('catch-all api errors', (WidgetTester tester) async {
+        final stream = await prepareSingleSubscription(tester);
+        connection.prepare(exception: http.ClientException('Oops'));
+        await tapUnsubscribeButton(tester);
+        await tester.pump(Duration.zero);
+        await tester.pumpAndSettle();
+
+        checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorFailedToUnsubscribedFromChannel(stream.name),
           expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
       });
     });

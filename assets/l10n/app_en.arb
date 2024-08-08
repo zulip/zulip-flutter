@@ -546,5 +546,19 @@
     "placeholders": {
       "channelName": {"type": "String", "example": "announce"}
     }
+  },
+  "messageUnsubscribedFromChannel": "You've unsubscribed from {channelName}!",
+  "@messageUnsubscribedFromChannel": {
+    "description": "A message shown to inform user that unsubscribe action passes",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "errorFailedToUnsubscribedFromChannel": "Failed to unsubscribe to {channelName}",
+  "@errorFailedToUnsubscribedFromChannel": {
+    "description": "An error message when unsubscribe action fails",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
   }
 }

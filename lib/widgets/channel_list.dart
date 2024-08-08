@@ -95,21 +95,52 @@ class ChannelItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis),
               ])),
               const SizedBox(width: 8),
-              if (stream is! Subscription) _ChannelItemSubscribeButton(stream: stream),
+              _ChannelItemSubscriptionToggle(stream: stream),
             ]))));
   }
 }
 
-class _ChannelItemSubscribeButton extends StatelessWidget {
-  const _ChannelItemSubscribeButton({required this.stream});
+class _ChannelItemSubscriptionToggle extends StatelessWidget {
+  const _ChannelItemSubscriptionToggle({required this.stream});
 
   final ZulipStream stream;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final (icon, color, onPressed) = stream is Subscription
+    ? (Icons.check, colorScheme.primary, _unsubscribeFromChannel)
+    : (Icons.add,   null,                _subscribeToChannel);
+
     return IconButton(
-      icon: const Icon(Icons.add),
-      onPressed: () => _subscribeToChannel(context, stream));
+      color: color,
+      icon: Icon(icon),
+      onPressed: () => onPressed(context, stream));
+  }
+
+  Future<void> _unsubscribeFromChannel(BuildContext context, ZulipStream stream) async {
+    final store = PerAccountStoreWidget.of(context);
+    final connection = store.connection;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    try {
+      final res = await unsubscribeFromChannels(connection, [stream]);
+      if (!context.mounted) return;
+      scaffoldMessenger.clearSnackBars();
+      if (res.removed?.contains(stream.name) ?? false) {
+        scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+          content: Text(zulipLocalizations.messageUnsubscribedFromChannel(stream.name))));
+      } else if (res.notRemoved?.contains(stream.name) ?? false) {
+        scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+          content: Text(zulipLocalizations.errorFailedToUnsubscribedFromChannel(stream.name))));
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorFailedToUnsubscribedFromChannel(stream.name),
+        message: e.toString()); // TODO(#741): extract user-facing message better
+    }
   }
 
   Future<void> _subscribeToChannel(BuildContext context, ZulipStream stream) async {
