@@ -203,6 +203,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
       case IsOperand.private:
       case IsOperand.alerted:
       case IsOperand.starred:
+        return const StarredMessagesNarrow();
       case IsOperand.followed:
       case IsOperand.resolved:
       case IsOperand.unread:

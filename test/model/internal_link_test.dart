@@ -245,6 +245,7 @@ void main() {
           case IsOperand.private:
           case IsOperand.alerted:
           case IsOperand.starred:
+            testCases = sharedCases(const StarredMessagesNarrow());
           case IsOperand.followed:
           case IsOperand.resolved:
           case IsOperand.unread:
