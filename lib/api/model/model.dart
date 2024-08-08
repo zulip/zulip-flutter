@@ -495,6 +495,24 @@ class Subscription extends ZulipStream {
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
+
+  /// Returns a plain `ZulipStream` with same values as `this`
+  ///
+  /// This is helpful when unsubscribing from a stream.
+  ZulipStream toStream() => ZulipStream(
+    streamId: streamId,
+    name: name,
+    description: description,
+    renderedDescription: renderedDescription,
+    dateCreated: dateCreated,
+    firstMessageId: firstMessageId,
+    inviteOnly: inviteOnly,
+    isWebPublic: isWebPublic,
+    historyPublicToSubscribers: historyPublicToSubscribers,
+    messageRetentionDays: messageRetentionDays,
+    channelPostPolicy: channelPostPolicy,
+    canRemoveSubscribersGroup: canRemoveSubscribersGroup,
+    streamWeeklyTraffic: streamWeeklyTraffic);
 }
 
 @JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
