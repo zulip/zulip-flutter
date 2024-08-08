@@ -168,6 +168,11 @@ class ChannelStoreImpl with ChannelStore {
 
       case SubscriptionRemoveEvent():
         for (final streamId in event.streamIds) {
+          assert(streams.containsKey(streamId)
+            && streams[streamId] is Subscription);
+          assert(streamsByName.containsKey(streams[streamId]!.name)
+            && streamsByName[streams[streamId]!.name] is Subscription);
+          assert(subscriptions.containsKey(streamId));
           subscriptions.remove(streamId);
         }
 
