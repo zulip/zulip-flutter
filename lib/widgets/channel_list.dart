@@ -24,9 +24,29 @@ class ChannelListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.channelListPageTitle)),
       body: SafeArea(
-        child: ListView.builder(
+        child: streams.isEmpty ? const _NoStreamsItem() : ListView.builder(
           itemCount: streams.length,
           itemBuilder: (context, index) => ChannelItem(stream: streams[index]))));
+  }
+}
+
+class _NoStreamsItem extends StatelessWidget {
+  const _NoStreamsItem();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Text(zulipLocalizations.noChannelsFound,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            // TODO(#95) need dark-theme color
+            color: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
+            fontSize: 18,
+            height: (20 / 18),
+          ))));
   }
 }
 

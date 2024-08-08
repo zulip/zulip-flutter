@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/channel_list.dart';
 
 import '../model/binding.dart';
@@ -30,8 +31,10 @@ void main() {
   }
 
   testWidgets('smoke', (tester) async {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     await setupChannelListPage(tester, streams: [], subscriptions: []);
     check(getItemCount()).equals(0);
+    check(find.text(zulipLocalizations.noChannelsFound).evaluate()).isNotEmpty();
   });
 
   testWidgets('basic list', (tester) async {

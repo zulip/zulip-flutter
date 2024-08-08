@@ -491,6 +491,10 @@
   "@channelListPageTitle": {
     "description": "Title for the page of all channels."
   },
+  "noChannelsFound": "There are no channels you can view in this organization.",
+  "@noChannelsFound": {
+    "description": "Message when no channels are found"
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",
