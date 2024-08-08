@@ -3,20 +3,20 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/CoreOnly (10.27.0):
-    - FirebaseCore (= 10.27.0)
-  - Firebase/Messaging (10.27.0):
+  - Firebase/CoreOnly (10.29.0):
+    - FirebaseCore (= 10.29.0)
+  - Firebase/Messaging (10.29.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 10.27.0)
-  - firebase_core (3.1.0):
-    - Firebase/CoreOnly (~> 10.27.0)
+    - FirebaseMessaging (~> 10.29.0)
+  - firebase_core (3.3.0):
+    - Firebase/CoreOnly (~> 10.29.0)
     - FlutterMacOS
-  - firebase_messaging (15.0.1):
-    - Firebase/CoreOnly (~> 10.27.0)
-    - Firebase/Messaging (~> 10.27.0)
+  - firebase_messaging (15.0.4):
+    - Firebase/CoreOnly (~> 10.29.0)
+    - Firebase/Messaging (~> 10.29.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseCore (10.27.0):
+  - FirebaseCore (10.29.0):
     - FirebaseCoreInternal (~> 10.0)
     - GoogleUtilities/Environment (~> 7.12)
     - GoogleUtilities/Logger (~> 7.12)
@@ -27,7 +27,7 @@ PODS:
     - GoogleUtilities/Environment (~> 7.8)
     - GoogleUtilities/UserDefaults (~> 7.8)
     - PromisesObjC (~> 2.1)
-  - FirebaseMessaging (10.27.0):
+  - FirebaseMessaging (10.29.0):
     - FirebaseCore (~> 10.0)
     - FirebaseInstallations (~> 10.0)
     - GoogleDataTransport (~> 9.3)
@@ -84,6 +84,8 @@ PODS:
   - "sqlite3 (3.46.0+1)":
     - "sqlite3/common (= 3.46.0+1)"
   - "sqlite3/common (3.46.0+1)"
+  - "sqlite3/dbstatvtab (3.46.0+1)":
+    - sqlite3/common
   - "sqlite3/fts5 (3.46.0+1)":
     - sqlite3/common
   - "sqlite3/perf-threadsafe (3.46.0+1)":
@@ -92,7 +94,8 @@ PODS:
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - FlutterMacOS
-    - sqlite3 (~> 3.46.0)
+    - "sqlite3 (~> 3.46.0+1)"
+    - sqlite3/dbstatvtab
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -158,13 +161,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   file_selector_macos: 54fdab7caa3ac3fc43c9fac4d7d8d231277f8cf2
-  Firebase: 26b040b20866a55f55eb3611b9fcf3ae64816b86
-  firebase_core: 3cf30a8be4c850f7192bf9597f5939d0c3af706b
-  firebase_messaging: 122ef6eefe1c2bb8abe454da56377d19c916c357
-  FirebaseCore: a2b95ae4ce7c83ceecfbbbe3b6f1cddc7415a808
+  Firebase: cec914dab6fd7b1bd8ab56ea07ce4e03dd251c2d
+  firebase_core: 73185b844efc8a534e5744d68152e75e740922d2
+  firebase_messaging: 167fdd90971720e0b62ccd6fa8d430b8af4ca6e9
+  FirebaseCore: 30e9c1cbe3d38f5f5e75f48bfcea87d7c358ec16
   FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
   FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
-  FirebaseMessaging: 585984d0a1df120617eb10b44cad8968b859815e
+  FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -175,7 +178,7 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   share_plus: 36537c04ce0c3e3f5bd297ce4318b6d5ee5fd6cf
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
-  sqlite3_flutter_libs: 1be4459672f8168ded2d8667599b8e3ca5e72b83
+  sqlite3_flutter_libs: 5ca46c1a04eddfbeeb5b16566164aa7ad1616e7b
   url_launcher_macos: 5f437abeda8c85500ceb03f5c1938a8c5a705399
   video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
 
