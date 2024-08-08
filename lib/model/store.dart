@@ -763,7 +763,7 @@ class UpdateMachine {
   }
 
   void poll() async {
-    final backoffMachine = BackoffMachine();
+    BackoffMachine? backoffMachine;
 
     while (true) {
       if (_debugLoopSignal != null) {
@@ -793,7 +793,7 @@ class UpdateMachine {
                 'Backing off, then will retry…'));
             // TODO tell user if transient polling errors persist
             // TODO reset to short backoff eventually
-            await backoffMachine.wait();
+            await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
 
@@ -801,12 +801,13 @@ class UpdateMachine {
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
             // TODO tell user on non-transient error in polling
-            await backoffMachine.wait();
+            await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
         }
       }
 
+      backoffMachine = null;
       store.isLoading = false;
       final events = result.events;
       for (final event in events) {
