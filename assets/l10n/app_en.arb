@@ -172,6 +172,11 @@
       "error": {"type": "String", "example": "Invalid format"}
     }
   },
+  "errorReconnectingToServer": "Reconnecting to {serverUrl}…",
+  "@errorReconnectingToServer": {
+    "serverUrl": {"type": "String", "example": "http://example.com/"},
+    "description": "Message when reconnecting to the server."
+  },
   "errorSharingFailed": "Sharing failed",
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."

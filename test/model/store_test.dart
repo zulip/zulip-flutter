@@ -412,6 +412,9 @@ void main() {
     }
 
     test('handles expired queue', () => awaitFakeAsync((async) async {
+      reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
+      addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
       await prepareStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
@@ -425,7 +428,10 @@ void main() {
       });
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
+      check(lastReportedError).isNull();
       await Future<void>.delayed(Duration.zero);
+      check(takeLastReportedError()).isNotNull()
+        .contains('Reconnecting to ${eg.realmUrl.origin}…');
       check(store).isLoading.isTrue();
 
       // The global store has a new store.
