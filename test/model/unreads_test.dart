@@ -227,6 +227,17 @@ void main() {
       ]);
       check(model.countInMentionsNarrow()).equals(2);
     });
+
+    test('countInStarredMessagesNarrow', () async {
+      final stream = eg.stream();
+      prepare();
+      await channelStore.addStream(stream);
+      fillWithMessages([
+        eg.streamMessage(stream: stream, flags: []),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.starred]),
+      ]);
+      check(model.countInStarredMessagesNarrow()).equals(0);
+    });
   });
 
   group('handleMessageEvent', () {

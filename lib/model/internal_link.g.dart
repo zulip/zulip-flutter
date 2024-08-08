@@ -20,3 +20,15 @@ const _$_NarrowOperatorEnumMap = {
   _NarrowOperator.topic: 'topic',
   _NarrowOperator.unknown: 'unknown',
 };
+
+const _$IsOperandEnumMap = {
+  IsOperand.dm: 'dm',
+  IsOperand.private: 'private',
+  IsOperand.alerted: 'alerted',
+  IsOperand.mentioned: 'mentioned',
+  IsOperand.starred: 'starred',
+  IsOperand.followed: 'followed',
+  IsOperand.resolved: 'resolved',
+  IsOperand.unread: 'unread',
+  IsOperand.unknown: 'unknown',
+};

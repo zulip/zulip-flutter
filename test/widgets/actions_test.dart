@@ -8,6 +8,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/internal_link.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -54,7 +55,7 @@ void main() {
         foundOldest: true, foundNewest: true).toJson());
       markNarrowAsRead(context, narrow, false);
       await tester.pump(Duration.zero);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -104,7 +105,7 @@ void main() {
         firstProcessedId: 1, lastProcessedId: 1989,
         foundOldest: true, foundNewest: false).toJson());
       markNarrowAsRead(context, narrow, false);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -164,7 +165,7 @@ void main() {
         foundOldest: true, foundNewest: false).toJson());
       markNarrowAsRead(context, narrow, false);
       await tester.pump(Duration.zero);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')

@@ -1,3 +1,5 @@
+import '../../model/internal_link.dart';
+
 typedef ApiNarrow = List<ApiNarrowElement>;
 
 /// Resolve any [ApiNarrowDm] elements appropriately.
@@ -114,19 +116,17 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
 
-// TODO: generalize into ApiNarrowIs
-class ApiNarrowIsMentioned extends ApiNarrowElement {
+class ApiNarrowIs extends ApiNarrowElement {
   @override String get operator => 'is';
-  @override String get operand => 'mentioned';
 
-  ApiNarrowIsMentioned({super.negated});
-}
+  @override final String operand;
 
-class ApiNarrowIsUnread extends ApiNarrowElement {
-  @override String get operator => 'is';
-  @override String get operand => 'unread';
+  ApiNarrowIs(IsOperand operand, {super.negated}) : operand = operand.toString();
 
-  ApiNarrowIsUnread({super.negated});
+  factory ApiNarrowIs.fromJson(Map<String, dynamic> json) => ApiNarrowIs(
+    IsOperand.fromRawString(json['operand'] as String),
+    negated: json['negated'] as bool? ?? false,
+  );
 }
 
 class ApiNarrowMessageId extends ApiNarrowElement {

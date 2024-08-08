@@ -223,6 +223,7 @@ class MentionAutocompleteView extends ChangeNotifier {
         break;
       case CombinedFeedNarrow():
       case MentionsNarrow():
+      case StarredMessagesNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
     return (userA, userB) => _compareByRelevance(userA, userB,

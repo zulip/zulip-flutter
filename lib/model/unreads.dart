@@ -195,6 +195,9 @@ class Unreads extends ChangeNotifier {
 
   int countInMentionsNarrow() => mentions.length;
 
+  // TODO: Implement unreads handling.
+  int countInStarredMessagesNarrow() => 0;
+
   int countInNarrow(Narrow narrow) {
     switch (narrow) {
       case CombinedFeedNarrow():
@@ -207,6 +210,8 @@ class Unreads extends ChangeNotifier {
         return countInDmNarrow(narrow);
       case MentionsNarrow():
         return countInMentionsNarrow();
+      case StarredMessagesNarrow():
+        return countInStarredMessagesNarrow();
     }
   }
 

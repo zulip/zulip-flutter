@@ -221,18 +221,40 @@ void main() {
       testExpectedNarrows(testCases, streams: streams);
     });
 
-    group('"/#narrow/is/mentioned returns expected MentionsNarrow', () {
-      final testCases = [
-        ('/#narrow/is/mentioned',                                     const MentionsNarrow()),
-        ('/#narrow/is/mentioned/near/1',                              const MentionsNarrow()),
-        ('/#narrow/is/mentioned/with/2',                              const MentionsNarrow()),
-        ('/#narrow/channel/7-test-here/is/mentioned',                 null),
-        ('/#narrow/channel/check/topic/test/is/mentioned',            null),
-        ('/#narrow/topic/test/is/mentioned',                          null),
-        ('/#narrow/dm/17327-Chris-Bobbe-(Test-Account)/is/mentioned', null),
-        ('/#narrow/-is/mentioned',                                    null),
-      ];
-      testExpectedNarrows(testCases, streams: streams);
+    group('/#narrow/is/<...> returns corresponding narrow', () {
+      // For these tests, we are more interested in the internal links
+      // containing a single effective `is` operator.
+      // Internal links with multiple operators should be tested separately.
+      for (final operand in IsOperand.values) {
+        List<(String, Narrow?)> sharedCases(Narrow? narrow) => [
+            ('/#narrow/is/$operand',                                     narrow),
+            ('/#narrow/is/$operand/is/$operand',                         narrow),
+            ('/#narrow/is/$operand/near/1',                              narrow),
+            ('/#narrow/is/$operand/with/2',                              narrow),
+            ('/#narrow/channel/7-test-here/is/$operand',                 null),
+            ('/#narrow/channel/check/topic/test/is/$operand',            null),
+            ('/#narrow/topic/test/is/$operand',                          null),
+            ('/#narrow/dm/17327-Chris-Bobbe-(Test-Account)/is/$operand', null),
+            ('/#narrow/-is/$operand',                                    null),
+          ];
+        final List<(String, Narrow?)> testCases;
+        switch (operand) {
+          case IsOperand.mentioned:
+            testCases = sharedCases(const MentionsNarrow());
+          case IsOperand.dm:
+          case IsOperand.private:
+          case IsOperand.alerted:
+          case IsOperand.starred:
+            testCases = sharedCases(const StarredMessagesNarrow());
+          case IsOperand.followed:
+          case IsOperand.resolved:
+          case IsOperand.unread:
+          case IsOperand.unknown:
+            // Unsupported operands should not return any narrow.
+            testCases = sharedCases(null);
+        }
+        testExpectedNarrows(testCases, streams: streams);
+      }
     });
 
     group('unexpected link shapes are rejected', () {
