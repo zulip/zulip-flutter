@@ -239,6 +239,7 @@ void main() {
       final testCases = [
         ('/#narrow/stream/name/topic/',           null), // missing operand
         ('/#narrow/stream/name/unknown/operand/', null), // unknown operator
+        ('/#narrow/is/starred',                   null), // unknown `is` operand
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
