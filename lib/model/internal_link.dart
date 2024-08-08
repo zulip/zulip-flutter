@@ -185,6 +185,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
       case _NarrowOperator.is_:
         if (isMentionedElement != null) return null;
         if (operand == 'mentioned') isMentionedElement = ApiNarrowIsMentioned();
+        return null;
 
       case _NarrowOperator.near: // TODO(#82): support for near
       case _NarrowOperator.with_: // TODO(#683): support for with
