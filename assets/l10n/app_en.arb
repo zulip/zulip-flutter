@@ -525,5 +525,26 @@
   "manyPeopleTyping": "Several people are typing…",
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "messageSubscribedToChannel": "You've just subscribed to {channelName}",
+  "@messageSubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is successful",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "messageAlreadySubscribedToChannel": "You're already subscribed to {channelName}!",
+  "@messageAlreadySubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is already made",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "errorFailedToSubscribedToChannel": "Failed to subscribe to {channelName}",
+  "@errorFailedToSubscribedToChannel": {
+    "description": "An error message when subscribe action fails",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
   }
 }

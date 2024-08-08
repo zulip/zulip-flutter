@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/model.dart';
+import '../api/route/channel.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
+import 'dialog.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -91,6 +94,55 @@ class ChannelItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
               ])),
+              const SizedBox(width: 8),
+              if (stream is! Subscription) _ChannelItemSubscribeButton(stream: stream),
             ]))));
+  }
+}
+
+class _ChannelItemSubscribeButton extends StatelessWidget {
+  const _ChannelItemSubscribeButton({required this.stream});
+
+  final ZulipStream stream;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.add),
+      onPressed: () => _subscribeToChannel(context, stream));
+  }
+
+  Future<void> _subscribeToChannel(BuildContext context, ZulipStream stream) async {
+    final store = PerAccountStoreWidget.of(context);
+    final connection = store.connection;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    try {
+      final res = await subscribeToChannels(connection, [stream]);
+      if (!context.mounted) return;
+      scaffoldMessenger.clearSnackBars();
+      if (_emailSubscriptionsContains(store, res.subscribed, stream.name)) {
+        scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+          content: Text(zulipLocalizations.messageSubscribedToChannel(stream.name))));
+      } else if (_emailSubscriptionsContains(store, res.alreadySubscribed, stream.name)) {
+        scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+          content: Text(zulipLocalizations.messageAlreadySubscribedToChannel(stream.name))));
+      } else {
+        scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
+          content: Text(zulipLocalizations.errorFailedToSubscribedToChannel(stream.name))));
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorFailedToSubscribedToChannel(stream.name),
+        message: e.toString()); // TODO(#741): extract user-facing message better
+    }
+  }
+
+  bool _emailSubscriptionsContains(PerAccountStore store, Map<String, List<String>> emailSubs, String subscription) {
+    final expectedEmail = store.users[store.selfUserId]?.email;
+    final found = emailSubs[expectedEmail]?.contains(subscription);
+    return found ?? false;
   }
 }
