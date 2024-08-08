@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
+import 'app_bar.dart';
 import 'inbox.dart';
 import 'login.dart';
 import 'message_list.dart';
@@ -179,9 +180,10 @@ class ChooseAccountPage extends StatelessWidget {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: ZulipAppBar(
         title: Text(zulipLocalizations.chooseAccountPageTitle),
-        actions: const [ChooseAccountPageOverflowButton()]),
+        actions: const [ChooseAccountPageOverflowButton()],
+        isLoading: false),
       body: SafeArea(
         minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
         child: Center(
@@ -252,7 +254,9 @@ class HomePage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
+      appBar: ZulipAppBar(
+        title: const Text("Home"),
+        isLoading: store.isLoading),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(

@@ -28,6 +28,7 @@ extension GlobalStoreChecks on Subject<GlobalStore> {
 
 extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<ApiConnection> get connection => has((x) => x.connection, 'connection');
+  Subject<bool> get isLoading => has((x) => x.isLoading, 'isLoading');
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<String> get zulipVersion => has((x) => x.zulipVersion, 'zulipVersion');
   Subject<int> get maxFileUploadSizeMib => has((x) => x.maxFileUploadSizeMib, 'maxFileUploadSizeMib');

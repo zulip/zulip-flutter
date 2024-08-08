@@ -406,10 +406,12 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       await Future<void>.delayed(Duration.zero);
+      check(store).isLoading.isTrue();
 
       // The global store has a new store.
       check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
       updateFromGlobalStore();
+      check(store).isLoading.isFalse();
 
       // The new UpdateMachine updates the new store.
       updateMachine.debugPauseLoop();
@@ -435,8 +437,9 @@ void main() {
         // Make the request, inducing an error in it.
         prepareError();
         updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
+        async.elapse(Duration.zero);
         checkLastRequest(lastEventId: 1);
+        check(store).isLoading.isTrue();
 
         // Polling doesn't resume immediately; there's a timer.
         check(async.pendingTimers).length.equals(1);
@@ -452,6 +455,7 @@ void main() {
         async.flushTimers();
         checkLastRequest(lastEventId: 1);
         check(updateMachine.lastEventId).equals(2);
+        check(store).isLoading.isFalse();
       });
     }
 
