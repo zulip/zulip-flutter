@@ -60,3 +60,20 @@ Map<String, dynamic> _$SubscribeToChannelsResultToJson(
       'already_subscribed': instance.alreadySubscribed,
       'unauthorized': instance.unauthorized,
     };
+
+UnsubscribeFromChannelsResult _$UnsubscribeFromChannelsResultFromJson(
+        Map<String, dynamic> json) =>
+    UnsubscribeFromChannelsResult(
+      removed:
+          (json['removed'] as List<dynamic>).map((e) => e as String).toList(),
+      notRemoved: (json['not_removed'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+    );
+
+Map<String, dynamic> _$UnsubscribeFromChannelsResultToJson(
+        UnsubscribeFromChannelsResult instance) =>
+    <String, dynamic>{
+      'removed': instance.removed,
+      'not_removed': instance.notRemoved,
+    };

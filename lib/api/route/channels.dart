@@ -63,3 +63,25 @@ class SubscribeToChannelsResult {
 
   Map<String, dynamic> toJson() => _$SubscribeToChannelsResultToJson(this);
 }
+
+/// https://zulip.com/api/usubscribe
+Future<UnsubscribeFromChannelsResult> unsubscribeFromChannels(ApiConnection connection, List<ZulipStream> streams) {
+  return connection.delete('unsubscribe', UnsubscribeFromChannelsResult.fromJson,
+    'users/me/subscriptions', {'subscriptions': streams.map((e) => e.name).toList()});
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UnsubscribeFromChannelsResult {
+  final List<String> removed;
+  final List<String> notRemoved;
+
+  UnsubscribeFromChannelsResult({
+    required this.removed,
+    required this.notRemoved,
+  });
+
+  factory UnsubscribeFromChannelsResult.fromJson(Map<String, dynamic> json) =>
+    _$UnsubscribeFromChannelsResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UnsubscribeFromChannelsResultToJson(this);
+}
