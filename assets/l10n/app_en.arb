@@ -363,6 +363,13 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "browseMoreNChannels": "Browse {num, plural, =0{all channels} =1{1 more channel} other{{num} more channels}}",
+  "@browseMoreNChannels": {
+    "description": "Label showing the number of other channels that user can subscribe to",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
   "errorInvalidResponse": "The server sent an invalid response",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
@@ -479,6 +486,10 @@
   "mentionsPageTitle": "Mentions",
   "@mentionsPageTitle": {
     "description": "Title for the page of @-mentions."
+  },
+  "channelListPageTitle": "All channels",
+  "@channelListPageTitle": {
+    "description": "Title for the page of all channels."
   },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {

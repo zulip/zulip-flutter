@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/model.dart';
 import '../model/narrow.dart';
@@ -7,6 +8,7 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
+import 'channel_list.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
@@ -106,7 +108,7 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
               _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
             ],
 
-            // TODO(#188): add button leading to "All Streams" page with ability to subscribe
+            if (store.streams.isNotEmpty) const _ChannelListLinkItem(),
 
             // This ensures last item in scrollable can settle in an unobstructed area.
             const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
@@ -192,6 +194,41 @@ class _SubscriptionList extends StatelessWidget {
         // TODO(#712): if stream muted, show a dot for unreads
         return SubscriptionItem(subscription: subscription, unreadCount: unreadCount);
     });
+  }
+}
+
+class _ChannelListLinkItem extends StatelessWidget {
+  const _ChannelListLinkItem();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final notShownStreams = store.streams.length - store.subscriptions.length;
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SliverToBoxAdapter(
+      child: Material(
+        // TODO(#95) need dark-theme color
+        color: Colors.white,
+        child: InkWell(
+          onTap: () => Navigator.push(context,
+            ChannelListPage.buildRoute(context: context)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  style: const TextStyle(
+                    fontSize: 18,
+                    height: (20 / 18),
+                    // TODO(#95) need dark-theme color
+                    color: Color(0xFF262626),
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  zulipLocalizations.browseMoreNChannels(notShownStreams)),
+                const Icon(Icons.arrow_forward_ios, size: 18),
+              ])))));
   }
 }
 

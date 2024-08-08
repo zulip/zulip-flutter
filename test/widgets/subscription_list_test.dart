@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
@@ -20,11 +21,12 @@ void main() {
     required List<Subscription> subscriptions,
     List<UserTopicItem> userTopics = const [],
     UnreadMessagesSnapshot? unreadMsgs,
+    List<ZulipStream>? streams,
   }) async {
     addTearDown(testBinding.reset);
     final initialSnapshot = eg.initialSnapshot(
       subscriptions: subscriptions,
-      streams: subscriptions,
+      streams: streams ?? subscriptions,
       userTopics: userTopics,
       unreadMsgs: unreadMsgs,
     );
@@ -54,6 +56,23 @@ void main() {
     check(getItemCount()).equals(0);
     check(isPinnedHeaderInTree()).isFalse();
     check(isUnpinnedHeaderInTree()).isFalse();
+  });
+
+  testWidgets('link to other channels is shown', (tester) async {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    final streams = List.generate(5, (index) => eg.stream());
+    await setupStreamListPage(tester,
+      streams: streams,
+      subscriptions: [eg.subscription(streams[1])]);
+
+    check(find.text(zulipLocalizations.browseMoreNChannels(4)).evaluate()).isNotEmpty();
+  });
+
+  testWidgets('link to other channels is not shown if server has no visible channels', (tester) async {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    await setupStreamListPage(tester, streams: [], subscriptions: []);
+
+    check(find.text(zulipLocalizations.browseMoreNChannels(0)).evaluate()).isEmpty();
   });
 
   testWidgets('basic subscriptions', (tester) async {
