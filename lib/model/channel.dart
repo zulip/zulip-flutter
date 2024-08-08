@@ -173,6 +173,8 @@ class ChannelStoreImpl with ChannelStore {
           assert(streamsByName.containsKey(streams[streamId]!.name)
             && streamsByName[streams[streamId]!.name] is Subscription);
           assert(subscriptions.containsKey(streamId));
+          streams[streamId] = subscriptions[streamId]!.toStream();
+          streamsByName[streams[streamId]!.name] = subscriptions[streamId]!.toStream();
           subscriptions.remove(streamId);
         }
 
