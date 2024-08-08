@@ -372,16 +372,19 @@ void main() {
       ));
     });
 
-    testWidgets('not offered in CombinedFeedNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: const CombinedFeedNarrow());
-      check(findQuoteAndReplyButton(tester)).isNull();
-    });
+    group('composing to reply is not yet supported', () {
+      final testCases = [
+        ('CombinedFeedNarrow', const CombinedFeedNarrow(), eg.streamMessage()),
+        ('MentionsNarrow',     const MentionsNarrow(),     eg.streamMessage(flags: [MessageFlag.mentioned])),
+      ];
 
-    testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (WidgetTester tester) async {
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
-      check(findQuoteAndReplyButton(tester)).isNull();
+      for (final (narrowName, narrow, message) in testCases) {
+        assert(narrow.containsMessage(message));
+        testWidgets('not offered in $narrowName (composing to reply is not yet supported)', (WidgetTester tester) async {
+          await setupToMessageActionSheet(tester, message: message, narrow: narrow);
+          check(findQuoteAndReplyButton(tester)).isNull();
+        });
+      }
     });
   });
 

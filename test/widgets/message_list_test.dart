@@ -124,31 +124,24 @@ void main() {
 
   group('presents message content appropriately', () {
     // regression test for https://github.com/zulip/zulip-flutter/issues/736
-    testWidgets('content in "Combined feed" not asked to consume insets (including bottom)', (tester) async {
-      const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
-      tester.view.viewInsets = fakePadding;
-      tester.view.padding = fakePadding;
+    final testCases = [
+      ("Combined feed", const CombinedFeedNarrow(), <MessageFlag>[]),
+      ("MentionsNarrow", const MentionsNarrow(),    [MessageFlag.mentioned]),
+    ];
+    for (final (narrowName, narrow, flags) in testCases) {
+      testWidgets('content in $narrowName not asked to consume insets (including bottom)', (tester) async {
+        const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
+        tester.view.viewInsets = fakePadding;
+        tester.view.padding = fakePadding;
 
-      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
-        messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html)]);
+        await setupMessageListPage(tester, narrow: narrow,
+          messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html, flags: flags)]);
 
-      final element = tester.element(find.byType(CodeBlock));
-      final padding = MediaQuery.of(element).padding;
-      check(padding).equals(EdgeInsets.zero);
-    });
-
-    testWidgets('content in MentionsNarrow not asked to consume insets (including bottom)', (tester) async {
-      const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
-      tester.view.viewInsets = fakePadding;
-      tester.view.padding = fakePadding;
-
-      await setupMessageListPage(tester, narrow: const MentionsNarrow(),
-        messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html, flags: [MessageFlag.mentioned])]);
-
-      final element = tester.element(find.byType(CodeBlock));
-      final padding = MediaQuery.of(element).padding;
-      check(padding).equals(EdgeInsets.zero);
-    });
+        final element = tester.element(find.byType(CodeBlock));
+        final padding = MediaQuery.of(element).padding;
+        check(padding).equals(EdgeInsets.zero);
+      });
+    }
   });
 
   testWidgets('smoke test for light/dark/lerped', (tester) async {
@@ -633,40 +626,31 @@ void main() {
           matching: find.text(text)).evaluate();
       }
 
-      testWidgets('show stream name in CombinedFeedNarrow', (tester) async {
-        await setupMessageListPage(tester,
-          narrow: const CombinedFeedNarrow(),
-          messages: [message], subscriptions: [eg.subscription(stream)]);
-        await tester.pump();
-        check(findInMessageList('stream name')).length.equals(1);
-        check(findInMessageList('topic name')).length.equals(1);
-      });
+      group('show channel name conditionally', () {
+        final mentionedMessage =
+          eg.streamMessage(stream: stream, topic: 'topic name', flags: [MessageFlag.mentioned]);
+        final testCases = [
+          (true,  'CombinedFeedNarrow', const CombinedFeedNarrow(),     message),
+          (true,  'MentionsNarrow',     const MentionsNarrow(),         mentionedMessage),
+          (false, 'ChannelNarrow',      ChannelNarrow(stream.streamId), message),
+          (false, 'TopicNarrow',        TopicNarrow.ofMessage(message), message)
+        ];
 
-      testWidgets('show channel name in MentionsNarrow', (tester) async {
-        await setupMessageListPage(tester,
-          narrow: const MentionsNarrow(),
-          messages: [message], subscriptions: [eg.subscription(stream)]);
-        await tester.pump();
-        check(findInMessageList('stream name')).length.equals(1);
-        check(findInMessageList('topic name')).length.equals(1);
-      });
-
-      testWidgets('do not show channel name in ChannelNarrow', (tester) async {
-        await setupMessageListPage(tester,
-          narrow: ChannelNarrow(stream.streamId),
-          messages: [message], streams: [stream]);
-        await tester.pump();
-        check(findInMessageList('stream name')).length.equals(0);
-        check(findInMessageList('topic name')).length.equals(1);
-      });
-
-      testWidgets('do not show stream name in TopicNarrow', (tester) async {
-        await setupMessageListPage(tester,
-          narrow: TopicNarrow.ofMessage(message),
-          messages: [message], streams: [stream]);
-        await tester.pump();
-        check(findInMessageList('stream name')).length.equals(0);
-        check(findInMessageList('topic name')).length.equals(1);
+        for (final (showChannelName, narrowName, narrow, message) in testCases) {
+          testWidgets('in $narrowName, show channel name: $showChannelName', (tester) async {
+            assert(narrow.containsMessage(message));
+            await setupMessageListPage(tester,
+              narrow: narrow,
+              messages: [message], subscriptions: [eg.subscription(stream)]);
+            await tester.pump();
+            if (showChannelName) {
+              check(findInMessageList('stream name')).single;
+            } else {
+              check(findInMessageList('stream name')).isEmpty();
+            }
+            check(findInMessageList('topic name')).length.equals(1);
+          });
+        }
       });
 
       testWidgets('color of recipient header background', (tester) async {
