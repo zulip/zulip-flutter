@@ -20,7 +20,9 @@ class ChannelListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final streams = store.streams.values.toList();
+    final streams = store.streams.values.toList()..sort((a, b) {
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.channelListPageTitle)),
       body: SafeArea(

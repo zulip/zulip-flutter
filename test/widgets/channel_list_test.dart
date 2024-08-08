@@ -42,4 +42,29 @@ void main() {
     await setupChannelListPage(tester, streams: streams, subscriptions: []);
     check(getItemCount()).equals(3);
   });
+
+  group('list ordering', () {
+    Iterable<String> listedStreamNames(WidgetTester tester) => tester
+      .widgetList<ChannelItem>(find.byType(ChannelItem))
+      .map((e) => e.stream.name);
+
+    List<ZulipStream> streamsFromNames(List<String> names) {
+      return names.map((name) => eg.stream(name: name)).toList();
+    }
+
+    testWidgets('is alphabetically case-insensitive', (tester) async {
+      final streams = streamsFromNames(['b', 'C', 'A']);
+      await setupChannelListPage(tester, streams: streams, subscriptions: []);
+
+      check(listedStreamNames(tester)).deepEquals(['A', 'b', 'C']);
+    });
+
+    testWidgets('is insensitive of user subscription', (tester) async {
+      final streams = streamsFromNames(['b', 'c', 'a']);
+      await setupChannelListPage(tester, streams: streams,
+        subscriptions: [eg.subscription(streams[0])]);
+
+      check(listedStreamNames(tester)).deepEquals(['a', 'b', 'c']);
+    });
+  });
 }
