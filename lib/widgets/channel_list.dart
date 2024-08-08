@@ -104,22 +104,22 @@ class ChannelItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis),
               ])),
             const SizedBox(width: 8),
-            if (stream is! Subscription) _ChannelItemSubscribeButton(stream: stream, channelItemContext: context),
+            _ChannelItemSubscriptionToggle(stream: stream, channelItemContext: context),
           ]))));
   }
 }
 
-class _ChannelItemSubscribeButton extends StatefulWidget {
-  const _ChannelItemSubscribeButton({required this.stream, required this.channelItemContext});
+class _ChannelItemSubscriptionToggle extends StatefulWidget {
+  const _ChannelItemSubscriptionToggle({required this.stream, required this.channelItemContext});
 
   final ZulipStream stream;
   final BuildContext channelItemContext;
 
   @override
-  State<_ChannelItemSubscribeButton> createState() => _ChannelItemSubscribeButtonState();
+  State<_ChannelItemSubscriptionToggle> createState() => _ChannelItemSubscriptionToggleState();
 }
 
-class _ChannelItemSubscribeButtonState extends State<_ChannelItemSubscribeButton> {
+class _ChannelItemSubscriptionToggleState extends State<_ChannelItemSubscriptionToggle> {
   bool _isLoading = false;
 
   void _setIsLoading(bool value) {
@@ -129,13 +129,37 @@ class _ChannelItemSubscribeButtonState extends State<_ChannelItemSubscribeButton
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final (icon, color, onPressed) = widget.stream is Subscription
+      ? (Icons.check, colorScheme.primary, _unsubscribeFromChannel)
+      : (Icons.add,   null,                _subscribeToChannel);
+
     return IconButton(
-      icon: const Icon(Icons.add),
+      color: color,
+      icon: Icon(icon),
       onPressed: _isLoading ? null : () async {
         _setIsLoading(true);
-        await _subscribeToChannel(context, widget.stream);
+        await onPressed(context, widget.stream);
         _setIsLoading(false);
       });
+  }
+
+  Future<void> _unsubscribeFromChannel(BuildContext context, ZulipStream stream) async {
+    final store = PerAccountStoreWidget.of(context);
+    final connection = store.connection;
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    try {
+      final res = await unsubscribeFromChannels(connection, [stream]);
+      if (!context.mounted) return;
+      if (res.removed.contains(stream.name)) {
+        _showSnackbarWithChannelTitle(context, zulipLocalizations.messageUnsubscribedFromChannel, stream);
+      } else if (res.notRemoved.contains(stream.name)) {
+        _showSnackbarWithChannelTitle(context, zulipLocalizations.errorFailedToUnsubscribeFromChannel, stream);
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      _showSnackbarWithChannelTitle(context, zulipLocalizations.errorFailedToUnsubscribeFromChannel, stream);
+    }
   }
 
   Future<void> _subscribeToChannel(BuildContext context, ZulipStream stream) async {

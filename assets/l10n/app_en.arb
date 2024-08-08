@@ -624,5 +624,13 @@
   "errorFailedToSubscribeToChannel": "Failed to subscribe to ",
   "@errorFailedToSubscribeToChannel": {
     "description": "An error message when subscribe action fails"
+  },
+  "messageUnsubscribedFromChannel": "You've unsubscribed from ",
+  "@messageUnsubscribedFromChannel": {
+    "description": "A message shown to inform user that unsubscribe action passes"
+  },
+  "errorFailedToUnsubscribeFromChannel": "Failed to unsubscribe to ",
+  "@errorFailedToUnsubscribeFromChannel": {
+    "description": "An error message when unsubscribe action fails"
   }
 }
