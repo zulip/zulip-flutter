@@ -455,53 +455,55 @@ void main() {
       check(store.debugMessageListViews).isEmpty();
     }));
 
-    void checkRetry(void Function() prepareError) {
-      awaitFakeAsync((async) async {
-        await prepareStore(lastEventId: 1);
-        updateMachine.debugPauseLoop();
-        updateMachine.poll();
-        check(async.pendingTimers).length.equals(0);
+    group('retries on errors', () {
+      void checkRetry(void Function() prepareError) {
+        awaitFakeAsync((async) async {
+          await prepareStore(lastEventId: 1);
+          updateMachine.debugPauseLoop();
+          updateMachine.poll();
+          check(async.pendingTimers).length.equals(0);
 
-        // Make the request, inducing an error in it.
-        prepareError();
-        updateMachine.debugAdvanceLoop();
-        async.elapse(Duration.zero);
-        checkLastRequest(lastEventId: 1);
-        check(store).isLoading.isTrue();
+          // Make the request, inducing an error in it.
+          prepareError();
+          updateMachine.debugAdvanceLoop();
+          async.elapse(Duration.zero);
+          checkLastRequest(lastEventId: 1);
+          check(store).isLoading.isTrue();
 
-        // Polling doesn't resume immediately; there's a timer.
-        check(async.pendingTimers).length.equals(1);
-        updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
-        check(connection.lastRequest).isNull();
-        check(async.pendingTimers).length.equals(1);
+          // Polling doesn't resume immediately; there's a timer.
+          check(async.pendingTimers).length.equals(1);
+          updateMachine.debugAdvanceLoop();
+          async.flushMicrotasks();
+          check(connection.lastRequest).isNull();
+          check(async.pendingTimers).length.equals(1);
 
-        // Polling continues after a timer.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
-        async.flushTimers();
-        checkLastRequest(lastEventId: 1);
-        check(updateMachine.lastEventId).equals(2);
-        check(store).isLoading.isFalse();
+          // Polling continues after a timer.
+          connection.prepare(json: GetEventsResult(events: [
+            HeartbeatEvent(id: 2),
+          ], queueId: null).toJson());
+          async.flushTimers();
+          checkLastRequest(lastEventId: 1);
+          check(updateMachine.lastEventId).equals(2);
+          check(store).isLoading.isFalse();
+        });
+      }
+
+      test('Server5xxException', () {
+        checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
       });
-    }
 
-    test('retries on Server5xxException', () {
-      checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
-    });
+      test('NetworkException', () {
+        checkRetry(() => connection.prepare(exception: Exception("failed")));
+      });
 
-    test('retries on NetworkException', () {
-      checkRetry(() => connection.prepare(exception: Exception("failed")));
-    });
+      test('ZulipApiException', () {
+        checkRetry(() => connection.prepare(httpStatus: 400, json: {
+          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
+      });
 
-    test('retries on ZulipApiException', () {
-      checkRetry(() => connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
-    });
-
-    test('retries on MalformedServerResponseException', () {
-      checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+      test('MalformedServerResponseException', () {
+        checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+      });
     });
   });
 
