@@ -612,5 +612,17 @@
   "errorNotificationOpenAccountMissing": "The account associated with this notification no longer exists.",
   "@errorNotificationOpenAccountMissing": {
     "description": "Error message when the account associated with the notification is not found"
+  },
+  "messageSubscribedToChannel": "You've just subscribed to ",
+  "@messageSubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is successful"
+  },
+  "messageAlreadySubscribedToChannel": "You're already subscribed to ",
+  "@messageAlreadySubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is already made"
+  },
+  "errorFailedToSubscribeToChannel": "Failed to subscribe to ",
+  "@errorFailedToSubscribeToChannel": {
+    "description": "An error message when subscribe action fails"
   }
 }
