@@ -396,6 +396,24 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
+  "subscribedToNChannels": "Subscribed to {num, plural, =0{no channels} =1{1 channel} other{{num} channels}}",
+  "@subscribedToNChannels": {
+    "description": "Test page label showing number of channels user is subscribed to.",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
+  "browseNMoreChannels": "Browse {num, plural, =1{1 more channel} other{{num} more channels}}",
+  "@browseNMoreChannels": {
+    "description": "Label showing the number of other channels that user can subscribe to",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
+  "browseAllChannels": "Browse all channels",
+  "@browseAllChannels": {
+    "description": "Label for the option to show all channels, this is only shown if user is already subscribed to all visible channels"
+  },
   "errorInvalidResponse": "The server sent an invalid response",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
@@ -531,6 +549,14 @@
   "starredMessagesPageTitle": "Starred messages",
   "@starredMessagesPageTitle": {
     "description": "Title for the page of starred messages."
+  },
+  "channelListPageTitle": "All channels",
+  "@channelListPageTitle": {
+    "description": "Title for the page of all channels."
+  },
+  "noChannelsFound": "There are no channels you can view in this organization.",
+  "@noChannelsFound": {
+    "description": "Message when no channels are found"
   },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {

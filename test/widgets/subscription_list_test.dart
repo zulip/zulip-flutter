@@ -23,11 +23,12 @@ void main() {
     required List<Subscription> subscriptions,
     List<UserTopicItem> userTopics = const [],
     UnreadMessagesSnapshot? unreadMsgs,
+    List<ZulipStream>? streams,
   }) async {
     addTearDown(testBinding.reset);
     final initialSnapshot = eg.initialSnapshot(
       subscriptions: subscriptions,
-      streams: subscriptions,
+      streams: streams ?? subscriptions,
       userTopics: userTopics,
       unreadMsgs: unreadMsgs,
     );
@@ -57,6 +58,37 @@ void main() {
     check(getItemCount()).equals(0);
     check(isPinnedHeaderInTree()).isFalse();
     check(isUnpinnedHeaderInTree()).isFalse();
+  });
+
+  testWidgets('link to channels is shown with 1 unsubscribed channel', (tester) async {
+    final streams = List.generate(2, (index) => eg.stream());
+    await setupStreamListPage(tester,
+      streams: streams,
+      subscriptions: [eg.subscription(streams[1])]);
+
+    check(find.text('Browse 1 more channel').evaluate()).isNotEmpty();
+  });
+
+  testWidgets('link to channels is shown with n unsubscribed channels', (tester) async {
+    final streams = List.generate(5, (index) => eg.stream());
+    await setupStreamListPage(tester,
+      streams: streams,
+      subscriptions: [eg.subscription(streams[1])]);
+
+    check(find.text('Browse 4 more channels').evaluate()).isNotEmpty();
+  });
+
+  testWidgets('link to channels is shown with 0 unsubscribed channels', (tester) async {
+    final subscriptions = List.generate(5, (index) => eg.subscription(eg.stream()));
+    await setupStreamListPage(tester, subscriptions: subscriptions);
+
+    check(find.text('Browse all channels').evaluate()).isNotEmpty();
+  });
+
+  testWidgets('link to channels is not shown if there are no channels', (tester) async {
+    await setupStreamListPage(tester, streams: [], subscriptions: []);
+
+    check(find.text('Browse all channels').evaluate()).isEmpty();
   });
 
   testWidgets('basic subscriptions', (tester) async {

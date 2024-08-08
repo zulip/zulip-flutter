@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/model.dart';
 import '../model/narrow.dart';
@@ -8,6 +9,7 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
+import 'channel_list.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
@@ -107,7 +109,7 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
               _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
             ],
 
-            // TODO(#188): add button leading to "All Streams" page with ability to subscribe
+            if (store.streams.isNotEmpty) const _ChannelListLinkItem(),
 
             // This ensures last item in scrollable can settle in an unobstructed area.
             const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
@@ -196,6 +198,47 @@ class _SubscriptionList extends StatelessWidget {
           unreadCount: unreadCount,
           showMutedUnreadBadge: showMutedUnreadBadge);
     });
+  }
+}
+
+class _ChannelListLinkItem extends StatelessWidget {
+  const _ChannelListLinkItem();
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final notShownStreams = store.streams.length - store.subscriptions.length;
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final label = notShownStreams != 0
+      ? zulipLocalizations.browseNMoreChannels(notShownStreams)
+      : zulipLocalizations.browseAllChannels;
+    return SliverToBoxAdapter(
+      child: Material(
+        color: designVariables.background,
+        child: InkWell(
+          onTap: () => Navigator.push(context,
+            ChannelListPage.buildRoute(context: context)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  style: TextStyle(
+                    fontSize: 18,
+                    height: (20 / 18),
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  label),
+                Icon(
+                  Icons.adaptive.arrow_forward,
+                  size: 18,
+                  // TODO(design) check if this is the right variable
+                  color: designVariables.labelMenuButton),
+              ])))));
   }
 }
 
