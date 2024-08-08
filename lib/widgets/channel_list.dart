@@ -95,27 +95,44 @@ class ChannelItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis),
               ])),
               const SizedBox(width: 8),
-              _ChannelItemSubscriptionToggle(stream: stream),
+              _ChannelItemSubscriptionToggle(stream: stream, channelItemContext: context),
             ]))));
   }
 }
 
-class _ChannelItemSubscriptionToggle extends StatelessWidget {
-  const _ChannelItemSubscriptionToggle({required this.stream});
+class _ChannelItemSubscriptionToggle extends StatefulWidget {
+  const _ChannelItemSubscriptionToggle({required this.stream, required this.channelItemContext});
 
   final ZulipStream stream;
+  final BuildContext channelItemContext;
+
+  @override
+  State<_ChannelItemSubscriptionToggle> createState() => _ChannelItemSubscriptionToggleState();
+}
+
+class _ChannelItemSubscriptionToggleState extends State<_ChannelItemSubscriptionToggle> {
+  bool _isLoading = false;
+
+  void _setIsLoading(bool value) {
+    if (!mounted) return;
+    setState(() => _isLoading = value);
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final (icon, color, onPressed) = stream is Subscription
+    final (icon, color, onPressed) = widget.stream is Subscription
     ? (Icons.check, colorScheme.primary, _unsubscribeFromChannel)
     : (Icons.add,   null,                _subscribeToChannel);
 
     return IconButton(
       color: color,
       icon: Icon(icon),
-      onPressed: () => onPressed(context, stream));
+      onPressed: _isLoading ? null : () async {
+        _setIsLoading(true);
+        await onPressed(context, widget.stream);
+        _setIsLoading(false);
+      });
   }
 
   Future<void> _unsubscribeFromChannel(BuildContext context, ZulipStream stream) async {
@@ -165,7 +182,7 @@ class _ChannelItemSubscriptionToggle extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorFailedToSubscribedToChannel(stream.name),
         message: e.toString()); // TODO(#741): extract user-facing message better
     }

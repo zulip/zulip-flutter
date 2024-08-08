@@ -134,6 +134,39 @@ void main() {
       check(find.byIcon(Icons.check).evaluate()).isEmpty();
     });
 
+    testWidgets('is disabled while loading', (WidgetTester tester) async {
+      final stream = eg.stream();
+      await setupChannelListPage(tester, streams: [stream], subscriptions: []);
+      connection.prepare(json: SubscribeToChannelsResult(
+        subscribed: {eg.selfUser.email: [stream.name]},
+        alreadySubscribed: {}).toJson());      await tapSubscribeButton(tester);
+      await tester.pump();
+
+      check(tester.widget<IconButton>(
+        find.byType(IconButton)).onPressed).isNull();
+
+      await tester.pump(const Duration(seconds: 2));
+
+      check(tester.widget<IconButton>(
+        find.byType(IconButton)).onPressed).isNotNull();
+    });
+
+    testWidgets('is disabled while loading and enabled back when loading fails', (WidgetTester tester) async {
+      final stream = eg.stream();
+      await setupChannelListPage(tester, streams: [stream], subscriptions: []);
+      connection.prepare(exception: http.ClientException('Oops'), delay: const Duration(seconds: 2));
+      await tapSubscribeButton(tester);
+      await tester.pump();
+
+      check(tester.widget<IconButton>(
+        find.byType(IconButton)).onPressed).isNull();
+
+      await tester.pump(const Duration(seconds: 2));
+
+      check(tester.widget<IconButton>(
+        find.byType(IconButton)).onPressed).isNotNull();
+    });
+
     group('subscribe', () {
       testWidgets('is shown only for streams that user is not subscribed to', (tester) async {
         final streams = [eg.stream(), eg.stream(), eg.subscription(eg.stream())];
