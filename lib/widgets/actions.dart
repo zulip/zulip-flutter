@@ -12,6 +12,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
+import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'dialog.dart';
 import 'store.dart';
@@ -44,7 +45,7 @@ Future<void> markNarrowAsRead(
   // The server applies the same optimization within the (deprecated)
   // specialized endpoints for marking messages as read; see
   // `do_mark_stream_messages_as_read` in `zulip:zerver/actions/message_flags.py`.
-  final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+  final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
 
   while (true) {
     final result = await updateMessageFlagsForNarrow(connection,

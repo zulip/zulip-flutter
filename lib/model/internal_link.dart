@@ -85,9 +85,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         fragment.write('${element.operand.join(',')}-$suffix');
       case ApiNarrowDm():
         assert(false, 'ApiNarrowDm should have been resolved');
-      case ApiNarrowIsMentioned():
-        fragment.write(element.operand.toString());
-      case ApiNarrowIsUnread():
+      case ApiNarrowIs():
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():
         fragment.write(element.operand.toString());
@@ -154,7 +152,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   ApiNarrowStream? streamElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
-  ApiNarrowIsMentioned? isMentionedElement;
+  Set<IsOperand> isElementOperands = {};
 
   for (var i = 0; i < segments.length; i += 2) {
     final (operator, negated) = _parseOperator(segments[i]);
@@ -183,8 +181,8 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         dmElement = ApiNarrowDm(dmIds, negated: negated);
 
       case _NarrowOperator.is_:
-        if (isMentionedElement != null) return null;
-        if (operand == 'mentioned') isMentionedElement = ApiNarrowIsMentioned();
+        // It is fine to have duplicates of the same [IsOperand].
+        isElementOperands.add(IsOperand.fromRawString(operand));
 
       case _NarrowOperator.near: // TODO(#82): support for near
       case _NarrowOperator.with_: // TODO(#683): support for with
@@ -195,9 +193,22 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     }
   }
 
-  if (isMentionedElement != null) {
+  if (isElementOperands.isNotEmpty) {
     if (streamElement != null || topicElement != null || dmElement != null) return null;
-    return const MentionsNarrow();
+    switch (isElementOperands.singleOrNull) {
+      case IsOperand.mentioned:
+        return const MentionsNarrow();
+      case null:
+      case IsOperand.dm:
+      case IsOperand.private:
+      case IsOperand.alerted:
+      case IsOperand.starred:
+      case IsOperand.followed:
+      case IsOperand.resolved:
+      case IsOperand.unread:
+      case IsOperand.unknown:
+        return null;
+    }
   } else if (dmElement != null) {
     if (streamElement != null || topicElement != null) return null;
     return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
@@ -291,4 +302,29 @@ List<int>? _parseDmOperand(String operand) {
   } on FormatException {
     return null;
   }
+}
+
+/// An operand value of "is" operator.
+///
+/// See also:
+///   - https://zulip.com/api/construct-narrow
+///   - https://zulip.com/help/search-for-messages#search-your-important-messages
+///   - https://zulip.com/help/search-for-messages#search-by-message-status
+@JsonEnum(alwaysCreate: true)
+enum IsOperand {
+  dm,
+  private, // This is deprecated in FL 177 and equivalent to [dm].
+  alerted,
+  mentioned,
+  starred,
+  followed,
+  resolved,
+  unread,
+  unknown;
+
+  static IsOperand fromRawString(String raw) => $enumDecode(
+    _$IsOperandEnumMap, raw, unknownValue: unknown);
+
+  @override
+  String toString() => _$IsOperandEnumMap[this]!;
 }
