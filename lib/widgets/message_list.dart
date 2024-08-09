@@ -16,7 +16,6 @@ import 'actions.dart';
 import 'app_bar.dart';
 import 'compose_box.dart';
 import 'content.dart';
-import 'dialog.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
@@ -714,19 +713,9 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
     final connection = store.connection;
     final useLegacy = connection.zulipFeatureLevel! < 155;
     setState(() => _loading = true);
-    bool didPass = false;
-    try {
-      didPass = await markNarrowAsRead(context, widget.narrow, useLegacy);
-    } catch (e) {
-      if (!context.mounted) return;
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorMarkAsReadFailedTitle,
-        message: e.toString()); // TODO(#741): extract user-facing message better
-      return;
-    } finally {
-      setState(() => _loading = false);
-    }
+
+    final didPass = await markNarrowAsRead(context, widget.narrow, useLegacy);
+    setState(() => _loading = false);
     if (!didPass) return;
     if (!context.mounted) return;
     if (widget.narrow is CombinedFeedNarrow && !useLegacy) {
