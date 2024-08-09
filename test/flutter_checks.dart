@@ -2,6 +2,7 @@
 library;
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -51,7 +52,7 @@ extension RouteSettingsChecks<T> on Subject<RouteSettings> {
   Subject<Object?> get arguments => has((s) => s.arguments, 'arguments');
 }
 
-extension ValueNotifierChecks<T> on Subject<ValueNotifier<T>> {
+extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
 }
 

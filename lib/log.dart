@@ -1,8 +1,15 @@
+import 'package:flutter/material.dart';
+
+import 'widgets/app.dart';
 
 /// Whether [debugLog] should do anything.
 ///
 /// This has an effect only in a debug build.
 bool debugLogEnabled = false;
+
+/// Used for log inspection in tests.
+@visibleForTesting
+List<String>? logHistory;
 
 /// Print a log message, if debug logging is enabled.
 ///
@@ -26,7 +33,32 @@ bool debugLog(String message) {
     if (debugLogEnabled) {
       print(message); // ignore: avoid_print
     }
+    logHistory?.add(message);
     return true;
   }());
   return true;
+}
+
+/// Display an error message.
+///
+/// This shows a [SnackBar] containing the message after app startup,
+/// otherwise logs it to the console.
+///
+/// See also: [ZulipApp._reportErrorToUserBriefly]
+void Function(String message) reportErrorToUserBriefly = _defaultReportErrorToUser;
+
+/// Display an error message in a dialog.
+///
+/// This shows a dialog containing the message after app startup,
+/// otherwise logs it to the console.
+///
+/// See also: [ZulipApp._reportErrorToUserBriefly]
+void Function(String message) reportErrorToUserInDialog = _defaultReportErrorToUser;
+
+void _defaultReportErrorToUser(String message) {
+  // If this callback is still in place, then the app's widget tree
+  // hasn't mounted yet even as far as the [Navigator].
+  // So there's not much we can do to tell the user;
+  // just log, in case the user is actually a developer watching the console.
+  assert(debugLog(message));
 }

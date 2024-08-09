@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
+import '../log.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
+import 'app_bar.dart';
+import 'dialog.dart';
 import 'inbox.dart';
 import 'login.dart';
 import 'message_list.dart';
@@ -62,6 +65,22 @@ class ZulipApp extends StatefulWidget {
   /// to be mounted.
   static final navigatorKey = GlobalKey<NavigatorState>();
 
+  /// The [ScaffoldMessengerState] for the app.
+  ///
+  /// This is null during the app's early startup, while [ready] is still false.
+  ///
+  /// For code that exists entirely outside the widget tree and has no natural
+  /// [BuildContext] of its own, this enables controlling snack bars.
+  /// Where a relevant [BuildContext] does exist, prefer using that instead,
+  /// with [ScaffoldMessenger.of].
+  static ScaffoldMessengerState? get scaffoldMessenger {
+    final context = navigatorKey.currentContext;
+    if (context == null) return null;
+    // Not maybeOf; we use MaterialApp, which provides ScaffoldMessenger,
+    // so it's a bug if navigatorKey is mounted somewhere lacking that.
+    return ScaffoldMessenger.of(context);
+  }
+
   /// Reset the state of [ZulipApp] statics, for testing.
   ///
   /// TODO refactor this better, perhaps unify with ZulipBinding
@@ -75,9 +94,21 @@ class ZulipApp extends StatefulWidget {
   /// Useful in tests.
   final List<NavigatorObserver>? navigatorObservers;
 
+  static void _reportErrorToUserBriefly(String message) {
+    scaffoldMessenger?.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  static void _reportErrorToUserInDialog(String message) {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    showErrorDialog(context: context, title: 'Error', message: message);
+  }
+
   void _declareReady() {
     assert(navigatorKey.currentContext != null);
     _ready.value = true;
+    reportErrorToUserBriefly = _reportErrorToUserBriefly;
+    reportErrorToUserInDialog = _reportErrorToUserInDialog;
   }
 
   @override
@@ -179,9 +210,10 @@ class ChooseAccountPage extends StatelessWidget {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: ZulipAppBar(
         title: Text(zulipLocalizations.chooseAccountPageTitle),
-        actions: const [ChooseAccountPageOverflowButton()]),
+        actions: const [ChooseAccountPageOverflowButton()],
+        isLoading: false),
       body: SafeArea(
         minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
         child: Center(
@@ -252,7 +284,9 @@ class HomePage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
+      appBar: ZulipAppBar(
+        title: const Text("Home"),
+        isLoading: store.isLoading),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(

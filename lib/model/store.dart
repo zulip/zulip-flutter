@@ -295,6 +295,15 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
+  bool get isLoading => _isLoading;
+  bool _isLoading = false;
+  @visibleForTesting
+  set isLoading(bool value) {
+    if (_isLoading == value) return;
+    _isLoading = value;
+    notifyListeners();
+  }
+
   ////////////////////////////////
   // Data attached to the realm or the server.
 
@@ -751,6 +760,8 @@ class UpdateMachine {
 
   void poll() async {
     final backoffMachine = BackoffMachine();
+    int accumlatedTransientFailureCount = 0;
+    const transientFailureCountNotifyThreshold = 10;
 
     while (true) {
       if (_debugLoopSignal != null) {
@@ -766,9 +777,11 @@ class UpdateMachine {
         result = await getEvents(store.connection,
           queueId: queueId, lastEventId: lastEventId);
       } catch (e) {
+        store.isLoading = true;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
+            reportErrorToUserBriefly('Reconnecting to server.');
             await store._globalStore._reloadPerAccount(store.accountId);
             dispose();
             debugLog('… Event queue replaced.');
@@ -777,8 +790,11 @@ class UpdateMachine {
           case Server5xxException() || NetworkException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
-            // TODO tell user if transient polling errors persist
             // TODO reset to short backoff eventually
+            accumlatedTransientFailureCount++;
+            if (accumlatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+              reportErrorToUserInDialog('Failed to reach server. Will retry: $e');
+            }
             await backoffMachine.wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
@@ -786,13 +802,15 @@ class UpdateMachine {
           default:
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
-            // TODO tell user on non-transient error in polling
+            reportErrorToUserInDialog('Error loading server data. Will retry: $e');
             await backoffMachine.wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
         }
       }
 
+      store.isLoading = false;
+      accumlatedTransientFailureCount = 0;
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);

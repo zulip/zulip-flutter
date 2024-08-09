@@ -16,6 +16,7 @@ import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import '../test_log.dart';
 import 'binding.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
@@ -405,11 +406,14 @@ void main() {
       });
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
-      await Future<void>.delayed(Duration.zero);
+      (await checkLogs(() async => await Future<void>.delayed(Duration.zero)))
+        .any((s) => s.contains('Reconnecting to server.'));
+      check(store).isLoading.isTrue();
 
       // The global store has a new store.
       check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
       updateFromGlobalStore();
+      check(store).isLoading.isFalse();
 
       // The new UpdateMachine updates the new store.
       updateMachine.debugPauseLoop();
@@ -425,51 +429,81 @@ void main() {
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
-    void checkRetry(void Function() prepareError) {
-      awaitFakeAsync((async) async {
-        await prepareStore(lastEventId: 1);
-        updateMachine.debugPauseLoop();
-        updateMachine.poll();
-        check(async.pendingTimers).length.equals(0);
+    void checkRetry(String description, void Function() prepareError, {
+        String? errorMessage,
+        int numRetries = 1,
+      }) {
+      test(description, () {
+        awaitFakeAsync((async) async {
+          await prepareStore(lastEventId: 1);
+          updateMachine.debugPauseLoop();
+          updateMachine.poll();
+          check(async.pendingTimers).length.equals(0);
 
-        // Make the request, inducing an error in it.
-        prepareError();
-        updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
-        checkLastRequest(lastEventId: 1);
+          for (int i = 0; i < numRetries; i++) {
+            // Make the request, inducing an error in it.
+            prepareError();
+            async.flushTimers();
+            updateMachine.debugAdvanceLoop();
+            if (errorMessage != null) {
+              if (i < numRetries - 1) {
+                (await checkLogs(() => async.elapse(Duration.zero)))
+                  .every((s) => s.not((s) => s.contains(errorMessage)));
+              } else {
+                (await checkLogs(() => async.elapse(Duration.zero)))
+                  .any((s) => s.contains(errorMessage));
+              }
+            } else {
+                async.elapse(Duration.zero);
+            }
+            checkLastRequest(lastEventId: 1);
+            check(store).isLoading.isTrue();
+          }
 
-        // Polling doesn't resume immediately; there's a timer.
-        check(async.pendingTimers).length.equals(1);
-        updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
-        check(connection.lastRequest).isNull();
-        check(async.pendingTimers).length.equals(1);
+          // Polling doesn't resume immediately; there's a timer.
+          check(async.pendingTimers).length.equals(1);
+          updateMachine.debugAdvanceLoop();
+          async.flushMicrotasks();
+          check(connection.lastRequest).isNull();
+          check(async.pendingTimers).length.equals(1);
 
-        // Polling continues after a timer.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
-        async.flushTimers();
-        checkLastRequest(lastEventId: 1);
-        check(updateMachine.lastEventId).equals(2);
+          // Polling continues after a timer.
+          connection.prepare(json: GetEventsResult(events: [
+            HeartbeatEvent(id: 2),
+          ], queueId: null).toJson());
+          async.flushTimers();
+          checkLastRequest(lastEventId: 1);
+          check(updateMachine.lastEventId).equals(2);
+          check(store).isLoading.isFalse();
+        });
       });
     }
 
-    test('retries on Server5xxException', () {
-      checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
-    });
+    group('retries', () {
+      checkRetry('retries on Server5xxException',
+        () => connection.prepare(httpStatus: 500, body: 'splat'));
 
-    test('retries on NetworkException', () {
-      checkRetry(() => connection.prepare(exception: Exception("failed")));
-    });
+      checkRetry('retries on NetworkException',
+        () => connection.prepare(exception: Exception("failed")));
 
-    test('retries on ZulipApiException', () {
-      checkRetry(() => connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
-    });
+      checkRetry('too many retries on Server5xxException',
+        () => connection.prepare(exception: Exception("failed")),
+        errorMessage: 'Failed to reach server. Will retry',
+        numRetries: 11);
 
-    test('retries on MalformedServerResponseException', () {
-      checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+      checkRetry('too many retries on NetworkException',
+        () => connection.prepare(exception: Exception("failed")),
+        errorMessage: 'Failed to reach server. Will retry',
+        numRetries: 11);
+
+      checkRetry('retries on ZulipApiException',
+        () => connection.prepare(httpStatus: 400, json: {
+          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}),
+        errorMessage: 'Error loading server data. Will retry');
+
+      checkRetry('retries on MalformedServerResponseException',
+        () => connection.prepare(httpStatus: 200, body: 'nonsense'),
+        errorMessage: 'Error loading server data. Will retry');
     });
   });
 
