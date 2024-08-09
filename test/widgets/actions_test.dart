@@ -248,15 +248,13 @@ void main() {
     testWidgets('pagination', (WidgetTester tester) async {
       // Check that `lastProcessedId` returned from an initial
       // response is used as `anchorId` for the subsequent request.
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
       await prepare(tester);
 
       connection.prepare(json: UpdateMessageFlagsForNarrowResult(
         processedCount: 1000, updatedCount: 890,
         firstProcessedId: 1, lastProcessedId: 1989,
         foundOldest: true, foundNewest: false).toJson());
-      markNarrowAsRead(context, narrow);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      final didPass = invokeUpdateMessageFlagsStartingFromAnchor();
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -288,19 +286,18 @@ void main() {
             'op': 'add',
             'flag': 'read',
           });
+      check(await didPass).isTrue();
     });
 
     testWidgets('on invalid response', (WidgetTester tester) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
       await prepare(tester);
       connection.prepare(json: UpdateMessageFlagsForNarrowResult(
         processedCount: 1000, updatedCount: 0,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: false).toJson());
-      markNarrowAsRead(context, narrow);
+      final didPass = invokeUpdateMessageFlagsStartingFromAnchor();
       await tester.pump(Duration.zero);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -316,21 +313,21 @@ void main() {
 
       await tester.pumpAndSettle();
       checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
+        expectedTitle: onFailedTitle,
         expectedMessage: zulipLocalizations.errorInvalidResponse);
+      check(await didPass).isFalse();
     });
 
     testWidgets('catch-all api errors', (WidgetTester tester) async {
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      const narrow = CombinedFeedNarrow();
       await prepare(tester);
       connection.prepare(exception: http.ClientException('Oops'));
-      markNarrowAsRead(context, narrow);
+      final didPass = invokeUpdateMessageFlagsStartingFromAnchor();
       await tester.pump(Duration.zero);
       await tester.pumpAndSettle();
       checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
+        expectedTitle: onFailedTitle,
         expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
+      check(await didPass).isFalse();
     });
   });
 }
