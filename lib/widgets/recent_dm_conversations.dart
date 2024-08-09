@@ -56,13 +56,11 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
     return Scaffold(
       appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.recentDmConversationsPageTitle),
-        isLoading: store.isLoading),
+        title: Text(zulipLocalizations.recentDmConversationsPageTitle)),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,

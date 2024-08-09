@@ -253,9 +253,7 @@ class HomePage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: const Text("Home"),
-        isLoading: store.isLoading),
+      appBar: ZulipAppBar(title: const Text("Home")),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           DefaultTextStyle.merge(

@@ -271,7 +271,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     return Scaffold(
       appBar: ZulipAppBar(
         title: MessageListAppBarTitle(narrow: narrow),
-        isLoading: store.isLoading,
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
           ? const Border()

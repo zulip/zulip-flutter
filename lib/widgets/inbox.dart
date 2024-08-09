@@ -161,9 +161,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     }
 
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: const Text('Inbox'),
-        isLoading: store.isLoading),
+      appBar: ZulipAppBar(title: const Text('Inbox')),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
         bottom: false,

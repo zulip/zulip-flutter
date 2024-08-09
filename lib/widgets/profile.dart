@@ -103,9 +103,7 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: Text(user.fullName),
-        isLoading: store.isLoading),
+      appBar: ZulipAppBar(title: Text(user.fullName)),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -123,11 +121,8 @@ class _ProfileErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: const Text('Error'),
-        isLoading: store.isLoading),
+      appBar: ZulipAppBar(title: const Text('Error')),
       body: const SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
