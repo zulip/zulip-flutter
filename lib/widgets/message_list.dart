@@ -708,12 +708,8 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
 
   void _handlePress(BuildContext context) async {
     if (!context.mounted) return;
-
-    final store = PerAccountStoreWidget.of(context);
-    final connection = store.connection;
-    final useLegacy = connection.zulipFeatureLevel! < 155;
     setState(() => _loading = true);
-    await markNarrowAsRead(context, widget.narrow, useLegacy);
+    await markNarrowAsRead(context, widget.narrow);
     setState(() => _loading = false);
   }
 
