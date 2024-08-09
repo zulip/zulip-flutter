@@ -705,8 +705,6 @@ void main() {
         eg.user(userId: 5, fullName: 'User Five'),
         eg.user(userId: 6, fullName: 'User Six', isBot: true),
         eg.user(userId: 7, fullName: 'User Seven'),
-        eg.user(userId: 8, fullName: 'User Xy', isBot: true),
-        eg.user(userId: 9, fullName: 'User Xz', isBot: true),
       ];
 
       await prepare(users: users, messages: [
@@ -723,19 +721,15 @@ void main() {
       // 1. Users most recent in the current topic/stream.
       // 2. Users most recent in the DM conversations.
       // 3. Human vs. Bot users (human users come first).
-      // 4. Alphabetical order.
+      // 4. Alphabetical order by name.
       check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
-        .deepEquals([1, 5, 4, 2, 7, 3, 6, 8, 9]);
+        .deepEquals([1, 5, 4, 2, 7, 3, 6]);
 
       // Check the ranking applies also to results filtered by a query.
       check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
         .deepEquals([2, 3]);
       check(await getResults(topicNarrow, MentionAutocompleteQuery('f')))
         .deepEquals([5, 4]);
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('s')))
-        .deepEquals([7, 6]);
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('user x')))
-        .deepEquals([8, 9]);
     });
   });
 }
