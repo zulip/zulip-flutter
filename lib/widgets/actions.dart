@@ -62,6 +62,26 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
   }
 }
 
+Future<void> markNarrowAsUnreadFromMessage(
+  BuildContext context,
+  Message message,
+  Narrow narrow,
+) async {
+  final connection = PerAccountStoreWidget.of(context).connection;
+  assert(connection.zulipFeatureLevel! >= 155); // TODO(server-6)
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  await updateMessageFlagsStartingFromAnchor(
+    context: context,
+    apiNarrow: narrow.apiEncode(),
+    startingAnchor: NumericAnchor(message.id),
+    includeAnchor: true,
+    op: UpdateMessageFlagsOp.remove,
+    flag: MessageFlag.read,
+    onCompletedMessage: zulipLocalizations.markAsUnreadComplete,
+    progressMessage: zulipLocalizations.markAsUnreadInProgress,
+    onFailedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle);
+}
+
 /// Updates message flags by applying given operation `op` using given `flag`
 /// the update happens on given `apiNarrow` starting from given `startingAnchor`
 ///

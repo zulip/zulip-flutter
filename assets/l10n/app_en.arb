@@ -51,6 +51,10 @@
   "@actionSheetOptionCopyMessageLink": {
     "description": "Label for copy message link button on action sheet."
   },
+  "actionSheetOptionMarkAsUnread": "Mark as unread from here",
+  "@actionSheetOptionMarkAsUnread":  {
+    "description": "Label for mark as unread button on action sheet."
+  },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
@@ -435,6 +439,21 @@
   "errorMarkAsReadFailedTitle": "Mark as read failed",
   "@errorMarkAsReadFailedTitle": {
     "description": "Error title when mark as read action failed."
+  },
+  "markAsUnreadComplete": "Marked {num, plural, =1{1 message} other{{num} messages}} as unread.",
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
+  "markAsUnreadInProgress": "Marking messages as unread...",
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "errorMarkAsUnreadFailedTitle": "Mark as unread failed",
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
   },
   "today": "Today",
   "@today": {

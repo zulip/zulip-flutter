@@ -8,6 +8,7 @@ import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
+import 'actions.dart';
 import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
@@ -28,6 +29,10 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   // any message list, so that's fine.
   final messageListPage = MessageListPage.ancestorOf(context);
   final isComposeBoxOffered = messageListPage.composeBoxController != null;
+  final narrow = messageListPage.narrow;
+  final isMessageRead = message.flags.contains(MessageFlag.read);
+  final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
+  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
   final hasThumbsUpReactionVote = message.reactions
     ?.aggregated.any((reactionWithVotes) =>
@@ -45,6 +50,11 @@ void showMessageActionSheet({required BuildContext context, required Message mes
         if (isComposeBoxOffered) QuoteAndReplyButton(
           message: message,
           messageListContext: context,
+        ),
+        if (showMarkAsUnreadButton) MarkAsUnreadButton(
+          message: message,
+          messageListContext: context,
+          narrow: narrow,
         ),
         CopyMessageTextButton(message: message, messageListContext: context),
         CopyMessageLinkButton(message: message, messageListContext: context),
@@ -275,6 +285,29 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
     }
+  }
+}
+
+class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
+  MarkAsUnreadButton({
+    super.key,
+    required super.message,
+    required super.messageListContext,
+    required this.narrow,
+  });
+
+  final Narrow narrow;
+
+  @override IconData get icon => Icons.mark_chat_unread_outlined;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionMarkAsUnread;
+  }
+
+  @override void onPressed(BuildContext context) async {
+    Navigator.of(context).pop();
+    markNarrowAsUnreadFromMessage(messageListContext, message, narrow);
   }
 }
 

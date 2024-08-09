@@ -31,6 +31,8 @@ import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 
+late FakeApiConnection connection;
+
 /// Simulates loading a [MessageListPage] and long-pressing on [message].
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
@@ -46,7 +48,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     await store.addStream(stream);
     await store.addSubscription(eg.subscription(stream));
   }
-  final connection = store.connection as FakeApiConnection;
+  connection = store.connection as FakeApiConnection;
 
   // prepare message list data
   connection.prepare(json: GetMessagesResult(
@@ -382,6 +384,65 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
+    });
+  });
+
+  group('MarkAsUnread', () {
+    testWidgets('not visible if message is not read', (tester) async {
+      final unreadMessage = eg.streamMessage(flags: []);
+      await setupToMessageActionSheet(tester, message: unreadMessage, narrow: TopicNarrow.ofMessage(unreadMessage));
+
+      check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).isEmpty();
+    });
+
+    testWidgets('visible if message is read', (tester) async {
+      final readMessage = eg.streamMessage(flags: [MessageFlag.read]);
+      await setupToMessageActionSheet(tester, message: readMessage, narrow: TopicNarrow.ofMessage(readMessage));
+
+      check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).single;
+    });
+
+    group('onPressed', () {
+      testWidgets('smoke test', (tester) async {
+        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 11, updatedCount: 3,
+          firstProcessedId: 1, lastProcessedId: 1980,
+          foundOldest: true, foundNewest: true).toJson());
+
+        await tester.ensureVisible(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+        await tester.tap(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+        await tester.pumpAndSettle();
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields.deepEquals({
+              'anchor': '${message.id}',
+              'include_anchor': 'true',
+              'num_before': '0',
+              'num_after': '1000',
+              'narrow': jsonEncode(TopicNarrow.ofMessage(message).apiEncode()),
+              'op': 'remove',
+              'flag': 'read',
+            });
+      });
+
+      testWidgets('shows error when fails', (tester) async {
+        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        connection.prepare(exception: http.ClientException('Oops'));
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+        await tester.ensureVisible(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+        await tester.tap(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+        await tester.pumpAndSettle();
+        checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle,
+          expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
+      });
     });
   });
 
