@@ -34,17 +34,17 @@ void main() {
         return decoration.color;
       }
 
-      testWidgets('default color', (WidgetTester tester) async {
+      testWidgets('default color', (tester) async {
         await prepare(tester, null);
         check(findBackgroundColor(tester)).equals(const Color(0x26666699));
       });
 
-      testWidgets('specified color', (WidgetTester tester) async {
+      testWidgets('specified color', (tester) async {
         await prepare(tester, Colors.pink);
         check(findBackgroundColor(tester)).equals(Colors.pink);
       });
 
-      testWidgets('stream color', (WidgetTester tester) async {
+      testWidgets('stream color', (tester) async {
         final swatch = ChannelColorSwatch.light(0xff76ce90);
         await prepare(tester, swatch);
         check(findBackgroundColor(tester)).equals(swatch.unreadCountBadgeBackground);

@@ -22,7 +22,7 @@ void main() {
       required Widget button,
       double? ambientTextScaleFactor,
     }) async {
-      testWidgets(description, (WidgetTester tester) async {
+      testWidgets(description, (tester) async {
         addTearDown(testBinding.reset);
         if (ambientTextScaleFactor != null) {
           tester.platformDispatcher.textScaleFactorTestValue = ambientTextScaleFactor;
@@ -101,7 +101,7 @@ void main() {
   group('colorSwatchFor', () {
     const baseColor = 0xff76ce90;
 
-    testWidgets('light–dark animation', (WidgetTester tester) async {
+    testWidgets('light–dark animation', (tester) async {
       addTearDown(testBinding.reset);
 
       final subscription = eg.subscription(eg.stream(), color: baseColor);

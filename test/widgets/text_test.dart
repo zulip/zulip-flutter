@@ -94,7 +94,7 @@ void main() {
       required List<FontVariation> expectedFontVariations,
       required FontWeight expectedFontWeight,
     }) async {
-      testWidgets(description, (WidgetTester tester) async {
+      testWidgets(description, (tester) async {
         addTearDown(testBinding.reset);
         tester.platformDispatcher.accessibilityFeaturesTestValue =
           FakeAccessibilityFeatures(boldText: platformRequestsBold);
@@ -185,7 +185,7 @@ void main() {
       required double expectedWght,
       required FontWeight expectedFontWeight,
     }) async {
-      testWidgets(description, (WidgetTester tester) async {
+      testWidgets(description, (tester) async {
         addTearDown(testBinding.reset);
         tester.platformDispatcher.accessibilityFeaturesTestValue =
           FakeAccessibilityFeatures(boldText: platformRequestsBold);
@@ -345,7 +345,7 @@ void main() {
       double? ambientTextScaleFactor,
       required double expected,
     }) async {
-      testWidgets(description, (WidgetTester tester) async {
+      testWidgets(description, (tester) async {
         addTearDown(testBinding.reset);
         if (ambientTextScaleFactor != null) {
           tester.platformDispatcher.textScaleFactorTestValue = ambientTextScaleFactor;

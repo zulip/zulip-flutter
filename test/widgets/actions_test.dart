@@ -70,7 +70,7 @@ void main() {
     });
 
 
-    testWidgets('use is:unread optimization', (WidgetTester tester) async {
+    testWidgets('use is:unread optimization', (tester) async {
       const narrow = CombinedFeedNarrow();
       await prepare(tester);
       connection.prepare(json: UpdateMessageFlagsForNarrowResult(
@@ -93,7 +93,7 @@ void main() {
           });
     });
 
-    testWidgets('pagination', (WidgetTester tester) async {
+    testWidgets('pagination', (tester) async {
       // Check that `lastProcessedId` returned from an initial
       // response is used as `anchorId` for the subsequent request.
       final narrow = TopicNarrow.ofMessage(eg.streamMessage());
@@ -154,7 +154,7 @@ void main() {
     }, skip: true, // TODO move this functionality inside markNarrowAsRead
     );
 
-    testWidgets('on invalid response', (WidgetTester tester) async {
+    testWidgets('on invalid response', (tester) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       final narrow = TopicNarrow.ofMessage(eg.streamMessage());
       await prepare(tester);
@@ -184,7 +184,7 @@ void main() {
         expectedMessage: zulipLocalizations.errorInvalidResponse);
     });
 
-    testWidgets('CombinedFeedNarrow on legacy server', (WidgetTester tester) async {
+    testWidgets('CombinedFeedNarrow on legacy server', (tester) async {
       const narrow = CombinedFeedNarrow();
       await prepare(tester);
       // Might as well test with oldUnreadsMissing: true.
@@ -204,7 +204,7 @@ void main() {
       check(store.unreads).oldUnreadsMissing.isTrue();
     });
 
-    testWidgets('ChannelNarrow on legacy server', (WidgetTester tester) async {
+    testWidgets('ChannelNarrow on legacy server', (tester) async {
       final stream = eg.stream();
       final narrow = ChannelNarrow(stream.streamId);
       await prepare(tester);
@@ -220,7 +220,7 @@ void main() {
           });
     });
 
-    testWidgets('TopicNarrow on legacy server', (WidgetTester tester) async {
+    testWidgets('TopicNarrow on legacy server', (tester) async {
       final narrow = TopicNarrow.ofMessage(eg.streamMessage());
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
@@ -236,7 +236,7 @@ void main() {
           });
     });
 
-    testWidgets('DmNarrow on legacy server', (WidgetTester tester) async {
+    testWidgets('DmNarrow on legacy server', (tester) async {
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
       final unreadMsgs = eg.unreadMsgs(dms: [
@@ -259,7 +259,7 @@ void main() {
           });
     });
 
-    testWidgets('MentionsNarrow on legacy server', (WidgetTester tester) async {
+    testWidgets('MentionsNarrow on legacy server', (tester) async {
       const narrow = MentionsNarrow();
       final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
       final unreadMsgs = eg.unreadMsgs(mentions: [message.id]);
@@ -279,7 +279,7 @@ void main() {
           });
     });
 
-    testWidgets('catch-all api errors', (WidgetTester tester) async {
+    testWidgets('catch-all api errors', (tester) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       const narrow = CombinedFeedNarrow();
       await prepare(tester);

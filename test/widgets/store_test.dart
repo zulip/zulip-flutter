@@ -48,7 +48,7 @@ extension MyWidgetWithMixinStateChecks on Subject<MyWidgetWithMixinState> {
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  testWidgets('GlobalStoreWidget', (WidgetTester tester) async {
+  testWidgets('GlobalStoreWidget', (tester) async {
     addTearDown(testBinding.reset);
 
     GlobalStore? globalStore;
