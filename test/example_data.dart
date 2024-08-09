@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -328,6 +329,7 @@ StreamMessage streamMessage({
   List<Reaction>? reactions,
   int? timestamp,
   List<MessageFlag>? flags,
+  List<Submessage>? submessages,
 }) {
   final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
   // The use of JSON here is convenient in order to delegate parts of the data
@@ -346,6 +348,7 @@ StreamMessage streamMessage({
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? 'example topic',
+    'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
   }) as Map<String, dynamic>);
@@ -370,6 +373,7 @@ DmMessage dmMessage({
   int? lastEditTimestamp,
   int? timestamp,
   List<MessageFlag>? flags,
+  List<Submessage>? submessages,
 }) {
   assert(!to.any((user) => user.userId == from.userId));
   return DmMessage.fromJson(deepToJson({
@@ -384,9 +388,26 @@ DmMessage dmMessage({
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
+    'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
     'type': 'private',
   }) as Map<String, dynamic>);
+}
+
+Submessage submessage({
+  SubmessageType? msgType,
+  Object? content,
+  required int messageId,
+  int? senderId,
+  int? id,
+}) {
+  return Submessage(
+    msgType: msgType ?? SubmessageType.widget,
+    content: content,
+    messageId: messageId,
+    senderId: senderId ?? selfUser.userId,
+    id: id ?? 1,
+  );
 }
 
 ////////////////////////////////////////////////////////////////
@@ -556,6 +577,29 @@ ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
     reactionType: reaction.reactionType,
     userId: reaction.userId,
     messageId: messageId,
+  );
+}
+
+final pollWidgetDataFavoriteLetter = {
+  'widget_type': 'poll',
+  'extra_data': {
+    'question': 'favorite letter',
+    'options': ['A', 'B', 'C'],
+  }
+};
+
+SubmessageEvent submessageEvent(
+  int messageId,
+  int senderId,
+  {required Object? content}
+) {
+  return SubmessageEvent(
+    id: 1,
+    msgType: SubmessageType.widget,
+    content: deepToJson(content),
+    messageId: messageId,
+    senderId: senderId,
+    submessageId: 1,
   );
 }
 

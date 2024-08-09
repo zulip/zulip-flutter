@@ -510,5 +510,13 @@
   "manyPeopleTyping": "Several people are typing…",
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "pollWidgetQuestionMissing": "No question.",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "pollWidgetOptionsMissing": "This poll has no options yet.",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
   }
 }

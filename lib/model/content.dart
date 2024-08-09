@@ -72,13 +72,17 @@ mixin UnimplementedNode on ContentNode {
   }
 }
 
+sealed class ZulipMessageContent {}
+
+class PollContent implements ZulipMessageContent {}
+
 /// A complete parse tree for a Zulip message's content,
 /// or other complete piece of Zulip HTML content.
 ///
 /// This is a parsed representation for an entire value of [Message.content],
 /// [Stream.renderedDescription], or other text from a Zulip server that comes
 /// in the same Zulip HTML format.
-class ZulipContent extends ContentNode {
+class ZulipContent extends ContentNode implements ZulipMessageContent {
   const ZulipContent({super.debugHtmlNode, required this.nodes});
 
   final List<BlockContentNode> nodes;
