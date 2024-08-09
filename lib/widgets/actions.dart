@@ -16,8 +16,7 @@ import '../model/narrow.dart';
 import 'dialog.dart';
 import 'store.dart';
 
-/// Returns true if mark as read process is completed successfully.
-Future<bool> markNarrowAsRead(
+Future<void> markNarrowAsRead(
   BuildContext context,
   Narrow narrow,
   bool useLegacy, // TODO(server-6)
@@ -27,7 +26,7 @@ Future<bool> markNarrowAsRead(
     final connection = store.connection;
     if (useLegacy) {
       await _legacyMarkNarrowAsRead(context, narrow);
-      return true;
+      return;
     }
 
     // Compare web's `mark_all_as_read` in web/src/unread_ops.js
@@ -69,7 +68,7 @@ Future<bool> markNarrowAsRead(
         flag: MessageFlag.read);
       if (!context.mounted) {
         scaffoldMessenger.clearSnackBars();
-        return false;
+        return;
       }
       responseCount++;
       updatedCount += result.updatedCount;
@@ -84,7 +83,7 @@ Future<bool> markNarrowAsRead(
             ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
                 content: Text(zulipLocalizations.markAsReadComplete(updatedCount))));
         }
-        return true;
+        break;
       }
 
       if (result.lastProcessedId == null) {
@@ -94,7 +93,7 @@ Future<bool> markNarrowAsRead(
         showErrorDialog(context: context,
           title: zulipLocalizations.errorMarkAsReadFailedTitle,
           message: zulipLocalizations.errorInvalidResponse);
-        return false;
+        return;
       }
       anchor = NumericAnchor(result.lastProcessedId!);
 
@@ -116,12 +115,16 @@ Future<bool> markNarrowAsRead(
         content: Text(zulipLocalizations.markAsReadInProgress)));
     }
   } catch (e) {
-    if (!context.mounted) return false;
+    if (!context.mounted) return;
     final zulipLocalizations = ZulipLocalizations.of(context);
     showErrorDialog(context: context,
       title: zulipLocalizations.errorMarkAsReadFailedTitle,
       message: e.toString()); // TODO(#741): extract user-facing message better
-    return false;
+    return;
+  }
+  if (!context.mounted) return;
+  if (narrow is CombinedFeedNarrow) {
+    PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
   }
 }
 
