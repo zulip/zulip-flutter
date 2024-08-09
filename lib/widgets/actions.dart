@@ -16,7 +16,8 @@ import '../model/narrow.dart';
 import 'dialog.dart';
 import 'store.dart';
 
-Future<void> markNarrowAsRead(
+/// Returns true if mark as read process is completed successfully.
+Future<bool> markNarrowAsRead(
   BuildContext context,
   Narrow narrow,
   bool useLegacy, // TODO(server-6)
@@ -24,7 +25,8 @@ Future<void> markNarrowAsRead(
   final store = PerAccountStoreWidget.of(context);
   final connection = store.connection;
   if (useLegacy) {
-    return await _legacyMarkNarrowAsRead(context, narrow);
+    await _legacyMarkNarrowAsRead(context, narrow);
+    return true;
   }
 
   // Compare web's `mark_all_as_read` in web/src/unread_ops.js
@@ -66,7 +68,7 @@ Future<void> markNarrowAsRead(
       flag: MessageFlag.read);
     if (!context.mounted) {
       scaffoldMessenger.clearSnackBars();
-      return;
+      return false;
     }
     responseCount++;
     updatedCount += result.updatedCount;
@@ -81,7 +83,7 @@ Future<void> markNarrowAsRead(
           ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
               content: Text(zulipLocalizations.markAsReadComplete(updatedCount))));
       }
-      return;
+      return true;
     }
 
     if (result.lastProcessedId == null) {
@@ -91,7 +93,7 @@ Future<void> markNarrowAsRead(
       await showErrorDialog(context: context,
         title: zulipLocalizations.errorMarkAsReadFailedTitle,
         message: zulipLocalizations.errorInvalidResponse);
-      return;
+      return false;
     }
     anchor = NumericAnchor(result.lastProcessedId!);
 
