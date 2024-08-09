@@ -82,16 +82,20 @@ Future<void> markNarrowAsUnreadFromMessage(
     onFailedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle);
 }
 
-/// Updates message flags by applying given operation `op` using given `flag`
-/// the update happens on given `apiNarrow` starting from given `startingAnchor`
+/// Add or remove the given flag from the anchor to the end of the narrow,
+/// showing feedback to the user on progress or failure.
 ///
-/// This also handles interactions with the user as it shows a `Snackbar` with
-/// `progressMessage` while performing the update, shows an error dialog when
-/// update fails with the given title using `onFailedTitle` and shows
-/// a `Snackbar` with computed message using given `onCompletedMessage`.
+/// This has the semantics of [updateMessageFlagsForNarrow]
+/// (see https://zulip.com/api/update-message-flags-for-narrow)
+/// with `numBefore: 0` and infinite `numAfter`.  It operates by calling that
+/// endpoint with a finite `numAfter` as a batch size, in a loop.
 ///
-/// Returns true in case the process is completed with no exceptions
-/// otherwise shows an error dialog and returns false.
+/// If the operation requires more than one batch, the user is shown progress
+/// feedback through [SnackBar], using [progressMessage] and [onCompletedMessage].
+/// If the operation fails, the user is shown an error dialog box with title
+/// [onFailedTitle].
+///
+/// Returns true just if the operation finished successfully.
 Future<bool> updateMessageFlagsStartingFromAnchor({
   required BuildContext context,
   required List<ApiNarrowElement> apiNarrow,
