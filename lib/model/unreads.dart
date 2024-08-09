@@ -39,6 +39,7 @@ class Unreads extends ChangeNotifier {
     required ChannelStore channelStore,
   }) {
     final streams = <int, Map<String, QueueList<int>>>{};
+    final streamIdsAndTopicsByMessageId = <int, ({int streamId, String topic})>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
@@ -46,6 +47,9 @@ class Unreads extends ChangeNotifier {
       final streamId = unreadChannelSnapshot.streamId;
       final topic = unreadChannelSnapshot.topic;
       (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
+      final messageInfo = (streamId: streamId, topic: topic);
+      streamIdsAndTopicsByMessageId.addEntries(
+        unreadChannelSnapshot.unreadMessageIds.map((messageId) => MapEntry(messageId, messageInfo)));
     }
 
     for (final unreadDmSnapshot in initial.dms) {
@@ -62,6 +66,7 @@ class Unreads extends ChangeNotifier {
     return Unreads._(
       channelStore: channelStore,
       streams: streams,
+      streamIdsAndTopicsByMessageId: streamIdsAndTopicsByMessageId,
       dms: dms,
       mentions: mentions,
       oldUnreadsMissing: initial.oldUnreadsMissing,
@@ -72,11 +77,12 @@ class Unreads extends ChangeNotifier {
   Unreads._({
     required this.channelStore,
     required this.streams,
+    required Map<int, ({int streamId, String topic})> streamIdsAndTopicsByMessageId,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
     required this.selfUserId,
-  });
+  }) : _streamIdsAndTopicsByMessageId = streamIdsAndTopicsByMessageId;
 
   final ChannelStore channelStore;
 
@@ -85,6 +91,11 @@ class Unreads extends ChangeNotifier {
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
   final Map<int, Map<String, QueueList<int>>> streams;
+
+  /// Stream IDs and topics for unread stream messages, as: message ID → (stream ID, topic).
+  ///
+  /// This is the same data as [streams], but in this message ID-keyed form.
+  final Map<int, ({int streamId, String topic})> _streamIdsAndTopicsByMessageId;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -353,6 +364,7 @@ class Unreads extends ChangeNotifier {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {
               streams.clear();
+              _streamIdsAndTopicsByMessageId.clear();
               dms.clear();
               mentions.clear();
               oldUnreadsMissing = false;
@@ -449,6 +461,7 @@ class Unreads extends ChangeNotifier {
 
   void _addLastInStreamTopic(int messageId, int streamId, String topic) {
     ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    _streamIdsAndTopicsByMessageId[messageId] = (streamId: streamId, topic: topic);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
@@ -461,6 +474,9 @@ class Unreads extends ChangeNotifier {
       // TODO(server-6) remove 6.0 comment
       (existing) => setUnion(existing, messageIds),
     );
+    final messageInfo = (streamId: streamId, topic: topic);
+    _streamIdsAndTopicsByMessageId.addEntries(
+      messageIds.map((messageId) => MapEntry(messageId, messageInfo)));
   }
 
   // TODO use efficient model lookups
@@ -484,6 +500,9 @@ class Unreads extends ChangeNotifier {
     for (final streamId in newlyEmptyStreams) {
       streams.remove(streamId);
     }
+    for (var messageId in idsToRemove) {
+      _streamIdsAndTopicsByMessageId.remove(messageId);
+    }
   }
 
   void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
@@ -499,6 +518,9 @@ class Unreads extends ChangeNotifier {
       if (topics.isEmpty) {
         streams.remove(streamId);
       }
+    }
+    for (var messageId in incomingMessageIds) {
+      _streamIdsAndTopicsByMessageId.remove(messageId);
     }
   }
 
