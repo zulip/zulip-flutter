@@ -69,7 +69,6 @@ void main() {
           });
     });
 
-
     testWidgets('use is:unread optimization', (WidgetTester tester) async {
       const narrow = CombinedFeedNarrow();
       await prepare(tester);
