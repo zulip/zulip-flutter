@@ -713,14 +713,8 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
     final connection = store.connection;
     final useLegacy = connection.zulipFeatureLevel! < 155;
     setState(() => _loading = true);
-
-    final didPass = await markNarrowAsRead(context, widget.narrow, useLegacy);
+    await markNarrowAsRead(context, widget.narrow, useLegacy);
     setState(() => _loading = false);
-    if (!didPass) return;
-    if (!context.mounted) return;
-    if (widget.narrow is CombinedFeedNarrow && !useLegacy) {
-      PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
-    }
   }
 
   @override

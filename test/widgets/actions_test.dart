@@ -151,8 +151,7 @@ void main() {
       await tester.pump(Duration.zero);
       await tester.pumpAndSettle();
       check(store.unreads.oldUnreadsMissing).isFalse();
-    }, skip: true, // TODO move this functionality inside markNarrowAsRead
-    );
+    });
 
     testWidgets('on invalid response', (tester) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
