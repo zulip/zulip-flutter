@@ -217,7 +217,7 @@ void main() {
         op: UpdateMessageFlagsOp.add,
         flag: MessageFlag.read,
         includeAnchor: false,
-        startingAnchor: AnchorCode.oldest,
+        anchor: AnchorCode.oldest,
         onCompletedMessage: onCompletedMessage,
         onFailedTitle: onFailedTitle,
         progressMessage: progressMessage);

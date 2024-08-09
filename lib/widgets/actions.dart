@@ -46,7 +46,7 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     // will be the oldest non-muted unread message, which would
     // result in muted unreads older than the first unread not
     // being processed.
-    startingAnchor: AnchorCode.oldest,
+    anchor: AnchorCode.oldest,
     // [AnchorCode.oldest] is an anchor ID lower than any valid
     // message ID.
     includeAnchor: false,
@@ -73,7 +73,7 @@ Future<void> markNarrowAsUnreadFromMessage(
   await updateMessageFlagsStartingFromAnchor(
     context: context,
     apiNarrow: narrow.apiEncode(),
-    startingAnchor: NumericAnchor(message.id),
+    anchor: NumericAnchor(message.id),
     includeAnchor: true,
     op: UpdateMessageFlagsOp.remove,
     flag: MessageFlag.read,
@@ -95,7 +95,7 @@ Future<void> markNarrowAsUnreadFromMessage(
 Future<bool> updateMessageFlagsStartingFromAnchor({
   required BuildContext context,
   required List<ApiNarrowElement> apiNarrow,
-  required Anchor startingAnchor,
+  required Anchor anchor,
   required bool includeAnchor,
   required UpdateMessageFlagsOp op,
   required MessageFlag flag,
@@ -110,10 +110,8 @@ Future<bool> updateMessageFlagsStartingFromAnchor({
 
     // Compare web's `mark_all_as_read` in web/src/unread_ops.js
     // and zulip-mobile's `markAsUnreadFromMessage` in src/action-sheets/index.js .
-    Anchor anchor = startingAnchor;
     int responseCount = 0;
     int updatedCount = 0;
-
     while (true) {
       final result = await updateMessageFlagsForNarrow(connection,
         anchor: anchor,
