@@ -139,6 +139,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
+      actionSheetBackground: const HSLColor.fromAHSL(1, 0, 0, 0.94).toColor(),
+      actionSheetCancelButtonBackground: const HSLColor.fromAHSL(0.15, 240, 0.05, 0.50).toColor(),
+      actionSheetCancelButtonForeground: const HSLColor.fromAHSL(1, 0, 0, 0.13).toColor(),
+      actionSheetMenuButtonBackground: const HSLColor.fromAHSL(0.12, 243.53, 0.69, 0.61).toColor(),
+      actionSheetMenuButtonForeground: const HSLColor.fromAHSL(1, 251.74, 0.70, 0.38).toColor(),
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
@@ -167,6 +172,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
+      actionSheetBackground: const HSLColor.fromAHSL(1, 0, 0, 0.14).toColor(),
+      actionSheetCancelButtonBackground: const HSLColor.fromAHSL(0.15, 240, 0.05, 0.50).toColor(),
+      actionSheetCancelButtonForeground: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+      actionSheetMenuButtonBackground: const HSLColor.fromAHSL(0.12, 240.89, 0.98, 0.73).toColor(),
+      actionSheetMenuButtonForeground: const HSLColor.fromAHSL(1, 237.17, 0.96, 0.78).toColor(),
       // TODO(#95) need proper dark-theme color (this is ad hoc)
       atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
@@ -201,6 +211,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.mainBackground,
     required this.title,
     required this.channelColorSwatches,
+    required this.actionSheetBackground,
+    required this.actionSheetCancelButtonBackground,
+    required this.actionSheetCancelButtonForeground,
+    required this.actionSheetMenuButtonBackground,
+    required this.actionSheetMenuButtonForeground,
     required this.atMentionMarker,
     required this.dmHeaderBg,
     required this.errorBannerBackground,
@@ -241,6 +256,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final ChannelColorSwatches channelColorSwatches;
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
+  final Color actionSheetBackground;
+  final Color actionSheetCancelButtonBackground;
+  final Color actionSheetCancelButtonForeground;
+  final Color actionSheetMenuButtonBackground;
+  final Color actionSheetMenuButtonForeground;
   final Color atMentionMarker;
   final Color dmHeaderBg;
   final Color errorBannerBackground;
@@ -268,6 +288,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? mainBackground,
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
+    Color? actionSheetBackground,
+    Color? actionSheetCancelButtonBackground,
+    Color? actionSheetCancelButtonForeground,
+    Color? actionSheetMenuButtonBackground,
+    Color? actionSheetMenuButtonForeground,
     Color? atMentionMarker,
     Color? dmHeaderBg,
     Color? errorBannerBackground,
@@ -294,6 +319,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
+      actionSheetBackground: actionSheetBackground ?? this.actionSheetBackground,
+      actionSheetCancelButtonBackground: actionSheetCancelButtonBackground ?? this.actionSheetCancelButtonBackground,
+      actionSheetCancelButtonForeground: actionSheetCancelButtonForeground ?? this.actionSheetCancelButtonForeground,
+      actionSheetMenuButtonBackground: actionSheetMenuButtonBackground ?? this.actionSheetMenuButtonBackground,
+      actionSheetMenuButtonForeground: actionSheetMenuButtonForeground ?? this.actionSheetMenuButtonBackground,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
       errorBannerBackground: errorBannerBackground ?? this.errorBannerBackground,
@@ -327,6 +357,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
+      actionSheetBackground: Color.lerp(actionSheetBackground, other.actionSheetBackground, t)!,
+      actionSheetCancelButtonBackground: Color.lerp(actionSheetCancelButtonBackground, other.actionSheetCancelButtonBackground, t)!,
+      actionSheetCancelButtonForeground: Color.lerp(actionSheetCancelButtonForeground, other.actionSheetCancelButtonForeground, t)!,
+      actionSheetMenuButtonBackground: Color.lerp(actionSheetMenuButtonBackground, other.actionSheetMenuButtonBackground, t)!,
+      actionSheetMenuButtonForeground: Color.lerp(actionSheetMenuButtonForeground, other.actionSheetMenuButtonBackground, t)!,
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
       errorBannerBackground: Color.lerp(errorBannerBackground, other.errorBannerBackground, t)!,

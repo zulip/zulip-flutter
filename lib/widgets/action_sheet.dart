@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -11,10 +13,11 @@ import '../model/narrow.dart';
 import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
-import 'draggable_scrollable_modal_bottom_sheet.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
 
 /// Show a sheet of actions you can take on a message in the message list.
 ///
@@ -36,20 +39,45 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       && reactionWithVotes.userIds.contains(store.selfUserId))
     ?? false;
 
-  showDraggableScrollableModalBottomSheet<void>(
+  final designVariables = DesignVariables.of(context);
+  showModalBottomSheet<void>(
     context: context,
+    clipBehavior: Clip.antiAlias,
+    backgroundColor: designVariables.actionSheetBackground,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
+    useSafeArea: true,
+    isScrollControlled: true,
     builder: (BuildContext _) {
-      return Column(children: [
-        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
-        StarButton(message: message, messageListContext: context),
-        if (isComposeBoxOffered) QuoteAndReplyButton(
-          message: message,
-          messageListContext: context,
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // TODO(#217): show message text
+            Flexible(
+              child: SingleChildScrollView(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(7),
+                  child: Column(spacing: 1, children: [
+                    if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
+                    StarButton(message: message, messageListContext: context),
+                    if (isComposeBoxOffered) QuoteAndReplyButton(
+                      message: message,
+                      messageListContext: context,
+                    ),
+                    CopyMessageTextButton(message: message, messageListContext: context),
+                    CopyMessageLinkButton(message: message, messageListContext: context),
+                    ShareButton(message: message, messageListContext: context),
+                  ]),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const MessageActionSheetCancelButton(),
+          ],
         ),
-        CopyMessageTextButton(message: message, messageListContext: context),
-        CopyMessageLinkButton(message: message, messageListContext: context),
-        ShareButton(message: message, messageListContext: context),
-      ]);
+      );
     });
 }
 
@@ -69,11 +97,22 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     return MenuItemButton(
-      leadingIcon: Icon(icon),
+      trailingIcon: Icon(icon, color: designVariables.actionSheetMenuButtonForeground),
+      style: MenuItemButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: Size.zero,
+        backgroundColor: designVariables.actionSheetMenuButtonBackground,
+        foregroundColor: designVariables.actionSheetMenuButtonForeground,
+      ),
       onPressed: () => onPressed(context),
-      child: Text(label(zulipLocalizations)));
+      child: Text(label(zulipLocalizations),
+        style: const TextStyle(fontSize: 20)
+          .merge(weightVariableTextStyle(context, wght: 600)),
+      ));
   }
 }
 
@@ -86,7 +125,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.add_reaction_outlined;
+  @override IconData get icon => ZulipIcons.smile;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -127,11 +166,13 @@ class StarButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => ZulipIcons.star_filled;
+  @override IconData get icon => _isStarred ? ZulipIcons.star_filled : ZulipIcons.star;
+
+  bool get _isStarred => message.flags.contains(MessageFlag.starred);
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
-    return message.flags.contains(MessageFlag.starred)
+    return _isStarred
       ? zulipLocalizations.actionSheetOptionUnstarMessage
       : zulipLocalizations.actionSheetOptionStarMessage;
   }
@@ -223,7 +264,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.format_quote_outlined;
+  @override IconData get icon => ZulipIcons.format_quote;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -285,7 +326,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.copy;
+  @override IconData get icon => ZulipIcons.copy;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -353,7 +394,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.adaptive.share;
+  @override IconData get icon => Platform.isIOS ? ZulipIcons.share_ios : ZulipIcons.share;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -400,5 +441,28 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       case ShareResultStatus.dismissed:
         // nothing to do
     }
+  }
+}
+
+class MessageActionSheetCancelButton extends StatelessWidget {
+  const MessageActionSheetCancelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.all(10),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: Size.zero,
+        backgroundColor: designVariables.actionSheetCancelButtonBackground,
+        foregroundColor: designVariables.actionSheetCancelButtonForeground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+      ),
+      onPressed: () => Navigator.pop(context),
+      child: Text(ZulipLocalizations.of(context).dialogCancel,
+        style: const TextStyle(fontSize: 20)
+          .merge(weightVariableTextStyle(context, wght: 600))),
+    );
   }
 }
