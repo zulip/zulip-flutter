@@ -92,51 +92,6 @@ void main() {
           });
     });
 
-    testWidgets('pagination', (WidgetTester tester) async {
-      // Check that `lastProcessedId` returned from an initial
-      // response is used as `anchorId` for the subsequent request.
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
-      await prepare(tester);
-
-      connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-        processedCount: 1000, updatedCount: 890,
-        firstProcessedId: 1, lastProcessedId: 1989,
-        foundOldest: true, foundNewest: false).toJson());
-      markNarrowAsRead(context, narrow);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/messages/flags/narrow')
-        ..bodyFields.deepEquals({
-            'anchor': 'oldest',
-            'include_anchor': 'false',
-            'num_before': '0',
-            'num_after': '1000',
-            'narrow': jsonEncode(apiNarrow),
-            'op': 'add',
-            'flag': 'read',
-          });
-
-      connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-        processedCount: 20, updatedCount: 10,
-        firstProcessedId: 2000, lastProcessedId: 2023,
-        foundOldest: false, foundNewest: true).toJson());
-      await tester.pumpAndSettle();
-      check(find.bySubtype<SnackBar>().evaluate()).length.equals(1);
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/messages/flags/narrow')
-        ..bodyFields.deepEquals({
-            'anchor': '1989',
-            'include_anchor': 'false',
-            'num_before': '0',
-            'num_after': '1000',
-            'narrow': jsonEncode(apiNarrow),
-            'op': 'add',
-            'flag': 'read',
-          });
-    });
-
     testWidgets('on mark-all-as-read when Unreads.oldUnreadsMissing: true', (tester) async {
       const narrow = CombinedFeedNarrow();
       await prepare(tester);
@@ -150,36 +105,6 @@ void main() {
       await tester.pump(Duration.zero);
       await tester.pumpAndSettle();
       check(store.unreads.oldUnreadsMissing).isFalse();
-    });
-
-    testWidgets('on invalid response', (WidgetTester tester) async {
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
-      await prepare(tester);
-      connection.prepare(json: UpdateMessageFlagsForNarrowResult(
-        processedCount: 1000, updatedCount: 0,
-        firstProcessedId: null, lastProcessedId: null,
-        foundOldest: true, foundNewest: false).toJson());
-      markNarrowAsRead(context, narrow);
-      await tester.pump(Duration.zero);
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/messages/flags/narrow')
-        ..bodyFields.deepEquals({
-            'anchor': 'oldest',
-            'include_anchor': 'false',
-            'num_before': '0',
-            'num_after': '1000',
-            'narrow': jsonEncode(apiNarrow),
-            'op': 'add',
-            'flag': 'read',
-          });
-
-      await tester.pumpAndSettle();
-      checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
-        expectedMessage: zulipLocalizations.errorInvalidResponse);
     });
 
     testWidgets('CombinedFeedNarrow on legacy server', (WidgetTester tester) async {
@@ -276,19 +201,6 @@ void main() {
             'flag': 'read',
           });
     });
-
-    testWidgets('catch-all api errors', (WidgetTester tester) async {
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      const narrow = CombinedFeedNarrow();
-      await prepare(tester);
-      connection.prepare(exception: http.ClientException('Oops'));
-      markNarrowAsRead(context, narrow);
-      await tester.pump(Duration.zero);
-      await tester.pumpAndSettle();
-      checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
-        expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
-    });
   });
 
   group('updateMessageFlagsStartingFromAnchor', () {
@@ -331,6 +243,94 @@ void main() {
             'flag': 'read',
           });
       check(await didPass).isTrue();
+    });
+
+    testWidgets('pagination', (WidgetTester tester) async {
+      // Check that `lastProcessedId` returned from an initial
+      // response is used as `anchorId` for the subsequent request.
+      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+      await prepare(tester);
+
+      connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+        processedCount: 1000, updatedCount: 890,
+        firstProcessedId: 1, lastProcessedId: 1989,
+        foundOldest: true, foundNewest: false).toJson());
+      markNarrowAsRead(context, narrow);
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags/narrow')
+        ..bodyFields.deepEquals({
+            'anchor': 'oldest',
+            'include_anchor': 'false',
+            'num_before': '0',
+            'num_after': '1000',
+            'narrow': jsonEncode(apiNarrow),
+            'op': 'add',
+            'flag': 'read',
+          });
+
+      connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+        processedCount: 20, updatedCount: 10,
+        firstProcessedId: 2000, lastProcessedId: 2023,
+        foundOldest: false, foundNewest: true).toJson());
+      await tester.pumpAndSettle();
+      check(find.bySubtype<SnackBar>().evaluate()).length.equals(1);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags/narrow')
+        ..bodyFields.deepEquals({
+            'anchor': '1989',
+            'include_anchor': 'false',
+            'num_before': '0',
+            'num_after': '1000',
+            'narrow': jsonEncode(apiNarrow),
+            'op': 'add',
+            'flag': 'read',
+          });
+    });
+
+    testWidgets('on invalid response', (WidgetTester tester) async {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+      await prepare(tester);
+      connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+        processedCount: 1000, updatedCount: 0,
+        firstProcessedId: null, lastProcessedId: null,
+        foundOldest: true, foundNewest: false).toJson());
+      markNarrowAsRead(context, narrow);
+      await tester.pump(Duration.zero);
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/flags/narrow')
+        ..bodyFields.deepEquals({
+            'anchor': 'oldest',
+            'include_anchor': 'false',
+            'num_before': '0',
+            'num_after': '1000',
+            'narrow': jsonEncode(apiNarrow),
+            'op': 'add',
+            'flag': 'read',
+          });
+
+      await tester.pumpAndSettle();
+      checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
+        expectedMessage: zulipLocalizations.errorInvalidResponse);
+    });
+
+    testWidgets('catch-all api errors', (WidgetTester tester) async {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      const narrow = CombinedFeedNarrow();
+      await prepare(tester);
+      connection.prepare(exception: http.ClientException('Oops'));
+      markNarrowAsRead(context, narrow);
+      await tester.pump(Duration.zero);
+      await tester.pumpAndSettle();
+      checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
+        expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
     });
   });
 }
