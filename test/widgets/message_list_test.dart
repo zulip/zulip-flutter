@@ -14,6 +14,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
@@ -69,7 +70,7 @@ void main() {
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-      child: MessageListPage(narrow: narrow)));
+      child: MessageListPage(initNarrow: narrow)));
 
     // global store, per-account store, and message list get loaded
     await tester.pumpAndSettle();
@@ -620,6 +621,93 @@ void main() {
     });
   });
 
+  group('Update Narrow on message move', () {
+    final channel = eg.stream(name: 'move test stream');
+    final otherChannel = eg.stream(name: 'other move test stream');
+    final narrow = TopicNarrow(channel.streamId, 'example topic');
+
+    void prepareGetMessageResponse(List<Message> messages) {
+      connection.prepare(json: newestResult(
+        foundOldest: false, messages: messages).toJson());
+    }
+
+    void handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) {
+      store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: messages,
+        newTopic: newTopic,
+        newStreamId: newChannelId,
+        propagateMode: PropagateMode.changeAll));
+    }
+
+    testWidgets('compose box send message after move', (WidgetTester tester) async {
+      final message = eg.streamMessage(stream: channel, content: 'Message to move');
+      await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel, otherChannel]);
+
+      final channelContentInputFinder = find.descendant(
+        of: find.byType(ComposeAutocomplete),
+        matching: find.byType(TextField));
+
+      await tester.enterText(channelContentInputFinder, 'Some text');
+      check(tester.widget<TextField>(channelContentInputFinder))
+        ..decoration.isNotNull().hintText.equals('Message #${channel.name} > example topic')
+        ..controller.isNotNull().text.equals('Some text');
+      prepareGetMessageResponse([message]);
+      handleMessageMoveEvent([message], 'new topic', newChannelId: otherChannel.streamId);
+      await tester.pump(const Duration(seconds: 1));
+      check(tester.widget<TextField>(channelContentInputFinder))
+        ..decoration.isNotNull().hintText.equals('Message #${otherChannel.name} > new topic')
+        ..controller.isNotNull().text.equals('Some text');
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await tester.tap(find.byIcon(Icons.send));
+      await tester.pump();
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': '${otherChannel.streamId}',
+          'topic': 'new topic',
+          'content': 'Some text',
+          'read_by_sender': 'true'});
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Move to narrow with existing messages', (WidgetTester tester) async {
+      final message = eg.streamMessage(stream: channel, content: 'Message to move');
+      await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
+      check(find.textContaining('Existing message').evaluate()).length.equals(0);
+      check(find.textContaining('Message to move').evaluate()).length.equals(1);
+
+      final existingMessage = eg.streamMessage(
+        stream: eg.stream(), topic: 'new topic', content: 'Existing message');
+      prepareGetMessageResponse([existingMessage, message]);
+      handleMessageMoveEvent([message], 'new topic');
+      await tester.pump(const Duration(seconds: 1));
+
+      check(find.textContaining('Existing message').evaluate()).length.equals(1);
+      check(find.textContaining('Message to move').evaluate()).length.equals(1);
+    });
+
+    testWidgets('show new topic in TopicNarrow after move', (tester) async {
+      final message = eg.streamMessage(stream: channel, content: 'Message to move');
+      await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
+
+      prepareGetMessageResponse([message]);
+      handleMessageMoveEvent([message], 'new topic');
+      await tester.pump(const Duration(seconds: 1));
+
+      check(find.descendant(
+        of: find.byType(RecipientHeader),
+        matching: find.text('new topic')).evaluate()
+      ).length.equals(1);
+      check(find.descendant(
+        of: find.byType(MessageListAppBarTitle),
+        matching: find.text('${channel.name} > new topic')).evaluate()
+      ).length.equals(1);
+    });
+  });
+
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
       final stream = eg.stream(name: 'stream name');
@@ -965,8 +1053,8 @@ void main() {
     });
 
     testWidgets('edited and moved messages from events', (WidgetTester tester) async {
-      final message = eg.streamMessage();
-      final message2 = eg.streamMessage();
+      final message = eg.streamMessage(topic: 'old');
+      final message2 = eg.streamMessage(topic: 'old');
       await setupMessageListPage(tester, messages: [message, message2]);
       checkMarkersCount(edited: 0, moved: 0);
 
@@ -974,8 +1062,8 @@ void main() {
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 0);
 
-      await store.handleEvent(eg.updateMessageMoveEvent(
-        [message, message2], origTopic: 'old', newTopic: 'new'));
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: [message, message2], newTopic: 'new'));
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 1);
 
@@ -1019,19 +1107,25 @@ void main() {
 
     testWidgets('edit state updates do not affect layout', (WidgetTester tester) async {
       final messages = [
-        eg.streamMessage(),
+        eg.streamMessage(topic: 'orig'),
         eg.streamMessage(
+          topic: 'orig',
           reactions: [eg.unicodeEmojiReaction, eg.realmEmojiReaction],
           flags: [MessageFlag.starred]),
-        eg.streamMessage(),
+        eg.streamMessage(topic: 'orig'),
       ];
       final StreamMessage messageWithMarker = messages[1];
       await setupMessageListPage(tester, messages: messages);
       final rectsBefore = captureMessageRects(tester, messages, messageWithMarker);
       checkMarkersCount(edited: 0, moved: 0);
 
-      await store.handleEvent(eg.updateMessageMoveEvent(
-        [messageWithMarker], origTopic: 'old', newTopic: messageWithMarker.topic));
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: [store.messages[messageWithMarker.id] as StreamMessage],
+        newTopic: 'new'));
+      await tester.pump();
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: [store.messages[messageWithMarker.id] as StreamMessage],
+        newTopic: 'orig'));
       await tester.pump();
       check(captureMessageRects(tester, messages, messageWithMarker))
         .deepEquals(rectsBefore);

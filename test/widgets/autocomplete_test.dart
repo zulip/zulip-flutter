@@ -48,7 +48,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   prepareBoringImageHttpClient();
 
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-    child: MessageListPage(narrow: DmNarrow(
+    child: MessageListPage(initNarrow: DmNarrow(
       allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
       selfUserId: eg.selfUser.userId))));
 

@@ -152,6 +152,7 @@ class MessageStoreImpl with MessageStore {
     final newStreamId = event.newStreamId; // null if topic-only move
     final origTopic = event.origTopic;
     final newTopic = event.newTopic;
+    final propagateMode = event.propagateMode;
 
     if (origTopic == null) {
       // There was no move.
@@ -167,9 +168,10 @@ class MessageStoreImpl with MessageStore {
       return;
     }
 
-    if (newTopic == null) {
-      // The `subject` field (aka newTopic) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no newTopic')); // TODO(log)
+    if (newStreamId == null && newTopic == null) {
+      // If neither the channel nor topic name changed, nothing moved.
+      // In that case `orig_subject` (aka origTopic) should have been null.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
       return;
     }
     if (origStreamId == null) {
@@ -177,23 +179,50 @@ class MessageStoreImpl with MessageStore {
       assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
       return;
     }
-
-    if (newStreamId == null
-        && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic)) {
-      // The topic was only resolved/unresolved.
-      // No change to the messages' editState.
+    if (propagateMode == null) {
+      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
       return;
     }
 
-    // TODO(#150): Handle message moves.  The views' recipient headers
-    //   may need updating, and consequently showSender too.
-    //   Currently only editState gets updated.
+    final wasResolveOrUnresolve = (newStreamId == null
+      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!));
+
     for (final messageId in event.messageIds) {
       final message = messages[messageId];
       if (message == null) continue;
-      // Do not override the edited marker if the message has also been moved.
-      if (message.editState == MessageEditState.edited) continue;
-      message.editState = MessageEditState.moved;
+
+      if (message is! StreamMessage) {
+        assert(debugLog('Bad UpdateMessageEvent: stream/topic move on a DM')); // TODO(log)
+        continue;
+      }
+
+      if (newStreamId != null) {
+        message.streamId = newStreamId;
+        // See [StreamMessage.displayRecipient] on why the invalidation is
+        // needed.
+        message.displayRecipient = null;
+      }
+
+      if (newTopic != null) {
+        message.topic = newTopic;
+      }
+
+      if (!wasResolveOrUnresolve
+          && message.editState == MessageEditState.none) {
+        message.editState = MessageEditState.moved;
+      }
+    }
+
+    for (final view in _messageListViews) {
+      view.messagesMoved(
+        origStreamId: origStreamId,
+        newStreamId: newStreamId ?? origStreamId,
+        origTopic: origTopic,
+        newTopic: newTopic ?? origTopic,
+        messageIds: event.messageIds,
+        propagateMode: propagateMode,
+      );
     }
   }
 
