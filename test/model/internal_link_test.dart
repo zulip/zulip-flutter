@@ -54,6 +54,37 @@ void main() {
     }
   }
 
+  void testExpectedUrls(List<(String, String)> testCases, {
+    List<ZulipStream>? streams,
+    List<User>? users,
+  }) {
+    assert(streams != null || users != null);
+    for (final testCase in testCases) {
+      final String inputUrl = testCase.$1;
+      final String expectedUrl = testCase.$2;
+      test('URL parsing: $inputUrl', () async {
+        final store = await setupStore(realmUrl: realmUrl, streams: streams, users: users);
+        final url = store.tryResolveUrl(inputUrl)!;
+        check(url.toString()).equals(expectedUrl);
+      });
+    }
+  }
+
+  group('parseInternalLink full URL cases', () {
+    final streams = [
+      eg.stream(streamId: 1, name: 'check'),
+      eg.stream(streamId: 3, name: 'mobile'),
+    ];
+
+    final fullUrlTestCases = [
+      ('https://example.com/#narrow/stream/check', 'https://example.com/#narrow/stream/check'),
+      ('https://example.com/#narrow/stream/3-mobile/topic/topic1', 'https://example.com/#narrow/stream/3-mobile/topic/topic1'),
+      ('https://another.com/#narrow/stream/mobile', 'https://another.com/#narrow/stream/mobile'),
+      ('https://example.com/#narrow/stream/check/topic/test', 'https://example.com/#narrow/stream/check/topic/test'),
+    ];
+    testExpectedUrls(fullUrlTestCases, streams: streams);
+  });
+
   group('parseInternalLink', () {
     final streams = [
       eg.stream(streamId: 1, name: 'check'),
