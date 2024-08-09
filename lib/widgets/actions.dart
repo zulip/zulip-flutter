@@ -117,10 +117,7 @@ Future<bool> updateMessageFlagsStartingFromAnchor({
     while (true) {
       final result = await updateMessageFlagsForNarrow(connection,
         anchor: anchor,
-        // Follow-up requests will have already processed the
-        // anchor ID, so after the first iteration, this will be
-        // unconditionally false.
-        includeAnchor: responseCount == 0 ? includeAnchor : false,
+        includeAnchor: includeAnchor,
         // There is an upper limit of 5000 messages per batch
         // (numBefore + numAfter <= 5000) enforced on the server.
         // See `update_message_flags_in_narrow` in zerver/views/message_flags.py .
@@ -162,6 +159,7 @@ Future<bool> updateMessageFlagsStartingFromAnchor({
         return false;
       }
       anchor = NumericAnchor(result.lastProcessedId!);
+      includeAnchor = false;
 
       // The task is taking a while, so tell the user we're working on it.
       // TODO: Ideally we'd have a progress widget here that showed up based
