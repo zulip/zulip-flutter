@@ -16,14 +16,11 @@ import '../model/narrow.dart';
 import 'dialog.dart';
 import 'store.dart';
 
-Future<void> markNarrowAsRead(
-  BuildContext context,
-  Narrow narrow,
-  bool useLegacy, // TODO(server-6)
-) async {
+Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
   try {
     final store = PerAccountStoreWidget.of(context);
     final connection = store.connection;
+    final useLegacy = connection.zulipFeatureLevel! < 155; // TODO(server-6)
     if (useLegacy) {
       await _legacyMarkNarrowAsRead(context, narrow);
       return;

@@ -52,7 +52,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow, false);
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
       check(connection.lastRequest).isA<http.Request>()
@@ -77,7 +77,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow, false);
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -103,7 +103,7 @@ void main() {
         processedCount: 1000, updatedCount: 890,
         firstProcessedId: 1, lastProcessedId: 1989,
         foundOldest: true, foundNewest: false).toJson());
-      markNarrowAsRead(context, narrow, false);
+      markNarrowAsRead(context, narrow);
       final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -147,7 +147,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow, false);
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await tester.pumpAndSettle();
       check(store.unreads.oldUnreadsMissing).isFalse();
@@ -161,7 +161,7 @@ void main() {
         processedCount: 1000, updatedCount: 0,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: false).toJson());
-      markNarrowAsRead(context, narrow, false);
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
       check(connection.lastRequest).isA<http.Request>()
@@ -191,7 +191,7 @@ void main() {
 
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow, true); // TODO move legacy-server check inside markNarrowAsRead
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -209,7 +209,7 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow, true); // TODO move legacy-server check inside markNarrowAsRead
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -224,7 +224,7 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow, true); // TODO move legacy-server check inside markNarrowAsRead
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -246,7 +246,7 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      markNarrowAsRead(context, narrow, true); // TODO move legacy-server check inside markNarrowAsRead
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -266,7 +266,7 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      markNarrowAsRead(context, narrow, true);  // TODO move legacy-server check inside markNarrowAsRead
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -283,7 +283,7 @@ void main() {
       const narrow = CombinedFeedNarrow();
       await prepare(tester);
       connection.prepare(exception: http.ClientException('Oops'));
-      markNarrowAsRead(context, narrow, false);
+      markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await tester.pumpAndSettle();
       checkErrorDialog(tester,
