@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -39,6 +40,11 @@ void main() {
     await store.addUsers([eg.selfUser, ...users]);
     connection = store.connection as FakeApiConnection;
 
+    if (narrow is ChannelNarrow) {
+      // Ensure topics are loaded before testing actual logic.
+      connection.prepare(body:
+        jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+    }
     final controllerKey = GlobalKey<ComposeBoxController>();
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
