@@ -290,7 +290,6 @@ void main() {
       checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,
         expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
-    }, skip: true, // TODO move this functionality inside markNarrowAsRead
-    );
+    });
   });
 }
