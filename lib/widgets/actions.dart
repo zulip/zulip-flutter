@@ -17,42 +17,90 @@ import 'dialog.dart';
 import 'store.dart';
 
 Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
-  try {
-    final store = PerAccountStoreWidget.of(context);
-    final connection = store.connection;
-    final useLegacy = connection.zulipFeatureLevel! < 155; // TODO(server-6)
-    if (useLegacy) {
+  final store = PerAccountStoreWidget.of(context);
+  final connection = store.connection;
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  final useLegacy = connection.zulipFeatureLevel! < 155; // TODO(server-6)
+  if (useLegacy) {
+    try {
       await _legacyMarkNarrowAsRead(context, narrow);
       return;
+    } catch (e) {
+      if (!context.mounted) return;
+      await showErrorDialog(context: context,
+        title: zulipLocalizations.errorMarkAsReadFailedTitle,
+        message: e.toString()); // TODO(#741): extract user-facing message better
+      return;
     }
+  }
 
-    // Compare web's `mark_all_as_read` in web/src/unread_ops.js
-    // and zulip-mobile's `markAsUnreadFromMessage` in src/action-sheets/index.js .
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    // Use [AnchorCode.oldest], because [AnchorCode.firstUnread]
-    // will be the oldest non-muted unread message, which would
-    // result in muted unreads older than the first unread not
-    // being processed.
-    Anchor anchor = AnchorCode.oldest;
-    int responseCount = 0;
-    int updatedCount = 0;
-
+  final didPass = await updateMessageFlagsStartingFromAnchor(
+    context: context,
     // Include `is:unread` in the narrow.  That has a database index, so
     // this can be an important optimization in narrows with a lot of history.
     // The server applies the same optimization within the (deprecated)
     // specialized endpoints for marking messages as read; see
     // `do_mark_stream_messages_as_read` in `zulip:zerver/actions/message_flags.py`.
-    final apiNarrow = narrow.apiEncode()..add(ApiNarrowIsUnread());
+    apiNarrow: narrow.apiEncode()..add(ApiNarrowIsUnread()),
+    // Use [AnchorCode.oldest], because [AnchorCode.firstUnread]
+    // will be the oldest non-muted unread message, which would
+    // result in muted unreads older than the first unread not
+    // being processed.
+    startingAnchor: AnchorCode.oldest,
+    // [AnchorCode.oldest] is an anchor ID lower than any valid
+    // message ID.
+    includeAnchor: false,
+    op: UpdateMessageFlagsOp.add,
+    flag: MessageFlag.read,
+    onCompletedMessage: zulipLocalizations.markAsReadComplete,
+    progressMessage: zulipLocalizations.markAsReadInProgress,
+    onFailedTitle: zulipLocalizations.errorMarkAsReadFailedTitle);
+
+  if (!didPass || !context.mounted) return;
+  if (narrow is CombinedFeedNarrow) {
+    PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
+  }
+}
+
+/// Updates message flags by applying given operation `op` using given `flag`
+/// the update happens on given `apiNarrow` starting from given `startingAnchor`
+///
+/// This also handles interactions with the user as it shows a `Snackbar` with
+/// `progressMessage` while performing the update, shows an error dialog when
+/// update fails with the given title using `onFailedTitle` and shows
+/// a `Snackbar` with computed message using given `onCompletedMessage`.
+///
+/// Returns true in case the process is completed with no exceptions
+/// otherwise shows an error dialog and returns false.
+Future<bool> updateMessageFlagsStartingFromAnchor({
+  required BuildContext context,
+  required List<ApiNarrowElement> apiNarrow,
+  required Anchor startingAnchor,
+  required bool includeAnchor,
+  required UpdateMessageFlagsOp op,
+  required MessageFlag flag,
+  required String Function(int) onCompletedMessage,
+  required String progressMessage,
+  required String onFailedTitle,
+}) async {
+  try {
+    final store = PerAccountStoreWidget.of(context);
+    final connection = store.connection;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    // Compare web's `mark_all_as_read` in web/src/unread_ops.js
+    // and zulip-mobile's `markAsUnreadFromMessage` in src/action-sheets/index.js .
+    Anchor anchor = startingAnchor;
+    int responseCount = 0;
+    int updatedCount = 0;
 
     while (true) {
       final result = await updateMessageFlagsForNarrow(connection,
         anchor: anchor,
-        // [AnchorCode.oldest] is an anchor ID lower than any valid
-        // message ID; and follow-up requests will have already
-        // processed the anchor ID, so we just want this to be
+        // Follow-up requests will have already processed the
+        // anchor ID, so after the first iteration, this will be
         // unconditionally false.
-        includeAnchor: false,
+        includeAnchor: responseCount == 0 ? includeAnchor : false,
         // There is an upper limit of 5000 messages per batch
         // (numBefore + numAfter <= 5000) enforced on the server.
         // See `update_message_flags_in_narrow` in zerver/views/message_flags.py .
@@ -61,11 +109,11 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
         numBefore: 0,
         numAfter: 1000,
         narrow: apiNarrow,
-        op: UpdateMessageFlagsOp.add,
-        flag: MessageFlag.read);
+        op: op,
+        flag: flag);
       if (!context.mounted) {
         scaffoldMessenger.clearSnackBars();
-        return;
+        return false;
       }
       responseCount++;
       updatedCount += result.updatedCount;
@@ -78,25 +126,24 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
           scaffoldMessenger
             ..clearSnackBars()
             ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
-                content: Text(zulipLocalizations.markAsReadComplete(updatedCount))));
+                content: Text(onCompletedMessage(updatedCount))));
         }
-        break;
+        return true;
       }
 
       if (result.lastProcessedId == null) {
+        final zulipLocalizations = ZulipLocalizations.of(context);
         // No messages were in the range of the request.
         // This should be impossible given that `foundNewest` was false
         // (and that our `numAfter` was positive.)
         showErrorDialog(context: context,
-          title: zulipLocalizations.errorMarkAsReadFailedTitle,
+          title: onFailedTitle,
           message: zulipLocalizations.errorInvalidResponse);
-        return;
+        return false;
       }
       anchor = NumericAnchor(result.lastProcessedId!);
 
       // The task is taking a while, so tell the user we're working on it.
-      // No need to say how many messages, as the [MarkAsUnread] widget
-      // should follow along.
       // TODO: Ideally we'd have a progress widget here that showed up based
       //   on actual time elapsed -- so it could appear before the first
       //   batch returns, if that takes a while -- and that then stuck
@@ -109,19 +156,14 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
       //   is better for now if we allow them to run their timer through
       //   and clear the backlog later.
       scaffoldMessenger.showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,
-        content: Text(zulipLocalizations.markAsReadInProgress)));
+        content: Text(progressMessage)));
     }
   } catch (e) {
-    if (!context.mounted) return;
-    final zulipLocalizations = ZulipLocalizations.of(context);
+    if (!context.mounted) return false;
     showErrorDialog(context: context,
-      title: zulipLocalizations.errorMarkAsReadFailedTitle,
+      title: onFailedTitle,
       message: e.toString()); // TODO(#741): extract user-facing message better
-    return;
-  }
-  if (!context.mounted) return;
-  if (narrow is CombinedFeedNarrow) {
-    PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
+    return false;
   }
 }
 
