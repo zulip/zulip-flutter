@@ -807,8 +807,24 @@ class UpdateMachine {
         }
       }
 
+      // After one successful request, we reset backoff to its initial state.
+      // That way if the user is off the network and comes back on, the app
+      // doesn't wind up in a state where it's slow to recover the next time
+      // one request fails.
+      //
+      // This does mean that if the server is having trouble and handling some
+      // but not all of its requests, we'll end up doing a lot more retries than
+      // if we stayed at the max backoff interval; partway toward what would
+      // happen if we weren't backing off at all.
+      //
+      // But at least for [getEvents] requests, as here, it should be OK,
+      // because this is a long-poll.  That means a typical successful request
+      // takes a long time to come back; in fact longer than our max backoff
+      // duration (which is 10 seconds).  So if we're getting a mix of successes
+      // and failures, the successes themselves should space out the requests.
       backoffMachine = null;
       store.isLoading = false;
+
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);
