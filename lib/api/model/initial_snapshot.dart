@@ -24,6 +24,16 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  /// The realm-level policy, on pre-FL 163 servers, for visibility of real email addresses.
+  ///
+  /// Search for "email_address_visibility" in https://zulip.com/api/register-queue.
+  ///
+  /// This field is removed in Zulip 7.0 (FL 163) and replaced with a user-level
+  /// setting:
+  ///   * https://zulip.com/api/update-settings#parameter-email_address_visibility
+  ///   * https://zulip.com/api/update-realm-user-settings-defaults#parameter-email_address_visibility
+  final EmailAddressVisibility? emailAddressVisibility; // TODO(server-7): remove
+
   // TODO(server-8): Remove the default values.
   @JsonKey(defaultValue: 15000)
   final int serverTypingStartedExpiryPeriodMilliseconds;
@@ -94,6 +104,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.emailAddressVisibility,
     required this.serverTypingStartedExpiryPeriodMilliseconds,
     required this.serverTypingStoppedWaitPeriodMilliseconds,
     required this.serverTypingStartedWaitPeriodMilliseconds,
@@ -115,6 +126,14 @@ class InitialSnapshot {
     _$InitialSnapshotFromJson(json);
 
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
+}
+
+enum EmailAddressVisibility {
+  @JsonValue(1) everyone,
+  @JsonValue(2) members,
+  @JsonValue(3) admins,
+  @JsonValue(4) nobody,
+  @JsonValue(5) moderators,
 }
 
 /// An item in `realm_default_external_accounts`.

@@ -21,6 +21,8 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
           .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
           .toList(),
+      emailAddressVisibility: $enumDecodeNullable(
+          _$EmailAddressVisibilityEnumMap, json['email_address_visibility']),
       serverTypingStartedExpiryPeriodMilliseconds:
           (json['server_typing_started_expiry_period_milliseconds'] as num?)
                   ?.toInt() ??
@@ -86,6 +88,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_merge_base': instance.zulipMergeBase,
       'alert_words': instance.alertWords,
       'custom_profile_fields': instance.customProfileFields,
+      'email_address_visibility':
+          _$EmailAddressVisibilityEnumMap[instance.emailAddressVisibility],
       'server_typing_started_expiry_period_milliseconds':
           instance.serverTypingStartedExpiryPeriodMilliseconds,
       'server_typing_stopped_wait_period_milliseconds':
@@ -105,6 +109,14 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'realm_non_active_users': instance.realmNonActiveUsers,
       'cross_realm_bots': instance.crossRealmBots,
     };
+
+const _$EmailAddressVisibilityEnumMap = {
+  EmailAddressVisibility.everyone: 1,
+  EmailAddressVisibility.members: 2,
+  EmailAddressVisibility.admins: 3,
+  EmailAddressVisibility.nobody: 4,
+  EmailAddressVisibility.moderators: 5,
+};
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
         Map<String, dynamic> json) =>
