@@ -714,9 +714,9 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
     final connection = store.connection;
     final useLegacy = connection.zulipFeatureLevel! < 155;
     setState(() => _loading = true);
-
+    bool didPass = false;
     try {
-      await markNarrowAsRead(context, widget.narrow, useLegacy);
+      didPass = await markNarrowAsRead(context, widget.narrow, useLegacy);
     } catch (e) {
       if (!context.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -727,6 +727,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
     } finally {
       setState(() => _loading = false);
     }
+    if (!didPass) return;
     if (!context.mounted) return;
     if (widget.narrow is CombinedFeedNarrow && !useLegacy) {
       PerAccountStoreWidget.of(context).unreads.handleAllMessagesReadSuccess();
