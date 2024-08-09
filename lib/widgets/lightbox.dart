@@ -157,6 +157,13 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         .add_Hms()
         .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
 
+      // We use plain [AppBar] instead of [ZulipAppBar], even though this page
+      // has a [PerAccountStore], because:
+      //  * There's already a progress indicator with a different meaning
+      //    (loading the image).
+      //  * The app bar can be hidden, so wouldn't always be visible anyway.
+      //  * This is a page where the store loading indicator isn't especially
+      //    necessary: https://github.com/zulip/zulip-flutter/pull/852#issuecomment-2264211917
       appBar = AppBar(
         centerTitle: false,
         foregroundColor: appBarForegroundColor,

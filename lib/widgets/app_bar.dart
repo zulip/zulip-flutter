@@ -5,8 +5,6 @@ import 'store.dart';
 /// A custom [AppBar] with a loading indicator.
 ///
 /// This should be used for most of the pages with access to [PerAccountStore].
-// However, there are some exceptions (add more if necessary):
-// - `lib/widgets/lightbox.dart`
 class ZulipAppBar extends AppBar {
   ZulipAppBar({
     super.key,
