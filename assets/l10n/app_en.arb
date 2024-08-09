@@ -363,6 +363,13 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "browseMoreNChannels": "Browse {num, plural, =0{all channels} =1{1 more channel} other{{num} more channels}}",
+  "@browseMoreNChannels": {
+    "description": "Label showing the number of other channels that user can subscribe to",
+    "placeholders": {
+      "num": {"type": "int", "example": "4"}
+    }
+  },
   "errorInvalidResponse": "The server sent an invalid response",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
@@ -480,6 +487,14 @@
   "@mentionsPageTitle": {
     "description": "Title for the page of @-mentions."
   },
+  "channelListPageTitle": "All channels",
+  "@channelListPageTitle": {
+    "description": "Title for the page of all channels."
+  },
+  "noChannelsFound": "There are no channels you can view in this organization.",
+  "@noChannelsFound": {
+    "description": "Message when no channels are found"
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",
@@ -510,5 +525,40 @@
   "manyPeopleTyping": "Several people are typing…",
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "messageSubscribedToChannel": "You've just subscribed to {channelName}",
+  "@messageSubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is successful",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "messageAlreadySubscribedToChannel": "You're already subscribed to {channelName}!",
+  "@messageAlreadySubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is already made",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "errorFailedToSubscribedToChannel": "Failed to subscribe to {channelName}",
+  "@errorFailedToSubscribedToChannel": {
+    "description": "An error message when subscribe action fails",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "messageUnsubscribedFromChannel": "You've unsubscribed from {channelName}!",
+  "@messageUnsubscribedFromChannel": {
+    "description": "A message shown to inform user that unsubscribe action passes",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "errorFailedToUnsubscribedFromChannel": "Failed to unsubscribe to {channelName}",
+  "@errorFailedToUnsubscribedFromChannel": {
+    "description": "An error message when unsubscribe action fails",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
   }
 }
