@@ -74,11 +74,14 @@ void main() {
     }
 
     List<Account> generateAccounts(int count) {
-      return List.generate(count, (i) => eg.account(
-        id: i,
-        user: eg.user(fullName: 'User $i', email: 'user$i@example'),
-        apiKey: 'user${i}apikey',
-      ));
+      return List.generate(count, (i) {
+        final id = i+1;
+        return eg.account(
+          id: id,
+          user: eg.user(fullName: 'User $id', email: 'user$id@example'),
+          apiKey: 'user${id}apikey',
+        );
+      });
     }
 
     Finder findAccount(Account account) => find.text(account.email).hitTestable();
