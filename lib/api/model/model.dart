@@ -263,6 +263,18 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserToJson(this);
+
+  /// Whether the user has passed the realm's waiting period to be a full member.
+  ///
+  /// See:
+  ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
+  ///
+  /// To determine if a user is a full member, callers must also check that the
+  /// user's role is at least Role.Member.
+  bool hasPassedWaitingPeriod(DateTime byDate, int realmWaitingPeriodThreshold) {
+    final dateJoined = DateTime.parse(this.dateJoined);
+    return byDate.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
+  }
 }
 
 /// As in [User.profileData].
