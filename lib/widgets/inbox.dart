@@ -282,7 +282,7 @@ abstract class _HeaderItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               title))),
           const SizedBox(width: 12),
-          if (hasMention) const _AtMentionMarker(),
+          if (hasMention) const AtMentionMarker(),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: UnreadCountBadge(
               backgroundColor: unreadCountBadgeBackgroundColor(context),
@@ -405,7 +405,7 @@ class _DmItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 title))),
             const SizedBox(width: 12),
-            if (hasMention) const  _AtMentionMarker(),
+            if (hasMention) const AtMentionMarker(),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(backgroundColor: null,
                 count: count)),
@@ -530,25 +530,11 @@ class _TopicItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 topic))),
             const SizedBox(width: 12),
-            if (hasMention) const _AtMentionMarker(),
+            if (hasMention) const AtMentionMarker(),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(
                 backgroundColor: colorSwatchFor(context, subscription),
                 count: count)),
           ]))));
-  }
-}
-
-class _AtMentionMarker extends StatelessWidget {
-  const _AtMentionMarker();
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    // Design for at-mention marker based on Figma screen:
-    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 4),
-      child: Icon(ZulipIcons.at_sign, size: 14, color: designVariables.atMentionMarker));
   }
 }
