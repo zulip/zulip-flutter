@@ -604,13 +604,13 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
 TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
   switch (narrow) {
     case TopicNarrow():
-      return TypingEvent(id: 1, op: op, senderId: senderId,
+      return TypingEvent(id: 0, op: op, senderId: senderId,
         messageType: MessageType.stream,
         streamId: narrow.streamId,
         topic: narrow.topic,
         recipientIds: null);
     case DmNarrow():
-      return TypingEvent(id: 1, op: op, senderId: senderId,
+      return TypingEvent(id: 0, op: op, senderId: senderId,
         messageType: MessageType.direct,
         recipientIds: narrow.allRecipientIds,
         streamId: null,
@@ -620,7 +620,7 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
 
 ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
   return ReactionEvent(
-    id: 1,
+    id: 0,
     op: op,
     emojiName: reaction.emojiName,
     emojiCode: reaction.emojiCode,
@@ -665,7 +665,7 @@ InitialSnapshot initialSnapshot({
 }) {
   return InitialSnapshot(
     queueId: queueId ?? '1:2345',
-    lastEventId: lastEventId ?? 1,
+    lastEventId: lastEventId ?? -1,
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
