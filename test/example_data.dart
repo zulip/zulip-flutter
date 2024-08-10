@@ -10,6 +10,10 @@ import 'package:zulip/model/store.dart';
 import 'model/test_store.dart';
 import 'stdlib_checks.dart';
 
+void _checkPositive(int? value, String description) {
+  assert(value == null || value > 0, '$description should be positive');
+}
+
 ////////////////////////////////////////////////////////////////
 // Realm-wide (or server-wide) metadata.
 //
@@ -81,6 +85,7 @@ User user({
   Map<int, ProfileFieldUserData>? profileData,
 }) {
   var effectiveDeliveryEmail = deliveryEmail ?? 'name@example.com'; // TODO generate example emails
+  _checkPositive(userId, 'user ID');
   return User(
     userId: userId ?? _nextUserId(),
     deliveryEmail: effectiveDeliveryEmail,
@@ -555,6 +560,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
   Iterable<Message> messages, {
   int? selfUserId,
 }) {
+  _checkPositive(selfUserId, 'user ID');
   return UpdateMessageFlagsRemoveEvent(
     id: 0,
     flag: flag,
