@@ -315,6 +315,11 @@ enum UserRole{
   final int? apiValue;
 
   int? toJson() => apiValue;
+
+  bool isAtLeast(UserRole threshold) {
+    // Roles with more privilege have lower [apiValue].
+    return (apiValue ?? 0) <= (threshold.apiValue ?? 0);
+  }
 }
 
 /// As in `streams` in the initial snapshot.
@@ -382,6 +387,19 @@ class ZulipStream {
     _$ZulipStreamFromJson(json);
 
   Map<String, dynamic> toJson() => _$ZulipStreamToJson(this);
+
+  bool hasPostingPermission(User user, {required DateTime byDate, required int realmWaitingPeriodThreshold}) {
+    final role = user.role;
+    return switch (channelPostPolicy) {
+      ChannelPostPolicy.any            => true,
+      ChannelPostPolicy.fullMembers    => role.isAtLeast(UserRole.member) && (role == UserRole.member
+                                            ? user.hasPassedWaitingPeriod(byDate, realmWaitingPeriodThreshold)
+                                            : true),
+      ChannelPostPolicy.moderators     => role.isAtLeast(UserRole.moderator),
+      ChannelPostPolicy.administrators => role.isAtLeast(UserRole.administrator),
+      ChannelPostPolicy.unknown        => true,
+    };
+  }
 }
 
 /// The name of a property of [ZulipStream] that gets updated
