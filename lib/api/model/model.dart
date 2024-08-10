@@ -303,6 +303,11 @@ enum UserRole{
   final int? apiValue;
 
   int? toJson() => apiValue;
+
+  bool isAtLeast(UserRole threshold) {
+    // Roles with more privilege have lower [apiValue].
+    return apiValue! <= threshold.apiValue!;
+  }
 }
 
 /// As in `streams` in the initial snapshot.
