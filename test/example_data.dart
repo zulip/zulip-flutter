@@ -94,9 +94,6 @@ User user({
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: '2023-04-28',
     isActive: isActive ?? true,
-    isOwner: false,
-    isAdmin: false,
-    isGuest: false,
     isBillingAdmin: false,
     isBot: isBot ?? false,
     botType: null,

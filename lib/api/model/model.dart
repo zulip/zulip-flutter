@@ -194,9 +194,9 @@ class User {
   String fullName;
   String dateJoined;
   bool isActive; // Really sometimes absent in /register, but we normalize that away; see [InitialSnapshot.realmUsers].
-  bool isOwner;
-  bool isAdmin;
-  bool isGuest;
+  // bool isOwner; // obsoleted by [role]; ignore
+  // bool isAdmin; // obsoleted by [role]; ignore
+  // bool isGuest; // obsoleted by [role]; ignore
   bool? isBillingAdmin; // TODO(server-5)
   bool isBot;
   int? botType; // TODO enum
@@ -240,9 +240,6 @@ class User {
     required this.fullName,
     required this.dateJoined,
     required this.isActive,
-    required this.isOwner,
-    required this.isAdmin,
-    required this.isGuest,
     required this.isBillingAdmin,
     required this.isBot,
     required this.botType,
