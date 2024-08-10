@@ -180,6 +180,8 @@ ZulipStream stream({
   int? canRemoveSubscribersGroup,
   int? streamWeeklyTraffic,
 }) {
+  _checkPositive(streamId, 'stream ID');
+  _checkPositive(firstMessageId, 'message ID');
   return ZulipStream(
     streamId: streamId ?? _nextStreamId(),
     name: name ?? 'A stream', // TODO generate example names
@@ -334,6 +336,7 @@ StreamMessage streamMessage({
   int? timestamp,
   List<MessageFlag>? flags,
 }) {
+  _checkPositive(id, 'message ID');
   final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
@@ -376,6 +379,7 @@ DmMessage dmMessage({
   int? timestamp,
   List<MessageFlag>? flags,
 }) {
+  _checkPositive(id, 'message ID');
   assert(!to.any((user) => user.userId == from.userId));
   return DmMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
@@ -446,6 +450,7 @@ UpdateMessageEvent updateMessageEditEvent(
   String? renderedContent,
   bool isMeMessage = false,
 }) {
+  _checkPositive(messageId, 'message ID');
   messageId ??= origMessage.id;
   return UpdateMessageEvent(
     id: 0,
@@ -479,6 +484,8 @@ UpdateMessageEvent _updateMessageMoveEvent(
   required List<MessageFlag> flags,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
+  _checkPositive(origStreamId, 'stream ID');
+  _checkPositive(newStreamId, 'stream ID');
   assert(newTopic != origTopic
          || (newStreamId != null && newStreamId != origStreamId));
   assert(messageIds.isNotEmpty);
@@ -511,6 +518,7 @@ UpdateMessageEvent updateMessageEventMoveFrom({
   String? newContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
+  _checkPositive(newStreamId, 'stream ID');
   assert(origMessages.isNotEmpty);
   final origMessage = origMessages.first;
   // Only present on content change.
@@ -535,6 +543,7 @@ UpdateMessageEvent updateMessageEventMoveTo({
   String? origContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
+  _checkPositive(origStreamId, 'stream ID');
   assert(newMessages.isNotEmpty);
   final newMessage = newMessages.first;
   // Only present on topic move.
