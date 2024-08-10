@@ -224,7 +224,7 @@ void main() {
   test('MentionAutocompleteView yield between batches of 1000', () async {
     const narrow = ChannelNarrow(1);
     final store = eg.store();
-    for (int i = 0; i < 2500; i++) {
+    for (int i = 1; i <= 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
@@ -247,7 +247,7 @@ void main() {
   test('MentionAutocompleteView new query during computation replaces old', () async {
     const narrow = ChannelNarrow(1);
     final store = eg.store();
-    for (int i = 0; i < 1500; i++) {
+    for (int i = 1; i <= 1500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);
@@ -258,7 +258,7 @@ void main() {
 
     await Future(() {});
     check(done).isFalse();
-    view.query = MentionAutocompleteQuery('User 0');
+    view.query = MentionAutocompleteQuery('User 234');
 
     // …new query goes through all batches
     await Future(() {});
@@ -267,14 +267,14 @@ void main() {
     check(done).isTrue(); // new result is set
     check(view.results).single
       .isA<UserMentionAutocompleteResult>()
-      .userId.equals(0);
+      .userId.equals(234);
 
     // new result sticks; it isn't clobbered with old query's result
     for (int i = 0; i < 10; i++) { // for good measure
       await Future(() {});
       check(view.results).single
         .isA<UserMentionAutocompleteResult>()
-        .userId.equals(0);
+        .userId.equals(234);
     }
   });
 
@@ -282,7 +282,7 @@ void main() {
       'prevent query from finishing', () async {
     const narrow = ChannelNarrow(1);
     final store = eg.store();
-    for (int i = 0; i < 2500; i++) {
+    for (int i = 1; i <= 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
     final view = MentionAutocompleteView.init(store: store, narrow: narrow);

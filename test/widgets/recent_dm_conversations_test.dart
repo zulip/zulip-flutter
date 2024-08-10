@@ -84,7 +84,7 @@ void main() {
     testWidgets('fling to scroll down', (WidgetTester tester) async {
       final List<User> users = [];
       final List<DmMessage> messages = [];
-      for (int i = 0; i < 30; i++) {
+      for (int i = 1; i <= 30; i++) {
         final user = eg.user(userId: i, fullName: 'User ${i.toString()}');
         users.add(user);
         messages.add(eg.dmMessage(from: eg.selfUser, to: [user]));
@@ -247,7 +247,7 @@ void main() {
       group('group', () {
         List<User> usersList(int count) {
           final result = <User>[];
-          for (int i = 0; i < count; i++) {
+          for (int i = 1; i <= count; i++) {
             result.add(eg.user(userId: i, fullName: 'User ${i.toString()}'));
           }
           return result;
