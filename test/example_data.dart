@@ -119,6 +119,7 @@ Account account({
   String? zulipMergeBase,
   String? ackedPushToken,
 }) {
+  _checkPositive(id, 'account ID');
   return Account(
     id: id ?? 1000, // TODO generate example IDs
     realmUrl: realmUrl ?? _realmUrl,
