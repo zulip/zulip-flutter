@@ -57,6 +57,14 @@ enum SubmessageType {
   unknown,
 }
 
+/// The data encoded in a submessage at [Submessage.content].
+///
+/// For widgets (the only existing use of submessages), the submessages
+/// on a [Message] consist of:
+///  * One submessage with content [WidgetData]; then
+///  * Zero or more submessages with content [PollEventSubmessage] if the
+///    message is a poll (i.e. if the first submessage was a [PollWidgetData]),
+///    and similarly for other types of widgets.
 sealed class SubmessageData {}
 
 /// The data encoded in a submessage to make the message a Zulip widget.
@@ -86,6 +94,8 @@ sealed class WidgetData extends SubmessageData {
 @JsonEnum(alwaysCreate: true)
 enum WidgetType {
   poll,
+  // todo,  // TODO(#882)
+  // zform,  // This exists in web but is more a demo than a real feature.
   unknown;
 
   static WidgetType fromRawString(String raw) => _byRawString[raw] ?? unknown;
@@ -94,7 +104,9 @@ enum WidgetType {
     .map((key, value) => MapEntry(value, key));
 }
 
-/// The data encoded in a submessage to make the message a poll widget.
+/// The data in the first submessage on a poll widget message.
+///
+/// Subsequent submessages on the same message will be [PollEventSubmessage].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PollWidgetData extends WidgetData {
   @override
@@ -148,7 +160,9 @@ class UnsupportedWidgetData extends WidgetData {
   Object? toJson() => json;
 }
 
-/// The data encoded in a submessage that acts on a poll.
+/// The data in a submessage that acts on a poll.
+///
+/// The first submessage on the message should be a [PollWidgetData].
 sealed class PollEventSubmessage extends SubmessageData {
   PollEventSubmessageType get type;
 
@@ -160,7 +174,8 @@ sealed class PollEventSubmessage extends SubmessageData {
   /// For options that are a part of the initial [PollWidgetData], the
   /// [senderId] should be `null`.
   static String optionKey({required int? senderId, required int idx}) =>
-    // "canned" is a canonical constant coined by the web client.
+    // "canned" is a canonical constant coined by the web client:
+    //   https://github.com/zulip/zulip/blob/40f59a05c/web/shared/src/poll_data.ts#L238
     '${senderId ?? 'canned'},$idx';
 
   factory PollEventSubmessage.fromJson(Map<String, Object?> json) {
@@ -191,6 +206,8 @@ enum PollEventSubmessageType {
 }
 
 /// A poll event when an option is added.
+///
+/// See: https://github.com/zulip/zulip/blob/40f59a05c/web/shared/src/poll_data.ts#L112-L159
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PollNewOptionEventSubmessage extends PollEventSubmessage {
   @override
@@ -215,6 +232,8 @@ class PollNewOptionEventSubmessage extends PollEventSubmessage {
 }
 
 /// A poll event when the question has been edited.
+///
+/// See: https://github.com/zulip/zulip/blob/40f59a05c/web/shared/src/poll_data.ts#L161-186
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PollQuestionEventSubmessage extends PollEventSubmessage {
   @override
@@ -234,6 +253,8 @@ class PollQuestionEventSubmessage extends PollEventSubmessage {
 }
 
 /// A poll event when a vote has been cast or removed.
+///
+/// See: https://github.com/zulip/zulip/blob/40f59a05c/web/shared/src/poll_data.ts#L188-234
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PollVoteEventSubmessage extends PollEventSubmessage {
   @override
