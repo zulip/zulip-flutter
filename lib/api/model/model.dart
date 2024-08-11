@@ -188,18 +188,25 @@ enum Emojiset {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class User {
+  // When adding a field to this class:
+  //  * If a [RealmUserUpdateEvent] can update it, be sure to add
+  //    that case to [RealmUserUpdateEvent] and its handler.
+  //  * If the field can never change for a given Zulip user, mark it final.
+  //  * (If it can change but [RealmUserUpdateEvent] doesn't cover that,
+  //    then that's a bug in the API; raise it in `#api design`.)
+
   final int userId;
   String? deliveryEmail;
   String email;
   String fullName;
-  String dateJoined;
+  final String dateJoined;
   bool isActive; // Really sometimes absent in /register, but we normalize that away; see [InitialSnapshot.realmUsers].
   // bool isOwner; // obsoleted by [role]; ignore
   // bool isAdmin; // obsoleted by [role]; ignore
   // bool isGuest; // obsoleted by [role]; ignore
   bool? isBillingAdmin; // TODO(server-5)
-  bool isBot;
-  int? botType; // TODO enum
+  final bool isBot;
+  final int? botType; // TODO enum
   int? botOwnerId;
   @JsonKey(unknownEnumValue: UserRole.unknown)
   UserRole role;
@@ -214,7 +221,7 @@ class User {
   Map<int, ProfileFieldUserData>? profileData;
 
   @JsonKey(readValue: _readIsSystemBot)
-  bool isSystemBot;
+  final bool isSystemBot;
 
   static Map<String, dynamic>? _readProfileData(Map<dynamic, dynamic> json, String key) {
     final value = (json[key] as Map<String, dynamic>?);
