@@ -228,6 +228,47 @@ Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
       'streams': instance.streams,
     };
 
+ChannelUpdateEvent _$ChannelUpdateEventFromJson(Map<String, dynamic> json) =>
+    ChannelUpdateEvent(
+      id: (json['id'] as num).toInt(),
+      streamId: (json['stream_id'] as num).toInt(),
+      name: json['name'] as String,
+      property: $enumDecodeNullable(
+          _$ChannelPropertyNameEnumMap, json['property'],
+          unknownValue: JsonKey.nullForUndefinedEnumValue),
+      value: ChannelUpdateEvent._readValue(json, 'value'),
+      renderedDescription: json['rendered_description'] as String?,
+      historyPublicToSubscribers:
+          json['history_public_to_subscribers'] as bool?,
+      isWebPublic: json['is_web_public'] as bool?,
+    );
+
+Map<String, dynamic> _$ChannelUpdateEventToJson(ChannelUpdateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'stream_id': instance.streamId,
+      'name': instance.name,
+      'property': _$ChannelPropertyNameEnumMap[instance.property],
+      'value': instance.value,
+      'rendered_description': instance.renderedDescription,
+      'history_public_to_subscribers': instance.historyPublicToSubscribers,
+      'is_web_public': instance.isWebPublic,
+    };
+
+const _$ChannelPropertyNameEnumMap = {
+  ChannelPropertyName.name: 'name',
+  ChannelPropertyName.description: 'description',
+  ChannelPropertyName.firstMessageId: 'first_message_id',
+  ChannelPropertyName.inviteOnly: 'invite_only',
+  ChannelPropertyName.messageRetentionDays: 'message_retention_days',
+  ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
+  ChannelPropertyName.canRemoveSubscribersGroup: 'can_remove_subscribers_group',
+  ChannelPropertyName.canRemoveSubscribersGroupId:
+      'can_remove_subscribers_group_id',
+  ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
+};
+
 SubscriptionAddEvent _$SubscriptionAddEventFromJson(
         Map<String, dynamic> json) =>
     SubscriptionAddEvent(

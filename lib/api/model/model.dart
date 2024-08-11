@@ -382,6 +382,51 @@ enum ChannelPostPolicy {
   final int? apiValue;
 
   int? toJson() => apiValue;
+
+  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value]!;
+
+  static final _byApiValue = _$ChannelPostPolicyEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
+/// The name of a property of [ZulipStream] that gets updated
+/// through [ChannelUpdateEvent.property].
+///
+/// In Zulip event-handling code (for [ChannelUpdateEvent]),
+/// we switch exhaustively on a value of this type
+/// to ensure that every property in [ZulipStream] responds to the event.
+///
+/// Fields on [ZulipStream] not present here:
+///   streamId, dateCreated
+/// Each of those is immutable on any given channel, and there is no
+/// [ChannelUpdateEvent] that updates them.
+///
+/// Other fields on [ZulipStream] not present here:
+///   renderedDescription, historyPublicToSubscribers, isWebPublic
+/// Each of those are updated through separate fields of [ChannelUpdateEvent]
+/// with the same names.
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum ChannelPropertyName {
+  name,
+  description,
+  firstMessageId,
+  inviteOnly,
+  messageRetentionDays,
+  @JsonValue('stream_post_policy')
+  channelPostPolicy,
+  canRemoveSubscribersGroup,
+  canRemoveSubscribersGroupId, // TODO(server-8): remove, replaced by canRemoveSubscribersGroup
+  streamWeeklyTraffic;
+
+  /// Get a [ChannelPropertyName] from a raw, snake-case string we recognize, else null.
+  ///
+  /// Example:
+  ///   'invite_only' -> ChannelPropertyName.inviteOnly
+  static ChannelPropertyName? fromRawString(String raw) => _byRawString[raw];
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
+  static final _byRawString = _$ChannelPropertyNameEnumMap
+    .map((key, value) => MapEntry(value, key));
 }
 
 /// As in `subscriptions` in the initial snapshot.

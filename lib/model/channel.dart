@@ -199,6 +199,50 @@ class ChannelStoreImpl with ChannelStore {
           streamsByName.remove(stream.name);
           subscriptions.remove(stream.streamId);
         }
+
+      case ChannelUpdateEvent():
+        final stream = streams[event.streamId];
+        if (stream == null) return; // TODO(log)
+        assert(stream.streamId == event.streamId);
+
+        if (event.renderedDescription != null) {
+          stream.renderedDescription = event.renderedDescription!;
+        }
+        if (event.historyPublicToSubscribers != null) {
+          stream.historyPublicToSubscribers = event.historyPublicToSubscribers!;
+        }
+        if (event.isWebPublic != null) {
+          stream.isWebPublic = event.isWebPublic!;
+        }
+
+        if (event.property == null) {
+          // unrecognized property; do nothing
+          return;
+        }
+        switch (event.property!) {
+          case ChannelPropertyName.name:
+            final streamName = stream.name;
+            assert(streamName == event.name);
+            assert(identical(streams[stream.streamId], streamsByName[streamName]));
+            stream.name = event.value as String;
+            streamsByName.remove(streamName);
+            streamsByName[stream.name] = stream;
+          case ChannelPropertyName.description:
+            stream.description = event.value as String;
+          case ChannelPropertyName.firstMessageId:
+            stream.firstMessageId = event.value as int?;
+          case ChannelPropertyName.inviteOnly:
+            stream.inviteOnly = event.value as bool;
+          case ChannelPropertyName.messageRetentionDays:
+            stream.messageRetentionDays = event.value as int?;
+          case ChannelPropertyName.channelPostPolicy:
+            stream.channelPostPolicy = event.value as ChannelPostPolicy;
+          case ChannelPropertyName.canRemoveSubscribersGroup:
+          case ChannelPropertyName.canRemoveSubscribersGroupId:
+            stream.canRemoveSubscribersGroup = event.value as int?;
+          case ChannelPropertyName.streamWeeklyTraffic:
+            stream.streamWeeklyTraffic = event.value as int?;
+        }
     }
   }
 

@@ -40,7 +40,7 @@ sealed class Event {
         switch (json['op'] as String) {
           case 'create': return ChannelCreateEvent.fromJson(json);
           case 'delete': return ChannelDeleteEvent.fromJson(json);
-          // TODO(#182): case 'update': …
+          case 'update': return ChannelUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
       case 'subscription':
@@ -379,8 +379,73 @@ class ChannelDeleteEvent extends ChannelEvent {
   Map<String, dynamic> toJson() => _$ChannelDeleteEventToJson(this);
 }
 
-// TODO(#182) ChannelUpdateEvent, for a [ChannelEvent] with op `update`:
-//   https://zulip.com/api/get-events#stream-update
+/// A [ChannelEvent] with op `update`: https://zulip.com/api/get-events#stream-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ChannelUpdateEvent extends ChannelEvent {
+  @override
+  String get op => 'update';
+
+  final int streamId;
+  final String name;
+
+  /// The name of the channel property, or null if we don't recognize it.
+  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
+  final ChannelPropertyName? property;
+
+  /// The new value, or null if we don't recognize the property.
+  ///
+  /// This will have the type appropriate for [property]; for example,
+  /// if the property is boolean, then `value is bool` will always be true.
+  /// This invariant is enforced by [ChannelUpdateEvent.fromJson].
+  @JsonKey(readValue: _readValue)
+  final Object? value;
+
+  final String? renderedDescription;
+  final bool? historyPublicToSubscribers;
+  final bool? isWebPublic;
+
+  ChannelUpdateEvent({
+    required super.id,
+    required this.streamId,
+    required this.name,
+    required this.property,
+    required this.value,
+    this.renderedDescription,
+    this.historyPublicToSubscribers,
+    this.isWebPublic,
+  });
+
+  /// [value], with a check that its type corresponds to [property]
+  /// (e.g., `value as bool`).
+  static Object? _readValue(Map<dynamic, dynamic> json, String key) {
+    final value = json['value'];
+    switch (ChannelPropertyName.fromRawString(json['property'] as String)) {
+      case ChannelPropertyName.name:
+      case ChannelPropertyName.description:
+        return value as String;
+      case ChannelPropertyName.firstMessageId:
+        return value as int?;
+      case ChannelPropertyName.inviteOnly:
+        return value as bool;
+      case ChannelPropertyName.messageRetentionDays:
+        return value as int?;
+      case ChannelPropertyName.channelPostPolicy:
+        return ChannelPostPolicy.fromApiValue(value as int);
+      case ChannelPropertyName.canRemoveSubscribersGroup:
+      case ChannelPropertyName.canRemoveSubscribersGroupId:
+      case ChannelPropertyName.streamWeeklyTraffic:
+        return value as int?;
+      case null:
+        return null;
+    }
+  }
+
+  factory ChannelUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$ChannelUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$ChannelUpdateEventToJson(this);
+}
 
 /// A Zulip event of type `subscription`.
 ///

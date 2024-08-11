@@ -655,6 +655,37 @@ ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
   );
 }
 
+ChannelUpdateEvent channelUpdateEvent(
+  ZulipStream stream, {
+  required ChannelPropertyName property,
+  required Object? value,
+}) {
+  switch (property) {
+    case ChannelPropertyName.name:
+    case ChannelPropertyName.description:
+      assert(value is String);
+    case ChannelPropertyName.firstMessageId:
+      assert(value is int?);
+    case ChannelPropertyName.inviteOnly:
+      assert(value is bool);
+    case ChannelPropertyName.messageRetentionDays:
+      assert(value is int?);
+    case ChannelPropertyName.channelPostPolicy:
+      assert(value is ChannelPostPolicy);
+    case ChannelPropertyName.canRemoveSubscribersGroup:
+    case ChannelPropertyName.canRemoveSubscribersGroupId:
+    case ChannelPropertyName.streamWeeklyTraffic:
+      assert(value is int?);
+  }
+  return ChannelUpdateEvent(
+    id: 1,
+    streamId: stream.streamId,
+    name: stream.name,
+    property: property,
+    value: value,
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // The entire per-account or global state.
 //

@@ -42,7 +42,7 @@ void main() {
       )));
     });
 
-    test('added by events', () async {
+    test('added/updated by events', () async {
       final stream1 = eg.stream();
       final stream2 = eg.stream();
       final store = eg.store();
@@ -55,6 +55,17 @@ void main() {
       checkUnified(store);
 
       await store.addSubscription(eg.subscription(stream1));
+      checkUnified(store);
+
+      await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
+        property: ChannelPropertyName.name, value: 'new stream',
+      ));
+      checkUnified(store);
+
+      await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
+        property: ChannelPropertyName.channelPostPolicy,
+        value: ChannelPostPolicy.administrators,
+      ));
       checkUnified(store);
     });
   });
