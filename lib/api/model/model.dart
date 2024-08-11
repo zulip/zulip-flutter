@@ -313,28 +313,28 @@ enum UserRole{
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ZulipStream {
   final int streamId;
-  final String name;
-  final String description;
-  final String renderedDescription;
+  String name;
+  String description;
+  String renderedDescription;
 
   final int dateCreated;
-  final int? firstMessageId;
+  int? firstMessageId;
 
-  final bool inviteOnly;
-  final bool isWebPublic; // present since 2.1, according to /api/changelog
-  final bool historyPublicToSubscribers;
-  final int? messageRetentionDays;
+  bool inviteOnly;
+  bool isWebPublic; // present since 2.1, according to /api/changelog
+  bool historyPublicToSubscribers;
+  int? messageRetentionDays;
   @JsonKey(name: 'stream_post_policy')
-  final ChannelPostPolicy channelPostPolicy;
+  ChannelPostPolicy channelPostPolicy;
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
 
   // TODO(server-6): `canRemoveSubscribersGroupId` added in FL 142
   // TODO(server-8): in FL 197 renamed to `canRemoveSubscribersGroup`
   @JsonKey(readValue: _readCanRemoveSubscribersGroup)
-  final int? canRemoveSubscribersGroup;
+  int? canRemoveSubscribersGroup;
 
   // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
-  final int? streamWeeklyTraffic;
+  int? streamWeeklyTraffic;
 
   static int? _readCanRemoveSubscribersGroup(Map<dynamic, dynamic> json, String key) {
     return (json[key] as int?)
