@@ -9,10 +9,10 @@ void main() {
   group('Message.submessages', () {
     test('no crash on unrecognized submessage type', () {
       final baseJson = {
-        'content': '[]',
-        'message_id': 123,
-        'sender_id': eg.selfUser.userId,
         'id': 1,
+        'sender_id': eg.selfUser.userId,
+        'message_id': 123,
+        'content': '[]',
       };
 
       check(Submessage.fromJson({

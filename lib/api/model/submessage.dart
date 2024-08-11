@@ -2,31 +2,44 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'submessage.g.dart';
 
-/// Data used for certain experimental Zulip widgets including polls and todo
-/// lists.
+/// Data used for Zulip "widgets" within messages, like polls and todo lists.
 ///
-/// See:
-///   https://zulip.com/api/get-messages#response
+/// For docs, see:
+///   https://zulip.com/api/get-messages#response (search for "submessage")
 ///   https://zulip.readthedocs.io/en/latest/subsystems/widgets.html
+///
+/// This is an underdocumented part of the Zulip Server API.
+/// So in addition to docs, see other clients:
+///   https://github.com/zulip/zulip-mobile/blob/2217c858e/src/api/modelTypes.js#L800-L861
+///   https://github.com/zulip/zulip-mobile/blob/2217c858e/src/webview/html/message.js#L118-L192
+///   https://github.com/zulip/zulip/blob/40f59a05c/web/src/submessage.ts
+///   https://github.com/zulip/zulip/blob/40f59a05c/web/shared/src/poll_data.ts
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Submessage {
   const Submessage({
+    required this.senderId,
     required this.msgType,
     required this.content,
-    required this.senderId,
   });
+
+  // TODO(server): should we be sorting a message's submessages by ID?  Web seems to:
+  //   https://github.com/zulip/zulip/blob/40f59a05c55e0e4f26ca87d2bca646770e94bff0/web/src/submessage.ts#L88
+  // final int id;  // ignored because we don't use it
+
+  /// The sender of this submessage (not necessarily of the [Message] it's on).
+  final int senderId;
+
+  // final int messageId;  // ignored; redundant with [Message.id]
 
   @JsonKey(unknownEnumValue: SubmessageType.unknown)
   final SubmessageType msgType;
-  /// [SubmessageData] encoded in JSON.
+
+  /// A JSON encoding of a [SubmessageData].
   // We cannot parse the String into one of the [SubmessageData] classes because
   // information from other submessages are required. Specifically, we need:
   //   * the index of this submessage in [Message.submessages];
   //   * the [WidgetType] of the first [Message.submessages].
   final String content;
-  // final int messageId;  // ignored; redundant with [Message.id]
-  final int senderId;
-  // final int id;  // ignored because it is unused
 
   factory Submessage.fromJson(Map<String, Object?> json) =>
     _$SubmessageFromJson(json);
@@ -35,6 +48,10 @@ class Submessage {
 }
 
 /// As in [Submessage.msgType].
+///
+/// The only type of submessage that actually exists in Zulip (as of 2024,
+/// and since this "submessages" subsystem was created in 2017–2018)
+/// is [SubmessageType.widget].
 enum SubmessageType {
   widget,
   unknown,
