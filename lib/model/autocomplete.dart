@@ -24,21 +24,20 @@ extension ComposeContentAutocomplete on ComposeContentController {
       position >= 0 && (selection.end - position <= 30);
       position--
     ) {
-      if (textUntilCursor[position] != '@') {
-        continue;
+      if (textUntilCursor[position] == '@') {
+        final match = mentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
+        if (match == null) {
+          continue;
+        }
+        if (selection.start < position) {
+          // See comment about [TextSelection.isCollapsed] above.
+          return null;
+        }
+        return AutocompleteIntent(
+          syntaxStart: position,
+          query: UserMentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
+          textEditingValue: value);
       }
-      final match = mentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
-      if (match == null) {
-        continue;
-      }
-      if (selection.start < position) {
-        // See comment about [TextSelection.isCollapsed] above.
-        return null;
-      }
-      return AutocompleteIntent(
-        syntaxStart: position,
-        query: UserMentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
-        textEditingValue: value);
     }
     return null;
   }
