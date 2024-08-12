@@ -6,6 +6,10 @@ extension ComposeContentControllerChecks on Subject<ComposeContentController> {
   Subject<AutocompleteIntent<MentionAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
 }
 
+extension ComposeTopicControllerChecks on Subject<ComposeTopicController> {
+  Subject<AutocompleteIntent<TopicAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
+}
+
 extension AutocompleteIntentChecks on Subject<AutocompleteIntent<AutocompleteQuery>> {
   Subject<int> get syntaxStart => has((i) => i.syntaxStart, 'syntaxStart');
   Subject<AutocompleteQuery> get query => has((i) => i.query, 'query');
@@ -13,4 +17,8 @@ extension AutocompleteIntentChecks on Subject<AutocompleteIntent<AutocompleteQue
 
 extension UserMentionAutocompleteResultChecks on Subject<UserMentionAutocompleteResult> {
   Subject<int> get userId => has((r) => r.userId, 'userId');
+}
+
+extension TopicAutocompleteResultChecks on Subject<TopicAutocompleteResult> {
+  Subject<String> get topic => has((r) => r.topic, 'topic');
 }

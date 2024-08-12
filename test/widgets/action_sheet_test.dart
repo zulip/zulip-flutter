@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/compose.dart';
@@ -297,6 +298,12 @@ void main() {
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
+
+      // Ensure channel-topics are loaded before testing quote & reply behavior
+      connection.prepare(body:
+        jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+      final topicController = composeBoxController.topicController;
+      topicController?.value = const TextEditingValue(text: kNoTopicTopic);
 
       final valueBefore = contentController.value;
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
