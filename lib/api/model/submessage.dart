@@ -116,7 +116,15 @@ class PollWidgetData extends WidgetData {
 /// As in [PollWidgetData.extraData].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PollWidgetExtraData {
+  // The [question] and [options] fields seem to be always present.
+  // But both web and zulip-mobile accept them as optional, with default values:
+  //   https://github.com/zulip/zulip-flutter/pull/823#discussion_r1697656896
+  //   https://github.com/zulip/zulip/blob/40f59a05c55e0e4f26ca87d2bca646770e94bff0/web/src/poll_widget.ts#L29
+  // And the server doesn't really enforce any structure on submessage data.
+  // So match the web and zulip-mobile behavior.
+  @JsonKey(defaultValue: "")
   final String question;
+  @JsonKey(defaultValue: [])
   final List<String> options;
 
   const PollWidgetExtraData({required this.question, required this.options});

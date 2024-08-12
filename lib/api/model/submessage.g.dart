@@ -46,9 +46,11 @@ const _$WidgetTypeEnumMap = {
 
 PollWidgetExtraData _$PollWidgetExtraDataFromJson(Map<String, dynamic> json) =>
     PollWidgetExtraData(
-      question: json['question'] as String,
-      options:
-          (json['options'] as List<dynamic>).map((e) => e as String).toList(),
+      question: json['question'] as String? ?? '',
+      options: (json['options'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
 
 Map<String, dynamic> _$PollWidgetExtraDataToJson(
