@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../api/model/model.dart';
 import 'content.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
@@ -145,7 +144,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 }
 
-class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult, User> {
+class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult, Object> {
   const ComposeAutocomplete({
     super.key,
     required this.narrow,

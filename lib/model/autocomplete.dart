@@ -256,7 +256,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   }
 }
 
-class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult, User> {
+class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult, Object> {
   MentionAutocompleteView._({
     required super.store,
     required this.narrow,
@@ -386,7 +386,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   @override
-  Iterable<User> getSortedItemsToTest(MentionAutocompleteQuery query) {
+  Iterable<Object> getSortedItemsToTest(MentionAutocompleteQuery query) {
     switch (query) {
       case UserMentionAutocompleteQuery():
         return sortedUsers;
