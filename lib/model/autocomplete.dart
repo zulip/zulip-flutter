@@ -52,6 +52,83 @@ extension ComposeTopicAutocomplete on ComposeTopicController {
   }
 }
 
+const wordBoundaryChars = " _/-";
+
+final class _TriageRawData<T> {
+  final List<T> exactMatches;
+  final List<T> beginsWithCaseSensitiveMatches;
+  final List<T> beginsWithCaseInsensitiveMatches;
+  final List<T> wordBoundaryMatches;
+  final List<T> noMatches;
+
+  _TriageRawData({
+    required this.exactMatches,
+    required this.beginsWithCaseSensitiveMatches,
+    required this.beginsWithCaseInsensitiveMatches,
+    required this.wordBoundaryMatches,
+    required this.noMatches});
+}
+
+_TriageRawData<T> _triageRaw<T>({
+  required String query,
+  required Iterable<T> objects,
+  required String Function(T) getItem}) {
+  final exactMatches = <T>[];
+  final beginsWithCaseSensitiveMatches = <T>[];
+  final beginsWithCaseInsensitiveMatches = <T>[];
+  final wordBoundaryMatches = <T>[];
+  final noMatches = <T>[];
+  final lowerQuery = query.toLowerCase();
+
+  for (var object in objects) {
+    final item = getItem(object);
+    final lowerItem = item.toLowerCase();
+
+    if (lowerQuery == lowerItem) {
+      exactMatches.add(object);
+    } else if (item.startsWith(query)) {
+      beginsWithCaseSensitiveMatches.add(object);
+    } else if (lowerItem.startsWith(lowerQuery)) {
+      beginsWithCaseInsensitiveMatches.add(object);
+    } else if (RegExp('[$wordBoundaryChars]${RegExp.escape(lowerQuery)}').hasMatch(lowerItem)) {
+      wordBoundaryMatches.add(object);
+    } else {
+      noMatches.add(object);
+    }
+  }
+  return _TriageRawData(exactMatches: exactMatches,
+    beginsWithCaseSensitiveMatches: beginsWithCaseSensitiveMatches,
+    beginsWithCaseInsensitiveMatches: beginsWithCaseInsensitiveMatches,
+    wordBoundaryMatches: wordBoundaryMatches,
+    noMatches: noMatches);
+}
+
+({List<T> matches, List<T> rest}) _triage<T> ({
+  required String query,
+  required Iterable<T> objects,
+  required String Function(T) getItem,
+  int Function(T a, T b)? sortingComparator,
+}) {
+  final data = _triageRaw(query: query, objects: objects, getItem: getItem);
+  if (sortingComparator != null) {
+    final beginsWithSorted = [
+      ...data.beginsWithCaseSensitiveMatches,
+      ...data.beginsWithCaseInsensitiveMatches
+      ]..sort(sortingComparator);
+    return (matches: [
+      ...data.exactMatches..sort(sortingComparator),
+      ...beginsWithSorted,
+      ...data.wordBoundaryMatches..sort(sortingComparator),
+    ], rest: data.noMatches..sort(sortingComparator));
+  }
+  return (matches: [
+    ...data.exactMatches,
+    ...data.beginsWithCaseSensitiveMatches,
+    ...data.beginsWithCaseInsensitiveMatches,
+    ...data.wordBoundaryMatches,
+    ], rest: data.noMatches);
+}
+
 final RegExp mentionAutocompleteMarkerRegex = (() {
   // What's likely to come before an @-mention: the start of the string,
   // whitespace, or punctuation. Letters are unlikely; in that case an email
