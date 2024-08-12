@@ -183,7 +183,8 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
       case UserMentionAutocompleteResult(:var userId):
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
+        final silent = (intent.query as UserMentionAutocompleteQuery).silent;
+        replacementString = '${mention(store.users[userId]!, silent: silent, users: store.users)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(

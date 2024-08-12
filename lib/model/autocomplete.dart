@@ -37,7 +37,7 @@ extension ComposeContentAutocomplete on ComposeContentController {
       }
       return AutocompleteIntent(
         syntaxStart: position,
-        query: MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
+        query: UserMentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
         textEditingValue: value);
     }
     return null;
@@ -387,15 +387,22 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   @override
   Iterable<User> getSortedItemsToTest(MentionAutocompleteQuery query) {
-    return sortedUsers;
+    switch (query) {
+      case UserMentionAutocompleteQuery():
+        return sortedUsers;
+    }
   }
 
   @override
-  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, User item) {
-    if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
-      return UserMentionAutocompleteResult(userId: item.userId);
+  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, Object item) {
+    switch (query) {
+      case UserMentionAutocompleteQuery():
+        item as User;
+        if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
+          return UserMentionAutocompleteResult(userId: item.userId);
+        }
+        return null;
     }
-    return null;
   }
 
   /// Determines which of the two users is more recent in DM conversations.
@@ -490,8 +497,12 @@ abstract class AutocompleteQuery {
   }
 }
 
-class MentionAutocompleteQuery extends AutocompleteQuery {
-  MentionAutocompleteQuery(super.raw, {this.silent = false});
+sealed class MentionAutocompleteQuery extends AutocompleteQuery {
+  MentionAutocompleteQuery(super.raw);
+}
+
+class UserMentionAutocompleteQuery extends MentionAutocompleteQuery {
+  UserMentionAutocompleteQuery(super.raw, {this.silent = false});
 
   /// Whether the user wants a silent mention (@_query, vs. @query).
   final bool silent;
@@ -510,16 +521,16 @@ class MentionAutocompleteQuery extends AutocompleteQuery {
 
   @override
   String toString() {
-    return '${objectRuntimeType(this, 'MentionAutocompleteQuery')}(raw: $raw, silent: $silent})';
+    return '${objectRuntimeType(this, 'UserMentionAutocompleteQuery')}(raw: $raw, silent: $silent})';
   }
 
   @override
   bool operator ==(Object other) {
-    return other is MentionAutocompleteQuery && other.raw == raw && other.silent == silent;
+    return other is UserMentionAutocompleteQuery && other.raw == raw && other.silent == silent;
   }
 
   @override
-  int get hashCode => Object.hash('MentionAutocompleteQuery', raw, silent);
+  int get hashCode => Object.hash('UserMentionAutocompleteQuery', raw, silent);
 }
 
 class AutocompleteDataCache {

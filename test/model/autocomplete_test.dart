@@ -87,8 +87,8 @@ void main() {
       });
     }
 
-    MentionAutocompleteQuery queryOf(String raw) => MentionAutocompleteQuery(raw, silent: false);
-    MentionAutocompleteQuery silentQueryOf(String raw) => MentionAutocompleteQuery(raw, silent: true);
+    UserMentionAutocompleteQuery queryOf(String raw) => UserMentionAutocompleteQuery(raw, silent: false);
+    UserMentionAutocompleteQuery silentQueryOf(String raw) => UserMentionAutocompleteQuery(raw, silent: true);
 
     doTest('', null);
     doTest('^', null);
@@ -179,7 +179,7 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('Third');
+    view.query = UserMentionAutocompleteQuery('Third');
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
@@ -210,7 +210,7 @@ void main() {
         check(searchDone).isFalse();
       });
 
-      view.query = MentionAutocompleteQuery('Third');
+      view.query = UserMentionAutocompleteQuery('Third');
       check(timerDone).isFalse();
       check(searchDone).isFalse();
 
@@ -234,7 +234,7 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 2222');
+    view.query = UserMentionAutocompleteQuery('User 2222');
 
     await Future(() {});
     check(done).isFalse();
@@ -257,11 +257,11 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 1111');
+    view.query = UserMentionAutocompleteQuery('User 1111');
 
     await Future(() {});
     check(done).isFalse();
-    view.query = MentionAutocompleteQuery('User 0');
+    view.query = UserMentionAutocompleteQuery('User 0');
 
     // …new query goes through all batches
     await Future(() {});
@@ -292,7 +292,7 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 110');
+    view.query = UserMentionAutocompleteQuery('User 110');
 
     await Future(() {});
     check(done).isFalse();
@@ -315,7 +315,7 @@ void main() {
 
   group('MentionAutocompleteQuery.testUser', () {
     void doCheck(String rawQuery, User user, bool expected) {
-      final result = MentionAutocompleteQuery(rawQuery)
+      final result = UserMentionAutocompleteQuery(rawQuery)
         .testUser(user, AutocompleteDataCache());
       expected ? check(result).isTrue() : check(result).isFalse();
     }
@@ -725,13 +725,13 @@ void main() {
       // 2. Users most recent in the DM conversations.
       // 3. Human vs. Bot users (human users come first).
       // 4. Alphabetical order by name.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
+      check(await getResults(topicNarrow, UserMentionAutocompleteQuery('')))
         .deepEquals([1, 5, 4, 2, 7, 3, 6]);
 
       // Check the ranking applies also to results filtered by a query.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
+      check(await getResults(topicNarrow, UserMentionAutocompleteQuery('t')))
         .deepEquals([2, 3]);
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('f')))
+      check(await getResults(topicNarrow, UserMentionAutocompleteQuery('f')))
         .deepEquals([5, 4]);
     });
   });
