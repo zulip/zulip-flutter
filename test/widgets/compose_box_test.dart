@@ -31,14 +31,22 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester,
-      {required Narrow narrow, List<User> users = const []}) async {
+  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, {
+    required Narrow narrow,
+    User? selfUser,
+    int realmWaitingPeriodThreshold = 0,
+    List<User> users = const [],
+    List<ZulipStream> streams = const [],
+  }) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    final account = eg.account(user: selfUser ?? eg.selfUser);
+    await testBinding.globalStore.add(account, eg.initialSnapshot(
+      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
 
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store = await testBinding.globalStore.perAccount(account.id);
 
-    await store.addUsers([eg.selfUser, ...users]);
+    await store.addUsers([selfUser ?? eg.selfUser, ...users]);
+    await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
     if (narrow is ChannelNarrow) {
@@ -47,7 +55,7 @@ void main() {
         jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     }
     final controllerKey = GlobalKey<ComposeBoxController>();
-    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: account.id,
       child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
     await tester.pumpAndSettle();
 
