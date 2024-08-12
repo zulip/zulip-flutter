@@ -7,11 +7,13 @@ import 'package:flutter/widgets.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
@@ -19,42 +21,42 @@ import 'autocomplete_checks.dart';
 typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
 
 void main() {
-  group('ComposeContentController.autocompleteIntent', () {
-    MarkedTextParse parseMarkedText(String markedText) {
-      final TextSelection selection;
-      int? expectedSyntaxStart;
-      final textBuffer = StringBuffer();
-      final caretPositions = <int>[];
-      int i = 0;
-      for (final char in markedText.codeUnits) {
-        if (char == 94 /* ^ */) {
-          caretPositions.add(i);
-          continue;
-        } else if (char == 126 /* ~ */) {
-          if (expectedSyntaxStart != null) {
-            throw Exception('Test error: too many ~ in input');
-          }
-          expectedSyntaxStart = i;
-          continue;
+  ({int? expectedSyntaxStart, TextEditingValue value}) parseMarkedText(String markedText) {
+    final TextSelection selection;
+    int? expectedSyntaxStart;
+    final textBuffer = StringBuffer();
+    final caretPositions = <int>[];
+    int i = 0;
+    for (final char in markedText.codeUnits) {
+      if (char == 94 /* ^ */) {
+        caretPositions.add(i);
+        continue;
+      } else if (char == 126 /* ~ */) {
+        if (expectedSyntaxStart != null) {
+          throw Exception('Test error: too many ~ in input');
         }
-        textBuffer.writeCharCode(char);
-        i++;
+        expectedSyntaxStart = i;
+        continue;
       }
-      switch (caretPositions.length) {
-        case 0:
-          selection = const TextSelection.collapsed(offset: -1);
-        case 1:
-          selection = TextSelection(baseOffset: caretPositions[0], extentOffset: caretPositions[0]);
-        case 2:
-          selection = TextSelection(baseOffset: caretPositions[0], extentOffset: caretPositions[1]);
-        default:
-          throw Exception('Test error: too many ^ in input');
-      }
-      return (
-        value: TextEditingValue(text: textBuffer.toString(), selection: selection),
-        expectedSyntaxStart: expectedSyntaxStart);
+      textBuffer.writeCharCode(char);
+      i++;
     }
+    switch (caretPositions.length) {
+      case 0:
+        selection = const TextSelection.collapsed(offset: -1);
+      case 1:
+        selection = TextSelection(baseOffset: caretPositions[0], extentOffset: caretPositions[0]);
+      case 2:
+        selection = TextSelection(baseOffset: caretPositions[0], extentOffset: caretPositions[1]);
+      default:
+        throw Exception('Test error: too many ^ in input');
+    }
+    return (
+      value: TextEditingValue(text: textBuffer.toString(), selection: selection),
+      expectedSyntaxStart: expectedSyntaxStart);
+  }
 
+  group('ComposeContentController.autocompleteIntent', () {
     /// Test the given input, in a convenient format.
     ///
     /// Represent selection handles as "^". For convenience, a single "^" can
@@ -85,8 +87,8 @@ void main() {
       });
     }
 
-    MentionAutocompleteQuery queryOf(String raw) => MentionAutocompleteQuery(raw, silent: false);
-    MentionAutocompleteQuery silentQueryOf(String raw) => MentionAutocompleteQuery(raw, silent: true);
+    UserMentionAutocompleteQuery queryOf(String raw) => UserMentionAutocompleteQuery(raw, silent: false);
+    UserMentionAutocompleteQuery silentQueryOf(String raw) => UserMentionAutocompleteQuery(raw, silent: true);
 
     doTest('', null);
     doTest('^', null);
@@ -177,7 +179,8 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('Third');
+    view.query = UserMentionAutocompleteQuery('Third');
+    await Future(() {});
     await Future(() {});
     check(done).isTrue();
     check(view.results).single
@@ -207,7 +210,7 @@ void main() {
         check(searchDone).isFalse();
       });
 
-      view.query = MentionAutocompleteQuery('Third');
+      view.query = UserMentionAutocompleteQuery('Third');
       check(timerDone).isFalse();
       check(searchDone).isFalse();
 
@@ -231,7 +234,7 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 2222');
+    view.query = UserMentionAutocompleteQuery('User 2222');
 
     await Future(() {});
     check(done).isFalse();
@@ -254,11 +257,11 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 1111');
+    view.query = UserMentionAutocompleteQuery('User 1111');
 
     await Future(() {});
     check(done).isFalse();
-    view.query = MentionAutocompleteQuery('User 0');
+    view.query = UserMentionAutocompleteQuery('User 0');
 
     // …new query goes through all batches
     await Future(() {});
@@ -289,7 +292,7 @@ void main() {
 
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 110');
+    view.query = UserMentionAutocompleteQuery('User 110');
 
     await Future(() {});
     check(done).isFalse();
@@ -312,7 +315,7 @@ void main() {
 
   group('MentionAutocompleteQuery.testUser', () {
     void doCheck(String rawQuery, User user, bool expected) {
-      final result = MentionAutocompleteQuery(rawQuery)
+      final result = UserMentionAutocompleteQuery(rawQuery)
         .testUser(user, AutocompleteDataCache());
       expected ? check(result).isTrue() : check(result).isFalse();
     }
@@ -722,14 +725,99 @@ void main() {
       // 2. Users most recent in the DM conversations.
       // 3. Human vs. Bot users (human users come first).
       // 4. Alphabetical order by name.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
+      check(await getResults(topicNarrow, UserMentionAutocompleteQuery('')))
         .deepEquals([1, 5, 4, 2, 7, 3, 6]);
 
       // Check the ranking applies also to results filtered by a query.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
+      check(await getResults(topicNarrow, UserMentionAutocompleteQuery('t')))
         .deepEquals([2, 3]);
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('f')))
+      check(await getResults(topicNarrow, UserMentionAutocompleteQuery('f')))
         .deepEquals([5, 4]);
+    });
+  });
+
+  group('ComposeTopicAutocomplete.autocompleteIntent', () {
+    void doTest(String markedText, TopicAutocompleteQuery? expectedQuery) {
+      final parsed = parseMarkedText(markedText);
+
+      final description = 'topic-input with text: $markedText produces: ${expectedQuery?.raw ?? 'No Query!'}';
+      test(description, () {
+        final controller = ComposeTopicController();
+        controller.value = parsed.value;
+        if (expectedQuery == null) {
+          check(controller).autocompleteIntent.isNull();
+        } else {
+          check(controller).autocompleteIntent.isNotNull()
+            ..query.equals(expectedQuery)
+            ..syntaxStart.equals(0); // query is the whole value
+        }
+      });
+    }
+
+    /// if there is any input, produced query should match input text
+    doTest('', TopicAutocompleteQuery(''));
+    doTest('^abc', TopicAutocompleteQuery('abc'));
+    doTest('a^bc', TopicAutocompleteQuery('abc'));
+    doTest('abc^', TopicAutocompleteQuery('abc'));
+    doTest('a^bc^', TopicAutocompleteQuery('abc'));
+  });
+
+  test('TopicAutocompleteView misc', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    final first = eg.getStreamTopicsEntry(maxId: 1, name: 'First Topic');
+    final second = eg.getStreamTopicsEntry(maxId: 2, name: 'Second Topic');
+    final third = eg.getStreamTopicsEntry(maxId: 3, name: 'Third Topic');
+    connection.prepare(json: GetStreamTopicsResult(
+      topics: [first, second, third]).toJson());
+    final view = TopicAutocompleteView.init(
+      store: store,
+      streamId: eg.stream().streamId);
+
+    bool done = false;
+    view.addListener(() { done = true; });
+    view.query = TopicAutocompleteQuery('Third');
+    // those are here to wait for topics to be loaded
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view.results).single
+      .isA<TopicAutocompleteResult>()
+      .topic.equals(third.name);
+  });
+
+  test('TopicAutocompleteView updates results when streams are loaded', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    connection.prepare(json: GetStreamTopicsResult(
+      topics: [eg.getStreamTopicsEntry(name: 'test')]
+    ).toJson());
+
+    final view = TopicAutocompleteView.init(
+      store: store,
+      streamId: eg.stream().streamId);
+
+    bool done = false;
+    view.addListener(() { done = true; });
+    view.query = TopicAutocompleteQuery('te');
+
+    check(done).isFalse();
+    await Future(() {});
+    check(done).isTrue();
+  });
+
+  group('TopicAutocompleteQuery.testTopic', () {
+    void doCheck(String rawQuery, String topic, bool expected) {
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(topic);
+      expected ? check(result).isTrue() : check(result).isFalse();
+    }
+
+    test('topic is included if it matches the query', () {
+      doCheck('', 'Top Name', true);
+      doCheck('Name', 'Name', false);
+      doCheck('name', 'Name', true);
+      doCheck('name', 'Nam', false);
+      doCheck('nam', 'Name', true);
     });
   });
 }

@@ -3,12 +3,13 @@ import 'package:flutter/services.dart';
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
 import '../widgets/compose_box.dart';
 import 'narrow.dart';
 import 'store.dart';
 
-extension Autocomplete on ComposeContentController {
-  AutocompleteIntent? autocompleteIntent() {
+extension ComposeContentAutocomplete on ComposeContentController {
+  AutocompleteIntent<MentionAutocompleteQuery>? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
       // autocorrect and even backspace involve programmatically expanding the
@@ -23,24 +24,124 @@ extension Autocomplete on ComposeContentController {
       position >= 0 && (selection.end - position <= 30);
       position--
     ) {
-      if (textUntilCursor[position] != '@') {
-        continue;
+      if (textUntilCursor[position] == '@') {
+        final match = mentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
+        if (match == null) {
+          continue;
+        }
+        if (selection.start < position) {
+          // See comment about [TextSelection.isCollapsed] above.
+          return null;
+        }
+        return AutocompleteIntent(
+          syntaxStart: position,
+          query: UserMentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
+          textEditingValue: value);
       }
-      final match = mentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
-      if (match == null) {
-        continue;
+
+      if (textUntilCursor[position] == '#') {
+        final match = channelMentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
+        if (match == null) {
+          continue;
+        }
+        if (selection.start < position) {
+          // See comment about [TextSelection.isCollapsed] above.
+          return null;
+        }
+        return AutocompleteIntent(
+          syntaxStart: position,
+          query: ChannelMentionAutocompleteQuery(match[1]!),
+          textEditingValue: value);
       }
-      if (selection.start < position) {
-        // See comment about [TextSelection.isCollapsed] above.
-        return null;
-      }
-      return AutocompleteIntent(
-        syntaxStart: position,
-        query: MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
-        textEditingValue: value);
     }
     return null;
   }
+}
+
+extension ComposeTopicAutocomplete on ComposeTopicController {
+  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() {
+    return AutocompleteIntent(
+      syntaxStart: 0,
+      query: TopicAutocompleteQuery(value.text),
+      textEditingValue: value);
+  }
+}
+
+const wordBoundaryChars = " _/-";
+
+final class _TriageRawData<T> {
+  final List<T> exactMatches;
+  final List<T> beginsWithCaseSensitiveMatches;
+  final List<T> beginsWithCaseInsensitiveMatches;
+  final List<T> wordBoundaryMatches;
+  final List<T> noMatches;
+
+  _TriageRawData({
+    required this.exactMatches,
+    required this.beginsWithCaseSensitiveMatches,
+    required this.beginsWithCaseInsensitiveMatches,
+    required this.wordBoundaryMatches,
+    required this.noMatches});
+}
+
+_TriageRawData<T> _triageRaw<T>({
+  required String query,
+  required Iterable<T> objects,
+  required String Function(T) getItem}) {
+  final exactMatches = <T>[];
+  final beginsWithCaseSensitiveMatches = <T>[];
+  final beginsWithCaseInsensitiveMatches = <T>[];
+  final wordBoundaryMatches = <T>[];
+  final noMatches = <T>[];
+  final lowerQuery = query.toLowerCase();
+
+  for (var object in objects) {
+    final item = getItem(object);
+    final lowerItem = item.toLowerCase();
+
+    if (lowerQuery == lowerItem) {
+      exactMatches.add(object);
+    } else if (item.startsWith(query)) {
+      beginsWithCaseSensitiveMatches.add(object);
+    } else if (lowerItem.startsWith(lowerQuery)) {
+      beginsWithCaseInsensitiveMatches.add(object);
+    } else if (RegExp('[$wordBoundaryChars]${RegExp.escape(lowerQuery)}').hasMatch(lowerItem)) {
+      wordBoundaryMatches.add(object);
+    } else {
+      noMatches.add(object);
+    }
+  }
+  return _TriageRawData(exactMatches: exactMatches,
+    beginsWithCaseSensitiveMatches: beginsWithCaseSensitiveMatches,
+    beginsWithCaseInsensitiveMatches: beginsWithCaseInsensitiveMatches,
+    wordBoundaryMatches: wordBoundaryMatches,
+    noMatches: noMatches);
+}
+
+({List<T> matches, List<T> rest}) _triage<T> ({
+  required String query,
+  required Iterable<T> objects,
+  required String Function(T) getItem,
+  int Function(T a, T b)? sortingComparator,
+}) {
+  final data = _triageRaw(query: query, objects: objects, getItem: getItem);
+  if (sortingComparator != null) {
+    final beginsWithSorted = [
+      ...data.beginsWithCaseSensitiveMatches,
+      ...data.beginsWithCaseInsensitiveMatches
+      ]..sort(sortingComparator);
+    return (matches: [
+      ...data.exactMatches..sort(sortingComparator),
+      ...beginsWithSorted,
+      ...data.wordBoundaryMatches..sort(sortingComparator),
+    ], rest: data.noMatches..sort(sortingComparator));
+  }
+  return (matches: [
+    ...data.exactMatches,
+    ...data.beginsWithCaseSensitiveMatches,
+    ...data.beginsWithCaseInsensitiveMatches,
+    ...data.wordBoundaryMatches,
+    ], rest: data.noMatches);
 }
 
 final RegExp mentionAutocompleteMarkerRegex = (() {
@@ -68,8 +169,33 @@ final RegExp mentionAutocompleteMarkerRegex = (() {
     unicode: true);
 })();
 
-/// The content controller's recognition that the user might want autocomplete UI.
-class AutocompleteIntent {
+final RegExp channelMentionAutocompleteMarkerRegex = (() {
+  // What's likely to come before an #-channel: the start of the string,
+  // whitespace, or punctuation. Letters are unlikely;
+  // (By punctuation, we mean *some* punctuation, like "(".
+  // We could refine this.)
+  const beforeHashSign = r'(?<=^|\s|\p{Punctuation})';
+
+  // Characters that would defeat searches in channels, since
+  // they're prohibited. These are all the characters prohibited
+  // in channel name (For the form of= channel name,
+  // find uses of UserProfile.NAME_INVALID_CHARS in zulip/zulip.)
+  const channelNameExclusions = r'\*`\\>"\p{Other}';
+
+  return RegExp(
+    beforeHashSign
+    + r'#'
+    + r'(|'
+      // Reject on whitespace right after "#". ZulipStream name can't start with
+      // it (it's run through Python's `.strip()`).
+      + r'[^\s' + channelNameExclusions + r']'
+      + r'[^'   + channelNameExclusions + r']*'
+    + r')$',
+    unicode: true);
+})();
+
+/// The text controller's recognition that the user might want autocomplete UI.
+class AutocompleteIntent<QueryT extends AutocompleteQuery> {
   AutocompleteIntent({
     required this.syntaxStart,
     required this.query,
@@ -91,7 +217,7 @@ class AutocompleteIntent {
   // that use a custom/subclassed [TextEditingValue], so that's not convenient.
   final int syntaxStart;
 
-  final MentionAutocompleteQuery query; // TODO other autocomplete query types
+  final QueryT query;
 
   /// The [TextEditingValue] whose text [syntaxStart] refers to.
   final TextEditingValue textEditingValue;
@@ -112,6 +238,7 @@ class AutocompleteIntent {
 /// On reassemble, call [reassemble].
 class AutocompleteViewManager {
   final Set<MentionAutocompleteView> _mentionAutocompleteViews = {};
+  final Set<TopicAutocompleteView> _topicAutocompleteViews = {};
 
   AutocompleteDataCache autocompleteDataCache = AutocompleteDataCache();
 
@@ -125,6 +252,16 @@ class AutocompleteViewManager {
     assert(removed);
   }
 
+  void registerTopicAutocomplete(TopicAutocompleteView view) {
+    final added = _topicAutocompleteViews.add(view);
+    assert(added);
+  }
+
+  void unregisterTopicAutocomplete(TopicAutocompleteView view) {
+    final removed = _topicAutocompleteViews.remove(view);
+    assert(removed);
+  }
+
   void handleRealmUserRemoveEvent(RealmUserRemoveEvent event) {
     autocompleteDataCache.invalidateUser(event.userId);
   }
@@ -135,10 +272,13 @@ class AutocompleteViewManager {
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
-  /// Calls [MentionAutocompleteView.reassemble] for all that are registered.
+  /// Calls [AutocompleteView.reassemble] for all that are registered.
   ///
   void reassemble() {
     for (final view in _mentionAutocompleteViews) {
+      view.reassemble();
+    }
+    for (final view in _topicAutocompleteViews) {
       view.reassemble();
     }
   }
@@ -151,21 +291,90 @@ class AutocompleteViewManager {
   // void dispose() { … }
 }
 
-/// A view-model for a mention-autocomplete interaction.
+/// A view-model for an autocomplete interaction.
 ///
 /// The owner of one of these objects must call [dispose] when the object
 /// will no longer be used, in order to free resources on the [PerAccountStore].
 ///
 /// Lifecycle:
-///  * Create with [init].
+///  * Create an instance of a concrete subtype.
 ///  * Add listeners with [addListener].
 ///  * Use the [query] setter to start a search for a query.
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
-class MentionAutocompleteView extends ChangeNotifier {
+abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends ChangeNotifier {
+  AutocompleteView({required this.store});
+
+  final PerAccountStore store;
+
+  Iterable<CandidateT> getSortedItemsToTest(QueryT query);
+
+  ResultT? testItem(QueryT query, CandidateT item);
+
+  QueryT? get query => _query;
+  QueryT? _query;
+  set query(QueryT? query) {
+    _query = query;
+    if (query != null) {
+      _startSearch(query);
+    }
+  }
+
+  /// Called when the app is reassembled during debugging, e.g. for hot reload.
+  ///
+  /// This will redo the search from scratch for the current query, if any.
+  void reassemble() {
+    if (_query != null) {
+      _startSearch(_query!);
+    }
+  }
+
+  Iterable<ResultT> get results => _results;
+  List<ResultT> _results = [];
+
+  Future<void> _startSearch(QueryT query) async {
+    final newResults = await _computeResults(query);
+    if (newResults == null) {
+      // Query was old; new search is in progress. Or, no listeners to notify.
+      return;
+    }
+
+    _results = newResults;
+    notifyListeners();
+  }
+
+  Future<List<ResultT>?> _computeResults(QueryT query) async {
+    final List<ResultT> results = [];
+    final Iterable<CandidateT> data = getSortedItemsToTest(query);
+
+    final iterator = data.iterator;
+    bool isDone = false;
+    while (!isDone) {
+      // CPU perf: End this task; enqueue a new one for resuming this work
+      await Future(() {});
+
+      if (query != _query || !hasListeners) { // false if [dispose] has been called.
+        return null;
+      }
+
+      for (int i = 0; i < 1000; i++) {
+        if (!iterator.moveNext()) {
+          isDone = true;
+          break;
+        }
+        final CandidateT item = iterator.current;
+        final result = testItem(query, item);
+        if (result != null) results.add(result);
+      }
+    }
+    return results;
+  }
+}
+
+class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult, Object> {
   MentionAutocompleteView._({
-    required this.store,
+    required super.store,
     required this.narrow,
     required this.sortedUsers,
   });
@@ -182,6 +391,9 @@ class MentionAutocompleteView extends ChangeNotifier {
     store.autocompleteViewManager.registerMentionAutocomplete(view);
     return view;
   }
+
+  final Narrow narrow;
+  final List<User> sortedUsers;
 
   static List<User> _usersByRelevance({
     required PerAccountStore store,
@@ -205,6 +417,43 @@ class MentionAutocompleteView extends ChangeNotifier {
   /// of items that compare equal.
   int debugCompareUsers(User userA, User userB) {
     return _comparator(store: store, narrow: narrow)(userA, userB);
+  }
+
+  static int _computeChannelScore(PerAccountStore store, Narrow narrow, ZulipStream channel) {
+    // We assign the highest score to the channel being composed
+    // to, and the lowest score to unsubscribed streams. For others,
+    // we prioritise pinned unmuted streams > unpinned unmuted streams
+    // > pinned muted streams > unpinned muted streams, //TODO: using
+    // recent activity as a tiebreaker.
+    switch (narrow) {
+      case ChannelNarrow(:var streamId):
+      case TopicNarrow(:var streamId):
+        if (channel.streamId == streamId) return 8;
+      default:
+    }
+    if (!store.subscriptions.containsKey(channel.streamId)) return -1;
+
+    final subscription = store.subscriptions[channel.streamId]!;
+    var score = 0;
+
+    if (!subscription.isMuted) {
+      score += 4;
+    }
+    if (subscription.pinToTop) {
+      score += 2;
+    }
+
+    // TODO: if channel has recent activity add 1 to score.
+
+    return score;
+  }
+
+  int Function(ZulipStream, ZulipStream) get _channelComparator {
+    return (a, b) {
+      final aScore = _computeChannelScore(store, narrow, a);
+      final bScore = _computeChannelScore(store, narrow, b);
+      return aScore - bScore;
+    };
   }
 
   static int Function(User, User) _comparator({
@@ -289,6 +538,38 @@ class MentionAutocompleteView extends ChangeNotifier {
         streamId: streamId, senderId: userB.userId));
   }
 
+  @override
+  Iterable<Object> getSortedItemsToTest(MentionAutocompleteQuery query) {
+    switch (query) {
+      case UserMentionAutocompleteQuery():
+        return sortedUsers;
+      case ChannelMentionAutocompleteQuery(:var raw):
+        final matches = store.streams.values.where((item) => item.name.contains(raw));
+        final nameMatches = _triage(query: raw, objects: matches, getItem: (s) => s.name,
+          sortingComparator: _channelComparator);
+        final descriptionMatches = _triage(query: raw, objects: nameMatches.rest, getItem: (s) => s.description,
+          sortingComparator: _channelComparator);
+        return [...nameMatches.matches, ...descriptionMatches.matches, ...descriptionMatches.rest];
+    }
+  }
+
+  @override
+  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, Object item) {
+    switch (query) {
+      case UserMentionAutocompleteQuery():
+        item as User;
+        if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
+          return UserMentionAutocompleteResult(userId: item.userId);
+        }
+        return null;
+      case ChannelMentionAutocompleteQuery():
+        // We don't do any filtering here as `getSortedItemsToTest`
+        // already filtered and sorted candidates.
+        item as ZulipStream;
+        return ChannelAutocompleteResult(streamId: item.streamId);
+    }
+  }
+
   /// Determines which of the two users is more recent in DM conversations.
   ///
   /// Returns a negative number if [userA] is more recent than [userB],
@@ -349,81 +630,47 @@ class MentionAutocompleteView extends ChangeNotifier {
     // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
     super.dispose();
   }
-
-  final PerAccountStore store;
-  final Narrow narrow;
-  final List<User> sortedUsers;
-
-  MentionAutocompleteQuery? get query => _query;
-  MentionAutocompleteQuery? _query;
-  set query(MentionAutocompleteQuery? query) {
-    _query = query;
-    if (query != null) {
-      _startSearch(query);
-    }
-  }
-
-  /// Called when the app is reassembled during debugging, e.g. for hot reload.
-  ///
-  /// This will redo the search from scratch for the current query, if any.
-  void reassemble() {
-    if (_query != null) {
-      _startSearch(_query!);
-    }
-  }
-
-  Iterable<MentionAutocompleteResult> get results => _results;
-  List<MentionAutocompleteResult> _results = [];
-
-  Future<void> _startSearch(MentionAutocompleteQuery query) async {
-    final newResults = await _computeResults(query);
-    if (newResults == null) {
-      // Query was old; new search is in progress. Or, no listeners to notify.
-      return;
-    }
-
-    _results = newResults;
-    notifyListeners();
-  }
-
-  Future<List<MentionAutocompleteResult>?> _computeResults(MentionAutocompleteQuery query) async {
-    final List<MentionAutocompleteResult> results = [];
-    final iterator = sortedUsers.iterator;
-    bool isDone = false;
-    while (!isDone) {
-      // CPU perf: End this task; enqueue a new one for resuming this work
-      await Future(() {});
-
-      if (query != _query || !hasListeners) { // false if [dispose] has been called.
-        return null;
-      }
-
-      for (int i = 0; i < 1000; i++) {
-        if (!iterator.moveNext()) {
-          isDone = true;
-          break;
-        }
-
-        final User user = iterator.current;
-        if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
-          results.add(UserMentionAutocompleteResult(userId: user.userId));
-        }
-      }
-    }
-    return results;
-  }
 }
 
-class MentionAutocompleteQuery {
-  MentionAutocompleteQuery(this.raw, {this.silent = false})
+abstract class AutocompleteQuery {
+  AutocompleteQuery(this.raw)
     : _lowercaseWords = raw.toLowerCase().split(' ');
 
   final String raw;
+  final List<String> _lowercaseWords;
+
+  /// Whether all of this query's words have matches in [words] that appear in order.
+  ///
+  /// A "match" means the word in [words] starts with the query word.
+  bool _testContainsQueryWords(List<String> words) {
+    // TODO(#237) test with diacritics stripped, where appropriate
+    int wordsIndex = 0;
+    int queryWordsIndex = 0;
+    while (true) {
+      if (queryWordsIndex == _lowercaseWords.length) {
+        return true;
+      }
+      if (wordsIndex == words.length) {
+        return false;
+      }
+
+      if (words[wordsIndex].startsWith(_lowercaseWords[queryWordsIndex])) {
+        queryWordsIndex++;
+      }
+      wordsIndex++;
+    }
+  }
+}
+
+sealed class MentionAutocompleteQuery extends AutocompleteQuery {
+  MentionAutocompleteQuery(super.raw);
+}
+
+class UserMentionAutocompleteQuery extends MentionAutocompleteQuery {
+  UserMentionAutocompleteQuery(super.raw, {this.silent = false});
 
   /// Whether the user wants a silent mention (@_query, vs. @query).
   final bool silent;
-
-  final List<String> _lowercaseWords;
 
   bool testUser(User user, AutocompleteDataCache cache) {
     // TODO(#236) test email too, not just name
@@ -434,39 +681,21 @@ class MentionAutocompleteQuery {
   }
 
   bool _testName(User user, AutocompleteDataCache cache) {
-    // TODO(#237) test with diacritics stripped, where appropriate
-
-    final List<String> nameWords = cache.nameWordsForUser(user);
-
-    int nameWordsIndex = 0;
-    int queryWordsIndex = 0;
-    while (true) {
-      if (queryWordsIndex == _lowercaseWords.length) {
-        return true;
-      }
-      if (nameWordsIndex == nameWords.length) {
-        return false;
-      }
-
-      if (nameWords[nameWordsIndex].startsWith(_lowercaseWords[queryWordsIndex])) {
-        queryWordsIndex++;
-      }
-      nameWordsIndex++;
-    }
+    return _testContainsQueryWords(cache.nameWordsForUser(user));
   }
 
   @override
   String toString() {
-    return '${objectRuntimeType(this, 'MentionAutocompleteQuery')}(raw: $raw, silent: $silent})';
+    return '${objectRuntimeType(this, 'UserMentionAutocompleteQuery')}(raw: $raw, silent: $silent})';
   }
 
   @override
   bool operator ==(Object other) {
-    return other is MentionAutocompleteQuery && other.raw == raw && other.silent == silent;
+    return other is UserMentionAutocompleteQuery && other.raw == raw && other.silent == silent;
   }
 
   @override
-  int get hashCode => Object.hash('MentionAutocompleteQuery', raw, silent);
+  int get hashCode => Object.hash('UserMentionAutocompleteQuery', raw, silent);
 }
 
 class AutocompleteDataCache {
@@ -489,7 +718,26 @@ class AutocompleteDataCache {
   }
 }
 
-sealed class MentionAutocompleteResult {}
+class ChannelMentionAutocompleteQuery extends MentionAutocompleteQuery {
+  ChannelMentionAutocompleteQuery(super.raw);
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'ChannelMentionAutocompleteQuery')}(raw: $raw})';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChannelMentionAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('ChannelMentionAutocompleteQuery', raw);
+}
+
+class AutocompleteResult {}
+
+sealed class MentionAutocompleteResult extends AutocompleteResult {}
 
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   UserMentionAutocompleteResult({required this.userId});
@@ -497,6 +745,86 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   final int userId;
 }
 
+class ChannelAutocompleteResult extends MentionAutocompleteResult {
+  ChannelAutocompleteResult({required this.streamId});
+
+  final int streamId;
+}
+
 // TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
 // TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+
+class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult, String> {
+  TopicAutocompleteView._({required super.store, required this.streamId});
+
+  factory TopicAutocompleteView.init({required PerAccountStore store, required int streamId}) {
+    final view = TopicAutocompleteView._(store: store, streamId: streamId);
+    store.autocompleteViewManager.registerTopicAutocomplete(view);
+    view._fetch();
+    return view;
+  }
+
+  final int streamId;
+  Iterable<String> _topics = [];
+  bool _isFetching = false;
+
+  /// Fetches topics of the current stream narrow, expected to fetch
+  /// only once per lifecycle.
+  ///
+  /// Starts fetching once the stream narrow is active, then when results
+  /// are fetched it restarts search to refresh UI showing the newly
+  /// fetched topics.
+  Future<void> _fetch() async {
+     assert(!_isFetching);
+    _isFetching = true;
+    final result = await getStreamTopics(store.connection, streamId: streamId);
+    _topics = result.topics.map((e) => e.name);
+    _isFetching = false;
+    if (_query != null) _startSearch(_query!);
+  }
+
+  @override
+  Iterable<String> getSortedItemsToTest(TopicAutocompleteQuery query) => _topics;
+
+  @override
+  TopicAutocompleteResult? testItem(TopicAutocompleteQuery query, String item) {
+    if (query.testTopic(item)) {
+      return TopicAutocompleteResult(topic: item);
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    store.autocompleteViewManager.unregisterTopicAutocomplete(this);
+    super.dispose();
+  }
+}
+
+class TopicAutocompleteQuery extends AutocompleteQuery {
+  TopicAutocompleteQuery(super.raw);
+
+  bool testTopic(String topic) {
+    return topic != raw && topic.toLowerCase().contains(raw.toLowerCase());
+  }
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TopicAutocompleteQuery')}(raw: $raw)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TopicAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicAutocompleteQuery', raw);
+}
+
+class TopicAutocompleteResult extends AutocompleteResult {
+  final String topic;
+
+  TopicAutocompleteResult({required this.topic});
+}

@@ -4,6 +4,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
@@ -192,6 +193,11 @@ ZulipStream stream({
   );
 }
 const _stream = stream;
+
+GetStreamTopicsEntry getStreamTopicsEntry({int? maxId, String? name}) {
+  maxId ??= 123;
+  return GetStreamTopicsEntry(maxId: maxId, name: name ?? 'Test Topic #$maxId');
+}
 
 /// Construct an example subscription from a stream.
 ///
