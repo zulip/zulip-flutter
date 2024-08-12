@@ -376,6 +376,38 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
+class _TopicInput extends StatelessWidget {
+  const _TopicInput({
+    required this.streamId,
+    required this.controller,
+    required this.focusNode,
+    required this.contentFocusNode});
+
+  final int streamId;
+  final ComposeTopicController controller;
+  final FocusNode focusNode;
+  final FocusNode contentFocusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return TopicAutocomplete(
+      streamId: streamId,
+      controller: controller,
+      focusNode: focusNode,
+      contentFocusNode: contentFocusNode,
+      fieldViewBuilder: (context) => TextField(
+        controller: controller,
+        focusNode: focusNode,
+        textInputAction: TextInputAction.next,
+        style: TextStyle(color: colorScheme.onSurface),
+        decoration: InputDecoration(hintText: zulipLocalizations.composeBoxTopicHintText),
+      ));
+  }
+}
+
 class _FixedDestinationContentInput extends StatelessWidget {
   const _FixedDestinationContentInput({
     required this.narrow,
@@ -942,6 +974,9 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   @override FocusNode get contentFocusNode => _contentFocusNode;
   final _contentFocusNode = FocusNode();
 
+  FocusNode get topicFocusNode => _topicFocusNode;
+  final _topicFocusNode = FocusNode();
+
   @override
   void dispose() {
     _topicController.dispose();
@@ -952,16 +987,14 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final zulipLocalizations = ZulipLocalizations.of(context);
-
     return _ComposeBoxLayout(
       contentController: _contentController,
       contentFocusNode: _contentFocusNode,
-      topicInput: TextField(
+      topicInput: _TopicInput(
+        streamId: widget.narrow.streamId,
         controller: _topicController,
-        style: TextStyle(color: colorScheme.onSurface),
-        decoration: InputDecoration(hintText: zulipLocalizations.composeBoxTopicHintText),
+        focusNode: topicFocusNode,
+        contentFocusNode: _contentFocusNode,
       ),
       contentInput: _StreamContentInput(
         narrow: widget.narrow,
