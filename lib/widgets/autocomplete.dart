@@ -184,6 +184,8 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
         //   (maybe handle centrally in `controller`)
         final silent = (intent.query as UserMentionAutocompleteQuery).silent;
         replacementString = '${mention(store.users[userId]!, silent: silent, users: store.users)} ';
+      case ChannelAutocompleteResult(:var streamId):
+        replacementString = store.streams[streamId]!.name;
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -202,6 +204,9 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
       case UserMentionAutocompleteResult(:var userId):
         avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
         label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+      case ChannelAutocompleteResult(:var streamId):
+        avatar = const SizedBox();
+        label = PerAccountStoreWidget.of(context).streams[streamId]!.name;
     }
     return InkWell(
       onTap: () {

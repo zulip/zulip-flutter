@@ -38,6 +38,21 @@ extension ComposeContentAutocomplete on ComposeContentController {
           query: UserMentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
           textEditingValue: value);
       }
+
+      if (textUntilCursor[position] == '#') {
+        final match = channelMentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
+        if (match == null) {
+          continue;
+        }
+        if (selection.start < position) {
+          // See comment about [TextSelection.isCollapsed] above.
+          return null;
+        }
+        return AutocompleteIntent(
+          syntaxStart: position,
+          query: ChannelMentionAutocompleteQuery(match[1]!),
+          textEditingValue: value);
+      }
     }
     return null;
   }
@@ -150,6 +165,31 @@ final RegExp mentionAutocompleteMarkerRegex = (() {
       // it, and full_name can't either (it's run through Python's `.strip()`).
       + r'[^\s' + fullNameAndEmailCharExclusions + r']'
       + r'[^'   + fullNameAndEmailCharExclusions + r']*'
+    + r')$',
+    unicode: true);
+})();
+
+final RegExp channelMentionAutocompleteMarkerRegex = (() {
+  // What's likely to come before an #-channel: the start of the string,
+  // whitespace, or punctuation. Letters are unlikely;
+  // (By punctuation, we mean *some* punctuation, like "(".
+  // We could refine this.)
+  const beforeHashSign = r'(?<=^|\s|\p{Punctuation})';
+
+  // Characters that would defeat searches in channels, since
+  // they're prohibited. These are all the characters prohibited
+  // in channel name (For the form of= channel name,
+  // find uses of UserProfile.NAME_INVALID_CHARS in zulip/zulip.)
+  const channelNameExclusions = r'\*`\\>"\p{Other}';
+
+  return RegExp(
+    beforeHashSign
+    + r'#'
+    + r'(|'
+      // Reject on whitespace right after "#". ZulipStream name can't start with
+      // it (it's run through Python's `.strip()`).
+      + r'[^\s' + channelNameExclusions + r']'
+      + r'[^'   + channelNameExclusions + r']*'
     + r')$',
     unicode: true);
 })();
@@ -379,6 +419,43 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     return _comparator(store: store, narrow: narrow)(userA, userB);
   }
 
+  static int _computeChannelScore(PerAccountStore store, Narrow narrow, ZulipStream channel) {
+    // We assign the highest score to the channel being composed
+    // to, and the lowest score to unsubscribed streams. For others,
+    // we prioritise pinned unmuted streams > unpinned unmuted streams
+    // > pinned muted streams > unpinned muted streams, //TODO: using
+    // recent activity as a tiebreaker.
+    switch (narrow) {
+      case ChannelNarrow(:var streamId):
+      case TopicNarrow(:var streamId):
+        if (channel.streamId == streamId) return 8;
+      default:
+    }
+    if (!store.subscriptions.containsKey(channel.streamId)) return -1;
+
+    final subscription = store.subscriptions[channel.streamId]!;
+    var score = 0;
+
+    if (!subscription.isMuted) {
+      score += 4;
+    }
+    if (subscription.pinToTop) {
+      score += 2;
+    }
+
+    // TODO: if channel has recent activity add 1 to score.
+
+    return score;
+  }
+
+  int Function(ZulipStream, ZulipStream) get _channelComparator {
+    return (a, b) {
+      final aScore = _computeChannelScore(store, narrow, a);
+      final bScore = _computeChannelScore(store, narrow, b);
+      return aScore - bScore;
+    };
+  }
+
   static int Function(User, User) _comparator({
     required PerAccountStore store,
     required Narrow narrow,
@@ -466,6 +543,13 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     switch (query) {
       case UserMentionAutocompleteQuery():
         return sortedUsers;
+      case ChannelMentionAutocompleteQuery(:var raw):
+        final matches = store.streams.values.where((item) => item.name.contains(raw));
+        final nameMatches = _triage(query: raw, objects: matches, getItem: (s) => s.name,
+          sortingComparator: _channelComparator);
+        final descriptionMatches = _triage(query: raw, objects: nameMatches.rest, getItem: (s) => s.description,
+          sortingComparator: _channelComparator);
+        return [...nameMatches.matches, ...descriptionMatches.matches, ...descriptionMatches.rest];
     }
   }
 
@@ -478,6 +562,11 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
           return UserMentionAutocompleteResult(userId: item.userId);
         }
         return null;
+      case ChannelMentionAutocompleteQuery():
+        // We don't do any filtering here as `getSortedItemsToTest`
+        // already filtered and sorted candidates.
+        item as ZulipStream;
+        return ChannelAutocompleteResult(streamId: item.streamId);
     }
   }
 
@@ -629,6 +718,23 @@ class AutocompleteDataCache {
   }
 }
 
+class ChannelMentionAutocompleteQuery extends MentionAutocompleteQuery {
+  ChannelMentionAutocompleteQuery(super.raw);
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'ChannelMentionAutocompleteQuery')}(raw: $raw})';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChannelMentionAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('ChannelMentionAutocompleteQuery', raw);
+}
+
 class AutocompleteResult {}
 
 sealed class MentionAutocompleteResult extends AutocompleteResult {}
@@ -637,6 +743,12 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   UserMentionAutocompleteResult({required this.userId});
 
   final int userId;
+}
+
+class ChannelAutocompleteResult extends MentionAutocompleteResult {
+  ChannelAutocompleteResult({required this.streamId});
+
+  final int streamId;
 }
 
 // TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
