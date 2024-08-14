@@ -197,8 +197,11 @@ class _SubscriptionList extends StatelessWidget {
         final hasMentions = channelsWithMentions.contains(subscription.streamId);
         final hasOnlyMutedMentions = !subscription.isMuted && hasMentions
           && !channelsWithUnmutedMentions.contains(subscription.streamId);
+        final mutedUnreadCount = hasOnlyMutedMentions && unreadCount == 0 ?
+          unreadsModel!.countAll(subscription.streamId) : 0;
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
+          mutedUnreadCount: mutedUnreadCount,
           showMutedUnreadBadge: showMutedUnreadBadge,
           hasMentions: hasMentions,
           hasOnlyMutedMentions: hasOnlyMutedMentions);
@@ -212,6 +215,7 @@ class SubscriptionItem extends StatelessWidget {
     super.key,
     required this.subscription,
     required this.unreadCount,
+    required this.mutedUnreadCount,
     required this.showMutedUnreadBadge,
     required this.hasMentions,
     required this.hasOnlyMutedMentions,
@@ -219,6 +223,7 @@ class SubscriptionItem extends StatelessWidget {
 
   final Subscription subscription;
   final int unreadCount;
+  final int mutedUnreadCount;
   final bool showMutedUnreadBadge;
   final bool hasMentions;
   final bool hasOnlyMutedMentions;
@@ -229,7 +234,8 @@ class SubscriptionItem extends StatelessWidget {
 
     final swatch = colorSwatchFor(context, subscription);
     final hasUnreads = (unreadCount > 0);
-    final opacity = subscription.isMuted ? 0.55 : 1.0;
+    const mutedOpacity = 0.55;
+    final opacity = subscription.isMuted ? mutedOpacity : 1.0;
     return Material(
       // TODO(design) check if this is the right variable
       color: designVariables.background,
@@ -274,6 +280,15 @@ class SubscriptionItem extends StatelessWidget {
               opacity: opacity,
               child: UnreadCountBadge(
                 count: unreadCount,
+                backgroundColor: swatch,
+                bold: true)),
+          ] else if (hasOnlyMutedMentions && !subscription.isMuted) ...[
+            const SizedBox(width: 12),
+            const AtMentionMarker(muted: true),
+            Opacity(
+              opacity: mutedOpacity,
+              child: UnreadCountBadge(
+                count: mutedUnreadCount,
                 backgroundColor: swatch,
                 bold: true)),
           ] else if (showMutedUnreadBadge) ...[

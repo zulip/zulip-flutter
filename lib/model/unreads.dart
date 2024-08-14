@@ -194,6 +194,25 @@ class Unreads extends ChangeNotifier {
     return c;
   }
 
+  /// The "broadest" unread count for this channel,
+  /// without doing any checking on visibility policy.
+  ///
+  /// This includes all topics that have regardless visibility policy,
+  /// even if the channel is muted.
+  ///
+  /// This is needed for one specific case, which is when the channel has
+  /// only muted unreads including a mention or more, in that case we show
+  /// total unread count including muted unreads.
+  int countAll(int streamId) {
+    final topics = streams[streamId];
+    if (topics == null) return 0;
+    int c = 0;
+    for (final entry in topics.entries) {
+      c = c + entry.value.length;
+    }
+    return c;
+  }
+
   int countInTopicNarrow(int streamId, String topic) {
     final topics = streams[streamId];
     return topics?[topic]?.length ?? 0;
