@@ -142,25 +142,25 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
-      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
       errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
-      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       groupDmConversationIcon: Colors.white.withOpacity(0.5),
-      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       groupDmConversationIconBg: const Color(0x33cccccc),
       loginOrDivider: const Color(0xff424242),
       loginOrDividerText: const Color(0xffa8a8a8),
-      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       sectionCollapseIcon: const Color(0x7fb6c8e2),
-      // TODO(#95) unchanged in dark theme?
+      // TODO(design-dark) unchanged in dark theme?
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
-      // TODO(#95) need proper dark-theme color (this is ad hoc)
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
       unreadCountBadgeTextForChannel: Colors.white.withOpacity(0.9),
     );
@@ -223,8 +223,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color errorBannerLabel;
   final Color groupDmConversationIcon;
   final Color groupDmConversationIconBg;
-  final Color loginOrDivider; // TODO(#95) need proper dark-theme color (this is ad hoc)
-  final Color loginOrDividerText; // TODO(#95) need proper dark-theme color (this is ad hoc)
+  final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+  final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color sectionCollapseIcon;
   final Color star;
   final Color subscriptionListHeaderLine;
