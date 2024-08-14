@@ -38,7 +38,7 @@ class Submessage {
   // We cannot parse the String into one of the [SubmessageData] classes because
   // information from other submessages are required. Specifically, we need:
   //   * the index of this submessage in [Message.submessages];
-  //   * the [WidgetType] of the first [Message.submessages].
+  //   * the parsed [WidgetType] from the first [Message.submessages].
   final String content;
 
   factory Submessage.fromJson(Map<String, Object?> json) =>
