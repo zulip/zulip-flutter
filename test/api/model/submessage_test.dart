@@ -3,6 +3,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/submessage.dart';
 
 import '../../example_data.dart' as eg;
+import '../../stdlib_checks.dart';
 import 'submessage_checks.dart';
 
 void main() {
@@ -27,23 +28,25 @@ void main() {
     });
   });
 
-  test('smoke WidgetData',  () {
-    check(WidgetData.fromJson(eg.pollWidgetDataFavoriteLetter)).isA<PollWidgetData>()
+  test('invalid widget_type -> UnsupportedWidgetData/throw', () {
+    final pollWidgetData = deepToJson(eg.pollWidgetData(
+      question: 'example question',
+      options: ['A', 'B', 'C'],
+    )) as Map<String, Object?>;
+
+    check(WidgetData.fromJson(pollWidgetData)).isA<PollWidgetData>()
       ..widgetType.equals(WidgetType.poll)
       ..extraData.which((x) => x
-          ..question.equals('favorite letter')
+          ..question.equals('example question')
           ..options.deepEquals(['A', 'B', 'C'])
         );
-  });
-
-  test('invalid widget_type -> UnsupportedWidgetData/throw', () {
     check(WidgetData.fromJson({
-      ...eg.pollWidgetDataFavoriteLetter,
+      ...pollWidgetData,
       'widget_type': 'unknown_foo',
     })).isA<UnsupportedWidgetData>();
 
     check(() => WidgetData.fromJson({
-      ...eg.pollWidgetDataFavoriteLetter,
+      ...pollWidgetData,
       'widget_type': 123,
     })).throws<TypeError>();
   });

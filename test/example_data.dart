@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/narrow.dart';
@@ -405,13 +406,13 @@ DmMessage dmMessage({
   }) as Map<String, dynamic>);
 }
 
-const pollWidgetDataFavoriteLetter = {
-  'widget_type': 'poll',
-  'extra_data': {
-    'question': 'favorite letter',
-    'options': ['A', 'B', 'C'],
-  }
-};
+PollWidgetData pollWidgetData({
+  required String question,
+  required List<String> options,
+}) {
+  return PollWidgetData(
+    extraData: PollWidgetExtraData(question: question, options: options));
+}
 
 ////////////////////////////////////////////////////////////////
 // Aggregate data structures.

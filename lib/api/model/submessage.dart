@@ -65,7 +65,9 @@ enum SubmessageType {
 ///  * Zero or more submessages with content [PollEventSubmessage] if the
 ///    message is a poll (i.e. if the first submessage was a [PollWidgetData]),
 ///    and similarly for other types of widgets.
-sealed class SubmessageData {}
+sealed class SubmessageData {
+  Object? toJson();
+}
 
 /// The data encoded in a submessage to make the message a Zulip widget.
 ///
@@ -87,6 +89,7 @@ sealed class WidgetData extends SubmessageData {
     };
   }
 
+  @override
   Object? toJson();
 }
 
@@ -188,6 +191,7 @@ sealed class PollEventSubmessage extends SubmessageData {
     }
   }
 
+  @override
   Map<String, Object?> toJson();
 }
 
