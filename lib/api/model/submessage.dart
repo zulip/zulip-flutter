@@ -173,7 +173,7 @@ sealed class PollEventSubmessage extends SubmessageData {
   ///
   /// For options that are a part of the initial [PollWidgetData], the
   /// [senderId] should be `null`.
-  static String optionKey({required int? senderId, required int idx}) =>
+  static PollOptionKey optionKey({required int? senderId, required int idx}) =>
     // "canned" is a canonical constant coined by the web client:
     //   https://github.com/zulip/zulip/blob/40f59a05c/web/shared/src/poll_data.ts#L238
     '${senderId ?? 'canned'},$idx';
@@ -204,6 +204,8 @@ enum PollEventSubmessageType {
   static final _byRawString = _$PollEventSubmessageTypeEnumMap
     .map((key, value) => MapEntry(value, key));
 }
+
+typedef PollOptionKey = String;
 
 /// A poll event when an option is added.
 ///
@@ -264,7 +266,7 @@ class PollVoteEventSubmessage extends PollEventSubmessage {
   /// The key of the affected option.
   ///
   /// See [PollEventSubmessage.optionKey].
-  final String key;
+  final PollOptionKey key;
   @JsonKey(name: 'vote', unknownEnumValue: PollVoteOp.unknown)
   final PollVoteOp op;
 
