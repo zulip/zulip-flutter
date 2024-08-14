@@ -252,6 +252,13 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
         selfUserId: account.userId,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
+      typingNotifier: TypingNotifier(
+        connection: connection,
+        typingStoppedWaitPeriod: Duration(
+          milliseconds: initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds),
+        typingStartedWaitPeriod: Duration(
+          milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
+      ),
       channels: channels,
       messages: MessageStoreImpl(),
       unreads: Unreads(
@@ -279,6 +286,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.userSettings,
     required this.users,
     required this.typingStatus,
+    required this.typingNotifier,
     required ChannelStoreImpl channels,
     required MessageStoreImpl messages,
     required this.unreads,
@@ -358,6 +366,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   final UserSettings? userSettings; // TODO(server-5)
 
+  final TypingNotifier typingNotifier;
+
   ////////////////////////////////
   // Users and data about them.
 
@@ -434,6 +444,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
+    typingNotifier.dispose();
     typingStatus.dispose();
     super.dispose();
   }
