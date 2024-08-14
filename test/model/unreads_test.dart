@@ -240,6 +240,23 @@ void main() {
     });
   });
 
+  group('onMessagesFetched', () {
+    test('messages are added to mentions when they are not read and include mention', () async {
+      final stream = eg.stream();
+      prepare();
+      await channelStore.addStream(stream);
+      check(model.mentions).isEmpty();
+      fillWithMessages([
+        eg.streamMessage(stream: stream, flags: []),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned, MessageFlag.read]),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
+      ]);
+
+      check(model.mentions.length).equals(2);
+    });
+  });
+
   group('handleMessageEvent', () {
     for (final (isUnread, isStream, isDirectMentioned, isWildcardMentioned) in [
       (true,  true,  true,  true ),
