@@ -32,8 +32,6 @@ import 'channel.dart';
 /// unsubscribed streams and messages sent by muted users.
 // TODO When [oldUnreadsMissing], if you load a message list with very old unreads,
 //   sync to those unreads, because the user has shown an interest in them.
-// TODO When loading a message list with stream messages, check all the stream
-//   messages and refresh [mentions] (see [mentions] dartdoc).
 class Unreads extends ChangeNotifier {
   factory Unreads({
     required UnreadMessagesSnapshot initial,
@@ -103,7 +101,7 @@ class Unreads extends ChangeNotifier {
   ///   a) the message is edited at all ([UpdateMessageEvent]),
   ///      assuming it still has a direct or wildcard mention after the edit, or
   ///   b) the message gains a direct @-mention ([UpdateMessageFlagsEvent]), or
-  ///   c) TODO unimplemented: the user loads the message in the message list
+  ///   c) the user loads the message in the message list
   /// But otherwise, assume its unread state remains unknown to [mentions].
   ///
   /// [1] This item applies verbatim at Server 8.0+. For older servers, the
@@ -235,6 +233,19 @@ class Unreads extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void onMessagesFetched(List<Message> messages) {
+    messages.forEach(_addMessageToMentionsIfMentioned);
+  }
+
+  void _addMessageToMentionsIfMentioned(Message message) {
+    if (message.flags.contains(MessageFlag.read)) return;
+    if (!message.flags.contains(MessageFlag.mentioned)
+      && !message.flags.contains(MessageFlag.wildcardMentioned)) return;
+
+    mentions.add(message.id);
+  }
+
 
   void handleUpdateMessageEvent(UpdateMessageEvent event) {
     final messageId = event.messageId;

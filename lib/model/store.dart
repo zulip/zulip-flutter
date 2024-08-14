@@ -375,7 +375,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   @override
   void reconcileMessages(List<Message> messages) {
     _messages.reconcileMessages(messages);
-    // TODO(#649) notify [unreads] of the just-fetched messages
+    unreads.onMessagesFetched(messages);
     // TODO(#650) notify [recentDmConversationsView] of the just-fetched messages
   }
 
