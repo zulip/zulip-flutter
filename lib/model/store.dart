@@ -277,6 +277,13 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       accountId: accountId,
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
+      typingNotifier: TypingNotifier(
+        connection: connection,
+        typingStoppedWaitPeriod: Duration(
+          milliseconds: initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds),
+        typingStartedWaitPeriod: Duration(
+          milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
+      ),
       users: Map.fromEntries(
         initialSnapshot.realmUsers
         .followedBy(initialSnapshot.realmNonActiveUsers)
@@ -311,6 +318,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.accountId,
     required this.selfUserId,
     required this.userSettings,
+    required this.typingNotifier,
     required this.users,
     required this.typingStatus,
     required ChannelStoreImpl channels,
@@ -413,6 +421,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   final UserSettings? userSettings; // TODO(server-5)
 
+  final TypingNotifier typingNotifier;
+
   ////////////////////////////////
   // Users and data about them.
 
@@ -493,6 +503,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     unreads.dispose();
     _messages.dispose();
     typingStatus.dispose();
+    typingNotifier.dispose();
     updateMachine?.dispose();
     connection.close();
     _disposed = true;
