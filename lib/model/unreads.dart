@@ -223,6 +223,28 @@ class Unreads extends ChangeNotifier {
     }
   }
 
+  Set<int> get channelsWithUnreadMentions {
+    final channels = <int>{};
+    for (var messageId in mentions) {
+      final streamId = _streamIdsAndTopicsByMessageId[messageId]?.streamId;
+      if (streamId != null) {
+        channels.add(streamId);
+      }
+    }
+    return channels;
+  }
+
+  Set<int> get channelsWithUnmutedMentions {
+    final channels = <int>{};
+    for (var messageId in mentions) {
+      final (:streamId, :topic) = _streamIdsAndTopicsByMessageId[messageId]!;
+      if (channelStore.isTopicVisible(streamId, topic)) {
+        channels.add(streamId);
+      }
+    }
+    return channels;
+  }
+
   void reconcileMessages(List<Message> messages) {
     for (final message in messages) {
       if (message.flags.contains(MessageFlag.read)) continue;

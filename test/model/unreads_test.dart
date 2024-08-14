@@ -326,6 +326,52 @@ void main() {
           });
         }
       });
+
+      test('channelsWithUnreadMentions', () {
+        final stream1 = eg.stream();
+        final stream2 = eg.stream();
+
+        prepare();
+        fillWithMessages([
+          eg.streamMessage(stream: stream1, flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: stream1, flags: []),
+          eg.streamMessage(stream: stream2, flags: []),
+        ]);
+
+        check(model.channelsWithUnreadMentions).single.equals(stream1.streamId);
+      });
+
+      test('channelsWithUnmutedMentions', () async {
+        final stream1 = eg.stream();
+        final stream2 = eg.stream();
+        final stream3 = eg.stream();
+        final stream4 = eg.stream();
+        final streams = [stream1, stream2, stream3, stream4];
+
+        prepare();
+
+        await channelStore.addStreams(streams);
+        await channelStore.addSubscriptions([
+          eg.subscription(stream1),
+          eg.subscription(stream2),
+          eg.subscription(stream3, isMuted: true),
+          eg.subscription(stream4),
+        ]);
+
+        await channelStore.addUserTopic(stream1, 'a normal', UserTopicVisibilityPolicy.none);
+        await channelStore.addUserTopic(stream2, 'b muted', UserTopicVisibilityPolicy.muted);
+        await channelStore.addUserTopic(stream3, 'c normal', UserTopicVisibilityPolicy.none);
+        await channelStore.addUserTopic(stream4, 'd normal no mentions', UserTopicVisibilityPolicy.none);
+
+        fillWithMessages([
+          eg.streamMessage(stream: stream1, flags: [MessageFlag.mentioned], topic: 'a normal'),
+          eg.streamMessage(stream: stream2, flags: [MessageFlag.mentioned], topic: 'b muted'),
+          eg.streamMessage(stream: stream3, flags: [MessageFlag.mentioned], topic: 'c normal'),
+          eg.streamMessage(stream: stream4, flags: [], topic: 'd normal no mentions'),
+        ]);
+
+        check(model.channelsWithUnmutedMentions.single).equals(stream1.streamId);
+      });
     });
 
     group('DM messages', () {

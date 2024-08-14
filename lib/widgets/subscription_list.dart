@@ -185,6 +185,8 @@ class _SubscriptionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final channelsWithMentions = unreadsModel!.channelsWithUnreadMentions;
+    final channelsWithUnmutedMentions = unreadsModel!.channelsWithUnmutedMentions;
     return SliverList.builder(
       itemCount: subscriptions.length,
       itemBuilder: (BuildContext context, int index) {
@@ -192,9 +194,14 @@ class _SubscriptionList extends StatelessWidget {
         final unreadCount = unreadsModel!.countInChannel(subscription.streamId);
         final showMutedUnreadBadge = unreadCount == 0
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
+        final hasMentions = channelsWithMentions.contains(subscription.streamId);
+        final hasOnlyMutedMentions = !subscription.isMuted && hasMentions
+          && !channelsWithUnmutedMentions.contains(subscription.streamId);
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
-          showMutedUnreadBadge: showMutedUnreadBadge);
+          showMutedUnreadBadge: showMutedUnreadBadge,
+          hasMentions: hasMentions,
+          hasOnlyMutedMentions: hasOnlyMutedMentions);
     });
   }
 }
@@ -206,11 +213,15 @@ class SubscriptionItem extends StatelessWidget {
     required this.subscription,
     required this.unreadCount,
     required this.showMutedUnreadBadge,
+    required this.hasMentions,
+    required this.hasOnlyMutedMentions,
   });
 
   final Subscription subscription;
   final int unreadCount;
   final bool showMutedUnreadBadge;
+  final bool hasMentions;
+  final bool hasOnlyMutedMentions;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +269,7 @@ class SubscriptionItem extends StatelessWidget {
                   subscription.name)))),
           if (hasUnreads) ...[
             const SizedBox(width: 12),
-            // TODO(#747) show @-mention indicator when it applies
+            if (hasMentions) AtMentionMarker(muted: !subscription.isMuted && hasOnlyMutedMentions),
             Opacity(
               opacity: opacity,
               child: UnreadCountBadge(
@@ -267,7 +278,7 @@ class SubscriptionItem extends StatelessWidget {
                 bold: true)),
           ] else if (showMutedUnreadBadge) ...[
             const SizedBox(width: 12),
-            // TODO(#747) show @-mention indicator when it applies
+            if (hasMentions) const AtMentionMarker(muted: true),
             const MutedUnreadBadge(),
           ],
           const SizedBox(width: 16),
