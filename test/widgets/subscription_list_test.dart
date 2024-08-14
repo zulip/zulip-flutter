@@ -189,6 +189,29 @@ void main() {
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
+  testWidgets('unread badge shows as faded when non-muted subscription has only muted mentions', (tester) async {
+    final stream = eg.stream();
+
+    await setupStreamListPage(tester,
+      subscriptions: [
+        eg.subscription(stream),
+      ],
+      userTopics: [
+        eg.userTopicItem(stream, 'a', UserTopicVisibilityPolicy.muted),
+      ],
+      unreadMsgs: eg.unreadMsgs(
+        mentions: [1, 2],
+        channels: [
+          UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+        ]),
+    );
+
+    check(find.byType(AtMentionMarker).evaluate()).single;
+    check(tester.widget<Text>(find.descendant(
+      of: find.byType(UnreadCountBadge), matching: find.byType(Text))))
+      .data.equals('2');
+  });
+
   testWidgets('muted unread badge shows when unreads are visible in channel but not inbox', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
