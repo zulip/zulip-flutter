@@ -191,7 +191,7 @@ class UserSettings {
   Emojiset emojiset;
 
   // TODO more, as needed. When adding a setting here, please also:
-  // (1) add it to the [UserSettingName] enum below
+  // (1) add it to the [UserSettingName] enum
   // (2) then re-run the command to refresh the .g.dart files
   // (3) handle the event that signals an update to the setting
 
