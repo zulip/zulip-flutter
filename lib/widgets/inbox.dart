@@ -282,7 +282,7 @@ abstract class _HeaderItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               title))),
           const SizedBox(width: 12),
-          if (hasMention) const AtMentionMarker(),
+          if (hasMention) const AtMentionMarker(muted: false),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: UnreadCountBadge(
               backgroundColor: unreadCountBadgeBackgroundColor(context),
@@ -405,7 +405,7 @@ class _DmItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 title))),
             const SizedBox(width: 12),
-            if (hasMention) const AtMentionMarker(),
+            if (hasMention) const AtMentionMarker(muted: false),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(backgroundColor: null,
                 count: count)),
@@ -530,7 +530,7 @@ class _TopicItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 topic))),
             const SizedBox(width: 12),
-            if (hasMention) const AtMentionMarker(),
+            if (hasMention) const AtMentionMarker(muted: false),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(
                 backgroundColor: colorSwatchFor(context, subscription),

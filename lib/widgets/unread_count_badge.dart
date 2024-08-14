@@ -75,7 +75,9 @@ class MutedUnreadBadge extends StatelessWidget {
 }
 
 class AtMentionMarker extends StatelessWidget {
-  const AtMentionMarker({super.key});
+  const AtMentionMarker({super.key, required this.muted});
+
+  final bool muted;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +86,9 @@ class AtMentionMarker extends StatelessWidget {
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: 4),
-      child: Icon(ZulipIcons.at_sign, size: 14, color: designVariables.atMentionMarker));
+      child: Icon(
+        ZulipIcons.at_sign,
+        size: 14,
+        color: muted ? designVariables.mutedAtMentionMarker : designVariables.atMentionMarker));
   }
 }
