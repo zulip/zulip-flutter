@@ -612,7 +612,7 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
-      'op': _$TypingOpEnumMap[instance.op]!,
+      'op': instance.op,
       'message_type': const MessageTypeConverter().toJson(instance.messageType),
       'sender_id': instance.senderId,
       'recipients': instance.recipientIds,

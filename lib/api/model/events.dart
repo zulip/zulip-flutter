@@ -1039,7 +1039,9 @@ class TypingEvent extends Event {
 @JsonEnum(fieldRename: FieldRename.snake)
 enum TypingOp {
   start,
-  stop
+  stop;
+
+  String toJson() => _$TypingOpEnumMap[this]!;
 }
 
 /// A Zulip event of type `reaction`, with op `add` or `remove`.
