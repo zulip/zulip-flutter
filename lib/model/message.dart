@@ -270,6 +270,8 @@ class MessageStoreImpl with MessageStore {
       if (anyMessageFound) {
         for (final view in _messageListViews) {
           view.notifyListenersIfAnyMessagePresent(event.messages);
+          // TODO(#818): Support MentionsNarrow live-updates when handling
+          //   @-mention flags.
         }
       }
     }
