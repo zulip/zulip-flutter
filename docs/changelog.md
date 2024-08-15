@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* Introducing dark theme!  The app now follows your system-wide
+  dark/light setting. (#95)
+* The app is snappier to re-connect to your Zulip server after
+  being offline, and shows a loading indicator when doing so.
+  (#554, #465)
+* Handle messages being moved, muted, or unmuted while the app
+  is open. (#150, #421)
+* Autocomplete for topics; show "typing…" status;
+  offer the "Mentions" message feed. (#310, #665, #250)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Many "stream" names in the codebase have been renamed to
+  say "channel". (toward #631)
+
+* Resolved: #803, #351, #613, #665, #250, #675, #858, #228,
+  #712, #291, #150, #465, #554, #131, #421, #310
+
+
 ## 0.0.18 (2024-07-25)
 
 ### Highlights for users
