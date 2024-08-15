@@ -328,7 +328,7 @@ void main() {
     test('smoke', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
+          destination: const StreamDestination(streamId, topic), content: content,
           queueId: 'abc:123',
           localId: '456',
           readBySender: true,
@@ -347,7 +347,7 @@ void main() {
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
+          destination: const StreamDestination(streamId, topic), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -362,7 +362,7 @@ void main() {
     test('to DM conversation', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: DmDestination(userIds: userIds), content: content,
+          destination: const DmDestination(userIds: userIds), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'direct',
@@ -376,7 +376,7 @@ void main() {
     test('to DM conversation, with legacy type "private"', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) async {
         await checkSendMessage(connection,
-          destination: DmDestination(userIds: userIds), content: content,
+          destination: const DmDestination(userIds: userIds), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'private',
@@ -391,7 +391,7 @@ void main() {
     test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
+          destination: const StreamDestination(streamId, topic), content: content,
           readBySender: null,
           expectedBodyFields: {
             'type': 'stream',
@@ -406,7 +406,7 @@ void main() {
     test('legacy: when server does not support readBySender, sends a User-Agent the server will recognize', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 235, (connection) async {
         await checkSendMessage(connection,
-          destination: StreamDestination(streamId, topic), content: content,
+          destination: const StreamDestination(streamId, topic), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',

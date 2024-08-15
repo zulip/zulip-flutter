@@ -219,14 +219,16 @@ Future<SendMessageResult> sendMessage(
 /// Which conversation to send a message to, in [sendMessage].
 ///
 /// This is either a [StreamDestination] or a [DmDestination].
-sealed class MessageDestination {}
+sealed class MessageDestination {
+  const MessageDestination();
+}
 
 /// A conversation in a stream, for specifying to [sendMessage].
 ///
 /// The server accepts a stream name as an alternative to a stream ID,
 /// but this binding currently doesn't.
 class StreamDestination extends MessageDestination {
-  StreamDestination(this.streamId, this.topic);
+  const StreamDestination(this.streamId, this.topic);
 
   final int streamId;
   final String topic;
@@ -237,7 +239,7 @@ class StreamDestination extends MessageDestination {
 /// The server accepts a list of Zulip API emails as an alternative to
 /// a list of user IDs, but this binding currently doesn't.
 class DmDestination extends MessageDestination {
-  DmDestination({required this.userIds});
+  const DmDestination({required this.userIds});
 
   final List<int> userIds;
 }
