@@ -97,9 +97,11 @@ ThemeData zulipThemeData(BuildContext context) {
 // As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
 const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 
-/// Variables from the Figma design.
+/// Design variables, mainly from the Figma design.
 ///
 /// For how to export these from the Figma, see:
+///   https://github.com/zulip/zulip-flutter/pull/762#discussion_r1664748114
+/// or
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.light() :
