@@ -143,6 +143,21 @@ private class AndroidNotificationHost(val context: Context)
         }
         return null
     }
+
+    override fun getActiveNotifications(desiredExtras: List<String>): List<StatusBarNotification> {
+        return NotificationManagerCompat.from(context).activeNotifications.map {
+            StatusBarNotification(
+                it.id.toLong(),
+                it.tag,
+                Notification(
+                    it.notification.group,
+                    desiredExtras
+                        .associateWith { key -> it.notification.extras.getString(key) }
+                        .filter { entry -> entry.value != null }
+                ),
+            )
+        }
+    }
 }
 
 /** A Flutter plugin for the Zulip app's ad-hoc needs. */

@@ -256,6 +256,65 @@ data class MessagingStyle (
     )
   }
 }
+
+/**
+ * Corresponds to `android.app.Notification`
+ *
+ * See: https://developer.android.com/reference/kotlin/android/app/Notification
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class Notification (
+  val group: String,
+  val extras: Map<String?, String?>
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): Notification {
+      val group = __pigeon_list[0] as String
+      val extras = __pigeon_list[1] as Map<String?, String?>
+      return Notification(group, extras)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      group,
+      extras,
+    )
+  }
+}
+
+/**
+ * Corresponds to `android.service.notification.StatusBarNotification`
+ *
+ * See: https://developer.android.com/reference/android/service/notification/StatusBarNotification
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class StatusBarNotification (
+  val id: Long,
+  val tag: String,
+  val notification: Notification
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): StatusBarNotification {
+      val id = __pigeon_list[0].let { num -> if (num is Int) num.toLong() else num as Long }
+      val tag = __pigeon_list[1] as String
+      val notification = __pigeon_list[2] as Notification
+      return StatusBarNotification(id, tag, notification)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      id,
+      tag,
+      notification,
+    )
+  }
+}
 private object NotificationsPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -289,6 +348,16 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
           MessagingStyle.fromList(it)
         }
       }
+      135.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Notification.fromList(it)
+        }
+      }
+      136.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          StatusBarNotification.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -316,6 +385,14 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
       }
       is MessagingStyle -> {
         stream.write(134)
+        writeValue(stream, value.toList())
+      }
+      is Notification -> {
+        stream.write(135)
+        writeValue(stream, value.toList())
+      }
+      is StatusBarNotification -> {
+        stream.write(136)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -365,6 +442,17 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
    */
   fun getActiveNotificationMessagingStyleByTag(tag: String): MessagingStyle?
+  /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`.
+   *
+   * The keys of entries to fetch from notification's extras bundle must be
+   * specified in the [desiredExtras] list. If this list is empty, then
+   * [Notifications.extras] will also be empty. If value of the matched entry
+   * is not of type string or is null, then that entry will be skipped.
+   *
+   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
+   */
+  fun getActiveNotifications(desiredExtras: List<String>): List<StatusBarNotification>
 
   companion object {
     /** The codec used by AndroidNotificationHostApi. */
@@ -433,6 +521,23 @@ interface AndroidNotificationHostApi {
             val tagArg = args[0] as String
             val wrapped: List<Any?> = try {
               listOf(api.getActiveNotificationMessagingStyleByTag(tagArg))
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotifications$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val desiredExtrasArg = args[0] as List<String>
+            val wrapped: List<Any?> = try {
+              listOf(api.getActiveNotifications(desiredExtrasArg))
             } catch (exception: Throwable) {
               wrapError(exception)
             }

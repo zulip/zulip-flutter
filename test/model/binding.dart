@@ -620,6 +620,12 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async =>
     _activeNotificationsMessagingStyle[tag];
+
+  @override
+  Future<List<StatusBarNotification?>> getActiveNotifications({required List<String?> desiredExtras}) {
+    // TODO: implement getActiveNotifications
+    throw UnimplementedError();
+  }
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({

@@ -122,6 +122,37 @@ class MessagingStyle {
   final bool isGroupConversation;
 }
 
+/// Corresponds to `android.app.Notification`
+///
+/// See: https://developer.android.com/reference/kotlin/android/app/Notification
+class Notification {
+  Notification({required this.group, required this.extras});
+
+  final String group;
+  final Map<String?, String?> extras;
+  // Various other properties too; add them if needed.
+}
+
+/// Corresponds to `android.service.notification.StatusBarNotification`
+///
+/// See: https://developer.android.com/reference/android/service/notification/StatusBarNotification
+class StatusBarNotification {
+  StatusBarNotification({required this.id, required this.tag, required this.notification});
+
+  final int id;
+  final String tag;
+  final Notification notification;
+
+  // Ignore `groupKey` and `key`.  While the `.groupKey` contains the
+  // `.notification.group`, and the `.key` contains the `.id` and `.tag`,
+  // they also have more stuff added on (and their structure doesn't seem to
+  // be documented.)
+  // final String? groupKey;
+  // final String? key;
+
+  // Various other properties too; add them if needed.
+}
+
 @HostApi()
 abstract class AndroidNotificationHostApi {
   /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
@@ -183,4 +214,14 @@ abstract class AndroidNotificationHostApi {
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
   MessagingStyle? getActiveNotificationMessagingStyleByTag(String tag);
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`.
+  ///
+  /// The keys of entries to fetch from notification's extras bundle must be
+  /// specified in the [desiredExtras] list. If this list is empty, then
+  /// [Notifications.extras] will also be empty. If value of the matched entry
+  /// is not of type string or is null, then that entry will be skipped.
+  ///
+  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
+  List<StatusBarNotification> getActiveNotifications({required List<String> desiredExtras});
 }
