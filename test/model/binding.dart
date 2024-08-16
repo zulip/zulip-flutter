@@ -622,7 +622,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
                   key: message.person.key,
                   name: message.person.name,
                   iconBitmap: null)),
-            ).toList());
+            ).toList(growable: false));
     }
   }
 
