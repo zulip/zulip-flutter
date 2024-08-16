@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
-import '../api/model/model.dart';
+import '../model/store.dart';
 import 'content.dart';
+import 'icons.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'compose_box.dart';
 
-abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends StatefulWidget {
+abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
     super.key,
     required this.controller,
@@ -24,14 +26,14 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 
   Widget buildItem(BuildContext context, int index, ResultT option);
 
-  AutocompleteView<QueryT, ResultT, CandidateT> initViewModel(BuildContext context);
+  AutocompleteView<QueryT, ResultT> initViewModel(BuildContext context);
 
   @override
-  State<AutocompleteField<QueryT, ResultT, CandidateT>> createState() => _AutocompleteFieldState<QueryT, ResultT, CandidateT>();
+  State<AutocompleteField<QueryT, ResultT>> createState() => _AutocompleteFieldState<QueryT, ResultT>();
 }
 
-class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends State<AutocompleteField<QueryT, ResultT, CandidateT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT, CandidateT>> {
-  AutocompleteView<QueryT, ResultT, CandidateT>? _viewModel;
+class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends State<AutocompleteField<QueryT, ResultT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
+  AutocompleteView<QueryT, ResultT>? _viewModel;
 
   void _initViewModel() {
     _viewModel = widget.initViewModel(context)
@@ -71,7 +73,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   @override
-  void didUpdateWidget(covariant AutocompleteField<QueryT, ResultT, CandidateT> oldWidget) {
+  void didUpdateWidget(covariant AutocompleteField<QueryT, ResultT> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.removeListener(_handleControllerChange);
@@ -145,7 +147,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 }
 
-class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult, User> {
+class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult> {
   const ComposeAutocomplete({
     super.key,
     required this.narrow,
@@ -165,7 +167,54 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
   @override
   MentionAutocompleteView initViewModel(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    return MentionAutocompleteView.init(store: store, narrow: narrow);
+    return MentionAutocompleteView.init(store: store, narrow: narrow, wildcards: _wildcards(context, store));
+  }
+
+  List<Wildcard> _wildcards(BuildContext context, PerAccountStore store) {
+    final isDmNarrow = narrow is DmNarrow;
+    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+    final isTopicWildcardAvailable = store.account.zulipFeatureLevel >= 188; // TODO(sever-8)
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return [
+      Wildcard(
+        name: zulipLocalizations.all,
+        value: 'all',
+        fullDisplayName: 'all (${isDmNarrow
+          ? zulipLocalizations.notifyRecipients
+          : zulipLocalizations.notifyChannel(isChannelWildcardAvailable
+              ? "channel" : "stream")})',
+        type: WildcardType.channel,
+      ),
+      Wildcard(
+        name: zulipLocalizations.everyone,
+        value: 'everyone',
+        fullDisplayName: 'everyone (${isDmNarrow
+          ? zulipLocalizations.notifyRecipients
+          : zulipLocalizations.notifyChannel(isChannelWildcardAvailable
+              ? "channel" : "stream")})',
+        type: WildcardType.channel,
+      ),
+      if (!isDmNarrow) ...[
+        if (isChannelWildcardAvailable) Wildcard(
+          name: zulipLocalizations.channel,
+          value: 'channel',
+          fullDisplayName: 'channel (${zulipLocalizations.notifyChannel('channel')})',
+          type: WildcardType.channel,
+        ),
+        Wildcard(
+          name: zulipLocalizations.stream,
+          value: isChannelWildcardAvailable ? 'channel' : 'stream',
+          fullDisplayName: 'stream (${zulipLocalizations.notifyChannel(isChannelWildcardAvailable ? 'channel' : 'stream')})',
+          type: WildcardType.channel,
+        ),
+        if (isTopicWildcardAvailable) Wildcard(
+          name: zulipLocalizations.topic,
+          value: 'topic',
+          fullDisplayName: 'topic (${zulipLocalizations.notifyTopic})',
+          type: WildcardType.topic,
+        ),
+      ],
+    ];
   }
 
   void _onTapOption(BuildContext context, MentionAutocompleteResult option) {
@@ -183,7 +232,9 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
       case UserMentionAutocompleteResult(:var userId):
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
+        replacementString = '${userMention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
+      case WildcardMentionAutocompleteResult(:var wildcardName):
+        replacementString = '${wildcardMention(_wildcards(context, store).singleWhere((w) => w.name == wildcardName).value)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -196,12 +247,17 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
 
   @override
   Widget buildItem(BuildContext context, int index, MentionAutocompleteResult option) {
+    final store = PerAccountStoreWidget.of(context);
     Widget avatar;
     String label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
-        label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+        avatar = Avatar(userId: userId, size: 32, borderRadius: 3); // web uses 21px
+        label = store.users[userId]!.fullName;
+      case WildcardMentionAutocompleteResult(:var wildcardName):
+        avatar = const Icon(ZulipIcons.bullhorn, size: 29); // web uses 19px
+        print('wildcard name: $wildcardName');
+        label = _wildcards(context, store).singleWhere((w) => w.name == wildcardName).fullDisplayName;
     }
     return InkWell(
       onTap: () {
@@ -218,7 +274,7 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
   }
 }
 
-class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult, String> {
+class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
   const TopicAutocomplete({
     super.key,
     required this.streamId,

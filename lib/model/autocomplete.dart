@@ -187,7 +187,7 @@ class AutocompleteViewManager {
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
-abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends ChangeNotifier {
+abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends ChangeNotifier {
   AutocompleteView({required this.store});
 
   final PerAccountStore store;
@@ -284,20 +284,23 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   }
 }
 
-class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult, User> {
+class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
   MentionAutocompleteView._({
     required super.store,
     required this.narrow,
+    required this.wildcards,
     required this.sortedUsers,
   });
 
   factory MentionAutocompleteView.init({
     required PerAccountStore store,
     required Narrow narrow,
+    required List<Wildcard> wildcards,
   }) {
     final view = MentionAutocompleteView._(
       store: store,
       narrow: narrow,
+      wildcards: wildcards,
       sortedUsers: _usersByRelevance(store: store, narrow: narrow),
     );
     store.autocompleteViewManager.registerMentionAutocomplete(view);
@@ -305,24 +308,8 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   final Narrow narrow;
+  final List<Wildcard> wildcards;
   final List<User> sortedUsers;
-
-  @override
-  Future<List<MentionAutocompleteResult>?> computeResults() async {
-    final results = <MentionAutocompleteResult>[];
-    if (await filterCandidates(filter: _testUser,
-          candidates: sortedUsers, results: results)) {
-      return null;
-    }
-    return results;
-  }
-
-  MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
-      return UserMentionAutocompleteResult(userId: user.userId);
-    }
-    return null;
-  }
 
   static List<User> _usersByRelevance({
     required PerAccountStore store,
@@ -377,8 +364,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required String? topic,
     required PerAccountStore store,
   }) {
-    // TODO(#234): give preference to "all", "everyone" or "stream"
-
     // TODO(#618): give preference to subscribed users first
 
     if (streamId != null) {
@@ -483,6 +468,42 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
+  bool _isChannelWildcardIncluded = false;
+
+  @override
+  Future<List<MentionAutocompleteResult>?> computeResults() async {
+    _isChannelWildcardIncluded = false;
+    final results = <MentionAutocompleteResult>[];
+    // give priority to wildcard mentions
+    if (await filterCandidates(filter: _testWildcard,
+        candidates: wildcards, results: results)) {
+      return null;
+    }
+    if (await filterCandidates(filter: _testUser,
+        candidates: sortedUsers, results: results)) {
+      return null;
+    }
+    return results;
+  }
+
+  MentionAutocompleteResult? _testWildcard(MentionAutocompleteQuery query, Wildcard wildcard) {
+    if (query.testWildcard(wildcard)) {
+      if (wildcard.type == WildcardType.channel) {
+        if (_isChannelWildcardIncluded) return null;
+        _isChannelWildcardIncluded = true;
+      }
+      return WildcardMentionAutocompleteResult(wildcardName: wildcard.name);
+    }
+    return null;
+  }
+
+  MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
+    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
+      return UserMentionAutocompleteResult(userId: user.userId);
+    }
+    return null;
+  }
+
   @override
   void dispose() {
     store.autocompleteViewManager.unregisterMentionAutocomplete(this);
@@ -491,6 +512,37 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
     super.dispose();
   }
+}
+
+class Wildcard {
+  Wildcard({
+    required this.name,
+    required this.value,
+    required this.fullDisplayName,
+    required this.type,
+  });
+
+  /// The name of the wildcard to be shown as part of [fullDisplayName] in autocomplete suggestions.
+  ///
+  /// Ex: "channel", "stream", "topic", ...
+  final String name;
+
+  /// The value to be put at the compose box after choosing an option from autocomplete.
+  ///
+  /// Same as the [name], except for "stream" it is "channel" in FL >= 247 (server-9).
+  final String value; // TODO(sever-9): remove, instead use [name]
+
+  /// The full name of the wildcard to be shown in autocomplete suggestions.
+  ///
+  /// Ex: "all (Notify channel)" or "everyone (Notify recipients)".
+  final String fullDisplayName;
+
+  final WildcardType type;
+}
+
+enum WildcardType {
+  channel,
+  topic, // TODO(sever-8)
 }
 
 abstract class AutocompleteQuery {
@@ -529,15 +581,14 @@ class MentionAutocompleteQuery extends AutocompleteQuery {
   /// Whether the user wants a silent mention (@_query, vs. @query).
   final bool silent;
 
-  bool testUser(User user, AutocompleteDataCache cache) {
-    // TODO(#236) test email too, not just name
-
-    if (!user.isActive) return false;
-
-    return _testName(user, cache);
+  bool testWildcard(Wildcard wildcard) {
+    return wildcard.name.contains(raw.toLowerCase());
   }
 
-  bool _testName(User user, AutocompleteDataCache cache) {
+  bool testUser(User user, AutocompleteDataCache cache) {
+    if (!user.isActive) return false;
+
+    // TODO(#236) test email too, not just name
     return _testContainsQueryWords(cache.nameWordsForUser(user));
   }
 
@@ -585,11 +636,15 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   final int userId;
 }
 
+class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+  WildcardMentionAutocompleteResult({required this.wildcardName});
+
+  final String wildcardName;
+}
+
 // TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
-// TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
-
-class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult, String> {
+class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
   TopicAutocompleteView._({required super.store, required this.streamId});
 
   factory TopicAutocompleteView.init({required PerAccountStore store, required int streamId}) {

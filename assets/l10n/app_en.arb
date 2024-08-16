@@ -533,5 +533,40 @@
   "manyPeopleTyping": "Several people are typing…",
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "all": "all",
+  "@all": {
+    "description": "Text for \"@all\" wildcard mention."
+  },
+  "everyone": "everyone",
+  "@everyone": {
+    "description": "Text for \"@everyone\" wildcard mention."
+  },
+  "channel": "channel",
+  "@channel": {
+    "description": "Text for \"@channel\" wildcard mention."
+  },
+  "stream": "stream",
+  "@stream": {
+    "description": "Text for \"@stream\" wildcard mention."
+  },
+  "topic": "topic",
+  "@topic": {
+    "description": "Text for \"@topic\" wildcard mention."
+  },
+  "notifyChannel": "Notify {value, select, channel{channel} other{stream}}",
+  "@notifyChannel": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard mentions in a channel or topic narrow.",
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "notifyRecipients": "Notify recipients",
+  "@notifyRecipients": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard mentions in a DM narrow."
+  },
+  "notifyTopic": "Notify topic",
+  "@notifyTopic": {
+    "description": "Description for \"@topic\" wildcard mention in a channel or topic narrow."
   }
 }
