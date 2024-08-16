@@ -453,6 +453,12 @@ interface AndroidNotificationHostApi {
    * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
    */
   fun getActiveNotifications(desiredExtras: List<String>): List<StatusBarNotification>
+  /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.cancel`.
+   *
+   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#cancel(java.lang.String,int)
+   */
+  fun cancel(tag: String?, id: Long)
 
   companion object {
     /** The codec used by AndroidNotificationHostApi. */
@@ -538,6 +544,25 @@ interface AndroidNotificationHostApi {
             val desiredExtrasArg = args[0] as List<String>
             val wrapped: List<Any?> = try {
               listOf(api.getActiveNotifications(desiredExtrasArg))
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.cancel$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val tagArg = args[0] as String?
+            val idArg = args[1].let { num -> if (num is Int) num.toLong() else num as Long }
+            val wrapped: List<Any?> = try {
+              api.cancel(tagArg, idArg)
+              listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)
             }

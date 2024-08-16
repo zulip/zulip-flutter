@@ -158,6 +158,10 @@ private class AndroidNotificationHost(val context: Context)
             )
         }
     }
+
+    override fun cancel(tag: String?, id: Long) {
+        NotificationManagerCompat.from(context).cancel(tag, id.toInt())
+    }
 }
 
 /** A Flutter plugin for the Zulip app's ad-hoc needs. */

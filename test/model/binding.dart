@@ -626,6 +626,12 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     // TODO: implement getActiveNotifications
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> cancel({String? tag, required int id}) {
+    // TODO: implement cancel
+    throw UnimplementedError();
+  }
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({

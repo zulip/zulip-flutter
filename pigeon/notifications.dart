@@ -224,4 +224,9 @@ abstract class AndroidNotificationHostApi {
   ///
   /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
   List<StatusBarNotification> getActiveNotifications({required List<String> desiredExtras});
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.cancel`.
+  ///
+  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#cancel(java.lang.String,int)
+  void cancel({String? tag, required int id});
 }
