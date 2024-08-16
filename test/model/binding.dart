@@ -555,10 +555,14 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }
   List<AndroidNotificationHostApiNotifyCall> _notifyCalls = [];
 
+  Iterable<StatusBarNotification> get activeNotifications => _activeNotifications.values;
+  final Map<(int, String?), StatusBarNotification> _activeNotifications = {};
+
   final Map<String, MessagingStyle?> _activeNotificationsMessagingStyle = {};
 
   /// Clears all active notifications that have been created via [notify].
   void clearActiveNotifications() {
+    _activeNotifications.clear();
     _activeNotificationsMessagingStyle.clear();
   }
 
@@ -599,6 +603,11 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     ));
 
     if (tag != null) {
+      _activeNotifications[(id, tag)] = StatusBarNotification(
+        id: id,
+        notification: Notification(group: groupKey ?? '', extras: extras ?? {}),
+        tag: tag);
+
       _activeNotificationsMessagingStyle[tag] = messagingStyle == null
         ? null
         : MessagingStyle(
@@ -622,15 +631,21 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeNotificationsMessagingStyle[tag];
 
   @override
-  Future<List<StatusBarNotification?>> getActiveNotifications({required List<String?> desiredExtras}) {
-    // TODO: implement getActiveNotifications
-    throw UnimplementedError();
+  Future<List<StatusBarNotification?>> getActiveNotifications({required List<String?> desiredExtras}) async {
+    return _activeNotifications.values.map((statusNotif) {
+      final notificationExtras = statusNotif.notification.extras;
+      statusNotif.notification.extras = Map.fromEntries(
+        desiredExtras
+          .map((key) => MapEntry(key, notificationExtras[key]))
+          .where((entry) => entry.value != null)
+      );
+      return statusNotif;
+    }).toList(growable: false);
   }
 
   @override
-  Future<void> cancel({String? tag, required int id}) {
-    // TODO: implement cancel
-    throw UnimplementedError();
+  Future<void> cancel({String? tag, required int id}) async {
+    _activeNotifications.remove((id, tag));
   }
 }
 

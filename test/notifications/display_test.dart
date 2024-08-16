@@ -6,7 +6,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide Notification;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -72,6 +72,20 @@ MessageFcmMessage messageFcmMessage(
       },
     }),
   }) as MessageFcmMessage;
+}
+
+RemoveFcmMessage removeFcmMessage(List<Message> zulipMessages, {Account? account}) {
+  account ??= eg.selfAccount;
+  return FcmMessage.fromJson({
+    "event": "remove",
+
+    "server": "zulip.example.cloud",
+    "realm_id": "4",
+    "realm_uri": account.realmUrl.toString(),
+    "user_id": account.userId.toString(),
+
+    "zulip_message_ids": zulipMessages.map((e) => e.id).join(','),
+  }) as RemoveFcmMessage;
 }
 
 void main() {
@@ -171,7 +185,10 @@ void main() {
             ..number.equals(messageStyleMessages.length)
             ..color.equals(kZulipBrandColor.value)
             ..smallIconResourceName.equals('zulip_notification')
-            ..extras.isNull()
+            ..extras.which((it) => it.isNotNull()
+              ..deepEquals(<String, String>{
+                NotificationDisplayManager.kExtraZulipMessageId: data.zulipMessageId.toString(),
+              }))
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
             ..inboxStyle.isNull()
@@ -227,10 +244,32 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     }
 
-    Future<void> receiveFcmMessage(FakeAsync async, MessageFcmMessage data) async {
+    Future<void> receiveFcmMessage(FakeAsync async, FcmMessage data) async {
       testBinding.firebaseMessaging.onMessage.add(
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
+    }
+
+    Condition<Object?> conditionActiveNotif(MessageFcmMessage data, String tagComponent) {
+      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+      final expectedTag = '$expectedGroupKey|$tagComponent';
+      return (it) => it.isA<StatusBarNotification>()
+        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedTag))
+        ..notification.which((it) => it
+          ..group.equals(expectedGroupKey)
+          ..extras.deepEquals(<String, String>{
+            NotificationDisplayManager.kExtraZulipMessageId: data.zulipMessageId.toString(),
+          }))
+        ..tag.equals(expectedTag);
+    }
+
+    Condition<Object?> conditionSummaryActiveNotif(String expectedGroupKey) {
+      return (it) => it.isA<StatusBarNotification>()
+        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+        ..notification.which((it) => it
+          ..group.equals(expectedGroupKey)
+          ..extras.isEmpty())
+        ..tag.equals(expectedGroupKey);
     }
 
     test('stream message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
@@ -495,6 +534,190 @@ void main() {
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
     })));
+
+    test('remove: smoke', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final message = eg.streamMessage();
+      final data = messageFcmMessage(message);
+      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      // Check on foreground event; onMessage
+      await receiveFcmMessage(async, data);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+      testBinding.firebaseMessaging.onMessage.add(
+        RemoteMessage(data: removeFcmMessage([message]).toJson()));
+      async.flushMicrotasks();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      // Check on background event; onBackgroundMessage
+      await receiveFcmMessage(async, data);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+      testBinding.firebaseMessaging.onBackgroundMessage.add(
+        RemoteMessage(data: removeFcmMessage([message]).toJson()));
+      async.flushMicrotasks();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('remove: clears conversation only if the removal event is for the last message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topicA = 'Topic A';
+      final message1 = eg.streamMessage(stream: stream, topic: topicA);
+      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(stream: stream, topic: topicA);
+      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final message3 = eg.streamMessage(stream: stream, topic: topicA);
+      final data3 = messageFcmMessage(message3, streamName: stream.name);
+      final expectedGroupKey = '${data1.realmUri}|${data1.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data3);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data3, 'stream:${stream.streamId}:$topicA'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+
+      // A RemoveFcmMessage for the first two messages; the notification stays.
+      receiveFcmMessage(async, removeFcmMessage([message1, message2]));
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data3, 'stream:${stream.streamId}:$topicA'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+
+      // Then a RemoveFcmMessage for the last message; clear the notification.
+      receiveFcmMessage(async, removeFcmMessage([message3]));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('remove: clears summary notification only if all conversation notifications are cleared', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topicA = 'Topic A';
+      final message1 = eg.streamMessage(stream: stream, topic: topicA);
+      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      const topicB = 'Topic B';
+      final message2 = eg.streamMessage(stream: stream, topic: topicB);
+      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final expectedGroupKey = '${data1.realmUri}|${data1.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      // Two notifications for different conversations; but same account.
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data1, 'stream:${stream.streamId}:$topicA'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topicB'),
+      ]);
+
+      // A RemoveFcmMessage for first conversation; only clears the first conversation notif.
+      await receiveFcmMessage(async, removeFcmMessage([message1]));
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionSummaryActiveNotif(expectedGroupKey),
+        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topicB'),
+      ]);
+
+      // Then a RemoveFcmMessage for the only remaining conversation;
+      // clears both the conversation notif and summary notif.
+      await receiveFcmMessage(async, removeFcmMessage([message2]));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+
+    test('remove: different realm URLs but same user-ids and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topic = 'Some Topic';
+
+      final account1 = eg.account(
+        realmUrl: Uri.parse('https://1.chat.example'),
+        id: 1001,
+        user: eg.user(userId: 1001));
+      final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
+      final data1 =
+        messageFcmMessage(message1, account: account1, streamName: stream.name);
+      final groupKey1 = '${account1.realmUrl}|${account1.userId}';
+
+      final account2 = eg.account(
+        realmUrl: Uri.parse('https://2.chat.example'),
+        id: 1001,
+        user: eg.user(userId: 1001));
+      final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
+      final data2 =
+        messageFcmMessage(message2, account: account2, streamName: stream.name);
+      final groupKey2 = '${account2.realmUrl}|${account2.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data1, 'stream:${stream.streamId}:$topic'),
+        conditionSummaryActiveNotif(groupKey1),
+        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionSummaryActiveNotif(groupKey2),
+      ]);
+
+      await receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionSummaryActiveNotif(groupKey2),
+      ]);
+
+      await receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('remove: different user-ids but same realm URL and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final realmUrl = eg.realmUrl;
+      final stream = eg.stream();
+      const topic = 'Some Topic';
+
+      final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
+      final data1 =
+        messageFcmMessage(message1, account: account1, streamName: stream.name);
+      final groupKey1 = '${account1.realmUrl}|${account1.userId}';
+
+      final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
+      final data2 =
+        messageFcmMessage(message2, account: account2, streamName: stream.name);
+      final groupKey2 = '${account2.realmUrl}|${account2.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data1, 'stream:${stream.streamId}:$topic'),
+        conditionSummaryActiveNotif(groupKey1),
+        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionSummaryActiveNotif(groupKey2),
+      ]);
+
+      await receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionSummaryActiveNotif(groupKey2),
+      ]);
+
+      await receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
   });
 
   group('NotificationDisplayManager open', () {
@@ -699,4 +922,15 @@ extension on Subject<MessagingStyleMessage> {
   Subject<String> get text => has((x) => x.text, 'text');
   Subject<int> get timestampMs => has((x) => x.timestampMs, 'timestampMs');
   Subject<Person> get person => has((x) => x.person, 'person');
+}
+
+extension on Subject<Notification> {
+  Subject<String> get group => has((x) => x.group, 'group');
+  Subject<Map<String?, String?>> get extras => has((x) => x.extras, 'extras');
+}
+
+extension on Subject<StatusBarNotification> {
+  Subject<int> get id => has((x) => x.id, 'id');
+  Subject<Notification> get notification => has((x) => x.notification, 'notification');
+  Subject<String> get tag => has((x) => x.tag, 'tag');
 }

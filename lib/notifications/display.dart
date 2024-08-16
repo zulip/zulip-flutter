@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide Notification;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
 
 import '../api/notifications.dart';
@@ -84,7 +84,7 @@ class NotificationDisplayManager {
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
-      case RemoveFcmMessage(): break; // TODO(#341) handle
+      case RemoveFcmMessage(): _onRemoveFcmMessage(data);
       case UnexpectedFcmMessage(): break; // TODO(log)
     }
   }
@@ -155,6 +155,10 @@ class NotificationDisplayManager {
 
       messagingStyle: messagingStyle,
       number: messagingStyle.messages.length,
+      extras: {
+        // Used to decide when a `RemoveFcmMessage` event should clear this notification.
+        kExtraZulipMessageId: data.zulipMessageId.toString(),
+      },
 
       contentIntent: PendingIntent(
         // TODO make intent URLs distinct, instead of requestCode
@@ -201,6 +205,67 @@ class NotificationDisplayManager {
       autoCancel: true,
     );
   }
+
+  static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
+    assert(debugLog('notif remove zulipMessageIds: ${data.zulipMessageIds}'));
+
+    final groupKey = _groupKey(data);
+    final activeNotifications =
+      await ZulipBinding.instance.androidNotificationHost.getActiveNotifications(
+        desiredExtras: [kExtraZulipMessageId]);
+
+    var haveRemaining = false;
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
+      final notification = statusBarNotification.notification;
+
+      // Sadly we don't get toString on Pigeon data classes: flutter#59027
+      assert(debugLog('  existing notif'
+        ' id: ${statusBarNotification.id}, tag: ${statusBarNotification.tag},'
+        ' notification: (group: ${notification.group}, extras: ${notification.extras}))'));
+
+      // Don't act on notifications that are for other Zulip accounts/identities.
+      if (notification.group != groupKey) continue;
+
+      // Don't act on the summary notification for the group.
+      if (statusBarNotification.tag == groupKey) continue;
+
+      final lastMessageIdStr = notification.extras[kExtraZulipMessageId];
+      assert(lastMessageIdStr != null);
+      if (lastMessageIdStr == null) continue; // TODO(log)
+      final lastMessageId = int.parse(lastMessageIdStr, radix: 10);
+      if (data.zulipMessageIds.contains(lastMessageId)) {
+        // The latest Zulip message in this conversation was read.
+        // That's our cue to cancel the notification for the conversation.
+        await ZulipBinding.instance.androidNotificationHost
+          .cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+        assert(debugLog('  … notif cancelled.'));
+      } else {
+        // This notification is for another conversation that's still unread.
+        // We won't cancel the summary notification.
+        haveRemaining = true;
+      }
+    }
+
+    if (!haveRemaining) {
+      // The notification group is now empty; it had no notifications we didn't
+      // just cancel, except the summary notification.  Cancel that one too.
+      //
+      // Even though we enable the `autoCancel` flag for summary notification
+      // during creation, the summary notification doesn't get auto canceled if
+      // child notifications are canceled programatically as done above.
+      await ZulipBinding.instance.androidNotificationHost
+        .cancel(tag: groupKey, id: notificationIdAsHashOf(groupKey));
+    }
+  }
+
+  /// The key for the message-id entry in [Notification.extras] metadata.
+  ///
+  /// Currently, it is used to store the message-id in the respective
+  /// notification which is later fetched to determine if a [RemoveFcmMessage]
+  /// event should clear that specific notification.
+  @visibleForTesting
+  static const kExtraZulipMessageId = 'zulipMessageId';
 
   /// A notification ID, derived as a hash of the given string key.
   ///
