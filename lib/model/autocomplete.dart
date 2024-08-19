@@ -311,6 +311,19 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   final Narrow narrow;
   final List<User> sortedUsers;
 
+  @override
+  Iterable<User> getSortedItemsToTest() {
+    return sortedUsers;
+  }
+
+  @override
+  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, User item) {
+    if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
+      return UserMentionAutocompleteResult(userId: item.userId);
+    }
+    return null;
+  }
+
   static List<User> _usersByRelevance({
     required PerAccountStore store,
     required Narrow narrow,
@@ -415,19 +428,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
         streamId: streamId, senderId: userA.userId),
       recentSenders.latestMessageIdOfSenderInStream(
         streamId: streamId, senderId: userB.userId));
-  }
-
-  @override
-  Iterable<User> getSortedItemsToTest() {
-    return sortedUsers;
-  }
-
-  @override
-  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, User item) {
-    if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
-      return UserMentionAutocompleteResult(userId: item.userId);
-    }
-    return null;
   }
 
   /// Determines which of the two users is more recent in DM conversations.
