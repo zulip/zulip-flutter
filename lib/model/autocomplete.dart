@@ -192,7 +192,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
 
   final PerAccountStore store;
 
-  Iterable<CandidateT> getSortedItemsToTest(QueryT query);
+  Iterable<CandidateT> getSortedItemsToTest();
 
   ResultT? testItem(QueryT query, CandidateT item);
 
@@ -230,7 +230,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
 
   Future<List<ResultT>?> _computeResults(QueryT query) async {
     final List<ResultT> results = [];
-    final Iterable<CandidateT> data = getSortedItemsToTest(query);
+    final Iterable<CandidateT> data = getSortedItemsToTest();
 
     final iterator = data.iterator;
     bool isDone = false;
@@ -386,7 +386,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   @override
-  Iterable<User> getSortedItemsToTest(MentionAutocompleteQuery query) {
+  Iterable<User> getSortedItemsToTest() {
     return sortedUsers;
   }
 
@@ -586,7 +586,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   }
 
   @override
-  Iterable<String> getSortedItemsToTest(TopicAutocompleteQuery query) => _topics;
+  Iterable<String> getSortedItemsToTest() => _topics;
 
   @override
   TopicAutocompleteResult? testItem(TopicAutocompleteQuery query, String item) {
