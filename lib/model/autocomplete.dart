@@ -228,6 +228,27 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     notifyListeners();
   }
 
+  /// Completes in a later microtask, returning true if evaluation
+  /// of the current query should stop and false if it should continue.
+  ///
+  /// The deferral to a later microtask allows other code in the app to run.
+  /// A long CPU-intensive loop should call this regularly
+  /// (e.g. every 1000 iterations) so that the UI remains responsive.
+  @protected
+  Future<bool> shouldStop() async {
+    final query = _query;
+    await Future(() {});
+
+    // If the query has changed, stop work on the old query.
+    if (query != _query) return true;
+
+    // If there are no listeners to get the result, stop work.
+    // This happens in particular if [dispose] was called.
+    if (!hasListeners) return true;
+
+    return false;
+  }
+
   Future<List<ResultT>?> _computeResults() async {
     assert(_query != null);
     final query = _query!;
@@ -237,12 +258,9 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     final iterator = data.iterator;
     bool isDone = false;
     while (!isDone) {
-      // CPU perf: End this task; enqueue a new one for resuming this work
-      await Future(() {});
-
-      if (query != _query || !hasListeners) { // false if [dispose] has been called.
-        return null;
-      }
+      assert(_query == query);
+      if (await shouldStop()) return null;
+      assert(_query == query);
 
       for (int i = 0; i < 1000; i++) {
         if (!iterator.moveNext()) {
