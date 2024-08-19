@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -38,10 +39,9 @@ class FakeHttpClient extends http.BaseClient {
     return result;
   }
 
-  _PreparedResponse? _nextResponse;
+  final Queue<_PreparedResponse> _preparedResponses = Queue();
 
-  // Please add more features to this mocking API as needed.  For example:
-  //  * preparing more than one request, and logging more than one request
+  // Please add more features to this mocking API as needed.
 
   /// Prepare the response for the next request.
   ///
@@ -59,11 +59,11 @@ class FakeHttpClient extends http.BaseClient {
     String? body,
     Duration delay = Duration.zero,
   }) {
-    assert(_nextResponse == null,
-      'FakeApiConnection.prepare was called while already expecting a request');
+    // TODO: Prevent a source of bugs by ensuring that there are no outstanding
+    //   prepared responses when the test ends.
     if (exception != null) {
       assert(httpStatus == null && json == null && body == null);
-      _nextResponse = _PreparedException(exception: exception, delay: delay);
+      _preparedResponses.addLast(_PreparedException(exception: exception, delay: delay));
     } else {
       assert((json == null) || (body == null));
       final String resolvedBody = switch ((body, json)) {
@@ -71,11 +71,11 @@ class FakeHttpClient extends http.BaseClient {
         (_, var json?) => jsonEncode(json),
         _              => '',
       };
-      _nextResponse = _PreparedSuccess(
+      _preparedResponses.addLast(_PreparedSuccess(
         httpStatus: httpStatus ?? 200,
         bytes: utf8.encode(resolvedBody),
         delay: delay,
-      );
+      ));
     }
   }
 
@@ -83,7 +83,7 @@ class FakeHttpClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _requestHistory.add(request);
 
-    if (_nextResponse == null) {
+    if (_preparedResponses.isEmpty) {
       throw FlutterError.fromParts([
         ErrorSummary(
           'An API request was attempted in a test when no response was prepared.'),
@@ -92,8 +92,7 @@ class FakeHttpClient extends http.BaseClient {
           'call to [FakeApiConnection.prepare].'),
       ]);
     }
-    final response = _nextResponse!;
-    _nextResponse = null;
+    final response = _preparedResponses.removeFirst();
 
     final http.StreamedResponse Function() computation;
     switch (response) {
