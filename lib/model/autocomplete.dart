@@ -250,25 +250,41 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   }
 
   Future<List<ResultT>?> _computeResults() async {
+    final results = <ResultT>[];
+    if (await filterCandidates(filter: testItem,
+          candidates: getSortedItemsToTest(), results: results)) {
+      return null;
+    }
+    return results;
+  }
+
+  /// Examine the given candidates against `query`, adding matches to `results`.
+  ///
+  /// This function chunks its work for interruption using [shouldStop],
+  /// and returns true if the search was aborted.
+  @protected
+  Future<bool> filterCandidates<T>({
+    required ResultT? Function(QueryT query, T candidate) filter,
+    required Iterable<T> candidates,
+    required List<ResultT> results,
+  }) async {
     assert(_query != null);
     final query = _query!;
-    final List<ResultT> results = [];
-    final Iterable<CandidateT> data = getSortedItemsToTest();
 
-    final iterator = data.iterator;
+    final iterator = candidates.iterator;
     outer: while (true) {
       assert(_query == query);
-      if (await shouldStop()) return null;
+      if (await shouldStop()) return true;
       assert(_query == query);
 
       for (int i = 0; i < 1000; i++) {
         if (!iterator.moveNext()) break outer;
-        final CandidateT item = iterator.current;
-        final result = testItem(query, item);
+        final item = iterator.current;
+        final result = filter(query, item);
         if (result != null) results.add(result);
       }
     }
-    return results;
+    return false;
   }
 }
 
