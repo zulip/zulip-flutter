@@ -192,10 +192,6 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
 
   final PerAccountStore store;
 
-  Iterable<CandidateT> getSortedItemsToTest();
-
-  ResultT? testItem(QueryT query, CandidateT item);
-
   QueryT? get query => _query;
   QueryT? _query;
   set query(QueryT? query) {
@@ -218,7 +214,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   List<ResultT> _results = [];
 
   Future<void> _startSearch() async {
-    final newResults = await _computeResults();
+    final newResults = await computeResults();
     if (newResults == null) {
       // Query was old; new search is in progress. Or, no listeners to notify.
       return;
@@ -227,6 +223,15 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     _results = newResults;
     notifyListeners();
   }
+
+  /// Compute the autocomplete results for the current query,
+  /// returning null if the search aborts early.
+  ///
+  /// Implementations should call [shouldStop] at regular intervals,
+  /// and abort if it completes with true.
+  /// Consider using [filterCandidates].
+  @protected
+  Future<List<ResultT>?> computeResults();
 
   /// Completes in a later microtask, returning true if evaluation
   /// of the current query should stop and false if it should continue.
@@ -247,15 +252,6 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     if (!hasListeners) return true;
 
     return false;
-  }
-
-  Future<List<ResultT>?> _computeResults() async {
-    final results = <ResultT>[];
-    if (await filterCandidates(filter: testItem,
-          candidates: getSortedItemsToTest(), results: results)) {
-      return null;
-    }
-    return results;
   }
 
   /// Examine the given candidates against `query`, adding matches to `results`.
@@ -312,14 +308,18 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   final List<User> sortedUsers;
 
   @override
-  Iterable<User> getSortedItemsToTest() {
-    return sortedUsers;
+  Future<List<MentionAutocompleteResult>?> computeResults() async {
+    final results = <MentionAutocompleteResult>[];
+    if (await filterCandidates(filter: _testUser,
+          candidates: sortedUsers, results: results)) {
+      return null;
+    }
+    return results;
   }
 
-  @override
-  MentionAutocompleteResult? testItem(MentionAutocompleteQuery query, User item) {
-    if (query.testUser(item, store.autocompleteViewManager.autocompleteDataCache)) {
-      return UserMentionAutocompleteResult(userId: item.userId);
+  MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
+    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
+      return UserMentionAutocompleteResult(userId: user.userId);
     }
     return null;
   }
@@ -618,12 +618,18 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   }
 
   @override
-  Iterable<String> getSortedItemsToTest() => _topics;
+  Future<List<TopicAutocompleteResult>?> computeResults() async {
+    final results = <TopicAutocompleteResult>[];
+    if (await filterCandidates(filter: _testTopic,
+          candidates: _topics, results: results)) {
+      return null;
+    }
+    return results;
+  }
 
-  @override
-  TopicAutocompleteResult? testItem(TopicAutocompleteQuery query, String item) {
-    if (query.testTopic(item)) {
-      return TopicAutocompleteResult(topic: item);
+  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, String topic) {
+    if (query.testTopic(topic)) {
+      return TopicAutocompleteResult(topic: topic);
     }
     return null;
   }
