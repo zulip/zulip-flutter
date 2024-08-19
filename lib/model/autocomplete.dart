@@ -201,7 +201,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   set query(QueryT? query) {
     _query = query;
     if (query != null) {
-      _startSearch(query);
+      _startSearch();
     }
   }
 
@@ -210,15 +210,15 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   /// This will redo the search from scratch for the current query, if any.
   void reassemble() {
     if (_query != null) {
-      _startSearch(_query!);
+      _startSearch();
     }
   }
 
   Iterable<ResultT> get results => _results;
   List<ResultT> _results = [];
 
-  Future<void> _startSearch(QueryT query) async {
-    final newResults = await _computeResults(query);
+  Future<void> _startSearch() async {
+    final newResults = await _computeResults();
     if (newResults == null) {
       // Query was old; new search is in progress. Or, no listeners to notify.
       return;
@@ -228,7 +228,9 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     notifyListeners();
   }
 
-  Future<List<ResultT>?> _computeResults(QueryT query) async {
+  Future<List<ResultT>?> _computeResults() async {
+    assert(_query != null);
+    final query = _query!;
     final List<ResultT> results = [];
     final Iterable<CandidateT> data = getSortedItemsToTest();
 
@@ -582,7 +584,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     final result = await getStreamTopics(store.connection, streamId: streamId);
     _topics = result.topics.map((e) => e.name);
     _isFetching = false;
-    if (_query != null) _startSearch(_query!);
+    if (_query != null) _startSearch();
   }
 
   @override
