@@ -256,17 +256,13 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     final Iterable<CandidateT> data = getSortedItemsToTest();
 
     final iterator = data.iterator;
-    bool isDone = false;
-    while (!isDone) {
+    outer: while (true) {
       assert(_query == query);
       if (await shouldStop()) return null;
       assert(_query == query);
 
       for (int i = 0; i < 1000; i++) {
-        if (!iterator.moveNext()) {
-          isDone = true;
-          break;
-        }
+        if (!iterator.moveNext()) break outer;
         final CandidateT item = iterator.current;
         final result = testItem(query, item);
         if (result != null) results.add(result);
