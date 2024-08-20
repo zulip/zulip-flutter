@@ -529,5 +529,13 @@
   "manyPeopleTyping": "Several people are typing…",
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "messageIsEditedLabel": "EDITED",
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message."
+  },
+  "messageIsMovedLabel": "MOVED",
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message."
   }
 }

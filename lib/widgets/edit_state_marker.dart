@@ -69,6 +69,6 @@ class _EditStateMarkerPill extends StatelessWidget {
       child: Transform.translate(
         offset: offset,
         child: Icon(
-          icon, size: 16, color: messageListTheme.editedMovedMarkerCollapsed)));
+          icon, size: 16, color: messageListTheme.editedMovedMarker)));
   }
 }
