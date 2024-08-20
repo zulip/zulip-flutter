@@ -29,11 +29,12 @@ class _PreparedSuccess extends _PreparedResponse {
 /// An [http.Client] that accepts and replays canned responses, for testing.
 class FakeHttpClient extends http.BaseClient {
 
-  http.BaseRequest? lastRequest;
+  Iterable<http.BaseRequest> get requestHistory => _requestHistory;
+  List<http.BaseRequest> _requestHistory = [];
 
-  http.BaseRequest? takeLastRequest() {
-    final result = lastRequest;
-    lastRequest = null;
+  List<http.BaseRequest> takeRequests() {
+    final result = _requestHistory;
+    _requestHistory = [];
     return result;
   }
 
@@ -80,7 +81,7 @@ class FakeHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    lastRequest = request;
+    _requestHistory.add(request);
 
     if (_nextResponse == null) {
       throw FlutterError.fromParts([
@@ -205,9 +206,9 @@ class FakeApiConnection extends ApiConnection {
     super.close();
   }
 
-  http.BaseRequest? get lastRequest => client.lastRequest;
+  http.BaseRequest? get lastRequest => client._requestHistory.lastOrNull;
 
-  http.BaseRequest? takeLastRequest() => client.takeLastRequest();
+  List<http.BaseRequest> takeRequests() => client.takeRequests();
 
   /// Prepare the response for the next request.
   ///
