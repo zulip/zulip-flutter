@@ -209,15 +209,32 @@ class NotificationDisplayManager {
   }
 
   static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
+    // We have an FCM message telling us that some Zulip messages were read
+    // and should no longer appear as notifications.  We'll remove their
+    // conversations' notifications, if appropriate, and then the whole
+    // notification group if it's now empty.
     assert(debugLog('notif remove zulipMessageIds: ${data.zulipMessageIds}'));
 
+    // There may be a lot of messages mentioned here, across a lot of
+    // conversations.  But they'll all be for one account, so they'll
+    // fall under one notification group.
     final groupKey = _groupKey(data);
+
+    // Find any conversations we can cancel the notification for.
+    // The API doesn't lend itself to removing individual messages as
+    // they're read, so we wait until we're ready to remove the whole
+    // conversation's notification.  For background discussion, see:
+    //   https://github.com/zulip/zulip-mobile/pull/4842#pullrequestreview-725817909
+    var haveRemaining = false;
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredExtras: [kExtraZulipMessageId]);
-
-    var haveRemaining = false;
     for (final statusBarNotification in activeNotifications) {
       if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
+
+      // The StatusBarNotification object describes an active notification in the UI.
+      // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
+      // [AndroidNotificationHostApi.notify] (and so to `NotificationManager#notify`
+      // in the underlying Android APIs).  So these are good to match on and inspect.
       final notification = statusBarNotification.notification;
 
       // Sadly we don't get toString on Pigeon data classes: flutter#59027
