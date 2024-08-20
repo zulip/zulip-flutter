@@ -159,7 +159,7 @@ class NotificationDisplayManager {
       number: messagingStyle.messages.length,
       extras: {
         // Used to decide when a `RemoveFcmMessage` event should clear this notification.
-        kExtraZulipMessageId: data.zulipMessageId.toString(),
+        kExtraLastZulipMessageId: data.zulipMessageId.toString(),
       },
 
       contentIntent: PendingIntent(
@@ -227,7 +227,7 @@ class NotificationDisplayManager {
     //   https://github.com/zulip/zulip-mobile/pull/4842#pullrequestreview-725817909
     var haveRemaining = false;
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: [kExtraZulipMessageId]);
+      desiredExtras: [kExtraLastZulipMessageId]);
     for (final statusBarNotification in activeNotifications) {
       if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
 
@@ -248,7 +248,7 @@ class NotificationDisplayManager {
       // Don't act on the summary notification for the group.
       if (statusBarNotification.tag == groupKey) continue;
 
-      final lastMessageIdStr = notification.extras[kExtraZulipMessageId];
+      final lastMessageIdStr = notification.extras[kExtraLastZulipMessageId];
       assert(lastMessageIdStr != null);
       if (lastMessageIdStr == null) continue; // TODO(log)
       final lastMessageId = int.parse(lastMessageIdStr, radix: 10);
@@ -277,13 +277,13 @@ class NotificationDisplayManager {
     }
   }
 
-  /// The key for the message-id entry in [Notification.extras] metadata.
+  /// A key we use in [Notification.extras] for the [Message.id] of the
+  /// latest Zulip message in the notification's conversation.
   ///
-  /// Currently, it is used to store the message-id in the respective
-  /// notification which is later fetched to determine if a [RemoveFcmMessage]
-  /// event should clear that specific notification.
+  /// We use this to determine if a [RemoveFcmMessage] event should
+  /// clear that specific notification.
   @visibleForTesting
-  static const kExtraZulipMessageId = 'zulipMessageId';
+  static const kExtraLastZulipMessageId = 'lastZulipMessageId';
 
   /// A notification ID, derived as a hash of the given string key.
   ///
