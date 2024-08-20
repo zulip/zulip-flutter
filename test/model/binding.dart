@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -208,6 +209,9 @@ class TestZulipBinding extends ZulipBinding {
   Future<void> closeInAppWebView() async {
     _closeInAppWebViewCallCount++;
   }
+
+  @override
+  Stopwatch stopwatch() => clock.stopwatch();
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
