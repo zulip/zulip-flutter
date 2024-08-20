@@ -20,6 +20,8 @@ import '../widgets/page.dart';
 import '../widgets/store.dart';
 import '../widgets/theme.dart';
 
+AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
+
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
   @visibleForTesting
@@ -54,7 +56,7 @@ class NotificationChannelManager {
   //    channel ID and delete it.  See zulip-mobile's `createNotificationChannel`
   //    in android/app/src/main/java/com/zulipmobile/notifications/NotificationChannelManager.kt .
   static Future<void> _ensureChannel() async {
-    await ZulipBinding.instance.androidNotificationHost.createNotificationChannel(NotificationChannel(
+    await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
       name: 'Messages', // TODO(i18n)
       importance: NotificationImportance.high,
@@ -95,7 +97,7 @@ class NotificationDisplayManager {
     final groupKey = _groupKey(data);
     final conversationKey = _conversationKey(data, groupKey);
 
-    final oldMessagingStyle = await ZulipBinding.instance.androidNotificationHost
+    final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
 
     final MessagingStyle messagingStyle;
@@ -141,7 +143,7 @@ class NotificationDisplayManager {
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
-    await ZulipBinding.instance.androidNotificationHost.notify(
+    await _androidHost.notify(
       // TODO the notification ID can be constant, instead of matching requestCode
       //   (This is a legacy of `flutter_local_notifications`.)
       id: notificationIdAsHashOf(conversationKey),
@@ -184,7 +186,7 @@ class NotificationDisplayManager {
       autoCancel: true,
     );
 
-    await ZulipBinding.instance.androidNotificationHost.notify(
+    await _androidHost.notify(
       id: notificationIdAsHashOf(groupKey),
       tag: groupKey,
       channelId: NotificationChannelManager.kChannelId,
@@ -210,9 +212,8 @@ class NotificationDisplayManager {
     assert(debugLog('notif remove zulipMessageIds: ${data.zulipMessageIds}'));
 
     final groupKey = _groupKey(data);
-    final activeNotifications =
-      await ZulipBinding.instance.androidNotificationHost.getActiveNotifications(
-        desiredExtras: [kExtraZulipMessageId]);
+    final activeNotifications = await _androidHost.getActiveNotifications(
+      desiredExtras: [kExtraZulipMessageId]);
 
     var haveRemaining = false;
     for (final statusBarNotification in activeNotifications) {
@@ -237,8 +238,8 @@ class NotificationDisplayManager {
       if (data.zulipMessageIds.contains(lastMessageId)) {
         // The latest Zulip message in this conversation was read.
         // That's our cue to cancel the notification for the conversation.
-        await ZulipBinding.instance.androidNotificationHost
-          .cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+        await _androidHost.cancel(
+          tag: statusBarNotification.tag, id: statusBarNotification.id);
         assert(debugLog('  … notif cancelled.'));
       } else {
         // This notification is for another conversation that's still unread.
@@ -254,8 +255,8 @@ class NotificationDisplayManager {
       // Even though we enable the `autoCancel` flag for summary notification
       // during creation, the summary notification doesn't get auto canceled if
       // child notifications are canceled programatically as done above.
-      await ZulipBinding.instance.androidNotificationHost
-        .cancel(tag: groupKey, id: notificationIdAsHashOf(groupKey));
+      await _androidHost.cancel(
+        tag: groupKey, id: notificationIdAsHashOf(groupKey));
     }
   }
 
