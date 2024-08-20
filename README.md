@@ -255,8 +255,6 @@ To update the version bounds:
 * Use `flutter upgrade` to upgrade your local Flutter and Dart.
 * Run `tools/upgrade flutter-local`, which makes a commit updating
   `pubspec.yaml` and `pubspec.lock` to match your local Flutter.
-* Make a quick check that things work: `tools/check`,
-  and do a quick smoke-test of the app.
 * Send the changes as a PR.
 
 
