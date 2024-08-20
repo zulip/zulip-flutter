@@ -17,7 +17,6 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/content.dart';
-import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/store.dart';
@@ -1039,10 +1038,10 @@ void main() {
     });
   });
 
-  group('EditStateMarker', () {
+  group('edit state label', () {
     void checkMarkersCount({required int edited, required int moved}) {
-      check(find.byIcon(ZulipIcons.edited).evaluate()).length.equals(edited);
-      check(find.byIcon(ZulipIcons.message_moved).evaluate()).length.equals(moved);
+      check(find.text('EDITED').evaluate()).length.equals(edited);
+      check(find.text('MOVED').evaluate()).length.equals(moved);
     }
 
     testWidgets('no edited or moved messages', (tester) async {
@@ -1069,72 +1068,6 @@ void main() {
       await store.handleEvent(eg.updateMessageEditEvent(message2, renderedContent: 'edited'));
       await tester.pump();
       checkMarkersCount(edited: 2, moved: 0);
-    });
-
-    List<List<(String, Rect)>> captureMessageRects(
-      WidgetTester tester,
-      List<Message> messages,
-      Message targetMessage,
-    ) {
-      assert(messages.contains(targetMessage));
-      final List<List<(String, Rect)>> result = [];
-      for (final message in messages) {
-        final baseFinder = find.byWidgetPredicate(
-          (widget) => widget is MessageWithPossibleSender
-            && widget.item.message.id == message.id);
-
-        Rect getRectMatching(Finder matching) {
-          final finder = find.descendant(
-            of: baseFinder, matching: matching)..tryEvaluate();
-          check(finder.found, because: '${message.content}: $matching')
-            .length.equals(1);
-          return tester.getRect(finder.first);
-        }
-
-        result.add([
-          ('MessageWithPossibleSender', tester.getRect(baseFinder)),
-          ('MessageContent', getRectMatching(find.byType(MessageContent))),
-          ('Paragraph', getRectMatching(find.byType(Paragraph))),
-          if (message.id == targetMessage.id) ...[
-            ('Star', getRectMatching(find.byIcon(ZulipIcons.star_filled))),
-            ('ReactionChipsList', getRectMatching(find.byType(ReactionChipsList))),
-          ],
-        ]);
-      }
-      return result;
-    }
-
-    testWidgets('edit state updates do not affect layout', (tester) async {
-      final messages = [
-        eg.streamMessage(topic: 'orig'),
-        eg.streamMessage(
-          topic: 'orig',
-          reactions: [eg.unicodeEmojiReaction, eg.realmEmojiReaction],
-          flags: [MessageFlag.starred]),
-        eg.streamMessage(topic: 'orig'),
-      ];
-      final StreamMessage messageWithMarker = messages[1];
-      await setupMessageListPage(tester, messages: messages);
-      final rectsBefore = captureMessageRects(tester, messages, messageWithMarker);
-      checkMarkersCount(edited: 0, moved: 0);
-
-      await store.handleEvent(eg.updateMessageEventMoveFrom(
-        origMessages: [store.messages[messageWithMarker.id] as StreamMessage],
-        newTopic: 'new'));
-      await tester.pump();
-      await store.handleEvent(eg.updateMessageEventMoveFrom(
-        origMessages: [store.messages[messageWithMarker.id] as StreamMessage],
-        newTopic: 'orig'));
-      await tester.pump();
-      check(captureMessageRects(tester, messages, messageWithMarker))
-        .deepEquals(rectsBefore);
-      checkMarkersCount(edited: 0, moved: 1);
-
-      await store.handleEvent(eg.updateMessageEditEvent(messageWithMarker));
-      await tester.pump();
-      check(captureMessageRects(tester, messages, messageWithMarker))
-        .deepEquals(rectsBefore);
-      checkMarkersCount(edited: 1, moved: 0);
     });
   });
 

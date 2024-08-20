@@ -112,6 +112,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: const Color(0x33000000),
       icon: const Color(0xff666699),
       labelCounterUnread: const Color(0xff222222),
+      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
       labelMenuButton: const Color(0xff222222),
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
@@ -140,6 +141,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: Colors.black.withValues(alpha: 0.41),
       icon: const Color(0xff7070c2),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
+      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
       labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
@@ -174,6 +176,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.borderBar,
     required this.icon,
     required this.labelCounterUnread,
+    required this.labelEdited,
     required this.labelMenuButton,
     required this.mainBackground,
     required this.title,
@@ -210,6 +213,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color borderBar;
   final Color icon;
   final Color labelCounterUnread;
+  final Color labelEdited;
   final Color labelMenuButton;
   final Color mainBackground;
   final Color title;
@@ -241,6 +245,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? borderBar,
     Color? icon,
     Color? labelCounterUnread,
+    Color? labelEdited,
     Color? labelMenuButton,
     Color? mainBackground,
     Color? title,
@@ -267,6 +272,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: borderBar ?? this.borderBar,
       icon: icon ?? this.icon,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
+      labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       mainBackground: mainBackground ?? this.mainBackground,
       title: title ?? this.title,
@@ -300,6 +306,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
+      labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       title: Color.lerp(title, other.title, t)!,

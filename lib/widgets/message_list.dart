@@ -22,7 +22,6 @@ import 'page.dart';
 import 'profile.dart';
 import 'sticky_header.dart';
 import 'store.dart';
-import 'edit_state_marker.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -33,7 +32,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.black,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      editedMovedMarkerCollapsed: const Color.fromARGB(128, 146, 167, 182),
       messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
@@ -60,8 +58,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.white,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      editedMovedMarkerCollapsed: const Color.fromARGB(128, 214, 202, 194),
       messageTimestamp: const HSLColor.fromAHSL(0.6, 0, 0, 1).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
@@ -86,7 +82,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dateSeparator,
     required this.dateSeparatorText,
     required this.dmRecipientHeaderBg,
-    required this.editedMovedMarkerCollapsed,
     required this.messageTimestamp,
     required this.recipientHeaderText,
     required this.senderBotIcon,
@@ -111,7 +106,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dateSeparator;
   final Color dateSeparatorText;
   final Color dmRecipientHeaderBg;
-  final Color editedMovedMarkerCollapsed;
   final Color messageTimestamp;
   final Color recipientHeaderText;
   final Color senderBotIcon;
@@ -127,7 +121,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? dateSeparator,
     Color? dateSeparatorText,
     Color? dmRecipientHeaderBg,
-    Color? editedMovedMarkerCollapsed,
     Color? messageTimestamp,
     Color? recipientHeaderText,
     Color? senderBotIcon,
@@ -142,7 +135,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
-      editedMovedMarkerCollapsed: editedMovedMarkerCollapsed ?? this.editedMovedMarkerCollapsed,
       messageTimestamp: messageTimestamp ?? this.messageTimestamp,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
@@ -164,7 +156,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
-      editedMovedMarkerCollapsed: Color.lerp(editedMovedMarkerCollapsed, other.editedMovedMarkerCollapsed, t)!,
       messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
@@ -1257,6 +1248,16 @@ class MessageWithPossibleSender extends StatelessWidget {
         ]);
     }
 
+    final localizations = ZulipLocalizations.of(context);
+    String? editStateText;
+    switch (message.editState) {
+      case MessageEditState.edited:
+        editStateText = localizations.messageIsEditedLabel;
+      case MessageEditState.moved:
+        editStateText = localizations.messageIsMovedLabel;
+      case MessageEditState.none:
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
@@ -1266,15 +1267,26 @@ class MessageWithPossibleSender extends StatelessWidget {
           if (senderRow != null)
             Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
               child: senderRow),
-          EditStateMarker(
-            editState: message.editState,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: localizedTextBaseline(context),
             children: [
+              const SizedBox(width: 16),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   MessageContent(message: message, content: item.content),
                   if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!)
+                    ReactionChipsList(messageId: message.id, reactions: message.reactions!),
+                  if (editStateText != null)
+                    Text(editStateText,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        color: designVariables.labelEdited,
+                        fontSize: 12,
+                        height: (12 / 12),
+                        letterSpacing: proportionalLetterSpacing(
+                          context, 0.05, baseFontSize: 12))),
                 ])),
               SizedBox(width: 16,
                 child: message.flags.contains(MessageFlag.starred)
