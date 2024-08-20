@@ -388,7 +388,7 @@ void main() {
     });
 
     testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (tester) async {
-      final message = eg.streamMessage();
+      final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
       await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
       check(findQuoteAndReplyButton(tester)).isNull();
     });
