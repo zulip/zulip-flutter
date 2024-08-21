@@ -433,6 +433,7 @@ class ChannelUpdateEvent extends ChannelEvent {
         return ChannelPostPolicy.fromApiValue(value as int);
       case ChannelPropertyName.canRemoveSubscribersGroup:
       case ChannelPropertyName.canRemoveSubscribersGroupId:
+        return value as int;
       case ChannelPropertyName.streamWeeklyTraffic:
         return value as int?;
       case null:
