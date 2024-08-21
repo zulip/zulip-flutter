@@ -7,6 +7,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../notifications/display.dart';
 import 'about_zulip.dart';
 import 'app_bar.dart';
 import 'inbox.dart';
@@ -88,11 +89,13 @@ class ZulipApp extends StatefulWidget {
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
-    if (routeInformation case RouteInformation(
-      uri: Uri(scheme: 'zulip', host: 'login') && var url)
-    ) {
-      await LoginPage.handleWebAuthUrl(url);
-      return true;
+    switch (routeInformation.uri) {
+      case Uri(scheme: 'zulip', host: 'login') && var url:
+        await LoginPage.handleWebAuthUrl(url);
+        return true;
+      case Uri(scheme: 'zulip', host: 'notification') && var url:
+        await NotificationDisplayManager.navigateForNotification(url);
+        return true;
     }
     return super.didPushRouteInformation(routeInformation);
   }
@@ -143,16 +146,31 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           // like [Navigator.push], never mere names as with [Navigator.pushNamed].
           onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: (_) {
+          onGenerateInitialRoutes: (initialRoute) {
+            Route<dynamic>? notificationRoute;
+            int? accountId;
+            if (initialRoute != '/') {
+              final url = Uri.tryParse(initialRoute);
+              if (url case Uri(scheme: 'zulip', host: 'notification')) {
+                final result = NotificationDisplayManager.getRouteForNotification(context, url);
+                if (result != null) {
+                  (notificationRoute, accountId) = result;
+                }
+              }
+            }
             return [
               MaterialWidgetRoute(page: const ChooseAccountPage()),
-              if (initialAccountId != null) ...[
+              if (notificationRoute != null && accountId != null)...[
+                HomePage.buildRoute(accountId: accountId),
+                InboxPage.buildRoute(accountId: accountId),
+                notificationRoute,
+              ] else if (initialAccountId != null) ...[
                 HomePage.buildRoute(accountId: initialAccountId),
                 InboxPage.buildRoute(accountId: initialAccountId),
               ],
             ];
           });
-        }));
+      }));
   }
 }
 

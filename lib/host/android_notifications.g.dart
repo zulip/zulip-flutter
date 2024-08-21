@@ -67,23 +67,29 @@ class NotificationChannel {
 ///
 /// See:
 ///   https://developer.android.com/reference/android/content/Intent
+///   https://developer.android.com/reference/android/content/Intent#Intent(java.lang.String,%20android.net.Uri,%20android.content.Context,%20java.lang.Class%3C?%3E)
 class AndroidIntent {
   AndroidIntent({
-    required this.extras,
+    required this.action,
+    required this.uri,
   });
 
-  Map<String?, String?> extras;
+  String action;
+
+  String uri;
 
   Object encode() {
     return <Object?>[
-      extras,
+      action,
+      uri,
     ];
   }
 
   static AndroidIntent decode(Object result) {
     result as List<Object?>;
     return AndroidIntent(
-      extras: (result[0] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      action: result[0]! as String,
+      uri: result[1]! as String,
     );
   }
 }
