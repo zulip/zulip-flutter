@@ -363,32 +363,6 @@ class ZulipStream {
   Map<String, dynamic> toJson() => _$ZulipStreamToJson(this);
 }
 
-/// Policy for which users can post to the stream.
-///
-/// For docs, search for "stream_post_policy"
-/// in <https://zulip.com/api/get-stream-by-id>
-@JsonEnum(valueField: 'apiValue')
-enum ChannelPostPolicy {
-  any(apiValue: 1),
-  administrators(apiValue: 2),
-  fullMembers(apiValue: 3),
-  moderators(apiValue: 4),
-  unknown(apiValue: null);
-
-  const ChannelPostPolicy({
-    required this.apiValue,
-  });
-
-  final int? apiValue;
-
-  int? toJson() => apiValue;
-
-  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value]!;
-
-  static final _byApiValue = _$ChannelPostPolicyEnumMap
-    .map((key, value) => MapEntry(value, key));
-}
-
 /// The name of a property of [ZulipStream] that gets updated
 /// through [ChannelUpdateEvent.property].
 ///
@@ -426,6 +400,32 @@ enum ChannelPropertyName {
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$ChannelPropertyNameEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
+/// Policy for which users can post to the stream.
+///
+/// For docs, search for "stream_post_policy"
+/// in <https://zulip.com/api/get-stream-by-id>
+@JsonEnum(valueField: 'apiValue')
+enum ChannelPostPolicy {
+  any(apiValue: 1),
+  administrators(apiValue: 2),
+  fullMembers(apiValue: 3),
+  moderators(apiValue: 4),
+  unknown(apiValue: null);
+
+  const ChannelPostPolicy({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+
+  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value]!;
+
+  static final _byApiValue = _$ChannelPostPolicyEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 
