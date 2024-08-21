@@ -45,17 +45,13 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     context: context,
     builder: (BuildContext _) {
       return Column(children: [
-        if (!hasThumbsUpReactionVote) AddThumbsUpButton(message: message, messageListContext: context),
+        if (!hasThumbsUpReactionVote)
+          AddThumbsUpButton(message: message, messageListContext: context),
         StarButton(message: message, messageListContext: context),
-        if (isComposeBoxOffered) QuoteAndReplyButton(
-          message: message,
-          messageListContext: context,
-        ),
-        if (showMarkAsUnreadButton) MarkAsUnreadButton(
-          message: message,
-          messageListContext: context,
-          narrow: narrow,
-        ),
+        if (isComposeBoxOffered)
+          QuoteAndReplyButton(message: message, messageListContext: context),
+        if (showMarkAsUnreadButton)
+          MarkAsUnreadButton(message: message, messageListContext: context, narrow: narrow),
         CopyMessageTextButton(message: message, messageListContext: context),
         CopyMessageLinkButton(message: message, messageListContext: context),
         ShareButton(message: message, messageListContext: context),
