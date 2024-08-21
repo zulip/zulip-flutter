@@ -180,7 +180,8 @@ class NotificationDisplayManager {
         // TODO is setting PendingIntentFlag.updateCurrent OK?
         //   (That's a legacy of `flutter_local_notifications`.)
         flags: PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent,
-        intentPayload: jsonEncode(dataJson),
+        intent: AndroidIntent(
+          extras: <String, String>{'payload': jsonEncode(dataJson)}),
         // TODO this doesn't set the Intent flags we set in zulip-mobile; is that OK?
         //   (This is a legacy of `flutter_local_notifications`.)
         ),

@@ -197,7 +197,8 @@ void main() {
             ..contentIntent.which((it) => it.isNotNull()
               ..requestCode.equals(expectedId)
               ..flags.equals(expectedIntentFlags)
-              ..intentPayload.equals(jsonEncode(data.toJson()))),
+              ..intent.which((it) => it
+                ..extras.deepEquals({'payload': jsonEncode(data.toJson())}))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
             ..tag.equals(expectedGroupKey)
@@ -896,9 +897,13 @@ extension on Subject<AndroidNotificationHostApiNotifyCall> {
   Subject<String?> get smallIconResourceName => has((x) => x.smallIconResourceName, 'smallIconResourceName');
 }
 
+extension on Subject<AndroidIntent> {
+  Subject<Map<String?,String?>> get extras => has((x) => x.extras, 'extras');
+}
+
 extension on Subject<PendingIntent> {
   Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
-  Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
+  Subject<AndroidIntent> get intent => has((x) => x.intent, 'intent');
   Subject<int> get flags => has((x) => x.flags, 'flags');
 }
 
