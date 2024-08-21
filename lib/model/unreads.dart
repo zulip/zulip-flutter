@@ -30,7 +30,6 @@ import 'channel.dart';
 ///   https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/unreads.3A.20messages.20from.20muted.20users.3F/near/1660912
 /// For that reason, consumers of this model may wish to filter out messages in
 /// unsubscribed streams and messages sent by muted users.
-// TODO handle moved messages
 // TODO When [oldUnreadsMissing], if you load a message list with very old unreads,
 //   sync to those unreads, because the user has shown an interest in them.
 // TODO When loading a message list with stream messages, check all the stream
@@ -276,8 +275,7 @@ class Unreads extends ChangeNotifier {
         madeAnyUpdate |= mentions.add(messageId);
     }
 
-    // (Moved messages will be handled here;
-    // the TODO for that is just above the class declaration.)
+    // TODO(#901) handle moved messages
 
     if (madeAnyUpdate) {
       notifyListeners();
