@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
+import 'package:http/http.dart' as http;
 
 import '../api/notifications.dart';
 import '../host/android_notifications.dart';
@@ -71,11 +70,6 @@ class NotificationChannelManager {
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
   static Future<void> init() async {
-    await ZulipBinding.instance.notifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('zulip_notification'),
-      ),
-    );
     await NotificationChannelManager._ensureChannel();
   }
 

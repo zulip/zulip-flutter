@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_notifications.dart';
@@ -269,15 +268,7 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   void _resetNotifications() {
-    _notificationsPlugin = null;
     _androidNotificationHostApi = null;
-  }
-
-  FakeFlutterLocalNotificationsPlugin? _notificationsPlugin;
-
-  @override
-  FakeFlutterLocalNotificationsPlugin get notifications {
-    return (_notificationsPlugin ??= FakeFlutterLocalNotificationsPlugin());
   }
 
   FakeAndroidNotificationHostApi? _androidNotificationHostApi;
@@ -493,39 +484,6 @@ typedef FirebaseMessagingRequestPermissionCall = ({
   bool provisional,
   bool sound,
 });
-
-class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
-  InitializationSettings? initializationSettings;
-  DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse;
-  DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse;
-
-  @override
-  Future<bool?> initialize(
-    InitializationSettings initializationSettings, {
-    DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
-    DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse,
-  }) async {
-    assert(this.initializationSettings == null);
-    this.initializationSettings = initializationSettings;
-    this.onDidReceiveNotificationResponse = onDidReceiveNotificationResponse;
-    this.onDidReceiveBackgroundNotificationResponse = onDidReceiveBackgroundNotificationResponse;
-    return true;
-  }
-
-  /// The value to be returned by [getNotificationAppLaunchDetails].
-  NotificationAppLaunchDetails? appLaunchDetails;
-
-  @override
-  Future<NotificationAppLaunchDetails?> getNotificationAppLaunchDetails() {
-    return Future.value(appLaunchDetails);
-  }
-
-  void receiveNotificationResponse(NotificationResponse details) {
-    if (onDidReceiveNotificationResponse != null) {
-      onDidReceiveNotificationResponse!(details);
-    }
-  }
-}
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   /// Consume the log of calls made to [createNotificationChannel].
