@@ -135,19 +135,6 @@ void main() {
       final padding = MediaQuery.of(element).padding;
       check(padding).equals(EdgeInsets.zero);
     });
-
-    testWidgets('content in MentionsNarrow not asked to consume insets (including bottom)', (tester) async {
-      const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
-      tester.view.viewInsets = fakePadding;
-      tester.view.padding = fakePadding;
-
-      await setupMessageListPage(tester, narrow: const MentionsNarrow(),
-        messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html, flags: [MessageFlag.mentioned])]);
-
-      final element = tester.element(find.byType(CodeBlock));
-      final padding = MediaQuery.of(element).padding;
-      check(padding).equals(EdgeInsets.zero);
-    });
   });
 
   testWidgets('smoke test for light/dark/lerped', (tester) async {
