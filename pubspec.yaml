@@ -11,11 +11,9 @@ publish_to: 'none'
 version: 0.0.19+19
 
 environment:
-  # We use a development version of Flutter while in beta,
-  # and the corresponding dev version of the Dart SDK.  The hope is
-  # that by the time we want to release, these will have become stable.
-  # TODO: Before general release, switch to stable Flutter and Dart versions,
-  #   or pin exact versions: https://github.com/zulip/zulip-flutter/issues/15
+  # We use a recent version of Flutter from its main channel, and
+  # the corresponding recent version of the Dart SDK.
+  # Feel free to update these regularly; see README.md for instructions.
   sdk: '>=3.6.0-149.3.beta <4.0.0'
   flutter: '>=3.25.0-1.0.pre.41'
 
