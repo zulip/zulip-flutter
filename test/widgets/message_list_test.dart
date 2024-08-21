@@ -122,14 +122,19 @@ void main() {
   });
 
   group('presents message content appropriately', () {
-    // regression test for https://github.com/zulip/zulip-flutter/issues/736
-    testWidgets('content in "Combined feed" not asked to consume insets (including bottom)', (tester) async {
+    testWidgets('content not asked to consume insets (including bottom), even without compose box', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/736
       const fakePadding = FakeViewPadding(left: 10, top: 10, right: 10, bottom: 10);
       tester.view.viewInsets = fakePadding;
       tester.view.padding = fakePadding;
 
       await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
         messages: [eg.streamMessage(content: ContentExample.codeBlockPlain.html)]);
+
+      // Verify this message list lacks a compose box.
+      // (The original bug wouldn't reproduce with a compose box present.)
+      final state = MessageListPage.ancestorOf(tester.element(find.text("verb\natim")));
+      check(state.composeBoxController).isNull();
 
       final element = tester.element(find.byType(CodeBlock));
       final padding = MediaQuery.of(element).padding;
