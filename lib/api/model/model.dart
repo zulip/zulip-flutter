@@ -312,6 +312,14 @@ enum UserRole{
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ZulipStream {
+  // When adding a field to this class:
+  //  * Add it to [ChannelPropertyName] too, or add a comment there explaining
+  //    why there isn't a corresponding value in that enum.
+  //  * If the field can never change for a given Zulip stream, mark it final.
+  //    Otherwise, make sure it gets updated on [ChannelUpdateEvent].
+  //  * (If it can change but [ChannelUpdateEvent] doesn't cover that,
+  //    then that's a bug in the API; raise it in `#api design`.)
+
   final int streamId;
   String name;
   String description;
@@ -369,22 +377,17 @@ class ZulipStream {
 /// In Zulip event-handling code (for [ChannelUpdateEvent]),
 /// we switch exhaustively on a value of this type
 /// to ensure that every property in [ZulipStream] responds to the event.
-///
-/// Fields on [ZulipStream] not present here:
-///   streamId, dateCreated
-/// Each of those is immutable on any given channel, and there is no
-/// [ChannelUpdateEvent] that updates them.
-///
-/// Other fields on [ZulipStream] not present here:
-///   renderedDescription, historyPublicToSubscribers, isWebPublic
-/// Each of those are updated through separate fields of [ChannelUpdateEvent]
-/// with the same names.
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum ChannelPropertyName {
+  // streamId is immutable
   name,
   description,
+  // renderedDescription is updated via its own [ChannelUpdateEvent] field
+  // dateCreated is immutable
   firstMessageId,
   inviteOnly,
+  // isWebPublic is updated via its own [ChannelUpdateEvent] field
+  // historyPublicToSubscribers is updated via its own [ChannelUpdateEvent] field
   messageRetentionDays,
   @JsonValue('stream_post_policy')
   channelPostPolicy,
