@@ -388,9 +388,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
   }
 
   void _handleUpdateMessageEventTimestamp(UpdateMessageEvent event) {
-    // TODO(server-5): Cut this fallback; rely on renderingOnly from FL 114
-    final isRenderingOnly = event.renderingOnly ?? (event.userId == null);
-    if (event.editTimestamp == null || isRenderingOnly) {
+    if (event.renderingOnly) {
       // A rendering-only update gets omitted from the message edit history,
       // and [Message.lastEditTimestamp] is the last timestamp of that history.
       // So on a rendering-only update, the timestamp doesn't get updated.

@@ -43,11 +43,11 @@ extension MessageEventChecks on Subject<MessageEvent> {
 
 extension UpdateMessageEventChecks on Subject<UpdateMessageEvent> {
   Subject<int?> get userId => has((e) => e.userId, 'userId');
-  Subject<bool?> get renderingOnly => has((e) => e.renderingOnly, 'renderingOnly');
+  Subject<bool> get renderingOnly => has((e) => e.renderingOnly, 'renderingOnly');
   Subject<int> get messageId => has((e) => e.messageId, 'messageId');
   Subject<List<int>> get messageIds => has((e) => e.messageIds, 'messageIds');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
-  Subject<int?> get editTimestamp => has((e) => e.editTimestamp, 'editTimestamp');
+  Subject<int> get editTimestamp => has((e) => e.editTimestamp, 'editTimestamp');
   Subject<UpdateMessageMoveData?> get moveData => has((e) => e.moveData, 'moveData');
   Subject<String?> get origContent => has((e) => e.origContent, 'origContent');
   Subject<String?> get origRenderedContent => has((e) => e.origRenderedContent, 'origRenderedContent');
