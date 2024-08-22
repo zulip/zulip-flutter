@@ -124,6 +124,15 @@ if_verbose() {
   fi
 }
 
+# usage: grep_quiet_hungry GREP_ARGUMENTS...
+#
+# Just like `grep --quiet` aka `grep -q`, except this consumes the
+# whole input.  Useful when consuming a pipeline from a command that
+# isn't robust to having its stdout pipe broken.
+grep_quiet_hungry() {
+    grep --quiet "$@" && cat >/dev/null
+}
+
 # usage: files_check [GIT_PATHSPECS...]
 #
 # True just if $opt_files includes any files matching GIT_PATHSPECS.
@@ -222,7 +231,7 @@ should_run_build_runner() {
     # (And at this point we must have a meaningful $files_base_commit.)
     if git_changed_files "${files_base_commit}" \
             | xargs -r git grep -l '^part .*g\.dart.;$' \
-            | grep -q .; then
+            | grep_quiet_hungry .; then
         return 0
     fi
 
