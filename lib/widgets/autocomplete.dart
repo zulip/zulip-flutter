@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../api/model/model.dart';
 import 'content.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
@@ -8,7 +7,7 @@ import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'compose_box.dart';
 
-abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends StatefulWidget {
+abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
     super.key,
     required this.controller,
@@ -27,10 +26,10 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
   AutocompleteView<QueryT, ResultT> initViewModel(BuildContext context);
 
   @override
-  State<AutocompleteField<QueryT, ResultT, CandidateT>> createState() => _AutocompleteFieldState<QueryT, ResultT, CandidateT>();
+  State<AutocompleteField<QueryT, ResultT>> createState() => _AutocompleteFieldState<QueryT, ResultT>();
 }
 
-class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends State<AutocompleteField<QueryT, ResultT, CandidateT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT, CandidateT>> {
+class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends State<AutocompleteField<QueryT, ResultT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
   AutocompleteView<QueryT, ResultT>? _viewModel;
 
   void _initViewModel() {
@@ -71,7 +70,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   @override
-  void didUpdateWidget(covariant AutocompleteField<QueryT, ResultT, CandidateT> oldWidget) {
+  void didUpdateWidget(covariant AutocompleteField<QueryT, ResultT> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.removeListener(_handleControllerChange);
@@ -145,7 +144,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 }
 
-class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult, User> {
+class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult> {
   const ComposeAutocomplete({
     super.key,
     required this.narrow,
@@ -218,7 +217,7 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
   }
 }
 
-class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult, String> {
+class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
   const TopicAutocomplete({
     super.key,
     required this.streamId,
