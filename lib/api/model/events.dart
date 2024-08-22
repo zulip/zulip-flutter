@@ -927,12 +927,12 @@ class UpdateMessageEvent extends Event {
   String get type => 'update_message';
 
   final int? userId;
-  final bool? renderingOnly; // TODO(server-5)
+  final bool renderingOnly;
   final int messageId;
   final List<int> messageIds;
 
   final List<MessageFlag> flags;
-  final int? editTimestamp; // TODO(server-5)
+  final int editTimestamp;
 
   // final String? streamName; // ignore
 

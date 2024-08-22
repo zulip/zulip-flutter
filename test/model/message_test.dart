@@ -984,15 +984,14 @@ void main() {
         ..content.not((it) => it.equals(updateEvent.renderedContent!));
     });
 
-    // TODO(server-5): Cut legacy case for rendering-only message update
-    Future<void> checkRenderingOnly({required bool legacy}) async {
+    test('rendering-only update does not change timestamp', () async {
       final originalMessage = eg.streamMessage(
         lastEditTimestamp: 78492,
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
         renderedContent: "<p>Hello, world</p> <div>Some link preview</div>",
         editTimestamp: 99999,
-        renderingOnly: legacy ? null : true,
+        renderingOnly: true,
         userId: null,
       );
       await prepare();
@@ -1008,14 +1007,6 @@ void main() {
         // ... edit timestamp is not.
         ..lastEditTimestamp.equals(originalMessage.lastEditTimestamp)
         ..lastEditTimestamp.not((it) => it.equals(updateEvent.editTimestamp));
-    }
-
-    test('rendering-only update does not change timestamp', () async {
-      await checkRenderingOnly(legacy: false);
-    });
-
-    test('rendering-only update does not change timestamp (for old server versions)', () async {
-      await checkRenderingOnly(legacy: true);
     });
 
     group('Handle message edit state update', () {

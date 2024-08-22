@@ -940,7 +940,7 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
 UpdateMessageEvent updateMessageEditEvent(
   Message origMessage, {
   int? userId = -1, // null means null; default is [selfUser.userId]
-  bool? renderingOnly = false,
+  bool renderingOnly = false,
   int? messageId,
   List<MessageFlag>? flags,
   int? editTimestamp,
