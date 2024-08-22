@@ -329,8 +329,7 @@ class _LoginPageState extends State<LoginPage> {
       if (payload.realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
       final apiKey = payload.decodeApiKey(_otp!);
       await _tryInsertAccountAndNavigate(
-        // TODO(server-5): Rely on userId from payload.
-        userId: payload.userId ?? await _getUserId(payload.email, apiKey),
+        userId: payload.userId,
         email: payload.email,
         apiKey: apiKey,
       );
