@@ -106,8 +106,8 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       optionsBuilder: (_) => _resultsToDisplay,
       optionsViewOpenDirection: OptionsViewOpenDirection.up,
       // RawAutocomplete passes these when it calls optionsViewBuilder:
-      //   AutocompleteOnSelected<CandidateT> onSelected,
-      //   Iterable<CandidateT> options,
+      //   AutocompleteOnSelected<ResultT> onSelected,
+      //   Iterable<ResultT> options,
       //
       // We ignore them:
       // - `onSelected` would cause some behavior we don't want,
