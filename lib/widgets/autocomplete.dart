@@ -24,14 +24,14 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 
   Widget buildItem(BuildContext context, int index, ResultT option);
 
-  AutocompleteView<QueryT, ResultT, CandidateT> initViewModel(BuildContext context);
+  AutocompleteView<QueryT, ResultT> initViewModel(BuildContext context);
 
   @override
   State<AutocompleteField<QueryT, ResultT, CandidateT>> createState() => _AutocompleteFieldState<QueryT, ResultT, CandidateT>();
 }
 
 class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends State<AutocompleteField<QueryT, ResultT, CandidateT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT, CandidateT>> {
-  AutocompleteView<QueryT, ResultT, CandidateT>? _viewModel;
+  AutocompleteView<QueryT, ResultT>? _viewModel;
 
   void _initViewModel() {
     _viewModel = widget.initViewModel(context)

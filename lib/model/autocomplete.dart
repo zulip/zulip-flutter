@@ -187,7 +187,7 @@ class AutocompleteViewManager {
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
-abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult, CandidateT> extends ChangeNotifier {
+abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends ChangeNotifier {
   AutocompleteView({required this.store});
 
   final PerAccountStore store;
@@ -284,7 +284,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   }
 }
 
-class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult, User> {
+class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
   MentionAutocompleteView._({
     required super.store,
     required this.narrow,
@@ -589,7 +589,7 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
 
 // TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
 
-class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult, String> {
+class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
   TopicAutocompleteView._({required super.store, required this.streamId});
 
   factory TopicAutocompleteView.init({required PerAccountStore store, required int streamId}) {
