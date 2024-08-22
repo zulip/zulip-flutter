@@ -379,6 +379,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     // TODO(#650) notify [recentDmConversationsView] of the just-fetched messages
   }
 
+  @override
+  Set<MessageListView> get debugMessageListViews => _messages.debugMessageListViews;
+
   final MessageStoreImpl _messages;
 
   final Unreads unreads;

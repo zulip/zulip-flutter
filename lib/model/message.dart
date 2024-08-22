@@ -10,6 +10,8 @@ mixin MessageStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
 
+  Set<MessageListView> get debugMessageListViews;
+
   void registerMessageList(MessageListView view);
   void unregisterMessageList(MessageListView view);
 
@@ -38,6 +40,9 @@ class MessageStoreImpl with MessageStore {
   final Set<MessageListView> _messageListViews = {};
 
   @override
+  Set<MessageListView> get debugMessageListViews => _messageListViews;
+
+  @override
   void registerMessageList(MessageListView view) {
     final added = _messageListViews.add(view);
     assert(added);
@@ -56,7 +61,10 @@ class MessageStoreImpl with MessageStore {
   }
 
   void dispose() {
-    for (final view in _messageListViews) {
+    // When a MessageListView is disposed, it removes itself from the Set
+    // `MessageStoreImpl._messageListViews`. Instead of iterating on that Set,
+    // iterate on a copy, to avoid concurrent modifications.
+    for (final view in _messageListViews.toList()) {
       view.dispose();
     }
   }

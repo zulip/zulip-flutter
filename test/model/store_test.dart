@@ -8,6 +8,8 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/message_list.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -425,6 +427,32 @@ void main() {
       async.flushMicrotasks();
       await Future<void>.delayed(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
+    }));
+
+    test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
+      await prepareStore();
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+
+      // Make sure there are [MessageListView]s in the message store.
+      MessageListView.init(store: store, narrow: const MentionsNarrow());
+      MessageListView.init(store: store, narrow: const StarredMessagesNarrow());
+      check(store.debugMessageListViews).length.equals(2);
+
+      // Let the server expire the event queue.
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
+        'queue_id': updateMachine.queueId,
+        'msg': 'Bad event queue ID: ${updateMachine.queueId}',
+      });
+      updateMachine.debugAdvanceLoop();
+      async.flushMicrotasks();
+      await Future<void>.delayed(Duration.zero);
+
+      // The old store's [MessageListView]s have been disposed.
+      // (And no exception was thrown; that was #810.)
+      check(store.debugMessageListViews).isEmpty();
     }));
 
     void checkRetry(void Function() prepareError) {
