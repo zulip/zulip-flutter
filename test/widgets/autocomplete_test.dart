@@ -144,7 +144,7 @@ void main() {
       await tester.tap(find.text('User Three'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
-        .contains(mention(user3, users: store.users));
+        .contains(userMention(user3, users: store.users));
       checkUserShown(user1, store, expected: false);
       checkUserShown(user2, store, expected: false);
       checkUserShown(user3, store, expected: false);

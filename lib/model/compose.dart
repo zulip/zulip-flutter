@@ -101,17 +101,20 @@ String wrapWithBacktickFence({required String content, String? infoString}) {
   return resultBuffer.toString();
 }
 
-/// An @-mention, like @**Chris Bobbe|13313**.
+/// An @user-mention, like @**Chris Bobbe|13313**.
 ///
 /// To omit the user ID part ("|13313") whenever the name part is unambiguous,
 /// pass a Map of all users we know about. This means accepting a linear scan
 /// through all users; avoid it in performance-sensitive codepaths.
-String mention(User user, {bool silent = false, Map<int, User>? users}) {
+String userMention(User user, {bool silent = false, Map<int, User>? users}) {
   bool includeUserId = users == null
     || users.values.where((u) => u.fullName == user.fullName).take(2).length == 2;
 
   return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
 }
+
+/// An @wildcard-mention, like @**channel**.
+String wildcardMention(String wildcard) => '@**$wildcard**';
 
 /// https://spec.commonmark.org/0.30/#inline-link
 ///
@@ -145,7 +148,7 @@ String quoteAndReplyPlaceholder(PerAccountStore store, {
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
   // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
-  return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
+  return '${userMention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
     '*(loading message ${message.id})*\n'; // TODO(i18n) ?
 }
 
@@ -169,6 +172,6 @@ String quoteAndReply(PerAccountStore store, {
     // Could ask `mention` to omit the |<id> part unless the mention is ambiguous…
     // but that would mean a linear scan through all users, and the extra noise
     // won't much matter with the already probably-long message link in there too.
-    return '${mention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(i18n) ?
+    return '${userMention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(i18n) ?
       '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }
