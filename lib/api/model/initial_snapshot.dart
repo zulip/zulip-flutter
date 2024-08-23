@@ -18,7 +18,7 @@ class InitialSnapshot {
   final int lastEventId;
   final int zulipFeatureLevel;
   final String zulipVersion;
-  final String? zulipMergeBase; // TODO(server-5)
+  final String zulipMergeBase;
 
   final List<String> alertWords;
 
