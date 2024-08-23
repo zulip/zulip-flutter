@@ -855,16 +855,13 @@ enum MessageEditState {
         continue;
       }
 
-      // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
-      final prevTopic = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
+      final prevTopic = entry['prev_topic'] as String?;
       final topic = entry['topic'] as String?;
-      if (prevTopic != null) {
-        // TODO(server-5) pre-5.0 servers do not have the 'topic' field
-        if (topic == null) {
-          hasMoved = true;
-        } else {
-          hasMoved |= !topicMoveWasResolveOrUnresolve(topic, prevTopic);
-        }
+      if (topic != null || prevTopic != null) {
+        // Crunchy-shell validation: Both are present if the topic was edited
+        topic as String;
+        prevTopic as String;
+        hasMoved |= !topicMoveWasResolveOrUnresolve(topic, prevTopic);
       }
     }
 
