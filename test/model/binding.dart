@@ -561,6 +561,12 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }
 
   @override
+  Future<void> deleteNotificationChannel(String channelId) {
+    // TODO: implement deleteNotificationChannel
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> createNotificationChannel(NotificationChannel channel) async {
     _createdChannels.add(channel);
   }

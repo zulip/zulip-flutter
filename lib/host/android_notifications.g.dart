@@ -405,6 +405,31 @@ class AndroidNotificationHostApi {
     }
   }
 
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.deleteNotificationChannel`
+  ///
+  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
+  Future<void> deleteNotificationChannel(String channelId) async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.deleteNotificationChannel$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[channelId]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
   /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
   ///
   /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannel(androidx.core.app.NotificationChannelCompat)

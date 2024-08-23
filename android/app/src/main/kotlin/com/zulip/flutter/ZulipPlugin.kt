@@ -54,6 +54,10 @@ private class AndroidNotificationHost(val context: Context)
             ) }
     }
 
+    override fun deleteNotificationChannel(channelId: String) {
+        NotificationManagerCompat.from(context).deleteNotificationChannel(channelId)
+    }
+
     override fun createNotificationChannel(channel: NotificationChannel) {
         val notificationChannel = NotificationChannelCompat
             .Builder(channel.id, channel.importance.toInt()).apply {
