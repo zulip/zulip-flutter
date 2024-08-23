@@ -294,7 +294,7 @@ void main() {
         check(errorDialogs).isEmpty();
 
         check(composeBoxController.contentController.text)
-          .equals('see image: [Uploading image.jpg...]()\n\n');
+          .equals('see image: [Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -350,7 +350,7 @@ void main() {
         check(errorDialogs).isEmpty();
 
         check(composeBoxController.contentController.text)
-          .equals('see image: [Uploading image.jpg...]()\n\n');
+          .equals('see image: [Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')

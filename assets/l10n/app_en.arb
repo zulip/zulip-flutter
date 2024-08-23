@@ -239,7 +239,7 @@
   "@composeBoxTopicHintText":  {
     "description": "Hint text for topic input widget in compose box."
   },
-  "composeBoxUploadingFilename": "Uploading {filename}...",
+  "composeBoxUploadingFilename": "Uploading {filename}…",
   "@composeBoxUploadingFilename": {
     "description": "Placeholder in compose box showing the specified file is currently uploading.",
     "placeholders": {
@@ -432,7 +432,7 @@
       "num": {"type": "int", "example": "4"}
     }
   },
-  "markAsReadInProgress": "Marking messages as read...",
+  "markAsReadInProgress": "Marking messages as read…",
   "@markAsReadInProgress": {
     "description": "Progress message when marking messages as read."
   },
@@ -447,7 +447,7 @@
       "num": {"type": "int", "example": "4"}
     }
   },
-  "markAsUnreadInProgress": "Marking messages as unread...",
+  "markAsUnreadInProgress": "Marking messages as unread…",
   "@markAsUnreadInProgress": {
     "description": "Progress message when marking messages as unread."
   },
