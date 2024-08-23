@@ -36,7 +36,8 @@ class GetServerSettingsResult {
 
   final int zulipFeatureLevel;
   final String zulipVersion;
-  final String? zulipMergeBase; // TODO(server-5)
+  // TODO(server-5): Modernize this once we get to #267.
+  final String? zulipMergeBase;
 
   final bool pushNotificationsEnabled;
   final bool isIncompatible;
