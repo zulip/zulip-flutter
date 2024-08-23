@@ -403,6 +403,12 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface AndroidNotificationHostApi {
   /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.getNotificationChannelsCompat`.
+   *
+   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getNotificationChannelsCompat()
+   */
+  fun getNotificationChannels(): List<NotificationChannel>
+  /**
    * Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
    *
    * See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannel(androidx.core.app.NotificationChannelCompat)
@@ -469,6 +475,21 @@ interface AndroidNotificationHostApi {
     @JvmOverloads
     fun setUp(binaryMessenger: BinaryMessenger, api: AndroidNotificationHostApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getNotificationChannels$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.getNotificationChannels())
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
       run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannel$separatedMessageChannelSuffix", codec)
         if (api != null) {

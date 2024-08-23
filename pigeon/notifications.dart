@@ -155,6 +155,11 @@ class StatusBarNotification {
 
 @HostApi()
 abstract class AndroidNotificationHostApi {
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.getNotificationChannelsCompat`.
+  ///
+  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getNotificationChannelsCompat()
+  List<NotificationChannel> getNotificationChannels();
+
   /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
   ///
   /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannel(androidx.core.app.NotificationChannelCompat)

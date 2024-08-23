@@ -43,6 +43,17 @@ fun toPigeonPerson(person: androidx.core.app.Person): Person {
 
 private class AndroidNotificationHost(val context: Context)
         : AndroidNotificationHostApi {
+    override fun getNotificationChannels(): List<NotificationChannel> {
+        return NotificationManagerCompat.from(context)
+            .notificationChannelsCompat
+            .map { NotificationChannel(
+                it.id,
+                it.importance.toLong(),
+                it.name?.toString(),
+                it.shouldShowLights()
+            ) }
+    }
+
     override fun createNotificationChannel(channel: NotificationChannel) {
         val notificationChannel = NotificationChannelCompat
             .Builder(channel.id, channel.importance.toInt()).apply {
