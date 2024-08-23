@@ -225,14 +225,17 @@ class MessageContent extends StatelessWidget {
   const MessageContent({super.key, required this.message, required this.content});
 
   final Message message;
-  final ZulipContent content;
+  final ZulipMessageContent content;
 
   @override
   Widget build(BuildContext context) {
+    final content = this.content;
     return InheritedMessage(message: message,
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
-        child: BlockContentList(nodes: content.nodes)));
+        child: switch (content) {
+          ZulipContent() => BlockContentList(nodes: content.nodes),
+        }));
   }
 }
 
