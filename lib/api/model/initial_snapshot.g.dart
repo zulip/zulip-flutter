@@ -15,7 +15,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   lastEventId: (json['last_event_id'] as num).toInt(),
   zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
   zulipVersion: json['zulip_version'] as String,
-  zulipMergeBase: json['zulip_merge_base'] as String?,
+  zulipMergeBase: json['zulip_merge_base'] as String,
   alertWords: (json['alert_words'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
