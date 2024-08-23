@@ -414,7 +414,7 @@ class User {
   // bool isOwner; // obsoleted by [role]; ignore
   // bool isAdmin; // obsoleted by [role]; ignore
   // bool isGuest; // obsoleted by [role]; ignore
-  bool? isBillingAdmin; // TODO(server-5)
+  bool? isBillingAdmin; // TODO(server-10)
   final bool isBot;
   final int? botType; // TODO enum
   int? botOwnerId;
