@@ -24,7 +24,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
           .toList(),
   zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
   zulipVersion: json['zulip_version'] as String,
-  zulipMergeBase: json['zulip_merge_base'] as String?,
+  zulipMergeBase: json['zulip_merge_base'] as String,
   pushNotificationsEnabled: json['push_notifications_enabled'] as bool,
   isIncompatible: json['is_incompatible'] as bool,
   emailAuthEnabled: json['email_auth_enabled'] as bool,
