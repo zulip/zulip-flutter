@@ -68,13 +68,7 @@ class InitialSnapshot {
 
   final List<ZulipStream> streams;
 
-  // Servers pre-5.0 don't have `user_settings`, and instead provide whatever
-  // user settings they support at toplevel in the initial snapshot. Since we're
-  // likely to desupport pre-5.0 servers before wide release, we prefer to
-  // ignore the toplevel fields and use `user_settings` where present instead,
-  // even at the expense of functionality with pre-5.0 servers.
-  // TODO(server-5) remove pre-5.0 comment
-  final UserSettings? userSettings; // TODO(server-5)
+  final UserSettings userSettings;
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
 

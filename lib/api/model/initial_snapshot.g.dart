@@ -73,9 +73,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
   streams: (json['streams'] as List<dynamic>)
       .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
       .toList(),
-  userSettings: json['user_settings'] == null
-      ? null
-      : UserSettings.fromJson(json['user_settings'] as Map<String, dynamic>),
+  userSettings: UserSettings.fromJson(
+    json['user_settings'] as Map<String, dynamic>,
+  ),
   userTopics: (json['user_topics'] as List<dynamic>?)
       ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
