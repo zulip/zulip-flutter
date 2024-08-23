@@ -52,11 +52,27 @@ class NotificationChannelManager {
   //    settings for the channel -- like "override Do Not Disturb", or "use
   //    a different sound", or "don't pop on screen" -- their changes get
   //    reset.  So this has to be done sparingly.
-  //
-  //    If we do this, we should also look for any channel with the old
-  //    channel ID and delete it.  See zulip-mobile's `createNotificationChannel`
-  //    in android/app/src/main/java/com/zulipmobile/notifications/NotificationChannelManager.kt .
   static Future<void> _ensureChannel() async {
+    // See if our current-version channel already exists; delete any obsolete
+    // previous channels.
+    var found = false;
+    final channels = await _androidHost.getNotificationChannels();
+    for (final channel in channels) {
+      assert(channel != null); // TODO(flutter#97848)
+      if (channel!.id == kChannelId) {
+        found = true;
+      } else {
+        await _androidHost.deleteNotificationChannel(channel.id);
+      }
+    }
+
+    if (found) {
+      // The channel already exists; nothing to do.
+      return;
+    }
+
+    // The channel doesn't exist.  Create it.
+
     await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
       name: 'Messages', // TODO(i18n)
