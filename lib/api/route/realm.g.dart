@@ -33,7 +33,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
   realmName: json['realm_name'] as String,
   realmIcon: json['realm_icon'] as String,
   realmDescription: json['realm_description'] as String,
-  realmWebPublicAccessEnabled: json['realm_web_public_access_enabled'] as bool?,
+  realmWebPublicAccessEnabled: json['realm_web_public_access_enabled'] as bool,
 );
 
 Map<String, dynamic> _$GetServerSettingsResultToJson(
