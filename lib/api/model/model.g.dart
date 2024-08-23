@@ -97,7 +97,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       fullName: json['full_name'] as String,
       dateJoined: json['date_joined'] as String,
       isActive: json['is_active'] as bool,
-      isBillingAdmin: json['is_billing_admin'] as bool?,
+      isBillingAdmin: json['is_billing_admin'] as bool,
       isBot: json['is_bot'] as bool,
       botType: (json['bot_type'] as num?)?.toInt(),
       botOwnerId: (json['bot_owner_id'] as num?)?.toInt(),
