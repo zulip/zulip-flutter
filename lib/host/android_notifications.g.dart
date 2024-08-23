@@ -24,6 +24,7 @@ class NotificationChannel {
     required this.importance,
     this.name,
     this.lightsEnabled,
+    this.soundResourceName,
     this.vibrationPattern,
   });
 
@@ -39,6 +40,14 @@ class NotificationChannel {
 
   bool? lightsEnabled;
 
+  /// The name of the sound file resource.
+  ///
+  /// The resource ID is retrieved using
+  /// `android.content.res.Resources.getIdentifier`, which is then used to
+  /// generate an `android.resource://` URI. This URI is then passed
+  /// to the `NotificationChannelCompat` builder.
+  String? soundResourceName;
+
   Int64List? vibrationPattern;
 
   Object encode() {
@@ -47,6 +56,7 @@ class NotificationChannel {
       importance,
       name,
       lightsEnabled,
+      soundResourceName,
       vibrationPattern,
     ];
   }
@@ -58,7 +68,8 @@ class NotificationChannel {
       importance: result[1]! as int,
       name: result[2] as String?,
       lightsEnabled: result[3] as bool?,
-      vibrationPattern: result[4] as Int64List?,
+      soundResourceName: result[4] as String?,
+      vibrationPattern: result[5] as Int64List?,
     );
   }
 }

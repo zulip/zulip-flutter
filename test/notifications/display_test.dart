@@ -127,6 +127,7 @@ void main() {
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
+        ..soundResourceName.isNull()
         ..vibrationPattern.isNotNull().deepEquals(
             NotificationChannelManager.kVibrationPattern)
       ;
@@ -875,6 +876,7 @@ extension NotificationChannelChecks on Subject<NotificationChannel> {
   Subject<int> get importance => has((x) => x.importance, 'importance');
   Subject<String?> get name => has((x) => x.name, 'name');
   Subject<bool?> get lightsEnabled => has((x) => x.lightsEnabled, 'lightsEnabled');
+  Subject<String?> get soundResourceName => has((x) => x.soundResourceName, 'soundResourceName');
   Subject<Int64List?> get vibrationPattern => has((x) => x.vibrationPattern, 'vibrationPattern');
 }
 

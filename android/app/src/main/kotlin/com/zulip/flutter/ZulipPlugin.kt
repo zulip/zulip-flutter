@@ -1,8 +1,11 @@
 package com.zulip.flutter
 
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.Keep
@@ -41,8 +44,19 @@ fun toPigeonPerson(person: androidx.core.app.Person): Person {
     )
 }
 
+/** The Android resource URL for the given resource. */
+// Based on: https://stackoverflow.com/a/38340580
+fun Context.resourceUrl(resourceId: Int): Uri = with(resources) {
+    Uri.Builder()
+        .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+        .authority(getResourcePackageName(resourceId))
+        .appendPath(getResourceTypeName(resourceId))
+        .appendPath(getResourceEntryName(resourceId))
+        .build()
+}
+
 private class AndroidNotificationHost(val context: Context)
-        : AndroidNotificationHostApi {
+    : AndroidNotificationHostApi {
     override fun getNotificationChannels(): List<NotificationChannel> {
         return NotificationManagerCompat.from(context)
             .notificationChannelsCompat
@@ -50,7 +64,9 @@ private class AndroidNotificationHost(val context: Context)
                 it.id,
                 it.importance.toLong(),
                 it.name?.toString(),
-                it.shouldShowLights()
+                it.shouldShowLights(),
+                it.sound?.toString(),
+                it.vibrationPattern,
             ) }
     }
 
@@ -58,11 +74,20 @@ private class AndroidNotificationHost(val context: Context)
         NotificationManagerCompat.from(context).deleteNotificationChannel(channelId)
     }
 
+    @SuppressLint(
+        // For `getIdentifier`.  TODO make a cleaner API.
+        "DiscouragedApi")
     override fun createNotificationChannel(channel: NotificationChannel) {
         val notificationChannel = NotificationChannelCompat
             .Builder(channel.id, channel.importance.toInt()).apply {
                 channel.name?.let { setName(it) }
                 channel.lightsEnabled?.let { setLightsEnabled(it) }
+                channel.soundResourceName?.let {
+                    val resourceId = context.resources.getIdentifier(
+                        it, "raw", context.packageName)
+                    setSound(context.resourceUrl(resourceId),
+                        AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build())
+                }
                 channel.vibrationPattern?.let { setVibrationPattern(it) }
             }.build()
         NotificationManagerCompat.from(context).createNotificationChannel(notificationChannel)

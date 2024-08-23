@@ -62,6 +62,15 @@ data class NotificationChannel (
   val importance: Long,
   val name: String? = null,
   val lightsEnabled: Boolean? = null,
+  /**
+   * The name of the sound file resource.
+   *
+   * The resource ID is retrieved using
+   * `android.content.res.Resources.getIdentifier`, which is then used to
+   * generate an `android.resource://` URI. This URI is then passed
+   * to the `NotificationChannelCompat` builder.
+   */
+  val soundResourceName: String? = null,
   val vibrationPattern: LongArray? = null
 
 ) {
@@ -72,8 +81,9 @@ data class NotificationChannel (
       val importance = __pigeon_list[1].let { num -> if (num is Int) num.toLong() else num as Long }
       val name = __pigeon_list[2] as String?
       val lightsEnabled = __pigeon_list[3] as Boolean?
-      val vibrationPattern = __pigeon_list[4] as LongArray?
-      return NotificationChannel(id, importance, name, lightsEnabled, vibrationPattern)
+      val soundResourceName = __pigeon_list[4] as String?
+      val vibrationPattern = __pigeon_list[5] as LongArray?
+      return NotificationChannel(id, importance, name, lightsEnabled, soundResourceName, vibrationPattern)
     }
   }
   fun toList(): List<Any?> {
@@ -82,6 +92,7 @@ data class NotificationChannel (
       importance,
       name,
       lightsEnabled,
+      soundResourceName,
       vibrationPattern,
     )
   }
