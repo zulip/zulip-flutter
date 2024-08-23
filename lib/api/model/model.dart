@@ -429,7 +429,9 @@ class User {
   @JsonKey(readValue: _readProfileData)
   Map<int, ProfileFieldUserData>? profileData;
 
-  @JsonKey(readValue: _readIsSystemBot)
+  // This field is absent in `realm_users` and `realm_non_active_users`,
+  // which contain no system bots; it's present in `cross_realm_bots`.
+  @JsonKey(defaultValue: false)
   final bool isSystemBot;
 
   static Map<String, dynamic>? _readProfileData(Map<dynamic, dynamic> json, String key) {
@@ -439,14 +441,6 @@ class User {
     // A hash table is inevitably going to involve some overhead
     // (several words, at minimum), even when nothing's stored in it yet.
     return (value != null && value.isNotEmpty) ? value : null;
-  }
-
-  static bool _readIsSystemBot(Map<dynamic, dynamic> json, String key) {
-    // This field is absent in `realm_users` and `realm_non_active_users`,
-    // which contain no system bots; it's present in `cross_realm_bots`.
-    return (json[key] as bool?)
-        ?? (json['is_cross_realm_bot'] as bool?) // TODO(server-5): renamed to `is_system_bot`
-        ?? false;
   }
 
   User({
