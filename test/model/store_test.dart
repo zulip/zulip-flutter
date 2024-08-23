@@ -531,7 +531,7 @@ void main() {
       updateMachine.poll();
 
       // Pick some arbitrary event and check it gets processed on the store.
-      check(store.userSettings!.twentyFourHourTime).isFalse();
+      check(store.userSettings.twentyFourHourTime).isFalse();
       connection.prepare(json: GetEventsResult(events: [
         UserSettingsUpdateEvent(id: 2,
           property: UserSettingName.twentyFourHourTime, value: true),
@@ -539,7 +539,7 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       await Future<void>.delayed(Duration.zero);
-      check(store.userSettings!.twentyFourHourTime).isTrue();
+      check(store.userSettings.twentyFourHourTime).isTrue();
     }));
 
     test('handles expired queue', () => awaitFakeAsync((async) async {
@@ -567,7 +567,7 @@ void main() {
       // The new UpdateMachine updates the new store.
       updateMachine.debugPauseLoop();
       updateMachine.poll();
-      check(store.userSettings!.twentyFourHourTime).isFalse();
+      check(store.userSettings.twentyFourHourTime).isFalse();
       connection.prepare(json: GetEventsResult(events: [
         UserSettingsUpdateEvent(id: 2,
           property: UserSettingName.twentyFourHourTime, value: true),
@@ -575,7 +575,7 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       await Future<void>.delayed(Duration.zero);
-      check(store.userSettings!.twentyFourHourTime).isTrue();
+      check(store.userSettings.twentyFourHourTime).isTrue();
     }));
 
     test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
