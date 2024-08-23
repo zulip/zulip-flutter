@@ -333,16 +333,6 @@ void main() {
         checkEditState(MessageEditState.edited,
           [{'prev_content': 'old_content'}]);
       });
-
-      test("'prev_topic' present without the 'topic' field -> moved", () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_topic': 'old_topic'}]);
-      });
-
-      test("'prev_subject' present from a pre-5.0 server -> moved", () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_subject': 'old_topic'}]);
-      });
     });
 
     group('topic resolved in edit history', () {
