@@ -356,7 +356,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   /// Always equal to `account.userId`.
   final int selfUserId;
 
-  final UserSettings? userSettings; // TODO(server-5)
+  final UserSettings userSettings;
 
   ////////////////////////////////
   // Users and data about them.
@@ -460,11 +460,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
         }
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
-            userSettings?.twentyFourHourTime        = event.value as bool;
+            userSettings.twentyFourHourTime        = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
-            userSettings?.displayEmojiReactionUsers = event.value as bool;
+            userSettings.displayEmojiReactionUsers = event.value as bool;
           case UserSettingName.emojiset:
-            userSettings?.emojiset                  = event.value as Emojiset;
+            userSettings.emojiset                  = event.value as Emojiset;
         }
         notifyListeners();
 
