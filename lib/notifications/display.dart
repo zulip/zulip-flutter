@@ -26,7 +26,10 @@ AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNoti
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
   @visibleForTesting
-  static const kChannelId = 'messages-1';
+  static const kChannelId = 'messages-2';
+
+  @visibleForTesting
+  static const kDefaultSoundResourceName = 'chime3'; // 'Zulip - Chime.m4a'
 
   /// The vibration pattern we set for notifications.
   // We try to set a vibration pattern that, with the phone in one's pocket,
@@ -78,8 +81,8 @@ class NotificationChannelManager {
       name: 'Messages', // TODO(i18n)
       importance: NotificationImportance.high,
       lightsEnabled: true,
+      soundResourceName: kDefaultSoundResourceName,
       vibrationPattern: kVibrationPattern,
-      // TODO(#340) sound
     ));
   }
 }

@@ -127,7 +127,7 @@ void main() {
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
-        ..soundResourceName.isNull()
+        ..soundResourceName.equals(NotificationChannelManager.kDefaultSoundResourceName)
         ..vibrationPattern.isNotNull().deepEquals(
             NotificationChannelManager.kVibrationPattern)
       ;
