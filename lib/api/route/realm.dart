@@ -50,7 +50,7 @@ class GetServerSettingsResult {
   final String realmName;
   final String realmIcon;
   final String realmDescription;
-  final bool? realmWebPublicAccessEnabled; // TODO(server-5)
+  final bool realmWebPublicAccessEnabled;
 
   GetServerSettingsResult({
     required this.authenticationMethods,
