@@ -310,9 +310,7 @@ Map<String, dynamic> _$UnreadMessagesSnapshotToJson(
 
 UnreadDmSnapshot _$UnreadDmSnapshotFromJson(Map<String, dynamic> json) =>
     UnreadDmSnapshot(
-      otherUserId:
-          (UnreadDmSnapshot._readOtherUserId(json, 'other_user_id') as num)
-              .toInt(),
+      otherUserId: (json['other_user_id'] as num).toInt(),
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
