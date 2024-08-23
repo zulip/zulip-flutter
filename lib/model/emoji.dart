@@ -18,9 +18,9 @@ sealed class EmojiDisplay {
 
   EmojiDisplay({required this.emojiName});
 
-  EmojiDisplay resolve(UserSettings? userSettings) { // TODO(server-5)
+  EmojiDisplay resolve(UserSettings userSettings) {
     if (this is TextEmojiDisplay) return this;
-    if (userSettings?.emojiset == Emojiset.text) {
+    if (userSettings.emojiset == Emojiset.text) {
       return TextEmojiDisplay(emojiName: emojiName);
     }
     return this;
