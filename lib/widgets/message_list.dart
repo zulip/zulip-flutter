@@ -1232,7 +1232,6 @@ class MessageWithPossibleSender extends StatelessWidget {
                   Flexible(
                     child: Text(message.senderFullName, // TODO get from user data
                       style: TextStyle(
-                        fontFamily: 'Source Sans 3',
                         fontSize: 18,
                         height: (22 / 18),
                         color: messageListTheme.senderName,
@@ -1251,7 +1250,6 @@ class MessageWithPossibleSender extends StatelessWidget {
           Text(time,
             style: TextStyle(
               color: messageListTheme.messageTimestamp,
-              fontFamily: 'Source Sans 3',
               fontSize: 16,
               height: (18 / 16),
               fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
