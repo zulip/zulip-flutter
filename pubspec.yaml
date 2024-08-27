@@ -67,6 +67,22 @@ dependencies:
     path: ./packages/zulip_plugin
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
+dependency_overrides:
+  # TODO(#918) remove this and `flutter_color_models` when `flutter_color_models` accommodates
+  #   wide-gamut adjustments to Flutter's `Color`. A PR to `flutter_color_models` is already open:
+  #     https://github.com/james-alex/color_models/pull/10
+  color_models:
+    git:
+      url: https://github.com/gaaclarke/color_models.git
+      ref: wide-gamut
+      path: color_models
+  flutter_color_models:
+    git:
+      url: https://github.com/gaaclarke/color_models.git
+      ref: wide-gamut
+      path: flutter_color_models
+
+
 dev_dependencies:
   flutter_driver:
     sdk: flutter
