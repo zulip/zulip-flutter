@@ -344,6 +344,17 @@ class ContentExample {
       ]),
     ]);
 
+  // Current servers no longer produce this, but it can be found in ancient
+  // messages.  For example:
+  //   https://chat.zulip.org/#narrow/stream/2-general/topic/Error.20in.20dev.20server/near/18765
+  static final codeBlockWithEmptyBody = ContentExample(
+      'code block, with an empty body',
+      '```',
+      '<div class="codehilite"><pre></pre></div>', [
+      blockUnimplemented(
+          '<div class="codehilite"><pre></pre></div>'),
+  ]);
+
   static final codeBlockWithHighlightedLines = ContentExample(
     'code block, with syntax highlighting and highlighted lines',
     '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```',
@@ -1149,6 +1160,7 @@ void main() {
   testParseExample(ContentExample.codeBlockPlain);
   testParseExample(ContentExample.codeBlockHighlightedShort);
   testParseExample(ContentExample.codeBlockHighlightedMultiline);
+  testParseExample(ContentExample.codeBlockWithEmptyBody);
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);

@@ -990,7 +990,7 @@ class _ZulipContentParser {
       if (child is! dom.Element) return null;
       if (child.localName != 'pre') return null;
 
-      if (child.nodes.length > 2) return null;
+      if (child.nodes.length > 2 || child.nodes.isEmpty) return null;
       if (child.nodes.length == 2) {
         final first = child.nodes[0];
         if (first is! dom.Element
