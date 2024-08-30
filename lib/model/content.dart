@@ -986,7 +986,7 @@ class _ZulipContentParser {
           && divElement.className == "codehilite");
 
       if (divElement.nodes.length != 1) return null;
-      final child = divElement.nodes[0];
+      final child = divElement.nodes.single;
       if (child is! dom.Element) return null;
       if (child.localName != 'pre') return null;
 
@@ -997,7 +997,7 @@ class _ZulipContentParser {
             || first.localName != 'span'
             || first.nodes.isNotEmpty) return null;
       }
-      final grandchild = child.nodes[child.nodes.length - 1];
+      final grandchild = child.nodes.last;
       if (grandchild is! dom.Element) return null;
       if (grandchild.localName != 'code') return null;
 
