@@ -846,12 +846,12 @@ class _SendButtonState extends State<_SendButton> {
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
     final backgroundColor = disabled
-      ? colorScheme.onSurface.withOpacity(0.12)
+      ? colorScheme.onSurface.withValues(alpha: 0.12)
       : colorScheme.primary;
 
     // Copy FilledButton defaults (_FilledButtonDefaultsM3.foregroundColor)
     final foregroundColor = disabled
-      ? colorScheme.onSurface.withOpacity(0.38)
+      ? colorScheme.onSurface.withValues(alpha: 0.38)
       : colorScheme.onPrimary;
 
     return Ink(

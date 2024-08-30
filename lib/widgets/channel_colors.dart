@@ -123,7 +123,7 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
       // TODO fix bug where our results differ from the replit's (see unit tests)
       ChannelColorVariant.unreadCountBadgeBackground:
         clampLchLightness(baseAsColor, 30, 70)
-          .withOpacity(0.3),
+          .withValues(alpha: 0.3),
 
       // Follows `.sidebar-row__icon` in Vlad's replit:
       //   <https://replit.com/@VladKorobov/zulip-sidebar#script.js>
@@ -169,7 +169,7 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
       ChannelColorVariant.base: baseAsColor,
       ChannelColorVariant.unreadCountBadgeBackground:
         clampLchLightness(baseAsColor, 30, 70)
-          .withOpacity(0.3),
+          .withValues(alpha: 0.3),
       ChannelColorVariant.iconOnPlainBackground: clamped20to75,
 
       // Follows the web app (as of zulip/zulip@db03369ac); see

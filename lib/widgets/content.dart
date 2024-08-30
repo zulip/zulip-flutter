@@ -66,7 +66,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
-      colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withOpacity(0.2),
+      colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),

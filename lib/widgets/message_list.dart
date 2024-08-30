@@ -39,7 +39,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
       senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
       streamMessageBgDefault: Colors.white,
-      streamRecipientHeaderChevronRight: Colors.black.withOpacity(0.3),
+      streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
       // From the Figma mockup at:
       //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
@@ -49,7 +49,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       // in both light and dark theme.)
       unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.white.withOpacity(0.6),
+      unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
 
       // TODO(design) this seems ad-hoc; is there a better color?
       unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
@@ -67,7 +67,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
       senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
       streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      streamRecipientHeaderChevronRight: Colors.white.withOpacity(0.3),
+      streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
       // 0.75 opacity from here:
       //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev

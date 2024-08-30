@@ -107,7 +107,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.light() :
     this._(
       background: const Color(0xffffffff),
-      bgCounterUnread: const Color(0xff666699).withOpacity(0.15),
+      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: const Color(0x33000000),
       icon: const Color(0xff666699),
@@ -121,7 +121,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.57, 0.33).toColor(),
       errorBannerLabel: const HSLColor.fromAHSL(1, 4, 0.58, 0.33).toColor(),
-      groupDmConversationIcon: Colors.black.withOpacity(0.5),
+      groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
       groupDmConversationIconBg: const Color(0x33808080),
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
@@ -129,18 +129,18 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-      unreadCountBadgeTextForChannel: Colors.black.withOpacity(0.9),
+      unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     );
 
   DesignVariables.dark() :
     this._(
       background: const Color(0xff000000),
-      bgCounterUnread: const Color(0xff666699).withOpacity(0.37),
+      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
       bgTopBar: const Color(0xff242424),
-      borderBar: Colors.black.withOpacity(0.41),
+      borderBar: Colors.black.withValues(alpha: 0.41),
       icon: const Color(0xff7070c2),
-      labelCounterUnread: const Color(0xffffffff).withOpacity(0.7),
-      labelMenuButton: const Color(0xffffffff).withOpacity(0.85),
+      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
+      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
@@ -151,7 +151,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
       errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIcon: Colors.white.withOpacity(0.5),
+      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       groupDmConversationIconBg: const Color(0x33cccccc),
       loginOrDivider: const Color(0xff424242),
@@ -164,7 +164,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
-      unreadCountBadgeTextForChannel: Colors.white.withOpacity(0.9),
+      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
     );
 
   DesignVariables._({

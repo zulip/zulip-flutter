@@ -24,10 +24,10 @@ class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
       //   want to check that against web when implementing the shadow.
       bgUnselected: const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor(),
 
-      borderSelected: Colors.black.withOpacity(0.45),
+      borderSelected: Colors.black.withValues(alpha: 0.45),
 
       // TODO see TODO on [bgUnselected] about shadow effect
-      borderUnselected: Colors.black.withOpacity(0.05),
+      borderUnselected: Colors.black.withValues(alpha: 0.05),
 
       textSelected: const HSLColor.fromAHSL(1, 210, 0.20, 0.20).toColor(),
       textUnselected: const HSLColor.fromAHSL(1, 210, 0.20, 0.25).toColor(),
@@ -35,12 +35,12 @@ class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
 
   EmojiReactionTheme.dark() :
     this._(
-      bgSelected: Colors.black.withOpacity(0.8),
-      bgUnselected: Colors.black.withOpacity(0.3),
-      borderSelected: Colors.white.withOpacity(0.75),
-      borderUnselected: Colors.white.withOpacity(0.15),
-      textSelected: Colors.white.withOpacity(0.85),
-      textUnselected: Colors.white.withOpacity(0.75),
+      bgSelected: Colors.black.withValues(alpha: 0.8),
+      bgUnselected: Colors.black.withValues(alpha: 0.3),
+      borderSelected: Colors.white.withValues(alpha: 0.75),
+      borderUnselected: Colors.white.withValues(alpha: 0.15),
+      textSelected: Colors.white.withValues(alpha: 0.85),
+      textUnselected: Colors.white.withValues(alpha: 0.75),
     );
 
   EmojiReactionTheme._({
@@ -168,7 +168,7 @@ class ReactionChip extends StatelessWidget {
     final labelColor =      selfVoted ? reactionTheme.textSelected   : reactionTheme.textUnselected;
     final backgroundColor = selfVoted ? reactionTheme.bgSelected     : reactionTheme.bgUnselected;
     final splashColor =     selfVoted ? reactionTheme.bgUnselected   : reactionTheme.bgSelected;
-    final highlightColor =  splashColor.withOpacity(0.5);
+    final highlightColor =  splashColor.withValues(alpha: 0.5);
 
     final borderSide = BorderSide(
       color: borderColor,

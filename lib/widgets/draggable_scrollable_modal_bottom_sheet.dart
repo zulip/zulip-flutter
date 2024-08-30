@@ -73,7 +73,7 @@ class _DragHandleLayer extends StatelessWidget {
             //   https://m3.material.io/components/bottom-sheets/specs#7c093473-d9e1-48f3-9659-b75519c2a29d
             height: 4,
             width: 32,
-            child: ColoredBox(color: colorScheme.onSurfaceVariant.withOpacity(0.40))))));
+            child: ColoredBox(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.40))))));
   }
 }
 

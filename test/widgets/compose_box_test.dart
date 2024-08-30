@@ -256,7 +256,7 @@ void main() {
       final sendButtonWidget = sendButtonElement.widget as IconButton;
       final colorScheme = Theme.of(sendButtonElement).colorScheme;
       final expectedForegroundColor = expected
-        ? colorScheme.onSurface.withOpacity(0.38)
+        ? colorScheme.onSurface.withValues(alpha: 0.38)
         : colorScheme.onPrimary;
       check(sendButtonWidget.color).equals(expectedForegroundColor);
     }

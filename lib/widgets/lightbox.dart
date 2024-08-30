@@ -145,7 +145,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
 
-    final appBarBackgroundColor = Colors.grey.shade900.withOpacity(0.87);
+    final appBarBackgroundColor = Colors.grey.shade900.withValues(alpha: 0.87);
     const appBarForegroundColor = Colors.white;
     const appBarElevation = 0.0;
 
