@@ -20,6 +20,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -183,7 +184,7 @@ void main() {
               ..conversationTitle.equals(expectedTitle)
               ..messages.deepEquals(messageStyleMessagesChecks))
             ..number.equals(messageStyleMessages.length)
-            ..color.equals(kZulipBrandColor.value)
+            ..color.equals(kZulipBrandColor.argbInt)
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
@@ -203,7 +204,7 @@ void main() {
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
             ..contentText.isNull()
-            ..color.equals(kZulipBrandColor.value)
+            ..color.equals(kZulipBrandColor.argbInt)
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.isNull()
             ..groupKey.equals(expectedGroupKey)

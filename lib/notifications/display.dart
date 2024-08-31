@@ -15,6 +15,7 @@ import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import '../widgets/app.dart';
+import '../widgets/color.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
@@ -151,7 +152,7 @@ class NotificationDisplayManager {
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
 
-      color: kZulipBrandColor.value,
+      color: kZulipBrandColor.argbInt,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
 
@@ -193,7 +194,7 @@ class NotificationDisplayManager {
       groupKey: groupKey,
       isGroupSummary: true,
 
-      color: kZulipBrandColor.value,
+      color: kZulipBrandColor.argbInt,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
       inboxStyle: InboxStyle(

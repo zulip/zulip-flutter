@@ -209,7 +209,7 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
         swatch = a._swatch.map((key, color) => MapEntry(key, Color.lerp(color, b[key], t)!));
       }
     }
-    return ChannelColorSwatch._(Color.lerp(a, b, t)!.value, swatch);
+    return ChannelColorSwatch._(Color.lerp(a, b, t)!.argbInt, swatch);
   }
 }
 

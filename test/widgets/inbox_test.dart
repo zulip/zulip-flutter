@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/channel_colors.dart';
@@ -470,7 +471,7 @@ void main() {
         });
 
         testWidgets('uncollapsed header changes background color when [subscription.color] changes', (tester) async {
-          final initialColor = Colors.indigo.value;
+          final initialColor = Colors.indigo.argbInt;
 
           final stream = eg.stream(streamId: 1);
           await setupPage(tester,
@@ -483,7 +484,7 @@ void main() {
           check(streamHeaderBackgroundColor(tester, 1))
             .equals(ChannelColorSwatch.light(initialColor).barBackground);
 
-          final newColor = Colors.orange.value;
+          final newColor = Colors.orange.argbInt;
           store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
             property: SubscriptionProperty.color, value: newColor));
           await tester.pump();
