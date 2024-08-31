@@ -195,14 +195,15 @@ void main() {
   });
 
   group('message-send request response', () {
+    final contentInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeContentController);
+
     Future<void> setupAndTapSend(WidgetTester tester, {
       required void Function(int messageId) prepareResponse,
     }) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
 
-      final contentInputFinder = find.byWidgetPredicate(
-        (widget) => widget is TextField && widget.controller is ComposeContentController);
       await tester.enterText(contentInputFinder, 'hello world');
 
       prepareResponse(456);
@@ -227,6 +228,8 @@ void main() {
       });
       final errorDialogs = tester.widgetList(find.byType(AlertDialog));
       check(errorDialogs).isEmpty();
+      check(tester.widget<TextField>(contentInputFinder))
+        .controller.isNotNull().text.isNotNull().isEmpty();
     });
 
     testWidgets('ZulipApiException', (tester) async {
@@ -245,6 +248,27 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+      check(tester.widget<TextField>(contentInputFinder))
+        .controller.isNotNull().text.isNotNull().isNotEmpty();
+    });
+
+    testWidgets('disable compose box until send succeeds', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(id: messageId).toJson(),
+          delay: const Duration(seconds: 2));
+      });
+      // Both content input and topic input should be disabled.
+      check(tester.widgetList<TextField>(find.byType(TextField)))
+        .every((element) => element.readOnly.isNotNull().isTrue());
+      // All the compose buttons should be disableed.
+      check(tester.widgetList<IconButton>(find.byType(IconButton)))
+        .every((element) => element.onPressed.isNull());
+
+      await tester.pump(const Duration(seconds: 2));
+      check(tester.widgetList<TextField>(find.byType(TextField)))
+        .every((element) => element.readOnly.isNotNull().isFalse());
+      check(tester.widgetList<IconButton>(find.byType(IconButton)))
+        .every((element) => element.onPressed.isNotNull());
     });
   });
 
