@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter_color_models/flutter_color_models.dart';
+import 'package:flutter_color_models/flutter_color_models.dart' as flutter_color_models;
 
 // This function promises to deal with "LCH" lightness, not "LAB" lightness,
 // but it's not yet true. We haven't found a Dart libary that can work with LCH:
@@ -11,7 +11,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 //
 // TODO try LCH; see linked discussion
 Color clampLchLightness(Color color, num lowerLimit, num upperLimit) {
-  final asLab = LabColor.fromColor(color);
+  final asLab = flutter_color_models.LabColor.fromColor(color);
   return asLab
     .copyWith(lightness: asLab.lightness.clamp(lowerLimit, upperLimit))
     .toColor();
