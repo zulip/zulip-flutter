@@ -841,39 +841,25 @@ class _SendButtonState extends State<_SendButton> {
 
   @override
   Widget build(BuildContext context) {
-    final disabled = _hasValidationErrors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
-    final backgroundColor = disabled
-      ? colorScheme.onSurface.withValues(alpha: 0.12)
-      : colorScheme.primary;
-
-    // Copy FilledButton defaults (_FilledButtonDefaultsM3.foregroundColor)
-    final foregroundColor = disabled
-      ? colorScheme.onSurface.withValues(alpha: 0.38)
-      : colorScheme.onPrimary;
-
-    return Ink(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-        color: backgroundColor,
+    return IconButton(
+      tooltip: zulipLocalizations.composeBoxSendTooltip,
+      style: const ButtonStyle(
+        // Match the height of the content input.
+        minimumSize: WidgetStatePropertyAll(Size.square(_sendButtonSize)),
+        // With the default of [MaterialTapTargetSize.padded], not just the
+        // tap target but the visual button would get padded to 48px square.
+        // It would be nice if the tap target extended invisibly out from the
+        // button, to make a 48px square, but that's not the behavior we get.
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child: IconButton(
-        tooltip: zulipLocalizations.composeBoxSendTooltip,
-        style: const ButtonStyle(
-          // Match the height of the content input.
-          minimumSize: WidgetStatePropertyAll(Size.square(_sendButtonSize)),
-          // With the default of [MaterialTapTargetSize.padded], not just the
-          // tap target but the visual button would get padded to 48px square.
-          // It would be nice if the tap target extended invisibly out from the
-          // button, to make a 48px square, but that's not the behavior we get.
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        color: foregroundColor,
-        icon: const Icon(ZulipIcons.send),
-        onPressed: _send));
+      color: _hasValidationErrors
+        ? designVariables.icon.withValues(alpha: 0.5)
+        : designVariables.icon,
+      icon: const Icon(ZulipIcons.send),
+      onPressed: _send);
   }
 }
 

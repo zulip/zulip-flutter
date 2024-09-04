@@ -16,6 +16,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -256,10 +257,10 @@ void main() {
         of: find.byIcon(ZulipIcons.send),
         matching: find.byType(IconButton)));
       final sendButtonWidget = sendButtonElement.widget as IconButton;
-      final colorScheme = Theme.of(sendButtonElement).colorScheme;
+      final designVariables = DesignVariables.of(sendButtonElement);
       final expectedForegroundColor = expected
-        ? colorScheme.onSurface.withValues(alpha: 0.38)
-        : colorScheme.onPrimary;
+        ? designVariables.icon.withValues(alpha: 0.5)
+        : designVariables.icon;
       check(sendButtonWidget.color).isNotNull().isSameColorAs(expectedForegroundColor);
     }
 
