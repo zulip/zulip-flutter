@@ -758,6 +758,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 // state is disabled, pressed, etc.  We handle those states
                 // separately, via MarkAsReadAnimation.
                 foregroundColor: const WidgetStatePropertyAll(Colors.white),
+                iconColor: const WidgetStatePropertyAll(Colors.white),
                 backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
