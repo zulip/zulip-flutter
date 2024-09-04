@@ -653,7 +653,7 @@ void main() {
         ..controller.isNotNull().text.equals('Some text');
 
       connection.prepare(json: SendMessageResult(id: 1).toJson());
-      await tester.tap(find.byIcon(Icons.send));
+      await tester.tap(find.byIcon(ZulipIcons.send));
       await tester.pump();
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')

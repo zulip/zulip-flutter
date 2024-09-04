@@ -15,6 +15,7 @@ import '../model/narrow.dart';
 import '../model/store.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
+import 'icons.dart';
 import 'store.dart';
 import 'theme.dart';
 
@@ -726,7 +727,7 @@ class _AttachFileButton extends _AttachUploadsButton {
   const _AttachFileButton({required super.contentController, required super.contentFocusNode});
 
   @override
-  IconData get icon => Icons.attach_file;
+  IconData get icon => ZulipIcons.attach_file;
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
@@ -742,7 +743,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
   const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
 
   @override
-  IconData get icon => Icons.image;
+  IconData get icon => ZulipIcons.image;
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
@@ -759,7 +760,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
 
   @override
-  IconData get icon => Icons.camera_alt;
+  IconData get icon => ZulipIcons.camera;
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
@@ -959,7 +960,7 @@ class _SendButtonState extends State<_SendButton> {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         color: foregroundColor,
-        icon: const Icon(Icons.send),
+        icon: const Icon(ZulipIcons.send),
         onPressed: _send));
   }
 }
