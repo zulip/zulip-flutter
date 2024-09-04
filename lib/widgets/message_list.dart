@@ -757,8 +757,8 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 // Give the buttons a constant color regardless of whether their
                 // state is disabled, pressed, etc.  We handle those states
                 // separately, via MarkAsReadAnimation.
-                foregroundColor: WidgetStateColor.resolveWith((_) => Colors.white),
-                backgroundColor: WidgetStateColor.resolveWith((_) => messageListTheme.unreadMarker),
+                foregroundColor: const WidgetStatePropertyAll(Colors.white),
+                backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
               icon: const Icon(Icons.playlist_add_check),
