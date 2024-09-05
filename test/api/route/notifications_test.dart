@@ -28,6 +28,27 @@ void main() {
     });
   });
 
+  group('removeFcmToken', () {
+    Future<void> checkRemoveFcmToken(FakeApiConnection connection, {
+      required String token,
+    }) async {
+      connection.prepare(json: {});
+      await removeFcmToken(connection, token: token);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals('/api/v1/users/me/android_gcm_reg_id')
+        ..bodyFields.deepEquals({
+          'token': token,
+        });
+    }
+
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkRemoveFcmToken(connection, token: 'asdf');
+      });
+    });
+  });
+
   group('addApnsToken', () {
     Future<void> checkAddApnsToken(FakeApiConnection connection, {
       required String token,
@@ -47,6 +68,27 @@ void main() {
     test('smoke', () {
       return FakeApiConnection.with_((connection) async {
         await checkAddApnsToken(connection, token: 'asdf', appid: 'qwer');
+      });
+    });
+  });
+
+  group('removeApnsToken', () {
+    Future<void> checkRemoveApnsToken(FakeApiConnection connection, {
+      required String token,
+    }) async {
+      connection.prepare(json: {});
+      await removeApnsToken(connection, token: token);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals('/api/v1/users/me/apns_device_token')
+        ..bodyFields.deepEquals({
+          'token': token,
+        });
+    }
+
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        await checkRemoveApnsToken(connection, token: 'asdf');
       });
     });
   });
