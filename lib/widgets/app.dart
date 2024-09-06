@@ -7,6 +7,8 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
+import '../notifications/receive.dart';
 import 'about_zulip.dart';
 import 'app_bar.dart';
 import 'inbox.dart';
@@ -165,13 +167,61 @@ class ChooseAccountPage extends StatelessWidget {
     required Widget title,
     Widget? subtitle,
   }) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return Card(
       clipBehavior: Clip.hardEdge,
       child: ListTile(
         title: title,
         subtitle: subtitle,
+        trailing: PopupMenuButton<AccountItemOverflowMenuItem>(
+          iconColor: designVariables.icon,
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: AccountItemOverflowMenuItem.logOut,
+              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+          ],
+          onSelected: (item) async {
+            switch (item) {
+              case AccountItemOverflowMenuItem.logOut: {
+                _logOutAccount(context, accountId);
+              }
+            }
+          }),
+        // The default trailing padding with M3 is 24px. Decrease by 12 because
+        // PopupMenuButton adds 12px padding on all sides of the "…" icon.
+        contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
         onTap: () => Navigator.push(context,
           HomePage.buildRoute(accountId: accountId))));
+  }
+
+  Future<void> _logOutAccount(BuildContext context, int accountId) async {
+    final globalStore = GlobalStoreWidget.of(context);
+
+    final account = globalStore.getAccount(accountId);
+    if (account == null) return; // TODO(log)
+
+    // Async IIFE to not block removing the account on the unregister-token request.
+    () async {
+      // TODO(#322) use actual acked push token; until #322, this is just null.
+      final token = account.ackedPushToken
+        // Try the current token as a fallback; maybe the server has registered
+        // it and we just haven't recorded that fact in the client.
+        ?? NotificationService.instance.token.value;
+      if (token == null) return;
+
+      final connection = globalStore.apiConnectionFromAccount(account);
+      try {
+        await NotificationService.unregisterToken(connection, token: token);
+      } catch (e) {
+        // TODO retry? handle failures?
+      } finally {
+        connection.close();
+      }
+    }();
+
+    // TODO error handling? disable logout button during this?
+    await globalStore.removeAccount(accountId);
   }
 
   @override
@@ -229,6 +279,8 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
       });
   }
 }
+
+enum AccountItemOverflowMenuItem { logOut }
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

@@ -19,6 +19,10 @@
   "@chooseAccountPageTitle": {
     "description": "Title for ChooseAccountPage"
   },
+  "chooseAccountPageLogOutButton": "Log out",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
   "chooseAccountButtonAddAnAccount": "Add an account",
   "@chooseAccountButtonAddAnAccount": {
     "description": "Label for ChooseAccountPage button to add an account"
