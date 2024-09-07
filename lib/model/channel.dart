@@ -9,9 +9,36 @@ import '../api/model/model.dart';
 ///
 /// The data structures described here are implemented at [ChannelStoreImpl].
 mixin ChannelStore {
+  /// All known channels/streams, indexed by [ZulipStream.streamId].
+  ///
+  /// The same [ZulipStream] objects also appear in [streamsByName].
+  ///
+  /// For channels the self-user is subscribed to, the value is in fact
+  /// a [Subscription] object and also appears in [subscriptions].
   Map<int, ZulipStream> get streams;
+
+  /// All known channels/streams, indexed by [ZulipStream.name].
+  ///
+  /// The same [ZulipStream] objects also appear in [streams].
+  ///
+  /// For channels the self-user is subscribed to, the value is in fact
+  /// a [Subscription] object and also appears in [subscriptions].
   Map<String, ZulipStream> get streamsByName;
+
+  /// All the channels the self-user is subscribed to, indexed by
+  /// [Subscription.streamId], with subscription details.
+  ///
+  /// The same [Subscription] objects are among the values in [streams]
+  /// and [streamsByName].
   Map<int, Subscription> get subscriptions;
+
+  /// The visibility policy that the self-user has for the given topic.
+  ///
+  /// This does not incorporate the user's channel-level policy,
+  /// and is mainly used in the implementation of other [ChannelStore] methods.
+  ///
+  /// For policies directly applicable in the UI, see
+  /// [isTopicVisibleInStream] and [isTopicVisible].
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic);
 
   /// Whether this topic should appear when already focusing on its stream.
