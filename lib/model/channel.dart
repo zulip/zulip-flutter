@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -40,6 +42,16 @@ mixin ChannelStore {
   /// For policies directly applicable in the UI, see
   /// [isTopicVisibleInStream] and [isTopicVisible].
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic);
+
+  /// The raw data structure underlying [topicVisibilityPolicy].
+  ///
+  /// This is sometimes convenient for checks in tests.
+  /// It differs from [topicVisibilityPolicy] in on the one hand omitting
+  /// all topics where the value would be [UserTopicVisibilityPolicy.none],
+  /// and on the other hand being a concrete, finite data structure that
+  /// can be compared using `deepEquals`.
+  @visibleForTesting
+  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility;
 
   /// Whether this topic should appear when already focusing on its stream.
   ///
@@ -190,6 +202,9 @@ class ChannelStoreImpl with ChannelStore {
   final Map<String, ZulipStream> streamsByName;
   @override
   final Map<int, Subscription> subscriptions;
+
+  @override
+  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
 
   final Map<int, Map<String, UserTopicVisibilityPolicy>> topicVisibility;
 
