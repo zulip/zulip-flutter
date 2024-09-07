@@ -355,11 +355,11 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
     _channels.topicVisibilityPolicy(streamId, topic);
+  @override
+  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
+    _channels.debugTopicVisibility;
 
   final ChannelStoreImpl _channels;
-
-  @visibleForTesting
-  ChannelStoreImpl get debugChannelStore => _channels;
 
   ////////////////////////////////
   // Messages, and summaries of messages.
