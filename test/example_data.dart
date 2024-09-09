@@ -320,6 +320,15 @@ int _lastMessageId = 1000;
 
 const defaultStreamMessageStreamId = 123;
 
+/// The default topic used by [streamMessage].
+///
+/// Tests generally shouldn't need this information directly.
+/// Instead, either
+///  * use [StreamMessage.topic] to read off an example message's topic;
+///  * or pick an example topic, and pass it both to [streamMessage]
+///    and wherever else the same topic is needed.
+final _defaultTopic = 'example topic ${Random().nextInt(1000)}';
+
 /// Construct an example stream message.
 ///
 /// If the message ID `id` is not given, it will be generated from a random
@@ -330,6 +339,10 @@ const defaultStreamMessageStreamId = 123;
 ///
 /// The message will be in `stream` if given.  Otherwise,
 /// an example stream with ID `defaultStreamMessageStreamId` will be used.
+///
+/// If `topic` is not given, a default topic name is used.
+/// The default is randomly chosen, but remains the same
+/// for subsequent calls to this function.
 ///
 /// See also:
 ///  * [dmMessage], to construct an example direct message.
@@ -363,7 +376,7 @@ StreamMessage streamMessage({
     'flags': flags ?? [],
     'id': id ?? _nextMessageId(),
     'last_edit_timestamp': lastEditTimestamp,
-    'subject': topic ?? 'example topic',
+    'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
