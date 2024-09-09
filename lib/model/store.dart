@@ -798,7 +798,6 @@ class UpdateMachine {
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
             // TODO tell user if transient polling errors persist
-            // TODO reset to short backoff eventually
             await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
