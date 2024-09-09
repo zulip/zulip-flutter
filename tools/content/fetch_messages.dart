@@ -21,6 +21,8 @@ import 'model.dart';
 /// Because message IDs are only unique within a single server, the script
 /// names corpuses from each server differently (if --corpus-dir is specified).
 ///
+/// This script is meant to be run via `tools/content/check-features`.
+///
 /// For more help, run `tools/content/fetch_message.dart --help`.
 ///
 /// See also:

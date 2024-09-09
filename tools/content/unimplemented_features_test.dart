@@ -17,9 +17,9 @@ import 'model.dart';
 /// Check if there are unimplemented features from the given corpuses of HTML
 /// contents from Zulip messages.
 ///
-/// This test is meant to be manually run.
+/// This test is meant to be run via `tools/content/check-features`.
 ///
-/// To run it, use:
+/// To run it directly, use:
 ///
 ///   flutter test tools/content --dart-define=corpusDir=path/to/corpusDir
 ///
