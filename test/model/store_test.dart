@@ -164,6 +164,88 @@ void main() {
     // TODO test database gets updated correctly (an integration test with sqlite?)
   });
 
+  group('GlobalStore.removeAccount', () {
+    void checkGlobalStore(GlobalStore store, int accountId, {
+      required bool expectAccount,
+      required bool expectStore,
+      bool expectStoreLoading = false,
+    }) {
+      expectAccount
+        ? check(store.getAccount(accountId)).isNotNull()
+        : check(store.getAccount(accountId)).isNull();
+      expectStore
+        ? check(store.debugPerAccountStores[accountId]).isNotNull()
+        : check(store.debugPerAccountStores[accountId]).isNull();
+      expectStoreLoading
+        ? check(store.debugPerAccountStoresLoading[accountId]).isNotNull()
+        : check(store.debugPerAccountStoresLoading[accountId]).isNull();
+    }
+
+    test('when store loaded', () async {
+      final globalStore = eg.globalStore();
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await globalStore.perAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: true);
+      int notifyCount = 0;
+      globalStore.addListener(() => notifyCount++);
+
+      await globalStore.removeAccount(eg.selfAccount.id);
+
+      // TODO test that the removed store got disposed and its connection closed
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false);
+      check(notifyCount).equals(1);
+    });
+
+    test('when store not loaded', () async {
+      final globalStore = eg.globalStore();
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: false);
+      int notifyCount = 0;
+      globalStore.addListener(() => notifyCount++);
+
+      await globalStore.removeAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false);
+      check(notifyCount).equals(1);
+    });
+
+    test('when store loading', () async {
+      final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: false, expectStoreLoading: false);
+
+      // don't await; we'll complete/await it manually after removeAccount
+      final loadingFuture = globalStore.perAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: false, expectStoreLoading: true);
+      int notifyCount = 0;
+      globalStore.addListener(() => notifyCount++);
+
+      await globalStore.removeAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false, expectStoreLoading: false);
+      check(notifyCount).equals(1);
+
+      globalStore.completers[eg.selfAccount.id]!.single
+        .complete(eg.store(account: eg.selfAccount, initialSnapshot: eg.initialSnapshot()));
+      // TODO test that the never-used store got disposed and its connection closed
+      check(loadingFuture).throws<AccountNotFoundException>();
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false, expectStoreLoading: false);
+      check(notifyCount).equals(1); // no extra notify
+    });
+
+    // TODO test database gets updated correctly (an integration test with sqlite?)
+  });
+
   group('PerAccountStore.handleEvent', () {
     // Mostly this method just dispatches to ChannelStore and MessageStore etc.,
     // and so most of the tests live in the test files for those

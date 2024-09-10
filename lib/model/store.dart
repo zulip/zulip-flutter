@@ -75,7 +75,10 @@ abstract class GlobalStore extends ChangeNotifier {
       email: account.email, apiKey: account.apiKey);
   }
 
+  Map<int, PerAccountStore> get debugPerAccountStores => _perAccountStores;
   final Map<int, PerAccountStore> _perAccountStores = {};
+
+  Map<int, Future<PerAccountStore>> get debugPerAccountStoresLoading => _perAccountStoresLoading;
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
   /// The store's per-account data for the given account, if already loaded.
@@ -142,8 +145,16 @@ abstract class GlobalStore extends ChangeNotifier {
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
-  Future<PerAccountStore> loadPerAccount(int accountId) {
-    return doLoadPerAccount(accountId);
+  Future<PerAccountStore> loadPerAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    final store = await doLoadPerAccount(accountId);
+    if (!_accounts.containsKey(accountId)) {
+      // [removeAccount] was called during [doLoadPerAccount].
+      // TODO close connection inside `.dispose` instead (once tests can adapt)
+      store..dispose()..connection.close();
+      throw AccountNotFoundException();
+    }
+    return store;
   }
 
   /// Load per-account data for the given account, unconditionally.
@@ -197,9 +208,26 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
+  /// Remove an account from the store.
+  Future<void> removeAccount(int accountId) async {
+    await doRemoveAccount(accountId);
+    assert(_accounts.containsKey(accountId));
+    _accounts.remove(accountId);
+    _perAccountStores.remove(accountId)
+      // TODO close connection inside `.dispose` instead (once tests can adapt)
+      ?..dispose()..connection.close();
+    _perAccountStoresLoading.remove(accountId);
+    notifyListeners();
+  }
+
+  /// Remove an account from the underlying data store.
+  Future<void> doRemoveAccount(int accountId);
+
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
 }
+
+class AccountNotFoundException implements Exception {}
 
 /// Store for the user's data for a given Zulip account.
 ///
@@ -337,7 +365,16 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   // Data attached to the self-account on the realm.
 
   final int accountId;
+
+  /// The [Account] this store belongs to.
+  ///
+  /// Assumes the account hasn't been logged out.
+  /// If the account may have been logged out, don't use this;
+  /// use [maybeAccount] instead.
   Account get account => _globalStore.getAccount(accountId)!;
+
+  /// Like [account], but for contexts where the account might be logged out.
+  Account? get maybeAccount => _globalStore.getAccount(accountId);
 
   /// Always equal to `account.userId`.
   final int selfUserId;
@@ -426,6 +463,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   }
 
   Future<void> handleEvent(Event event) async {
+    // Do nothing if the account has been logged out.
+    if (maybeAccount == null) return;
+
     switch (event) {
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
@@ -566,10 +606,13 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     }
   }
 
-  Future<void> sendMessage({required MessageDestination destination, required String content}) {
+  Future<void> sendMessage({required MessageDestination destination, required String content}) async {
+    // Do nothing if the account has been logged out.
+    if (maybeAccount == null) return;
+
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
-    return _apiSendMessage(connection,
+    await _apiSendMessage(connection,
       destination: destination,
       content: content,
       readBySender: true,
@@ -686,6 +729,14 @@ class LiveGlobalStore extends GlobalStore {
   }
 
   @override
+  Future<void> doRemoveAccount(int accountId) async {
+    final rowsAffected = await (_db.delete(_db.accounts)
+      ..where((a) => a.id.equals(accountId))
+    ).go();
+    assert(rowsAffected == 1);
+  }
+
+  @override
   String toString() => '${objectRuntimeType(this, 'LiveGlobalStore')}#${shortHash(this)}';
 }
 
@@ -793,11 +844,17 @@ class UpdateMachine {
         }());
       }
 
+      // Abort if the account has been logged out.
+      if (store.maybeAccount == null) return;
+
       final GetEventsResult result;
       try {
         result = await getEvents(store.connection,
           queueId: queueId, lastEventId: lastEventId);
       } catch (e) {
+        // Abort if the account has been logged out.
+        if (store.maybeAccount == null) return;
+
         store.isLoading = true;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
@@ -825,6 +882,9 @@ class UpdateMachine {
         }
       }
 
+      // Abort if the account has been logged out.
+      if (store.maybeAccount == null) return;
+
       // After one successful request, we reset backoff to its initial state.
       // That way if the user is off the network and comes back on, the app
       // doesn't wind up in a state where it's slow to recover the next time
@@ -847,6 +907,10 @@ class UpdateMachine {
       for (final event in events) {
         await store.handleEvent(event);
       }
+
+      // Abort if the account has been logged out.
+      if (store.maybeAccount == null) return;
+
       if (events.isNotEmpty) {
         lastEventId = events.last.id;
       }
@@ -881,6 +945,9 @@ class UpdateMachine {
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the registerFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
+    // Abort if the account has been logged out.
+    if (store.maybeAccount == null) return;
+
     if (!debugEnableRegisterNotificationToken) {
       return;
     }
