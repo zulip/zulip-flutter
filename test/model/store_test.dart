@@ -295,7 +295,7 @@ void main() {
       connection.prepare(exception: Exception('failed'));
       final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
       bool complete = false;
-      future.whenComplete(() => complete = true);
+      unawaited(future.whenComplete(() => complete = true));
       async.flushMicrotasks();
       checkLastRequest();
       check(complete).isFalse();
@@ -363,7 +363,7 @@ void main() {
       connection.prepare(exception: Exception('failed'));
       final future = updateMachine.fetchEmojiData(emojiDataUrl);
       bool complete = false;
-      future.whenComplete(() => complete = true);
+      unawaited(future.whenComplete(() => complete = true));
       async.flushMicrotasks();
       checkLastRequest();
       check(complete).isFalse();
