@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
@@ -52,7 +53,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
       check(connection.lastRequest).isA<http.Request>()
@@ -76,7 +77,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -101,7 +102,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       await tester.pumpAndSettle();
       check(store.unreads.oldUnreadsMissing).isFalse();
@@ -115,7 +116,7 @@ void main() {
 
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -133,7 +134,7 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -148,7 +149,7 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -170,7 +171,7 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -190,7 +191,7 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      markNarrowAsRead(context, narrow);
+      unawaited(markNarrowAsRead(context, narrow));
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
