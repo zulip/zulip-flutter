@@ -78,6 +78,8 @@ abstract class GlobalStore extends ChangeNotifier {
   }
 
   final Map<int, PerAccountStore> _perAccountStores = {};
+
+  int get debugNumPerAccountStoresLoading => _perAccountStoresLoading.length;
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
   /// The store's per-account data for the given account, if already loaded.
@@ -144,8 +146,15 @@ abstract class GlobalStore extends ChangeNotifier {
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
-  Future<PerAccountStore> loadPerAccount(int accountId) {
-    return doLoadPerAccount(accountId);
+  Future<PerAccountStore> loadPerAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    final store = await doLoadPerAccount(accountId);
+    if (!_accounts.containsKey(accountId)) {
+      // [removeAccount] was called during [doLoadPerAccount].
+      store.dispose();
+      throw AccountNotFoundException();
+    }
+    return store;
   }
 
   /// Load per-account data for the given account, unconditionally.
@@ -199,9 +208,25 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
+  /// Remove an account from the store.
+  Future<void> removeAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    await doRemoveAccount(accountId);
+    if (!_accounts.containsKey(accountId)) return; // Already removed.
+    _accounts.remove(accountId);
+    _perAccountStores.remove(accountId)?.dispose();
+    unawaited(_perAccountStoresLoading.remove(accountId));
+    notifyListeners();
+  }
+
+  /// Remove an account from the underlying data store.
+  Future<void> doRemoveAccount(int accountId);
+
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
 }
+
+class AccountNotFoundException implements Exception {}
 
 /// Store for the user's data for a given Zulip account.
 ///
@@ -376,6 +401,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   // Data attached to the self-account on the realm.
 
   final int accountId;
+
+  /// The [Account] this store belongs to.
+  ///
+  /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
 
   /// Always equal to `account.userId`.
@@ -730,6 +759,14 @@ class LiveGlobalStore extends GlobalStore {
     final rowsAffected = await (_db.update(_db.accounts)
       ..where((a) => a.id.equals(accountId))
     ).write(data);
+    assert(rowsAffected == 1);
+  }
+
+  @override
+  Future<void> doRemoveAccount(int accountId) async {
+    final rowsAffected = await (_db.delete(_db.accounts)
+      ..where((a) => a.id.equals(accountId))
+    ).go();
     assert(rowsAffected == 1);
   }
 
