@@ -120,6 +120,11 @@ class TestGlobalStore extends GlobalStore {
   }
 
   @override
+  Future<void> doRemoveAccount(int accountId) async {
+    // Nothing to do.
+  }
+
+  @override
   Future<PerAccountStore> doLoadPerAccount(int accountId) {
     final initialSnapshot = _initialSnapshots[accountId]!;
     final store = PerAccountStore.fromInitialSnapshot(
