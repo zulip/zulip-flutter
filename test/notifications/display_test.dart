@@ -856,12 +856,14 @@ void main() {
     }
 
     testWidgets('stream message', (tester) async {
+      addTearDown(testBinding.reset);
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     });
 
     testWidgets('direct message', (tester) async {
+      addTearDown(testBinding.reset);
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount,
@@ -875,6 +877,7 @@ void main() {
     });
 
     testWidgets('mismatching account', (tester) async {
+      addTearDown(testBinding.reset);
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await openNotification(tester, eg.otherAccount, eg.streamMessage());
@@ -882,6 +885,7 @@ void main() {
     });
 
     testWidgets('find account among several', (tester) async {
+      addTearDown(testBinding.reset);
       final realmUrlA = Uri.parse('https://a-chat.example/');
       final realmUrlB = Uri.parse('https://chat-b.example/');
       final user1 = eg.user();
@@ -904,6 +908,7 @@ void main() {
     });
 
     testWidgets('wait for app to become ready', (tester) async {
+      addTearDown(testBinding.reset);
       testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester, early: true);
       final message = eg.streamMessage();
@@ -923,6 +928,7 @@ void main() {
     });
 
     testWidgets('at app launch', (tester) async {
+      addTearDown(testBinding.reset);
       // Set up a value for `getNotificationLaunchDetails` to return.
       final account = eg.selfAccount;
       final message = eg.streamMessage();
