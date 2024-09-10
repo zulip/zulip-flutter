@@ -202,11 +202,19 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
       _setStore(store);
     } else {
       // If we don't already have data, request it.
-
-      // If this succeeds, globalStore will notify listeners, and
-      // [didChangeDependencies] will run again, this time in the
-      // `store != null` case above.
-      globalStore.perAccount(widget.accountId);
+      () async {
+        try {
+          // If this succeeds, globalStore will notify listeners, and
+          // [didChangeDependencies] will run again, this time in the
+          // `store != null` case above.
+          await globalStore.perAccount(widget.accountId);
+        } on AccountNotFoundException {
+          // The account was logged out while its store was loading.
+          // This widget will be showing [placeholder] perpetually,
+          // but that's OK as long as other code will be removing it from the UI
+          // (for example by removing a per-account route from the nav).
+        }
+      }();
     }
   }
 
