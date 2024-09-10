@@ -25,3 +25,4 @@ linter:
     no_literal_bool_comparisons: true
     prefer_relative_imports: true
     unnecessary_statements: true
+    unawaited_futures: true
