@@ -228,6 +228,7 @@ class FakeApiConnection extends ApiConnection {
     String? body,
     Duration delay = Duration.zero,
   }) {
+    assert(isOpen);
     client.prepare(
       exception: exception,
       httpStatus: httpStatus, json: json, body: body,
