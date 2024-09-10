@@ -70,6 +70,10 @@ GetServerSettingsResult serverSettings({
 int _nextUserId() => (_lastUserId += 1 + Random().nextInt(100));
 int _lastUserId = 1000;
 
+/// A random email address, different from previously generated ones.
+String _nextEmail() => 'mail${_lastEmailSuffix += Random().nextInt(1000)}@example.com';
+int _lastEmailSuffix = 1000;
+
 /// Construct an example user.
 ///
 /// If user ID `userId` is not given, it will be generated from a random
@@ -77,6 +81,10 @@ int _lastUserId = 1000;
 /// Use an explicit `userId` only if the ID needs to correspond to some
 /// other data in the test, or if the IDs need to increase in a different order
 /// from the calls to [user].
+///
+/// If `deliveryEmail` is not given, it will be generated from a
+/// random sequence of distinct strings.
+/// If `email` is not given, it will be set to `deliveryEmail`.
 User user({
   int? userId,
   String? deliveryEmail,
@@ -87,7 +95,7 @@ User user({
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
-  var effectiveDeliveryEmail = deliveryEmail ?? 'name@example.com'; // TODO generate example emails
+  var effectiveDeliveryEmail = deliveryEmail ?? _nextEmail();
   _checkPositive(userId, 'user ID');
   return User(
     userId: userId ?? _nextUserId(),
