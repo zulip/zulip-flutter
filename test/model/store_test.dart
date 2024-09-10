@@ -670,7 +670,7 @@ class LoadingTestGlobalStore extends TestGlobalStore {
   Map<int, List<Completer<PerAccountStore>>> completers = {};
 
   @override
-  Future<PerAccountStore> loadPerAccount(int accountId) {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) {
     final completer = Completer<PerAccountStore>();
     (completers[accountId] ??= []).add(completer);
     return completer.future;

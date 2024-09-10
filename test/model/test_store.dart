@@ -107,7 +107,7 @@ class TestGlobalStore extends GlobalStore {
   }
 
   @override
-  Future<PerAccountStore> loadPerAccount(int accountId) {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) {
     final initialSnapshot = _initialSnapshots[accountId]!;
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: this,

@@ -144,7 +144,14 @@ abstract class GlobalStore extends ChangeNotifier {
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
-  Future<PerAccountStore> loadPerAccount(int accountId);
+  Future<PerAccountStore> loadPerAccount(int accountId) {
+    return doLoadPerAccount(accountId);
+  }
+
+  /// Load per-account data for the given account, unconditionally.
+  ///
+  /// This method should be called only by [loadPerAccount].
+  Future<PerAccountStore> doLoadPerAccount(int accountId);
 
   // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -682,7 +689,7 @@ class LiveGlobalStore extends GlobalStore {
   final AppDatabase _db;
 
   @override
-  Future<PerAccountStore> loadPerAccount(int accountId) async {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) async {
     final updateMachine = await UpdateMachine.load(this, accountId);
     return updateMachine.store;
   }
