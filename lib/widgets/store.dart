@@ -202,6 +202,10 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
       _setStore(store);
     } else {
       // If we don't already have data, request it.
+
+      // If this succeeds, globalStore will notify listeners, and
+      // [didChangeDependencies] will run again, this time in the
+      // `store != null` case above.
       globalStore.perAccount(widget.accountId);
     }
   }
