@@ -585,7 +585,7 @@ Map<String, dynamic> _$SubmessageEventToJson(SubmessageEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
-      'msg_type': _$SubmessageTypeEnumMap[instance.msgType]!,
+      'msg_type': instance.msgType,
       'content': instance.content,
       'message_id': instance.messageId,
       'sender_id': instance.senderId,

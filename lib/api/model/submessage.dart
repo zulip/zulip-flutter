@@ -82,9 +82,12 @@ class Submessage {
 /// The only type of submessage that actually exists in Zulip (as of 2024,
 /// and since this "submessages" subsystem was created in 2017–2018)
 /// is [SubmessageType.widget].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum SubmessageType {
   widget,
-  unknown,
+  unknown;
+
+  String toJson() => _$SubmessageTypeEnumMap[this]!;
 }
 
 /// The data encoded in a submessage at [Submessage.content].
