@@ -18,7 +18,7 @@ Submessage _$SubmessageFromJson(Map<String, dynamic> json) => Submessage(
 Map<String, dynamic> _$SubmessageToJson(Submessage instance) =>
     <String, dynamic>{
       'sender_id': instance.senderId,
-      'msg_type': _$SubmessageTypeEnumMap[instance.msgType]!,
+      'msg_type': instance.msgType,
       'content': instance.content,
     };
 
