@@ -748,7 +748,7 @@ class UpdateMachine {
     updateMachine.poll();
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
-    updateMachine.registerNotificationToken();
+    unawaited(updateMachine.registerNotificationToken());
     return updateMachine;
   }
 
