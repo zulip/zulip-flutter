@@ -474,17 +474,15 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
       await _controller!.play();
     } catch (error) { // TODO(log)
       assert(debugLog("VideoPlayerController.initialize failed: $error"));
-      if (mounted) {
-        final zulipLocalizations = ZulipLocalizations.of(context);
-        await showErrorDialog(
-          context: context,
-          title: zulipLocalizations.errorDialogTitle,
-          message: zulipLocalizations.errorVideoPlayerFailed,
-          onDismiss: () {
-            Navigator.pop(context); // Pops the dialog
-            Navigator.pop(context); // Pops the lightbox
-          });
-      }
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      // Wait until the dialog is closed
+      await showErrorDialog(
+        context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: zulipLocalizations.errorVideoPlayerFailed);
+      if (!mounted) return;
+      Navigator.pop(context); // Pops the lightbox
     }
   }
 

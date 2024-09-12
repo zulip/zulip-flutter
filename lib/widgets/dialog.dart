@@ -15,26 +15,23 @@ Widget _dialogActionText(String text) {
   );
 }
 
+/// Displays an [AlertDialog] with a dismiss button.
+///
+/// Returns a [Future] that resolves when the dialog is closed.
 Future<void> showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
-  VoidCallback? onDismiss,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
   return showDialog(
     context: context,
-    // `showDialog` doesn't take an `onDismiss`, so dismissing via the barrier
-    // always causes the default dismiss behavior of popping just this route.
-    // When we want a non-default `onDismiss`, disable that.
-    // TODO(upstream): add onDismiss to showDialog, passing through to [ModalBarrier.onDismiss]
-    barrierDismissible: onDismiss == null,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
       content: message != null ? SingleChildScrollView(child: Text(message)) : null,
       actions: [
         TextButton(
-          onPressed: onDismiss ?? () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
       ]));
 }
