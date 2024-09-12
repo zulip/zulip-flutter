@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -142,7 +144,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.dispose();
   }
 
-  Future<void> _onSubmitted(BuildContext context) async {
+  void _onSubmitted(BuildContext context) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final url = _parseResult.url;
     final error = _parseResult.error;
@@ -184,8 +186,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         return;
       }
 
-      Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings));
+      unawaited(Navigator.push(context,
+        LoginPage.buildRoute(serverSettings: serverSettings)));
     } finally {
       setState(() {
         _inProgress = false;
@@ -393,9 +395,9 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    Navigator.of(context).pushAndRemoveUntil(
+    unawaited(Navigator.of(context).pushAndRemoveUntil(
       HomePage.buildRoute(accountId: accountId),
-      (route) => (route is! _LoginSequenceRoute),
+      (route) => (route is! _LoginSequenceRoute)),
     );
   }
 
