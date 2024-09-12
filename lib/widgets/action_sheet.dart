@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -303,7 +305,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
-    markNarrowAsUnreadFromMessage(messageListContext, message, narrow);
+    unawaited(markNarrowAsUnreadFromMessage(messageListContext, message, narrow));
   }
 }
 
