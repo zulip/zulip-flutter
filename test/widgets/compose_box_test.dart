@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -258,7 +259,7 @@ void main() {
       final expectedForegroundColor = expected
         ? colorScheme.onSurface.withValues(alpha: 0.38)
         : colorScheme.onPrimary;
-      check(sendButtonWidget.color).equals(expectedForegroundColor);
+      check(sendButtonWidget.color).isNotNull().isSameColorAs(expectedForegroundColor);
     }
 
     group('attach from media library', () {

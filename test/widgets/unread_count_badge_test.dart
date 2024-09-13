@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -36,18 +37,18 @@ void main() {
 
       testWidgets('default color', (tester) async {
         await prepare(tester, null);
-        check(findBackgroundColor(tester)).equals(const Color(0x26666699));
+        check(findBackgroundColor(tester)).isNotNull().isSameColorAs(const Color(0x26666699));
       });
 
       testWidgets('specified color', (tester) async {
         await prepare(tester, Colors.pink);
-        check(findBackgroundColor(tester)).equals(Colors.pink);
+        check(findBackgroundColor(tester)).isNotNull().isSameColorAs(Colors.pink);
       });
 
       testWidgets('stream color', (tester) async {
         final swatch = ChannelColorSwatch.light(0xff76ce90);
         await prepare(tester, swatch);
-        check(findBackgroundColor(tester)).equals(swatch.unreadCountBadgeBackground);
+        check(findBackgroundColor(tester)).isNotNull().isSameColorAs(swatch.unreadCountBadgeBackground);
       });
     });
   });

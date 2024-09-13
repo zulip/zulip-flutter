@@ -5,6 +5,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
@@ -238,20 +239,26 @@ void main() {
       return material.color;
     }
 
-    check(backgroundColor('smile')).equals(EmojiReactionTheme.light().bgSelected);
-    check(backgroundColor('tada')).equals(EmojiReactionTheme.light().bgUnselected);
+    check(backgroundColor('smile')).isNotNull()
+      .isSameColorAs(EmojiReactionTheme.light().bgSelected);
+    check(backgroundColor('tada')).isNotNull()
+      .isSameColorAs(EmojiReactionTheme.light().bgUnselected);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
     final expectedLerped = EmojiReactionTheme.light().lerp(EmojiReactionTheme.dark(), 0.4);
-    check(backgroundColor('smile')).equals(expectedLerped.bgSelected);
-    check(backgroundColor('tada')).equals(expectedLerped.bgUnselected);
+    check(backgroundColor('smile')).isNotNull()
+      .isSameColorAs(expectedLerped.bgSelected);
+    check(backgroundColor('tada')).isNotNull()
+      .isSameColorAs(expectedLerped.bgUnselected);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor('smile')).equals(EmojiReactionTheme.dark().bgSelected);
-    check(backgroundColor('tada')).equals(EmojiReactionTheme.dark().bgUnselected);
+    check(backgroundColor('smile')).isNotNull()
+      .isSameColorAs(EmojiReactionTheme.dark().bgSelected);
+    check(backgroundColor('tada')).isNotNull()
+      .isSameColorAs(EmojiReactionTheme.dark().bgUnselected);
   });
 
   // TODO more tests:
