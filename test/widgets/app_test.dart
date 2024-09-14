@@ -16,6 +16,25 @@ import 'test_app.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  testWidgets('Displays the correct text and URL', (WidgetTester tester) async{
+    const String testRealmUrl = 'https://chat.zulip.org';
+
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: Text.rich(
+          TextSpan(
+            text: 'Connected to: ',
+            children: [TextSpan(
+              text: testRealmUrl
+            )]
+          )
+        ),
+      ),
+    ));
+    expect(find.textContaining('Connected to: '), findsOneWidget);
+    expect(find.textContaining(testRealmUrl) , findsOneWidget);
+  });
+
   group('ZulipApp initial navigation', () {
     late List<Route<dynamic>> pushedRoutes = [];
 

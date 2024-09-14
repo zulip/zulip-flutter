@@ -260,17 +260,13 @@ class HomePage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 18),
             child: Column(children: [
-              const Text('🚧 Under construction 🚧'),
-              const SizedBox(height: 12),
+          // removed the unnecessary "under construction and other things" texts
               Text.rich(TextSpan(
                 text: 'Connected to: ',
                 children: [bold(store.realmUrl.toString())])),
-              Text.rich(TextSpan(
-                text: 'Zulip server version: ',
-                children: [bold(store.zulipVersion)])),
-              Text(zulipLocalizations.subscribedToNChannels(store.subscriptions.length)),
+
             ])),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           ElevatedButton(
             onPressed: () => Navigator.push(context,
               MessageListPage.buildRoute(context: context,
