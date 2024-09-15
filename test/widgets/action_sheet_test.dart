@@ -38,11 +38,14 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  Account? account,
 }) async {
   addTearDown(testBinding.reset);
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  account ??= eg.selfAccount;
+  final initialSnapshot = eg.initialSnapshot();
+  await testBinding.globalStore.add(account, initialSnapshot);
+  final store = await testBinding.globalStore.perAccount(account.id);
   await store.addUser(eg.user(userId: message.senderId));
   if (message is StreamMessage) {
     final stream = eg.stream(streamId: message.streamId);
@@ -61,7 +64,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     messages: [message],
   ).toJson());
 
-  await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+  await tester.pumpWidget(TestZulipApp(accountId: account.id,
     child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
@@ -549,6 +552,93 @@ void main() {
       await tapCopyMessageLinkButton(tester);
       await tester.pump(Duration.zero);
       final expectedLink = narrowLink(store, narrow, nearMessageId: message.id).toString();
+      check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
+    });
+
+    testWidgets('Full Url Testing', (tester) async {
+      final message = eg.streamMessage();
+      final narrow = TopicNarrow.ofMessage(message);
+
+      final customAccount = eg.selfAccount.copyWith(
+          id: 2, realmUrl: Uri.parse('https://chat.example'));
+      await setupToMessageActionSheet(
+          tester, message: message, narrow: narrow, account: customAccount);
+      final customAccountStore = await testBinding.globalStore.perAccount(customAccount.id);
+
+      await tapCopyMessageLinkButton(tester);
+      await tester.pump(Duration.zero);
+      final expectedLink = narrowLink(
+          customAccountStore, narrow, nearMessageId: message.id).toString();
+      check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
+    });
+  });
+
+  group('Message link verbatim URL tests', () {
+
+    Future<void> tapCopyMessageLinkButton(WidgetTester tester) async {
+      await tester.ensureVisible(find.byIcon(Icons.link, skipOffstage: false));
+      await tester.tap(find.byIcon(Icons.link));
+      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+    }
+
+    testWidgets('Copies message link with verbatim, full URL output', (tester) async {
+      final stream = eg.stream(streamId: 123, name: 'stream 123');
+      final message = eg.streamMessage(
+          id: 13579, stream: stream, topic: 'example topic 341');
+      final narrow = TopicNarrow.ofMessage(message);
+      final account = eg.selfAccount.copyWith(
+          realmUrl: Uri.parse('https://chat.zulip.org'));
+      await setupToMessageActionSheet(
+          tester, message: message, narrow: narrow, account: account);
+
+      final store = await testBinding.globalStore.perAccount(account.id);
+      if (!store.streams.containsKey(stream.streamId)) {
+        await store.addStream(stream);
+      }
+
+      await tapCopyMessageLinkButton(tester);
+      await tester.pump(Duration.zero);
+      const expectedLink = 'https://chat.zulip.org/#narrow/stream/123-stream-123/topic/example.20topic.20341/near/13579';
+      check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
+    });
+
+    testWidgets('Copies link with special characters in stream name and topic', (tester) async {
+      final stream = eg.stream(streamId: 42, name: 'weird & wonderful');
+      final message = eg.streamMessage(
+          id: 98765, stream: stream, topic: 'Whats up? 123!');
+      final narrow = TopicNarrow.ofMessage(message);
+      final account = eg.selfAccount.copyWith(
+          realmUrl: Uri.parse('https://chat.zulip.org'));
+      await setupToMessageActionSheet(tester, message: message, narrow: narrow, account: account);
+
+      final store = await testBinding.globalStore.perAccount(account.id);
+      if (!store.streams.containsKey(stream.streamId)) {
+        await store.addStream(stream);
+      }
+
+      await tapCopyMessageLinkButton(tester);
+      await tester.pump(Duration.zero);
+      const expectedLink = 'https://chat.zulip.org/#narrow/stream/42-stream-42/topic/Whats.20up.3F.20123!/near/98765';
+      check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
+    });
+
+    testWidgets('Copies link with numbers only in stream name', (tester) async {
+      final stream = eg.stream(streamId: 999, name: '12345');
+      final message = eg.streamMessage(
+          id: 45678, stream: stream, topic: 'Numbers & Symbols: 100%');
+      final narrow = TopicNarrow.ofMessage(message);
+      final account = eg.selfAccount.copyWith(
+          realmUrl: Uri.parse('https://chat.zulip.org'));
+      await setupToMessageActionSheet(tester, message: message, narrow: narrow, account: account);
+
+      final store = await testBinding.globalStore.perAccount(account.id);
+      if (!store.streams.containsKey(stream.streamId)) {
+        await store.addStream(stream);
+      }
+
+      await tapCopyMessageLinkButton(tester);
+      await tester.pump(Duration.zero);
+      const expectedLink = 'https://chat.zulip.org/#narrow/stream/999-stream-999/topic/Numbers.20.26.20Symbols.3A.20100.25/near/45678';
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
     });
   });
