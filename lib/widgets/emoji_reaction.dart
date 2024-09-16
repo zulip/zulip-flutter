@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
-import '../model/content.dart';
 import 'content.dart';
 import 'store.dart';
 import 'text.dart';
