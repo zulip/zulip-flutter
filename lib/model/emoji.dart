@@ -3,6 +3,8 @@ import '../api/model/model.dart';
 
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
+  /// The realm's custom emoji (for [ReactionType.realmEmoji],
+  /// indexed by [Reaction.emojiCode].
   Map<String, RealmEmojiItem> get realmEmoji;
 }
 
