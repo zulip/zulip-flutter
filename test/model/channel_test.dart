@@ -114,6 +114,17 @@ void main() {
         value: false));
       check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
     });
+
+    test('SubscriptionRemoveEvent updates streams and streamsByName', () async {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [eg.subscription(stream)],
+        subscriptions: [eg.subscription(stream)],
+      ));
+
+      check(store.streams[stream.streamId] is Subscription).isTrue();
+      await store.handleEvent(SubscriptionRemoveEvent(id: 1, streamIds: [stream.streamId]));
+      check(store.streams[stream.streamId] is Subscription).isFalse();
+    });
   });
 
   group('topic visibility', () {

@@ -304,6 +304,15 @@ class ChannelStoreImpl with ChannelStore {
 
       case SubscriptionRemoveEvent():
         for (final streamId in event.streamIds) {
+          final subscription = streams[streamId];
+          if (subscription == null || subscription is! Subscription) { // TODO(log)
+            continue;
+          }
+          assert(streamsByName[subscription.name] is Subscription);
+          assert(subscriptions.containsKey(streamId));
+          final unsubscribedStream = subscription.toStream();
+          streams[streamId] = unsubscribedStream;
+          streamsByName[subscription.name] = unsubscribedStream;
           subscriptions.remove(streamId);
         }
 
