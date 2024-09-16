@@ -116,18 +116,23 @@ class ApiConnection {
   bool _isOpen = true;
 
   Future<T> send<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      http.BaseRequest request, {String? overrideUserAgent}) async {
+    http.BaseRequest request, {
+    bool useAuth = true,
+    String? overrideUserAgent,
+  }) async {
     assert(_isOpen);
 
     assert(debugLog("${request.method} ${request.url}"));
 
-    if (request.url.origin != realmUrl.origin) {
-      // No caller should get here with a URL whose origin isn't the realm's.
-      // If this does happen, it's important not to proceed, because we'd be
-      // sending the user's auth credentials.
-      throw StateError("ApiConnection.send called on off-realm URL");
+    if (useAuth) {
+      if (request.url.origin != realmUrl.origin) {
+        // No caller should get here with a URL whose origin isn't the realm's.
+        // If this does happen, it's important not to proceed, because we'd be
+        // sending the user's auth credentials.
+        throw StateError("ApiConnection.send called with useAuth on off-realm URL");
+      }
+      addAuth(request);
     }
-    addAuth(request);
 
     if (overrideUserAgent != null) {
       request.headers['User-Agent'] = overrideUserAgent;

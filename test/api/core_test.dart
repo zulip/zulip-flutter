@@ -20,17 +20,50 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('auth', () {
-    Future<http.BaseRequest> makeRequest(String realmUrl, String requestUrl) {
-      final account = eg.account(user: eg.selfUser, realmUrl: Uri.parse(realmUrl));
+    Future<http.BaseRequest> makeRequest(String realmUrl, String requestUrl, {
+      bool? useAuth,
+    }) {
+      final account = eg.account(user: eg.selfUser, apiKey: eg.selfAccount.apiKey,
+        realmUrl: Uri.parse(realmUrl));
       return FakeApiConnection.with_(account: account, (connection) async {
         connection.prepare(json: {});
-        await connection.send(kExampleRouteName, (json) => json,
-          http.Request('GET', Uri.parse(requestUrl)));
+        final request = http.Request('GET', Uri.parse(requestUrl));
+        if (useAuth == null) {
+          // Null means use the default.  We don't repeat the default on this
+          // test helper (as one normally would in non-test code), because that
+          // would mean we weren't checking what the default is.
+          await connection.send(kExampleRouteName, (json) => json, request);
+        } else {
+          await connection.send(kExampleRouteName, (json) => json,
+            useAuth: useAuth, request);
+        }
         return connection.lastRequest!;
       });
     }
 
-    test('send rejects off-realm URL', () async {
+    test('auth headers sent by default', () async {
+      check(await makeRequest('https://chat.example', 'https://chat.example/path'))
+        .isA<http.Request>().headers.deepEquals({
+          ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+          ...kFallbackUserAgentHeader,
+        });
+      check(await makeRequest('https://chat.example', 'https://chat.example/path',
+              useAuth: true))
+        .isA<http.Request>().headers.deepEquals({
+          ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
+          ...kFallbackUserAgentHeader,
+        });
+    });
+
+    test('auth headers omitted if useAuth false', () async {
+      check(await makeRequest('https://chat.example', 'https://chat.example/path',
+              useAuth: false))
+        .isA<http.Request>().headers.deepEquals({
+          ...kFallbackUserAgentHeader,
+        });
+    });
+
+    test('send rejects off-realm URL (with default useAuth)', () async {
       Future<void> checkAllow(String realmUrl, String requestUrl) async {
         check(await makeRequest(realmUrl, requestUrl))
           .isA<http.Request>()
