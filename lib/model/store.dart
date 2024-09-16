@@ -20,6 +20,7 @@ import '../log.dart';
 import '../notifications/receive.dart';
 import 'autocomplete.dart';
 import 'database.dart';
+import 'emoji.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
@@ -202,7 +203,7 @@ abstract class GlobalStore extends ChangeNotifier {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
+class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -234,9 +235,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
       realmUrl: account.realmUrl,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
-      realmEmoji: initialSnapshot.realmEmoji,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
+      emoji: EmojiStoreImpl(realmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
@@ -268,9 +269,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     required this.realmUrl,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
-    required this.realmEmoji,
     required this.customProfileFields,
     required this.emailAddressVisibility,
+    required EmojiStoreImpl emoji,
     required this.accountId,
     required this.selfUserId,
     required this.userSettings,
@@ -285,6 +286,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
        _globalStore = globalStore,
+       _emoji = emoji,
        _channels = channels,
        _messages = messages;
 
@@ -320,10 +322,17 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   String get zulipVersion => account.zulipVersion;
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
-  Map<String, RealmEmojiItem> realmEmoji;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
   final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
+
+  ////////////////////////////////
+  // The realm's repertoire of available emoji.
+
+  @override
+  Map<String, RealmEmojiItem> get realmEmoji => _emoji.realmEmoji;
+
+  EmojiStoreImpl _emoji;
 
   ////////////////////////////////
   // Data attached to the self-account on the realm.
@@ -423,7 +432,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
 
       case RealmEmojiUpdateEvent():
         assert(debugLog("server event: realm_emoji/update"));
-        realmEmoji = event.realmEmoji;
+        _emoji.handleRealmEmojiUpdateEvent(event);
         notifyListeners();
 
       case AlertWordsEvent():
