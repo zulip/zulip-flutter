@@ -121,7 +121,14 @@ class ApiConnection {
 
     assert(debugLog("${request.method} ${request.url}"));
 
+    if (request.url.origin != realmUrl.origin) {
+      // No caller should get here with a URL whose origin isn't the realm's.
+      // If this does happen, it's important not to proceed, because we'd be
+      // sending the user's auth credentials.
+      throw StateError("ApiConnection.send called on off-realm URL");
+    }
     addAuth(request);
+
     if (overrideUserAgent != null) {
       request.headers['User-Agent'] = overrideUserAgent;
     } else {
