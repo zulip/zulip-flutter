@@ -791,6 +791,7 @@ InitialSnapshot initialSnapshot({
   List<UserTopicItem>? userTopics,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
+  Uri? serverEmojiDataUrl,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
@@ -823,6 +824,8 @@ InitialSnapshot initialSnapshot({
     userTopics: userTopics,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
+    serverEmojiDataUrl: serverEmojiDataUrl
+      ?? realmUrl.replace(path: '/static/emoji.json'),
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
