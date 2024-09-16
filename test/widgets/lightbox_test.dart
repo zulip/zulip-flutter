@@ -280,6 +280,13 @@ void main() {
     // TODO test image is scaled down to fit, but not up
     // TODO test image doesn't change size when header and footer hidden/shown
     // TODO test image doesn't show in inset area by default, but does if user zooms/pans it there
+    //
+    // A draft version of some of those desired tests:
+    //   https://github.com/zulip/zulip-flutter/commit/ec4078d459da749f16511b826c5f7c398b0fb874
+    // Discussion related to that draft:
+    //   https://github.com/zulip/zulip-flutter/pull/833#discussion_r1688762292
+    //   https://github.com/zulip/zulip-flutter/pull/833#pullrequestreview-2200433626
+    //   https://github.com/zulip/zulip-flutter/pull/833#issuecomment-2251782337
   });
 
   group('VideoDurationLabel', () {
