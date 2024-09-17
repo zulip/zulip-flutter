@@ -303,6 +303,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
+  UpdateMachine? updateMachine;
 
   bool get isLoading => _isLoading;
   bool _isLoading = false;
@@ -420,6 +421,7 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     unreads.dispose();
     _messages.dispose();
     typingStatus.dispose();
+    updateMachine?.dispose(); // TODO is updateMachine ever null except in tests?
     super.dispose();
   }
 
@@ -730,6 +732,7 @@ class UpdateMachine {
     );
     final updateMachine = UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
+    store.updateMachine = updateMachine;
     updateMachine.poll();
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
