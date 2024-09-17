@@ -65,6 +65,8 @@ dependencies:
   video_player: ^2.8.3
   zulip_plugin:
     path: ./packages/zulip_plugin
+  flutter_checks: ^0.1.1
+  legacy_checks: ^0.1.0
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
