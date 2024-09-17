@@ -310,6 +310,14 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
+  UpdateMachine? get updateMachine => _updateMachine;
+  UpdateMachine? _updateMachine;
+  set updateMachine(UpdateMachine? value) {
+    assert(_updateMachine == null);
+    assert(value != null);
+    _updateMachine = value;
+  }
+
   bool get isLoading => _isLoading;
   bool _isLoading = false;
   @visibleForTesting
@@ -452,6 +460,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     unreads.dispose();
     _messages.dispose();
     typingStatus.dispose();
+    updateMachine?.dispose();
     super.dispose();
   }
 
@@ -729,7 +738,9 @@ class UpdateMachine {
          // case of unauthenticated access to a web-public realm.  We authenticated.
          throw Exception("bad initial snapshot: missing queueId");
        })(),
-       lastEventId = initialSnapshot.lastEventId;
+       lastEventId = initialSnapshot.lastEventId {
+    store.updateMachine = this;
+  }
 
   /// Load the user's data from the server, and start an event queue going.
   ///
@@ -874,8 +885,8 @@ class UpdateMachine {
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
+            // This disposes the store, which disposes this update machine.
             await store._globalStore._reloadPerAccount(store.accountId);
-            dispose();
             debugLog('… Event queue replaced.');
             return;
 
