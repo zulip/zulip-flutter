@@ -604,6 +604,18 @@ void main() {
     Subject<Poll> checkPoll(Message message) =>
       check(store.messages[message.id]).isNotNull().poll.isNotNull();
 
+    late int pollNotifiedCount;
+
+    void checkPollNotified({required int count}) {
+      check(pollNotifiedCount).equals(count);
+      pollNotifiedCount = 0;
+      // This captures any unchecked [messageList] notifications, to verify
+      // that poll live-updates do not trigger broader rebuilds.
+      checkNotNotified();
+    }
+    void checkPollNotNotified() => checkPollNotified(count: 0);
+    void checkPollNotifiedOnce() => checkPollNotified(count: 1);
+
     group('handleSubmessageEvent', () {
       Future<Message> preparePollMessage({
         String? question,
@@ -640,6 +652,10 @@ void main() {
             }]);
         await messageList.fetchInitial();
         checkNotifiedOnce();
+        pollNotifiedCount = 0;
+        store.messages[message.id]!.poll!.addListener(() {
+          pollNotifiedCount++;
+        });
         return message;
       }
 
@@ -671,7 +687,7 @@ void main() {
             // Invalid type for question
             'question': 100,
           })));
-        checkNotifiedOnce();
+        checkPollNotNotified();
         checkPoll(message).question.equals('Old question');
       });
 
@@ -680,7 +696,7 @@ void main() {
           final message = await preparePollMessage(question: 'Old question');
           await store.handleEvent(eg.submessageEvent(message.id, eg.selfUser.userId,
             content: PollQuestionEventSubmessage(question: 'New question')));
-          checkNotifiedOnce();
+          checkPollNotifiedOnce();
           checkPoll(message).question.equals('New question');
         });
 
@@ -705,7 +721,7 @@ void main() {
         }) async {
           await store.handleEvent(eg.submessageEvent(message.id, sender.userId,
             content: PollNewOptionEventSubmessage(option: option, idx: idx)));
-          checkNotifiedOnce();
+          checkPollNotifiedOnce();
         }
 
         test('add option', () async {
@@ -743,7 +759,7 @@ void main() {
         Future<void> handleVoteEvent(String key, PollVoteOp op, User voter) async {
           await store.handleEvent(eg.submessageEvent(message.id, voter.userId,
             content: PollVoteEventSubmessage(key: key, op: op)));
-          checkNotifiedOnce();
+          checkPollNotifiedOnce();
         }
 
         test('add votes', () async {
@@ -821,9 +837,11 @@ void main() {
           message = await preparePollMessage(
             options: [eg.pollOption(text: 'foo', voters: [])]);
           checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
-          await handleVoteEvent(
-            PollEventSubmessage.optionKey(senderId: null, idx: 0),
-            PollVoteOp.unknown, eg.otherUser);
+          await store.handleEvent(eg.submessageEvent(message.id, eg.otherUser.userId,
+            content: PollVoteEventSubmessage(
+              key: PollEventSubmessage.optionKey(senderId: null, idx: 0),
+              op: PollVoteOp.unknown)));
+          checkPollNotNotified();
           checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
         });
       });

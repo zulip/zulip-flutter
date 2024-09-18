@@ -331,10 +331,8 @@ class MessageStoreImpl with MessageStore {
       return;
     }
 
+    // Live-updates for polls should not rebuild the message lists.
+    // [Poll] is responsible for notifying the affected listeners.
     poll.handleSubmessageEvent(event);
-
-    for (final view in _messageListViews) {
-      view.notifyListenersIfMessagePresent(event.messageId);
-    }
   }
 }

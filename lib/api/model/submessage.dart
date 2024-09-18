@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../log.dart';
@@ -354,7 +355,7 @@ class UnknownPollEventSubmessage extends PollEventSubmessage {
 /// See also:
 /// - https://zulip.com/help/create-a-poll
 /// - https://github.com/zulip/zulip/blob/304d948416465c1a085122af5d752f03d6797003/web/shared/src/poll_data.ts
-class Poll {
+class Poll extends ChangeNotifier {
   /// Construct a poll from submessages.
   ///
   /// For a poll Zulip widget, the first submessage's content contains a
@@ -412,6 +413,7 @@ class Poll {
       return;
     }
     _applyEvent(event.senderId, pollEventSubmessage);
+    notifyListeners();
   }
 
   void _applyEvent(int senderId, PollEventSubmessage event) {
