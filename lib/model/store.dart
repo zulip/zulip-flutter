@@ -228,16 +228,18 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
+    final realmUrl = account.realmUrl;
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
-      realmUrl: account.realmUrl,
+      realmUrl: realmUrl,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
-      emoji: EmojiStoreImpl(realmEmoji: initialSnapshot.realmEmoji),
+      emoji: EmojiStoreImpl(
+        realmUrl: realmUrl, realmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
@@ -285,6 +287,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
+       assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
        _emoji = emoji,
        _channels = channels,

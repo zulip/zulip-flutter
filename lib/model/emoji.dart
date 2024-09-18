@@ -14,7 +14,13 @@ mixin EmojiStore {
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [EmojiStore] which describes its interface.
 class EmojiStoreImpl with EmojiStore {
-  EmojiStoreImpl({required this.realmEmoji});
+  EmojiStoreImpl({
+    required this.realmUrl,
+    required this.realmEmoji,
+  });
+
+  /// The same as [PerAccountStore.realmUrl].
+  final Uri realmUrl;
 
   @override
   Map<String, RealmEmojiItem> realmEmoji;
