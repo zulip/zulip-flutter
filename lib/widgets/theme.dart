@@ -117,6 +117,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
       labelMenuButton: const Color(0xff222222),
       mainBackground: const Color(0xfff0f0f0),
+      textInput: const Color(0xff000000),
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
@@ -148,6 +149,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
       labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
       mainBackground: const Color(0xff1d1d1d),
+      textInput: const Color(0xffffffff).withValues(alpha: 0.9),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
@@ -185,6 +187,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelEdited,
     required this.labelMenuButton,
     required this.mainBackground,
+    required this.textInput,
     required this.title,
     required this.channelColorSwatches,
     required this.atMentionMarker,
@@ -224,6 +227,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelEdited;
   final Color labelMenuButton;
   final Color mainBackground;
+  final Color textInput;
   final Color title;
 
   // Not exactly from the Figma design, but from Vlad anyway.
@@ -258,6 +262,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelEdited,
     Color? labelMenuButton,
     Color? mainBackground,
+    Color? textInput,
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
     Color? atMentionMarker,
@@ -287,6 +292,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       mainBackground: mainBackground ?? this.mainBackground,
+      textInput: textInput ?? this.textInput,
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
@@ -323,6 +329,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
+      textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
