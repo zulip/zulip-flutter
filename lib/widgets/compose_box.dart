@@ -16,6 +16,7 @@ import '../model/store.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -286,30 +287,49 @@ class _ContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    const verticalPadding = 8.0;
+    const contentLineHeight = 22.0;
 
-    return InputDecorator(
-      decoration: const InputDecoration(),
-      child: ConstrainedBox(
+    final designVariables = DesignVariables.of(context);
+
+    return ComposeAutocomplete(
+      narrow: narrow,
+      controller: controller,
+      focusNode: focusNode,
+      fieldViewBuilder: (context) => ConstrainedBox(
         constraints: const BoxConstraints(
-          // TODO constrain this adaptively (i.e. not hard-coded 200)
-          maxHeight: 200,
-        ),
-        child: ComposeAutocomplete(
-          narrow: narrow,
-          controller: controller,
-          focusNode: focusNode,
-          fieldViewBuilder: (context) {
-            return TextField(
+          // Reserve space to fully show the first 7th lines and just partially
+          // clip the 8th line, where the height matches the spec of 178 logical
+          // pixels.  The partial line hints that the content input is
+          // scrollable.  We do not expect this to work the same way with all
+          // font sizes.
+          maxHeight: verticalPadding + contentLineHeight * 7 + contentLineHeight * 0.727),
+        child: ClipRect(
+          child: InsetShadowBox(
+            top: verticalPadding, bottom: verticalPadding,
+            color: designVariables.composeBoxBg,
+            child: TextField(
               controller: controller,
               focusNode: focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
+              // Let the content show through the `contentPadding` so that
+              // our [InsetShadowBox] can fade it smoothly there.
+              clipBehavior: Clip.none,
+              style: TextStyle(
+                fontSize: 17,
+                height: (contentLineHeight / 17),
+                color: designVariables.textInput),
+              // The [TextField] will be a bit taller than the spec in height,
+              // because the bottom [contentPadding] is necessary for it to be
+              // fully scrolled down, so that the content passes the bottom
+              // shadow.
+              minLines: 2,
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
-            );
-          }),
-        ));
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(vertical: verticalPadding),
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  color: designVariables.textInput.withValues(alpha: 0.5))))))));
   }
 }
 
