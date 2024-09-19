@@ -82,10 +82,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
       codeBlockTextStyles: CodeBlockTextStyles.dark(context),
-      textStyleError: TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)
+      textStyleError: const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
         .merge(weightVariableTextStyle(context, wght: 700)),
       textStyleErrorCode: kMonospaceTextStyle
-        .merge(TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)),
+        .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red)),
       textStyleInlineCode: kMonospaceTextStyle.merge(TextStyle(
         backgroundColor: const HSLColor.fromAHSL(0.08, 0, 0, 1).toColor())),
       textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
