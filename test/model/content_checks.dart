@@ -1,5 +1,7 @@
+import 'package:checks/checks.dart';
 import 'package:checks/context.dart';
 import 'package:flutter/foundation.dart';
+import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/model/content.dart';
 
 extension ContentNodeChecks on Subject<ContentNode> {
@@ -114,4 +116,8 @@ Iterable<LinkNode> _findLinkNodes(Iterable<InlineContentNode> nodes) {
     }
     return _findLinkNodes(node.nodes);
   });
+}
+
+extension PollContentChecks on Subject<PollContent> {
+  Subject<Poll> get poll => has((x) => x.poll, 'poll');
 }

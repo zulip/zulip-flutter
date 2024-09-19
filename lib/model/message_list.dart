@@ -135,6 +135,8 @@ mixin _MessageSequence {
   }
 
   ZulipMessageContent _parseMessageContent(Message message) {
+    final poll = message.poll;
+    if (poll != null) return PollContent(poll);
     return parseContent(message.content);
   }
 

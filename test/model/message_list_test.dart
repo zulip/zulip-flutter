@@ -1488,6 +1488,43 @@ void main() {
     });
   });
 
+  group('handle content parsing into subclasses of ZulipMessageContent', () {
+    test('ZulipContent', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMessages(foundOldest: true, messages: []);
+
+      await store.handleEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(stream: stream)));
+      // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants]
+      // call, where the [ContentNode] gets checked.  The additional checks to
+      // make this test explicit.
+      checkNotifiedOnce();
+      check(model).messages.single.poll.isNull();
+      check(model).contents.single.isA<ZulipContent>();
+    });
+
+    test('PollContent', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMessages(foundOldest: true, messages: []);
+
+      await store.handleEvent(MessageEvent(id: 0, message: eg.streamMessage(
+        stream: stream,
+        sender: eg.selfUser,
+        submessages: [
+          eg.submessage(senderId: eg.selfUser.userId,
+            content: eg.pollWidgetData(question: 'question', options: ['A'])),
+        ])));
+      // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants]
+      // call, where the value of the [Poll] gets checked.  The additional
+      // checks make this test explicit.
+      checkNotifiedOnce();
+      check(model).messages.single.poll.isNotNull();
+      check(model).contents.single.isA<PollContent>();
+    });
+  });
+
   test('recipient headers are maintained consistently', () async {
     // TODO test date separators are maintained consistently too
     // This tests the code that maintains the invariant that recipient headers
@@ -1741,6 +1778,11 @@ void checkInvariants(MessageListView model) {
 
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
+    final poll = model.messages[i].poll;
+    if (poll != null) {
+      check(model).contents[i].isA<PollContent>().poll.identicalTo(poll);
+      continue;
+    }
     check(model.contents[i]).isA<ZulipContent>()
       .equalsNode(parseContent(model.messages[i].content));
   }

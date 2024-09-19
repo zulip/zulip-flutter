@@ -18,6 +18,7 @@ import 'dialog.dart';
 import 'icons.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
+import 'poll.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -263,6 +264,7 @@ class MessageContent extends StatelessWidget {
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
           ZulipContent() => BlockContentList(nodes: content.nodes),
+          PollContent()  => PollWidget(poll: content.poll),
         }));
   }
 }

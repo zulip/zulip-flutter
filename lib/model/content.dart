@@ -4,6 +4,7 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
+import '../api/model/submessage.dart';
 import 'code_block.dart';
 
 /// A node in a parse tree for Zulip message-style content.
@@ -75,6 +76,16 @@ mixin UnimplementedNode on ContentNode {
 
 /// A parsed, ready-to-render representation of Zulip message content.
 sealed class ZulipMessageContent {}
+
+/// A wrapper around a mutable representation of a Zulip poll message.
+///
+/// Consumers are expected to listen for [Poll]'s changes to receive
+/// live-updates.
+class PollContent implements ZulipMessageContent {
+  const PollContent(this.poll);
+
+  final Poll poll;
+}
 
 /// A complete parse tree for a Zulip message's content,
 /// or other complete piece of Zulip HTML content.
