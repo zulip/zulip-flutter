@@ -106,6 +106,11 @@ Parts of our test suite require an additional dependency:
 
 5. Install SQLite, for example by running `sudo apt install libsqlite3-dev`.
 
+Developing on Windows requires
+an [additional step](docs/setup.md#autocrlf):
+
+6. Run `git config core.autocrlf input`.
+
 For more details and help with unusual configurations,
 see our [full setup guide](docs/setup.md).
 
