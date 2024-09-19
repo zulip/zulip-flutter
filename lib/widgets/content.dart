@@ -68,7 +68,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
-        color: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+        color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
       codeBlockTextStyles: CodeBlockTextStyles.dark(context),
       textStyleError: TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)
