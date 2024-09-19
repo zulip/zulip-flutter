@@ -286,30 +286,47 @@ class _ContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    const verticalPadding = 8.0;
+    const contentLineHeight = 22.0;
 
-    return InputDecorator(
-      decoration: const InputDecoration(),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          // TODO constrain this adaptively (i.e. not hard-coded 200)
-          maxHeight: 200,
-        ),
-        child: ComposeAutocomplete(
-          narrow: narrow,
-          controller: controller,
-          focusNode: focusNode,
-          fieldViewBuilder: (context) {
-            return TextField(
+    final designVariables = DesignVariables.of(context);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        // The minimum height fits a little more than 2 lines to match the spec
+        // of 54 logical pixels.  The bottom padding is not added because it
+        // is not supposed to extend the compose box.
+        minHeight: verticalPadding + contentLineHeight * 2.091,
+        // Reserve space to fully show the first 7th lines and just partially
+        // clip the 8th line, where the height matches the spec of 178 logical
+        // pixels.  The partial line hints that the content input is scrollable.
+        // The bottom padding is not added because it is not supposed to extend
+        // the compose box.
+        maxHeight: verticalPadding + contentLineHeight * 7 + contentLineHeight * 0.727),
+        child: ClipRect(
+          child: ComposeAutocomplete(
+            narrow: narrow,
+            controller: controller,
+            focusNode: focusNode,
+            fieldViewBuilder: (context) => TextField(
               controller: controller,
               focusNode: focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
+              // Not clipping content input with [TextField] gives us fine
+              // control over the clipping behavior.  Otherwise, the non-zero
+              // vertical `contentPadding` would cause the text to be clipped
+              // by a rectangle shorter than the compose box.
+              clipBehavior: Clip.none,
+              style: TextStyle(
+                fontSize: 17,
+                height: (contentLineHeight / 17),
+                color: designVariables.textInput),
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
-            );
-          }),
-        ));
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(vertical: verticalPadding),
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  color: designVariables.textInput.withValues(alpha: 0.5)))))));
   }
 }
 
