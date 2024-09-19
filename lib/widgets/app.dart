@@ -299,6 +299,8 @@ class HomePage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    final colorScheme = ColorScheme.of(context);
+
     InlineSpan bold(String text) => TextSpan(
       style: const TextStyle().merge(weightVariableTextStyle(context, wght: 700)),
       text: text);
@@ -310,63 +312,67 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: ZulipAppBar(title: const Text("Home")),
-      body: Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          DefaultTextStyle.merge(
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18),
-            child: Column(children: [
-              const Text('🚧 Under construction 🚧'),
-              const SizedBox(height: 12),
-              Text.rich(TextSpan(
-                text: 'Connected to: ',
-                children: [bold(store.realmUrl.toString())])),
-              Text.rich(TextSpan(
-                text: 'Zulip server version: ',
-                children: [bold(store.zulipVersion)])),
-              Text(zulipLocalizations.subscribedToNChannels(store.subscriptions.length)),
-            ])),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const CombinedFeedNarrow())),
-            child: Text(zulipLocalizations.combinedFeedPageTitle)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const MentionsNarrow())),
-            child: Text(zulipLocalizations.mentionsPageTitle)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const StarredMessagesNarrow())),
-            child: Text(zulipLocalizations.starredMessagesPageTitle)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              InboxPage.buildRoute(context: context)),
-            child: const Text("Inbox")), // TODO(i18n)
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              SubscriptionListPage.buildRoute(context: context)),
-            child: const Text("Subscribed channels")),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              RecentDmConversationsPage.buildRoute(context: context)),
-            child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
-          if (testStreamId != null) ...[
+      body: ElevatedButtonTheme(
+        data: ElevatedButtonThemeData(style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+          foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer))),
+        child: Center(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            DefaultTextStyle.merge(
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+              child: Column(children: [
+                const Text('🚧 Under construction 🚧'),
+                const SizedBox(height: 12),
+                Text.rich(TextSpan(
+                  text: 'Connected to: ',
+                  children: [bold(store.realmUrl.toString())])),
+                Text.rich(TextSpan(
+                  text: 'Zulip server version: ',
+                  children: [bold(store.zulipVersion)])),
+                Text(zulipLocalizations.subscribedToNChannels(store.subscriptions.length)),
+              ])),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.push(context,
                 MessageListPage.buildRoute(context: context,
-                  narrow: ChannelNarrow(testStreamId!))),
-              child: const Text("#test here")), // scaffolding hack, see above
-          ],
-        ])));
+                  narrow: const CombinedFeedNarrow())),
+              child: Text(zulipLocalizations.combinedFeedPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: const MentionsNarrow())),
+              child: Text(zulipLocalizations.mentionsPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: const StarredMessagesNarrow())),
+              child: Text(zulipLocalizations.starredMessagesPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                InboxPage.buildRoute(context: context)),
+              child: const Text("Inbox")), // TODO(i18n)
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                SubscriptionListPage.buildRoute(context: context)),
+              child: const Text("Subscribed channels")),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                RecentDmConversationsPage.buildRoute(context: context)),
+              child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+            if (testStreamId != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.push(context,
+                  MessageListPage.buildRoute(context: context,
+                    narrow: ChannelNarrow(testStreamId!))),
+                child: const Text("#test here")), // scaffolding hack, see above
+            ],
+          ]))));
   }
 }
