@@ -17,6 +17,7 @@ import 'autocomplete.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 
 const double _composeButtonWidth = 44;
@@ -390,20 +391,42 @@ class _TopicInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final designVariables = DesignVariables.of(context);
+    TextStyle topicTextStyle = TextStyle(
+      fontSize: 20,
+      height: 22 / 20,
+      color: designVariables.textInput,
+    ).merge(weightVariableTextStyle(context, wght: 600));
 
     return TopicAutocomplete(
       streamId: streamId,
       controller: controller,
       focusNode: focusNode,
       contentFocusNode: contentFocusNode,
-      fieldViewBuilder: (context) => TextField(
-        controller: controller,
-        focusNode: focusNode,
-        textInputAction: TextInputAction.next,
-        style: TextStyle(color: colorScheme.onSurface),
-        decoration: InputDecoration(hintText: zulipLocalizations.composeBoxTopicHintText),
-      ));
+      fieldViewBuilder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 42),
+            child: Center(
+              child: Opacity(
+                opacity: 0.9,
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  textInputAction: TextInputAction.next,
+                  style: topicTextStyle,
+                  decoration: InputDecoration(
+                    hintText: zulipLocalizations.composeBoxTopicHintText,
+                    hintStyle: topicTextStyle.copyWith(
+                      color: designVariables.textInput.withValues(alpha: 0.5))))))),
+          SizedBox(height: 0, width: double.infinity,
+            child: DecoratedBox(decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  width: 1,
+                  color: designVariables.foreground.withValues(alpha: 0.2)))))),
+        ]));
   }
 }
 
