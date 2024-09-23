@@ -8,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../log.dart';
+import '../model/binding.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
@@ -492,11 +493,24 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     _controller?.removeListener(_handleVideoControllerUpdate);
     _controller?.dispose();
     _controller = null;
+    // The VideoController doesn't emit a pause event
+    // while disposing, so disable the wakelock here
+    // explicitly.
+    ZulipBinding.instance.toggleWakelock(enable: false);
     super.dispose();
   }
 
   void _handleVideoControllerUpdate() {
     setState(() {});
+    _updateWakelock();
+  }
+
+  Future<void> _updateWakelock() async {
+    if (_controller!.value.isPlaying) {
+      await ZulipBinding.instance.toggleWakelock(enable: true);
+    } else {
+      await ZulipBinding.instance.toggleWakelock(enable: false);
+    }
   }
 
   Widget? _buildBottomAppBar(BuildContext context, Color color, double elevation) {

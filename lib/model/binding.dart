@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
 import '../host/android_notifications.dart';
 import '../log.dart';
@@ -174,6 +175,11 @@ abstract class ZulipBinding {
     required image_picker.ImageSource source,
     bool requestFullMetadata,
   });
+
+  /// Enables or disables screen wakelock, via package:wakelock_plus.
+  ///
+  /// This wraps [wakelock_plus.WakelockPlus.toggle].
+  Future<void> toggleWakelock({required bool enable});
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -432,5 +438,10 @@ class LiveZulipBinding extends ZulipBinding {
   }) async {
     return image_picker.ImagePicker()
       .pickImage(source: source, requestFullMetadata: requestFullMetadata);
+  }
+
+  @override
+  Future<void> toggleWakelock({required bool enable}) async {
+    return wakelock_plus.WakelockPlus.toggle(enable: enable);
   }
 }

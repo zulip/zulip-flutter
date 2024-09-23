@@ -74,6 +74,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetNotifications();
     _resetPickFiles();
     _resetPickImage();
+    _resetWakelock();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -366,6 +367,20 @@ class TestZulipBinding extends ZulipBinding {
   }) async {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
     return pickImageResult;
+  }
+
+  /// Returns the current status of wakelock, which can be
+  /// changed via [toggleWakelock].
+  bool get wakelockEnabled => _wakelockEnabled;
+  bool _wakelockEnabled = false;
+
+  void _resetWakelock() {
+    _wakelockEnabled = false;
+  }
+
+  @override
+  Future<void> toggleWakelock({required bool enable}) async {
+    _wakelockEnabled = enable;
   }
 }
 

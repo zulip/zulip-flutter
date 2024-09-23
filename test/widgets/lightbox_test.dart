@@ -409,6 +409,35 @@ void main() {
         expectedMessage: zulipLocalizations.errorVideoPlayerFailed)));
     });
 
+    testWidgets('toggles wakelock when playing state changes', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+      check(platform.isPlaying).isTrue();
+      check(TestZulipBinding.instance.wakelockEnabled).isTrue();
+
+      await tester.tap(find.byIcon(Icons.pause_circle_rounded));
+      check(platform.isPlaying).isFalse();
+      check(TestZulipBinding.instance.wakelockEnabled).isFalse();
+
+      // re-render to update player controls
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.play_circle_rounded));
+      check(platform.isPlaying).isTrue();
+      check(TestZulipBinding.instance.wakelockEnabled).isTrue();
+    });
+
+    testWidgets('disables wakelock when disposed', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+      check(platform.isPlaying).isTrue();
+      check(TestZulipBinding.instance.wakelockEnabled).isTrue();
+
+      // Replace current page with empty container,
+      // disposing the previous page.
+      await tester.pumpWidget(Container());
+
+      check(TestZulipBinding.instance.wakelockEnabled).isFalse();
+    });
+
     testWidgets('video advances over time and stops playing when it ends', (tester) async {
       await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
       check(platform.isPlaying).isTrue();
