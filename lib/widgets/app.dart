@@ -98,13 +98,14 @@ class ZulipApp extends StatefulWidget {
 
   static int _snackBarCount = 0;
 
+  /// The callback we normally use as [reportErrorToUserBriefly].
   static void _reportErrorToUserBriefly(String? message, {String? details}) {
     assert(_ready.value);
 
     if (message == null) {
       if (_snackBarCount == 0) return;
       assert(_snackBarCount > 0);
-      // The snack bar API only exposes ways to hide ether the current snack
+      // The [SnackBar] API only exposes ways to hide ether the current snack
       // bar or all of them.
       //
       // To reduce the possibility of hiding snack bars not created by this

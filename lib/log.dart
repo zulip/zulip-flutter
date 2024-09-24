@@ -33,10 +33,12 @@ bool debugLog(String message) {
 
 typedef ReportErrorCallback = void Function(String? message, {String? details});
 
-/// Display an error message in a [SnackBar].
+/// Show the user an error message, without requiring them to interact with it.
 ///
-/// This shows a [SnackBar] containing the message if [ZulipApp] is ready,
-/// otherwise logs it to the console.
+/// Typically this shows a [SnackBar] containing the message.
+/// If called before the app's widget tree is ready (see [ZulipApp.ready]),
+/// then we give up on showing the message to the user,
+/// and just log the message to the console.
 ///
 /// If `message` is null, this will clear the existing [SnackBar]s if there
 /// are any.  Useful for promptly dismissing errors.
