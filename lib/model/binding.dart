@@ -176,9 +176,17 @@ abstract class ZulipBinding {
     bool requestFullMetadata,
   });
 
-  /// Enables or disables screen wakelock, via package:wakelock_plus.
+  /// Enables or disables keeping the screen on, via package:wakelock_plus.
   ///
   /// This wraps [wakelock_plus.WakelockPlus.toggle].
+  ///
+  /// Despite the name, this does not involve Android's "wake locks".
+  /// The implementation sets FLAG_KEEP_SCREEN_ON on Android:
+  ///   https://developer.android.com/develop/background-work/background-tasks/awake/screen-on
+  ///   https://github.com/fluttercommunity/wakelock_plus/blob/5ca5243e7894830ce289fc367bc5fdec27c7f0cf/wakelock_plus/android/src/main/kotlin/dev/fluttercommunity/plus/wakelock/Wakelock.kt
+  /// and idleTimerDisabled on iOS:
+  ///   https://developer.apple.com/documentation/uikit/uiapplication/1623070-idletimerdisabled
+  ///   https://github.com/fluttercommunity/wakelock_plus/blob/5ca5243e7894830ce289fc367bc5fdec27c7f0cf/wakelock_plus/ios/Classes/WakelockPlusPlugin.m
   Future<void> toggleWakelock({required bool enable});
 }
 
