@@ -995,7 +995,9 @@ class _ZulipContentParser {
         final first = child.nodes[0];
         if (first is! dom.Element
             || first.localName != 'span'
-            || first.nodes.isNotEmpty) return null;
+            || first.nodes.isNotEmpty) {
+          return null;
+        }
       }
       final grandchild = child.nodes.last;
       if (grandchild is! dom.Element) return null;
