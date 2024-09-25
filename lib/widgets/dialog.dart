@@ -15,26 +15,27 @@ Widget _dialogActionText(String text) {
   );
 }
 
-/// Tracks the status of a dialog, in being still open or already closed.
+/// A wrapper providing access to the status of an [AlertDialog].
 ///
 /// See also:
 ///  * [showDialog], whose return value this class is intended to wrap.
-class DialogStatus {
-  const DialogStatus(this.closed);
+class DialogStatusController {
+  const DialogStatusController(this._closed);
 
   /// Resolves when the dialog is closed.
-  final Future<void> closed;
+  Future<void> get closed => _closed;
+  final Future<void> _closed;
 }
 
 /// Displays an [AlertDialog] with a dismiss button.
 ///
-/// The [DialogStatus.closed] field of the return value can be used
-/// for waiting for the dialog to be closed.
+/// Returns a [DialogStatusController]. Useful for checking if the dialog has
+/// been closed.
 // This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
-// [showDialog]'s return value, a [Future], inside [DialogStatus]
+// [showDialog]'s return value, a [Future], inside [DialogStatusController]
 // whose documentation can be accessed.  This helps avoid confusion when
 // intepreting the meaning of the [Future].
-DialogStatus showErrorDialog({
+DialogStatusController showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
@@ -42,16 +43,16 @@ DialogStatus showErrorDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
     context: context,
-    builder: (BuildContext context) => AlertDialog(
-      title: Text(title),
-      content: message != null ? Text(message) : null,
-      scrollable: true,
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
-      ]));
-  return DialogStatus(future);
+    builder: (BuildContext context) => SingleChildScrollView(
+      child: AlertDialog(
+        title: Text(title),
+        content: message != null ? Text(message) : null,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
+        ])));
+  return DialogStatusController(future);
 }
 
 void showSuggestedActionDialog({
@@ -66,8 +67,7 @@ void showSuggestedActionDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: Text(message),
-      scrollable: true,
+      content: SingleChildScrollView(child: Text(message)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
