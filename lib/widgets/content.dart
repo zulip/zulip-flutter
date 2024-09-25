@@ -1195,7 +1195,7 @@ class GlobalTime extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  Future<void> showError(BuildContext context, String? message) {
+  DialogStatusController showError(BuildContext context, String? message) {
     return showErrorDialog(context: context,
       title: 'Unable to open link',
       message: [
@@ -1207,7 +1207,7 @@ void _launchUrl(BuildContext context, String urlString) async {
   final store = PerAccountStoreWidget.of(context);
   final url = store.tryResolveUrl(urlString);
   if (url == null) { // TODO(log)
-    await showError(context, null);
+    showError(context, null);
     return;
   }
 
@@ -1236,7 +1236,7 @@ void _launchUrl(BuildContext context, String urlString) async {
   }
   if (!launched) { // TODO(log)
     if (!context.mounted) return;
-    await showError(context, errorMessage);
+    showError(context, errorMessage);
   }
 }
 
