@@ -221,10 +221,9 @@ void main() {
 
         final ByteData message = const JSONMethodCodec().encodeMethodCall(
           MethodCall('pushRouteInformation', {'location': url.toString()}));
-        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
           'flutter/navigation', message, null);
 
-        await tester.idle();
         check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
 
         final account = testBinding.globalStore.accounts.single;
