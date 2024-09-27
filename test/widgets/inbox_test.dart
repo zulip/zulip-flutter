@@ -486,7 +486,7 @@ void main() {
             .isNotNull().isSameColorAs(ChannelColorSwatch.light(initialColor).barBackground);
 
           final newColor = Colors.orange.argbInt;
-          store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
+          await store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
             property: SubscriptionProperty.color, value: newColor));
           await tester.pump();
 
