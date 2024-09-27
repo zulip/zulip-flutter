@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
@@ -476,10 +477,14 @@ void main() {
       /// Check if [UpdateMachine.poll] retries as expected when there are
       /// errors.
       ///
-      /// This also verifies that the first user-facing error message appears
-      /// after the `numFailedRequests`'th failed request.
+      /// By default, also verify that the first user-facing error message
+      /// appears after the `numFailedRequests`'th failed request.
+      ///
+      /// If `expectNotifyError` is false, instead verify that there is no
+      /// user-facing error message regardless of the retries.
       void checkRetry(void Function() prepareError, {
         required int numFailedRequests,
+        bool expectNotifyError = true,
       }) {
         assert(numFailedRequests > 0);
         reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
@@ -510,12 +515,19 @@ void main() {
               async.flushTimers();
             }
 
+            if (!expectNotifyError) {
+              // No matter how many retries there have been, no request should
+              // result in an error message.
+              check(takeLastReportedError()).isNull();
+              continue;
+            }
             if (i < numFailedRequests - 1) {
               // The error message should not appear until the `updateMachine`
               // has retried the given number of times.
               check(takeLastReportedError()).isNull();
               continue;
             }
+            assert(expectNotifyError);
             assert(i == numFailedRequests - 1);
             check(takeLastReportedError()).isNotNull().contains(expectedErrorMessage);
           }
@@ -546,6 +558,13 @@ void main() {
       test('NetworkException', () {
         checkRetry(() => connection.prepare(exception: Exception("failed")),
           numFailedRequests: UpdateMachine.transientFailureCountNotifyThreshold + 1);
+      });
+
+      test('NetworkException to be ignored', () {
+        checkRetry(() => connection.prepare(
+          exception: const SocketException("failed")),
+          numFailedRequests: UpdateMachine.transientFailureCountNotifyThreshold + 1,
+          expectNotifyError: false);
       });
 
       test('ZulipApiException', () {
