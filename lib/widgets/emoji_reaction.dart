@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../model/emoji.dart';
 import 'content.dart';
 import 'store.dart';
 import 'text.dart';
@@ -148,8 +149,6 @@ class ReactionChip extends StatelessWidget {
     final emojiName = reactionWithVotes.emojiName;
     final userIds = reactionWithVotes.userIds;
 
-    final emojiset = store.userSettings?.emojiset ?? Emojiset.google;
-
     final selfVoted = userIds.contains(store.selfUserId);
     final label = showName
       // TODO(i18n): List formatting, like you can do in JavaScript:
@@ -175,26 +174,20 @@ class ReactionChip extends StatelessWidget {
     );
     final shape = StadiumBorder(side: borderSide);
 
-    final Widget emoji;
-    if (emojiset == Emojiset.text) {
-      emoji = _TextEmoji(emojiName: emojiName, selected: selfVoted);
-    } else {
-      switch (reactionType) {
-        case ReactionType.unicodeEmoji:
-          emoji = _UnicodeEmoji(
-            emojiCode: emojiCode,
-            emojiName: emojiName,
-            selected: selfVoted,
-          );
-        case ReactionType.realmEmoji:
-        case ReactionType.zulipExtraEmoji:
-          emoji = _ImageEmoji(
-            emojiCode: emojiCode,
-            emojiName: emojiName,
-            selected: selfVoted,
-          );
-      }
-    }
+    final emojiDisplay = store.emojiDisplayFor(
+      emojiType: reactionType,
+      emojiCode: emojiCode,
+      emojiName: emojiName,
+    ).resolve(store.userSettings);
+
+    final emoji = switch (emojiDisplay) {
+      UnicodeEmojiDisplay() => _UnicodeEmoji(
+        emojiDisplay: emojiDisplay, selected: selfVoted),
+      ImageEmojiDisplay() => _ImageEmoji(
+        emojiDisplay: emojiDisplay, emojiName: emojiName, selected: selfVoted),
+      TextEmojiDisplay() => _TextEmoji(
+        emojiDisplay: emojiDisplay, selected: selfVoted),
+    };
 
     return Tooltip(
       // TODO(#434): Semantics with eg "Reaction: <emoji name>; you and N others: <names>"
@@ -301,22 +294,15 @@ TextScaler _labelTextScalerClamped(BuildContext context) =>
 
 class _UnicodeEmoji extends StatelessWidget {
   const _UnicodeEmoji({
-    required this.emojiCode,
-    required this.emojiName,
+    required this.emojiDisplay,
     required this.selected,
   });
 
-  final String emojiCode;
-  final String emojiName;
+  final UnicodeEmojiDisplay emojiDisplay;
   final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    final parsed = tryParseEmojiCodeToUnicode(emojiCode);
-    if (parsed == null) { // TODO(log)
-      return _TextEmoji(emojiName: emojiName, selected: selected);
-    }
-
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
@@ -329,7 +315,7 @@ class _UnicodeEmoji extends StatelessWidget {
             fontSize: _notoColorEmojiTextSize,
           ),
           strutStyle: const StrutStyle(fontSize: _notoColorEmojiTextSize, forceStrutHeight: true),
-          parsed);
+          emojiDisplay.emojiUnicode);
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
         // We expect the font "Apple Color Emoji" to be used. There are some
@@ -355,7 +341,7 @@ class _UnicodeEmoji extends StatelessWidget {
             textScaler: _squareEmojiScalerClamped(context),
             style: const TextStyle(fontSize: _squareEmojiSize),
             strutStyle: const StrutStyle(fontSize: _squareEmojiSize, forceStrutHeight: true),
-            parsed)),
+            emojiDisplay.emojiUnicode)),
         ]);
     }
   }
@@ -363,21 +349,17 @@ class _UnicodeEmoji extends StatelessWidget {
 
 class _ImageEmoji extends StatelessWidget {
   const _ImageEmoji({
-    required this.emojiCode,
+    required this.emojiDisplay,
     required this.emojiName,
     required this.selected,
   });
 
-  final String emojiCode;
+  final ImageEmojiDisplay emojiDisplay;
   final String emojiName;
   final bool selected;
 
-  Widget get _textFallback => _TextEmoji(emojiName: emojiName, selected: selected);
-
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-
     // Some people really dislike animated emoji.
     final doNotAnimate =
       // From reading code, this doesn't actually get set on iOS:
@@ -390,43 +372,33 @@ class _ImageEmoji extends StatelessWidget {
         //   See GitHub comment linked above.
         && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion);
 
-    final String src;
-    switch (emojiCode) {
-      case 'zulip': // the single "zulip extra emoji"
-        src = '/static/generated/emoji/images/emoji/unicode/zulip.png';
-      default:
-        final item = store.realmEmoji[emojiCode];
-        if (item == null) {
-          return _textFallback;
-        }
-        src = doNotAnimate && item.stillUrl != null ? item.stillUrl! : item.sourceUrl;
-    }
-    final parsedSrc = Uri.tryParse(src);
-    if (parsedSrc == null) { // TODO(log)
-      return _textFallback;
-    }
-    final resolved = store.realmUrl.resolveUri(parsedSrc);
+    final resolvedUrl = doNotAnimate
+      ? (emojiDisplay.resolvedStillUrl ?? emojiDisplay.resolvedUrl)
+      : emojiDisplay.resolvedUrl;
 
     // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
     final size = _squareEmojiScalerClamped(context).scale(_squareEmojiSize);
 
     return RealmContentNetworkImage(
-      resolved,
+      resolvedUrl,
       width: size,
       height: size,
-      errorBuilder: (context, _, __) => _textFallback,
+      errorBuilder: (context, _, __) => _TextEmoji(
+        emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selected),
     );
   }
 }
 
 class _TextEmoji extends StatelessWidget {
-  const _TextEmoji({required this.emojiName, required this.selected});
+  const _TextEmoji({required this.emojiDisplay, required this.selected});
 
-  final String emojiName;
+  final TextEmojiDisplay emojiDisplay;
   final bool selected;
 
   @override
   Widget build(BuildContext context) {
+    final emojiName = emojiDisplay.emojiName;
+
     // Encourage line breaks before "_" (common in these), but try not
     // to leave a colon alone on a line. See:
     //   <https://github.com/flutter/flutter/issues/61081#issuecomment-1103330522>
