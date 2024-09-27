@@ -18,6 +18,7 @@ import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import '../test_async.dart';
 import 'binding.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
@@ -153,12 +154,12 @@ void main() {
 
     test('reject changing id, realmUrl, or userId', () async {
       final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
-        id: Value(1234)))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
-        realmUrl: Value(Uri.parse('https://other.example'))))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
-        userId: Value(1234)))).throws();
+      finish(check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+        id: Value(1234)))).throws());
+      finish(check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
+        realmUrl: Value(Uri.parse('https://other.example'))))).throws());
+      finish(check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+        userId: Value(1234)))).throws());
     });
 
     // TODO test database gets updated correctly (an integration test with sqlite?)
