@@ -161,7 +161,7 @@ void main() {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
         check(testBinding.globalStore.accounts).isEmpty();
-        testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
         await tester.enterText(findUsernameInput, eg.selfAccount.email);
         await tester.enterText(findPasswordInput, 'p455w0rd');
