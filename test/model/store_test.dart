@@ -155,11 +155,11 @@ void main() {
 
     test('reject changing id, realmUrl, or userId', () async {
       final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
         id: Value(1234)))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
         realmUrl: Value(Uri.parse('https://other.example'))))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
         userId: Value(1234)))).throws();
     });
 
