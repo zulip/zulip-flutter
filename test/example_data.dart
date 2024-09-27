@@ -62,6 +62,25 @@ GetServerSettingsResult serverSettings({
   );
 }
 
+RealmEmojiItem realmEmojiItem({
+  required String emojiCode,
+  required String emojiName,
+  String? sourceUrl,
+  String? stillUrl,
+  bool deactivated = false,
+  int? authorId,
+}) {
+  assert(RegExp(r'^[1-9][0-9]*$').hasMatch(emojiCode));
+  return RealmEmojiItem(
+    id: emojiCode,
+    name: emojiName,
+    sourceUrl: sourceUrl ?? '/emoji/$emojiCode.png',
+    stillUrl: stillUrl,
+    deactivated: deactivated,
+    authorId: authorId ?? user().userId,
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // Users and accounts.
 //

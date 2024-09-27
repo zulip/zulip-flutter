@@ -167,10 +167,8 @@ void main() {
             final users = [user1, user2, user3, user4, user5];
 
             final realmEmoji = <String, RealmEmojiItem>{
-              '181': RealmEmojiItem(id: '181', name: 'twocents', authorId: 7,
-                  deactivated: false, sourceUrl: '/foo/2', stillUrl: null),
-              '182': RealmEmojiItem(id: '182', name: 'threecents', authorId: 7,
-                  deactivated: false, sourceUrl: '/foo/3', stillUrl: null),
+              '181': eg.realmEmojiItem(emojiCode: '181', emojiName: 'twocents'),
+              '182': eg.realmEmojiItem(emojiCode: '182', emojiName: 'threecents'),
             };
 
             runSmokeTest('same reaction, different users, with one unknown user', [
