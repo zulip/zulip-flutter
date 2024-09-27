@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:fake_async/fake_async.dart';
@@ -716,6 +717,24 @@ void main() {
         check(takeLastReportedError()).isNotNull().startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
+      }));
+
+      test('ignore boring errors', () => awaitFakeAsync((async) async {
+        await prepare();
+
+        for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+          connection.prepare(exception: const SocketException('failed'));
+          pollAndFail(async);
+          check(takeLastReportedError()).isNull();
+          // This skips the pending polling backoff.
+          async.flushTimers();
+        }
+
+        connection.prepare(exception: const SocketException('failed'));
+        pollAndFail(async);
+        // Normally we start showing user visible error messages for transient
+        // errors after enough number of retries.
+        check(takeLastReportedError()).isNull();
       }));
     });
   });

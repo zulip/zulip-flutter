@@ -964,13 +964,28 @@ class UpdateMachine {
             debugLog('… Event queue replaced.');
             return;
 
-          case Server5xxException() || NetworkException():
+          case Server5xxException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
             maybeReportTransientError(
               localizations.errorConnectingToServerShort,
               details: localizations.errorConnectingToServerDetails(
                 serverUrl, e.toString()));
+            await (backoffMachine ??= BackoffMachine()).wait();
+            assert(debugLog('… Backoff wait complete, retrying poll.'));
+            continue;
+
+          case NetworkException():
+            assert(debugLog('Transient error polling event queue for $store: $e\n'
+                'Backing off, then will retry…'));
+            if (e.cause is! SocketException) {
+              // Heuristic check to only report interesting errors to the user.
+              // A [SocketException] is common when the app returns from sleep.
+              maybeReportTransientError(
+                localizations.errorConnectingToServerShort,
+                details: localizations.errorConnectingToServerDetails(
+                  serverUrl, e.toString()));
+            }
             await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
