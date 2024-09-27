@@ -427,6 +427,11 @@ class _TextEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Encourage line breaks before "_" (common in these), but try not
+    // to leave a colon alone on a line. See:
+    //   <https://github.com/flutter/flutter/issues/61081#issuecomment-1103330522>
+    final text = ':\ufeff${emojiName.replaceAll('_', '\u200b_')}\ufeff:';
+
     final reactionTheme = EmojiReactionTheme.of(context);
     return Text(
       textAlign: TextAlign.end,
@@ -438,9 +443,6 @@ class _TextEmoji extends StatelessWidget {
         color: selected ? reactionTheme.textSelected : reactionTheme.textUnselected,
       ).merge(weightVariableTextStyle(context,
           wght: selected ? 600 : null)),
-      // Encourage line breaks before "_" (common in these), but try not
-      // to leave a colon alone on a line. See:
-      //   <https://github.com/flutter/flutter/issues/61081#issuecomment-1103330522>
-      ':\ufeff${emojiName.replaceAll('_', '\u200b_')}\ufeff:');
+      text);
   }
 }
