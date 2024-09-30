@@ -147,8 +147,14 @@ class ApiConnection {
     final int httpStatus = response.statusCode;
     Map<String, dynamic>? json;
     try {
-      final bytes = await response.stream.toBytes();
-      json = jsonUtf8Decoder.convert(bytes) as Map<String, dynamic>?;
+      // Pass the response stream through the `jsonUtf8Decoder` transformer,
+      // allowing decoding to start as soon as the response stream emits data
+      // chunks.
+      final jsonStream = jsonUtf8Decoder.bind(response.stream);
+
+      // Actually start listening to the response byte stream and wait for
+      // decoding to finish.
+      json = await jsonStream.single as Map<String, dynamic>?;
     } catch (e) {
       // We'll throw something below, seeing `json` is null.
     }
