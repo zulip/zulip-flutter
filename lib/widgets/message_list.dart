@@ -7,6 +7,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
+import '../api/route/messages.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1275,7 +1276,13 @@ class MessageWithPossibleSender extends StatelessWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  MessageContent(message: message, content: item.content),
+                  GestureDetector(
+
+                    onDoubleTap: ()async{
+                      // AddThumbsUpButton(message: message, messageListContext: context);\
+                      await addReaction(PerAccountStoreWidget.of(context).connection , messageId: message.id, reactionType: ReactionType.unicodeEmoji, emojiCode: '1f44d', emojiName: '+1');
+                    },
+                    child: MessageContent(message: message, content: item.content)),
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!),
                   if (editStateText != null)
