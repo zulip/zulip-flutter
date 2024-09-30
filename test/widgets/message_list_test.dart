@@ -15,6 +15,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/content.dart';
@@ -52,6 +53,8 @@ void main() {
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
   }) async {
+    TypingNotifier.debugEnable = false;
+    addTearDown(TypingNotifier.debugReset);
     addTearDown(testBinding.reset);
     streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(

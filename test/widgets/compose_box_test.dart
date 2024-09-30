@@ -14,6 +14,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 import '../api/fake_api.dart';
@@ -199,6 +200,9 @@ void main() {
     Future<void> setupAndTapSend(WidgetTester tester, {
       required void Function(int messageId) prepareResponse,
     }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
 
@@ -264,6 +268,9 @@ void main() {
 
     group('attach from media library', () {
       testWidgets('success', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
         final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 
@@ -320,6 +327,9 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
         final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 

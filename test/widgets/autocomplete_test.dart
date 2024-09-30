@@ -8,6 +8,7 @@ import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -129,6 +130,9 @@ void main() {
       final composeInputFinder = await setupToComposeInput(tester, users: [user1, user2, user3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(composeInputFinder, 'hello @user ');
@@ -179,6 +183,9 @@ void main() {
       final topic3 = eg.getStreamTopicsEntry(maxId: 3, name: 'Topic three');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2, topic3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
 
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
