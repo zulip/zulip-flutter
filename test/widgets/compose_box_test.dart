@@ -32,12 +32,17 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester,
-      {required Narrow narrow, List<User> users = const []}) async {
+  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, {
+    required Narrow narrow,
+    Account? account,
+    List<User> users = const [],
+  }) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    account ??= eg.selfAccount;
+    await testBinding.globalStore.add(account, eg.initialSnapshot(
+      zulipFeatureLevel: account.zulipFeatureLevel));
 
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store = await testBinding.globalStore.perAccount(account.id);
 
     await store.addUsers([eg.selfUser, ...users]);
     connection = store.connection as FakeApiConnection;
@@ -48,7 +53,7 @@ void main() {
         jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     }
     final controllerKey = GlobalKey<ComposeBoxController>();
-    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: account.id,
       child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
     await tester.pumpAndSettle();
 
