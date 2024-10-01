@@ -7,10 +7,6 @@ import 'dart:math';
 class BackoffMachine {
   BackoffMachine();
 
-  static const _firstDuration = Duration(milliseconds: 100);
-  static const _durationCeiling = Duration(seconds: 10);
-  static const double _base = 2;
-
   /// How many waits have completed so far.
   ///
   /// Use this to implement "give up" logic by breaking out of the loop after
@@ -18,12 +14,32 @@ class BackoffMachine {
   int get waitsCompleted => _waitsCompleted;
   int _waitsCompleted = 0;
 
-  /// A future that resolves after the appropriate duration.
+  /// The upper bound on the duration of the first wait.
   ///
-  /// The popular exponential backoff strategy is to increase the duration
+  /// The actual duration will vary randomly up to this value; see [wait].
+  static const firstBound = Duration(milliseconds: 100);
+
+  /// The maximum upper bound on the duration of each wait,
+  /// even after many waits.
+  ///
+  /// The actual durations will vary randomly up to this value; see [wait].
+  static const maxBound = Duration(seconds: 10);
+
+  /// The factor the bound is multiplied by at each wait,
+  /// until it reaches [maxBound].
+  ///
+  /// This factor determines the bound on a given wait
+  /// as a multiple of the *bound* that applied to the previous wait,
+  /// not the (random) previous wait duration itself.
+  static const double base = 2;
+
+  /// A future that resolves after an appropriate backoff time,
+  /// with jitter applied to capped exponential growth.
+  ///
+  /// A popular exponential backoff strategy is to increase the duration
   /// exponentially with the number of sleeps completed, with a base of 2,
   /// until a ceiling is reached.  E.g., if the first duration is 100ms and
-  /// the ceiling is 10s = 10000ms, the sequence is, in ms:
+  /// the ceiling is 10s = 10000ms, the sequence would be, in ms:
   ///
   ///   100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, ...
   ///
@@ -42,10 +58,10 @@ class BackoffMachine {
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
   Future<void> wait() async {
-    final limit = _minDuration(_durationCeiling,
-                               _firstDuration * pow(_base, _waitsCompleted));
+    final bound = _minDuration(maxBound,
+                               firstBound * pow(base, _waitsCompleted));
     final duration = _maxDuration(const Duration(microseconds: 1),
-                                  limit * Random().nextDouble());
+                                  bound * Random().nextDouble());
     await Future<void>.delayed(duration);
     _waitsCompleted++;
   }
