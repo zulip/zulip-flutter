@@ -15,14 +15,30 @@ Future<Duration> measureWait(Future<void> future) async {
 }
 
 void main() {
-  test('BackoffMachine timeouts are random from zero to 100ms, 200ms, 400ms, ...', () {
+  List<Duration> expectedBounds({
+    required int length,
+    required Duration firstBound,
+    required Duration maxBound,
+  }) {
+    return List.generate(length, growable: false, (completed) {
+      return Duration(microseconds:
+        min(maxBound.inMicroseconds,
+            (firstBound.inMicroseconds
+             * pow(BackoffMachine.base, completed)).round()));
+    });
+  }
+
+  void checkEmpirically({
+      required Duration firstBound, required Duration maxBound}) {
     // This is a randomized test.  [numTrials] is chosen so that the failure
     // probability < 1e-9.  There are 2 * 11 assertions, and each one has a
     // failure probability < 1e-12; see below.
     const numTrials = 100;
-    final expectedMaxDurations = [
-      100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, 10000,
-    ].map((ms) => Duration(milliseconds: ms)).toList();
+    final expectedMaxDurations = expectedBounds(length: 11,
+      firstBound: firstBound, maxBound: maxBound);
+
+    // Check an assumption used in our failure-probability estimates.
+    assert(2 * expectedMaxDurations.length < 1000);
 
     final trialResults = List.generate(numTrials, (_) {
       return awaitFakeAsync((async) async {
@@ -52,6 +68,21 @@ void main() {
       check(minFromAllTrials).isLessThan(   expectedMax * 0.25);
       check(maxFromAllTrials).isGreaterThan(expectedMax * 0.75);
     }
+  }
+
+  test('BackoffMachine timeouts are random from zero to the intended bounds', () {
+    checkEmpirically(firstBound: const Duration(milliseconds: 100),
+                     maxBound:   const Duration(seconds: 10));
+  });
+
+  test('BackoffMachine intended bounds, explicitly', () {
+    // This check on expectedBounds acts as a cross-check on the
+    // other test case above, confirming what it is it's checking for.
+    final bounds = expectedBounds(length: 11,
+      firstBound: BackoffMachine.firstBound, maxBound: BackoffMachine.maxBound);
+    check(bounds.map((d) => d.inMilliseconds)).deepEquals([
+      100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, 10000,
+    ]);
   });
 
   test('BackoffMachine timeouts are always positive', () {
