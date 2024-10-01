@@ -1,14 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/submessage.dart';
+import '../api/route/submessage.dart';
 import 'content.dart';
 import 'store.dart';
 import 'text.dart';
 
 class PollWidget extends StatefulWidget {
-  const PollWidget({super.key, required this.poll});
+  const PollWidget({super.key, required this.messageId, required this.poll});
 
+  final int messageId;
   final Poll poll;
 
   @override
@@ -44,6 +48,16 @@ class _PollWidgetState extends State<PollWidget> {
     });
   }
 
+  void _toggleVote(PollOption option) async {
+    final store = PerAccountStoreWidget.of(context);
+    final op = option.voters.contains(store.selfUserId)
+      ? PollVoteOp.remove
+      : PollVoteOp.add;
+    unawaited(sendSubmessage(store.connection, messageId: widget.messageId,
+      submessageType: SubmessageType.widget,
+      content: PollVoteEventSubmessage(key: option.key, op: op)));
+  }
+
   @override
   Widget build(BuildContext context) {
     const verticalPadding = 2.5;
@@ -74,24 +88,32 @@ class _PollWidgetState extends State<PollWidget> {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: localizedTextBaseline(context),
         children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(
-                end: 5, top: verticalPadding, bottom: verticalPadding),
-              child: Container(
-                // Inner padding preserves whitespace even when the text's
-                // width approaches the button's min-width (e.g. because
-                // there are more than three digits).
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorPollVoteCountBackground,
-                  border: Border.all(color: theme.colorPollVoteCountBorder),
-                  borderRadius: BorderRadius.circular(3)),
-                child: Center(
-                  child: Text(option.voters.length.toString(),
-                    style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 20)))))),
+          GestureDetector(
+            // TODO: Implement feedback when the user taps the button
+            onTap: () => _toggleVote(option),
+            behavior: HitTestBehavior.translucent,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              child: Padding(
+                // For accessibility, the touch target is padded to be larger
+                // than the vote count box.  Still, we avoid padding at the
+                // start because we want to align all the poll options to the
+                // surrounding messages.
+                padding: const EdgeInsetsDirectional.only(
+                  end: 5, top: verticalPadding, bottom: verticalPadding),
+                child: Container(
+                  // Inner padding preserves whitespace even when the text's
+                  // width approaches the button's min-width (e.g. because
+                  // there are more than three digits).
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorPollVoteCountBackground,
+                    border: Border.all(color: theme.colorPollVoteCountBorder),
+                    borderRadius: BorderRadius.circular(3)),
+                  child: Center(
+                    child: Text(option.voters.length.toString(),
+                      style: textStyleBold.copyWith(
+                        color: theme.colorPollVoteCountText, fontSize: 20))))))),
           Expanded(
             child: Padding(
               // This and the padding on the vote count box both extend the row
