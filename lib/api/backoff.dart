@@ -7,8 +7,8 @@ import 'dart:math';
 class BackoffMachine {
   BackoffMachine();
 
-  static const double _firstDurationMs = 100;
-  static const double _durationCeilingMs = 10 * 1000;
+  static const _firstDuration = Duration(milliseconds: 100);
+  static const _durationCeiling = Duration(seconds: 10);
   static const double _base = 2;
 
   /// How many waits have completed so far.
@@ -42,14 +42,19 @@ class BackoffMachine {
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
   Future<void> wait() async {
-    final durationMs =
-      Random().nextDouble() // "Jitter"
-      * min(_durationCeilingMs,
-            _firstDurationMs * pow(_base, _waitsCompleted));
-
-    await Future<void>.delayed(Duration(
-      microseconds: max(1, (1000 * durationMs).round())));
-
+    final limit = _minDuration(_durationCeiling,
+                               _firstDuration * pow(_base, _waitsCompleted));
+    final duration = _maxDuration(const Duration(microseconds: 1),
+                                  limit * Random().nextDouble());
+    await Future<void>.delayed(duration);
     _waitsCompleted++;
   }
+}
+
+Duration _minDuration(Duration a, Duration b) {
+  return a <= b ? a : b;
+}
+
+Duration _maxDuration(Duration a, Duration b) {
+  return a >= b ? a : b;
 }
