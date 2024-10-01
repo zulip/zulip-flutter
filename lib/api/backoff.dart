@@ -5,7 +5,10 @@ import 'dart:math';
 /// Call the constructor before a loop starts, and call [wait] in each iteration
 /// of the loop.  Do not re-use the instance after exiting the loop.
 class BackoffMachine {
-  BackoffMachine();
+  BackoffMachine({
+    this.firstBound = const Duration(milliseconds: 100),
+    this.maxBound = const Duration(seconds: 10),
+  }) : assert(firstBound <= maxBound);
 
   /// How many waits have completed so far.
   ///
@@ -17,13 +20,13 @@ class BackoffMachine {
   /// The upper bound on the duration of the first wait.
   ///
   /// The actual duration will vary randomly up to this value; see [wait].
-  static const firstBound = Duration(milliseconds: 100);
+  final Duration firstBound;
 
   /// The maximum upper bound on the duration of each wait,
   /// even after many waits.
   ///
   /// The actual durations will vary randomly up to this value; see [wait].
-  static const maxBound = Duration(seconds: 10);
+  final Duration maxBound;
 
   /// The factor the bound is multiplied by at each wait,
   /// until it reaches [maxBound].
@@ -36,17 +39,20 @@ class BackoffMachine {
   /// A future that resolves after an appropriate backoff time,
   /// with jitter applied to capped exponential growth.
   ///
-  /// A popular exponential backoff strategy is to increase the duration
-  /// exponentially with the number of sleeps completed, with a base of 2,
-  /// until a ceiling is reached.  E.g., if the first duration is 100ms and
-  /// the ceiling is 10s = 10000ms, the sequence would be, in ms:
+  /// Each [wait] computes an upper bound on its wait duration,
+  /// in a sequence growing exponentially from [firstBound]
+  /// to a cap of [maxBound] by factors of [base].
+  /// With their default values, this sequence is, in seconds:
   ///
-  ///   100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, ...
+  ///   0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 10, 10, 10, ...
   ///
-  /// Instead of using this strategy directly, we also apply "jitter".
-  /// We use capped exponential backoff for the *upper bound* on a random
-  /// duration, where the lower bound is always zero.  Mitigating "bursts" is
-  /// the goal of any "jitter" strategy, and the larger the range of randomness,
+  /// To provide jitter, the actual wait duration is chosen randomly
+  /// on the whole interval from zero up to the computed upper bound.
+  ///
+  /// This jitter strategy with a lower bound of zero is reported to be more
+  /// effective than some widespread strategies that use narrower intervals.
+  /// The purpose of jitter is to mitigate "bursts" where many clients make
+  /// requests in a short period; the larger the range of randomness,
   /// the smoother the bursts.  Keeping the lower bound at zero
   /// maximizes the range while preserving a capped exponential shape on
   /// the expected value.  Greg discusses this in more detail at:
