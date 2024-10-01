@@ -24,8 +24,8 @@ void main() {
       100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, 10000,
     ].map((ms) => Duration(milliseconds: ms)).toList();
 
-    final trialResults = List.generate(numTrials, (_) =>
-      awaitFakeAsync((async) async {
+    final trialResults = List.generate(numTrials, (_) {
+      return awaitFakeAsync((async) async {
         final backoffMachine = BackoffMachine();
         final results = <Duration>[];
         for (int i = 0; i < expectedMaxDurations.length; i++) {
@@ -34,7 +34,8 @@ void main() {
         }
         check(async.pendingTimers).isEmpty();
         return results;
-      }));
+      });
+    });
 
     for (int i = 0; i < expectedMaxDurations.length; i++) {
       Duration maxFromAllTrials = trialResults[0][i];
