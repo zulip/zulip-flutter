@@ -68,15 +68,15 @@ class _PollWidgetState extends State<PollWidget> {
           store.users[userId]?.fullName ?? zulipLocalizations.unknownUserName)
         .join(', ');
 
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Row(
-          spacing: 5,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: localizedTextBaseline(context),
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 25, minHeight: 25),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: localizedTextBaseline(context),
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 25 + 5, minHeight: 25 + 5),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(bottom: 5, end: 5),
               child: Container(
                 // Inner padding preserves whitespace even when the text's
                 // width approaches the button's min-width (e.g. because
@@ -89,17 +89,17 @@ class _PollWidgetState extends State<PollWidget> {
                 child: Center(
                   child: Text(option.voters.length.toString(),
                     style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 13))))),
-            Expanded(
-              child: Wrap(
-                spacing: 5,
-                children: [
-                  Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
-                  if (option.voters.isNotEmpty)
-                    // TODO(i18n): Localize parenthesis characters.
-                    Text('($voterNames)', style: textStyleVoterNames),
-                ])),
-          ]));
+                      color: theme.colorPollVoteCountText, fontSize: 13)))))),
+          Expanded(
+            child: Wrap(
+              spacing: 5,
+              children: [
+                Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
+                if (option.voters.isNotEmpty)
+                  // TODO(i18n): Localize parenthesis characters.
+                  Text('($voterNames)', style: textStyleVoterNames),
+              ])),
+        ]);
     }
 
     return Column(
