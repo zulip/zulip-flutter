@@ -68,15 +68,14 @@ class _PollWidgetState extends State<PollWidget> {
           store.users[userId]?.fullName ?? zulipLocalizations.unknownUserName)
         .join(', ');
 
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Row(
-          spacing: 5,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: localizedTextBaseline(context),
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 25).tighten(height: 25),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: localizedTextBaseline(context),
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 25 + 5).tighten(height: 25 + 5),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(bottom: 5, end: 5),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
@@ -87,17 +86,17 @@ class _PollWidgetState extends State<PollWidget> {
                   child: Text(option.voters.length.toString(),
                     textAlign: TextAlign.center,
                     style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 13))))),
-            Expanded(
-              child: Wrap(
-                spacing: 5,
-                children: [
-                  Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
-                  if (option.voters.isNotEmpty)
-                    // TODO(i18n): Localize parenthesis characters.
-                    Text('($voterNames)', style: textStyleVoterNames),
-                ])),
-          ]));
+                      color: theme.colorPollVoteCountText, fontSize: 13)))))),
+          Expanded(
+            child: Wrap(
+              spacing: 5,
+              children: [
+                Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
+                if (option.voters.isNotEmpty)
+                  // TODO(i18n): Localize parenthesis characters.
+                  Text('($voterNames)', style: textStyleVoterNames),
+              ])),
+        ]);
     }
 
     return Column(
