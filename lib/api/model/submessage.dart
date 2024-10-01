@@ -404,6 +404,9 @@ class Poll extends ChangeNotifier {
   final Set<String> _existingOptionTexts = {};
   final Map<PollOptionKey, PollOption> _options = {};
 
+  bool hasUserVotedFor({required int userId, required PollOptionKey key}) =>
+    _options.containsKey(key) && _options[key]!.voters.contains(userId);
+
   void handleSubmessageEvent(SubmessageEvent event) {
     final PollEventSubmessage? pollEventSubmessage;
     try {
