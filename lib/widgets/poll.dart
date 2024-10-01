@@ -50,15 +50,14 @@ class _PollWidgetState extends State<PollWidget> {
     final theme = ContentTheme.of(context);
     final store = PerAccountStoreWidget.of(context);
 
-    final textStyleBold = const TextStyle(fontSize: 18)
-      .merge(weightVariableTextStyle(context, wght: 600));
+    final textStyleBold = weightVariableTextStyle(context, wght: 600);
     final textStyleVoterNames = TextStyle(
       fontSize: 16, color: theme.colorPollNames);
 
     Text question = (widget.poll.question.isNotEmpty)
-      ? Text(widget.poll.question, style: textStyleBold)
+      ? Text(widget.poll.question, style: textStyleBold.copyWith(fontSize: 18))
       : Text(zulipLocalizations.pollWidgetQuestionMissing,
-          style: textStyleBold.copyWith(fontStyle: FontStyle.italic));
+          style: textStyleBold.copyWith(fontSize: 18, fontStyle: FontStyle.italic));
 
     Widget buildOptionItem(PollOption option) {
       // TODO(i18n): List formatting, like you can do in JavaScript:
