@@ -68,15 +68,15 @@ class _PollWidgetState extends State<PollWidget> {
           store.users[userId]?.fullName ?? zulipLocalizations.unknownUserName)
         .join(', ');
 
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Row(
-          spacing: 5,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: localizedTextBaseline(context),
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 25, minHeight: 25),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: localizedTextBaseline(context),
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 25 + 5, minHeight: 25 + 5),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(bottom: 5, end: 5),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
@@ -87,8 +87,14 @@ class _PollWidgetState extends State<PollWidget> {
                   child: Text(option.voters.length.toString(),
                     textAlign: TextAlign.center,
                     style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 13))))),
-            Expanded(
+                      color: theme.colorPollVoteCountText, fontSize: 13)))))),
+          Expanded(
+            child: Padding(
+              // When the bottom of the text reaches farther than the vote count
+              // box's padded bottom edge, this padding helps ensure that we
+              // still maintain a consistent spacing of 5 logical pixels between
+              // option rows.
+              padding: const EdgeInsets.only(bottom: 5),
               child: Wrap(
                 spacing: 5,
                 children: [
@@ -96,8 +102,8 @@ class _PollWidgetState extends State<PollWidget> {
                   if (option.voters.isNotEmpty)
                     // TODO(i18n): Localize parenthesis characters.
                     Text('($voterNames)', style: textStyleVoterNames),
-                ])),
-          ]));
+                ]))),
+        ]);
     }
 
     return Column(
