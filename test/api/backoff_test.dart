@@ -42,7 +42,8 @@ void main() {
 
     final trialResults = List.generate(numTrials, (_) {
       return awaitFakeAsync((async) async {
-        final backoffMachine = BackoffMachine();
+        final backoffMachine = BackoffMachine(firstBound: firstBound,
+                                              maxBound: maxBound);
         final results = <Duration>[];
         for (int i = 0; i < expectedMaxDurations.length; i++) {
           final duration = await measureWait(backoffMachine.wait());
@@ -75,11 +76,25 @@ void main() {
                      maxBound:   const Duration(seconds: 10));
   });
 
-  test('BackoffMachine intended bounds, explicitly', () {
+  test('BackoffMachine timeouts, varying firstBound and maxBound', () {
+    checkEmpirically(firstBound: const Duration(seconds: 5),
+                     maxBound:   const Duration(seconds: 300));
+  });
+
+  test('BackoffMachine timeouts, maxBound equal to firstBound', () {
+    checkEmpirically(firstBound: const Duration(seconds: 1),
+                     maxBound:   const Duration(seconds: 1));
+  });
+
+  test('BackoffMachine default firstBound and maxBound', () {
+    final backoffMachine = BackoffMachine();
+    check(backoffMachine.firstBound).equals(const Duration(milliseconds: 100));
+    check(backoffMachine.maxBound).equals(const Duration(seconds: 10));
+
     // This check on expectedBounds acts as a cross-check on the
-    // other test case above, confirming what it is it's checking for.
+    // other test cases above, confirming what it is they're checking for.
     final bounds = expectedBounds(length: 11,
-      firstBound: BackoffMachine.firstBound, maxBound: BackoffMachine.maxBound);
+      firstBound: backoffMachine.firstBound, maxBound: backoffMachine.maxBound);
     check(bounds.map((d) => d.inMilliseconds)).deepEquals([
       100, 200, 400, 800, 1600, 3200, 6400, 10000, 10000, 10000, 10000,
     ]);
