@@ -11,8 +11,6 @@ class BackoffMachine {
   static const double _durationCeilingMs = 10 * 1000;
   static const double _base = 2;
 
-  DateTime? _startTime;
-
   /// How many waits have completed so far.
   ///
   /// Use this to implement "give up" logic by breaking out of the loop after
@@ -44,8 +42,6 @@ class BackoffMachine {
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
   Future<void> wait() async {
-    _startTime ??= DateTime.now();
-
     final durationMs =
       Random().nextDouble() // "Jitter"
       * min(_durationCeilingMs,
