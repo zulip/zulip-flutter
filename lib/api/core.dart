@@ -147,13 +147,9 @@ class ApiConnection {
     final int httpStatus = response.statusCode;
     Map<String, dynamic>? json;
     try {
-      // Pass the response stream through the `jsonUtf8Decoder` transformer,
-      // allowing decoding to start as soon as the response stream emits data
-      // chunks.
+      // The stream-oriented `bind` method allows decoding to happen in chunks
+      // while the response is still being downloaded, improving latency.
       final jsonStream = jsonUtf8Decoder.bind(response.stream);
-
-      // Actually start listening to the response byte stream and wait for
-      // decoding to finish.
       json = await jsonStream.single as Map<String, dynamic>?;
     } catch (e) {
       // We'll throw something below, seeing `json` is null.
