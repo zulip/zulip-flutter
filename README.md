@@ -1,3 +1,5 @@
+![zulipheader-image](https://github.com/user-attachments/assets/41f5f25f-8277-403e-bbf8-a04567d0f1ac)
+
 # Zulip Flutter (beta)
 
 ![clickstream-flutter-test](https://github.com/zulip/zulip-flutter/actions/workflows/ci.yml/badge.svg) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
