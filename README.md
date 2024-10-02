@@ -365,3 +365,8 @@ limitations under the License.
 The software includes some works released by third parties under other
 free and open source licenses. Those works are redistributed under the
 license terms under which the works were received.
+
+
+## Contributors
+
+[![](https://contrib.rocks/image?repo=zulip/zulip-flutter)](https://github.com/zulip/zulip-flutter/graphs/contributors)
