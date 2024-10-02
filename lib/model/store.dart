@@ -865,26 +865,6 @@ class UpdateMachine {
     }
   }
 
-  /// In debug mode, controls whether [registerNotificationToken] should
-  /// have its normal effect.
-  ///
-  /// Outside of debug mode, this is always true and the setter has no effect.
-  static bool get debugEnableRegisterNotificationToken {
-    bool result = true;
-    assert(() {
-      result = _debugEnableRegisterNotificationToken;
-      return true;
-    }());
-    return result;
-  }
-  static bool _debugEnableRegisterNotificationToken = true;
-  static set debugEnableRegisterNotificationToken(bool value) {
-    assert(() {
-      _debugEnableRegisterNotificationToken = value;
-      return true;
-    }());
-  }
-
   /// Send this client's notification token to the server, now and if it changes.
   ///
   /// TODO The returned future isn't especially meaningful (it may or may not
@@ -908,6 +888,26 @@ class UpdateMachine {
 
   void dispose() { // TODO abort long-poll and close ApiConnection
     NotificationService.instance.token.removeListener(_registerNotificationToken);
+  }
+
+  /// In debug mode, controls whether [registerNotificationToken] should
+  /// have its normal effect.
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableRegisterNotificationToken {
+    bool result = true;
+    assert(() {
+      result = _debugEnableRegisterNotificationToken;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableRegisterNotificationToken = true;
+  static set debugEnableRegisterNotificationToken(bool value) {
+    assert(() {
+      _debugEnableRegisterNotificationToken = value;
+      return true;
+    }());
   }
 
   @override
