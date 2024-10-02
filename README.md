@@ -1,6 +1,7 @@
 # Zulip Flutter (beta)
 
 ![clickstream-flutter-test](https://github.com/zulip/zulip-flutter/actions/workflows/ci.yml/badge.svg) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 A Zulip client for Android and iOS, using Flutter.
 
 This app is currently [in beta][beta].
