@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
@@ -15,13 +16,16 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/page.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -213,6 +217,149 @@ void main() {
         narrow: TopicNarrow.ofMessage(eg.streamMessage()));
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: false);
+    });
+  });
+
+  group('ComposeBox typing notices', () {
+    const narrow = TopicNarrow(123, 'some topic');
+
+    void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
+      checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
+
+    Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
+      connection.prepare(json: {});
+      await tester.enterText(contentInputFinder, 'hello world');
+      checkTypingRequest(TypingOp.start, narrow);
+    }
+
+    testWidgets('smoke TopicNarrow', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('smoke DmNarrow', (tester) async {
+      final narrow = DmNarrow.withUsers(
+        [eg.otherUser.userId], selfUserId: eg.selfUser.userId);
+      await prepareComposeBox(tester, narrow: narrow);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('smoke ChannelNarrow', (tester) async {
+      const narrow = ChannelNarrow(123);
+      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      await prepareComposeBox(
+        tester, narrow: narrow, topic: destinationNarrow.topic);
+
+      await checkStartTyping(tester, destinationNarrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, destinationNarrow);
+    });
+
+    testWidgets('clearing text sends a "typing stopped" notice', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.enterText(contentInputFinder, '');
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      connection.prepare(json: SendMessageResult(id: 123).toJson());
+      await tester.tap(find.byIcon(Icons.send));
+      await tester.pump(Duration.zero);
+      final requests = connection.takeRequests();
+      checkSetTypingStatusRequests([requests.first], [(TypingOp.stop, narrow)]);
+      check(requests).length.equals(2);
+    });
+
+    Future<void> prepareComposeBoxWithNavigation(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+
+      await tester.pumpWidget(const ZulipApp());
+      await tester.pump();
+      final navigator = await ZulipApp.navigator;
+      unawaited(navigator.push(MaterialAccountWidgetRoute(
+        accountId: eg.selfAccount.id, page: const ComposeBox(narrow: narrow))));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('navigating away sends a "typing stopped" notice', (tester) async {
+      await prepareComposeBoxWithNavigation(tester);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      (await ZulipApp.navigator).pop();
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('for content input, unfocusing sends a "typing stopped" notice '
+                'and refocusing sends a "typing started" notice', (tester) async {
+      const narrow = ChannelNarrow(123);
+      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      await prepareComposeBox(
+        tester, narrow: narrow, topic: destinationNarrow.topic);
+
+      await checkStartTyping(tester, destinationNarrow);
+
+      connection.prepare(json: {});
+      FocusManager.instance.primaryFocus!.unfocus();
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, destinationNarrow);
+
+      connection.prepare(json: {});
+      await tester.tap(contentInputFinder);
+      checkTypingRequest(TypingOp.start, destinationNarrow);
+
+      // Ensures that a "typing stopped" notice is sent when the test ends.
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, destinationNarrow);
+    });
+
+    testWidgets('selection change sends a "typing started" notice', (tester) async {
+      final controllerKey = await prepareComposeBox(tester, narrow: narrow);
+      final composeBoxController = controllerKey.currentState!;
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+
+      connection.prepare(json: {});
+      composeBoxController.contentController.selection =
+        const TextSelection(baseOffset: 0, extentOffset: 2);
+      checkTypingRequest(TypingOp.start, narrow);
+
+      // Ensures that a "typing stopped" notice is sent when the test ends.
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
     });
   });
 
