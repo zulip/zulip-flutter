@@ -269,7 +269,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatelessWidget {
+class _ContentInput extends StatefulWidget {
   const _ContentInput({
     required this.narrow,
     required this.controller,
@@ -282,6 +282,11 @@ class _ContentInput extends StatelessWidget {
   final FocusNode focusNode;
   final String hintText;
 
+  @override
+  State<_ContentInput> createState() => _ContentInputState();
+}
+
+class _ContentInputState extends State<_ContentInput> {
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -296,15 +301,15 @@ class _ContentInput extends StatelessWidget {
           maxHeight: 200,
         ),
         child: ComposeAutocomplete(
-          narrow: narrow,
-          controller: controller,
-          focusNode: focusNode,
+          narrow: widget.narrow,
+          controller: widget.controller,
+          focusNode: widget.focusNode,
           fieldViewBuilder: (context) {
             return TextField(
-              controller: controller,
-              focusNode: focusNode,
+              controller: widget.controller,
+              focusNode: widget.focusNode,
               style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
+              decoration: InputDecoration.collapsed(hintText: widget.hintText),
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
             );
