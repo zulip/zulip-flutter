@@ -272,12 +272,14 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 class _ContentInput extends StatefulWidget {
   const _ContentInput({
     required this.narrow,
+    required this.destination,
     required this.controller,
     required this.focusNode,
     required this.hintText,
   });
 
   final Narrow narrow;
+  final SendableNarrow destination;
   final ComposeContentController controller;
   final FocusNode focusNode;
   final String hintText;
@@ -287,6 +289,59 @@ class _ContentInput extends StatefulWidget {
 }
 
 class _ContentInputState extends State<_ContentInput> {
+  String? _prevText;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_contentChanged);
+    widget.focusNode.addListener(_focusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContentInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_contentChanged);
+      oldWidget.focusNode.removeListener(_focusChanged);
+      widget.controller.addListener(_contentChanged);
+      widget.focusNode.addListener(_focusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_contentChanged);
+    widget.focusNode.removeListener(_focusChanged);
+    super.dispose();
+  }
+
+  void _contentChanged() async {
+    if (_prevText == widget.controller.text) {
+      // [TextEditingController] also notifies the listeners
+      // on selection updates.  Return early because we do not
+      // consider that as typing activity.
+      return;
+    }
+    final store = PerAccountStoreWidget.of(context);
+    (widget.controller.text.isEmpty)
+      ? await store.typingNotifier.stoppedComposing()
+      : await store.typingNotifier.keystroke(widget.destination);
+    _prevText = widget.controller.text;
+  }
+
+  void _focusChanged() async {
+    if (widget.focusNode.hasFocus) {
+      // Content input getting focus doesn't necessarily mean that
+      // the user started typing, so do nothing.
+      return;
+    }
+    // Losing focus usually indicates that the user has navigated away
+    // or clicked on other UI elements.
+    final store = PerAccountStoreWidget.of(context);
+    await store.typingNotifier.stoppedComposing();
+  }
+
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -337,6 +392,8 @@ class _StreamContentInput extends StatefulWidget {
 }
 
 class _StreamContentInputState extends State<_StreamContentInput> {
+  SendableNarrow get _destination => TopicNarrow(
+    widget.narrow.streamId, widget.topicController.textNormalized);
   late String _topicTextNormalized;
 
   void _topicChanged() {
@@ -375,6 +432,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
+      destination: _destination,
       controller: widget.controller,
       focusNode: widget.focusNode,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
@@ -451,6 +509,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ContentInput(
       narrow: narrow,
+      destination: narrow,
       controller: controller,
       focusNode: focusNode,
       hintText: _hintText(context));
@@ -828,6 +887,10 @@ class _SendButtonState extends State<_SendButton> {
       // TODO(#720) clear content input only on success response;
       //   while waiting, put input(s) and send button into a disabled
       //   "working on it" state (letting input text be selected for copying).
+      //   The following `stoppedComposing` call will cease being redundant
+      //   once we support that, because clearing input sends a "typing stopped"
+      //   notice.
+      await store.typingNotifier.stoppedComposing();
       await store.sendMessage(destination: widget.getDestination(), content: content);
     } on ApiRequestException catch (e) {
       if (!mounted) return;

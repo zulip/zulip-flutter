@@ -17,6 +17,33 @@ import '../stdlib_checks.dart';
 import 'binding.dart';
 import 'test_store.dart';
 
+void checkSetTypingStatusRequests(
+  FakeApiConnection connection,
+  List<(TypingOp, SendableNarrow)> requests,
+) {
+  Condition<Object?> conditionTypingRequest(Map<String, String> expected) {
+    return (Subject<Object?> it) => it.isA<http.Request>()
+      ..method.equals('POST')
+      ..url.path.equals('/api/v1/typing')
+      ..bodyFields.deepEquals(expected);
+  }
+
+  check(connection.takeRequests()).deepEquals([
+    for (final (op, narrow) in requests)
+      switch (narrow) {
+        TopicNarrow() => conditionTypingRequest({
+          'type': 'channel',
+          'op': op.toJson(),
+          'stream_id': narrow.streamId.toString(),
+          'topic': narrow.topic}),
+        DmNarrow() => conditionTypingRequest({
+          'type': 'direct',
+          'op': op.toJson(),
+          'to': jsonEncode(narrow.allRecipientIds)}),
+      }
+  ]);
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
 
@@ -227,33 +254,6 @@ void main() {
     late TypingNotifier model;
     late FakeApiConnection connection;
     late TopicNarrow narrow;
-
-    void checkSetTypingStatusRequests(
-      FakeApiConnection connection,
-      List<(TypingOp, SendableNarrow)> requests,
-    ) {
-      Condition<Object?> conditionTypingRequest(Map<String, String> expected) {
-        return (Subject<Object?> it) => it.isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/typing')
-          ..bodyFields.deepEquals(expected);
-      }
-
-      check(connection.takeRequests()).deepEquals([
-        for (final (op, narrow) in requests)
-          switch (narrow) {
-            TopicNarrow() => conditionTypingRequest({
-              'type': 'channel',
-              'op': op.toJson(),
-              'stream_id': narrow.streamId.toString(),
-              'topic': narrow.topic}),
-            DmNarrow() => conditionTypingRequest({
-              'type': 'direct',
-              'op': op.toJson(),
-              'to': jsonEncode(narrow.allRecipientIds)}),
-          }
-      ]);
-    }
 
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
       checkSetTypingStatusRequests(connection, [(op, narrow)]);
