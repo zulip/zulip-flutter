@@ -1244,10 +1244,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_android
-      sha256: "45d21bbba3d10b7182aa08ade5d4c68ed3367016d40f29732bb04a799b26842d"
+      sha256: "50740044e9b7d290bc6ee3dd39787e7e28dada9546b82f842d3a1799865548a9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.5"
+    version: "2.7.8"
   video_player_avfoundation:
     dependency: transitive
     description:
