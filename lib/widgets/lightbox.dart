@@ -142,6 +142,28 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
     });
   }
 
+  String _formatDate(DateTime messageDate) {
+    final now = DateTime.now();
+    final difference = now.difference(messageDate);
+    final locale = Localizations.localeOf(context).toString();
+
+    if (difference.inSeconds < 60) {
+      return "A few seconds ago";
+    } else if (difference.inMinutes < 60) {
+      return "${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago";
+    } else if (difference.inHours < 24) {
+      final time = DateFormat.jm(locale).format(messageDate);
+      return "Today at $time";
+    } else if (difference.inHours < 48) {
+      final time = DateFormat.jm(locale).format(messageDate);
+      return "Yesterday at $time";
+    } else {
+      final date = DateFormat('MMM d, yyyy', locale).format(messageDate);
+      final time = DateFormat('hh:mm a', locale).format(messageDate);
+      return "$date at $time";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
@@ -152,11 +174,8 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
-      final timestampText = DateFormat
-        .yMMMd(/* TODO(#278): Pass selected language here, I think? */)
-        .add_Hms()
-        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+      final messageDate = DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000);
+      final timestampText = _formatDate(messageDate);
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
