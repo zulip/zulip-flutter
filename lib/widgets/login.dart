@@ -211,34 +211,36 @@ class _AddAccountPageState extends State<AddAccountPage> {
       body: SafeArea(
         minimum: const EdgeInsets.all(8),
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              // TODO(#109) Link to doc about what a "server URL" is and how to find it
-              // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
-              TextField(
-                controller: _controller,
-                onSubmitted: (value) => _onSubmitted(context),
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                textInputAction: TextInputAction.go,
-                onEditingComplete: () {
-                  // Repeat default implementation by clearing IME compose session…
-                  _controller.clearComposing();
-                  // …but leave out unfocusing the input in case more editing is needed.
-                },
-                decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlInputLabel,
-                  errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
-                  hintText: 'your-org.zulipchat.com')),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: !_inProgress && errorText == null
-                  ? () => _onSubmitted(context)
-                  : null,
-                child: Text(zulipLocalizations.dialogContinue)),
-            ])))));
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                // TODO(#109) Link to doc about what a "server URL" is and how to find it
+                // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
+                TextField(
+                  controller: _controller,
+                  onSubmitted: (value) => _onSubmitted(context),
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  textInputAction: TextInputAction.go,
+                  onEditingComplete: () {
+                    // Repeat default implementation by clearing IME compose session…
+                    _controller.clearComposing();
+                    // …but leave out unfocusing the input in case more editing is needed.
+                  },
+                  decoration: InputDecoration(
+                    labelText: zulipLocalizations.loginServerUrlInputLabel,
+                    errorText: errorText,
+                    helperText: kLayoutPinningHelperText,
+                    hintText: 'your-org.zulipchat.com')),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: !_inProgress && errorText == null
+                    ? () => _onSubmitted(context)
+                    : null,
+                  child: Text(zulipLocalizations.dialogContinue)),
+              ])),
+          ))));
   }
 }
 

@@ -26,14 +26,16 @@ Future<void> showErrorDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   return showDialog(
     context: context,
-    builder: (BuildContext context) => AlertDialog(
-      title: Text(title),
-      content: message != null ? SingleChildScrollView(child: Text(message)) : null,
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
-      ]));
+    builder: (BuildContext context) => SingleChildScrollView(
+      child: AlertDialog(
+        title: Text(title),
+        content: message != null ? SingleChildScrollView(child: Text(message)) : null,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
+        ]),
+    ));
 }
 
 void showSuggestedActionDialog({
