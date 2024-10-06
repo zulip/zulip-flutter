@@ -42,18 +42,10 @@ DialogStatus showErrorDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
     context: context,
-    builder: (BuildContext context) => SingleChildScrollView(
-      child: AlertDialog(
-        title: Text(title),
-        content: message != null ? SingleChildScrollView(child: Text(message)) : null,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
-        ])));
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: message != null ? SingleChildScrollView(child: Text(message)) : null,
+      content: message != null ? Text(message) : null,
+      scrollable: true,
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -74,7 +66,8 @@ void showSuggestedActionDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: SingleChildScrollView(child: Text(message)),
+      content: Text(message),
+      scrollable: true,
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
