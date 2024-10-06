@@ -50,8 +50,7 @@ DialogStatus showErrorDialog({
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
-        ]),
-    ));
+        ])));
   return DialogStatus(future);
 }
 
@@ -67,7 +66,8 @@ void showSuggestedActionDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: SingleChildScrollView(child: Text(message)),
+      content: Text(message),
+      scrollable: true,
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
