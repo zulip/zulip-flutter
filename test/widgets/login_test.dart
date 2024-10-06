@@ -62,7 +62,54 @@ void main() {
   });
 
   // TODO test AddAccountPage
+  testWidgets('Test if Add Accout is Scrollable When on Smaller Screen', (WidgetTester tester) async {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    String? errorText;
+    final TextEditingController controller = TextEditingController();
 
+    // Define the Add Account widgets to test
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+        body: SafeArea(
+            minimum: const EdgeInsets.all(6),
+        child: Center(child: SingleChildScrollView(child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center,children: [
+               TextField(
+                 controller: controller,
+                 keyboardType: TextInputType.url,
+                 autocorrect: false,
+                 textInputAction: TextInputAction.go,
+                 onEditingComplete: controller.clearComposing,
+                 decoration: InputDecoration(
+                   labelText: zulipLocalizations.loginServerUrlInputLabel,
+                   errorText: errorText,
+                   helperText: 'Your Zulip server URL',
+                   hintText: 'your-org.zulipchat.com',
+                 )
+               ),
+          const SizedBox(height: 8),
+          ElevatedButton(onPressed:() {},
+            child: Text(zulipLocalizations.dialogContinue),
+          )]))
+          )),
+        ))));
+
+
+    // Check that the TextField and button are present
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.byType(ElevatedButton), findsOneWidget);
+
+    // Simulate entering text into the URL TextField
+    await tester.enterText(find.byType(TextField), 'chat.zulipchat.com');
+    expect(controller.text, 'chat.zulipchat.com');
+
+    // Implemet pressing the Continue button
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    expect(find.text('Continue'), findsOneWidget);
+  });
   group('LoginPage', () {
     late FakeApiConnection connection;
     late List<Route<dynamic>> pushedRoutes;

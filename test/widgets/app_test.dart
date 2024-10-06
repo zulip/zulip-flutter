@@ -288,4 +288,19 @@ void main() {
       check(findSnackBarByText('unrelated').evaluate()).single;
     });
   });
+    testWidgets('Home scrollable test, when contents do not fit to screen', (tester)async{
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: Center(child: SingleChildScrollView(child: Column(
+        children: List.generate(15, (count)=>Text('Pick $count')),
+      ))))));
+      //make sure the added scrollable widget is functional
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      expect(find.text('Pick 0'), findsOneWidget);
+
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -300));
+      //Test for items down the column
+      await tester.pump();
+      expect(find.text('Pick 14'), findsOneWidget);
+    });
+
 }
