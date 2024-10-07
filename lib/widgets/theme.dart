@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
-import 'content.dart';
-import 'emoji_reaction.dart';
-import 'message_list.dart';
-import 'channel_colors.dart';
-import 'text.dart';
+import '../widgets/content.dart';
+import '../widgets/emoji_reaction.dart';
+import '../themes/message_list.dart';
+import '../widgets/channel_colors.dart';
+import '../widgets/text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
