@@ -46,6 +46,8 @@ class _PollWidgetState extends State<PollWidget> {
 
   @override
   Widget build(BuildContext context) {
+    const verticalPadding = 2.5;
+
     final zulipLocalizations = ZulipLocalizations.of(context);
     final theme = ContentTheme.of(context);
     final store = PerAccountStoreWidget.of(context);
@@ -73,10 +75,10 @@ class _PollWidgetState extends State<PollWidget> {
         textBaseline: localizedTextBaseline(context),
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: 25 + 5, minHeight: 25 + 5),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             child: Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: 5, end: 5),
+              padding: const EdgeInsetsDirectional.only(
+                end: 5, top: verticalPadding, bottom: verticalPadding),
               child: Container(
                 // Inner padding preserves whitespace even when the text's
                 // width approaches the button's min-width (e.g. because
@@ -89,7 +91,7 @@ class _PollWidgetState extends State<PollWidget> {
                 child: Center(
                   child: Text(option.voters.length.toString(),
                     style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 13)))))),
+                      color: theme.colorPollVoteCountText, fontSize: 20)))))),
           Expanded(
             child: Wrap(
               spacing: 5,
@@ -105,10 +107,17 @@ class _PollWidgetState extends State<PollWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: const EdgeInsets.only(bottom: 6), child: question),
+        Padding(
+          // `verticalPadding` out of 6 logical pixels come from the first
+          // option row.
+          padding: const EdgeInsets.only(bottom: 6 - verticalPadding),
+          child: question),
         if (widget.poll.options.isEmpty)
-          Text(zulipLocalizations.pollWidgetOptionsMissing,
-            style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic)),
+          Padding(
+            // This is consistent with the option items' top padding.
+            padding: const EdgeInsets.only(top: verticalPadding),
+            child: Text(zulipLocalizations.pollWidgetOptionsMissing,
+              style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic))),
         for (final option in widget.poll.options)
           buildOptionItem(option),
       ]);
