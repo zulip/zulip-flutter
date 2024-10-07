@@ -46,6 +46,8 @@ class _PollWidgetState extends State<PollWidget> {
 
   @override
   Widget build(BuildContext context) {
+    const verticalPadding = 2.5;
+
     final zulipLocalizations = ZulipLocalizations.of(context);
     final theme = ContentTheme.of(context);
     final store = PerAccountStoreWidget.of(context);
@@ -73,10 +75,10 @@ class _PollWidgetState extends State<PollWidget> {
         textBaseline: localizedTextBaseline(context),
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: 25 + 5, minHeight: 25 + 5),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             child: Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: 5, end: 5),
+              padding: const EdgeInsetsDirectional.only(
+                end: 5, top: verticalPadding, bottom: verticalPadding),
               child: Container(
                 // Inner padding preserves whitespace even when the text's
                 // width approaches the button's min-width (e.g. because
@@ -89,14 +91,14 @@ class _PollWidgetState extends State<PollWidget> {
                 child: Center(
                   child: Text(option.voters.length.toString(),
                     style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 13)))))),
+                      color: theme.colorPollVoteCountText, fontSize: 20)))))),
           Expanded(
             child: Padding(
-              // This and the bottom padding on the vote count box both extend
-              // the row by the same extent. This ensures that there still will
-              // be consistent spacing between rows when the text takes more
+              // This and the padding on the vote count box both extend the row
+              // by the same extent. This ensures that there still will be
+              // consistent spacing between rows when the text takes more
               // vertical space than the vote count box.
-              padding: const EdgeInsets.only(bottom: 5),
+              padding: const EdgeInsets.symmetric(vertical: verticalPadding),
               child: Wrap(
                 spacing: 5,
                 children: [
@@ -111,15 +113,19 @@ class _PollWidgetState extends State<PollWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: const EdgeInsets.only(bottom: 6), child: question),
+        question,
+        // `verticalPadding` out of 6px comes from the first option row.
+        const SizedBox(height: 6 - verticalPadding),
         if (widget.poll.options.isEmpty)
           Padding(
-            // This is consistent with the option rows' bottom padding.
-            padding: const EdgeInsets.only(bottom: 5),
+            // This is consistent with the option rows' padding.
+            padding: const EdgeInsets.symmetric(vertical: verticalPadding),
             child: Text(zulipLocalizations.pollWidgetOptionsMissing,
               style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic))),
         for (final option in widget.poll.options)
           buildOptionItem(option),
+        // `verticalPadding` out of 5px comes from the last option row.
+        const SizedBox(height: 5 - verticalPadding),
       ]);
   }
 }
