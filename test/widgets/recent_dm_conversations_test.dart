@@ -7,7 +7,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/themes/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
 

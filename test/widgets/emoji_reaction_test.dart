@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/emoji_reaction.dart';
+import 'package:zulip/themes/emoji_reaction.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';

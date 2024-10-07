@@ -13,10 +13,11 @@ import '../model/binding.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
+import '../themes/design_variables.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
 import 'store.dart';
-import 'theme.dart';
+import '../themes/theme.dart';
 
 const double _inputVerticalPadding = 8;
 const double _sendButtonSize = 36;

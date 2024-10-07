@@ -19,12 +19,13 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/receive.dart';
+import 'package:zulip/themes/design_variables.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/inbox.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/themes/message_list.dart';
 import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/themes/theme.dart';
 
 import '../fake_async.dart';
 import '../model/binding.dart';

@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
+import '../themes/design_variables.dart';
 import 'app_bar.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import '../themes/message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
-import 'theme.dart';
+import '../themes/theme.dart';
 import 'unread_count_badge.dart';
 
 /// Scrollable listing of subscribed streams.

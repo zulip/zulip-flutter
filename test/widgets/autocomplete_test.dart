@@ -8,7 +8,7 @@ import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/themes/message_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

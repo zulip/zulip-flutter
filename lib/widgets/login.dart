@@ -12,13 +12,14 @@ import '../api/route/users.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/store.dart';
+import '../themes/design_variables.dart';
 import 'app.dart';
 import 'dialog.dart';
 import 'input.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
-import 'theme.dart';
+import '../themes/theme.dart';
 
 class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
   _LoginSequenceRoute({

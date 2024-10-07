@@ -4,13 +4,14 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import '../themes/design_variables.dart';
 import 'app_bar.dart';
 import 'content.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import '../themes/message_list.dart';
 import 'page.dart';
 import 'store.dart';
-import 'theme.dart';
+import '../themes/theme.dart';
 import 'unread_count_badge.dart';
 
 class RecentDmConversationsPage extends StatefulWidget {

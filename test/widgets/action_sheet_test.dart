@@ -17,7 +17,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/themes/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
 import '../api/fake_api.dart';
 

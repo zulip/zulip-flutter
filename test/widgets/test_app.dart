@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/themes/theme.dart';
+
 
 /// A lightweight mock of [ZulipApp], suitable for most widget tests.
 class TestZulipApp extends StatelessWidget {
@@ -32,7 +33,8 @@ class TestZulipApp extends StatelessWidget {
         title: 'Zulip',
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
-        theme: zulipThemeData(context),
+        theme: ZulipTheme.lightTheme(context),
+        darkTheme: ZulipTheme.darkTheme(context),
 
         navigatorObservers: navigatorObservers ?? const [],
 

@@ -4,14 +4,15 @@ import '../api/model/model.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import '../themes/design_variables.dart';
 import 'app_bar.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import '../themes/message_list.dart';
 import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
-import 'theme.dart';
+import '../themes/theme.dart';
 import 'unread_count_badge.dart';
 
 class InboxPage extends StatefulWidget {
