@@ -60,6 +60,7 @@ class _PollWidgetState extends State<PollWidget> {
           style: textStyleBold.copyWith(fontSize: 18, fontStyle: FontStyle.italic));
 
     Widget buildOptionItem(PollOption option) {
+      const verticalPadding = 2.5;
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Zixuan'])
       //   // 'Chris、Greg、Alya、Zixuan'
@@ -73,10 +74,15 @@ class _PollWidgetState extends State<PollWidget> {
         textBaseline: localizedTextBaseline(context),
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 25 + 5).tighten(height: 25 + 5),
+            constraints: const BoxConstraints(
+              minWidth: 39 + 5).tighten(height: 39 + verticalPadding * 2),
             child: Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: 5, end: 5),
+              padding: const EdgeInsetsDirectional.only(
+                end: 5, top: verticalPadding, bottom: verticalPadding),
               child: Container(
+                // Inner padding preserves whitespace even when the text's
+                // width approaches the button's min-width (e.g. because
+                // there are more than three digits).
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: theme.colorPollVoteCountBackground,
@@ -86,7 +92,7 @@ class _PollWidgetState extends State<PollWidget> {
                   child: Text(option.voters.length.toString(),
                     textAlign: TextAlign.center,
                     style: textStyleBold.copyWith(
-                      color: theme.colorPollVoteCountText, fontSize: 13)))))),
+                      color: theme.colorPollVoteCountText, fontSize: 20)))))),
           Expanded(
             child: Wrap(
               spacing: 5,
