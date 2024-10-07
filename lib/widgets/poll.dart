@@ -76,9 +76,8 @@ class _PollWidgetState extends State<PollWidget> {
           textBaseline: localizedTextBaseline(context),
           children: [
             ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 25),
+              constraints: const BoxConstraints(minWidth: 25, minHeight: 25),
               child: Container(
-                height: 25,
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: theme.colorPollVoteCountBackground,
