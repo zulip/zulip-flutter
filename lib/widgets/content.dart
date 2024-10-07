@@ -1195,7 +1195,7 @@ class GlobalTime extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  DialogStatusController showError(BuildContext context, String? message) {
+  DialogStatus showError(BuildContext context, String? message) {
     return showErrorDialog(context: context,
       title: 'Unable to open link',
       message: [
