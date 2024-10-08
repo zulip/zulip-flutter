@@ -165,6 +165,11 @@ abstract class AndroidNotificationHostApi {
   /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getNotificationChannelsCompat()
   List<NotificationChannel> getNotificationChannels();
 
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.deleteNotificationChannel`
+  ///
+  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
+  void deleteNotificationChannel(String channelId);
+
   /// Corresponds to `android.app.NotificationManager.notify`,
   /// combined with `androidx.core.app.NotificationCompat.Builder`.
   ///

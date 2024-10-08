@@ -64,6 +64,10 @@ private class AndroidNotificationHost(val context: Context)
             ) }
     }
 
+    override fun deleteNotificationChannel(channelId: String) {
+        NotificationManagerCompat.from(context).deleteNotificationChannel(channelId)
+    }
+
     @SuppressLint(
         // If permission is missing, `notify` will throw an exception.
         // Which hopefully will propagate to Dart, and then it's up to Dart code to handle it.
