@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../themes/design_variables.dart';
 import 'store.dart';
 
 /// A page route that always builds the same widget.
@@ -159,6 +160,7 @@ class LoadingPlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: AppBar(),
       body: const LoadingPlaceholder(),
     );

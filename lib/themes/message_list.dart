@@ -24,7 +24,6 @@ import '../widgets/profile.dart';
 import '../widgets/sticky_header.dart';
 import '../widgets/store.dart';
 import '../widgets/text.dart';
-import 'theme.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
@@ -261,6 +260,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     }
 
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: ZulipAppBar(
         title: MessageListAppBarTitle(narrow: narrow),
         backgroundColor: appBarBackgroundColor,

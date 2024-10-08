@@ -91,6 +91,7 @@ class _SubscriptionListPageState extends State<SubscriptionListPage> with PerAcc
     _sortSubs(unpinned);
 
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: ZulipAppBar(title: const Text("Channels")),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.

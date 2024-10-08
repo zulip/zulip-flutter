@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../themes/design_variables.dart';
 import 'about_zulip.dart';
 import 'app_bar.dart';
 import 'dialog.dart';
@@ -235,7 +236,12 @@ class ChooseAccountPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
+
+    // DesignVariables designVariablesLight = DesignVariables.light();
+    // DesignVariables designVariablesDark = DesignVariables.dark();
+
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: AppBar(
         title: Text(zulipLocalizations.chooseAccountPageTitle),
         actions: const [ChooseAccountPageOverflowButton()]),

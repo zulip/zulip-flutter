@@ -11,7 +11,6 @@ import 'icons.dart';
 import '../themes/message_list.dart';
 import 'page.dart';
 import 'store.dart';
-import '../themes/theme.dart';
 import 'unread_count_badge.dart';
 
 class RecentDmConversationsPage extends StatefulWidget {

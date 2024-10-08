@@ -14,7 +14,6 @@ import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
 import '../themes/content_theme.dart';
-import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'lightbox.dart';

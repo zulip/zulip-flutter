@@ -12,7 +12,6 @@ import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
-import '../themes/theme.dart';
 import 'unread_count_badge.dart';
 
 class InboxPage extends StatefulWidget {
@@ -162,6 +161,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     }
 
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: ZulipAppBar(title: const Text('Inbox')),
       body: SafeArea(
         // Don't pad the bottom here; we want the list content to do that.
