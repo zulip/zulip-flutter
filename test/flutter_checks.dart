@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+extension PaintChecks on Subject<Paint> {
+  Subject<Shader?> get shader => has((x) => x.shader, 'shader');
+}
+
 extension RectChecks on Subject<Rect> {
   Subject<double> get top => has((d) => d.top, 'top');
   Subject<double> get bottom => has((d) => d.bottom, 'bottom');
