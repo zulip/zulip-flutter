@@ -559,6 +559,11 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _createdChannels.add(channel);
   }
 
+  @override
+  Future<List<NotificationChannel?>> getNotificationChannels() async {
+    return _createdChannels.toList(growable: false);
+  }
+
   /// Consume the log of calls made to [notify].
   ///
   /// This returns a list of the arguments to all calls made

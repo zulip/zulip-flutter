@@ -53,6 +53,17 @@ private class AndroidNotificationHost(val context: Context)
         NotificationManagerCompat.from(context).createNotificationChannel(notificationChannel)
     }
 
+    override fun getNotificationChannels(): List<NotificationChannel> {
+        return NotificationManagerCompat.from(context)
+            .notificationChannelsCompat
+            .map { NotificationChannel(
+                id = it.id,
+                importance =  it.importance.toLong(),
+                name = it.name?.toString(),
+                lightsEnabled = it.shouldShowLights()
+            ) }
+    }
+
     @SuppressLint(
         // If permission is missing, `notify` will throw an exception.
         // Which hopefully will propagate to Dart, and then it's up to Dart code to handle it.

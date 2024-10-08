@@ -409,6 +409,12 @@ interface AndroidNotificationHostApi {
    */
   fun createNotificationChannel(channel: NotificationChannel)
   /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.getNotificationChannelsCompat`.
+   *
+   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getNotificationChannelsCompat()
+   */
+  fun getNotificationChannels(): List<NotificationChannel>
+  /**
    * Corresponds to `android.app.NotificationManager.notify`,
    * combined with `androidx.core.app.NotificationCompat.Builder`.
    *
@@ -478,6 +484,21 @@ interface AndroidNotificationHostApi {
             val wrapped: List<Any?> = try {
               api.createNotificationChannel(channelArg)
               listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getNotificationChannels$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.getNotificationChannels())
             } catch (exception: Throwable) {
               wrapError(exception)
             }
