@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
+import 'package:http/http.dart' as http;
 
 import '../api/notifications.dart';
 import '../host/android_notifications.dart';
@@ -71,16 +70,6 @@ class NotificationChannelManager {
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
   static Future<void> init() async {
-    await ZulipBinding.instance.notifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('zulip_notification'),
-      ),
-      onDidReceiveNotificationResponse: _onNotificationOpened,
-    );
-    final launchDetails = await ZulipBinding.instance.notifications.getNotificationAppLaunchDetails();
-    if (launchDetails?.didNotificationLaunchApp ?? false) {
-      _handleNotificationAppLaunch(launchDetails!.notificationResponse);
-    }
     await NotificationChannelManager._ensureChannel();
   }
 
@@ -144,6 +133,13 @@ class NotificationDisplayManager {
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
+    // TODO use actual Zulip narrow links.
+    final intentUrl = Uri(
+      scheme: 'zulip',
+      host: 'notification',
+      queryParameters: {'payload': jsonEncode(data.toJson())},
+    );
+
     await _androidHost.notify(
       // TODO the notification ID can be constant, instead of matching requestCode
       //   (This is a legacy of `flutter_local_notifications`.)
@@ -163,24 +159,15 @@ class NotificationDisplayManager {
         kExtraLastZulipMessageId: data.zulipMessageId.toString(),
       },
 
-      contentIntent: PendingIntent(
-        // TODO make intent URLs distinct, instead of requestCode
-        //   (This way is a legacy of flutter_local_notifications.)
-        //   The Intent objects we make for different conversations look the same.
-        //   They differ in their extras, but that doesn't count:
-        //     https://developer.android.com/reference/android/app/PendingIntent
-        //
-        //   This leaves only PendingIntent.requestCode to distinguish one
-        //   PendingIntent from another; the plugin sets that to the notification ID.
-        //   We need a distinct PendingIntent for each conversation, so that the
-        //   notifications can lead to the right conversations when opened.
-        //   So, use a hash of the conversation key.
-        requestCode: notificationIdAsHashOf(conversationKey),
+     contentIntent: PendingIntent(
+        requestCode: 0,
+        intent: AndroidIntent(
+          action: IntentAction.view,
+          uri: intentUrl.toString()),
 
         // TODO is setting PendingIntentFlag.updateCurrent OK?
         //   (That's a legacy of `flutter_local_notifications`.)
         flags: PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent,
-        intentPayload: jsonEncode(dataJson),
         // TODO this doesn't set the Intent flags we set in zulip-mobile; is that OK?
         //   (This is a legacy of `flutter_local_notifications`.)
         ),
@@ -317,33 +304,27 @@ class NotificationDisplayManager {
 
   static String _personKey(Uri realmUri, int userId) => "$realmUri|$userId";
 
-  static void _onNotificationOpened(NotificationResponse response) async {
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
-    final data = MessageFcmMessage.fromJson(payload);
-    assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
-    _navigateForNotification(data);
-  }
-
-  static void _handleNotificationAppLaunch(NotificationResponse? response) async {
-    assert(response != null);
-    if (response == null) return; // TODO(log) seems like a bug in flutter_local_notifications if this can happen
-
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
-    final data = MessageFcmMessage.fromJson(payload);
-    assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
-    _navigateForNotification(data);
-  }
-
-  static void _navigateForNotification(MessageFcmMessage data) async {
+  static Future<void> navigateForNotification(Uri url) async {
     NavigatorState navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
+    final result = getRouteForNotification(context, url);
+    if (result == null) return; // TODO(log)
+    await navigator.push(result.$1);
+  }
+
+  static (Route<dynamic>, int)? getRouteForNotification(BuildContext context, Uri url) {
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final payload = jsonDecode(url.queryParameters['payload']!) as Map<String, dynamic>;
+    final data = MessageFcmMessage.fromJson(payload);
+    assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
+
     final globalStore = GlobalStoreWidget.of(context);
     final account = globalStore.accounts.firstWhereOrNull((account) =>
       account.realmUrl == data.realmUri && account.userId == data.userId);
-    if (account == null) return; // TODO(log)
+    if (account == null) return null; // TODO(log)
 
     final narrow = switch (data.recipient) {
       FcmMessageChannelRecipient(:var streamId, :var topic) =>
@@ -354,10 +335,10 @@ class NotificationDisplayManager {
 
     assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
-    navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
+    final route = MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: narrow)));
-    return;
+      page: MessageListPage(initNarrow: narrow));
+    return (route, account.id);
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {
