@@ -131,6 +131,81 @@ void main() {
             NotificationChannelManager.kVibrationPattern)
       ;
     });
+
+    test('channel is not recreated if one with same id already exists', () async {
+      addTearDown(testBinding.reset);
+
+      // Setup initial channel.
+      await testBinding.androidNotificationHost.createNotificationChannel(
+        NotificationChannel(
+          id: NotificationChannelManager.kChannelId,
+          name: 'Messages',
+          importance: NotificationImportance.high,
+          lightsEnabled: true,
+          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+      // Clear the log.
+      check(testBinding.androidNotificationHost.takeCreatedChannels())
+        .length.equals(1);
+
+      // Ensure that no calls were made to the deleteChannel or createChannel
+      // functions.
+      await NotificationChannelManager.ensureChannel();
+      check(testBinding.androidNotificationHost.takeDeletedChannels())
+        .isEmpty();
+      check(testBinding.androidNotificationHost.takeCreatedChannels())
+        .isEmpty();
+      check(testBinding.androidNotificationHost.activeChannels).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('obsolete channels are removed', () async {
+      addTearDown(testBinding.reset);
+
+      // Setup initial channels.
+      await testBinding.androidNotificationHost.createNotificationChannel(
+        NotificationChannel(
+          id: 'obsolete-1',
+          name: 'Obsolete 1',
+          importance: NotificationImportance.high,
+          lightsEnabled: true,
+          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+      await testBinding.androidNotificationHost.createNotificationChannel(
+        NotificationChannel(
+          id: 'obsolete-2',
+          name: 'Obsolete 2',
+          importance: NotificationImportance.high,
+          lightsEnabled: true,
+          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+      // Clear the log.
+      check(testBinding.androidNotificationHost.takeCreatedChannels())
+        .length.equals(2);
+
+      // Ensure that any channel whose channel-id differs from the desired
+      // channel-id (NotificationChannelManager.kChannelId) is deleted, and a
+      // new one with the desired channel-id is created.
+      await NotificationChannelManager.ensureChannel();
+      check(testBinding.androidNotificationHost.takeDeletedChannels())
+        .deepEquals(['obsolete-1', 'obsolete-2']);
+      check(testBinding.androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+      check(testBinding.androidNotificationHost.activeChannels).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
   });
 
   group('NotificationDisplayManager show', () {
