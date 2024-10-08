@@ -16,6 +16,7 @@ import '../model/store.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -308,25 +309,29 @@ class _ContentInput extends StatelessWidget {
             narrow: narrow,
             controller: controller,
             focusNode: focusNode,
-            fieldViewBuilder: (context) => TextField(
-              controller: controller,
-              focusNode: focusNode,
-              // Not clipping content input with [TextField] gives us fine
-              // control over the clipping behavior.  Otherwise, the non-zero
-              // vertical `contentPadding` would cause the text to be clipped
-              // by a rectangle shorter than the compose box.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: 17,
-                height: (contentLineHeight / 17),
-                color: designVariables.textInput),
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(vertical: verticalPadding),
-                hintText: hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withValues(alpha: 0.5)))))));
+            fieldViewBuilder: (context) => InsetShadowBox(
+              top: 8,
+              bottom: 8,
+              color: designVariables.composeBoxBg,
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                // Not clipping content input with [TextField] gives us fine
+                // control over the clipping behavior.  Otherwise, the non-zero
+                // vertical `contentPadding` would cause the text to be clipped
+                // by a rectangle shorter than the compose box.
+                clipBehavior: Clip.none,
+                style: TextStyle(
+                  fontSize: 17,
+                  height: (contentLineHeight / 17),
+                  color: designVariables.textInput),
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(vertical: verticalPadding),
+                  hintText: hintText,
+                  hintStyle: TextStyle(
+                    color: designVariables.textInput.withValues(alpha: 0.5))))))));
   }
 }
 
