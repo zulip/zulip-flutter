@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../model/binding.dart';
+import '../themes/design_variables.dart';
 import 'page.dart';
 
 class AboutZulipPage extends StatefulWidget {
@@ -33,6 +34,7 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: AppBar(title: Text(zulipLocalizations.aboutPageTitle)),
       body: SingleChildScrollView(
         child: SafeArea(

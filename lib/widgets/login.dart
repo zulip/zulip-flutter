@@ -12,13 +12,13 @@ import '../api/route/users.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/store.dart';
+import '../themes/design_variables.dart';
 import 'app.dart';
 import 'dialog.dart';
 import 'input.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
-import 'theme.dart';
 
 class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
   _LoginSequenceRoute({
@@ -203,6 +203,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       : error.message(zulipLocalizations);
 
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: AppBar(title: Text(zulipLocalizations.loginAddAnAccountPageTitle),
         bottom: _inProgress
           ? const PreferredSize(preferredSize: Size.fromHeight(4),
@@ -443,6 +444,7 @@ class _LoginPageState extends State<LoginPage> {
     ]);
 
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
         bottom: _inProgress
           ? const PreferredSize(preferredSize: Size.fromHeight(4),

@@ -8,18 +8,19 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../themes/design_variables.dart';
 import 'about_zulip.dart';
 import 'app_bar.dart';
 import 'dialog.dart';
 import 'inbox.dart';
 import 'login.dart';
-import 'message_list.dart';
+import '../themes/message_list.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
-import 'theme.dart';
+import '../themes/theme.dart';
 
 class ZulipApp extends StatefulWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -167,7 +168,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
       child: Builder(builder: (context) {
         final globalStore = GlobalStoreWidget.of(context);
@@ -177,7 +177,8 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           title: 'Zulip',
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
-          theme: themeData,
+          theme: ZulipTheme.lightTheme(context),
+          darkTheme: ZulipTheme.darkTheme(context),
 
           navigatorKey: ZulipApp.navigatorKey,
           navigatorObservers: widget.navigatorObservers ?? const [],
@@ -235,7 +236,12 @@ class ChooseAccountPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
+
+    // DesignVariables designVariablesLight = DesignVariables.light();
+    // DesignVariables designVariablesDark = DesignVariables.dark();
+
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: AppBar(
         title: Text(zulipLocalizations.chooseAccountPageTitle),
         actions: const [ChooseAccountPageOverflowButton()]),

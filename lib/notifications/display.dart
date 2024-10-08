@@ -14,12 +14,13 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../themes/design_variables.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
-import '../widgets/message_list.dart';
+import '../themes/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
-import '../widgets/theme.dart';
+import '../themes/theme.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 

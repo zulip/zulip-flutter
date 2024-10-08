@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/emoji.dart';
-import 'content.dart';
-import 'store.dart';
-import 'text.dart';
+import '../widgets/content.dart';
+import '../widgets/store.dart';
+import '../widgets/text.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {

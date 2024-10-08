@@ -11,19 +11,19 @@ import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import '../model/typing_status.dart';
-import 'action_sheet.dart';
-import 'actions.dart';
-import 'app_bar.dart';
-import 'compose_box.dart';
-import 'content.dart';
+import 'design_variables.dart';
+import '../widgets/action_sheet.dart';
+import '../widgets/actions.dart';
+import '../widgets/app_bar.dart';
+import '../widgets/compose_box.dart';
+import '../widgets/content.dart';
 import 'emoji_reaction.dart';
-import 'icons.dart';
-import 'page.dart';
-import 'profile.dart';
-import 'sticky_header.dart';
-import 'store.dart';
-import 'text.dart';
-import 'theme.dart';
+import '../widgets/icons.dart';
+import '../widgets/page.dart';
+import '../widgets/profile.dart';
+import '../widgets/sticky_header.dart';
+import '../widgets/store.dart';
+import '../widgets/text.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
@@ -260,6 +260,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     }
 
     return Scaffold(
+      backgroundColor: DesignVariables.of(context).background,
       appBar: ZulipAppBar(
         title: MessageListAppBarTitle(narrow: narrow),
         backgroundColor: appBarBackgroundColor,

@@ -14,7 +14,7 @@ import 'compose_box.dart';
 import 'dialog.dart';
 import 'draggable_scrollable_modal_bottom_sheet.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import '../themes/message_list.dart';
 import 'store.dart';
 
 /// Show a sheet of actions you can take on a message in the message list.

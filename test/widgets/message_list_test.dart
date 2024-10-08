@@ -19,7 +19,7 @@ import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/themes/message_list.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 
