@@ -11,6 +11,7 @@ import 'package:zulip/model/localizations.dart';
 
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
+import '../test_async.dart';
 import 'exception_checks.dart';
 import 'fake_api.dart';
 import '../example_data.dart' as eg;
@@ -19,8 +20,8 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   test('ApiConnection.get', () async {
-    Future<void> checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+    void checkRequest(Map<String, dynamic>? params, String expectedRelativeUrl) {
+      finish(FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(json: {});
         await connection.get(kExampleRouteName, (json) => json, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
@@ -31,7 +32,7 @@ void main() {
             ...kFallbackUserAgentHeader,
           })
           ..body.equals('');
-      });
+      }));
     }
 
     checkRequest(null,             '/api/v1/example/route');
@@ -50,8 +51,8 @@ void main() {
   });
 
   test('ApiConnection.post', () async {
-    Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+    void checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
+      finish(FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(json: {});
         await connection.post(kExampleRouteName, (json) => json, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
@@ -64,7 +65,7 @@ void main() {
               'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
           })
           ..body.equals(expectedBody);
-      });
+      }));
     }
 
     checkRequest(null,                                   '', expectContentType: false);
@@ -81,9 +82,9 @@ void main() {
   });
 
   test('ApiConnection.postFileFromStream', () async {
-    Future<void> checkRequest(List<List<int>> content, int length,
+    void checkRequest(List<List<int>> content, int length,
         {String? filename, String? contentType, bool isContentTypeInvalid = false}) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+      finish(FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(json: {});
         await connection.postFileFromStream(
           kExampleRouteName, (json) => json, 'example/route',
@@ -108,7 +109,7 @@ void main() {
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
               .completes((it) => it.deepEquals(content.expand((l) => l)))
           );
-      });
+      }));
     }
 
     checkRequest([], 0, filename: null);
@@ -126,8 +127,8 @@ void main() {
   });
 
   test('ApiConnection.delete', () async {
-    Future<void> checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
-      return FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
+    void checkRequest(Map<String, dynamic>? params, String expectedBody, {bool expectContentType = true}) {
+      finish(FakeApiConnection.with_(account: eg.selfAccount, (connection) async {
         connection.prepare(json: {});
         await connection.delete(kExampleRouteName, (json) => json, 'example/route', params);
         check(connection.lastRequest!).isA<http.Request>()
@@ -140,7 +141,7 @@ void main() {
               'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
           })
           ..body.equals(expectedBody);
-      });
+      }));
     }
 
     checkRequest(null,                                   '', expectContentType: false);
@@ -166,13 +167,13 @@ void main() {
   });
 
   test('API network errors', () async {
-    Future<void> checkRequest<T extends Object>(
+    void checkRequest<T extends Object>(
         T exception, Condition<NetworkException> condition) {
-      return check(tryRequest(exception: exception))
+      finish(check(tryRequest(exception: exception))
         .throws<NetworkException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..cause.equals(exception)
-          ..which(condition));
+          ..which(condition)));
     }
 
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
@@ -219,14 +220,14 @@ void main() {
   });
 
   test('API 4xx errors, malformed', () async {
-    Future<void> checkMalformed({
-        int httpStatus = 400, Map<String, dynamic>? json, String? body}) async {
+    void checkMalformed({
+        int httpStatus = 400, Map<String, dynamic>? json, String? body}) {
       assert((json == null) != (body == null));
-      await check(tryRequest(httpStatus: httpStatus, json: json, body: body))
+      finish(check(tryRequest(httpStatus: httpStatus, json: json, body: body))
         .throws<MalformedServerResponseException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(httpStatus)
-          ..data.deepEquals(json));
+          ..data.deepEquals(json)));
     }
 
     await check(

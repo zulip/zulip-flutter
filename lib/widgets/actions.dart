@@ -27,7 +27,7 @@ Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
       return;
     } catch (e) {
       if (!context.mounted) return;
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorMarkAsReadFailedTitle,
         message: e.toString()); // TODO(#741): extract user-facing message better
       return;

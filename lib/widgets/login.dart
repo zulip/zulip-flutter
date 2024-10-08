@@ -307,7 +307,7 @@ class _LoginPageState extends State<LoginPage> {
       if (e is PlatformException && e.message != null) {
         message = e.message!;
       }
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     } finally {
@@ -351,7 +351,7 @@ class _LoginPageState extends State<LoginPage> {
       if (e is PlatformException && e.message != null) {
         message = e.message!;
       }
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     }
