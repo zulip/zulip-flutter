@@ -58,6 +58,8 @@ class _PollWidgetState extends State<PollWidget> {
       : PollVoteOp.add;
     unawaited(sendSubmessage(store.connection, messageId: widget.messageId,
       content: PollVoteEventSubmessage(key: option.key, op: op)));
+    // TODO: Implement a visual indicator while waiting for the corresponding
+    //   event that updates the poll.
   }
 
   @override
