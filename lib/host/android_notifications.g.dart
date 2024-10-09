@@ -24,6 +24,7 @@ class NotificationChannel {
     required this.importance,
     this.name,
     this.lightsEnabled,
+    this.soundUri,
     this.vibrationPattern,
   });
 
@@ -39,6 +40,8 @@ class NotificationChannel {
 
   bool? lightsEnabled;
 
+  String? soundUri;
+
   Int64List? vibrationPattern;
 
   Object encode() {
@@ -47,6 +50,7 @@ class NotificationChannel {
       importance,
       name,
       lightsEnabled,
+      soundUri,
       vibrationPattern,
     ];
   }
@@ -58,7 +62,8 @@ class NotificationChannel {
       importance: result[1]! as int,
       name: result[2] as String?,
       lightsEnabled: result[3] as bool?,
-      vibrationPattern: result[4] as Int64List?,
+      soundUri: result[4] as String?,
+      vibrationPattern: result[5] as Int64List?,
     );
   }
 }

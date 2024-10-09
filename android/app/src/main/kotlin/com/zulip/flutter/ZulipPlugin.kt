@@ -5,6 +5,8 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -59,6 +61,10 @@ private class AndroidNotificationHost(val context: Context)
             .Builder(channel.id, channel.importance.toInt()).apply {
                 channel.name?.let { setName(it) }
                 channel.lightsEnabled?.let { setLightsEnabled(it) }
+                channel.soundUri?.let {
+                    setSound(Uri.parse(it),
+                        AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build())
+                }
                 channel.vibrationPattern?.let { setVibrationPattern(it) }
             }.build()
         NotificationManagerCompat.from(context).createNotificationChannel(notificationChannel)

@@ -20,6 +20,7 @@ class NotificationChannel {
     required this.importance,
     this.name,
     this.lightsEnabled,
+    this.soundUri,
     this.vibrationPattern,
   });
 
@@ -33,6 +34,7 @@ class NotificationChannel {
 
   final String? name;
   final bool? lightsEnabled;
+  final String? soundUri;
   final Int64List? vibrationPattern;
 }
 
