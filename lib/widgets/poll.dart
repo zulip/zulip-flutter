@@ -91,6 +91,7 @@ class _PollWidgetState extends State<PollWidget> {
         textBaseline: localizedTextBaseline(context),
         children: [
           GestureDetector(
+            // TODO: Implement feedback when the user taps the button
             onTap: () => _toggleVote(option),
             behavior: HitTestBehavior.translucent,
             child: ConstrainedBox(
