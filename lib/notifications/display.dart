@@ -20,7 +20,7 @@ import '../widgets/color.dart';
 import '../themes/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
-import '../themes/theme.dart';
+
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 

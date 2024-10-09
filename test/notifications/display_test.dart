@@ -25,7 +25,6 @@ import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/themes/message_list.dart';
 import 'package:zulip/widgets/page.dart';
-import 'package:zulip/themes/theme.dart';
 
 import '../fake_async.dart';
 import '../model/binding.dart';

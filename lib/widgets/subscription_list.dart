@@ -10,7 +10,6 @@ import '../themes/message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
-import '../themes/theme.dart';
 import 'unread_count_badge.dart';
 
 /// Scrollable listing of subscribed streams.

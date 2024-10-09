@@ -2,13 +2,9 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart';
 import 'package:zulip/themes/custom_themes/appbar_theme.dart';
 import 'package:zulip/themes/custom_themes/elevated_button_theme.dart';
 import 'package:zulip/themes/design_variables.dart';
-import 'package:zulip/themes/emoji_reaction.dart';
-import 'package:zulip/themes/message_list.dart';
-import 'package:zulip/themes/theme.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/text.dart';
 
