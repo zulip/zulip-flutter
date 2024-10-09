@@ -1,9 +1,14 @@
 package com.zulip.flutter
 
 import android.annotation.SuppressLint
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.MediaStore.Audio.Media as AudioStore
 import android.util.Log
 import androidx.annotation.Keep
 import androidx.core.app.NotificationChannelCompat
@@ -66,6 +71,52 @@ private class AndroidNotificationHost(val context: Context)
 
     override fun deleteNotificationChannel(channelId: String) {
         NotificationManagerCompat.from(context).deleteNotificationChannel(channelId)
+    }
+
+    override fun listStoredSoundsInNotificationsDirectory(): List<StoredNotificationsSound> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            throw UnsupportedOperationException()
+        }
+
+        // The directory we store our notification sounds into,
+        // expressed as a relative path suitable for:
+        //   https://developer.android.com/reference/kotlin/android/provider/MediaStore.MediaColumns#RELATIVE_PATH:kotlin.String
+        val notificationSoundsDirectoryPath = "${Environment.DIRECTORY_NOTIFICATIONS}/Zulip/"
+
+        // Query and cursor-loop based on:
+        //   https://developer.android.com/training/data-storage/shared/media#query-collection
+        val collection = AudioStore.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val projection = arrayOf(AudioStore._ID, AudioStore.DISPLAY_NAME, AudioStore.OWNER_PACKAGE_NAME)
+        val selection = "${AudioStore.RELATIVE_PATH}=?"
+        val selectionArgs = arrayOf(notificationSoundsDirectoryPath)
+        val sortOrder = "${AudioStore._ID} ASC"
+
+        val sounds = mutableListOf<StoredNotificationsSound>()
+        val query = context.contentResolver.query(
+            collection,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder,
+        )
+        query?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(AudioStore._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(AudioStore.DISPLAY_NAME)
+            val ownerColumn = cursor.getColumnIndexOrThrow(AudioStore.OWNER_PACKAGE_NAME)
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val fileName = cursor.getString(nameColumn)
+                val ownerPackageName = cursor.getString(ownerColumn)
+
+                val uri = ContentUris.withAppendedId(collection, id).toString()
+                sounds.add(StoredNotificationsSound(
+                    fileName =  fileName,
+                    isOwner = context.packageName == ownerPackageName,
+                    uri = uri
+                ))
+            }
+        }
+        return sounds
     }
 
     @SuppressLint(

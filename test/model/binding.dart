@@ -588,6 +588,17 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeChannels.remove(channelId);
   }
 
+  final _storedNotificationSounds = <StoredNotificationsSound>[];
+
+  void setupStoredNotificationSounds(List<StoredNotificationsSound> sounds) {
+    _storedNotificationSounds.addAll(sounds);
+  }
+
+  @override
+  Future<List<StoredNotificationsSound?>> listStoredSoundsInNotificationsDirectory() async {
+    return _storedNotificationSounds.toList(growable: false);
+  }
+
   /// Consume the log of calls made to [notify].
   ///
   /// This returns a list of the arguments to all calls made
