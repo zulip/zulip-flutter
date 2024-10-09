@@ -164,6 +164,31 @@ class StatusBarNotification {
   // Various other properties too; add them if needed.
 }
 
+/// Represents details about a notification sound stored in the
+/// shared media store.
+///
+/// Returned as a list entry by
+/// [AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory].
+class StoredNotificationSound {
+  StoredNotificationSound({
+    required this.fileName,
+    required this.isOwned,
+    required this.contentUrl,
+  });
+
+  /// The display name of the sound file.
+  final String fileName;
+
+  /// Specifies whether this file was created by the app.
+  ///
+  /// It is true if the `MediaStore.Audio.Media.OWNER_PACKAGE_NAME` key in the
+  /// metadata matches the app's package name.
+  final bool isOwned;
+
+  /// A `content://…` URL pointing to the sound file.
+  final String contentUrl;
+}
+
 @HostApi()
 abstract class AndroidNotificationHostApi {
   /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannel`.
@@ -180,6 +205,18 @@ abstract class AndroidNotificationHostApi {
   ///
   /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
   void deleteNotificationChannel(String channelId);
+
+  /// The list of notification sound files present under `Notifications/Zulip/`
+  /// in the device's shared media storage,
+  /// found with `android.content.ContentResolver.query`.
+  ///
+  /// This is a complex ad-hoc method.
+  /// For detailed behavior, see its implementation.
+  ///
+  /// Requires minimum of Android 10 (API 29) or higher.
+  ///
+  /// See: https://developer.android.com/reference/android/content/ContentResolver#query(android.net.Uri,%20java.lang.String[],%20java.lang.String,%20java.lang.String[],%20java.lang.String)
+  List<StoredNotificationSound> listStoredSoundsInNotificationsDirectory();
 
   /// Corresponds to `android.app.NotificationManager.notify`,
   /// combined with `androidx.core.app.NotificationCompat.Builder`.

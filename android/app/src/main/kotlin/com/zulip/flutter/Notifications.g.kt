@@ -345,6 +345,47 @@ data class StatusBarNotification (
     )
   }
 }
+
+/**
+ * Represents details about a notification sound stored in the
+ * shared media store.
+ *
+ * Returned as a list entry by
+ * [AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory].
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class StoredNotificationSound (
+  /** The display name of the sound file. */
+  val fileName: String,
+  /**
+   * Specifies whether this file was created by the app.
+   *
+   * It is true if the `MediaStore.Audio.Media.OWNER_PACKAGE_NAME` key in the
+   * metadata matches the app's package name.
+   */
+  val isOwned: Boolean,
+  /** A `content://…` URL pointing to the sound file. */
+  val contentUrl: String
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): StoredNotificationSound {
+      val fileName = __pigeon_list[0] as String
+      val isOwned = __pigeon_list[1] as Boolean
+      val contentUrl = __pigeon_list[2] as String
+      return StoredNotificationSound(fileName, isOwned, contentUrl)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      fileName,
+      isOwned,
+      contentUrl,
+    )
+  }
+}
 private object NotificationsPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -393,6 +434,11 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
           StatusBarNotification.fromList(it)
         }
       }
+      138.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          StoredNotificationSound.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -434,6 +480,10 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
         stream.write(137)
         writeValue(stream, value.toList())
       }
+      is StoredNotificationSound -> {
+        stream.write(138)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
@@ -459,6 +509,19 @@ interface AndroidNotificationHostApi {
    * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
    */
   fun deleteNotificationChannel(channelId: String)
+  /**
+   * The list of notification sound files present under `Notifications/Zulip/`
+   * in the device's shared media storage,
+   * found with `android.content.ContentResolver.query`.
+   *
+   * This is a complex ad-hoc method.
+   * For detailed behavior, see its implementation.
+   *
+   * Requires minimum of Android 10 (API 29) or higher.
+   *
+   * See: https://developer.android.com/reference/android/content/ContentResolver#query(android.net.Uri,%20java.lang.String[],%20java.lang.String,%20java.lang.String[],%20java.lang.String)
+   */
+  fun listStoredSoundsInNotificationsDirectory(): List<StoredNotificationSound>
   /**
    * Corresponds to `android.app.NotificationManager.notify`,
    * combined with `androidx.core.app.NotificationCompat.Builder`.
@@ -562,6 +625,21 @@ interface AndroidNotificationHostApi {
             val wrapped: List<Any?> = try {
               api.deleteNotificationChannel(channelIdArg)
               listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.listStoredSoundsInNotificationsDirectory())
             } catch (exception: Throwable) {
               wrapError(exception)
             }

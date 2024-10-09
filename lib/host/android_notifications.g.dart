@@ -338,6 +338,48 @@ class StatusBarNotification {
   }
 }
 
+/// Represents details about a notification sound stored in the
+/// shared media store.
+///
+/// Returned as a list entry by
+/// [AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory].
+class StoredNotificationSound {
+  StoredNotificationSound({
+    required this.fileName,
+    required this.isOwned,
+    required this.contentUrl,
+  });
+
+  /// The display name of the sound file.
+  String fileName;
+
+  /// Specifies whether this file was created by the app.
+  ///
+  /// It is true if the `MediaStore.Audio.Media.OWNER_PACKAGE_NAME` key in the
+  /// metadata matches the app's package name.
+  bool isOwned;
+
+  /// A `content://…` URL pointing to the sound file.
+  String contentUrl;
+
+  Object encode() {
+    return <Object?>[
+      fileName,
+      isOwned,
+      contentUrl,
+    ];
+  }
+
+  static StoredNotificationSound decode(Object result) {
+    result as List<Object?>;
+    return StoredNotificationSound(
+      fileName: result[0]! as String,
+      isOwned: result[1]! as bool,
+      contentUrl: result[2]! as String,
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -370,6 +412,9 @@ class _PigeonCodec extends StandardMessageCodec {
     } else     if (value is StatusBarNotification) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
+    } else     if (value is StoredNotificationSound) {
+      buffer.putUint8(138);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -396,6 +441,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return Notification.decode(readValue(buffer)!);
       case 137: 
         return StatusBarNotification.decode(readValue(buffer)!);
+      case 138: 
+        return StoredNotificationSound.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -492,6 +539,43 @@ class AndroidNotificationHostApi {
       );
     } else {
       return;
+    }
+  }
+
+  /// The list of notification sound files present under `Notifications/Zulip/`
+  /// in the device's shared media storage,
+  /// found with `android.content.ContentResolver.query`.
+  ///
+  /// This is a complex ad-hoc method.
+  /// For detailed behavior, see its implementation.
+  ///
+  /// Requires minimum of Android 10 (API 29) or higher.
+  ///
+  /// See: https://developer.android.com/reference/android/content/ContentResolver#query(android.net.Uri,%20java.lang.String[],%20java.lang.String,%20java.lang.String[],%20java.lang.String)
+  Future<List<StoredNotificationSound?>> listStoredSoundsInNotificationsDirectory() async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(null) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else if (__pigeon_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (__pigeon_replyList[0] as List<Object?>?)!.cast<StoredNotificationSound?>();
     }
   }
 

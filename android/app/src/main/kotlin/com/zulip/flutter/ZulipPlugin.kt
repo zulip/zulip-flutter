@@ -1,10 +1,15 @@
 package com.zulip.flutter
 
 import android.annotation.SuppressLint
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.MediaStore.Audio.Media as AudioStore
 import android.util.Log
 import androidx.annotation.Keep
 import androidx.core.app.NotificationChannelCompat
@@ -67,6 +72,54 @@ private class AndroidNotificationHost(val context: Context)
 
     override fun deleteNotificationChannel(channelId: String) {
         NotificationManagerCompat.from(context).deleteNotificationChannel(channelId)
+    }
+
+    override fun listStoredSoundsInNotificationsDirectory(): List<StoredNotificationSound> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            throw UnsupportedOperationException()
+        }
+
+        // The directory we store our notification sounds into,
+        // expressed as a relative path suitable for:
+        //   https://developer.android.com/reference/kotlin/android/provider/MediaStore.MediaColumns#RELATIVE_PATH:kotlin.String
+        val notificationSoundsDirectoryPath = "${Environment.DIRECTORY_NOTIFICATIONS}/Zulip/"
+
+        class ResolverFailedException(msg: String) : RuntimeException(msg)
+
+        // Query and cursor-loop based on:
+        //   https://developer.android.com/training/data-storage/shared/media#query-collection
+        val collection = AudioStore.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val projection = arrayOf(AudioStore._ID, AudioStore.DISPLAY_NAME, AudioStore.OWNER_PACKAGE_NAME)
+        val selection = "${AudioStore.RELATIVE_PATH}=?"
+        val selectionArgs = arrayOf(notificationSoundsDirectoryPath)
+        val sortOrder = "${AudioStore._ID} ASC"
+
+        val sounds = mutableListOf<StoredNotificationSound>()
+        val cursor = context.contentResolver.query(
+            collection,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder,
+        ) ?: throw ResolverFailedException("resolver.query failed")
+        cursor.use {
+            val idColumn = cursor.getColumnIndexOrThrow(AudioStore._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(AudioStore.DISPLAY_NAME)
+            val ownerColumn = cursor.getColumnIndexOrThrow(AudioStore.OWNER_PACKAGE_NAME)
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val fileName = cursor.getString(nameColumn)
+                val ownerPackageName = cursor.getString(ownerColumn)
+
+                val contentUrl = ContentUris.withAppendedId(collection, id)
+                sounds.add(StoredNotificationSound(
+                    fileName = fileName,
+                    isOwned = context.packageName == ownerPackageName,
+                    contentUrl = contentUrl.toString()
+                ))
+            }
+        }
+        return sounds
     }
 
     @SuppressLint(
