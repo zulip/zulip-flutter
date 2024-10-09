@@ -117,15 +117,16 @@ void main() {
 
     void checkUserShown(User user, PerAccountStore store, {required bool expected}) {
       check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
+      check(find.text(user.deliveryEmail!).evaluate().length).equals(expected ? 1 : 0);
       final avatarFinder =
         findNetworkImage(store.tryResolveUrl(user.avatarUrl!).toString());
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
 
     testWidgets('options appear, disappear, and change correctly', (tester) async {
-      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
-      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
-      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png');
+      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png', deliveryEmail: 'email1@email.com');
+      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png', deliveryEmail: 'email2@email.com');
+      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png', deliveryEmail: 'email3@email.com');
       final composeInputFinder = await setupToComposeInput(tester, users: [user1, user2, user3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
