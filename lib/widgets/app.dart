@@ -368,7 +368,6 @@ class HomePage extends StatelessWidget {
                     narrow: ChannelNarrow(testStreamId!))),
                 child: const Text("#test here")), // scaffolding hack, see above
             ],
-          ]),
-        )));
+          ]))));
   }
 }
