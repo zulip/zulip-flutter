@@ -12,5 +12,5 @@
        https://github.com/zulip/zulip-flutter/issues/528
      -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/zulip_notification"
+    tools:keep="@drawable/zulip_notification,@raw/chime2,@raw/chime3,@raw/chime4"
     />

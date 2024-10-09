@@ -23,14 +23,32 @@ import '../widgets/theme.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
+enum NotificationSound {
+  // Any new entry here must appear in `keep.xml` too, see #528.
+  chime2(resourceName: 'chime2', fileDisplayName: 'Zulip - Low Chime.m4a'),
+  chime3(resourceName: 'chime3', fileDisplayName: 'Zulip - Chime.m4a'),
+  chime4(resourceName: 'chime4', fileDisplayName: 'Zulip - High Chime.m4a');
+
+  const NotificationSound({
+    required this.resourceName,
+    required this.fileDisplayName,
+  });
+  final String resourceName;
+  final String fileDisplayName;
+}
+
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
   /// The channel ID we use for our one notification channel, which we use for
   /// all notifications.
   // TODO(launch) check this doesn't match zulip-mobile's current or previous
   //   channel IDs
+  // Previous values: 'messages-1'
   @visibleForTesting
-  static const kChannelId = 'messages-1';
+  static const kChannelId = 'messages-2';
+
+  @visibleForTesting
+  static const kDefaultNotificationSound = NotificationSound.chime3;
 
   /// The vibration pattern we set for notifications.
   // We try to set a vibration pattern that, with the phone in one's pocket,
@@ -38,6 +56,110 @@ class NotificationChannelManager {
   // Discussion: https://chat.zulip.org/#narrow/stream/48-mobile/topic/notification.20vibration.20pattern/near/1284530
   @visibleForTesting
   static final kVibrationPattern = Int64List.fromList([0, 125, 100, 450]);
+
+  /// Generates an Android resource URL for the given resource name and type.
+  ///
+  /// For example, for a resource `@raw/chime3`, where `raw` would be the
+  /// resource type and `chime3` would be the resource name it generates the
+  /// following URL:
+  ///   `android.resource://com.zulip.flutter/raw/chime3`
+  ///
+  /// Based on: https://stackoverflow.com/a/38340580
+  static Uri _resourceUrlFromName({
+    required String resourceTypeName,
+    required String resourceEntryName,
+  }) {
+    const packageName = 'com.zulip.flutter'; // TODO(#407)
+
+    // URL scheme for Android resource url.
+    // See: https://developer.android.com/reference/android/content/ContentResolver#SCHEME_ANDROID_RESOURCE
+    const schemeAndroidResource = 'android.resource';
+
+    return Uri(
+      scheme: schemeAndroidResource,
+      host: packageName,
+      pathSegments: <String>[resourceTypeName, resourceEntryName],
+    );
+  }
+
+  /// Prepare our notification sounds; return a URL for our default sound.
+  ///
+  /// Where possible, this copies each of our notification sounds into shared storage
+  /// so that the user can choose between them in the system notification settings.
+  ///
+  /// Returns a URL for our default notification sound: either in shared storage
+  /// if we successfully copied it there, or else as our internal resource file.
+  static Future<String> _ensureInitNotificationSounds() async {
+    String defaultSoundUrl = _resourceUrlFromName(
+      resourceTypeName: 'raw',
+      resourceEntryName: kDefaultNotificationSound.resourceName).toString();
+
+    final shouldUseResourceFile = switch (await ZulipBinding.instance.deviceInfo) {
+      // Before Android 10 Q, we don't attempt to put the sounds in shared media storage.
+      // Just use the resource file directly.
+      // TODO(android-sdk-29): Simplify this away.
+      AndroidDeviceInfo(:var sdkInt) => sdkInt < 29,
+      _                              => true,
+    };
+    if (shouldUseResourceFile) return defaultSoundUrl;
+
+    // First, look to see what notification sounds we've already stored,
+    // and check against our list of sounds we have.
+    final soundsToAdd = NotificationSound.values.toList();
+
+    final List<StoredNotificationSound?> storedSounds;
+    try {
+      storedSounds = await _androidHost.listStoredSoundsInNotificationsDirectory();
+    } catch (e, st) {
+      assert(debugLog('$e\n$st')); // TODO(log)
+      return defaultSoundUrl;
+    }
+    for (final storedSound in storedSounds) {
+      assert(storedSound != null); // TODO(#942)
+
+      // If the file is one we put there, and has the name we give to our
+      // default sound, then use it as the default sound.
+      if (storedSound!.fileName == kDefaultNotificationSound.fileDisplayName
+          && storedSound.isOwned) {
+        defaultSoundUrl = storedSound.contentUrl;
+      }
+
+      // If it has the name of any of our sounds, then don't try to add
+      // that sound.  This applies even if we didn't put it there: the
+      // name is taken, so if we tried adding it anyway it'd get some
+      // other name (like "Zulip - Chime (1).m4a", with " (1)" added).
+      // Which means the *next* launch would try to add it again ad infinitum.
+      // We could avoid this given some other way to uniquely identify the
+      // file, but haven't found an obvious one.
+      //
+      // This does mean it's possible the file isn't the one we would have
+      // put there... but it probably is, just from a debug vs. release build
+      // of the app (because those may have different package names).  And anyway,
+      // this is a file we're supplying for the user in case they want it, not
+      // something where the app depends on it having specific content.
+      soundsToAdd.removeWhere((v) => v.fileDisplayName == storedSound.fileName);
+    }
+
+    // If that leaves any sounds we haven't yet put into shared storage
+    // (e.g., because this is the first run after install, or after an
+    // upgrade that added a sound), then store those.
+
+    for (final sound in soundsToAdd) {
+      try {
+        final url = await _androidHost.copySoundResourceToMediaStore(
+          targetFileDisplayName: sound.fileDisplayName,
+          sourceResourceName: sound.resourceName);
+
+        if (sound == kDefaultNotificationSound) {
+          defaultSoundUrl = url;
+        }
+      } catch (e, st) {
+        assert(debugLog("$e\n$st")); // TODO(log)
+      }
+    }
+
+    return defaultSoundUrl;
+  }
 
   /// Create our notification channel, if it doesn't already exist.
   ///
@@ -80,13 +202,15 @@ class NotificationChannelManager {
 
     // The channel doesn't exist. Create it.
 
+    final defaultSoundUrl = await _ensureInitNotificationSounds();
+
     await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
       name: 'Messages', // TODO(i18n)
       importance: NotificationImportance.high,
       lightsEnabled: true,
+      soundUrl: defaultSoundUrl,
       vibrationPattern: kVibrationPattern,
-      // TODO(#340) sound
     ));
   }
 }
