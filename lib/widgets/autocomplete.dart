@@ -11,6 +11,8 @@ import '../model/autocomplete.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'compose_box.dart';
+import 'text.dart';
+import 'theme.dart';
 
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
@@ -218,6 +220,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
 
   @override
   Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
+    final designVariables = DesignVariables.of(context);
+
     final child = switch (option) {
       MentionAutocompleteResult() => _MentionAutocompleteItem(
         option: option, narrow: narrow),
@@ -227,6 +231,9 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       onTap: () {
         _onTapOption(context, option);
       },
+      highlightColor: designVariables.editorButtonPressedBg,
+      splashFactory: NoSplash.splashFactory,
+      borderRadius: BorderRadius.circular(5),
       child: child);
   }
 }
@@ -237,14 +244,14 @@ class _MentionAutocompleteItem extends StatelessWidget {
   final MentionAutocompleteResult option;
   final Narrow narrow;
 
-  Widget wildcardLabel(WildcardMentionOption wildcardOption, {
+  String wildcardSublabel(WildcardMentionOption wildcardOption, {
     required BuildContext context,
     required PerAccountStore store,
   }) {
     final isDmNarrow = narrow is DmNarrow;
     final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
     final localizations = ZulipLocalizations.of(context);
-    final description = switch (wildcardOption) {
+    return switch (wildcardOption) {
       WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
         ? localizations.wildcardMentionAllDmDescription
         : isChannelWildcardAvailable
@@ -256,32 +263,61 @@ class _MentionAutocompleteItem extends StatelessWidget {
         : localizations.wildcardMentionStreamDescription,
       WildcardMentionOption.topic => localizations.wildcardMentionTopicDescription,
     };
-    return Text.rich(TextSpan(text: '${wildcardOption.canonicalString} ', children: [
-      TextSpan(text: description, style: TextStyle(fontSize: 12,
-        color: DefaultTextStyle.of(context).style.color?.withValues(alpha: 0.8)))]));
   }
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
     Widget avatar;
-    Widget label;
+    String label;
+    String? sublabel;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
         final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3); // web uses 21px
-        label = Text(user.fullName);
+        avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
+        label = user.fullName;
+        sublabel = store.userDisplayEmail(user);
       case WildcardMentionAutocompleteResult(:var wildcardOption):
-        avatar = const Icon(ZulipIcons.three_person, size: 29); // web uses 19px
-        label = wildcardLabel(wildcardOption, context: context, store: store);
+        avatar = SizedBox.square(dimension: 36,
+          child: const Icon(ZulipIcons.three_person, size: 24));
+        label = wildcardOption.canonicalString;
+        sublabel = wildcardSublabel(wildcardOption, context: context, store: store);
     }
 
+    final labelWidget = Text(
+      label,
+      style: TextStyle(
+        fontSize: 18,
+        height: 20 / 18,
+        color: designVariables.contextMenuItemLabel,
+      ).merge(weightVariableTextStyle(context,
+          wght: sublabel == null ? 500 : 600)),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1);
+
+    final sublabelWidget = sublabel == null ? null : Text(
+      sublabel,
+      style: TextStyle(
+        fontSize: 14,
+        height: 16 / 14,
+        color: designVariables.contextMenuItemMeta),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 8, 4),
       child: Row(children: [
         avatar,
-        const SizedBox(width: 8),
-        label,
+        const SizedBox(width: 6),
+        Expanded(child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            labelWidget,
+            if (sublabelWidget != null) sublabelWidget,
+          ])),
       ]));
   }
 }

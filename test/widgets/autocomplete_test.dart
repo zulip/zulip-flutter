@@ -14,7 +14,6 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 
@@ -201,11 +200,7 @@ void main() {
     });
 
     void checkWildcardShown(WildcardMentionOption wildcard, {required bool expected}) {
-      final richTextFinder = find.textContaining(wildcard.canonicalString, findRichText: true);
-      final iconFinder = find.byIcon(ZulipIcons.three_person);
-      final wildcardItemFinder = find.ancestor(of: richTextFinder,
-        matching: find.ancestor(of: iconFinder, matching: find.byType(Row)));
-      check(wildcardItemFinder).findsExactly(expected ? 1 : 0);
+      check(find.text(wildcard.canonicalString)).findsExactly(expected ? 1 : 0);
     }
 
     testWidgets('wildcard options appear, disappear, and change correctly', (tester) async {
@@ -226,8 +221,7 @@ void main() {
       checkWildcardShown(WildcardMentionOption.stream, expected: false);
 
       // Finishing autocomplete updates compose box; causes options to disappear
-      await tester.tap(find.textContaining(WildcardMentionOption.channel.canonicalString,
-        findRichText: true));
+      await tester.tap(find.text(WildcardMentionOption.channel.canonicalString));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
         .contains(wildcardMention(WildcardMentionOption.channel, store: store));
@@ -238,6 +232,67 @@ void main() {
       checkWildcardShown(WildcardMentionOption.stream, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('sublabel', () {
+      Finder findLabelsForItem({required Finder itemFinder}) {
+        final itemColumn = find.ancestor(
+          of: itemFinder,
+          matching: find.byType(Column),
+        ).first;
+        return find.descendant(of: itemColumn, matching: find.byType(Text));
+      }
+
+      testWidgets('no sublabel when delivery email is unavailable', (tester) async {
+        final user = eg.user(fullName: 'User One', deliveryEmail: null);
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @user ');
+        await tester.enterText(composeInputFinder, 'hello @user o');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkUserShown(user, expected: true);
+        check(find.text(user.email)).findsNothing();
+        check(findLabelsForItem(
+          itemFinder: find.text(user.fullName))).findsOne();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('show sublabel when delivery email is available', (tester) async {
+        final user = eg.user(fullName: 'User One', deliveryEmail: 'email1@email.com');
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @user ');
+        await tester.enterText(composeInputFinder, 'hello @user o');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkUserShown(user, expected: true);
+        check(find.text(user.deliveryEmail!)).findsOne();
+        check(findLabelsForItem(
+          itemFinder: find.text(user.fullName))).findsExactly(2);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('show sublabel for wildcard mention items', (tester) async {
+        final composeInputFinder = await setupToComposeInput(tester,
+          narrow: const ChannelNarrow(1));
+
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, '@chann');
+        await tester.enterText(composeInputFinder, '@channe');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkWildcardShown(WildcardMentionOption.channel, expected: true);
+        check(find.text('Notify channel')).findsOne();
+        check(findLabelsForItem(
+          itemFinder: find.text('channel'))).findsExactly(2);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 
