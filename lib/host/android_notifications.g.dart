@@ -579,6 +579,47 @@ class AndroidNotificationHostApi {
     }
   }
 
+  /// Wraps `android.content.ContentResolver.insert` combined with
+  /// `android.content.ContentResolver.openOutputStream` and
+  /// `android.content.res.Resources.openRawResource`.
+  ///
+  /// Copies a raw resource audio file to `Notifications/Zulip/`
+  /// directory in device's shared media storage. Returns the URL
+  /// of the target file in media store.
+  ///
+  /// Requires minimum of Android 10 (API 29) or higher.
+  ///
+  /// See:
+  ///   https://developer.android.com/reference/android/content/ContentResolver#insert(android.net.Uri,%20android.content.ContentValues)
+  ///   https://developer.android.com/reference/android/content/ContentResolver#openOutputStream(android.net.Uri)
+  ///   https://developer.android.com/reference/android/content/res/Resources#openRawResource(int)
+  Future<String> copySoundResourceToMediaStore({required String targetFileDisplayName, required String sourceResourceName}) async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.copySoundResourceToMediaStore$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[targetFileDisplayName, sourceResourceName]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else if (__pigeon_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (__pigeon_replyList[0] as String?)!;
+    }
+  }
+
   /// Corresponds to `android.app.NotificationManager.notify`,
   /// combined with `androidx.core.app.NotificationCompat.Builder`.
   ///

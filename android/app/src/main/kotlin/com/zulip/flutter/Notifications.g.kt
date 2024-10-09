@@ -523,6 +523,23 @@ interface AndroidNotificationHostApi {
    */
   fun listStoredSoundsInNotificationsDirectory(): List<StoredNotificationSound>
   /**
+   * Wraps `android.content.ContentResolver.insert` combined with
+   * `android.content.ContentResolver.openOutputStream` and
+   * `android.content.res.Resources.openRawResource`.
+   *
+   * Copies a raw resource audio file to `Notifications/Zulip/`
+   * directory in device's shared media storage. Returns the URL
+   * of the target file in media store.
+   *
+   * Requires minimum of Android 10 (API 29) or higher.
+   *
+   * See:
+   *   https://developer.android.com/reference/android/content/ContentResolver#insert(android.net.Uri,%20android.content.ContentValues)
+   *   https://developer.android.com/reference/android/content/ContentResolver#openOutputStream(android.net.Uri)
+   *   https://developer.android.com/reference/android/content/res/Resources#openRawResource(int)
+   */
+  fun copySoundResourceToMediaStore(targetFileDisplayName: String, sourceResourceName: String): String
+  /**
    * Corresponds to `android.app.NotificationManager.notify`,
    * combined with `androidx.core.app.NotificationCompat.Builder`.
    *
@@ -640,6 +657,24 @@ interface AndroidNotificationHostApi {
           channel.setMessageHandler { _, reply ->
             val wrapped: List<Any?> = try {
               listOf(api.listStoredSoundsInNotificationsDirectory())
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.copySoundResourceToMediaStore$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val targetFileDisplayNameArg = args[0] as String
+            val sourceResourceNameArg = args[1] as String
+            val wrapped: List<Any?> = try {
+              listOf(api.copySoundResourceToMediaStore(targetFileDisplayNameArg, sourceResourceNameArg))
             } catch (exception: Throwable) {
               wrapError(exception)
             }

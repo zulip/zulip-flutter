@@ -2,6 +2,7 @@ package com.zulip.flutter
 
 import android.annotation.SuppressLint
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -49,6 +50,13 @@ fun toPigeonPerson(person: androidx.core.app.Person): Person {
 
 private class AndroidNotificationHost(val context: Context)
         : AndroidNotificationHostApi {
+    // The directory we store our notification sounds into,
+    // expressed as a relative path suitable for:
+    //   https://developer.android.com/reference/kotlin/android/provider/MediaStore.MediaColumns#RELATIVE_PATH:kotlin.String
+    val notificationSoundsDirectoryPath = "${Environment.DIRECTORY_NOTIFICATIONS}/Zulip/"
+
+    class ResolverFailedException(msg: String) : RuntimeException(msg)
+
     override fun createNotificationChannel(channel: NotificationChannel) {
         val notificationChannel = NotificationChannelCompat
             .Builder(channel.id, channel.importance.toInt()).apply {
@@ -78,13 +86,6 @@ private class AndroidNotificationHost(val context: Context)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             throw UnsupportedOperationException()
         }
-
-        // The directory we store our notification sounds into,
-        // expressed as a relative path suitable for:
-        //   https://developer.android.com/reference/kotlin/android/provider/MediaStore.MediaColumns#RELATIVE_PATH:kotlin.String
-        val notificationSoundsDirectoryPath = "${Environment.DIRECTORY_NOTIFICATIONS}/Zulip/"
-
-        class ResolverFailedException(msg: String) : RuntimeException(msg)
 
         // Query and cursor-loop based on:
         //   https://developer.android.com/training/data-storage/shared/media#query-collection
@@ -120,6 +121,46 @@ private class AndroidNotificationHost(val context: Context)
             }
         }
         return sounds
+    }
+
+    @SuppressLint(
+        // For `getIdentifier`.  TODO make a cleaner API.
+        "DiscouragedApi")
+    override fun copySoundResourceToMediaStore(
+        targetFileDisplayName: String,
+        sourceResourceName: String
+    ): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            throw UnsupportedOperationException()
+        }
+
+        class ResolverFailedException(msg: String) : RuntimeException(msg)
+
+        val resolver = context.contentResolver
+        val collection = AudioStore.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+
+        // Based on: https://developer.android.com/training/data-storage/shared/media#add-item
+        val url = resolver.insert(collection, ContentValues().apply {
+            put(AudioStore.DISPLAY_NAME, targetFileDisplayName)
+            put(AudioStore.RELATIVE_PATH, notificationSoundsDirectoryPath)
+            put(AudioStore.IS_NOTIFICATION, 1)
+            put(AudioStore.IS_PENDING, 1)
+        }) ?: throw ResolverFailedException("resolver.insert failed")
+
+        (resolver.openOutputStream(url, "wt")
+            ?: throw ResolverFailedException("resolver.open… failed"))
+            .use { outputStream ->
+                val resourceId = context.resources.getIdentifier(
+                    sourceResourceName, "raw", context.packageName)
+                context.resources.openRawResource(resourceId)
+                    .use { it.copyTo(outputStream) }
+            }
+
+        resolver.update(
+            url, ContentValues().apply { put(AudioStore.IS_PENDING, 0) },
+            null, null)
+
+        return url.toString()
     }
 
     @SuppressLint(

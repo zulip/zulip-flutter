@@ -553,6 +553,12 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeChannels.remove(channelId);
   }
 
+  /// A URL that the fake [copySoundResourceToMediaStore] would produce
+  /// for a resource with the given name.
+  String fakeStoredNotificationSoundUrl(String resourceName) {
+    return 'content://media/external_primary/audio/media/$resourceName';
+  }
+
   final _storedNotificationSounds = <StoredNotificationSound>[];
 
   /// Populates the media store with the provided entries.
@@ -563,6 +569,34 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<List<StoredNotificationSound?>> listStoredSoundsInNotificationsDirectory() async {
     return _storedNotificationSounds.toList(growable: false);
+  }
+
+  /// Consume the log of calls made to [copySoundResourceToMediaStore].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [copySoundResourceToMediaStore] since the last call to this method.
+  List<CopySoundResourceToMediaStoreCall> takeCopySoundResourceToMediaStoreCalls() {
+    final result = _copySoundResourceToMediaStoreCalls;
+    _copySoundResourceToMediaStoreCalls = [];
+    return result;
+  }
+  List<CopySoundResourceToMediaStoreCall> _copySoundResourceToMediaStoreCalls = [];
+
+  @override
+  Future<String> copySoundResourceToMediaStore({
+    required String targetFileDisplayName,
+    required String sourceResourceName,
+  }) async {
+    _copySoundResourceToMediaStoreCalls.add((
+      targetFileDisplayName: targetFileDisplayName,
+      sourceResourceName: sourceResourceName));
+
+    final url = fakeStoredNotificationSoundUrl(sourceResourceName);
+    _storedNotificationSounds.add(StoredNotificationSound(
+      fileName: targetFileDisplayName,
+      isOwned: true,
+      contentUrl: url));
+    return url;
   }
 
   /// Consume the log of calls made to [notify].
@@ -686,4 +720,9 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   MessagingStyle? messagingStyle,
   int? number,
   String? smallIconResourceName,
+});
+
+typedef CopySoundResourceToMediaStoreCall = ({
+  String targetFileDisplayName,
+  String sourceResourceName,
 });

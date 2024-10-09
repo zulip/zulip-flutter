@@ -218,6 +218,22 @@ abstract class AndroidNotificationHostApi {
   /// See: https://developer.android.com/reference/android/content/ContentResolver#query(android.net.Uri,%20java.lang.String[],%20java.lang.String,%20java.lang.String[],%20java.lang.String)
   List<StoredNotificationSound> listStoredSoundsInNotificationsDirectory();
 
+  /// Wraps `android.content.ContentResolver.insert` combined with
+  /// `android.content.ContentResolver.openOutputStream` and
+  /// `android.content.res.Resources.openRawResource`.
+  ///
+  /// Copies a raw resource audio file to `Notifications/Zulip/`
+  /// directory in device's shared media storage. Returns the URL
+  /// of the target file in media store.
+  ///
+  /// Requires minimum of Android 10 (API 29) or higher.
+  ///
+  /// See:
+  ///   https://developer.android.com/reference/android/content/ContentResolver#insert(android.net.Uri,%20android.content.ContentValues)
+  ///   https://developer.android.com/reference/android/content/ContentResolver#openOutputStream(android.net.Uri)
+  ///   https://developer.android.com/reference/android/content/res/Resources#openRawResource(int)
+  String copySoundResourceToMediaStore({required String targetFileDisplayName, required String sourceResourceName});
+
   /// Corresponds to `android.app.NotificationManager.notify`,
   /// combined with `androidx.core.app.NotificationCompat.Builder`.
   ///
