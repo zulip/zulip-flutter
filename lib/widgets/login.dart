@@ -239,8 +239,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     ? () => _onSubmitted(context)
                     : null,
                   child: Text(zulipLocalizations.dialogContinue)),
-              ])),
-          ))));
+              ]))))));
   }
 }
 
