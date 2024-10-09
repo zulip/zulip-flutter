@@ -1,0 +1,221 @@
+import 'package:checks/checks.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart';
+import 'package:zulip/themes/custom_themes/appbar_theme.dart';
+import 'package:zulip/themes/custom_themes/elevated_button_theme.dart';
+import 'package:zulip/themes/design_variables.dart';
+import 'package:zulip/themes/emoji_reaction.dart';
+import 'package:zulip/themes/message_list.dart';
+import 'package:zulip/themes/theme.dart';
+import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/text.dart';
+
+import '../example_data.dart' as eg;
+import '../flutter_checks.dart';
+import '../model/binding.dart';
+import 'colors_checks.dart';
+import 'test_app.dart';
+import 'package:get/get.dart';
+
+void main() {
+  TestZulipBinding.ensureInitialized();
+
+  group('button text size and letter spacing', () {
+    const buttonText = 'Zulip';
+
+    Future<void> doCheck(
+      String description, {
+      required Widget button,
+      double? ambientTextScaleFactor,
+    }) async {
+      testWidgets(description, (tester) async {
+        addTearDown(testBinding.reset);
+        if (ambientTextScaleFactor != null) {
+          tester.platformDispatcher.textScaleFactorTestValue =
+              ambientTextScaleFactor;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        }
+        await tester.pumpWidget(TestZulipApp(child: button));
+        await tester.pump();
+        final context = tester.element(find.text(buttonText));
+        final expectedFontSize =
+            Theme.of(context).textTheme.labelLarge!.fontSize!;
+        final expectedLetterSpacing = proportionalLetterSpacing(context, 0.01,
+            baseFontSize: expectedFontSize);
+        check((context.renderObject as RenderParagraph).text.style!)
+          ..fontSize.equals(expectedFontSize)
+          ..letterSpacing.equals(expectedLetterSpacing);
+      });
+    }
+
+    doCheck('with device text size adjusted',
+        ambientTextScaleFactor: 2.0,
+        button:
+            ElevatedButton(onPressed: () {}, child: const Text(buttonText)));
+
+    doCheck('ElevatedButton',
+        button:
+            ElevatedButton(onPressed: () {}, child: const Text(buttonText)));
+
+    doCheck('FilledButton',
+        button: FilledButton(onPressed: () {}, child: const Text(buttonText)));
+
+    // IconButton can't have text; skip
+
+    doCheck('MenuItemButton',
+        button:
+            MenuItemButton(onPressed: () {}, child: const Text(buttonText)));
+
+    doCheck('SubmenuButton',
+        button: const SubmenuButton(menuChildren: [], child: Text(buttonText)));
+
+    doCheck('OutlinedButton',
+        button:
+            OutlinedButton(onPressed: () {}, child: const Text(buttonText)));
+
+    doCheck('SegmentedButton',
+        button: SegmentedButton(selected: const {
+          1
+        }, segments: const [
+          ButtonSegment(value: 1, label: Text(buttonText))
+        ]));
+
+    doCheck('TextButton',
+        button: TextButton(onPressed: () {}, child: const Text(buttonText)));
+  });
+
+  group('DesignVariables', () {
+    group('lerp', () {
+      testWidgets('light -> light', (tester) async {
+        final a = DesignVariables.light();
+        final b = DesignVariables.light();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+
+      testWidgets('light -> dark', (tester) async {
+        final a = DesignVariables.light();
+        final b = DesignVariables.dark();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+
+      testWidgets('dark -> light', (tester) async {
+        final a = DesignVariables.dark();
+        final b = DesignVariables.light();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+
+      testWidgets('dark -> dark', (tester) async {
+        final a = DesignVariables.dark();
+        final b = DesignVariables.dark();
+        check(() => a.lerp(b, 0.5)).returnsNormally();
+      });
+    });
+  });
+
+  group('colorSwatchFor', () {
+    const baseColor = 0xff76ce90;
+
+    testWidgets('light–dark animation', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final subscription = eg.subscription(eg.stream(), color: baseColor);
+
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(const TestZulipApp());
+      await tester.pump();
+
+      final element = tester.element(find.byType(Placeholder));
+      // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
+      check(colorSwatchFor(element, subscription))
+          .isSameColorSwatchAs(ChannelColorSwatch.light(baseColor));
+
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      await tester.pump();
+
+      await tester.pump(kThemeAnimationDuration * 0.4);
+      check(colorSwatchFor(element, subscription)).isSameColorSwatchAs(
+          ChannelColorSwatch.lerp(ChannelColorSwatch.light(baseColor),
+              ChannelColorSwatch.dark(baseColor), 0.4)!);
+
+      await tester.pump(kThemeAnimationDuration * 0.6);
+      check(colorSwatchFor(element, subscription))
+          .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
+    });
+  });
+
+  group('ZAppBarTheme Tests', () {
+    testWidgets('Light AppBarThme Test', (tester) async {
+      final designVariables = DesignVariables.light();
+
+      await tester.pumpWidget(GetMaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Test'),
+          ),
+        ),
+      ));
+
+      final context = Get.context;
+
+      final appBarTheme =
+          ZAppBarTheme.lightAppBarTheme(context!, designVariables);
+
+      expect(appBarTheme.backgroundColor, designVariables.bgTopBar);
+      expect(appBarTheme.actionsIconTheme!.color, designVariables.icon);
+      expect(appBarTheme.titleTextStyle!.color, designVariables.title);
+      expect(appBarTheme.titleTextStyle!.fontSize, 20);
+      expect(appBarTheme.titleTextStyle!.fontFamily, kDefaultFontFamily);
+    });
+
+    testWidgets('Dark AppBarThem Test', (tester) async {
+      final designVariables = DesignVariables.dark();
+
+      await tester.pumpWidget(GetMaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Test'),
+          ),
+        ),
+      ));
+
+      final context = Get.context;
+      final appBarTheme =
+          ZAppBarTheme.darkAppBarTheme(context!, designVariables);
+
+      expect(appBarTheme.backgroundColor, designVariables.bgTopBar);
+      expect(appBarTheme.actionsIconTheme!.color, designVariables.icon);
+      expect(appBarTheme.titleTextStyle!.color, designVariables.title);
+      expect(appBarTheme.titleTextStyle!.fontSize, 20);
+      expect(appBarTheme.titleTextStyle!.fontFamily, kDefaultFontFamily);
+    });
+  });
+
+  testWidgets("Zbutton tests", (tester) async{
+    final designVariables = DesignVariables.dark();
+
+      // Use Get.context to access the context directly
+      await tester.pumpWidget(
+        GetMaterialApp(
+          home: Scaffold(
+            body: ElevatedButton(
+              onPressed: () {},
+              child: const Text('Test Button'),
+            ),
+          ),
+        ),
+      );
+
+      // Act
+      final elevatedButtonTheme = ZButtonTheme.darkElevatedButtonTheme(designVariables);
+
+      // Assert
+      final elevatedButtonStyle = elevatedButtonTheme.style!;
+      expect(elevatedButtonStyle.backgroundColor?.resolve({}), designVariables.bgTopBar);
+      expect(elevatedButtonStyle.foregroundColor?.resolve({}), designVariables.title);
+      expect(elevatedButtonStyle.elevation?.resolve({}), 4.0);
+  });
+}
