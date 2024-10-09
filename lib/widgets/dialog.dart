@@ -34,8 +34,7 @@ Future<void> showErrorDialog({
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
-        ]),
-    ));
+        ])));
 }
 
 void showSuggestedActionDialog({
