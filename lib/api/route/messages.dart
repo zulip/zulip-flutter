@@ -5,6 +5,7 @@ import '../exception.dart';
 import '../model/model.dart';
 import '../model/narrow.dart';
 
+
 part 'messages.g.dart';
 
 /// Convenience function to get a single message from any server.

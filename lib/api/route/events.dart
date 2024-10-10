@@ -2,13 +2,13 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
 import '../model/events.dart';
-import '../model/initial_snapshot.dart';
+import '../model/initial_snapshot.dart' as initialSnapshot;
 
 part 'events.g.dart';
 
 /// https://zulip.com/api/register-queue
-Future<InitialSnapshot> registerQueue(ApiConnection connection) {
-  return connection.post('registerQueue', InitialSnapshot.fromJson, 'register', {
+Future<initialSnapshot.InitialSnapshot> registerQueue(ApiConnection connection) {
+  return connection.post('registerQueue', initialSnapshot.InitialSnapshot.fromJson, 'register', {
     'apply_markdown': true,
     'slim_presence': true,
     'client_gravatar': false, // TODO(#255): turn on

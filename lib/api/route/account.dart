@@ -2,6 +2,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
 
+
+
 part 'account.g.dart';
 
 /// https://zulip.com/api/fetch-api-key
