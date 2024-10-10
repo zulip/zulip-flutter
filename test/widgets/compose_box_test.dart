@@ -17,9 +17,11 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -457,11 +459,12 @@ void main() {
         of: find.byIcon(ZulipIcons.send),
         matching: find.byType(IconButton)));
       final sendButtonWidget = sendButtonElement.widget as IconButton;
-      final colorScheme = Theme.of(sendButtonElement).colorScheme;
-      final expectedForegroundColor = expected
-        ? colorScheme.onSurface.withValues(alpha: 0.38)
-        : colorScheme.onPrimary;
-      check(sendButtonWidget.color).isNotNull().isSameColorAs(expectedForegroundColor);
+      final designVariables = DesignVariables.of(sendButtonElement);
+      final expectedIconColor = expected
+        ? designVariables.icon.withFadedAlpha(0.5)
+        : designVariables.icon;
+      check(sendButtonWidget.icon)
+        .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
     }
 
     group('attach from media library', () {
@@ -794,6 +797,69 @@ void main() {
         await tester.pump();
         checkComposeBox(isShown: true);
       });
+    });
+  });
+
+  group('ComposeBox content input scaling', () {
+    const verticalPadding = 8;
+    final stream = eg.stream();
+    final narrow = TopicNarrow(stream.streamId, 'foo');
+
+    Future<void> checkContentInputMaxHeight(WidgetTester tester, {
+      required double maxHeight,
+      required int maxVisibleLines,
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      // Add one line at a time, until the content input reaches its max height.
+      int numLines;
+      double? height;
+      for (numLines = 2; numLines <= 1000; numLines++) {
+        final content = List.generate(numLines, (_) => 'foo').join('\n');
+        await tester.enterText(contentInputFinder, content);
+        await tester.pump();
+        final newHeight = tester.getRect(contentInputFinder).height;
+        if (newHeight == height) {
+          break;
+        }
+        height = newHeight;
+      }
+      check(height).isNotNull().isCloseTo(maxHeight, 0.5);
+      // The last line added did not stretch the content input,
+      // so only the lines before it are at least partially visible.
+      check(numLines - 1).equals(maxVisibleLines);
+    }
+
+    testWidgets('normal text scale factor', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
+
+      await checkContentInputMaxHeight(tester,
+        maxHeight: verticalPadding + 170, maxVisibleLines: 8);
+    });
+
+    testWidgets('lower text scale factor', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 0.8;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
+      await checkContentInputMaxHeight(tester,
+        maxHeight: verticalPadding + 170 * 0.8, maxVisibleLines: 8);
+    });
+
+    testWidgets('higher text scale factor', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
+      await checkContentInputMaxHeight(tester,
+        maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 8);
+    });
+
+    testWidgets('higher text scale factor exceeding threshold', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
+      await checkContentInputMaxHeight(tester,
+        maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 6);
     });
   });
 }
