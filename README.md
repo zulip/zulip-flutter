@@ -120,8 +120,12 @@ see our [full setup guide](docs/setup.md).
 We use the latest Flutter from Flutter's main branch.
 Use `flutter channel main` and `flutter upgrade`.
 
-We don't pin a specific version, because Flutter itself doesn't offer
-a way to do so.  So far that hasn't been a problem.  When it becomes one,
+Because each version of Flutter provides its own version of the
+Dart SDK, this also means we use the latest Dart SDK.
+
+We don't pin a specific Flutter version,
+because Flutter itself doesn't offer a way to do so.
+So far that hasn't been a problem.  When it becomes one,
 we'll figure it out; there are several tools for this in the Flutter
 community.  See [issue #15][].
 

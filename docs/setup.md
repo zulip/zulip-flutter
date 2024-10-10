@@ -88,6 +88,32 @@ To set up the development environment on Linux without Android Studio:
 
 ## Troubleshooting
 
+<div id="dart-sdk" />
+
+### Dart SDK version
+
+You might see an error message about the Dart SDK version,
+like so:
+```
+$ flutter pub get
+Resolving dependencies...
+The current Dart SDK version is 3.6.0-216.1.beta.
+
+Because zulip requires SDK version >=3.6.0-279.0.dev <4.0.0,
+version solving failed.
+Failed to update packages.
+```
+
+This error message says your Dart SDK version is too old.
+Because Flutter provides its own Dart SDK,
+that means your Flutter version is too old.
+
+To fix the issue, follow [our setup instructions][readme-setup]
+by running `flutter channel main` and `flutter upgrade`.
+
+For previous discussion of this symptom, see
+[this chat thread](https://chat.zulip.org/#narrow/stream/516-mobile-dev-help/topic/setup.3A.20Dart.20SDK.20dev.20version/near/1831351).
+
 
 <div id="windows-modified-files" />
 
