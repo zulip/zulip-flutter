@@ -19,8 +19,8 @@ import 'icons.dart';
 import 'store.dart';
 import 'theme.dart';
 
-const double _inputVerticalPadding = 8;
-const double _sendButtonSize = 36;
+const double _composeButtonWidth = 44;
+const double _composeButtonsRowHeight = 42;
 
 /// A [TextEditingController] for use in the compose box.
 ///
@@ -291,8 +291,6 @@ class _ContentInput extends StatelessWidget {
       decoration: const InputDecoration(),
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
-
           // TODO constrain this adaptively (i.e. not hard-coded 200)
           maxHeight: 200,
         ),
@@ -577,12 +575,14 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return IconButton(
-      icon: Icon(icon, color: colorScheme.onSurfaceVariant),
-      tooltip: tooltip(zulipLocalizations),
-      onPressed: () => _handlePress(context));
+    return SizedBox(
+      width: _composeButtonWidth,
+      child: IconButton(
+        icon: Icon(icon, color: designVariables.foreground.withValues(alpha: 0.5)),
+        tooltip: tooltip(zulipLocalizations),
+        onPressed: () => _handlePress(context)));
   }
 }
 
@@ -845,22 +845,15 @@ class _SendButtonState extends State<_SendButton> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    return IconButton(
-      tooltip: zulipLocalizations.composeBoxSendTooltip,
-      style: const ButtonStyle(
-        // Match the height of the content input.
-        minimumSize: WidgetStatePropertyAll(Size.square(_sendButtonSize)),
-        // With the default of [MaterialTapTargetSize.padded], not just the
-        // tap target but the visual button would get padded to 48px square.
-        // It would be nice if the tap target extended invisibly out from the
-        // button, to make a 48px square, but that's not the behavior we get.
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      color: _hasValidationErrors
-        ? designVariables.icon.withValues(alpha: 0.5)
-        : designVariables.icon,
-      icon: const Icon(ZulipIcons.send),
-      onPressed: _send);
+    return SizedBox(
+      width: _composeButtonWidth,
+      child: IconButton(
+        tooltip: zulipLocalizations.composeBoxSendTooltip,
+        color: _hasValidationErrors
+          ? designVariables.icon.withValues(alpha: 0.5)
+          : designVariables.icon,
+        icon: const Icon(ZulipIcons.send),
+        onPressed: _send));
   }
 }
 
@@ -871,18 +864,16 @@ class _ComposeBoxContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final designVariables = DesignVariables.of(context);
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
     //   the message list itself
-    return SizedBox(width: double.infinity,
+    return Container(width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: designVariables.borderBar))),
       child: Material(
-        color: colorScheme.surfaceContainerHighest,
-        child: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: child))));
+        color: designVariables.composeBoxBg,
+        child: SafeArea(child: child)));
   }
 }
 
@@ -903,42 +894,44 @@ class _ComposeBoxLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    ColorScheme colorScheme = themeData.colorScheme;
+    final themeData = Theme.of(context);
 
     final inputThemeData = themeData.copyWith(
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         // Both [contentPadding] and [isDense] combine to make the layout compact.
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12.0, vertical: _inputVerticalPadding),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4.0)),
-          borderSide: BorderSide.none),
-        filled: true,
-        fillColor: colorScheme.surface,
-      ),
-    );
+        contentPadding: EdgeInsets.zero,
+        border: InputBorder.none));
 
     return _ComposeBoxContainer(
       child: Column(children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Expanded(
-            child: Theme(
-              data: inputThemeData,
-              child: Column(children: [
-                if (topicInput != null) topicInput!,
-                if (topicInput != null) const SizedBox(height: 8),
-                contentInput,
-              ]))),
-          const SizedBox(width: 8),
-          sendButton,
-        ]),
-        Row(children: [
-          _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-        ]),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Theme(
+            data: inputThemeData,
+            child: Column(children: [
+              if (topicInput != null) topicInput!,
+              contentInput,
+            ]))),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          height: _composeButtonsRowHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(children: [
+                _AttachFileButton(
+                  contentController: contentController,
+                  contentFocusNode: contentFocusNode),
+                _AttachMediaButton(
+                  contentController: contentController,
+                  contentFocusNode: contentFocusNode),
+                _AttachFromCameraButton(
+                  contentController: contentController,
+                  contentFocusNode: contentFocusNode),
+              ]),
+              sendButton,
+            ])),
       ]));
   }
 }
