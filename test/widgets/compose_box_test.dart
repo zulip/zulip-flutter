@@ -361,6 +361,28 @@ void main() {
       await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
     });
+
+    testWidgets('unfocusing app sends a "typing stopped" notice', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      // While this state lives on [ServicesBinding], testWidgets resets it
+      // for us when the test ends so we don't have to:
+      //   https://github.com/flutter/flutter/blob/c78c166e3ecf963ca29ed503e710fd3c71eda5c9/packages/flutter_test/lib/src/binding.dart#L1189
+      // On iOS and Android, a transition to [hidden] is synthesized before
+      // transitioning into [paused].
+      WidgetsBinding.instance.handleAppLifecycleStateChanged(
+        AppLifecycleState.hidden);
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, narrow);
+
+      WidgetsBinding.instance.handleAppLifecycleStateChanged(
+        AppLifecycleState.paused);
+      await tester.pump(Duration.zero);
+      check(connection.lastRequest).isNull();
+    });
   });
 
   group('message-send request response', () {
