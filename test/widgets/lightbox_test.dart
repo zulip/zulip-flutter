@@ -249,7 +249,7 @@ void main() {
           matching: find.textContaining(findRichText: true,
             eg.otherUser.fullName)));
       check(labelTextWidget.text.toPlainText())
-        .contains('Jul 23, 2024 23:12:24');
+        .contains('Jul 23, 2024 at 11:12 PM');
 
       debugNetworkImageHttpClientProvider = null;
     });
