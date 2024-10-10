@@ -288,12 +288,13 @@ class _ContentInput extends StatefulWidget {
   State<_ContentInput> createState() => _ContentInputState();
 }
 
-class _ContentInputState extends State<_ContentInput> {
+class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_contentChanged);
     widget.focusNode.addListener(_focusChanged);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -313,6 +314,7 @@ class _ContentInputState extends State<_ContentInput> {
   void dispose() {
     widget.controller.removeListener(_contentChanged);
     widget.focusNode.removeListener(_focusChanged);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -331,6 +333,34 @@ class _ContentInputState extends State<_ContentInput> {
     }
     final store = PerAccountStoreWidget.of(context);
     store.typingNotifier.stoppedComposing();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        // Transition to either [hidden] or [paused] signals that
+        // > [the] application is not currently visible to the user, and not
+        // > responding to user input.
+        //
+        // When transitioning to [detached], the compose box can't exist:
+        // > The application defaults to this state before it initializes, and
+        // > can be in this state (applicable on Android, iOS, and web) after
+        // > all views have been detached.
+        //
+        // For all these states, we can conclude that the user is not
+        // composing a message.
+        final store = PerAccountStoreWidget.of(context);
+        store.typingNotifier.stoppedComposing();
+      case AppLifecycleState.inactive:
+        // > At least one view of the application is visible, but none have
+        // > input focus. The application is otherwise running normally.
+        // For example, we expect this state when the user is selecting a file
+        // to upload.
+      case AppLifecycleState.resumed:
+    }
   }
 
   @override
