@@ -114,6 +114,9 @@ an [additional step](docs/setup.md#autocrlf):
 For more details and help with unusual configurations,
 see our [full setup guide](docs/setup.md).
 
+If you're having trouble or seeing errors, take a look through our
+[troubleshooting section](docs/setup.md#troubleshooting).
+
 
 ### Flutter version
 
