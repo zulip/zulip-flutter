@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,13 +15,17 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/page.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -31,12 +36,17 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester,
-      {required Narrow narrow, List<User> users = const []}) async {
+  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, {
+    required Narrow narrow,
+    Account? account,
+    List<User> users = const [],
+  }) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    account ??= eg.selfAccount;
+    await testBinding.globalStore.add(account, eg.initialSnapshot(
+      zulipFeatureLevel: account.zulipFeatureLevel));
 
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store = await testBinding.globalStore.perAccount(account.id);
 
     await store.addUsers([eg.selfUser, ...users]);
     connection = store.connection as FakeApiConnection;
@@ -47,7 +57,7 @@ void main() {
         jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     }
     final controllerKey = GlobalKey<ComposeBoxController>();
-    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: account.id,
       child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
     await tester.pumpAndSettle();
 
@@ -195,10 +205,161 @@ void main() {
     });
   });
 
+  group('ComposeBox typing notification', () {
+    const narrow = TopicNarrow(123, 'some topic');
+
+    // This uses a high feature level to test with the latest version of the
+    // setTypingNotifier API.
+    final account = eg.account(
+      user: eg.selfUser, zulipFeatureLevel: eg.futureZulipFeatureLevel);
+
+    final contentInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeContentController);
+    final topicInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeTopicController);
+
+    void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
+      checkSetTypingStatusRequests(connection, [(op, narrow)]);
+
+    Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
+      connection.prepare(json: {});
+      await tester.enterText(contentInputFinder, 'hello world');
+      checkTypingRequest(TypingOp.start, narrow);
+    }
+
+    testWidgets('smoke TopicNarrow', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('smoke DmNarrow', (tester) async {
+      final narrow = DmNarrow.withUsers(
+        [eg.otherUser.userId], selfUserId: eg.selfUser.userId);
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('smoke ChannelNarrow', (tester) async {
+      const narrow = ChannelNarrow(123);
+      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await tester.enterText(topicInputFinder, destinationNarrow.topic);
+      // Remove an irrelevant topic request.
+      check(connection.takeRequests()).single
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/users/me/123/topics');
+
+      await checkStartTyping(tester, destinationNarrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, destinationNarrow);
+    });
+
+    testWidgets('clearing text stops typing notification', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      await tester.enterText(contentInputFinder, '');
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    Future<void> prepareComposeBoxWithNavigation(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(account, eg.initialSnapshot(
+        zulipFeatureLevel: account.zulipFeatureLevel));
+
+      await tester.pumpWidget(const ZulipApp());
+      await tester.pump();
+      final navigator = await ZulipApp.navigator;
+      navigator.push(MaterialAccountWidgetRoute(
+        accountId: account.id, page: const ComposeBox(narrow: narrow)));
+      await tester.pumpAndSettle();
+
+      store = await testBinding.globalStore.perAccount(account.id);
+      connection = store.connection as FakeApiConnection;
+    }
+
+    testWidgets('navigating away stops typing notification', (tester) async {
+      await prepareComposeBoxWithNavigation(tester);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      (await ZulipApp.navigator).pop();
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
+    testWidgets('for content input, unfocusing stops typing notification and refocusing does not start it', (tester) async {
+      const narrow = ChannelNarrow(123);
+      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await tester.enterText(topicInputFinder, destinationNarrow.topic);
+      // Remove an irrelevant topic request.
+      check(connection.takeRequests()).single
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/users/me/123/topics');
+
+      connection.prepare(json: {});
+      await tester.enterText(contentInputFinder, 'hello world');
+      checkTypingRequest(TypingOp.start, destinationNarrow);
+
+      connection.prepare(json: {});
+      // Move focus to the topic input
+      await tester.tap(topicInputFinder);
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, destinationNarrow);
+
+      await tester.tap(contentInputFinder);
+      await tester.pump(Duration.zero);
+      // Refocusing on the content input would trigger an update to
+      // [TextEditingController.selection].  Still, we expect no
+      // "typing started" request if the text remains the same.
+    });
+
+    testWidgets('unfocusing app stops typing notification', (tester) async {
+      Future<void> setAppLifeCycleState(AppLifecycleState state) async {
+        // While this state lives on [ServicesBinding], testWidgets resets it
+        // for us when the test ends:
+        //   https://github.com/flutter/flutter/blob/c78c166e3ecf963ca29ed503e710fd3c71eda5c9/packages/flutter_test/lib/src/binding.dart#L1189
+        final ByteData? message = const StringCodec().encodeMessage(state.toString());
+        await tester.binding.defaultBinaryMessenger
+          .handlePlatformMessage('flutter/lifecycle', message, (_) {});
+      }
+
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      setAppLifeCycleState(AppLifecycleState.inactive);
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+  });
+
   group('message-send request response', () {
     Future<void> setupAndTapSend(WidgetTester tester, {
       required void Function(int messageId) prepareResponse,
     }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
 
@@ -264,6 +425,9 @@ void main() {
 
     group('attach from media library', () {
       testWidgets('success', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
         final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 
@@ -320,6 +484,9 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
         final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
         final composeBoxController = controllerKey.currentState!;
 

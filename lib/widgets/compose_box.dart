@@ -269,18 +269,101 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatelessWidget {
+class _ContentInput extends StatefulWidget {
   const _ContentInput({
     required this.narrow,
+    required this.destination,
     required this.controller,
     required this.focusNode,
     required this.hintText,
   });
 
   final Narrow narrow;
+  final SendableNarrow destination;
   final ComposeContentController controller;
   final FocusNode focusNode;
   final String hintText;
+
+  @override
+  State<_ContentInput> createState() => _ContentInputState();
+}
+
+class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
+  String? _prevText;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_contentChanged);
+    widget.focusNode.addListener(_focusChanged);
+    // The focus node does not notify [AppLifecycleState] changes,
+    // so we also listen if the app is visible and in focus.
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        final store = PerAccountStoreWidget.of(context);
+        store.typingNotifier.stoppedComposing();
+      case AppLifecycleState.resumed:
+        // The app becoming visible and getting input focus doesn't
+        // necessarily mean that the user started typing, so do nothing.
+        break;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContentInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_contentChanged);
+      oldWidget.focusNode.removeListener(_focusChanged);
+      widget.controller.addListener(_contentChanged);
+      widget.focusNode.addListener(_focusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_contentChanged);
+    widget.focusNode.removeListener(_focusChanged);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _contentChanged() {
+    if (_prevText == widget.controller.text) {
+      // [TextEditingController] also notifies the listeners
+      // on selection updates.  Return early because we do not
+      // consider that as typing activity.
+      return;
+    }
+    final store = PerAccountStoreWidget.of(context);
+    if (widget.controller.text.isEmpty) {
+      store.typingNotifier.stoppedComposing();
+    } else {
+      store.typingNotifier.keystroke(widget.destination);
+    }
+    _prevText = widget.controller.text;
+  }
+
+  void _focusChanged() {
+    if (widget.focusNode.hasFocus) {
+      // Content input getting focus doesn't necessarily mean that
+      // the user started typing, so do nothing.
+      return;
+    }
+    // Losing focus usually indicates that the user has navigated away
+    // or clicked on other UI elements.
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.stoppedComposing();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -296,15 +379,15 @@ class _ContentInput extends StatelessWidget {
           maxHeight: 200,
         ),
         child: ComposeAutocomplete(
-          narrow: narrow,
-          controller: controller,
-          focusNode: focusNode,
+          narrow: widget.narrow,
+          controller: widget.controller,
+          focusNode: widget.focusNode,
           fieldViewBuilder: (context) {
             return TextField(
-              controller: controller,
-              focusNode: focusNode,
+              controller: widget.controller,
+              focusNode: widget.focusNode,
               style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
+              decoration: InputDecoration.collapsed(hintText: widget.hintText),
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
             );
@@ -332,6 +415,8 @@ class _StreamContentInput extends StatefulWidget {
 }
 
 class _StreamContentInputState extends State<_StreamContentInput> {
+  SendableNarrow get _destination => TopicNarrow(
+    widget.narrow.streamId, widget.topicController.textNormalized);
   late String _topicTextNormalized;
 
   void _topicChanged() {
@@ -370,6 +455,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
+      destination: _destination,
       controller: widget.controller,
       focusNode: widget.focusNode,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
@@ -446,6 +532,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ContentInput(
       narrow: narrow,
+      destination: narrow,
       controller: controller,
       focusNode: focusNode,
       hintText: _hintText(context));
