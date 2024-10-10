@@ -121,7 +121,7 @@ abstract class GlobalStore extends ChangeNotifier {
     _perAccountStoresLoading[accountId] = future;
     store = await future;
     _setPerAccount(accountId, store);
-    _perAccountStoresLoading.remove(accountId);
+    unawaited(_perAccountStoresLoading.remove(accountId));
     return store;
   }
 

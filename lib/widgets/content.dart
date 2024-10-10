@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -1213,9 +1215,9 @@ void _launchUrl(BuildContext context, String urlString) async {
 
   final internalNarrow = parseInternalLink(url, store);
   if (internalNarrow != null) {
-    Navigator.push(context,
+    unawaited(Navigator.push(context,
       MessageListPage.buildRoute(context: context,
-        narrow: internalNarrow));
+        narrow: internalNarrow)));
     return;
   }
 

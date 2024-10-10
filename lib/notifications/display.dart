@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -377,10 +378,9 @@ class NotificationDisplayManager {
 
     assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
-    navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
+    unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: narrow)));
-    return;
+      page: MessageListPage(initNarrow: narrow))));
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {
