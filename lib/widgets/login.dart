@@ -428,7 +428,8 @@ class _LoginPageState extends State<LoginPage> {
           final icon = method.displayIcon;
           return OutlinedButton.icon(
             style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer)),
+              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+              foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
             icon: icon != null
               ? Image.network(icon, width: 24, height: 24)
               : null,
@@ -436,7 +437,6 @@ class _LoginPageState extends State<LoginPage> {
               ? () => _beginWebAuth(method)
               : null,
             label: Text(
-              style: TextStyle(color: colorScheme.onSecondaryContainer),
               zulipLocalizations.signInWithFoo(method.displayName)));
         }),
       ],

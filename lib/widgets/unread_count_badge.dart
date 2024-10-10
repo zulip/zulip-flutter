@@ -63,12 +63,13 @@ class MutedUnreadBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
     return Container(
       width: 8,
       height: 8,
       margin: const EdgeInsetsDirectional.only(end: 3),
       decoration: BoxDecoration(
-        color: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
+        color: designVariables.mutedUnreadBadge,
         shape: BoxShape.circle));
   }
 }

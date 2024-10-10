@@ -126,6 +126,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: const Color(0x33808080),
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
       sectionCollapseIcon: const Color(0x7f1e2e48),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
@@ -158,6 +159,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: const Color(0x33cccccc),
       loginOrDivider: const Color(0xff424242),
       loginOrDividerText: const Color(0xffa8a8a8),
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.3).toColor(),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       sectionCollapseIcon: const Color(0x7fb6c8e2),
       // TODO(design-dark) unchanged in dark theme?
@@ -190,6 +192,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.groupDmConversationIconBg,
     required this.loginOrDivider,
     required this.loginOrDividerText,
+    required this.mutedUnreadBadge,
     required this.sectionCollapseIcon,
     required this.star,
     required this.subscriptionListHeaderLine,
@@ -231,6 +234,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color groupDmConversationIconBg;
   final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+  final Color mutedUnreadBadge;
   final Color sectionCollapseIcon;
   final Color star;
   final Color subscriptionListHeaderLine;
@@ -259,6 +263,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? groupDmConversationIconBg,
     Color? loginOrDivider,
     Color? loginOrDividerText,
+    Color? mutedUnreadBadge,
     Color? sectionCollapseIcon,
     Color? star,
     Color? subscriptionListHeaderLine,
@@ -286,6 +291,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
+      mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
@@ -320,6 +326,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
+      mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
