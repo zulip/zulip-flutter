@@ -15,11 +15,14 @@ import '../model/narrow.dart';
 import '../model/store.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
+import 'icons.dart';
+import 'inset_shadow.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 
-const double _inputVerticalPadding = 8;
-const double _sendButtonSize = 36;
+const double _composeButtonWidth = 44;
+const double _composeButtonHeight = 42;
 
 /// A [TextEditingController] for use in the compose box.
 ///
@@ -284,32 +287,51 @@ class _ContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    const verticalPadding = 8.0;
+    const contentLineHeight = 22.0;
 
-    return InputDecorator(
-      decoration: const InputDecoration(),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
+    final designVariables = DesignVariables.of(context);
 
-          // TODO constrain this adaptively (i.e. not hard-coded 200)
-          maxHeight: 200,
-        ),
-        child: ComposeAutocomplete(
-          narrow: narrow,
-          controller: controller,
-          focusNode: focusNode,
-          fieldViewBuilder: (context) {
-            return TextField(
-              controller: controller,
-              focusNode: focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-            );
-          }),
-        ));
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        // The minimum height fits a little more than 2 lines to match the spec
+        // of 54 logical pixels.  The bottom padding is not added because it
+        // is not supposed to extend the compose box.
+        minHeight: verticalPadding + contentLineHeight * 2.091,
+        // Reserve space to fully show the first 7th lines and just partially
+        // clip the 8th line, where the height matches the spec of 178 logical
+        // pixels.  The partial line hints that the content input is scrollable.
+        // The bottom padding is not added because it is not supposed to extend
+        // the compose box.
+        maxHeight: verticalPadding + contentLineHeight * 7 + contentLineHeight * 0.727),
+        child: ClipRect(
+          child: ComposeAutocomplete(
+            narrow: narrow,
+            controller: controller,
+            focusNode: focusNode,
+            fieldViewBuilder: (context) => InsetShadowBox(
+              top: 8,
+              bottom: 8,
+              color: designVariables.composeBoxBg,
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                // Not clipping content input with [TextField] gives us fine
+                // control over the clipping behavior.  Otherwise, the non-zero
+                // vertical `contentPadding` would cause the text to be clipped
+                // by a rectangle shorter than the compose box.
+                clipBehavior: Clip.none,
+                style: TextStyle(
+                  fontSize: 17,
+                  height: (contentLineHeight / 17),
+                  color: designVariables.textInput),
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(vertical: verticalPadding),
+                  hintText: hintText,
+                  hintStyle: TextStyle(
+                    color: designVariables.textInput.withValues(alpha: 0.5))))))));
   }
 }
 
@@ -391,20 +413,40 @@ class _TopicInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final designVariables = DesignVariables.of(context);
+    TextStyle topicTextStyle = TextStyle(
+      fontSize: 22,
+      height: 22 / 22,
+      color: designVariables.textInput,
+    ).merge(weightVariableTextStyle(context, wght: 600));
 
     return TopicAutocomplete(
       streamId: streamId,
       controller: controller,
       focusNode: focusNode,
       contentFocusNode: contentFocusNode,
-      fieldViewBuilder: (context) => TextField(
-        controller: controller,
-        focusNode: focusNode,
-        textInputAction: TextInputAction.next,
-        style: TextStyle(color: colorScheme.onSurface),
-        decoration: InputDecoration(hintText: zulipLocalizations.composeBoxTopicHintText),
-      ));
+      fieldViewBuilder: (context) => SizedBox(
+        height: 42,
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                textInputAction: TextInputAction.next,
+                style: topicTextStyle,
+                decoration: InputDecoration(
+                  hintText: zulipLocalizations.composeBoxTopicHintText,
+                  hintStyle: topicTextStyle.copyWith(
+                    color: designVariables.textInput.withValues(alpha: 0.5)))))),
+            SizedBox(height: 0, width: double.infinity,
+              child: DecoratedBox(decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    width: 1,
+                    color: designVariables.foreground.withValues(alpha: 0.2)))))),
+          ])));
   }
 }
 
@@ -577,10 +619,12 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return IconButton(
-      icon: Icon(icon),
-      tooltip: tooltip(zulipLocalizations),
-      onPressed: () => _handlePress(context));
+    return SizedBox(
+      width: _composeButtonWidth,
+      child: IconButton(
+        icon: Icon(icon),
+        tooltip: tooltip(zulipLocalizations),
+        onPressed: () => _handlePress(context)));
   }
 }
 
@@ -642,7 +686,7 @@ class _AttachFileButton extends _AttachUploadsButton {
   const _AttachFileButton({required super.contentController, required super.contentFocusNode});
 
   @override
-  IconData get icon => Icons.attach_file;
+  IconData get icon => ZulipIcons.attach_file;
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
@@ -658,7 +702,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
   const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
 
   @override
-  IconData get icon => Icons.image;
+  IconData get icon => ZulipIcons.image;
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
@@ -675,7 +719,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
 
   @override
-  IconData get icon => Icons.camera_alt;
+  IconData get icon => ZulipIcons.camera;
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
@@ -840,38 +884,17 @@ class _SendButtonState extends State<_SendButton> {
 
   @override
   Widget build(BuildContext context) {
-    final disabled = _hasValidationErrors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    // Copy FilledButton defaults (_FilledButtonDefaultsM3.backgroundColor)
-    final backgroundColor = disabled
-      ? colorScheme.onSurface.withValues(alpha: 0.12)
-      : colorScheme.primary;
-
-    // Copy FilledButton defaults (_FilledButtonDefaultsM3.foregroundColor)
-    final foregroundColor = disabled
-      ? colorScheme.onSurface.withValues(alpha: 0.38)
-      : colorScheme.onPrimary;
-
-    return Ink(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-        color: backgroundColor,
-      ),
+    return SizedBox(
+      width: _composeButtonWidth,
       child: IconButton(
         tooltip: zulipLocalizations.composeBoxSendTooltip,
-        style: const ButtonStyle(
-          // Match the height of the content input.
-          minimumSize: WidgetStatePropertyAll(Size.square(_sendButtonSize)),
-          // With the default of [MaterialTapTargetSize.padded], not just the
-          // tap target but the visual button would get padded to 48px square.
-          // It would be nice if the tap target extended invisibly out from the
-          // button, to make a 48px square, but that's not the behavior we get.
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        color: foregroundColor,
-        icon: const Icon(Icons.send),
+        color: _hasValidationErrors
+          ? designVariables.icon.withValues(alpha: 0.5)
+          : designVariables.icon,
+        icon: const Icon(ZulipIcons.send),
         onPressed: _send));
   }
 }
@@ -883,18 +906,22 @@ class _ComposeBoxContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final themeData = Theme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
     //   the message list itself
-    return SizedBox(width: double.infinity,
-      child: Material(
-        color: colorScheme.surfaceContainerHighest,
-        child: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: child))));
+    return Theme(
+      data: themeData.copyWith(
+        iconButtonTheme: const IconButtonThemeData(style: ButtonStyle(
+          // TODO(design): Apply this globally for all buttons.
+          splashFactory: NoSplash.splashFactory))),
+      child: Container(width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: designVariables.borderBar))),
+        child: Material(
+          color: designVariables.composeBoxBg,
+          child: SafeArea(child: child))));
   }
 }
 
@@ -915,45 +942,43 @@ class _ComposeBoxLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    ColorScheme colorScheme = themeData.colorScheme;
+    final themeData = Theme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final inputThemeData = themeData.copyWith(
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         // Both [contentPadding] and [isDense] combine to make the layout compact.
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12.0, vertical: _inputVerticalPadding),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4.0)),
-          borderSide: BorderSide.none),
-        filled: true,
-        fillColor: colorScheme.surface,
-      ),
-    );
+        contentPadding: EdgeInsets.zero,
+        border: InputBorder.none));
 
     return _ComposeBoxContainer(
       child: Column(children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Expanded(
-            child: Theme(
-              data: inputThemeData,
-              child: Column(children: [
-                if (topicInput != null) topicInput!,
-                if (topicInput != null) const SizedBox(height: 8),
-                contentInput,
-              ]))),
-          const SizedBox(width: 8),
-          sendButton,
-        ]),
-        Theme(
-          data: themeData.copyWith(
-            iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-          child: Row(children: [
-            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          ])),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Theme(
+            data: inputThemeData,
+            child: Column(children: [
+              if (topicInput != null) topicInput!,
+              contentInput,
+            ]))),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          height: _composeButtonHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Theme(
+                data: themeData.copyWith(
+                  iconTheme: themeData.iconTheme.copyWith(
+                    color: designVariables.foreground.withValues(alpha: 0.5))),
+                child: Row(children: [
+                  _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                  _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                  _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+                ])),
+              sendButton,
+            ])),
       ]));
   }
 }
