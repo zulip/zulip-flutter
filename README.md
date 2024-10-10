@@ -172,6 +172,32 @@ See [upstream docs on `flutter test`][flutter-cookbook-unit-tests].
 
 ## Notes
 
+### UI design
+
+For issues that call for building new UI, we typically have a
+design in Figma which will be linked from the issue description.
+
+When there is a design in Figma, a PR implementing the issue
+should match the design exactly, except where there's a
+good reason to make things different.
+Like with any difference between a PR and previous plans,
+you should [explain the difference](https://zulip.readthedocs.io/en/latest/contributing/reviewable-prs.html#explain-your-changes)
+clearly in your PR description.
+
+For colors, padding, font sizes, and similar design details,
+it's rare to have a good reason to differ from the
+design in Figma.
+When [reviewing your work](https://zulip.readthedocs.io/en/latest/contributing/reviewable-prs.html#review-your-own-work)
+(which you should do before every PR),
+take some time to look closely through all the details of
+the design in Figma
+and confirm that they're matched in your PR.
+
+In our code, many colors and other details appear on `DesignVariables`
+or similar classes like `ContentTheme`.  If you need a Figma variable
+which doesn't yet appear in our code, please add it.
+
+
 ### Writing tests
 
 We write tests for all changes to the Dart code in the app.
