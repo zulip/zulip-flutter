@@ -58,6 +58,26 @@ and describing your progress.
 [picking an issue to work on]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#picking-an-issue-to-work-on
 
 
+<div id="getting-help" />
+
+### Asking questions, getting help
+
+To ask for help with working on this codebase, use the
+[`#mobile-dev-help`][mobile-dev-help] channel on chat.zulip.org.
+Before participating there for the first time,
+be sure to take a minute to read our
+[community norms][norms-getting-help].
+
+For more in-depth advice on how to go beyond the minimum
+represented by our community norms, see
+Zulip's [guide to asking great questions][]
+and the resources linked from there.
+
+[mobile-dev-help]: https://chat.zulip.org/#narrow/stream/516-mobile-dev-help
+[norms-getting-help]: https://zulip.com/development-community/#getting-help
+[guide to asking great questions]: https://zulip.readthedocs.io/en/latest/contributing/asking-great-questions.html
+
+
 ### Submitting a pull request
 
 Follow the Zulip project's guide to your first codebase contribution
@@ -116,6 +136,8 @@ see our [full setup guide](docs/setup.md).
 
 If you're having trouble or seeing errors, take a look through our
 [troubleshooting section](docs/setup.md#troubleshooting).
+If that doesn't resolve the issue, see the section above on
+[how to ask for help](#getting-help).
 
 
 ### Flutter version
