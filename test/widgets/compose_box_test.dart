@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
@@ -329,6 +330,26 @@ void main() {
       // Refocusing on the content input would trigger an update to
       // [TextEditingController.selection].  Still, we expect no
       // "typing started" request if the text remains the same.
+    });
+
+    testWidgets('unfocusing app stops typing notification', (tester) async {
+      Future<void> setAppLifeCycleState(AppLifecycleState state) async {
+        // While this state lives on [ServicesBinding], testWidgets resets it
+        // for us when the test ends:
+        //   https://github.com/flutter/flutter/blob/c78c166e3ecf963ca29ed503e710fd3c71eda5c9/packages/flutter_test/lib/src/binding.dart#L1189
+        final ByteData? message = const StringCodec().encodeMessage(state.toString());
+        await tester.binding.defaultBinaryMessenger
+          .handlePlatformMessage('flutter/lifecycle', message, (_) {});
+      }
+
+      await prepareComposeBox(tester, narrow: narrow, account: account);
+
+      await checkStartTyping(tester, narrow);
+
+      connection.prepare(json: {});
+      setAppLifeCycleState(AppLifecycleState.inactive);
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.stop, narrow);
     });
   });
 
