@@ -117,8 +117,8 @@ see our [full setup guide](docs/setup.md).
 
 ### Flutter version
 
-While in the beta phase, we use the latest Flutter from Flutter's
-main branch.  Use `flutter channel main` and `flutter upgrade`.
+We use the latest Flutter from Flutter's main branch.
+Use `flutter channel main` and `flutter upgrade`.
 
 We don't pin a specific version, because Flutter itself doesn't offer
 a way to do so.  So far that hasn't been a problem.  When it becomes one,
