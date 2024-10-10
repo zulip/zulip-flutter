@@ -226,24 +226,55 @@ good time to [report them as issues][dart-test-tracker].
 
 ### Editing API types
 
-We support Zulip Server 4.0 and later.  For API features added in
-newer versions, use `TODO(server-N)` comments (like those you see
-in the existing code.)
+#### Server compatibility
 
-When editing the files in `lib/api/model/`, use the following command
-to keep the generated files up to date:
-```
-$ dart run build_runner watch --delete-conflicting-outputs
-```
+We support Zulip Server 4.0 and later.
+
+For API features added in newer versions, use `TODO(server-N)`
+comments (like those you see in the existing code.)
+
+
+#### Require all parameters in API constructors
 
 In our API types, constructors should generally avoid default values for
 their parameters, even `null`.  This means writing e.g. `required this.foo`
 rather than just `this.foo`, even when `foo` is nullable.
-This is because it's common in the Zulip API for a null or missing value
+
+We do this because it's common in the Zulip API for a null or missing value
 to be quite salient in meaning, and not a boring value appropriate for a
 default, so that it's best to ensure callers make an explicit choice.
+
 If passing explicit values in tests is cumbersome, a factory function
 in `test/example_data.dart` is an appropriate way to share defaults.
+
+
+#### Generated files
+
+When editing any of the type definitions in our API, you'll need to
+keep up to date the corresponding generated code
+(which handles converting JSON to and from our types).
+
+To do this, run the following command:
+```
+$ dart run build_runner watch --delete-conflicting-outputs
+```
+
+That `build_runner watch` command watches for changes
+in relevant files and updates the generated code as needed.
+
+When the `build_runner watch` command has finished its work and
+is waiting for more changes, you may find it convenient to
+suspend it by pressing Ctrl+Z before you edit the code further.
+While suspended, the command will not run.
+After editing the source files further, you can update the
+generated files again by running the command `fg` in the
+terminal where `build_runner watch` had been running.
+The `fg` command causes the suspended command to resume running
+(in the foreground, hence the name `fg`), just like it was doing
+before Ctrl+Z.
+
+If a PR is missing required updates to these generated files,
+CI will fail at the `build_runner` suite.
 
 
 ### Upgrading Flutter
