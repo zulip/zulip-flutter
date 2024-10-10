@@ -288,7 +288,7 @@ class _ContentInput extends StatefulWidget {
   State<_ContentInput> createState() => _ContentInputState();
 }
 
-class _ContentInputState extends State<_ContentInput> {
+class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
   String? _prevText;
 
   @override
@@ -296,6 +296,25 @@ class _ContentInputState extends State<_ContentInput> {
     super.initState();
     widget.controller.addListener(_contentChanged);
     widget.focusNode.addListener(_focusChanged);
+    // This listens to [AppLifecycleState] changes for us to check
+    // if the app is visible and in focus.
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        final store = PerAccountStoreWidget.of(context);
+        await store.typingNotifier.stoppedComposing();
+      case AppLifecycleState.resumed:
+        // The app becoming visible and getting input focus doesn't
+        // necessarily mean that the user started typing, so do nothing.
+    }
   }
 
   @override
@@ -313,6 +332,7 @@ class _ContentInputState extends State<_ContentInput> {
   void dispose() {
     widget.controller.removeListener(_contentChanged);
     widget.focusNode.removeListener(_focusChanged);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
