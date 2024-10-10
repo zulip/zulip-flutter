@@ -183,24 +183,24 @@ class TypingNotifier {
       typingStoppedWaitPeriod, () => _stopLastNotification());
   }
 
-  Future<void> _maybePingServer() async {
+  void _maybePingServer() {
     if (_timeSinceLastPing == null
       || _timeSinceLastPing!.elapsed > typingStartedWaitPeriod) {
-      await _actuallyPingServer();
+      _actuallyPingServer();
     }
   }
 
-  Future<void> _actuallyPingServer() {
+  void _actuallyPingServer() {
     // This allows us to use [clock.stopwatch] only when testing.
     _timeSinceLastPing = ZulipBinding.instance.stopwatch()..start();
 
-    return setTypingStatus(
+    unawaited(setTypingStatus(
       connection,
       op: TypingOp.start,
-      destination: _currentDestination!.destination);
+      destination: _currentDestination!.destination));
   }
 
-  Future<void> _stopLastNotification() {
+  void _stopLastNotification() {
     assert(_currentDestination != null);
     final destination = _currentDestination!;
 
@@ -208,10 +208,10 @@ class TypingNotifier {
     _currentDestination = null;
     _timeSinceLastPing = null;
 
-    return setTypingStatus(
+    unawaited(setTypingStatus(
       connection,
       op: TypingOp.stop,
-      destination: destination.destination);
+      destination: destination.destination));
   }
 
   /// In debug mode, controls whether typing notifications should be sent.
