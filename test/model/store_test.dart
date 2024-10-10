@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -460,7 +462,26 @@ void main() {
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
+    String? lastReportedError;
+    String? takeLastReportedError() {
+      final result = lastReportedError;
+      lastReportedError = null;
+      return result;
+    }
+
+    /// This is an alternative to [ZulipApp]'s implementation of
+    /// [reportErrorToUserBriefly] for testing.
+    Future<void> logAndReportErrorToUserBriefly(String? message, {
+      String? details,
+    }) async {
+      if (message == null) return;
+      lastReportedError = '$message\n$details';
+    }
+
     test('handles expired queue', () => awaitFakeAsync((async) async {
+      reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
+      addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
       await prepareStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
@@ -474,7 +495,10 @@ void main() {
       });
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
+      check(lastReportedError).isNull();
       await Future<void>.delayed(Duration.zero);
+      check(takeLastReportedError()).isNotNull()
+        .contains('Reconnecting to ${eg.realmUrl.origin}…');
       check(store).isLoading.isTrue();
 
       // The global store has a new store.
@@ -522,53 +546,110 @@ void main() {
       check(store.debugMessageListViews).isEmpty();
     }));
 
-    void checkRetry(void Function() prepareError) {
-      awaitFakeAsync((async) async {
-        await prepareStore(lastEventId: 1);
-        updateMachine.debugPauseLoop();
-        updateMachine.poll();
-        check(async.pendingTimers).length.equals(0);
+    group('retries on errors', () {
+      /// Check if [UpdateMachine.poll] retries as expected when there are
+      /// errors.
+      ///
+      /// By default, also verify that the first user-facing error message
+      /// appears after the `numFailedRequests`'th failed request.
+      ///
+      /// If `expectNotifyError` is false, instead verify that there is no
+      /// user-facing error message regardless of the retries.
+      void checkRetry(void Function() prepareError, {
+        required int numFailedRequests,
+        bool expectNotifyError = true,
+      }) {
+        assert(numFailedRequests > 0);
+        reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
+        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
 
-        // Make the request, inducing an error in it.
-        prepareError();
-        updateMachine.debugAdvanceLoop();
-        async.elapse(Duration.zero);
-        checkLastRequest(lastEventId: 1);
-        check(store).isLoading.isTrue();
+        final expectedErrorMessage =
+          'Error connecting to Zulip. Retrying…\n'
+          'Error connecting to Zulip at ${eg.realmUrl.origin}. Will retry';
 
-        // Polling doesn't resume immediately; there's a timer.
-        check(async.pendingTimers).length.equals(1);
-        updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
-        check(connection.lastRequest).isNull();
-        check(async.pendingTimers).length.equals(1);
+        awaitFakeAsync((async) async {
+          await prepareStore(lastEventId: 1);
+          updateMachine.debugPauseLoop();
+          updateMachine.poll();
+          check(async.pendingTimers).length.equals(0);
 
-        // Polling continues after a timer.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
-        async.flushTimers();
-        checkLastRequest(lastEventId: 1);
-        check(updateMachine.lastEventId).equals(2);
-        check(store).isLoading.isFalse();
+          for (int i = 0; i < numFailedRequests; i++) {
+            // Make the request, inducing an error in it.
+            prepareError();
+            updateMachine.debugAdvanceLoop();
+            async.elapse(Duration.zero);
+            checkLastRequest(lastEventId: 1);
+            check(store).isLoading.isTrue();
+
+            if (i != numFailedRequests - 1) {
+              // Skip polling backoff unless this is the final iteration.
+              // This allows the next `updateMachine.debugAdvanceLoop` call to
+              // trigger the next request without wait.
+              async.flushTimers();
+            }
+
+            if (!expectNotifyError) {
+              // No matter how many retries there have been, no request should
+              // result in an error message.
+              check(takeLastReportedError()).isNull();
+              continue;
+            }
+            if (i < numFailedRequests - 1) {
+              // The error message should not appear until the `updateMachine`
+              // has retried the given number of times.
+              check(takeLastReportedError()).isNull();
+              continue;
+            }
+            assert(expectNotifyError);
+            assert(i == numFailedRequests - 1);
+            check(takeLastReportedError()).isNotNull().contains(expectedErrorMessage);
+          }
+
+          // Polling doesn't resume immediately; there's a timer.
+          check(async.pendingTimers).length.equals(1);
+          updateMachine.debugAdvanceLoop();
+          async.flushMicrotasks();
+          check(connection.lastRequest).isNull();
+          check(async.pendingTimers).length.equals(1);
+
+          // Polling continues after a timer.
+          connection.prepare(json: GetEventsResult(events: [
+            HeartbeatEvent(id: 2),
+          ], queueId: null).toJson());
+          async.flushTimers();
+          checkLastRequest(lastEventId: 1);
+          check(updateMachine.lastEventId).equals(2);
+          check(store).isLoading.isFalse();
+        });
+      }
+
+      test('Server5xxException', () {
+        checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'),
+          numFailedRequests: UpdateMachine.transientFailureCountNotifyThreshold + 1);
       });
-    }
 
-    test('retries on Server5xxException', () {
-      checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
-    });
+      test('NetworkException', () {
+        checkRetry(() => connection.prepare(exception: Exception("failed")),
+          numFailedRequests: UpdateMachine.transientFailureCountNotifyThreshold + 1);
+      });
 
-    test('retries on NetworkException', () {
-      checkRetry(() => connection.prepare(exception: Exception("failed")));
-    });
+      test('NetworkException to be ignored', () {
+        checkRetry(() => connection.prepare(
+          exception: const SocketException("failed")),
+          numFailedRequests: UpdateMachine.transientFailureCountNotifyThreshold + 1,
+          expectNotifyError: false);
+      });
 
-    test('retries on ZulipApiException', () {
-      checkRetry(() => connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
-    });
+      test('ZulipApiException', () {
+        checkRetry(() => connection.prepare(httpStatus: 400, json: {
+          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}),
+          numFailedRequests: 1);
+      });
 
-    test('retries on MalformedServerResponseException', () {
-      checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+      test('MalformedServerResponseException', () {
+        checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'),
+          numFailedRequests: 1);
+      });
     });
   });
 
