@@ -101,7 +101,8 @@ void main() {
     testWidgets('MessageListPageState.narrow', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
-        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")],
+        streams: [stream]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
     });
@@ -109,7 +110,8 @@ void main() {
     testWidgets('composeBoxController finds compose box', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
-        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
+        messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")],
+        streams: [stream]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxController).isNotNull();
     });
