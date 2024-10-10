@@ -123,6 +123,12 @@ Use `flutter channel main` and `flutter upgrade`.
 Because each version of Flutter provides its own version of the
 Dart SDK, this also means we use the latest Dart SDK.
 
+Using the latest versions is the same thing Google does with
+their own Flutter apps.  It's valuable to us because it means
+when there's something we want to fix in Flutter,
+or a feature we want to add,
+we can send a PR upstream and then use it as soon as it's merged.
+
 We don't pin a specific Flutter version,
 because Flutter itself doesn't offer a way to do so.
 So far that hasn't been a problem.  When it becomes one,
