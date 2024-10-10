@@ -117,7 +117,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xfff0f0f0),
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
-      atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
+      atMentionMarker: const HSLColor.fromAHSL(0.7, 0, 0, 0.2).toColor(),
+      mutedAtMentionMarker: const HSLColor.fromAHSL(0.35, 0, 0, 0.2).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.57, 0.33).toColor(),
@@ -147,7 +148,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
+      atMentionMarker: const HSLColor.fromAHSL(0.7, 0, 0, 1).toColor(),
+      mutedAtMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
       errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
@@ -182,6 +184,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.title,
     required this.channelColorSwatches,
     required this.atMentionMarker,
+    required this.mutedAtMentionMarker,
     required this.dmHeaderBg,
     required this.errorBannerBackground,
     required this.errorBannerBorder,
@@ -223,6 +226,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
   final Color atMentionMarker;
+  final Color mutedAtMentionMarker;
   final Color dmHeaderBg;
   final Color errorBannerBackground;
   final Color errorBannerBorder;
@@ -251,6 +255,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
     Color? atMentionMarker,
+    Color? mutedAtMentionMarker,
     Color? dmHeaderBg,
     Color? errorBannerBackground,
     Color? errorBannerBorder,
@@ -278,6 +283,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
+      mutedAtMentionMarker: mutedAtMentionMarker ?? this.mutedAtMentionMarker,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
       errorBannerBackground: errorBannerBackground ?? this.errorBannerBackground,
       errorBannerBorder: errorBannerBorder ?? this.errorBannerBorder,
@@ -312,6 +318,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
+      mutedAtMentionMarker: Color.lerp(mutedAtMentionMarker, other.mutedAtMentionMarker, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
       errorBannerBackground: Color.lerp(errorBannerBackground, other.errorBannerBackground, t)!,
       errorBannerBorder: Color.lerp(errorBannerBorder, other.errorBannerBorder, t)!,

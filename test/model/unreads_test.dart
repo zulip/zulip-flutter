@@ -240,6 +240,23 @@ void main() {
     });
   });
 
+  group('onMessagesFetched', () {
+    test('messages are added to mentions when they are not read and include mention', () async {
+      final stream = eg.stream();
+      prepare();
+      await channelStore.addStream(stream);
+      check(model.mentions).isEmpty();
+      fillWithMessages([
+        eg.streamMessage(stream: stream, flags: []),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned, MessageFlag.read]),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
+        eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
+      ]);
+
+      check(model.mentions.length).equals(2);
+    });
+  });
+
   group('handleMessageEvent', () {
     for (final (isUnread, isStream, isDirectMentioned, isWildcardMentioned) in [
       (true,  true,  true,  true ),
@@ -308,6 +325,48 @@ void main() {
             checkMatchesMessages([oldMessage, newMessage]);
           });
         }
+      });
+
+      test('channelsWithUnreadMentions', () {
+        final stream1 = eg.stream();
+        final stream2 = eg.stream();
+
+        prepare();
+        fillWithMessages([
+          eg.streamMessage(stream: stream1, flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: stream1, flags: []),
+          eg.streamMessage(stream: stream2, flags: []),
+        ]);
+
+        check(model.channelsWithUnreadMentions.single).equals(stream1.streamId);
+      });
+
+      test('channelsWithUnmutedMentions', () async {
+        final stream1 = eg.stream();
+        final stream2 = eg.stream();
+        final stream3 = eg.stream();
+        final streams = [stream1, stream2, stream3];
+
+        prepare();
+
+        await channelStore.addStreams(streams);
+        await channelStore.addSubscriptions([
+          eg.subscription(stream1),
+          eg.subscription(stream2),
+          eg.subscription(stream3, isMuted: true)]);
+
+        await channelStore.addUserTopic(stream1, 'a normal', UserTopicVisibilityPolicy.none);
+        await channelStore.addUserTopic(stream2, 'b muted', UserTopicVisibilityPolicy.muted);
+        await channelStore.addUserTopic(stream3, 'c normal', UserTopicVisibilityPolicy.none);
+
+
+        fillWithMessages([
+          eg.streamMessage(stream: stream1, flags: [MessageFlag.mentioned], topic: 'a normal'),
+          eg.streamMessage(stream: stream2, flags: [MessageFlag.mentioned], topic: 'b muted'),
+          eg.streamMessage(stream: stream3, flags: [MessageFlag.mentioned], topic: 'c normal'),
+        ]);
+
+        check(model.channelsWithUnmutedMentions.single).equals(stream1.streamId);
       });
     });
 

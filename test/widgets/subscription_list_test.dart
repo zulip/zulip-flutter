@@ -190,6 +190,29 @@ void main() {
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
+  testWidgets('unread badge shows as faded when non-muted subscription has only muted mentions', (tester) async {
+    final stream = eg.stream();
+
+    await setupStreamListPage(tester,
+      subscriptions: [
+        eg.subscription(stream),
+      ],
+      userTopics: [
+        eg.userTopicItem(stream, 'a', UserTopicVisibilityPolicy.muted),
+      ],
+      unreadMsgs: eg.unreadMsgs(
+        mentions: [1, 2],
+        channels: [
+          UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+        ]),
+    );
+
+    check(find.byType(AtMentionMarker).evaluate()).single;
+    check(tester.widget<Text>(find.descendant(
+      of: find.byType(UnreadCountBadge), matching: find.byType(Text))))
+      .data.equals('2');
+  });
+
   testWidgets('muted unread badge shows when unreads are visible in channel but not inbox', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
@@ -316,5 +339,59 @@ void main() {
     checkStreamNameWght(unmutedStreamWithNoUnmutedUnreads.name, 400);
     checkStreamNameWght(mutedStreamWithUnmutedUnreads.name,     400);
     checkStreamNameWght(mutedStreamWithNoUnmutedUnreads.name,   400);
+  });
+
+  group('@-mention marker', () {
+    Iterable<AtMentionMarker> getAtMentionMarkers(WidgetTester tester) {
+      return tester.widgetList<AtMentionMarker>(find.byType(AtMentionMarker));
+    }
+
+    testWidgets('is shown when subscription has unread mentions', (tester) async {
+      final streamWithMentions =   eg.stream();
+      final streamWithNoMentions = eg.stream();
+
+      await setupStreamListPage(tester,
+        subscriptions: [
+          eg.subscription(streamWithMentions),
+          eg.subscription(streamWithNoMentions),
+        ],
+        userTopics: [
+          eg.userTopicItem(streamWithMentions,   'a', UserTopicVisibilityPolicy.none),
+          eg.userTopicItem(streamWithNoMentions, 'b', UserTopicVisibilityPolicy.muted),
+        ],
+        unreadMsgs: eg.unreadMsgs(
+          mentions: [1],
+          channels: [
+            UnreadChannelSnapshot(streamId: streamWithMentions.streamId,   topic: 'a', unreadMessageIds: [1]),
+            UnreadChannelSnapshot(streamId: streamWithNoMentions.streamId, topic: 'b', unreadMessageIds: [2]),
+          ]),
+      );
+
+      check(getAtMentionMarkers(tester)).single;
+    });
+
+    testWidgets('is muted when subscription has only muted mentions', (tester) async {
+      final streamWithMentions =          eg.stream();
+      final streamWithOnlyMutedMentions = eg.stream();
+
+      await setupStreamListPage(tester,
+        subscriptions: [
+          eg.subscription(streamWithMentions),
+          eg.subscription(streamWithOnlyMutedMentions, isMuted: true),
+        ],
+        userTopics: [
+          eg.userTopicItem(streamWithMentions,          'a', UserTopicVisibilityPolicy.none),
+          eg.userTopicItem(streamWithOnlyMutedMentions, 'b', UserTopicVisibilityPolicy.none),
+        ],
+        unreadMsgs: eg.unreadMsgs(
+          mentions: [1, 2],
+          channels: [
+            UnreadChannelSnapshot(streamId: streamWithMentions.streamId,          topic: 'a', unreadMessageIds: [1]),
+            UnreadChannelSnapshot(streamId: streamWithOnlyMutedMentions.streamId, topic: 'b', unreadMessageIds: [2]),
+          ]),
+      );
+
+      check(getAtMentionMarkers(tester).map((e) => e.muted)).deepEquals([false, true]);
+    });
   });
 }
