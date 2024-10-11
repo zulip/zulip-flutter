@@ -421,7 +421,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_checks:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: flutter_checks
       sha256: b0a40b15d38436b7c08b83353e74b0569c1ec687bd81c9556091fbb8807c1b99
@@ -692,7 +692,7 @@ packages:
     source: hosted
     version: "3.0.1"
   legacy_checks:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: legacy_checks
       sha256: b22e5b1ff55a14e8bd91acafbabff909e14829b73ca492dcdaf0fbbb70476079
