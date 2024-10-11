@@ -64,15 +64,19 @@ void main() {
     });
 
     test('send rejects off-realm URL (with default useAuth)', () async {
-      Future<void> checkAllow(String realmUrl, String requestUrl) async {
-        check(await makeRequest(realmUrl, requestUrl))
-          .isA<http.Request>()
-          .url.asString.equals(requestUrl);
+      void checkAllow(String realmUrl, String requestUrl) {
+        finish(() async {
+          check(await makeRequest(realmUrl, requestUrl))
+            .isA<http.Request>()
+            .url.asString.equals(requestUrl);
+        }());
       }
 
-      Future<void> checkDeny(String realmUrl, String requestUrl) async {
-        await check(makeRequest(realmUrl, requestUrl))
-          .throws<StateError>();
+      void checkDeny(String realmUrl, String requestUrl) async {
+        finish(() async {
+          await check(makeRequest(realmUrl, requestUrl))
+            .throws<StateError>();
+        }());
       }
 
       // Baseline: normal requests are allowed.
