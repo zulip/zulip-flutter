@@ -39,8 +39,7 @@ void main() {
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: const Scaffold(body: Placeholder())));
-    // global store, per-account store get loaded
-    await tester.pumpAndSettle();
+    await tester.pump();
     context = tester.element(find.byType(Placeholder));
   }
 
@@ -52,8 +51,9 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -76,8 +76,9 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -101,9 +102,9 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
-      await tester.pumpAndSettle();
+      await future;
       check(store.unreads.oldUnreadsMissing).isFalse();
     });
 
@@ -115,8 +116,9 @@ void main() {
 
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/mark_all_as_read')
@@ -133,8 +135,9 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/mark_stream_as_read')
@@ -148,8 +151,9 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/mark_topic_as_read')
@@ -170,8 +174,9 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags')
@@ -190,8 +195,9 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      markNarrowAsRead(context, narrow);
+      final future = markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
+      await future;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages/flags')
@@ -272,7 +278,7 @@ void main() {
         processedCount: 20, updatedCount: 10,
         firstProcessedId: 2000, lastProcessedId: 2023,
         foundOldest: false, foundNewest: true).toJson());
-      await tester.pumpAndSettle();
+      await tester.pump(Duration.zero);
       check(find.bySubtype<SnackBar>().evaluate()).length.equals(1);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
@@ -310,8 +316,6 @@ void main() {
             'op': 'add',
             'flag': 'read',
           });
-
-      await tester.pumpAndSettle();
       checkErrorDialog(tester,
         expectedTitle: onFailedTitle,
         expectedMessage: zulipLocalizations.errorInvalidResponse);
@@ -323,7 +327,6 @@ void main() {
       connection.prepare(exception: http.ClientException('Oops'));
       final didPass = invokeUpdateMessageFlagsStartingFromAnchor();
       await tester.pump(Duration.zero);
-      await tester.pumpAndSettle();
       checkErrorDialog(tester,
         expectedTitle: onFailedTitle,
         expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
