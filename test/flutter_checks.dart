@@ -43,6 +43,10 @@ extension IconChecks on Subject<Icon> {
   // TODO others
 }
 
+extension IconButtonChecks on Subject<IconButton> {
+  Subject<void Function()?> get onPressed => has((i) => i.onPressed, 'onPressed');
+}
+
 extension RouteChecks<T> on Subject<Route<T>> {
   Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
 }
@@ -73,6 +77,7 @@ extension TextFieldChecks on Subject<TextField> {
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
   Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
   Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
+  Subject<bool?> get readOnly => has((t) => t.readOnly, 'readOnly');
 }
 
 extension TextStyleChecks on Subject<TextStyle> {
