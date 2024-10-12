@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -65,18 +66,16 @@ void main() {
 
     test('send rejects off-realm URL (with default useAuth)', () async {
       void checkAllow(String realmUrl, String requestUrl) {
-        finish(() async {
-          check(await makeRequest(realmUrl, requestUrl))
-            .isA<http.Request>()
-            .url.asString.equals(requestUrl);
-        }());
+        // No need to await directly; `check` ensures the future completes
+        // before the enclosing test is considered complete.
+        unawaited(check(makeRequest(realmUrl, requestUrl))
+          .completes((it) => it.isA<http.Request>()
+            .url.asString.equals(requestUrl)));
       }
 
-      void checkDeny(String realmUrl, String requestUrl) async {
-        finish(() async {
-          await check(makeRequest(realmUrl, requestUrl))
-            .throws<StateError>();
-        }());
+      void checkDeny(String realmUrl, String requestUrl) {
+        unawaited(check(makeRequest(realmUrl, requestUrl))
+          .throws<StateError>());
       }
 
       // Baseline: normal requests are allowed.
@@ -246,7 +245,7 @@ void main() {
   test('API network errors', () async {
     void checkRequest<T extends Object>(
         T exception, Condition<NetworkException> condition) {
-      finish(check(tryRequest(exception: exception))
+      unawaited(check(tryRequest(exception: exception))
         .throws<NetworkException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..cause.equals(exception)
@@ -300,7 +299,7 @@ void main() {
     void checkMalformed({
         int httpStatus = 400, Map<String, dynamic>? json, String? body}) {
       assert((json == null) != (body == null));
-      finish(check(tryRequest(httpStatus: httpStatus, json: json, body: body))
+      unawaited(check(tryRequest(httpStatus: httpStatus, json: json, body: body))
         .throws<MalformedServerResponseException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..httpStatus.equals(httpStatus)
