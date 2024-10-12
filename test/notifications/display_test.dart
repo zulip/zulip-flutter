@@ -14,6 +14,7 @@ import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -127,6 +128,8 @@ void main() {
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
+        ..soundUri.equals(testBinding.androidNotificationHost.fakeStoredNotificationSoundUri(
+            NotificationChannelManager.kDefaultNotificationSound.resourceName))
         ..vibrationPattern.isNotNull().deepEquals(
             NotificationChannelManager.kVibrationPattern)
       ;
@@ -203,6 +206,160 @@ void main() {
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('on Android 28 (and lower) resource file is used for notification sound', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      // Override android version
+      testBinding.deviceInfoResult =
+        const AndroidDeviceInfo(sdkInt: 28, release: '10');
+
+      // Ensure that on Android 10, notification sounds aren't being copied to
+      // the media store, and resource file is used directly.
+      await NotificationChannelManager.ensureChannel();
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls()).length.equals(0);
+
+      final defaultSoundResourceName =
+        NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      // Android resource uri.
+      final soundUri =
+        'android.resource://com.zulip.flutter/raw/$defaultSoundResourceName';
+      check(androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..soundUri.equals(soundUri)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('notification sound resource files are being copied to the media store', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      await NotificationChannelManager.ensureChannel();
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
+        .deepEquals(NotificationSound.values.map((e) => (
+          sourceResourceName: e.resourceName,
+          targetFileDisplayName: e.fileDisplayName),
+        ));
+
+      // Ensure the default source uri points to a file in the media store,
+      // rather than a resource file.
+      final defaultSoundResourceName =
+        NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      final soundUri =
+        androidNotificationHost.fakeStoredNotificationSoundUri(defaultSoundResourceName);
+      check(androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..soundUri.equals(soundUri)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('notification sounds are not copied again if they were previously copied', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      // Emulate that all notifications sounds are already in the media store.
+      androidNotificationHost.setupStoredNotificationSounds(
+        NotificationSound.values.map((e) => StoredNotificationsSound(
+          fileName: e.fileDisplayName,
+          isOwner: true,
+          uri: androidNotificationHost.fakeStoredNotificationSoundUri(e.resourceName)),
+        ).toList(),
+      );
+
+      await NotificationChannelManager.ensureChannel();
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls()).length.equals(0);
+
+      final defaultSoundResourceName =
+        NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      final soundUri =
+        androidNotificationHost.fakeStoredNotificationSoundUri(defaultSoundResourceName);
+      check(androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..soundUri.equals(soundUri)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('new notifications sounds are copied to media store', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      // Emulate that except one sound, all other sounds are already in
+      // media store.
+      androidNotificationHost.setupStoredNotificationSounds(
+        NotificationSound.values.map((e) => StoredNotificationsSound(
+          fileName: e.fileDisplayName,
+          isOwner: true,
+          uri: androidNotificationHost.fakeStoredNotificationSoundUri(e.resourceName)),
+        ).skip(1).toList()
+      );
+
+      await NotificationChannelManager.ensureChannel();
+      final firstSound = NotificationSound.values.first;
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
+        .single
+        ..sourceResourceName.equals(firstSound.resourceName)
+        ..targetFileDisplayName.equals(firstSound.fileDisplayName);
+
+      final defaultSoundResourceName =
+        NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      final soundUri =
+        androidNotificationHost.fakeStoredNotificationSoundUri(defaultSoundResourceName);
+      check(androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..soundUri.equals(soundUri)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('no recopying of existing notification sounds in the media store; default sound uri points to resource file', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      androidNotificationHost.setupStoredNotificationSounds(
+        NotificationSound.values.map((e) => StoredNotificationsSound(
+          fileName: e.fileDisplayName,
+          isOwner: false,
+          uri: androidNotificationHost.fakeStoredNotificationSoundUri(e.resourceName)),
+        ).toList()
+      );
+
+      // Ensure that if a notification sound with the same name already exists
+      // in the media store, but it wasn't copied by us, no recopying should
+      // happen. Additionally, the default sound uri should point to the
+      // resource file, not the version in the media store.
+      await NotificationChannelManager.ensureChannel();
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls()).length.equals(0);
+
+      final defaultSoundResourceName =
+        NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      // Android resource uri.
+      final soundUri =
+        'android.resource://com.zulip.flutter/raw/$defaultSoundResourceName';
+      check(androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..soundUri.equals(soundUri)
         ..vibrationPattern.isNotNull().deepEquals(
             NotificationChannelManager.kVibrationPattern);
     });
@@ -951,11 +1108,17 @@ void main() {
   });
 }
 
+extension on Subject<CopySoundResourceToMediaStoreCall> {
+  Subject<String> get targetFileDisplayName => has((x) => x.targetFileDisplayName, 'targetFileDisplayName');
+  Subject<String> get sourceResourceName => has((x) => x.sourceResourceName, 'sourceResourceName');
+}
+
 extension NotificationChannelChecks on Subject<NotificationChannel> {
   Subject<String> get id => has((x) => x.id, 'id');
   Subject<int> get importance => has((x) => x.importance, 'importance');
   Subject<String?> get name => has((x) => x.name, 'name');
   Subject<bool?> get lightsEnabled => has((x) => x.lightsEnabled, 'lightsEnabled');
+  Subject<String?> get soundUri => has((x) => x.soundUri, 'soundUri');
   Subject<Int64List?> get vibrationPattern => has((x) => x.vibrationPattern, 'vibrationPattern');
 }
 
