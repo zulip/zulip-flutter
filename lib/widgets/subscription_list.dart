@@ -185,6 +185,8 @@ class _SubscriptionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final channelsWithMentions = unreadsModel!.channelsWithUnreadMentions;
+    final channelsWithUnmutedMentions = unreadsModel!.channelsWithUnmutedMentions;
     return SliverList.builder(
       itemCount: subscriptions.length,
       itemBuilder: (BuildContext context, int index) {
@@ -192,9 +194,17 @@ class _SubscriptionList extends StatelessWidget {
         final unreadCount = unreadsModel!.countInChannel(subscription.streamId);
         final showMutedUnreadBadge = unreadCount == 0
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
+        final hasMentions = channelsWithMentions.contains(subscription.streamId);
+        final hasOnlyMutedMentions = !subscription.isMuted && hasMentions
+          && !channelsWithUnmutedMentions.contains(subscription.streamId);
+        final mutedUnreadCount = hasOnlyMutedMentions && unreadCount == 0 ?
+          unreadsModel!.countAll(subscription.streamId) : 0;
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
-          showMutedUnreadBadge: showMutedUnreadBadge);
+          mutedUnreadCount: mutedUnreadCount,
+          showMutedUnreadBadge: showMutedUnreadBadge,
+          hasMentions: hasMentions,
+          hasOnlyMutedMentions: hasOnlyMutedMentions);
     });
   }
 }
@@ -205,12 +215,18 @@ class SubscriptionItem extends StatelessWidget {
     super.key,
     required this.subscription,
     required this.unreadCount,
+    required this.mutedUnreadCount,
     required this.showMutedUnreadBadge,
+    required this.hasMentions,
+    required this.hasOnlyMutedMentions,
   });
 
   final Subscription subscription;
   final int unreadCount;
+  final int mutedUnreadCount;
   final bool showMutedUnreadBadge;
+  final bool hasMentions;
+  final bool hasOnlyMutedMentions;
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +234,8 @@ class SubscriptionItem extends StatelessWidget {
 
     final swatch = colorSwatchFor(context, subscription);
     final hasUnreads = (unreadCount > 0);
-    final opacity = subscription.isMuted ? 0.55 : 1.0;
+    const mutedOpacity = 0.55;
+    final opacity = subscription.isMuted ? mutedOpacity : 1.0;
     return Material(
       // TODO(design) check if this is the right variable
       color: designVariables.background,
@@ -258,16 +275,25 @@ class SubscriptionItem extends StatelessWidget {
                   subscription.name)))),
           if (hasUnreads) ...[
             const SizedBox(width: 12),
-            // TODO(#747) show @-mention indicator when it applies
+            if (hasMentions) AtMentionMarker(muted: !subscription.isMuted && hasOnlyMutedMentions),
             Opacity(
               opacity: opacity,
               child: UnreadCountBadge(
                 count: unreadCount,
                 backgroundColor: swatch,
                 bold: true)),
+          ] else if (hasOnlyMutedMentions && !subscription.isMuted) ...[
+            const SizedBox(width: 12),
+            const AtMentionMarker(muted: true),
+            Opacity(
+              opacity: mutedOpacity,
+              child: UnreadCountBadge(
+                count: mutedUnreadCount,
+                backgroundColor: swatch,
+                bold: true)),
           ] else if (showMutedUnreadBadge) ...[
             const SizedBox(width: 12),
-            // TODO(#747) show @-mention indicator when it applies
+            if (hasMentions) const AtMentionMarker(muted: true),
             const MutedUnreadBadge(),
           ],
           const SizedBox(width: 16),

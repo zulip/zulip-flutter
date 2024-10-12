@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'channel_colors.dart';
+import 'icons.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -71,5 +72,24 @@ class MutedUnreadBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: designVariables.mutedUnreadBadge,
         shape: BoxShape.circle));
+  }
+}
+
+class AtMentionMarker extends StatelessWidget {
+  const AtMentionMarker({super.key, required this.muted});
+
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    // Design for at-mention marker based on Figma screen:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 4),
+      child: Icon(
+        ZulipIcons.at_sign,
+        size: 14,
+        color: muted ? designVariables.mutedAtMentionMarker : designVariables.atMentionMarker));
   }
 }

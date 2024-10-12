@@ -32,8 +32,6 @@ import 'channel.dart';
 /// unsubscribed streams and messages sent by muted users.
 // TODO When [oldUnreadsMissing], if you load a message list with very old unreads,
 //   sync to those unreads, because the user has shown an interest in them.
-// TODO When loading a message list with stream messages, check all the stream
-//   messages and refresh [mentions] (see [mentions] dartdoc).
 class Unreads extends ChangeNotifier {
   factory Unreads({
     required UnreadMessagesSnapshot initial,
@@ -41,6 +39,7 @@ class Unreads extends ChangeNotifier {
     required ChannelStore channelStore,
   }) {
     final streams = <int, Map<String, QueueList<int>>>{};
+    final streamIdsAndTopicsByMessageId = <int, ({int streamId, String topic})>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
@@ -48,6 +47,9 @@ class Unreads extends ChangeNotifier {
       final streamId = unreadChannelSnapshot.streamId;
       final topic = unreadChannelSnapshot.topic;
       (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
+      final messageInfo = (streamId: streamId, topic: topic);
+      streamIdsAndTopicsByMessageId.addEntries(
+        unreadChannelSnapshot.unreadMessageIds.map((messageId) => MapEntry(messageId, messageInfo)));
     }
 
     for (final unreadDmSnapshot in initial.dms) {
@@ -64,6 +66,7 @@ class Unreads extends ChangeNotifier {
     return Unreads._(
       channelStore: channelStore,
       streams: streams,
+      streamIdsAndTopicsByMessageId: streamIdsAndTopicsByMessageId,
       dms: dms,
       mentions: mentions,
       oldUnreadsMissing: initial.oldUnreadsMissing,
@@ -74,11 +77,12 @@ class Unreads extends ChangeNotifier {
   Unreads._({
     required this.channelStore,
     required this.streams,
+    required Map<int, ({int streamId, String topic})> streamIdsAndTopicsByMessageId,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
     required this.selfUserId,
-  });
+  }) : _streamIdsAndTopicsByMessageId = streamIdsAndTopicsByMessageId;
 
   final ChannelStore channelStore;
 
@@ -87,6 +91,11 @@ class Unreads extends ChangeNotifier {
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
   final Map<int, Map<String, QueueList<int>>> streams;
+
+  /// Stream IDs and topics for unread stream messages, as: message ID → (stream ID, topic).
+  ///
+  /// This is the same data as [streams], but in this message ID-keyed form.
+  final Map<int, ({int streamId, String topic})> _streamIdsAndTopicsByMessageId;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -103,7 +112,7 @@ class Unreads extends ChangeNotifier {
   ///   a) the message is edited at all ([UpdateMessageEvent]),
   ///      assuming it still has a direct or wildcard mention after the edit, or
   ///   b) the message gains a direct @-mention ([UpdateMessageFlagsEvent]), or
-  ///   c) TODO unimplemented: the user loads the message in the message list
+  ///   c) the user loads the message in the message list
   /// But otherwise, assume its unread state remains unknown to [mentions].
   ///
   /// [1] This item applies verbatim at Server 8.0+. For older servers, the
@@ -185,6 +194,25 @@ class Unreads extends ChangeNotifier {
     return c;
   }
 
+  /// The "broadest" unread count for this channel,
+  /// without doing any checking on visibility policy.
+  ///
+  /// This includes all topics that have regardless visibility policy,
+  /// even if the channel is muted.
+  ///
+  /// This is needed for one specific case, which is when the channel has
+  /// only muted unreads including a mention or more, in that case we show
+  /// total unread count including muted unreads.
+  int countAll(int streamId) {
+    final topics = streams[streamId];
+    if (topics == null) return 0;
+    int c = 0;
+    for (final entry in topics.entries) {
+      c = c + entry.value.length;
+    }
+    return c;
+  }
+
   int countInTopicNarrow(int streamId, String topic) {
     final topics = streams[streamId];
     return topics?[topic]?.length ?? 0;
@@ -211,6 +239,38 @@ class Unreads extends ChangeNotifier {
         return countInMentionsNarrow();
       case StarredMessagesNarrow():
         return countInStarredMessagesNarrow();
+    }
+  }
+
+  Set<int> get channelsWithUnreadMentions {
+    final channels = <int>{};
+    for (var messageId in mentions) {
+      final streamId = _streamIdsAndTopicsByMessageId[messageId]?.streamId;
+      if (streamId != null) {
+        channels.add(streamId);
+      }
+    }
+    return channels;
+  }
+
+  Set<int> get channelsWithUnmutedMentions {
+    final channels = <int>{};
+    for (var messageId in mentions) {
+      final (:streamId, :topic) = _streamIdsAndTopicsByMessageId[messageId]!;
+      if (channelStore.isTopicVisible(streamId, topic)) {
+        channels.add(streamId);
+      }
+    }
+    return channels;
+  }
+
+  void reconcileMessages(List<Message> messages) {
+    for (final message in messages) {
+      if (message.flags.contains(MessageFlag.read)) continue;
+      if (message.flags.contains(MessageFlag.mentioned)
+        || message.flags.contains(MessageFlag.wildcardMentioned)) {
+        mentions.add(message.id);
+      }
     }
   }
 
@@ -342,6 +402,7 @@ class Unreads extends ChangeNotifier {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {
               streams.clear();
+              _streamIdsAndTopicsByMessageId.clear();
               dms.clear();
               mentions.clear();
               oldUnreadsMissing = false;
@@ -438,6 +499,7 @@ class Unreads extends ChangeNotifier {
 
   void _addLastInStreamTopic(int messageId, int streamId, String topic) {
     ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    _streamIdsAndTopicsByMessageId[messageId] = (streamId: streamId, topic: topic);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
@@ -450,6 +512,9 @@ class Unreads extends ChangeNotifier {
       // TODO(server-6) remove 6.0 comment
       (existing) => setUnion(existing, messageIds),
     );
+    final messageInfo = (streamId: streamId, topic: topic);
+    _streamIdsAndTopicsByMessageId.addEntries(
+      messageIds.map((messageId) => MapEntry(messageId, messageInfo)));
   }
 
   // TODO use efficient model lookups
@@ -473,6 +538,9 @@ class Unreads extends ChangeNotifier {
     for (final streamId in newlyEmptyStreams) {
       streams.remove(streamId);
     }
+    for (final messageId in idsToRemove) {
+      _streamIdsAndTopicsByMessageId.remove(messageId);
+    }
   }
 
   void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
@@ -488,6 +556,9 @@ class Unreads extends ChangeNotifier {
       if (topics.isEmpty) {
         streams.remove(streamId);
       }
+    }
+    for (final messageId in incomingMessageIds) {
+      _streamIdsAndTopicsByMessageId.remove(messageId);
     }
   }
 
