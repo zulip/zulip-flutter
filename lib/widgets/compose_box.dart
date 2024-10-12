@@ -895,6 +895,7 @@ class _ComposeBoxLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final inputThemeData = themeData.copyWith(
       inputDecorationTheme: const InputDecorationTheme(
@@ -902,6 +903,20 @@ class _ComposeBoxLayout extends StatelessWidget {
         isDense: true,
         contentPadding: EdgeInsets.zero,
         border: InputBorder.none));
+
+    // TODO(design): Disable splash effects for all buttons globally.
+    final iconButtonThemeData = themeData.copyWith(
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
+          // TODO: The Figma design specifies a different icon color on pressed,
+          //   but `IconButton` currently does not have support for that.
+          //   See also:
+          //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3707-41711&node-type=frame&t=sSYomsJzGCt34D8N-0
+          overlayColor: designVariables.editorButtonPressedBg,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+            side: BorderSide(color: Colors.transparent)))));
 
     return _ComposeBoxContainer(
       child: Column(children: [
@@ -916,22 +931,24 @@ class _ComposeBoxLayout extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           height: _composeButtonsRowHeight,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(children: [
-                _AttachFileButton(
-                  contentController: contentController,
-                  contentFocusNode: contentFocusNode),
-                _AttachMediaButton(
-                  contentController: contentController,
-                  contentFocusNode: contentFocusNode),
-                _AttachFromCameraButton(
-                  contentController: contentController,
-                  contentFocusNode: contentFocusNode),
-              ]),
-              sendButton,
-            ])),
+          child: Theme(
+            data: iconButtonThemeData,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(children: [
+                  _AttachFileButton(
+                    contentController: contentController,
+                    contentFocusNode: contentFocusNode),
+                  _AttachMediaButton(
+                    contentController: contentController,
+                    contentFocusNode: contentFocusNode),
+                  _AttachFromCameraButton(
+                    contentController: contentController,
+                    contentFocusNode: contentFocusNode),
+                ]),
+                sendButton,
+              ]))),
       ]));
   }
 }
