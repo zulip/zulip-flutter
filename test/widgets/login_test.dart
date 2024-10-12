@@ -94,9 +94,7 @@ void main() {
           const SizedBox(height: 8),
           ElevatedButton(onPressed:() {},
             child: Text(zulipLocalizations.dialogContinue),
-          )]))
-          )),
-        ))));
+          )]))))))));
 
 
     // Check that the TextField and button are present
