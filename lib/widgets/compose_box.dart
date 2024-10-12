@@ -1002,7 +1002,8 @@ class _SendButtonState extends State<_SendButton> {
         icon: Icon(ZulipIcons.send,
           // We set [Icon.color] instead of [IconButton.color] because the
           // latter implicitly uses colors derived from it to override the
-          // ambient [ButtonStyle.overlayColor].
+          // ambient [ButtonStyle.overlayColor], where we set the color for
+          // the highlight state to match the Figma design.
           color: iconColor),
         onPressed: _send));
   }
@@ -1047,6 +1048,7 @@ class _ComposeBoxLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final inputThemeData = themeData.copyWith(
       inputDecorationTheme: const InputDecorationTheme(
@@ -1054,6 +1056,18 @@ class _ComposeBoxLayout extends StatelessWidget {
         isDense: true,
         contentPadding: EdgeInsets.zero,
         border: InputBorder.none));
+
+    // TODO(#417): Disable splash effects for all buttons globally.
+    final iconButtonThemeData = IconButtonThemeData(
+      style: IconButton.styleFrom(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(#417): The Figma design specifies a different icon color on
+        //   pressed, but `IconButton` currently does not have support for
+        //   that.  See also:
+        //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3707-41711&node-type=frame&t=sSYomsJzGCt34D8N-0
+        highlightColor: designVariables.editorButtonPressedBg,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)))));
 
     final composeButtons = [
       _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
@@ -1073,12 +1087,14 @@ class _ComposeBoxLayout extends StatelessWidget {
             ]))),
         SizedBox(
           height: _composeButtonSize,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(children: composeButtons),
-              sendButton,
-            ])),
+          child: IconButtonTheme(
+            data: iconButtonThemeData,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(children: composeButtons),
+                sendButton,
+              ]))),
       ]));
   }
 }

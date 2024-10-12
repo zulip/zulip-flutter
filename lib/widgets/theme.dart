@@ -122,6 +122,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: const Color(0xff222222),
       contextMenuItemBg: const Color(0xff6159e1),
       contextMenuItemText: const Color(0xff381da7),
+      editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
       foreground: const Color(0xff000000),
       icon: const Color(0xff6159e1),
       labelCounterUnread: const Color(0xff222222),
@@ -161,6 +162,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
       contextMenuItemBg: const Color(0xff7977fe),
       contextMenuItemText: const Color(0xff9398fd),
+      editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
       foreground: const Color(0xffffffff),
       icon: const Color(0xff7977fe),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
@@ -207,6 +209,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
     required this.contextMenuItemText,
+    required this.editorButtonPressedBg,
     required this.foreground,
     required this.icon,
     required this.labelCounterUnread,
@@ -254,6 +257,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
   final Color contextMenuItemText;
+  final Color editorButtonPressedBg;
   final Color foreground;
   final Color icon;
   final Color labelCounterUnread;
@@ -296,6 +300,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
     Color? contextMenuItemText,
+    Color? editorButtonPressedBg,
     Color? foreground,
     Color? icon,
     Color? labelCounterUnread,
@@ -333,6 +338,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemBg,
+      editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
@@ -377,6 +383,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
       contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
       contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemBg, t)!,
+      editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
