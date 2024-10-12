@@ -110,11 +110,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: const Color(0x33000000),
-      icon: const Color(0xff666699),
+      composeBoxBg: const Color(0xffffffff),
+      foreground: const Color(0xff000000),
+      icon: const Color(0xff6159e1),
       labelCounterUnread: const Color(0xff222222),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
       labelMenuButton: const Color(0xff222222),
       mainBackground: const Color(0xfff0f0f0),
+      textInput: const Color(0xff000000),
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
@@ -140,11 +143,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
       bgTopBar: const Color(0xff242424),
       borderBar: Colors.black.withValues(alpha: 0.41),
-      icon: const Color(0xff7070c2),
+      composeBoxBg: const Color(0xff0f0f0f),
+      foreground: const Color(0xffffffff),
+      icon: const Color(0xff7977fe),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
       labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
       mainBackground: const Color(0xff1d1d1d),
+      textInput: const Color(0xffffffff).withValues(alpha: 0.9),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
@@ -177,11 +183,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgCounterUnread,
     required this.bgTopBar,
     required this.borderBar,
+    required this.composeBoxBg,
+    required this.foreground,
     required this.icon,
     required this.labelCounterUnread,
     required this.labelEdited,
     required this.labelMenuButton,
     required this.mainBackground,
+    required this.textInput,
     required this.title,
     required this.channelColorSwatches,
     required this.atMentionMarker,
@@ -215,11 +224,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgCounterUnread;
   final Color bgTopBar;
   final Color borderBar;
+  final Color composeBoxBg;
+  final Color foreground;
   final Color icon;
   final Color labelCounterUnread;
   final Color labelEdited;
   final Color labelMenuButton;
   final Color mainBackground;
+  final Color textInput;
   final Color title;
 
   // Not exactly from the Figma design, but from Vlad anyway.
@@ -248,11 +260,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgCounterUnread,
     Color? bgTopBar,
     Color? borderBar,
+    Color? composeBoxBg,
+    Color? foreground,
     Color? icon,
     Color? labelCounterUnread,
     Color? labelEdited,
     Color? labelMenuButton,
     Color? mainBackground,
+    Color? textInput,
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
     Color? atMentionMarker,
@@ -276,11 +291,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
+      composeBoxBg: composeBoxBg ?? this.composeBoxBg,
+      foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       mainBackground: mainBackground ?? this.mainBackground,
+      textInput: textInput ?? this.textInput,
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
@@ -311,11 +329,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
+      composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
+      foreground: Color.lerp(foreground, other.foreground, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
+      textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
