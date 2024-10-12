@@ -1,16 +1,25 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
+import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/recent_dm_conversations.dart';
+import 'package:zulip/widgets/subscription_list.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../test_navigation.dart';
+import 'action_sheet_test.dart';
 import 'dialog_checks.dart';
 import 'page_checks.dart';
 import 'test_app.dart';
@@ -289,18 +298,62 @@ void main() {
     });
   });
     testWidgets('Home scrollable test, when contents do not fit to screen', (tester)async{
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: Center(child: SingleChildScrollView(child: Column(
-        children: List.generate(15, (count)=>Text('Pick $count')),
-      ))))));
+        children: [
+          DefaultTextStyle.merge(
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+              child: const Column(children: [
+                 Text('🚧 Under construction 🚧'),
+                 SizedBox(height: 12),
+                 Text.rich(TextSpan(
+                  text: 'Connected to: ',)),
+                 Text.rich(TextSpan(
+                  text: 'Zulip server version: ',)),
+              ])),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text(zulipLocalizations.combinedFeedPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: ()  {},
+              child: Text(zulipLocalizations.mentionsPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text(zulipLocalizations.starredMessagesPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text("Inbox")),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text("Subscribed channels")),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: ()  {},
+              child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {},
+                child: const Text("#test here")),
+
+        ]))))));
       //make sure the added scrollable widget is functional
       expect(find.byType(SingleChildScrollView), findsOneWidget);
-      expect(find.text('Pick 0'), findsOneWidget);
 
+      //Scroll down
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -300));
-      //Test for items down the column
+
+      //Test for the last button down the column
       await tester.pump();
-      expect(find.text('Pick 14'), findsOneWidget);
+      expect(find.text('#test here'), findsOneWidget);
     });
 
 }
