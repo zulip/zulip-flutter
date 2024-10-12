@@ -51,7 +51,6 @@ DialogStatus showErrorDialog({
           onPressed: () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
       ]));
-  return DialogStatus(future);
 }
 
 void showSuggestedActionDialog({
