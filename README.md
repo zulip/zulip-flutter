@@ -58,6 +58,26 @@ and describing your progress.
 [picking an issue to work on]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#picking-an-issue-to-work-on
 
 
+<div id="getting-help" />
+
+### Asking questions, getting help
+
+To ask for help with working on this codebase, use the
+[`#mobile-dev-help`][mobile-dev-help] channel on chat.zulip.org.
+Before participating there for the first time,
+be sure to take a minute to read our
+[community norms][norms-getting-help].
+
+For more in-depth advice on how to go beyond the minimum
+represented by our community norms, see
+Zulip's [guide to asking great questions][]
+and the resources linked from there.
+
+[mobile-dev-help]: https://chat.zulip.org/#narrow/stream/516-mobile-dev-help
+[norms-getting-help]: https://zulip.com/development-community/#getting-help
+[guide to asking great questions]: https://zulip.readthedocs.io/en/latest/contributing/asking-great-questions.html
+
+
 ### Submitting a pull request
 
 Follow the Zulip project's guide to your first codebase contribution
@@ -114,14 +134,29 @@ an [additional step](docs/setup.md#autocrlf):
 For more details and help with unusual configurations,
 see our [full setup guide](docs/setup.md).
 
+If you're having trouble or seeing errors, take a look through our
+[troubleshooting section](docs/setup.md#troubleshooting).
+If that doesn't resolve the issue, see the section above on
+[how to ask for help](#getting-help).
+
 
 ### Flutter version
 
-While in the beta phase, we use the latest Flutter from Flutter's
-main branch.  Use `flutter channel main` and `flutter upgrade`.
+We use the latest Flutter from Flutter's main branch.
+Use `flutter channel main` and `flutter upgrade`.
 
-We don't pin a specific version, because Flutter itself doesn't offer
-a way to do so.  So far that hasn't been a problem.  When it becomes one,
+Because each version of Flutter provides its own version of the
+Dart SDK, this also means we use the latest Dart SDK.
+
+Using the latest versions is the same thing Google does with
+their own Flutter apps.  It's valuable to us because it means
+when there's something we want to fix in Flutter,
+or a feature we want to add,
+we can send a PR upstream and then use it as soon as it's merged.
+
+We don't pin a specific Flutter version,
+because Flutter itself doesn't offer a way to do so.
+So far that hasn't been a problem.  When it becomes one,
 we'll figure it out; there are several tools for this in the Flutter
 community.  See [issue #15][].
 
@@ -161,6 +196,32 @@ See [upstream docs on `flutter test`][flutter-cookbook-unit-tests].
 
 
 ## Notes
+
+### UI design
+
+For issues that call for building new UI, we typically have a
+design in Figma which will be linked from the issue description.
+
+When there is a design in Figma, a PR implementing the issue
+should match the design exactly, except where there's a
+good reason to make things different.
+Like with any difference between a PR and previous plans,
+you should [explain the difference](https://zulip.readthedocs.io/en/latest/contributing/reviewable-prs.html#explain-your-changes)
+clearly in your PR description.
+
+For colors, padding, font sizes, and similar design details,
+it's rare to have a good reason to differ from the
+design in Figma.
+When [reviewing your work](https://zulip.readthedocs.io/en/latest/contributing/reviewable-prs.html#review-your-own-work)
+(which you should do before every PR),
+take some time to look closely through all the details of
+the design in Figma
+and confirm that they're matched in your PR.
+
+In our code, many colors and other details appear on `DesignVariables`
+or similar classes like `ContentTheme`.  If you need a Figma variable
+which doesn't yet appear in our code, please add it.
+
 
 ### Writing tests
 
@@ -226,24 +287,55 @@ good time to [report them as issues][dart-test-tracker].
 
 ### Editing API types
 
-We support Zulip Server 4.0 and later.  For API features added in
-newer versions, use `TODO(server-N)` comments (like those you see
-in the existing code.)
+#### Server compatibility
 
-When editing the files in `lib/api/model/`, use the following command
-to keep the generated files up to date:
-```
-$ dart run build_runner watch --delete-conflicting-outputs
-```
+We support Zulip Server 4.0 and later.
+
+For API features added in newer versions, use `TODO(server-N)`
+comments (like those you see in the existing code.)
+
+
+#### Require all parameters in API constructors
 
 In our API types, constructors should generally avoid default values for
 their parameters, even `null`.  This means writing e.g. `required this.foo`
 rather than just `this.foo`, even when `foo` is nullable.
-This is because it's common in the Zulip API for a null or missing value
+
+We do this because it's common in the Zulip API for a null or missing value
 to be quite salient in meaning, and not a boring value appropriate for a
 default, so that it's best to ensure callers make an explicit choice.
+
 If passing explicit values in tests is cumbersome, a factory function
 in `test/example_data.dart` is an appropriate way to share defaults.
+
+
+#### Generated files
+
+When editing any of the type definitions in our API, you'll need to
+keep up to date the corresponding generated code
+(which handles converting JSON to and from our types).
+
+To do this, run the following command:
+```
+$ dart run build_runner watch --delete-conflicting-outputs
+```
+
+That `build_runner watch` command watches for changes
+in relevant files and updates the generated code as needed.
+
+When the `build_runner watch` command has finished its work and
+is waiting for more changes, you may find it convenient to
+suspend it by pressing Ctrl+Z before you edit the code further.
+While suspended, the command will not run.
+After editing the source files further, you can update the
+generated files again by running the command `fg` in the
+terminal where `build_runner watch` had been running.
+The `fg` command causes the suspended command to resume running
+(in the foreground, hence the name `fg`), just like it was doing
+before Ctrl+Z.
+
+If a PR is missing required updates to these generated files,
+CI will fail at the `build_runner` suite.
 
 
 ### Upgrading Flutter

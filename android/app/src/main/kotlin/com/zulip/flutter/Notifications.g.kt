@@ -409,6 +409,18 @@ interface AndroidNotificationHostApi {
    */
   fun createNotificationChannel(channel: NotificationChannel)
   /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.getNotificationChannelsCompat`.
+   *
+   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getNotificationChannelsCompat()
+   */
+  fun getNotificationChannels(): List<NotificationChannel>
+  /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.deleteNotificationChannel`
+   *
+   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
+   */
+  fun deleteNotificationChannel(channelId: String)
+  /**
    * Corresponds to `android.app.NotificationManager.notify`,
    * combined with `androidx.core.app.NotificationCompat.Builder`.
    *
@@ -477,6 +489,39 @@ interface AndroidNotificationHostApi {
             val channelArg = args[0] as NotificationChannel
             val wrapped: List<Any?> = try {
               api.createNotificationChannel(channelArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getNotificationChannels$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.getNotificationChannels())
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.deleteNotificationChannel$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val channelIdArg = args[0] as String
+            val wrapped: List<Any?> = try {
+              api.deleteNotificationChannel(channelIdArg)
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)

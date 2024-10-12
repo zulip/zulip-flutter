@@ -299,6 +299,8 @@ class HomePage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    final colorScheme = ColorScheme.of(context);
+
     InlineSpan bold(String text) => TextSpan(
       style: const TextStyle().merge(weightVariableTextStyle(context, wght: 700)),
       text: text);
@@ -312,6 +314,11 @@ class HomePage extends StatelessWidget {
       appBar: ZulipAppBar(title: const Text("Home")),
       body: Center(
         child: SingleChildScrollView(
+      body: ElevatedButtonTheme(
+        data: ElevatedButtonThemeData(style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+          foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer))),
+        child: Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             DefaultTextStyle.merge(
               textAlign: TextAlign.center,
@@ -333,6 +340,12 @@ class HomePage extends StatelessWidget {
                 MessageListPage.buildRoute(context: context,
                   narrow: const CombinedFeedNarrow())),
               child: Text(zulipLocalizations.combinedFeedPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: const MentionsNarrow())),
+              child: Text(zulipLocalizations.mentionsPageTitle)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.push(context,

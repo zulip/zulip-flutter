@@ -1,6 +1,8 @@
+import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
+import '../model/initial_snapshot.dart';
 
 part 'realm.g.dart';
 
@@ -93,4 +95,50 @@ class ExternalAuthenticationMethod {
     _$ExternalAuthenticationMethodFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExternalAuthenticationMethodToJson(this);
+}
+
+/// Fetch data from the URL described by [InitialSnapshot.serverEmojiDataUrl].
+///
+/// This request is unauthenticated, and the URL need not be on the realm.
+/// The given [ApiConnection] is used for providing a `User-Agent` header
+/// and for handling errors.
+///
+/// For docs, search for "server_emoji"
+/// in <https://zulip.com/api/register-queue>.
+Future<ServerEmojiData> fetchServerEmojiData(ApiConnection connection, {
+  required Uri emojiDataUrl,
+}) {
+  // TODO(#950): cache server responses on fetchServerEmojiData
+
+  // This nontraditional endpoint doesn't conform to all the usual Zulip API
+  // protocols: https://zulip.com/api/rest-error-handling
+  // notably the `{ code, msg, result }` format for errors.
+  // So in the case of an error, the generic Zulip API error-handling logic
+  // in [ApiConnection.send] will throw [MalformedServerResponseException]
+  // in some cases where "malformed" isn't quite the right description.
+  // We'll just tolerate that.
+  // If it really mattered, we could refactor [ApiConnection] to accommodate.
+  //
+  // Similarly, there's no `"result": "success"` in the response.
+  // Fortunately none of our code looks for that in the first place.
+  return connection.send('fetchServerEmojiData', ServerEmojiData.fromJson,
+    useAuth: false,
+    http.Request('GET', emojiDataUrl));
+}
+
+/// The server's data describing its list of Unicode emoji
+/// and its names for them.
+///
+/// For docs, search for "server_emoji"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ServerEmojiData {
+  final Map<String, List<String>> codeToNames;
+
+  ServerEmojiData({required this.codeToNames});
+
+  factory ServerEmojiData.fromJson(Map<String, dynamic> json) =>
+    _$ServerEmojiDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ServerEmojiDataToJson(this);
 }

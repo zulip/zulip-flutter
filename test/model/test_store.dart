@@ -80,6 +80,7 @@ class TestGlobalStore extends GlobalStore {
     // Check for duplication is typically handled by the database but since
     // we're not using a real database, this needs to be handled here.
     // See [AppDatabase.createAccount].
+    // TODO: Ensure that parallel account insertions do not bypass this check.
     if (accounts.any((account) =>
           data.realmUrl.value == account.realmUrl
           && (data.userId.value == account.userId

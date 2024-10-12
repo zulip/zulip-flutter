@@ -476,11 +476,11 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
       assert(debugLog("VideoPlayerController.initialize failed: $error"));
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
-      // Wait until the dialog is closed
-      await showErrorDialog(
+      final dialog = showErrorDialog(
         context: context,
         title: zulipLocalizations.errorDialogTitle,
         message: zulipLocalizations.errorVideoPlayerFailed);
+      await dialog.closed;
       if (!mounted) return;
       Navigator.pop(context); // Pops the lightbox
     }

@@ -615,7 +615,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     final result = await getStreamTopics(store.connection, streamId: streamId);
     _topics = result.topics.map((e) => e.name);
     _isFetching = false;
-    if (_query != null) _startSearch();
+    if (_query != null) return _startSearch();
   }
 
   @override

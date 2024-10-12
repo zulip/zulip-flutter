@@ -421,7 +421,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_checks:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: flutter_checks
       sha256: b0a40b15d38436b7c08b83353e74b0569c1ec687bd81c9556091fbb8807c1b99
@@ -692,7 +692,7 @@ packages:
     source: hosted
     version: "3.0.1"
   legacy_checks:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: legacy_checks
       sha256: b22e5b1ff55a14e8bd91acafbabff909e14829b73ca492dcdaf0fbbb70476079
@@ -1060,10 +1060,10 @@ packages:
     dependency: "direct dev"
     description:
       name: stack_trace
-      sha256: "73713990125a6d93122541237550ee3352a2d84baad52d375a4cad2eb9b7ce0b"
+      sha256: "9f47fd3630d76be3ab26f0ee06d213679aa425996925ff3feffdec504931c377"
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.1"
+    version: "1.12.0"
   stream_channel:
     dependency: transitive
     description:
@@ -1113,7 +1113,7 @@ packages:
     source: hosted
     version: "1.25.8"
   test_api:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: test_api
       sha256: "664d3a9a64782fcdeb83ce9c6b39e78fd2971d4e37827b9b06c3aa1edc5e760c"
@@ -1244,10 +1244,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_android
-      sha256: "45d21bbba3d10b7182aa08ade5d4c68ed3367016d40f29732bb04a799b26842d"
+      sha256: "50740044e9b7d290bc6ee3dd39787e7e28dada9546b82f842d3a1799865548a9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.5"
+    version: "2.7.8"
   video_player_avfoundation:
     dependency: transitive
     description:
@@ -1332,10 +1332,10 @@ packages:
     dependency: transitive
     description:
       name: webdriver
-      sha256: "003d7da9519e1e5f329422b36c4dcdf18d7d2978d1ba099ea4e45ba490ed845e"
+      sha256: "3d773670966f02a646319410766d3b5e1037efb7f07cc68f844d5e06cd4d61c8"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.4"
   webkit_inspection_protocol:
     dependency: transitive
     description:
@@ -1392,5 +1392,5 @@ packages:
     source: path
     version: "0.0.1"
 sdks:
-  dart: ">=3.6.0-279.0.dev <4.0.0"
-  flutter: ">=3.26.0-1.0.pre.249"
+  dart: ">=3.6.0-334.2.beta <4.0.0"
+  flutter: ">=3.27.0-1.0.pre.25"

@@ -72,3 +72,16 @@ Map<String, dynamic> _$ExternalAuthenticationMethodToJson(
       'login_url': instance.loginUrl,
       'signup_url': instance.signupUrl,
     };
+
+ServerEmojiData _$ServerEmojiDataFromJson(Map<String, dynamic> json) =>
+    ServerEmojiData(
+      codeToNames: (json['code_to_names'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
+      ),
+    );
+
+Map<String, dynamic> _$ServerEmojiDataToJson(ServerEmojiData instance) =>
+    <String, dynamic>{
+      'code_to_names': instance.codeToNames,
+    };

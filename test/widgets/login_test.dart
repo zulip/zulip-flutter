@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,7 +139,7 @@ void main() {
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump();
       final navigator = await ZulipApp.navigator;
-      navigator.push(LoginPage.buildRoute(serverSettings: serverSettings));
+      unawaited(navigator.push(LoginPage.buildRoute(serverSettings: serverSettings)));
       await tester.pumpAndSettle();
       takeStartingRoutes();
       check(pushedRoutes).isEmpty();
@@ -206,7 +208,7 @@ void main() {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
         check(testBinding.globalStore.accounts).isEmpty();
-        testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
         await tester.enterText(findUsernameInput, eg.selfAccount.email);
         await tester.enterText(findPasswordInput, 'p455w0rd');
@@ -266,10 +268,9 @@ void main() {
 
         final ByteData message = const JSONMethodCodec().encodeMethodCall(
           MethodCall('pushRouteInformation', {'location': url.toString()}));
-        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
           'flutter/navigation', message, null);
 
-        await tester.idle();
         check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
 
         final account = testBinding.globalStore.accounts.single;

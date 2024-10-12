@@ -213,14 +213,14 @@ void main() {
       await tester.pumpWidget(const ZulipApp());
       await tester.pump();
       final navigator = await ZulipApp.navigator;
-      navigator.push(getImageLightboxRoute(
+      unawaited(navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
         message: message ?? eg.streamMessage(),
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalHeight: null,
         originalWidth: null,
-      ));
+      )));
       await tester.pump(); // per-account store
       await tester.pump(const Duration(milliseconds: 301)); // nav transition
     }

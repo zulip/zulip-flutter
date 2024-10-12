@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -80,10 +82,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
       codeBlockTextStyles: CodeBlockTextStyles.dark(context),
-      textStyleError: TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)
+      textStyleError: const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
         .merge(weightVariableTextStyle(context, wght: 700)),
       textStyleErrorCode: kMonospaceTextStyle
-        .merge(TextStyle(fontSize: kBaseFontSize, color: Colors.red.shade900)),
+        .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red)),
       textStyleInlineCode: kMonospaceTextStyle.merge(TextStyle(
         backgroundColor: const HSLColor.fromAHSL(0.08, 0, 0, 1).toColor())),
       textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
@@ -1195,7 +1197,7 @@ class GlobalTime extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  Future<void> showError(BuildContext context, String? message) {
+  DialogStatus showError(BuildContext context, String? message) {
     return showErrorDialog(context: context,
       title: 'Unable to open link',
       message: [
@@ -1207,15 +1209,15 @@ void _launchUrl(BuildContext context, String urlString) async {
   final store = PerAccountStoreWidget.of(context);
   final url = store.tryResolveUrl(urlString);
   if (url == null) { // TODO(log)
-    await showError(context, null);
+    showError(context, null);
     return;
   }
 
   final internalNarrow = parseInternalLink(url, store);
   if (internalNarrow != null) {
-    Navigator.push(context,
+    unawaited(Navigator.push(context,
       MessageListPage.buildRoute(context: context,
-        narrow: internalNarrow));
+        narrow: internalNarrow)));
     return;
   }
 
@@ -1236,7 +1238,7 @@ void _launchUrl(BuildContext context, String urlString) async {
   }
   if (!launched) { // TODO(log)
     if (!context.mounted) return;
-    await showError(context, errorMessage);
+    showError(context, errorMessage);
   }
 }
 

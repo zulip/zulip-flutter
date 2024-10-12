@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.0.20 (2024-10-01)
+
+### Highlights for users
+
+* (Android) Notifications are removed when you read the
+  message. (#341)
+* Show polls and their results. (#165)
+* (Android) Videos play in higher quality. (#951)
+* The screen stays on when you're watching a video. (#763)
+* Clearer emoji in dark theme; "Starred messages" feed;
+  new "edited"/"moved" labels on messages. (#953, #251, #900)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* In tests, "matchers" from Flutter upstream can now be conveniently
+  used, via `package:flutter_checks`. (#232)
+
+* Resolved: #182, #251, #341, #905, #926, PR #919, #810, #232,
+  PR #951, #763, #953, #165
+
+
 ## 0.0.19 (2024-08-15)
 
 ### Highlights for users

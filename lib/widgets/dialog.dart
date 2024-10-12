@@ -15,16 +15,32 @@ Widget _dialogActionText(String text) {
   );
 }
 
+/// Tracks the status of a dialog, in being still open or already closed.
+///
+/// See also:
+///  * [showDialog], whose return value this class is intended to wrap.
+class DialogStatus {
+  const DialogStatus(this.closed);
+
+  /// Resolves when the dialog is closed.
+  final Future<void> closed;
+}
+
 /// Displays an [AlertDialog] with a dismiss button.
 ///
-/// Returns a [Future] that resolves when the dialog is closed.
-Future<void> showErrorDialog({
+/// The [DialogStatus.closed] field of the return value can be used
+/// for waiting for the dialog to be closed.
+// This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
+// [showDialog]'s return value, a [Future], inside [DialogStatus]
+// whose documentation can be accessed.  This helps avoid confusion when
+// intepreting the meaning of the [Future].
+DialogStatus showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
-  return showDialog(
+  final future = showDialog<void>(
     context: context,
     builder: (BuildContext context) => SingleChildScrollView(
       child: AlertDialog(
@@ -35,6 +51,15 @@ Future<void> showErrorDialog({
             onPressed: () => Navigator.pop(context),
             child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
         ])));
+    builder: (BuildContext context) => AlertDialog(
+      title: Text(title),
+      content: message != null ? SingleChildScrollView(child: Text(message)) : null,
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
+      ]));
+  return DialogStatus(future);
 }
 
 void showSuggestedActionDialog({

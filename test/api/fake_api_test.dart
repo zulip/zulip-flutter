@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/exception.dart';
@@ -29,8 +31,8 @@ void main() {
       json: {'a': 3});
 
     Map<String, dynamic>? result;
-    connection.get('aRoute', (json) => json, '/', null)
-      .then((r) { result = r; });
+    unawaited(connection.get('aRoute', (json) => json, '/', null)
+      .then((r) { result = r; }));
 
     async.elapse(const Duration(seconds: 1));
     check(result).isNull();
@@ -45,8 +47,8 @@ void main() {
       exception: Exception("oops"));
 
     Object? error;
-    connection.get('aRoute', (json) => null, '/', null)
-      .catchError((Object e) { error = e; });
+    unawaited(connection.get('aRoute', (json) => null, '/', null)
+      .catchError((Object e) { error = e; }));
 
     async.elapse(const Duration(seconds: 1));
     check(error).isNull();

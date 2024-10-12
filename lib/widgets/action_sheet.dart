@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -120,7 +122,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
         default:
       }
 
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: 'Adding reaction failed', message: errorMessage);
     }
   }
@@ -165,7 +167,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
         default:
       }
 
-      await showErrorDialog(context: messageListContext,
+      showErrorDialog(context: messageListContext,
         title: switch(op) {
           UpdateMessageFlagsOp.remove => zulipLocalizations.errorUnstarMessageFailedTitle,
           UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
@@ -215,7 +217,7 @@ Future<String?> fetchRawContentWithFeedback({
       // TODO(?) give no feedback on error conditions we expect to
       //   flag centrally in event polling, like invalid auth,
       //   user/realm deactivated. (Support with reusable code.)
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: errorDialogTitle, message: errorMessage);
     }
 
@@ -303,7 +305,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
-    markNarrowAsUnreadFromMessage(messageListContext, message, narrow);
+    unawaited(markNarrowAsUnreadFromMessage(messageListContext, message, narrow));
   }
 }
 
@@ -423,7 +425,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       // Until we learn otherwise, assume something wrong happened.
       case ShareResultStatus.unavailable:
         if (!messageListContext.mounted) return;
-        await showErrorDialog(context: messageListContext,
+        showErrorDialog(context: messageListContext,
           title: zulipLocalizations.errorSharingFailed);
       case ShareResultStatus.success:
       case ShareResultStatus.dismissed:

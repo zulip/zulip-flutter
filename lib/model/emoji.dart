@@ -1,6 +1,7 @@
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../api/route/realm.dart';
 
 /// An emoji, described by how to display it in the UI.
 sealed class EmojiDisplay {
@@ -61,6 +62,12 @@ mixin EmojiStore {
     required String emojiCode,
     required String emojiName,
   });
+
+  // TODO cut debugServerEmojiData once we can query for lists of emoji;
+  //   have tests make those queries end-to-end
+  Map<String, List<String>>? get debugServerEmojiData;
+
+  void setServerEmojiData(ServerEmojiData data);
 }
 
 /// The implementation of [EmojiStore] that does the work.
@@ -72,7 +79,7 @@ class EmojiStoreImpl with EmojiStore {
   EmojiStoreImpl({
     required this.realmUrl,
     required this.realmEmoji,
-  });
+  }) : _serverEmojiData = null; // TODO(#974) maybe start from a hard-coded baseline
 
   /// The same as [PerAccountStore.realmUrl].
   final Uri realmUrl;
@@ -129,6 +136,21 @@ class EmojiStoreImpl with EmojiStore {
       resolvedUrl: realmUrl.resolveUri(source),
       resolvedStillUrl: still == null ? null : realmUrl.resolveUri(still),
     );
+  }
+
+  @override
+  Map<String, List<String>>? get debugServerEmojiData => _serverEmojiData;
+
+  /// The server's list of Unicode emoji and names for them,
+  /// from [ServerEmojiData].
+  ///
+  /// This is null until [UpdateMachine.fetchEmojiData] finishes
+  /// retrieving the data.
+  Map<String, List<String>>? _serverEmojiData;
+
+  @override
+  void setServerEmojiData(ServerEmojiData data) {
+    _serverEmojiData = data.codeToNames;
   }
 
   void handleRealmEmojiUpdateEvent(RealmEmojiUpdateEvent event) {

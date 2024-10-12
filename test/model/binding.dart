@@ -543,6 +543,12 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
 }
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
+  /// Lists currently active channels, result is aggregated from calls made to
+  /// [createNotificationChannel] and [deleteNotificationChannel],
+  /// order of creation is preserved.
+  Iterable<NotificationChannel> get activeChannels => _activeChannels.values;
+  final Map<String, NotificationChannel> _activeChannels = {};
+
   /// Consume the log of calls made to [createNotificationChannel].
   ///
   /// This returns a list of the arguments to all calls made
@@ -557,6 +563,29 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<void> createNotificationChannel(NotificationChannel channel) async {
     _createdChannels.add(channel);
+    _activeChannels[channel.id] = channel;
+  }
+
+  @override
+  Future<List<NotificationChannel?>> getNotificationChannels() async {
+    return _activeChannels.values.toList(growable: false);
+  }
+
+  /// Consume the log of calls made to [deleteNotificationChannel].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [deleteNotificationChannel] since the last call to this method.
+  List<String> takeDeletedChannels() {
+    final result = _deletedChannels;
+    _deletedChannels = [];
+    return result;
+  }
+  List<String> _deletedChannels = [];
+
+  @override
+  Future<void> deleteNotificationChannel(String channelId) async {
+    _deletedChannels.add(channelId);
+    _activeChannels.remove(channelId);
   }
 
   /// Consume the log of calls made to [notify].

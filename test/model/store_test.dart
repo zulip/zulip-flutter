@@ -4,10 +4,12 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -153,11 +155,11 @@ void main() {
 
     test('reject changing id, realmUrl, or userId', () async {
       final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
         id: Value(1234)))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
         realmUrl: Value(Uri.parse('https://other.example'))))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
         userId: Value(1234)))).throws();
     });
 
@@ -230,6 +232,8 @@ void main() {
       await globalStore.insertAccount(account.toCompanion(false));
       connection = (globalStore.apiConnectionFromAccount(account)
         as FakeApiConnection);
+      UpdateMachine.debugEnableFetchEmojiData = false;
+      addTearDown(() => UpdateMachine.debugEnableFetchEmojiData = true);
       UpdateMachine.debugEnableRegisterNotificationToken = false;
       addTearDown(() => UpdateMachine.debugEnableRegisterNotificationToken = true);
     }
@@ -291,7 +295,7 @@ void main() {
       connection.prepare(exception: Exception('failed'));
       final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
       bool complete = false;
-      future.whenComplete(() => complete = true);
+      unawaited(future.whenComplete(() => complete = true));
       async.flushMicrotasks();
       checkLastRequest();
       check(complete).isFalse();
@@ -315,6 +319,69 @@ void main() {
 
     // TODO test UpdateMachine.load starts polling loop
     // TODO test UpdateMachine.load calls registerNotificationToken
+  });
+
+  group('UpdateMachine.fetchEmojiData', () {
+    late UpdateMachine updateMachine;
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    void prepareStore() {
+      updateMachine = eg.updateMachine();
+      store = updateMachine.store;
+      connection = store.connection as FakeApiConnection;
+    }
+
+    final emojiDataUrl = Uri.parse('https://cdn.example/emoji.json');
+    final data = {
+      '1f642': ['smile'],
+      '1f34a': ['orange', 'tangerine', 'mandarin'],
+    };
+
+    void checkLastRequest() {
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.equals(emojiDataUrl)
+        ..headers.deepEquals(kFallbackUserAgentHeader);
+    }
+
+    test('happy case', () => awaitFakeAsync((async) async {
+      prepareStore();
+      check(store.debugServerEmojiData).isNull();
+
+      connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
+      await updateMachine.fetchEmojiData(emojiDataUrl);
+      checkLastRequest();
+      check(store.debugServerEmojiData).deepEquals(data);
+    }));
+
+    test('retries on failure', () => awaitFakeAsync((async) async {
+      prepareStore();
+      check(store.debugServerEmojiData).isNull();
+
+      // Try to fetch, inducing an error in the request.
+      connection.prepare(exception: Exception('failed'));
+      final future = updateMachine.fetchEmojiData(emojiDataUrl);
+      bool complete = false;
+      unawaited(future.whenComplete(() => complete = true));
+      async.flushMicrotasks();
+      checkLastRequest();
+      check(complete).isFalse();
+      check(store.debugServerEmojiData).isNull();
+
+      // The retry doesn't happen immediately; there's a timer.
+      check(async.pendingTimers).length.equals(1);
+      async.elapse(Duration.zero);
+      check(connection.lastRequest).isNull();
+      check(async.pendingTimers).length.equals(1);
+
+      // After a timer, we retry.
+      connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
+      await future;
+      check(complete).isTrue();
+      checkLastRequest();
+      check(store.debugServerEmojiData).deepEquals(data);
+    }));
   });
 
   group('UpdateMachine.poll', () {

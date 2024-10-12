@@ -16,6 +16,7 @@ import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
 import '../api/backoff.dart';
+import '../api/route/realm.dart';
 import '../log.dart';
 import '../notifications/receive.dart';
 import 'autocomplete.dart';
@@ -120,7 +121,7 @@ abstract class GlobalStore extends ChangeNotifier {
     _perAccountStoresLoading[accountId] = future;
     store = await future;
     _setPerAccount(accountId, store);
-    _perAccountStoresLoading.remove(accountId);
+    unawaited(_perAccountStoresLoading.remove(accountId));
     return store;
   }
 
@@ -343,6 +344,15 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   }) {
     return _emoji.emojiDisplayFor(
       emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName);
+  }
+
+  @override
+  Map<String, List<String>>? get debugServerEmojiData => _emoji.debugServerEmojiData;
+
+  @override
+  void setServerEmojiData(ServerEmojiData data) {
+    _emoji.setServerEmojiData(data);
+    notifyListeners();
   }
 
   EmojiStoreImpl _emoji;
@@ -746,9 +756,15 @@ class UpdateMachine {
     final updateMachine = UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
     updateMachine.poll();
+    if (initialSnapshot.serverEmojiDataUrl != null) {
+      // TODO(server-6): If the server is ancient, just skip trying to have
+      //   a list of its emoji.  (The old servers that don't provide
+      //   serverEmojiDataUrl are already unsupported at time of writing.)
+      unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl!));
+    }
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
-    updateMachine.registerNotificationToken();
+    unawaited(updateMachine.registerNotificationToken());
     return updateMachine;
   }
 
@@ -770,6 +786,43 @@ class UpdateMachine {
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
       }
     }
+  }
+
+  /// Fetch emoji data from the server, and update the store with the result.
+  ///
+  /// This functions a lot like [registerQueue] and the surrounding logic
+  /// in [load] above, but it's unusual in that we've separated it out.
+  /// Effectively it's data that *would have* been in the [registerQueue]
+  /// response, except that we pulled it out to its own endpoint as part of
+  /// a caching strategy, because the data changes infrequently.
+  ///
+  /// Conveniently (a) this deferred fetch doesn't cause any fetch/event race,
+  /// because this data doesn't get updated by events anyway (it can change
+  /// only on a server restart); and (b) we don't need this data for displaying
+  /// messages or anything else, only for certain UIs like the emoji picker,
+  /// so it's fine that we go without it for a while.
+  Future<void> fetchEmojiData(Uri serverEmojiDataUrl) async {
+    if (!debugEnableFetchEmojiData) return;
+    BackoffMachine? backoffMachine;
+    ServerEmojiData data;
+    while (true) {
+      try {
+        data = await fetchServerEmojiData(store.connection,
+          emojiDataUrl: serverEmojiDataUrl);
+        assert(debugLog('Got emoji data: ${data.codeToNames.length} emoji'));
+        break;
+      } catch (e) {
+        assert(debugLog('Error fetching emoji data: $e\n' // TODO(log)
+          'Backing off, then will retry…'));
+        // The emoji data is a lot less urgent than the initial fetch,
+        // or even the event-queue poll request.  So wait longer.
+        backoffMachine ??= BackoffMachine(firstBound: const Duration(seconds: 2),
+                                          maxBound: const Duration(minutes: 2));
+        await backoffMachine.wait();
+      }
+    }
+
+    store.setServerEmojiData(data);
   }
 
   Completer<void>? _debugLoopSignal;
@@ -865,26 +918,6 @@ class UpdateMachine {
     }
   }
 
-  /// In debug mode, controls whether [registerNotificationToken] should
-  /// have its normal effect.
-  ///
-  /// Outside of debug mode, this is always true and the setter has no effect.
-  static bool get debugEnableRegisterNotificationToken {
-    bool result = true;
-    assert(() {
-      result = _debugEnableRegisterNotificationToken;
-      return true;
-    }());
-    return result;
-  }
-  static bool _debugEnableRegisterNotificationToken = true;
-  static set debugEnableRegisterNotificationToken(bool value) {
-    assert(() {
-      _debugEnableRegisterNotificationToken = value;
-      return true;
-    }());
-  }
-
   /// Send this client's notification token to the server, now and if it changes.
   ///
   /// TODO The returned future isn't especially meaningful (it may or may not
@@ -908,6 +941,46 @@ class UpdateMachine {
 
   void dispose() { // TODO abort long-poll and close ApiConnection
     NotificationService.instance.token.removeListener(_registerNotificationToken);
+  }
+
+  /// In debug mode, controls whether [fetchEmojiData] should
+  /// have its normal effect.
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableFetchEmojiData {
+    bool result = true;
+    assert(() {
+      result = _debugEnableFetchEmojiData;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableFetchEmojiData = true;
+  static set debugEnableFetchEmojiData(bool value) {
+    assert(() {
+      _debugEnableFetchEmojiData = value;
+      return true;
+    }());
+  }
+
+  /// In debug mode, controls whether [registerNotificationToken] should
+  /// have its normal effect.
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableRegisterNotificationToken {
+    bool result = true;
+    assert(() {
+      result = _debugEnableRegisterNotificationToken;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableRegisterNotificationToken = true;
+  static set debugEnableRegisterNotificationToken(bool value) {
+    assert(() {
+      _debugEnableRegisterNotificationToken = value;
+      return true;
+    }());
   }
 
   @override
