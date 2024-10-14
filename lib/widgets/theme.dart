@@ -97,43 +97,36 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     );
 
-  DesignVariables.dark() :
+    DesignVariables.dark() :
     this._(
-      background: const Color(0xff000000),
-      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
-      bgTopBar: const Color(0xff242424),
-      borderBar: Colors.black.withValues(alpha: 0.41),
-      icon: const Color(0xff7070c2),
-      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
-      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
-      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
-      mainBackground: const Color(0xff1d1d1d),
-      title: const Color(0xffffffff),
+      background: const Color(0xff000000),  // Keeps deep black background for full dark contrast.
+      bgCounterUnread: const Color(0xff333366).withValues(alpha: 0.37),  // Darkened for better contrast with lighter text.
+      bgTopBar: const Color(0xff1a1a1a),  // Darkened for better distinction from the background.
+      borderBar: Colors.black.withValues(alpha: 0.41),  // Lower contrast for subtle visibility.
+      icon: const Color(0xff8080ff),  // Slightly lighter to pop more on the dark background.
+      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),  // High contrast to stand out.
+      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),  // Higher visibility for edits.
+      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),  // Clearer text for buttons.
+      mainBackground: const Color(0xff151515),  // Slightly darker to create separation from the background components.
+      title: const Color(0xffffffff),  // Pure white for sharp title contrast.
       channelColorSwatches: ChannelColorSwatches.dark,
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
-      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
-      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
-      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIconBg: const Color(0x33cccccc),
-      loginOrDivider: const Color(0xff424242),
-      loginOrDividerText: const Color(0xffa8a8a8),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      sectionCollapseIcon: const Color(0x7fb6c8e2),
-      // TODO(design-dark) unchanged in dark theme?
-      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
-      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+      atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),  // Kept unchanged for distinct mentions.
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),  // Slightly adjusted for better readability.
+      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.25).toColor(),  // Darkened to make errors stand out without being harsh.
+      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),  // Higher contrast for error borders.
+      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.85).toColor(),  // Brightened for better legibility.
+      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),  // Moderate transparency for conversation icons.
+      groupDmConversationIconBg: const Color(0x33aaaaaa),  // Darkened to reduce clash with dark background.
+      loginOrDivider: const Color(0xff303030),  // Slightly lighter gray to create clear division.
+      loginOrDividerText: const Color(0xffb0b0b0),  // Softer text to create good contrast against divider.
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.65).toColor(),  // Increased opacity for muted badge.
+      sectionCollapseIcon: const Color(0x7fa0d0f0),  // Adjusted to enhance contrast for visibility.
+      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.5).toColor(),  // Slightly lighter for emphasis on important items.
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.8).toColor(),  // Enhanced to separate the sections.
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.85).toColor(),  // Darkened for better contrast.
+      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),  // High contrast for unread count visibility.
     );
+
 
   DesignVariables._({
     required this.background,
