@@ -32,7 +32,8 @@ class TestZulipApp extends StatelessWidget {
         title: 'Zulip',
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
-        theme: zulipThemeData(context),
+        theme: ZulipTheme.lightTheme(context),
+        darkTheme: ZulipTheme.darkTheme(context),
 
         navigatorObservers: navigatorObservers ?? const [],
 
