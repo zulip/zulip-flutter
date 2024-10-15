@@ -13,10 +13,10 @@ Future<void> addFcmToken(ApiConnection connection, {
 /// https://zulip.com/api/add-apns-token
 Future<void> addApnsToken(ApiConnection connection, {
   required String token,
-  String? appid,
+  required String appid,
 }) {
   return connection.post('addApnsToken', (_) {}, 'users/me/apns_device_token', {
     'token': RawParameter(token),
-    if (appid != null) 'appid': RawParameter(appid),
+    'appid': RawParameter(appid),
   });
 }

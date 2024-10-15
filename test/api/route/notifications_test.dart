@@ -31,7 +31,7 @@ void main() {
   group('addApnsToken', () {
     Future<void> checkAddApnsToken(FakeApiConnection connection, {
       required String token,
-      required String? appid,
+      required String appid,
     }) async {
       connection.prepare(json: {});
       await addApnsToken(connection, token: token, appid: appid);
@@ -40,17 +40,11 @@ void main() {
         ..url.path.equals('/api/v1/users/me/apns_device_token')
         ..bodyFields.deepEquals({
           'token': token,
-          if (appid != null) 'appid': appid,
+          'appid': appid,
         });
     }
 
-    test('no appid', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkAddApnsToken(connection, token: 'asdf', appid: null);
-      });
-    });
-
-    test('with appid', () {
+    test('smoke', () {
       return FakeApiConnection.with_((connection) async {
         await checkAddApnsToken(connection, token: 'asdf', appid: 'qwer');
       });
