@@ -145,11 +145,11 @@ class NotificationService {
   static Future<void> registerToken(ApiConnection connection, {required String token}) async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        await registerFcmToken(connection, token: token);
+        await addFcmToken(connection, token: token);
 
       case TargetPlatform.iOS:
         const appBundleId = 'com.zulip.flutter'; // TODO(#407) find actual value live
-        await registerApnsToken(connection, token: token, appid: appBundleId);
+        await addApnsToken(connection, token: token, appid: appBundleId);
 
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
