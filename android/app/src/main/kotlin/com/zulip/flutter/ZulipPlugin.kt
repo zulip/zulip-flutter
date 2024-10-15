@@ -97,13 +97,10 @@ private class AndroidNotificationHost(val context: Context)
             contentIntent?.let { setContentIntent(
                 android.app.PendingIntent.getActivity(context,
                     it.requestCode.toInt(),
-                    Intent(context, MainActivity::class.java).apply {
-                        // This action name and extra name are special to
-                        // FlutterLocalNotificationsPlugin, which handles receiving the Intent.
-                        // TODO take care of receiving the notification-opened Intent ourselves
-                        action = "SELECT_NOTIFICATION"
-                        putExtra("payload", it.intentPayload)
-                    },
+                    it.intent.let { intent -> Intent(context, MainActivity::class.java).apply {
+                        action = intent.action
+                        intent.extras.forEach { (k, v) -> putExtra(k!!, v!!) }
+                    } },
                     it.flags.toInt())
             ) }
             contentText?.let { setContentText(it) }
