@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
-import '../model/store.dart';
 import 'app_bar.dart';
 import 'content.dart';
 import 'message_list.dart';
@@ -36,32 +34,6 @@ class ProfilePage extends StatelessWidget {
       page: ProfilePage(userId: userId));
   }
 
-  /// The given user's real email address, if known, for displaying in the UI.
-  ///
-  /// Returns null if self-user isn't able to see [user]'s real email address.
-  String? _getDisplayEmailFor(User user, {required PerAccountStore store}) {
-    if (store.zulipFeatureLevel >= 163) { // TODO(server-7)
-      // A non-null value means self-user has access to [user]'s real email,
-      // while a null value means it doesn't have access to the email.
-      // Search for "delivery_email" in https://zulip.com/api/register-queue.
-      return user.deliveryEmail;
-    } else {
-      if (user.deliveryEmail != null) {
-        // A non-null value means self-user has access to [user]'s real email,
-        // while a null value doesn't necessarily mean it doesn't have access
-        // to the email, ....
-        return user.deliveryEmail;
-      } else if (store.emailAddressVisibility == EmailAddressVisibility.everyone) {
-        // ... we have to also check for [PerAccountStore.emailAddressVisibility].
-        // See:
-        //   * https://github.com/zulip/zulip-mobile/pull/5515#discussion_r997731727
-        //   * https://chat.zulip.org/#narrow/stream/378-api-design/topic/email.20address.20visibility/near/1296133
-        return user.email;
-      } else {
-        return null;
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +44,7 @@ class ProfilePage extends StatelessWidget {
       return const _ProfileErrorPage();
     }
 
-    final displayEmail = _getDisplayEmailFor(user, store: store);
+    final displayEmail = store.userDisplayEmail(user);
     final items = [
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
