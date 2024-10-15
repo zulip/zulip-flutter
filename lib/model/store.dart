@@ -924,7 +924,7 @@ class UpdateMachine {
   ///   mean we actually sent the token).  Make it just `void` once we fix the
   ///   one test that relies on the future.
   // TODO(#322) save acked token, to dedupe updating it on the server
-  // TODO(#323) track the registerFcmToken/etc request, warn if not succeeding
+  // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
     if (!debugEnableRegisterNotificationToken) {
       return;
