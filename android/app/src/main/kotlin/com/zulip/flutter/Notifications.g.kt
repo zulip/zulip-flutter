@@ -98,21 +98,25 @@ data class NotificationChannel (
  */
 data class AndroidIntent (
   val action: String,
-  val extras: Map<String?, String?>
+  val uri: String,
+  /** A combination of flags from [IntentFlag]. */
+  val flags: Long
 
 ) {
   companion object {
     @Suppress("LocalVariableName")
     fun fromList(__pigeon_list: List<Any?>): AndroidIntent {
       val action = __pigeon_list[0] as String
-      val extras = __pigeon_list[1] as Map<String?, String?>
-      return AndroidIntent(action, extras)
+      val uri = __pigeon_list[1] as String
+      val flags = __pigeon_list[2].let { num -> if (num is Int) num.toLong() else num as Long }
+      return AndroidIntent(action, uri, flags)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       action,
-      extras,
+      uri,
+      flags,
     )
   }
 }

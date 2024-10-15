@@ -2,19 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
+import 'package:http/http.dart' as http;
 
 import '../api/notifications.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/internal_link.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
 import '../widgets/message_list.dart';
@@ -94,33 +95,47 @@ class NotificationChannelManager {
 
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
+  /// Reset the state of the [NotificationDisplayManager], for testing.
+  static void debugReset() {
+    _backgroundIsolateGlobalStore = null;
+  }
+
   static Future<void> init() async {
-    await ZulipBinding.instance.notifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('zulip_notification'),
-      ),
-      onDidReceiveNotificationResponse: _onNotificationOpened,
-    );
-    final launchDetails = await ZulipBinding.instance.notifications.getNotificationAppLaunchDetails();
-    if (launchDetails?.didNotificationLaunchApp ?? false) {
-      _handleNotificationAppLaunch(launchDetails!.notificationResponse);
-    }
     await NotificationChannelManager.ensureChannel();
   }
 
-  static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+  static void onFcmMessage(FcmMessage data,Map<String, dynamic> dataJson, {
+    required bool isBackground,
+  }) {
     switch (data) {
-      case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
+      case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson, isBackground: isBackground);
       case RemoveFcmMessage(): _onRemoveFcmMessage(data);
       case UnexpectedFcmMessage(): break; // TODO(log)
     }
   }
 
-  static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
+  static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson, {
+    required bool isBackground,
+  }) async {
     assert(debugLog('notif message content: ${data.content}'));
+
+    final GlobalStore globalStore;
+    if (isBackground) {
+      _backgroundIsolateGlobalStore ??= await ZulipBinding.instance.loadGlobalStore();
+      globalStore = _backgroundIsolateGlobalStore!;
+    } else {
+      NavigatorState navigator = await ZulipApp.navigator;
+      final context = navigator.context;
+      assert(context.mounted);
+      if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+      globalStore = GlobalStoreWidget.of(context);
+    }
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     final groupKey = _groupKey(data);
     final conversationKey = _conversationKey(data, groupKey);
+
+    final intentUri = await notificationIntentUriFromFcmMessage(globalStore: globalStore, data: data);
+    if (intentUri == null) return; // TODO(log)
 
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
@@ -169,8 +184,6 @@ class NotificationDisplayManager {
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
     await _androidHost.notify(
-      // TODO the notification ID can be constant, instead of matching requestCode
-      //   (This is a legacy of `flutter_local_notifications`.)
       id: notificationIdAsHashOf(conversationKey),
       tag: conversationKey,
       channelId: NotificationChannelManager.kChannelId,
@@ -188,33 +201,26 @@ class NotificationDisplayManager {
       },
 
       contentIntent: PendingIntent(
-        // TODO make intent URLs distinct, instead of requestCode
-        //   (This way is a legacy of flutter_local_notifications.)
-        //   The Intent objects we make for different conversations look the same.
-        //   They differ in their extras, but that doesn't count:
-        //     https://developer.android.com/reference/android/app/PendingIntent
-        //
-        //   This leaves only PendingIntent.requestCode to distinguish one
-        //   PendingIntent from another; the plugin sets that to the notification ID.
-        //   We need a distinct PendingIntent for each conversation, so that the
-        //   notifications can lead to the right conversations when opened.
-        //   So, use a hash of the conversation key.
-        requestCode: notificationIdAsHashOf(conversationKey),
-
-        // TODO is setting PendingIntentFlag.updateCurrent OK?
-        //   (That's a legacy of `flutter_local_notifications`.)
-        flags: PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent,
-        // TODO take care of receiving the notification-opened Intent ourselves
+        requestCode: 0,
         intent: AndroidIntent(
-          // This action name and extra name are special to
-          // FlutterLocalNotificationsPlugin, which handles receiving the Intent.
-          action: 'SELECT_NOTIFICATION',
-          extras: {
-            'payload': jsonEncode(dataJson),
-          }),
-        // TODO this doesn't set the Intent flags we set in zulip-mobile; is that OK?
-        //   (This is a legacy of `flutter_local_notifications`.)
-        ),
+          action: IntentAction.view,
+          uri: intentUri.toString(),
+          // See these sections in the Android docs:
+          //   https://developer.android.com/guide/components/activities/tasks-and-back-stack#TaskLaunchModes
+          //   https://developer.android.com/reference/android/content/Intent#FLAG_ACTIVITY_CLEAR_TOP
+          //
+          // * From the doc on `PendingIntent.getActivity` at
+          //     https://developer.android.com/reference/android/app/PendingIntent#getActivity(android.content.Context,%20int,%20android.content.Intent,%20int)
+          //   > Note that the activity will be started outside of the context of an
+          //   > existing activity, so you must use the Intent.FLAG_ACTIVITY_NEW_TASK
+          //   > launch flag in the Intent.
+          //
+          // * The flag FLAG_ACTIVITY_CLEAR_TOP is mentioned as being what the
+          //   notification manager does; so use that.  It has no effect as long
+          //   as we only have one activity; but if we add more, it will destroy
+          //   all the activities on top of the target one.
+          flags: IntentFlag.activityClearTop | IntentFlag.activityNewTask),
+        flags: PendingIntentFlag.immutable),
       autoCancel: true,
     );
 
@@ -309,6 +315,10 @@ class NotificationDisplayManager {
     }
   }
 
+  /// A cache of an instance of [GlobalStore], stored to avoid reloading
+  /// between multiple background FCM message handler calls.
+  static GlobalStore? _backgroundIsolateGlobalStore;
+
   /// A key we use in [Notification.extras] for the [Message.id] of the
   /// latest Zulip message in the notification's conversation.
   ///
@@ -348,46 +358,25 @@ class NotificationDisplayManager {
 
   static String _personKey(Uri realmUri, int userId) => "$realmUri|$userId";
 
-  static void _onNotificationOpened(NotificationResponse response) async {
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
-    final data = MessageFcmMessage.fromJson(payload);
-    assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
-    _navigateForNotification(data);
-  }
-
-  static void _handleNotificationAppLaunch(NotificationResponse? response) async {
-    assert(response != null);
-    if (response == null) return; // TODO(log) seems like a bug in flutter_local_notifications if this can happen
-
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
-    final data = MessageFcmMessage.fromJson(payload);
-    assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
-    _navigateForNotification(data);
-  }
-
-  static void _navigateForNotification(MessageFcmMessage data) async {
+  /// Navigates to the [MessageListPage] of the corresponding conversation
+  /// given the notification-open intent uri.
+  static Future<bool> navigateForNotification(Uri uri) async {
+    assert(debugLog('opened notif: uri: $uri'));
     NavigatorState navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    if (!context.mounted) return false; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
     final globalStore = GlobalStoreWidget.of(context);
-    final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl.origin == data.realmUri.origin && account.userId == data.userId);
-    if (account == null) return; // TODO(log)
+    final result = await _narrowFromNotificationIntentUri(globalStore: globalStore, uri: uri);
+    if (result == null) return false; // TODO(log)
+    final (account, narrow) = result;
 
-    final narrow = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var streamId, :var topic) =>
-        TopicNarrow(streamId, topic),
-      FcmMessageDmRecipient(:var allRecipientIds) =>
-        DmNarrow(allRecipientIds: allRecipientIds, selfUserId: account.userId),
-    };
-
-    assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
     unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
       page: MessageListPage(initNarrow: narrow))));
+    return true;
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {
@@ -401,5 +390,60 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
+  }
+
+  /// Generates a uri from the FCM message data, embedding the [narrowLink]
+  /// and the userID.
+  ///
+  /// This uri is used to route to the relevant conversation's [MessageListPage]
+  /// when a notification with this intent uri is opened.
+  @visibleForTesting
+  static Future<Uri?> notificationIntentUriFromFcmMessage({
+    required GlobalStore globalStore,
+    required MessageFcmMessage data,
+  }) async {
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUri.origin && account.userId == data.userId);
+    if (account == null) {
+      assert(debugLog('notif: failed to find a matching account: realmUri=${data.realmUri} userId=${data.userId}')); // TODO(log)
+      return null;
+    }
+
+    final narrow = switch (data.recipient) {
+      FcmMessageChannelRecipient(:var streamId, :var topic) =>
+        TopicNarrow(streamId, topic),
+      FcmMessageDmRecipient(:var allRecipientIds) =>
+        DmNarrow(allRecipientIds: allRecipientIds, selfUserId: account.userId),
+    };
+    final perAccountStore = await globalStore.perAccount(account.id);
+    final narrowUri = narrowLink(perAccountStore, narrow, nearMessageId: data.zulipMessageId);
+    return Uri(
+      scheme: 'zulip',
+      host: 'notification',
+      queryParameters: <String, String>{
+        'user_id': data.userId.toString(),
+        'narrow_uri': narrowUri.toString(),
+      },
+    );
+  }
+
+  static Future<(Account, Narrow)?> _narrowFromNotificationIntentUri({
+    required GlobalStore globalStore,
+    required Uri uri,
+  }) async {
+    assert(uri.scheme == 'zulip' && uri.host == 'notification');
+    final userIdStr = uri.queryParameters['user_id']!;
+    final narrowUriStr = uri.queryParameters['narrow_uri']!;
+    final userId = int.parse(userIdStr, radix: 10);
+    final narrowUri = Uri.parse(narrowUriStr);
+
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == narrowUri.origin && account.userId == userId);
+    if (account == null) return null; // TODO(log)
+
+    final perAccountStore = await globalStore.perAccount(account.id);
+    final narrow = parseInternalLink(narrowUri, perAccountStore);
+    if (narrow == null) return null; // TODO(log)
+    return (account, narrow);
   }
 }

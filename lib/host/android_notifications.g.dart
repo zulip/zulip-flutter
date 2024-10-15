@@ -71,17 +71,22 @@ class NotificationChannel {
 class AndroidIntent {
   AndroidIntent({
     required this.action,
-    required this.extras,
+    required this.uri,
+    required this.flags,
   });
 
   String action;
 
-  Map<String?, String?> extras;
+  String uri;
+
+  /// A combination of flags from [IntentFlag].
+  int flags;
 
   Object encode() {
     return <Object?>[
       action,
-      extras,
+      uri,
+      flags,
     ];
   }
 
@@ -89,7 +94,8 @@ class AndroidIntent {
     result as List<Object?>;
     return AndroidIntent(
       action: result[0]! as String,
-      extras: (result[1] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      uri: result[1]! as String,
+      flags: result[2]! as int,
     );
   }
 }
