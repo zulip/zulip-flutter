@@ -247,6 +247,8 @@ void main() {
     test('smoke', () => awaitFakeAsync((async) async {
       await prepareStore();
       final users = [eg.selfUser, eg.otherUser];
+
+      globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(realmUsers: users).toJson());
       final updateMachine = await UpdateMachine.load(
         globalStore, eg.selfAccount.id);
@@ -274,6 +276,7 @@ void main() {
         ..zulipMergeBase.equals('6.0')
         ..zulipFeatureLevel.equals(123);
 
+      globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(
         zulipVersion: '8.0+g9876',
         zulipMergeBase: '8.0',
@@ -292,6 +295,7 @@ void main() {
       await prepareStore();
 
       // Try to load, inducing an error in the request.
+      globalStore.useCachedApiConnections = true;
       connection.prepare(exception: Exception('failed'));
       final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
       bool complete = false;
