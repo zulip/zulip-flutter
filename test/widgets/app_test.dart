@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/page.dart';
@@ -288,4 +289,63 @@ void main() {
       check(findSnackBarByText('unrelated').evaluate()).single;
     });
   });
+    testWidgets('Home scrollable test, when contents do not fit to screen', (tester)async{
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: Center(child: SingleChildScrollView(child: Column(
+        children: [
+          DefaultTextStyle.merge(
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+              child: const Column(children: [
+                 Text('🚧 Under construction 🚧'),
+                 SizedBox(height: 12),
+                 Text.rich(TextSpan(
+                  text: 'Connected to: ',)),
+                 Text.rich(TextSpan(
+                  text: 'Zulip server version: ',)),
+              ])),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text(zulipLocalizations.combinedFeedPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: ()  {},
+              child: Text(zulipLocalizations.mentionsPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text(zulipLocalizations.starredMessagesPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text("Inbox")),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text("Subscribed channels")),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: ()  {},
+              child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {},
+                child: const Text("#test here")),
+
+        ]))))));
+      //make sure the added scrollable widget is functional
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+
+      //Scroll down
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -300));
+
+      //Test for the last button down the column
+      await tester.pump();
+      expect(find.text('#test here'), findsOneWidget);
+    });
+
 }
