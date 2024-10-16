@@ -29,27 +29,40 @@ class TestGlobalStore extends GlobalStore {
     FakeApiConnection
   > _apiConnections = {};
 
+  /// Whether [apiConnection] should return a cached connection.
+  ///
+  /// If true, [apiConnection] will return a cached [FakeApiConnection]
+  /// from a previous call, if it is still open ([FakeApiConnection.isOpen]).
+  /// If there is a cached connection but it has been closed
+  /// with [ApiConnection.close], that connection will be ignored in favor
+  /// of returning (and saving for next time) a fresh connection after all.
+  ///
+  /// If false (the default), returns a fresh connection each time.
+  ///
+  /// Setting this to true is useful if a test needs to access the same
+  /// [FakeApiConnection] that the code under test will get, so as to use
+  /// [FakeApiConnection.prepare] or [FakeApiConnection.lastRequest].
+  /// The behavior with `true` breaches the base method's contract slightly --
+  /// the base method would return a fresh connection each time --
+  /// but that breach is sometimes convenient for tests.
+  bool useCachedApiConnections = false;
+
   /// Get or construct a [FakeApiConnection] with the given arguments.
   ///
-  /// This breaches the base method's contract slightly, in that on repeated
-  /// calls with the same arguments it returns the same connection, rather than
-  /// a fresh one each time.  That breach is very convenient for tests,
-  /// enabling a test to get access to the same [FakeApiConnection] that the
-  /// code under test will get, so as to use [FakeApiConnection.prepare]
-  /// and [FakeApiConnection.lastRequest].
-  ///
-  /// However, if the connection returned by a previous call has been closed
-  /// with [ApiConnection.close], then that connection will be ignored in favor
-  /// of returning (and saving for next time) a fresh connection after all.
+  /// To access the same [FakeApiConnection] that the code under test will get,
+  /// so as to use [FakeApiConnection.prepare] or [FakeApiConnection.lastRequest],
+  /// see [useCachedApiConnections].
   @override
   FakeApiConnection apiConnection({
       required Uri realmUrl, required int? zulipFeatureLevel,
       String? email, String? apiKey}) {
     final key = (realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
       email: email, apiKey: apiKey);
-    final connection = _apiConnections[key];
-    if (connection != null && connection.isOpen) {
-      return connection;
+    if (useCachedApiConnections) {
+      final connection = _apiConnections[key];
+      if (connection != null && connection.isOpen) {
+        return connection;
+      }
     }
     return (_apiConnections[key] = FakeApiConnection(
       realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
