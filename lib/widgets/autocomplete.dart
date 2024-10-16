@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'content.dart';
-import 'store.dart';
+import '../api/model/model.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'compose_box.dart';
+import 'content.dart';
+import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
 
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
@@ -193,27 +196,61 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
     );
   }
 
+
   @override
   Widget buildItem(BuildContext context, int index, MentionAutocompleteResult option) {
+    final designVariables = DesignVariables.of(context);
     Widget avatar;
     String label;
+    String? metadata;
+
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
-        label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+        final store = PerAccountStoreWidget.of(context);
+        final user = store.users[userId]!;
+        avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
+        label = user.fullName;
+        metadata = getDisplayEmailFor(user, store: store);
     }
     return InkWell(
       onTap: () {
         _onTapOption(context, option);
       },
+      highlightColor: designVariables.editorButtonPressedBg,
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.only(left: 4, right: 8, top: 4, bottom: 4),
         child: Row(
           children: [
             avatar,
-            const SizedBox(width: 8),
-            Text(label),
-          ])));
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                Text(
+                    style: TextStyle(
+                        fontSize: 18,
+                        height: 20/18,
+                        color: designVariables.contextMenuItemLabel)
+                    .merge(weightVariableTextStyle(context, wght: 600)),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  label,
+
+                ),
+                if(metadata != null) Text(
+                    style: TextStyle(
+                        fontSize: 14,
+                        height: 16/14,
+                        color: designVariables.contextMenuItemMeta),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    metadata,
+                )]))])));
   }
 }
 

@@ -110,6 +110,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: const Color(0x33000000),
+      contextMenuItemLabel: const Color(0xff242631),
+      contextMenuItemMeta: const Color(0xff626573),
+      editorButtonPressedBg: const Color(0xff000000).withValues(alpha: 0.06),
       icon: const Color(0xff666699),
       labelCounterUnread: const Color(0xff222222),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
@@ -140,6 +143,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
       bgTopBar: const Color(0xff242424),
       borderBar: Colors.black.withValues(alpha: 0.41),
+      contextMenuItemLabel: const Color(0xffdfe1e8),
+      contextMenuItemMeta: const Color(0xff9194a3),
+      editorButtonPressedBg: const Color(0xffffffff).withValues(alpha: 0.06),
       icon: const Color(0xff7070c2),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
@@ -177,6 +183,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgCounterUnread,
     required this.bgTopBar,
     required this.borderBar,
+    required this.contextMenuItemLabel,
+    required this.contextMenuItemMeta,
+    required this.editorButtonPressedBg,
     required this.icon,
     required this.labelCounterUnread,
     required this.labelEdited,
@@ -215,6 +224,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgCounterUnread;
   final Color bgTopBar;
   final Color borderBar;
+  final Color contextMenuItemLabel;
+  final Color contextMenuItemMeta;
+  final Color editorButtonPressedBg;
   final Color icon;
   final Color labelCounterUnread;
   final Color labelEdited;
@@ -248,6 +260,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgCounterUnread,
     Color? bgTopBar,
     Color? borderBar,
+    Color? contextMenuItemLabel,
+    Color? contextMenuItemMeta,
+    Color? editorButtonPressedBg,
     Color? icon,
     Color? labelCounterUnread,
     Color? labelEdited,
@@ -276,6 +291,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
+      contextMenuItemLabel: contextMenuItemLabel ?? this.contextMenuItemLabel,
+      contextMenuItemMeta: contextMenuItemMeta ?? this.contextMenuItemMeta,
+      editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       icon: icon ?? this.icon,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       labelEdited: labelEdited ?? this.labelEdited,
@@ -311,6 +329,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
+      contextMenuItemMeta: Color.lerp(contextMenuItemMeta, other.contextMenuItemMeta, t)!,
+      contextMenuItemLabel: Color.lerp(contextMenuItemLabel, other.contextMenuItemLabel, t)!,
+      editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
