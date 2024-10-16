@@ -445,6 +445,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   // End of data.
   ////////////////////////////////////////////////////////////////
 
+  bool _disposed = false;
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// This will redo from scratch any computations we can, such as parsing
@@ -456,15 +458,19 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   @override
   void dispose() {
+    assert(!_disposed);
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
     typingStatus.dispose();
     updateMachine?.dispose();
+    _disposed = true;
     super.dispose();
   }
 
   Future<void> handleEvent(Event event) async {
+    assert(!_disposed);
+
     switch (event) {
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
@@ -606,6 +612,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   }
 
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    assert(!_disposed);
+
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
     return _apiSendMessage(connection,
@@ -790,6 +798,8 @@ class UpdateMachine {
   final String queueId;
   int lastEventId;
 
+  bool _disposed = false;
+
   static Future<InitialSnapshot> _registerQueueWithRetry(
       ApiConnection connection) async {
     BackoffMachine? backoffMachine;
@@ -876,11 +886,15 @@ class UpdateMachine {
         }());
       }
 
+      if (_disposed) return;
+
       final GetEventsResult result;
       try {
         result = await getEvents(store.connection,
           queueId: queueId, lastEventId: lastEventId);
       } catch (e) {
+        if (_disposed) return;
+
         store.isLoading = true;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
@@ -908,6 +922,8 @@ class UpdateMachine {
         }
       }
 
+      if (_disposed) return;
+
       // After one successful request, we reset backoff to its initial state.
       // That way if the user is off the network and comes back on, the app
       // doesn't wind up in a state where it's slow to recover the next time
@@ -929,6 +945,7 @@ class UpdateMachine {
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);
+        if (_disposed) return;
       }
       if (events.isNotEmpty) {
         lastEventId = events.last.id;
@@ -944,6 +961,8 @@ class UpdateMachine {
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
+    if (_disposed) return;
+
     if (!debugEnableRegisterNotificationToken) {
       return;
     }
@@ -957,12 +976,14 @@ class UpdateMachine {
     await NotificationService.registerToken(store.connection, token: token);
   }
 
-  /// Cleans up resources.
+  /// Cleans up resources and tells the instance not to make new API requests.
   ///
   /// After this is called, the instance is not in a usable state
   /// and should be abandoned.
   void dispose() { // TODO abort long-poll and close ApiConnection
+    assert(!_disposed);
     NotificationService.instance.token.removeListener(_registerNotificationToken);
+    _disposed = true;
   }
 
   /// In debug mode, controls whether [fetchEmojiData] should
