@@ -159,6 +159,22 @@ class NotificationService {
     }
   }
 
+  static Future<void> unregisterToken(ApiConnection connection, {required String token}) async {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        await removeFcmToken(connection, token: token);
+
+      case TargetPlatform.iOS:
+        await removeApnsToken(connection, token: token);
+
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        assert(false);
+    }
+  }
+
   static void _onForegroundMessage(FirebaseRemoteMessage message) {
     assert(debugLog("notif message: ${message.data}"));
     _onRemoteMessage(message);

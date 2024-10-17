@@ -78,6 +78,8 @@ abstract class GlobalStore extends ChangeNotifier {
   }
 
   final Map<int, PerAccountStore> _perAccountStores = {};
+
+  int get debugNumPerAccountStoresLoading => _perAccountStoresLoading.length;
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
   /// The store's per-account data for the given account, if already loaded.
@@ -144,7 +146,21 @@ abstract class GlobalStore extends ChangeNotifier {
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
-  Future<PerAccountStore> loadPerAccount(int accountId);
+  Future<PerAccountStore> loadPerAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    final store = await doLoadPerAccount(accountId);
+    if (!_accounts.containsKey(accountId)) {
+      // [removeAccount] was called during [doLoadPerAccount].
+      store.dispose();
+      throw AccountNotFoundException();
+    }
+    return store;
+  }
+
+  /// Load per-account data for the given account, unconditionally.
+  ///
+  /// This method should be called only by [loadPerAccount].
+  Future<PerAccountStore> doLoadPerAccount(int accountId);
 
   // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -192,9 +208,25 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
+  /// Remove an account from the store.
+  Future<void> removeAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    await doRemoveAccount(accountId);
+    if (!_accounts.containsKey(accountId)) return; // Already removed.
+    _accounts.remove(accountId);
+    _perAccountStores.remove(accountId)?.dispose();
+    unawaited(_perAccountStoresLoading.remove(accountId));
+    notifyListeners();
+  }
+
+  /// Remove an account from the underlying data store.
+  Future<void> doRemoveAccount(int accountId);
+
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
 }
+
+class AccountNotFoundException implements Exception {}
 
 /// Store for the user's data for a given Zulip account.
 ///
@@ -303,6 +335,14 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
+  UpdateMachine? get updateMachine => _updateMachine;
+  UpdateMachine? _updateMachine;
+  set updateMachine(UpdateMachine? value) {
+    assert(_updateMachine == null);
+    assert(value != null);
+    _updateMachine = value;
+  }
+
   bool get isLoading => _isLoading;
   bool _isLoading = false;
   @visibleForTesting
@@ -361,6 +401,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   // Data attached to the self-account on the realm.
 
   final int accountId;
+
+  /// The [Account] this store belongs to.
+  ///
+  /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
 
   /// Always equal to `account.userId`.
@@ -430,6 +474,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   // End of data.
   ////////////////////////////////////////////////////////////////
 
+  bool _disposed = false;
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// This will redo from scratch any computations we can, such as parsing
@@ -441,14 +487,20 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   @override
   void dispose() {
+    assert(!_disposed);
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
     typingStatus.dispose();
+    updateMachine?.dispose();
+    connection.close();
+    _disposed = true;
     super.dispose();
   }
 
   Future<void> handleEvent(Event event) async {
+    assert(!_disposed);
+
     switch (event) {
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
@@ -590,6 +642,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   }
 
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    assert(!_disposed);
+
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
     return _apiSendMessage(connection,
@@ -682,7 +736,7 @@ class LiveGlobalStore extends GlobalStore {
   final AppDatabase _db;
 
   @override
-  Future<PerAccountStore> loadPerAccount(int accountId) async {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) async {
     final updateMachine = await UpdateMachine.load(this, accountId);
     return updateMachine.store;
   }
@@ -709,6 +763,14 @@ class LiveGlobalStore extends GlobalStore {
   }
 
   @override
+  Future<void> doRemoveAccount(int accountId) async {
+    final rowsAffected = await (_db.delete(_db.accounts)
+      ..where((a) => a.id.equals(accountId))
+    ).go();
+    assert(rowsAffected == 1);
+  }
+
+  @override
   String toString() => '${objectRuntimeType(this, 'LiveGlobalStore')}#${shortHash(this)}';
 }
 
@@ -722,7 +784,9 @@ class UpdateMachine {
          // case of unauthenticated access to a web-public realm.  We authenticated.
          throw Exception("bad initial snapshot: missing queueId");
        })(),
-       lastEventId = initialSnapshot.lastEventId;
+       lastEventId = initialSnapshot.lastEventId {
+    store.updateMachine = this;
+  }
 
   /// Load the user's data from the server, and start an event queue going.
   ///
@@ -771,6 +835,8 @@ class UpdateMachine {
   final PerAccountStore store;
   final String queueId;
   int lastEventId;
+
+  bool _disposed = false;
 
   static Future<InitialSnapshot> _registerQueueWithRetry(
       ApiConnection connection) async {
@@ -858,17 +924,21 @@ class UpdateMachine {
         }());
       }
 
+      if (_disposed) return;
+
       final GetEventsResult result;
       try {
         result = await getEvents(store.connection,
           queueId: queueId, lastEventId: lastEventId);
       } catch (e) {
+        if (_disposed) return;
+
         store.isLoading = true;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
+            // This disposes the store, which disposes this update machine.
             await store._globalStore._reloadPerAccount(store.accountId);
-            dispose();
             debugLog('… Event queue replaced.');
             return;
 
@@ -889,6 +959,8 @@ class UpdateMachine {
             continue;
         }
       }
+
+      if (_disposed) return;
 
       // After one successful request, we reset backoff to its initial state.
       // That way if the user is off the network and comes back on, the app
@@ -911,6 +983,7 @@ class UpdateMachine {
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);
+        if (_disposed) return;
       }
       if (events.isNotEmpty) {
         lastEventId = events.last.id;
@@ -926,6 +999,8 @@ class UpdateMachine {
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
   Future<void> registerNotificationToken() async {
+    if (_disposed) return;
+
     if (!debugEnableRegisterNotificationToken) {
       return;
     }
@@ -939,8 +1014,18 @@ class UpdateMachine {
     await NotificationService.registerToken(store.connection, token: token);
   }
 
-  void dispose() { // TODO abort long-poll and close ApiConnection
+  /// Cleans up resources and tells the instance not to make new API requests.
+  ///
+  /// After this is called, the instance is not in a usable state
+  /// and should be abandoned.
+  ///
+  /// To abort polling mid-request, [store]'s [PerAccountStore.connection]
+  /// needs to be closed using [ApiConnection.close], which causes in-progress
+  /// requests to error. [PerAccountStore.dispose] does that.
+  void dispose() {
+    assert(!_disposed);
     NotificationService.instance.token.removeListener(_registerNotificationToken);
+    _disposed = true;
   }
 
   /// In debug mode, controls whether [fetchEmojiData] should

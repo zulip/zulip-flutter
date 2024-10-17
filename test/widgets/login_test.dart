@@ -124,6 +124,7 @@ void main() {
 
         await tester.enterText(findUsernameInput, eg.selfAccount.email);
         await tester.enterText(findPasswordInput, 'p455w0rd');
+        testBinding.globalStore.useCachedApiConnections = true;
         connection.prepare(json: FetchApiKeyResult(
           apiKey: eg.selfAccount.apiKey,
           email: eg.selfAccount.email,
@@ -144,6 +145,7 @@ void main() {
 
         await tester.enterText(findUsernameInput, '  ${eg.selfAccount.email}  ');
         await tester.enterText(findPasswordInput, 'p455w0rd');
+        testBinding.globalStore.useCachedApiConnections = true;
         connection.prepare(json: FetchApiKeyResult(
           apiKey: eg.selfAccount.apiKey,
           email: eg.selfAccount.email,
@@ -165,6 +167,7 @@ void main() {
 
         await tester.enterText(findUsernameInput, eg.selfAccount.email);
         await tester.enterText(findPasswordInput, 'p455w0rd');
+        testBinding.globalStore.useCachedApiConnections = true;
         connection.prepare(json: FetchApiKeyResult(
           apiKey: eg.selfAccount.apiKey,
           email: eg.selfAccount.email,
