@@ -58,6 +58,8 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       userTopics: (json['user_topics'] as List<dynamic>?)
           ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      realmWaitingPeriodThreshold:
+          (json['realm_waiting_period_threshold'] as num).toInt(),
       realmDefaultExternalAccounts:
           (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(
@@ -106,6 +108,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'streams': instance.streams,
       'user_settings': instance.userSettings,
       'user_topics': instance.userTopics,
+      'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),

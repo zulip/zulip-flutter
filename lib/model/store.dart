@@ -236,6 +236,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       connection: connection,
       realmUrl: realmUrl,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
+      realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
@@ -271,6 +272,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.connection,
     required this.realmUrl,
     required this.maxFileUploadSizeMib,
+    required this.realmWaitingPeriodThreshold,
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
     required this.emailAddressVisibility,
@@ -325,6 +327,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   String get zulipVersion => account.zulipVersion;
   final int maxFileUploadSizeMib; // No event for this.
+  /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
+  final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
