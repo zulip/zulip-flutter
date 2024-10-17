@@ -464,6 +464,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     _messages.dispose();
     typingStatus.dispose();
     updateMachine?.dispose();
+    connection.close();
     _disposed = true;
     super.dispose();
   }
@@ -978,7 +979,11 @@ class UpdateMachine {
   ///
   /// After this is called, the instance is not in a usable state
   /// and should be abandoned.
-  void dispose() { // TODO abort long-poll and close ApiConnection
+  ///
+  /// To abort polling mid-request, [store]'s [PerAccountStore.connection]
+  /// needs to be closed using [ApiConnection.close], which causes in-progress
+  /// requests to error. [PerAccountStore.dispose] does that.
+  void dispose() {
     assert(!_disposed);
     NotificationService.instance.token.removeListener(_registerNotificationToken);
     _disposed = true;
