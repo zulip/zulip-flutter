@@ -96,7 +96,11 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
     fragment.write('/near/$nearMessageId');
   }
 
-  return store.realmUrl.replace(fragment: fragment.toString());
+  final realmUrlWithSlash = store.realmUrl.path.isNotEmpty
+      ? store.realmUrl
+      : store.realmUrl.replace(path: '${store.realmUrl.path}/');
+
+  return realmUrlWithSlash.replace(fragment: fragment.toString());
 }
 
 /// A [Narrow] from a given URL, on `store`'s realm.
