@@ -957,6 +957,10 @@ class UpdateMachine {
     await NotificationService.registerToken(store.connection, token: token);
   }
 
+  /// Cleans up resources.
+  ///
+  /// After this is called, the instance is not in a usable state
+  /// and should be abandoned.
   void dispose() { // TODO abort long-poll and close ApiConnection
     NotificationService.instance.token.removeListener(_registerNotificationToken);
   }
