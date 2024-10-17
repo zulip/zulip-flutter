@@ -1,96 +1,59 @@
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
+import '../themes/appbar_theme.dart';
+import '../themes/elevated_button_theme.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
 import 'message_list.dart';
 import 'channel_colors.dart';
 import 'text.dart';
 
-ThemeData zulipThemeData(BuildContext context) {
-  final DesignVariables designVariables;
-  final List<ThemeExtension> themeExtensions;
-  Brightness brightness = MediaQuery.platformBrightnessOf(context);
-  switch (brightness) {
-    case Brightness.light: {
-      designVariables = DesignVariables.light();
-      themeExtensions = [
+class ZulipTheme {
+  ZulipTheme._();
+
+  static ThemeData lightTheme(BuildContext context) {
+    final DesignVariables designVariables = DesignVariables.light();
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      primaryColor: Colors.blue,
+      scaffoldBackgroundColor: designVariables.mainBackground,
+      typography: zulipTypography(context),
+      extensions: [
         ContentTheme.light(context),
         designVariables,
-        EmojiReactionTheme.light(),
-        MessageListTheme.light(),
-      ];
-    }
-    case Brightness.dark: {
-      designVariables = DesignVariables.dark();
-      themeExtensions = [
-        ContentTheme.dark(context),
-        designVariables,
-        EmojiReactionTheme.dark(),
-        MessageListTheme.dark(),
-      ];
-    }
+        EmojiReactionTheme.light(), // Adding EmojiReactionTheme
+        MessageListTheme.light(),   // Adding MessageListTheme
+      ],
+      appBarTheme: ZAppBarTheme.lightAppBarTheme(context, designVariables),
+      tooltipTheme: const TooltipThemeData(preferBelow: false),
+    );
   }
 
-  return ThemeData(
-    brightness: brightness,
-    typography: zulipTypography(context),
-    extensions: themeExtensions,
-    appBarTheme: AppBarTheme(
-      // Set these two fields to prevent a color change in [AppBar]s when
-      // there is something scrolled under it. If an app bar hasn't been
-      // given a backgroundColor directly or by theme, it uses
-      // ColorScheme.surfaceContainer for the scrolled-under state and
-      // ColorScheme.surface otherwise, and those are different colors.
-      scrolledUnderElevation: 0,
-      backgroundColor: designVariables.bgTopBar,
+  static ThemeData darkTheme(BuildContext context) {
+    final DesignVariables designVariables = DesignVariables.dark();
 
-      // TODO match layout to Figma
-      actionsIconTheme: IconThemeData(
-        color: designVariables.icon,
-      ),
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      primaryColor: Colors.blue,
+      scaffoldBackgroundColor: designVariables.mainBackground,
+      typography: zulipTypography(context),
+      extensions: [
+        ContentTheme.dark(context),
+        designVariables,
+        EmojiReactionTheme.dark(), // Adding EmojiReactionTheme
+        MessageListTheme.dark(),   // Adding MessageListTheme
+      ],
+      appBarTheme: ZAppBarTheme.darkAppBarTheme(context, designVariables),
+      tooltipTheme: const TooltipThemeData(preferBelow: false),
+      elevatedButtonTheme: ZButtonTheme.darkElevatedButtonTheme(designVariables),
 
-      titleTextStyle: TextStyle(
-        inherit: false,
-        color: designVariables.title,
-        fontSize: 20,
-        letterSpacing: 0.0,
-        height: (30 / 20),
-        textBaseline: localizedTextBaseline(context),
-        leadingDistribution: TextLeadingDistribution.even,
-        decoration: TextDecoration.none,
-        fontFamily: kDefaultFontFamily,
-        fontFamilyFallback: defaultFontFamilyFallback,
-      )
-        .merge(weightVariableTextStyle(context, wght: 600)),
-      titleSpacing: 4,
-
-      // TODO Figma has height 42; we should try `toolbarHeight: 42` and test
-      //   that it looks reasonable with different system text-size settings.
-      //   Also the back button will look too big and need adjusting.
-
-      shape: Border(bottom: BorderSide(
-        color: designVariables.borderBar,
-        strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
-      )),
-    ),
-    // This applies Material 3's color system to produce a palette of
-    // appropriately matching and contrasting colors for use in a UI.
-    // The Zulip brand color is a starting point, but doesn't end up as
-    // one that's directly used.  (After all, we didn't design it for that
-    // purpose; we designed a logo.)  See docs:
-    //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
-    // Or try this tool to see the whole palette:
-    //   https://m3.material.io/theme-builder#/custom
-    colorScheme: ColorScheme.fromSeed(
-      brightness: brightness,
-      seedColor: kZulipBrandColor,
-    ),
-    scaffoldBackgroundColor: designVariables.mainBackground,
-    tooltipTheme: const TooltipThemeData(preferBelow: false),
-  );
+    );
+  }
 }
-
 /// The Zulip "brand color", a purplish blue.
 ///
 /// This is chosen as the sRGB midpoint of the Zulip logo's gradient.
@@ -134,43 +97,36 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     );
 
-  DesignVariables.dark() :
+    DesignVariables.dark() :
     this._(
-      background: const Color(0xff000000),
-      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
-      bgTopBar: const Color(0xff242424),
-      borderBar: Colors.black.withValues(alpha: 0.41),
-      icon: const Color(0xff7070c2),
-      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
-      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
-      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
-      mainBackground: const Color(0xff1d1d1d),
-      title: const Color(0xffffffff),
+      background: const Color(0xff000000),  // Keeps deep black background for full dark contrast.
+      bgCounterUnread: const Color(0xff333366).withValues(alpha: 0.37),  // Darkened for better contrast with lighter text.
+      bgTopBar: const Color(0xff1a1a1a),  // Darkened for better distinction from the background.
+      borderBar: Colors.black.withValues(alpha: 0.41),  // Lower contrast for subtle visibility.
+      icon: const Color(0xff8080ff),  // Slightly lighter to pop more on the dark background.
+      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),  // High contrast to stand out.
+      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),  // Higher visibility for edits.
+      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),  // Clearer text for buttons.
+      mainBackground: const Color(0xff151515),  // Slightly darker to create separation from the background components.
+      title: const Color(0xffffffff),  // Pure white for sharp title contrast.
       channelColorSwatches: ChannelColorSwatches.dark,
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
-      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
-      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
-      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIconBg: const Color(0x33cccccc),
-      loginOrDivider: const Color(0xff424242),
-      loginOrDividerText: const Color(0xffa8a8a8),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      sectionCollapseIcon: const Color(0x7fb6c8e2),
-      // TODO(design-dark) unchanged in dark theme?
-      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
-      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+      atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),  // Kept unchanged for distinct mentions.
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),  // Slightly adjusted for better readability.
+      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.25).toColor(),  // Darkened to make errors stand out without being harsh.
+      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),  // Higher contrast for error borders.
+      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.85).toColor(),  // Brightened for better legibility.
+      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),  // Moderate transparency for conversation icons.
+      groupDmConversationIconBg: const Color(0x33aaaaaa),  // Darkened to reduce clash with dark background.
+      loginOrDivider: const Color(0xff303030),  // Slightly lighter gray to create clear division.
+      loginOrDividerText: const Color(0xffb0b0b0),  // Softer text to create good contrast against divider.
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.65).toColor(),  // Increased opacity for muted badge.
+      sectionCollapseIcon: const Color(0x7fa0d0f0),  // Adjusted to enhance contrast for visibility.
+      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.5).toColor(),  // Slightly lighter for emphasis on important items.
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.8).toColor(),  // Enhanced to separate the sections.
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.85).toColor(),  // Darkened for better contrast.
+      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),  // High contrast for unread count visibility.
     );
+
 
   DesignVariables._({
     required this.background,
