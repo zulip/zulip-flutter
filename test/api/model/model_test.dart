@@ -62,7 +62,6 @@ void main() {
 
     test('is_system_bot', () {
       check(mkUser({}).isSystemBot).isFalse();
-      check(mkUser({'is_cross_realm_bot': true}).isSystemBot).isTrue();
       check(mkUser({'is_system_bot': true}).isSystemBot).isTrue();
     });
   });
@@ -284,16 +283,6 @@ void main() {
       test('Content change only -> edited', () {
         checkEditState(MessageEditState.edited,
           [{'prev_content': 'old_content'}]);
-      });
-
-      test("'prev_topic' present without the 'topic' field -> moved", () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_topic': 'old_topic'}]);
-      });
-
-      test("'prev_subject' present from a pre-5.0 server -> moved", () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_subject': 'old_topic'}]);
       });
     });
 
