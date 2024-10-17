@@ -20,6 +20,7 @@ class NotificationService {
   /// TODO refactor this better, perhaps unify with ZulipBinding
   @visibleForTesting
   static void debugReset() {
+    NotificationDisplayManager.debugReset();
     instance.token.dispose();
     _instance = null;
     assert(debugBackgroundIsolateIsLive = true);
@@ -161,7 +162,7 @@ class NotificationService {
 
   static void _onForegroundMessage(FirebaseRemoteMessage message) {
     assert(debugLog("notif message: ${message.data}"));
-    _onRemoteMessage(message);
+    _onRemoteMessage(message, isBackground: false);
   }
 
   // This pragma `vm:entry-point` is needed in release mode, when this method
@@ -177,7 +178,7 @@ class NotificationService {
     _initBackgroundIsolate();
 
     assert(debugLog("notif message in background: ${message.data}"));
-    _onRemoteMessage(message);
+    _onRemoteMessage(message, isBackground: true);
   }
 
   static void _initBackgroundIsolate() {
@@ -199,8 +200,8 @@ class NotificationService {
     NotificationDisplayManager.init(); // TODO call this just once per isolate
   }
 
-  static void _onRemoteMessage(FirebaseRemoteMessage message) {
+  static void _onRemoteMessage(FirebaseRemoteMessage message, {required bool isBackground}) {
     final data = FcmMessage.fromJson(message.data);
-    NotificationDisplayManager.onFcmMessage(data, message.data);
+    NotificationDisplayManager.onFcmMessage(data, message.data, isBackground: isBackground);
   }
 }
