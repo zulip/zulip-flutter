@@ -266,7 +266,7 @@ class MessageContent extends StatelessWidget {
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
           ZulipContent() => BlockContentList(nodes: content.nodes),
-          PollContent()  => PollWidget(poll: content.poll),
+          PollContent()  => PollWidget(messageId: message.id, poll: content.poll),
         }));
   }
 }

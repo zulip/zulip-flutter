@@ -471,9 +471,6 @@ Submessage submessage({
   );
 }
 
-PollOption pollOption({required String text, required Iterable<int> voters}) =>
-    PollOption(text: text)..voters.addAll(voters);
-
 ////////////////////////////////////////////////////////////////
 // Aggregate data structures.
 //
