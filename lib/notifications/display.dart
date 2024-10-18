@@ -366,7 +366,7 @@ class NotificationDisplayManager {
 
     final globalStore = GlobalStoreWidget.of(context);
     final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == data.realmUri && account.userId == data.userId);
+      account.realmUrl.origin == data.realmUri.origin && account.userId == data.userId);
     if (account == null) return; // TODO(log)
 
     final narrow = switch (data.recipient) {
