@@ -226,8 +226,7 @@ void main() {
       final expectedGroupKey = '${data.realmUri}|${data.userId}';
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
-      const expectedPendingIntentFlags =
-        PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
+      const expectedPendingIntentFlags = PendingIntentFlag.immutable;
       final expectedSelfUserKey = '${data.realmUri}|${data.userId}';
       final expectedIntentUri = Uri(
         scheme: 'zulip',
