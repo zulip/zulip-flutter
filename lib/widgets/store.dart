@@ -60,7 +60,7 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   void initState() {
     super.initState();
     (() async {
-      final store = await ZulipBinding.instance.loadGlobalStore();
+      final store = await ZulipBinding.instance.getGlobalStoreUniquely();
       setState(() {
         this.store = store;
       });

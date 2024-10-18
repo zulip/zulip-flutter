@@ -100,7 +100,10 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> loadGlobalStore() {
+  Future<GlobalStore> getGlobalStore() => Future.value(globalStore);
+
+  @override
+  Future<GlobalStore> getGlobalStoreUniquely() {
     assert(() {
       if (_debugAlreadyLoadedStore) {
         throw FlutterError.fromParts([
@@ -121,7 +124,7 @@ class TestZulipBinding extends ZulipBinding {
       _debugAlreadyLoadedStore = true;
       return true;
     }());
-    return Future.value(globalStore);
+    return getGlobalStore();
   }
 
   /// The value that `ZulipBinding.instance.canLaunchUrl()` should return.
