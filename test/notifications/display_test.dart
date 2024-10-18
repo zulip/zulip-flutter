@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,14 +6,15 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/model/internal_link.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -29,6 +30,7 @@ import 'package:zulip/widgets/theme.dart';
 import '../fake_async.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
+import '../model/test_store.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import '../widgets/message_list_checks.dart';
@@ -214,6 +216,7 @@ void main() {
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
+      required String expectedIntentUriNarrowFragment,
       List<int>? expectedIconBitmap = kSolidBlueAvatar,
     }) {
       assert(messageStyleMessages.every((e) => e.userId == data.userId));
@@ -223,9 +226,17 @@ void main() {
       final expectedGroupKey = '${data.realmUri}|${data.userId}';
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
+      const expectedPendingIntentFlags = PendingIntentFlag.immutable;
       const expectedIntentFlags =
-        PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
+        IntentFlag.activityClearTop | IntentFlag.activityNewTask;
       final expectedSelfUserKey = '${data.realmUri}|${data.userId}';
+      final expectedIntentUri = Uri(
+        scheme: 'zulip',
+        host: 'notification',
+        queryParameters: {
+          'user_id': data.userId.toString(),
+          'narrow_uri': data.realmUri.resolve(expectedIntentUriNarrowFragment).toString(),
+        });
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -270,9 +281,12 @@ void main() {
             ..inboxStyle.isNull()
             ..autoCancel.equals(true)
             ..contentIntent.which((it) => it.isNotNull()
-              ..requestCode.equals(expectedId)
-              ..flags.equals(expectedIntentFlags)
-              ..intentPayload.equals(jsonEncode(data.toJson()))),
+              ..requestCode.equals(0)
+              ..flags.equals(expectedPendingIntentFlags)
+              ..intent.which((it) => it
+                ..action.equals(IntentAction.view)
+                ..uri.equals(expectedIntentUri.toString())
+                ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
             ..tag.equals(expectedGroupKey)
@@ -295,6 +309,7 @@ void main() {
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
+      required String expectedIntentUriNarrowFragment,
     }) async {
       // We could just call `NotificationDisplayManager.onFcmMessage`.
       // But this way is cheap, and it provides our test coverage of
@@ -307,7 +322,8 @@ void main() {
         messageStyleMessages: [data],
         expectedIsGroupConversation: expectedIsGroupConversation,
         expectedTitle: expectedTitle,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: expectedIntentUriNarrowFragment);
       testBinding.androidNotificationHost.clearActiveNotifications();
 
       testBinding.firebaseMessaging.onBackgroundMessage.add(
@@ -317,7 +333,8 @@ void main() {
         messageStyleMessages: [data],
         expectedIsGroupConversation: expectedIsGroupConversation,
         expectedTitle: expectedTitle,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: expectedIntentUriNarrowFragment);
     }
 
     void receiveFcmMessage(FakeAsync async, FcmMessage data) {
@@ -348,18 +365,45 @@ void main() {
         ..tag.equals(expectedGroupKey);
     }
 
+    String streamIntentUriNarrowFragment(StreamMessage message, {
+      required String? streamName,
+    }) {
+      final streamId = message.streamId;
+      final slugifiedStreamName =
+        encodeHashComponent((streamName ?? 'unknown').replaceAll(' ', '-'));
+      final topic = encodeHashComponent(message.topic);
+      final messageId = message.id;
+      return '/#narrow/stream/$streamId-$slugifiedStreamName/topic/$topic/near/$messageId';
+    }
+
+    String dmIntentUriNarrowFragment(DmMessage message) {
+      final suffix = message.allRecipientIds.length >= 3 ? 'group' : 'dm';
+      return '/#narrow/dm/${message.allRecipientIds.join(",")}-$suffix/near/${message.id}';
+    }
+
+
     test('stream message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      final account = eg.selfAccount;
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
+      final data = messageFcmMessage(message, streamName: stream.name);
+
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      final perAccountStore = await testBinding.globalStore.perAccount(account.id);
+      await perAccountStore.addStream(stream);
+
+      await checkNotifications(async, data,
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
-        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message, streamName: stream.name));
     })));
 
     test('stream message: multiple messages, same topic', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      final account = eg.selfAccount;
       final stream = eg.stream();
       const topic = 'topic 1';
       final message1 = eg.streamMessage(topic: topic, stream: stream);
@@ -369,6 +413,10 @@ void main() {
       final message3 = eg.streamMessage(topic: topic, stream: stream);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
 
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      final perAccountStore = await testBinding.globalStore.perAccount(account.id);
+      await perAccountStore.addStream(stream);
+
       final expectedTitle = '#${stream.name} > $topic';
       final expectedTagComponent = 'stream:${stream.streamId}:$topic';
 
@@ -377,25 +425,32 @@ void main() {
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message1, streamName: stream.name));
 
       receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message2, streamName: stream.name));
 
       receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data2, data3],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message3, streamName: stream.name));
     })));
 
     test('stream message: multiple messages, different topics', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      final account = eg.selfAccount;
       final stream = eg.stream();
       const topicA = 'topic A';
       const topicB = 'topic B';
@@ -406,42 +461,62 @@ void main() {
       final message3 = eg.streamMessage(topic: topicA, stream: stream);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
 
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      final perAccountStore = await testBinding.globalStore.perAccount(account.id);
+      await perAccountStore.addStream(stream);
+
       receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
-        expectedTagComponent: 'stream:${stream.streamId}:$topicA');
+        expectedTagComponent: 'stream:${stream.streamId}:$topicA',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message1, streamName: stream.name));
 
       receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicB',
-        expectedTagComponent: 'stream:${stream.streamId}:$topicB');
+        expectedTagComponent: 'stream:${stream.streamId}:$topicB',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message2, streamName: stream.name));
 
       receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data3],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
-        expectedTagComponent: 'stream:${stream.streamId}:$topicA');
+        expectedTagComponent: 'stream:${stream.streamId}:$topicA',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message3, streamName: stream.name));
     })));
 
     test('stream message: conversation stays same when stream is renamed', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      final account = eg.selfAccount;
       var stream = eg.stream(streamId: 1, name: 'Before');
       const topic = 'topic';
       final message1 = eg.streamMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      final perAccountStore = await testBinding.globalStore.perAccount(account.id);
+      await perAccountStore.addStream(stream);
 
       receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#Before > $topic',
-        expectedTagComponent: 'stream:${stream.streamId}:$topic');
+        expectedTagComponent: 'stream:${stream.streamId}:$topic',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message1, streamName: stream.name));
 
+      await perAccountStore.handleEvent(eg.channelUpdateEvent(stream,
+        property: ChannelPropertyName.name, value: 'After',
+      ));
       stream = eg.stream(streamId: 1, name: 'After');
       final message2 = eg.streamMessage(topic: topic, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
@@ -451,40 +526,54 @@ void main() {
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#After > $topic',
-        expectedTagComponent: 'stream:${stream.streamId}:$topic');
+        expectedTagComponent: 'stream:${stream.streamId}:$topic',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message2, streamName: stream.name));
     })));
 
     test('stream message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
         expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
-        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}',
+        expectedIntentUriNarrowFragment: streamIntentUriNarrowFragment(
+          message, streamName: null));
     })));
 
     test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
-        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message));
     })));
 
     test('group DM: more than 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final message = eg.dmMessage(from: eg.thirdUser,
         to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 2 others",
-        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message));
     })));
 
     test('group DM: title updates with latest sender', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final message1 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser]);
       final data1 = messageFcmMessage(message1);
       final message2 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
@@ -497,27 +586,34 @@ void main() {
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.otherUser.fullName} to you and 1 other",
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message1));
 
       receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message2));
     })));
 
     test('1:1 DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: false,
         expectedTitle: eg.otherUser.fullName,
-        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message));
     })));
 
     test('1:1 DM: title updates when sender name changes', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final otherUser = eg.user(fullName: 'Before');
       final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data1 = messageFcmMessage(message1);
@@ -529,7 +625,8 @@ void main() {
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
         expectedTitle: 'Before',
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message1));
 
       otherUser.fullName = 'After';
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
@@ -540,11 +637,14 @@ void main() {
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
         expectedTitle: 'After',
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message2));
     })));
 
     test('1:1 DM: conversation stays same when sender email changes', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final otherUser = eg.user(email: 'before@example.com');
       final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data1 = messageFcmMessage(message1);
@@ -556,7 +656,8 @@ void main() {
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
         expectedTitle: otherUser.fullName,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message1));
 
       otherUser.email = 'after@example.com';
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
@@ -567,12 +668,15 @@ void main() {
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
         expectedTitle: otherUser.fullName,
-        expectedTagComponent: expectedTagComponent);
+        expectedTagComponent: expectedTagComponent,
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message2));
     })));
 
     test('1:1 DM: sender avatar loading fails, remote error', () => runWithHttpClient(
       () => awaitFakeAsync((async) async {
         await init();
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
         receiveFcmMessage(async, data);
@@ -581,6 +685,7 @@ void main() {
           expectedIsGroupConversation: false,
           expectedTitle: eg.otherUser.fullName,
           expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+          expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message),
           expectedIconBitmap: null); // Failed to fetch avatar photo
       }),
       httpClientFactory: () => makeFakeHttpClient(
@@ -589,6 +694,8 @@ void main() {
     test('1:1 DM: sender avatar loading fails, local error', () => runWithHttpClient(
       () => awaitFakeAsync((async) async {
         await init();
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
         receiveFcmMessage(async, data);
@@ -597,6 +704,7 @@ void main() {
           expectedIsGroupConversation: false,
           expectedTitle: eg.otherUser.fullName,
           expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+          expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message),
           expectedIconBitmap: null); // Failed to fetch avatar photo
       }),
       httpClientFactory: () => makeFakeHttpClient(
@@ -604,15 +712,20 @@ void main() {
 
     test('self-DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final message = eg.dmMessage(from: eg.selfUser, to: []);
       await checkNotifications(async, messageFcmMessage(message),
         expectedIsGroupConversation: false,
         expectedTitle: eg.selfUser.fullName,
-        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}',
+        expectedIntentUriNarrowFragment: dmIntentUriNarrowFragment(message));
     })));
 
     test('remove: smoke', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final message = eg.streamMessage();
       final data = messageFcmMessage(message);
       final expectedGroupKey = '${data.realmUri}|${data.userId}';
@@ -644,6 +757,8 @@ void main() {
 
     test('remove: clears conversation only if the removal event is for the last message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final stream = eg.stream();
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
@@ -678,6 +793,8 @@ void main() {
 
     test('remove: clears summary notification only if all conversation notifications are cleared', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
       final stream = eg.stream();
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
@@ -711,7 +828,6 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
-
     test('remove: different realm URLs but same user-ids and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
@@ -721,6 +837,8 @@ void main() {
         realmUrl: Uri.parse('https://1.chat.example'),
         id: 1001,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
@@ -728,8 +846,10 @@ void main() {
 
       final account2 = eg.account(
         realmUrl: Uri.parse('https://2.chat.example'),
-        id: 1001,
+        id: 1002,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -763,12 +883,16 @@ void main() {
       const topic = 'Some Topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -834,11 +958,17 @@ void main() {
     }
 
     Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
-      final fcmMessage = messageFcmMessage(message, account: account);
-      testBinding.notifications.receiveNotificationResponse(NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: jsonEncode(fcmMessage)));
-      await tester.idle(); // let _navigateForNotification find navigator
+      final intentUri =
+        await NotificationDisplayManager.notificationIntentUriFromFcmMessage(
+          globalStore: testBinding.globalStore,
+          data: messageFcmMessage(message, account: account));
+      if (intentUri == null) return; // No accounts matched in globalStore
+
+      final ByteData platformMessage = const JSONMethodCodec().encodeMethodCall(
+        MethodCall('pushRouteInformation', {'location': intentUri.toString()}));
+      unawaited(tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/navigation', platformMessage, null));
+      await tester.idle(); // let navigateForNotification find navigator
     }
 
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
@@ -929,17 +1059,23 @@ void main() {
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
-      // Set up a value for `getNotificationLaunchDetails` to return.
+      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
+      // for determining the intial route.
       final account = eg.selfAccount;
-      final message = eg.streamMessage();
-      final response = NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: jsonEncode(messageFcmMessage(message, account: account)));
-      testBinding.notifications.appLaunchDetails =
-        NotificationAppLaunchDetails(true, notificationResponse: response);
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      final perAccountStore = await testBinding.globalStore.perAccount(account.id);
+      await perAccountStore.addStream(stream);
+
+      final intentUri =
+        await NotificationDisplayManager.notificationIntentUriFromFcmMessage(
+          globalStore: testBinding.globalStore,
+          data: messageFcmMessage(message, account: account));
+      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentUri!.toString();
 
       // Now start the app.
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
       await prepare(tester, early: true);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
@@ -979,7 +1115,13 @@ extension on Subject<AndroidNotificationHostApiNotifyCall> {
 
 extension on Subject<PendingIntent> {
   Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
-  Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
+  Subject<AndroidIntent> get intent => has((x) => x.intent, 'intent');
+  Subject<int> get flags => has((x) => x.flags, 'flags');
+}
+
+extension on Subject<AndroidIntent> {
+  Subject<String> get action => has((x) => x.action, 'action');
+  Subject<String> get uri => has((x) => x.uri, 'uri');
   Subject<int> get flags => has((x) => x.flags, 'flags');
 }
 
