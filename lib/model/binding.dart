@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
@@ -74,14 +76,20 @@ abstract class ZulipBinding {
     _instance = this;
   }
 
-  /// Prepare the app's [GlobalStore], loading the necessary data.
+  /// Get the app's singleton [GlobalStore],
+  /// calling [loadGlobalStore] if not already loaded.
   ///
-  /// Generally the app should call this function only once.
+  /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
+  /// Use this method only in contexts like notifications where
+  /// a widget tree may not exist.
+  Future<GlobalStore> getGlobalStore();
+
+  /// Like [getGlobalStore], but assert this method was not previously called.
   ///
-  /// This is part of the implementation of [GlobalStoreWidget].
-  /// In application code, use [GlobalStoreWidget.of] to get access
-  /// to a [GlobalStore].
-  Future<GlobalStore> loadGlobalStore();
+  /// This is used by the implementation of [GlobalStoreWidget],
+  /// so that our test framework code can detect some cases where
+  /// a widget test neglects to clean up with `testBinding.reset`.
+  Future<GlobalStore> getGlobalStoreUniquely();
 
   /// Checks whether the platform can launch [url], via package:url_launcher.
   ///
@@ -324,9 +332,16 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> loadGlobalStore() {
-    return LiveGlobalStore.load();
+  Future<GlobalStore> getGlobalStore() => _globalStore ??= LiveGlobalStore.load();
+  Future<GlobalStore>? _globalStore;
+
+  @override
+  Future<GlobalStore> getGlobalStoreUniquely() {
+    assert(!_debugCalledGetGlobalStoreUniquely);
+    assert(_debugCalledGetGlobalStoreUniquely = true);
+    return getGlobalStore();
   }
+  bool _debugCalledGetGlobalStoreUniquely = false;
 
   @override
   Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);
