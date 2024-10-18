@@ -17,9 +17,11 @@ const _hashReplacements = {
 
 final _encodeHashComponentRegex = RegExp(r'[%().]');
 
+/// Perform Zulip's url hash dot-encoding on the given string.
 // Corresponds to encodeHashComponent in Zulip web;
 // see web/shared/src/internal_url.ts.
-String _encodeHashComponent(String str) {
+@visibleForTesting
+String encodeHashComponent(String str) {
   return Uri.encodeComponent(str)
     .replaceAllMapped(_encodeHashComponentRegex, (Match m) => _hashReplacements[m[0]!]!);
 }
@@ -73,10 +75,10 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
       case ApiNarrowStream():
         final streamId = element.operand;
         final name = store.streams[streamId]?.name ?? 'unknown';
-        final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
+        final slugifiedName = encodeHashComponent(name.replaceAll(' ', '-'));
         fragment.write('$streamId-$slugifiedName');
       case ApiNarrowTopic():
-        fragment.write(_encodeHashComponent(element.operand));
+        fragment.write(encodeHashComponent(element.operand));
       case ApiNarrowDmModern():
         final suffix = element.operand.length >= 3 ? 'group' : 'dm';
         fragment.write('${element.operand.join(',')}-$suffix');
