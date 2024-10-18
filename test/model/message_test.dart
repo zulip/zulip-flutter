@@ -619,7 +619,7 @@ void main() {
     group('handleSubmessageEvent', () {
       Future<Message> preparePollMessage({
         String? question,
-        List<PollOption>? options,
+        List<(String, Iterable<int>)>? optionVoterIdsPairs,
         User? messageSender,
       }) async {
         final effectiveMessageSender = messageSender ?? eg.selfUser;
@@ -628,13 +628,13 @@ void main() {
           eg.submessage(senderId: effectiveMessageSender.userId,
             content: eg.pollWidgetData(
               question: question ?? 'example question',
-              options: (options != null)
-                ? options.map((e) => e.text).toList()
+              options: (optionVoterIdsPairs != null)
+                ? optionVoterIdsPairs.map((e) => e.$1).toList()
                 : ['foo', 'bar'])),
-          if (options != null)
-            for (int i = 0; i < options.length; i++)
+          if (optionVoterIdsPairs != null)
+            for (int i = 0; i < optionVoterIdsPairs.length; i++)
               ...[
-                for (final voter in options[i].voters)
+                for (final voter in optionVoterIdsPairs[i].$2)
                   eg.submessage(senderId: voter,
                     content: PollVoteEventSubmessage(
                       key: PollEventSubmessage.optionKey(senderId: null, idx: i),
@@ -726,7 +726,7 @@ void main() {
 
         test('add option', () async {
           message = await preparePollMessage(
-            options: [eg.pollOption(text: 'bar', voters: [])]);
+            optionVoterIdsPairs: [('bar', [])]);
           await handleNewOptionEvent(eg.otherUser, option: 'baz', idx: 0);
           checkPoll(message).options.deepEquals([
             conditionPollOption('bar'),
@@ -736,7 +736,7 @@ void main() {
 
         test('option with duplicate text ignored', () async {
           message = await preparePollMessage(
-            options: [eg.pollOption(text: 'existing', voters: [])]);
+            optionVoterIdsPairs: [('existing', [])]);
           checkPoll(message).options.deepEquals([conditionPollOption('existing')]);
           await handleNewOptionEvent(eg.otherUser, option: 'existing', idx: 0);
           checkPoll(message).options.deepEquals([conditionPollOption('existing')]);
@@ -745,7 +745,7 @@ void main() {
         test('option index limit exceeded', () async{
           message = await preparePollMessage(
             question: 'favorite number',
-            options: List.generate(1001, (i) => eg.pollOption(text: '$i', voters: [])),
+            optionVoterIdsPairs: List.generate(1001, (i) => ('$i', [])),
           );
           checkPoll(message).options.length.equals(1001);
           await handleNewOptionEvent(eg.otherUser, option: 'baz', idx: 1001);
@@ -788,9 +788,9 @@ void main() {
         });
 
         test('remove votes', () async {
-          message = await preparePollMessage(options: [
-            eg.pollOption(text: 'foo', voters: [eg.otherUser.userId, eg.selfUser.userId]),
-            eg.pollOption(text: 'bar', voters: [eg.selfUser.userId]),
+          message = await preparePollMessage(optionVoterIdsPairs: [
+            ('foo', [eg.otherUser.userId, eg.selfUser.userId]),
+            ('bar', [eg.selfUser.userId]),
           ]);
 
           String optionKey(int index) =>
@@ -810,9 +810,9 @@ void main() {
         });
 
         test('vote for unknown options', () async {
-          message = await preparePollMessage(options: [
-            eg.pollOption(text: 'foo', voters: [eg.selfUser.userId]),
-            eg.pollOption(text: 'bar', voters: []),
+          message = await preparePollMessage(optionVoterIdsPairs: [
+            ('foo', [eg.selfUser.userId]),
+            ('bar', []),
           ]);
 
           final unknownOptionKey = PollEventSubmessage.optionKey(
@@ -835,7 +835,7 @@ void main() {
 
         test('ignore invalid vote op', () async {
           message = await preparePollMessage(
-            options: [eg.pollOption(text: 'foo', voters: [])]);
+            optionVoterIdsPairs: [('foo', [])]);
           checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
           await store.handleEvent(eg.submessageEvent(message.id, eg.otherUser.userId,
             content: PollVoteEventSubmessage(
