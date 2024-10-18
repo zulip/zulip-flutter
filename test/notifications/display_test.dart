@@ -227,6 +227,8 @@ void main() {
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       const expectedPendingIntentFlags = PendingIntentFlag.immutable;
+      const expectedIntentFlags =
+        IntentFlag.activityClearTop | IntentFlag.activityNewTask;
       final expectedSelfUserKey = '${data.realmUri}|${data.userId}';
       final expectedIntentUri = Uri(
         scheme: 'zulip',
@@ -284,7 +286,8 @@ void main() {
               ..intent.which((it) => it
                 ..action.equals(IntentAction.view)
                 ..uri.equals(expectedIntentUri.toString())
-                ..extras.isEmpty())),
+                ..extras.isEmpty()
+                ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
             ..tag.equals(expectedGroupKey)
@@ -1121,6 +1124,7 @@ extension on Subject<AndroidIntent> {
   Subject<String> get action => has((x) => x.action, 'action');
   Subject<String> get uri => has((x) => x.uri, 'uri');
   Subject<Map<String?, String?>> get extras => has((x) => x.extras, 'extras');
+  Subject<int> get flags => has((x) => x.flags, 'flags');
 }
 
 extension on Subject<InboxStyle> {

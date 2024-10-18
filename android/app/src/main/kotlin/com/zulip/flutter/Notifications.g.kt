@@ -99,7 +99,9 @@ data class NotificationChannel (
 data class AndroidIntent (
   val action: String,
   val uri: String,
-  val extras: Map<String?, String?>
+  val extras: Map<String?, String?>,
+  /** A combination of flags from [IntentFlag]. */
+  val flags: Long
 
 ) {
   companion object {
@@ -108,7 +110,8 @@ data class AndroidIntent (
       val action = __pigeon_list[0] as String
       val uri = __pigeon_list[1] as String
       val extras = __pigeon_list[2] as Map<String?, String?>
-      return AndroidIntent(action, uri, extras)
+      val flags = __pigeon_list[3].let { num -> if (num is Int) num.toLong() else num as Long }
+      return AndroidIntent(action, uri, extras, flags)
     }
   }
   fun toList(): List<Any?> {
@@ -116,6 +119,7 @@ data class AndroidIntent (
       action,
       uri,
       extras,
+      flags,
     )
   }
 }
