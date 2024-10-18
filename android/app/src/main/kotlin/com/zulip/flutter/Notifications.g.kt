@@ -62,6 +62,7 @@ data class NotificationChannel (
   val importance: Long,
   val name: String? = null,
   val lightsEnabled: Boolean? = null,
+  val soundUri: String? = null,
   val vibrationPattern: LongArray? = null
 
 ) {
@@ -72,8 +73,9 @@ data class NotificationChannel (
       val importance = __pigeon_list[1].let { num -> if (num is Int) num.toLong() else num as Long }
       val name = __pigeon_list[2] as String?
       val lightsEnabled = __pigeon_list[3] as Boolean?
-      val vibrationPattern = __pigeon_list[4] as LongArray?
-      return NotificationChannel(id, importance, name, lightsEnabled, vibrationPattern)
+      val soundUri = __pigeon_list[4] as String?
+      val vibrationPattern = __pigeon_list[5] as LongArray?
+      return NotificationChannel(id, importance, name, lightsEnabled, soundUri, vibrationPattern)
     }
   }
   fun toList(): List<Any?> {
@@ -82,6 +84,7 @@ data class NotificationChannel (
       importance,
       name,
       lightsEnabled,
+      soundUri,
       vibrationPattern,
     )
   }
@@ -315,6 +318,39 @@ data class StatusBarNotification (
     )
   }
 }
+
+/**
+ * Represents a row in the media database when queried via
+ * `android.content.ContentResolver.query`.
+ *
+ * Returned as a list entry by
+ * [AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory].
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class StoredNotificationsSound (
+  val fileName: String,
+  val isOwner: Boolean,
+  val uri: String
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): StoredNotificationsSound {
+      val fileName = __pigeon_list[0] as String
+      val isOwner = __pigeon_list[1] as Boolean
+      val uri = __pigeon_list[2] as String
+      return StoredNotificationsSound(fileName, isOwner, uri)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      fileName,
+      isOwner,
+      uri,
+    )
+  }
+}
 private object NotificationsPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -358,6 +394,11 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
           StatusBarNotification.fromList(it)
         }
       }
+      137.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          StoredNotificationsSound.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -395,6 +436,10 @@ private object NotificationsPigeonCodec : StandardMessageCodec() {
         stream.write(136)
         writeValue(stream, value.toList())
       }
+      is StoredNotificationsSound -> {
+        stream.write(137)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
@@ -420,6 +465,34 @@ interface AndroidNotificationHostApi {
    * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
    */
   fun deleteNotificationChannel(channelId: String)
+  /**
+   * Corresponds to `android.content.ContentResolver.query`.
+   *
+   * Returns the list of notification sounds present under
+   * `Notifications/Zulip/` directory in device's shared media storage.
+   *
+   * Requires minimum of Android 10 (API 29) or higher.
+   *
+   * See: https://developer.android.com/reference/android/content/ContentResolver#query(android.net.Uri,%20java.lang.String[],%20java.lang.String,%20java.lang.String[],%20java.lang.String)
+   */
+  fun listStoredSoundsInNotificationsDirectory(): List<StoredNotificationsSound>
+  /**
+   * Wraps `android.content.ContentResolver.insert` combined with
+   * `android.content.ContentResolver.openOutputStream` and
+   * `android.content.res.Resources.openRawResource`.
+   *
+   * Copies a raw resource audio file to `Notifications/Zulip/`
+   * directory in device's shared media storage. Returns the uri
+   * of the target file in media store.
+   *
+   * Requires minimum of Android 10 (API 29) or higher.
+   *
+   * See:
+   *   https://developer.android.com/reference/android/content/ContentResolver#insert(android.net.Uri,%20android.content.ContentValues)
+   *   https://developer.android.com/reference/android/content/ContentResolver#openOutputStream(android.net.Uri)
+   *   https://developer.android.com/reference/android/content/res/Resources#openRawResource(int)
+   */
+  fun copySoundResourceToMediaStore(targetFileDisplayName: String, sourceResourceName: String): String
   /**
    * Corresponds to `android.app.NotificationManager.notify`,
    * combined with `androidx.core.app.NotificationCompat.Builder`.
@@ -523,6 +596,39 @@ interface AndroidNotificationHostApi {
             val wrapped: List<Any?> = try {
               api.deleteNotificationChannel(channelIdArg)
               listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.listStoredSoundsInNotificationsDirectory())
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.copySoundResourceToMediaStore$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val targetFileDisplayNameArg = args[0] as String
+            val sourceResourceNameArg = args[1] as String
+            val wrapped: List<Any?> = try {
+              listOf(api.copySoundResourceToMediaStore(targetFileDisplayNameArg, sourceResourceNameArg))
             } catch (exception: Throwable) {
               wrapError(exception)
             }
