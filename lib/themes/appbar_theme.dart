@@ -4,7 +4,7 @@ import '../widgets/text.dart';
 import '../widgets/theme.dart';
 
 class ZAppBarTheme {
-  static AppBarTheme getDarkAppBarTheme(BuildContext context, DesignVariables designVariables) {
+  static AppBarTheme getAppBarTheme(BuildContext context, DesignVariables designVariables) {
     return AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
