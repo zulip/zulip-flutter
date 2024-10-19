@@ -2,6 +2,8 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:zulip/themes/appbar_theme.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -131,6 +133,56 @@ void main() {
       await tester.pump(kThemeAnimationDuration * 0.6);
       check(colorSwatchFor(element, subscription))
         .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
+    });
+  });
+
+ group('AppBarTheme Tests', () {
+    testWidgets('Light AppBarTheme Test', (tester) async {
+      final designVariables = DesignVariables.light();
+
+      await tester.pumpWidget(GetMaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Test'),
+          ),
+        ),
+      ));
+
+      final context = Get.context;
+
+      final appBarTheme = ZAppBarTheme.getAppBarTheme(context!, designVariables);
+
+      // Validate AppBar properties for light theme
+      expect(appBarTheme.backgroundColor, designVariables.bgTopBar);
+      expect(appBarTheme.actionsIconTheme!.color, designVariables.icon);
+      expect(appBarTheme.titleTextStyle!.color, designVariables.title);
+      expect(appBarTheme.titleTextStyle!.fontSize, 20);
+      expect(appBarTheme.titleTextStyle!.fontFamily, kDefaultFontFamily);
+
+    });
+
+    testWidgets('Dark AppBarTheme Test', (tester) async {
+      final designVariables = DesignVariables.dark();
+
+      await tester.pumpWidget(GetMaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Test'),
+          ),
+        ),
+      ));
+
+      final context = Get.context;
+
+      final appBarTheme = ZAppBarTheme.getAppBarTheme(context!, designVariables);
+
+      // Validate AppBar properties for dark theme
+      expect(appBarTheme.backgroundColor, designVariables.bgTopBar);
+      expect(appBarTheme.actionsIconTheme!.color, designVariables.icon);
+      expect(appBarTheme.titleTextStyle!.color, designVariables.title);
+      expect(appBarTheme.titleTextStyle!.fontSize, 20);
+      expect(appBarTheme.titleTextStyle!.fontFamily, kDefaultFontFamily);
+
     });
   });
 }
