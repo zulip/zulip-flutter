@@ -14,20 +14,33 @@ typedef ApiNarrow = List<ApiNarrowElement>;
 /// reasonably be omitted will be omitted.
 ApiNarrow resolveApiNarrowForServer(ApiNarrow narrow, int zulipFeatureLevel) {
   final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
+  final supportsOperatorWith = zulipFeatureLevel >= 271; // TODO(server-9)
 
   bool hasDmElement = false;
+  bool hasWithElement = false;
   for (final element in narrow) {
     switch (element) {
-      case ApiNarrowDm(): hasDmElement = true;
+      case ApiNarrowDm():   hasDmElement = true;
+      case ApiNarrowWith(): hasWithElement = true;
       default:
     }
   }
-  if (!hasDmElement) return narrow;
+  if (!(hasDmElement || (hasWithElement && !supportsOperatorWith))) {
+    return narrow;
+  }
 
-  return narrow.map((element) => switch (element) {
-    ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
-    _             => element,
-  }).toList();
+  final result = <ApiNarrowElement>[];
+  for (final element in narrow) {
+    switch (element) {
+      case ApiNarrowDm():
+        result.add(element.resolve(legacy: !supportsOperatorDm));
+      case ApiNarrowWith() when !supportsOperatorWith:
+        break; // drop unsupported element
+      default:
+        result.add(element);
+    }
+  }
+  return result;
 }
 
 /// An element in the list representing a narrow in the Zulip API.
@@ -158,6 +171,22 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   @override String get operator => 'pm-with';
 
   ApiNarrowPmWith._(super.operand, {super.negated});
+}
+
+/// An [ApiNarrowElement] with the 'with' operator.
+///
+/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
+class ApiNarrowWith extends ApiNarrowElement {
+  @override String get operator => 'with';
+
+  @override final int operand;
+
+  ApiNarrowWith(this.operand, {super.negated});
+
+  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
+    json['operand'] as int,
+    negated: json['negated'] as bool? ?? false,
+  );
 }
 
 class ApiNarrowIs extends ApiNarrowElement {

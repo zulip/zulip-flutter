@@ -284,13 +284,14 @@ void main() {
       final testCases = [
         ('/#narrow/stream/check/topic/test',                 eg.topicNarrow(1, 'test')),
         ('/#narrow/stream/mobile/subject/topic/near/378333', eg.topicNarrow(3, 'topic')),
-        ('/#narrow/stream/mobile/subject/topic/with/1',      eg.topicNarrow(3, 'topic')),
+        ('/#narrow/stream/mobile/subject/topic/with/1',      eg.topicNarrow(3, 'topic', with_: 1)),
         ('/#narrow/stream/mobile/topic/topic/',              eg.topicNarrow(3, 'topic')),
         ('/#narrow/stream/stream/topic/topic/near/1',        eg.topicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/topic/topic/with/22',       eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/topic/topic/with/22',       eg.topicNarrow(5, 'topic', with_: 22)),
         ('/#narrow/stream/stream/subject/topic/near/1',      eg.topicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/subject/topic/with/333',    eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic/with/333',    eg.topicNarrow(5, 'topic', with_: 333)),
         ('/#narrow/stream/stream/subject/topic',             eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic/with/asdf',   null), // invalid `with`
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -313,7 +314,7 @@ void main() {
       final testCases = [
         ('/#narrow/dm/1,2-group',                        expectedNarrow),
         ('/#narrow/dm/1,2-group/near/1',                 expectedNarrow),
-        ('/#narrow/dm/1,2-group/with/2',                 expectedNarrow),
+        ('/#narrow/dm/1,2-group/with/2',                 null),
         ('/#narrow/dm/a.40b.2Ecom.2Ec.2Ed.2Ecom/near/3', null),
         ('/#narrow/dm/a.40b.2Ecom.2Ec.2Ed.2Ecom/with/4', null),
       ];
@@ -326,7 +327,7 @@ void main() {
       final testCases = [
         ('/#narrow/pm-with/1,2-group',                        expectedNarrow),
         ('/#narrow/pm-with/1,2-group/near/1',                 expectedNarrow),
-        ('/#narrow/pm-with/1,2-group/with/2',                 expectedNarrow),
+        ('/#narrow/pm-with/1,2-group/with/2',                 null),
         ('/#narrow/pm-with/a.40b.2Ecom.2Ec.2Ed.2Ecom/near/3', null),
         ('/#narrow/pm-with/a.40b.2Ecom.2Ec.2Ed.2Ecom/with/3', null),
       ];
@@ -342,7 +343,7 @@ void main() {
             ('/#narrow/is/$operand',                                     narrow),
             ('/#narrow/is/$operand/is/$operand',                         narrow),
             ('/#narrow/is/$operand/near/1',                              narrow),
-            ('/#narrow/is/$operand/with/2',                              narrow),
+            ('/#narrow/is/$operand/with/2',                              null),
             ('/#narrow/channel/7-test-here/is/$operand',                 null),
             ('/#narrow/channel/check/topic/test/is/$operand',            null),
             ('/#narrow/topic/test/is/$operand',                          null),

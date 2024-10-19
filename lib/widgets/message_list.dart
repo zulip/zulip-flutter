@@ -503,8 +503,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   void _modelChanged() {
     if (model!.narrow != widget.narrow) {
-      // A message move event occurred, where propagate mode is
-      // [PropagateMode.changeAll] or [PropagateMode.changeLater].
+      // Either:
+      // - A message move event occurred, where propagate mode is
+      //   [PropagateMode.changeAll] or [PropagateMode.changeLater]. Or:
+      // - We fetched a "with" / topic-permalink narrow, and the response
+      //   redirected us to the new location of the operand message ID.
       widget.onNarrowChanged(model!.narrow);
     }
     setState(() {

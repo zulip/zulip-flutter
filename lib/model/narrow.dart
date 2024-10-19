@@ -92,7 +92,7 @@ class ChannelNarrow extends Narrow {
 }
 
 class TopicNarrow extends Narrow implements SendableNarrow {
-  const TopicNarrow(this.streamId, this.topic);
+  const TopicNarrow(this.streamId, this.topic, {this.with_});
 
   factory TopicNarrow.ofMessage(StreamMessage message) {
     return TopicNarrow(message.streamId, message.topic);
@@ -100,6 +100,9 @@ class TopicNarrow extends Narrow implements SendableNarrow {
 
   final int streamId;
   final TopicName topic;
+  final int? with_;
+
+  TopicNarrow sansWith() => TopicNarrow(streamId, topic);
 
   @override
   bool containsMessage(Message message) {
@@ -108,22 +111,33 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   }
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowStream(streamId), ApiNarrowTopic(topic)];
+  ApiNarrow apiEncode() => [
+    ApiNarrowStream(streamId),
+    ApiNarrowTopic(topic),
+    if (with_ != null) ApiNarrowWith(with_!),
+  ];
 
   @override
   StreamDestination get destination => StreamDestination(streamId, topic);
 
   @override
-  String toString() => 'TopicNarrow($streamId, ${topic.displayName})';
+  String toString() {
+    final fields = [
+      streamId.toString(),
+      topic.displayName,
+      if (with_ != null) 'with: ${with_!}',
+    ];
+    return 'TopicNarrow(${fields.join(', ')})';
+  }
 
   @override
   bool operator ==(Object other) {
     if (other is! TopicNarrow) return false;
-    return other.streamId == streamId && other.topic == topic;
+    return other.streamId == streamId && other.topic == topic && other.with_ == with_;
   }
 
   @override
-  int get hashCode => Object.hash('TopicNarrow', streamId, topic);
+  int get hashCode => Object.hash('TopicNarrow', streamId, topic, with_);
 }
 
 /// The narrow for a direct-message conversation.
