@@ -77,10 +77,12 @@ Future<Finder> setupToTopicInput(WidgetTester tester, {
   addTearDown(testBinding.reset);
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  await store.addUser(eg.selfUser);
   final connection = store.connection as FakeApiConnection;
 
   // prepare message list data
   final stream = eg.stream();
+  await store.addStream(stream);
   final message = eg.streamMessage(stream: stream, sender: eg.selfUser);
   connection.prepare(json: GetMessagesResult(
     anchor: message.id,

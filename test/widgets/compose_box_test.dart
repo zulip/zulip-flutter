@@ -39,14 +39,22 @@ void main() {
   final contentInputFinder = find.byWidgetPredicate(
     (widget) => widget is TextField && widget.controller is ComposeContentController);
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester,
-      {required Narrow narrow, List<User> users = const []}) async {
+  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, {
+    required Narrow narrow,
+    List<User> users = const [],
+    List<ZulipStream> streams = const [],
+  }) async {
+    if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
+      assert(streams.any((stream) => stream.streamId == streamId),
+        'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
+    }
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
     await store.addUsers([eg.selfUser, ...users]);
+    await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
     final controllerKey = GlobalKey<ComposeBoxController>();
@@ -205,22 +213,25 @@ void main() {
     }
 
     testWidgets('_StreamComposeBox', (tester) async {
+      final channel = eg.stream();
       final key = await prepareComposeBox(tester,
-        narrow: ChannelNarrow(eg.stream().streamId));
+        narrow: ChannelNarrow(channel.streamId), streams: [channel]);
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
+      final channel = eg.stream();
       final key = await prepareComposeBox(tester,
-        narrow: TopicNarrow.ofMessage(eg.streamMessage()));
+        narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: false);
     });
   });
 
   group('ComposeBox typing notices', () {
-    const narrow = TopicNarrow(123, 'some topic');
+    final channel = eg.stream();
+    final narrow = TopicNarrow(channel.streamId, 'some topic');
 
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
       checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
@@ -232,7 +243,7 @@ void main() {
     }
 
     testWidgets('smoke TopicNarrow', (tester) async {
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
 
@@ -254,9 +265,9 @@ void main() {
     });
 
     testWidgets('smoke ChannelNarrow', (tester) async {
-      const narrow = ChannelNarrow(123);
+      final narrow = ChannelNarrow(channel.streamId);
       final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
       await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
 
       await checkStartTyping(tester, destinationNarrow);
@@ -267,7 +278,7 @@ void main() {
     });
 
     testWidgets('clearing text sends a "typing stopped" notice', (tester) async {
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
 
@@ -277,7 +288,7 @@ void main() {
     });
 
     testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
 
@@ -295,13 +306,14 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await store.addStream(channel);
       connection = store.connection as FakeApiConnection;
 
       await tester.pumpWidget(const ZulipApp());
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(MaterialAccountWidgetRoute(
-        accountId: eg.selfAccount.id, page: const ComposeBox(narrow: narrow))));
+        accountId: eg.selfAccount.id, page: ComposeBox(narrow: narrow))));
       await tester.pumpAndSettle();
     }
 
@@ -317,9 +329,9 @@ void main() {
     });
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
-      const narrow = ChannelNarrow(123);
+      final narrow = ChannelNarrow(channel.streamId);
       final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
       await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
 
       await checkStartTyping(tester, destinationNarrow);
@@ -331,7 +343,7 @@ void main() {
     });
 
     testWidgets('selection change sends a "typing started" notice', (tester) async {
-      final controllerKey = await prepareComposeBox(tester, narrow: narrow);
+      final controllerKey = await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
       final composeBoxController = controllerKey.currentState!;
 
       await checkStartTyping(tester, narrow);
@@ -352,7 +364,7 @@ void main() {
     });
 
     testWidgets('unfocusing app sends a "typing stopped" notice', (tester) async {
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
 
@@ -382,7 +394,8 @@ void main() {
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
+      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
+        streams: [eg.stream(streamId: 123)]);
 
       await tester.enterText(contentInputFinder, 'hello world');
 
@@ -447,8 +460,10 @@ void main() {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
 
-        final narrow = ChannelNarrow(eg.stream().streamId);
-        final controllerKey = await prepareComposeBox(tester, narrow: narrow);
+        final channel = eg.stream();
+        final narrow = ChannelNarrow(channel.streamId);
+        final controllerKey = await prepareComposeBox(tester,
+          narrow: narrow, streams: [channel]);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
@@ -507,8 +522,10 @@ void main() {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
 
-        final narrow = ChannelNarrow(eg.stream().streamId);
-        final controllerKey = await prepareComposeBox(tester, narrow: narrow);
+        final channel = eg.stream();
+        final narrow = ChannelNarrow(channel.streamId);
+        final controllerKey = await prepareComposeBox(tester,
+          narrow: narrow, streams: [channel]);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
