@@ -66,6 +66,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   zulip_plugin:
     path: ./packages/zulip_plugin
+  get: ^4.6.6
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
