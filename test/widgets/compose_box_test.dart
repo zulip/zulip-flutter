@@ -194,15 +194,17 @@ void main() {
     }
 
     testWidgets('_StreamComposeBox', (tester) async {
+      final channel = eg.stream();
       final key = await prepareComposeBox(tester,
-        narrow: ChannelNarrow(eg.stream().streamId));
+        narrow: ChannelNarrow(channel.streamId), streams: [channel]);
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
+      final channel = eg.stream();
       final key = await prepareComposeBox(tester,
-        narrow: TopicNarrow.ofMessage(eg.streamMessage()));
+        narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
       checkComposeBoxTextFields(tester, controllerKey: key,
         expectTopicTextField: false);
     });
@@ -213,7 +215,8 @@ void main() {
       required void Function(int messageId) prepareResponse,
     }) async {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
+      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
+        streams: [eg.stream(streamId: 123)]);
 
       final contentInputFinder = find.byWidgetPredicate(
         (widget) => widget is TextField && widget.controller is ComposeContentController);
@@ -277,7 +280,9 @@ void main() {
 
     group('attach from media library', () {
       testWidgets('success', (tester) async {
-        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
+        final channel = eg.stream();
+        final controllerKey = await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
@@ -333,7 +338,9 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
-        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
+        final channel = eg.stream();
+        final controllerKey = await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
