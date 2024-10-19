@@ -173,12 +173,12 @@ void main() {
       const testCases = [
         ('/#narrow/stream/check/topic/test',                 TopicNarrow(1, 'test')),
         ('/#narrow/stream/mobile/subject/topic/near/378333', TopicNarrow(3, 'topic')),
-        ('/#narrow/stream/mobile/subject/topic/with/1',      TopicNarrow(3, 'topic')),
+        ('/#narrow/stream/mobile/subject/topic/with/1',      TopicNarrow(3, 'topic', with_: 1)),
         ('/#narrow/stream/mobile/topic/topic/',              TopicNarrow(3, 'topic')),
         ('/#narrow/stream/stream/topic/topic/near/1',        TopicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/topic/topic/with/22',       TopicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/topic/topic/with/22',       TopicNarrow(5, 'topic', with_: 22)),
         ('/#narrow/stream/stream/subject/topic/near/1',      TopicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/subject/topic/with/333',    TopicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic/with/333',    TopicNarrow(5, 'topic', with_: 333)),
         ('/#narrow/stream/stream/subject/topic',             TopicNarrow(5, 'topic')),
       ];
       testExpectedNarrows(testCases, streams: streams);

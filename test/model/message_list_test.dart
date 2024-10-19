@@ -19,6 +19,7 @@ import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'content_checks.dart';
+import 'narrow_checks.dart';
 import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
 
@@ -95,6 +96,9 @@ void main() {
     final someStream = eg.stream();
     const someTopic = 'some topic';
 
+    final otherStream = eg.stream();
+    const otherTopic = 'other topic';
+
     group('smoke', () {
       Future<void> smoke(
         Narrow narrow,
@@ -129,6 +133,22 @@ void main() {
       test('TopicNarrow', () async {
         await smoke(TopicNarrow(someStream.streamId, someTopic),
           (i) => eg.streamMessage(stream: someStream, topic: someTopic));
+      });
+
+      test('topic permalink, message was not moved', () async {
+        await smoke(TopicNarrow(someStream.streamId, someTopic, with_: 1),
+          (int i) => eg.streamMessage(
+            id: i == 0 ? 1 : null,
+            stream: someStream,
+            topic: someTopic));
+      });
+
+      test('topic permalink, message was moved', () async {
+        await smoke(TopicNarrow(someStream.streamId, someTopic, with_: 1),
+          (int i) => eg.streamMessage(
+            id: i == 0 ? 1 : null,
+            stream: otherStream,
+            topic: otherTopic));
       });
     });
 
@@ -176,6 +196,40 @@ void main() {
 
       check(model).messages.length.equals(1);
       recent_senders_test.checkMatchesMessages(store.recentSenders, messages);
+    });
+
+    group('topic permalinks', () {
+      test('if redirect, we follow it and remove "with" element', () async {
+        await prepare(narrow: TopicNarrow(someStream.streamId, someTopic, with_: 1));
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: [eg.streamMessage(id: 1, stream: otherStream, topic: otherTopic)],
+        ).toJson());
+
+        checkNotNotified();
+        await model.fetchInitial();
+        checkNotifiedOnce();
+        check(model).narrow.isA<TopicNarrow>()
+          ..streamId.equals(otherStream.streamId)
+          ..topic.equals(otherTopic)
+          ..with_.isNull();
+      });
+
+      test('if no redirect, we still remove "with" element', () async {
+        await prepare(narrow: TopicNarrow(someStream.streamId, someTopic, with_: 1));
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: [eg.streamMessage(id: 1, stream: someStream, topic: someTopic)],
+        ).toJson());
+
+        checkNotNotified();
+        await model.fetchInitial();
+        checkNotifiedOnce();
+        check(model).narrow.isA<TopicNarrow>()
+          ..streamId.equals(someStream.streamId)
+          ..topic.equals(someTopic)
+          ..with_.isNull();
+      });
     });
   });
 

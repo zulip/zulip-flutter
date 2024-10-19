@@ -10,20 +10,30 @@ typedef ApiNarrow = List<ApiNarrowElement>;
 // TODO(server-7) remove [ApiNarrowDm] reference in dartdoc
 ApiNarrow resolveApiNarrowElements(ApiNarrow narrow, int zulipFeatureLevel) {
   bool hasDmElement = false;
+  bool hasWithElement = false;
   for (final element in narrow) {
     switch (element) {
-      case ApiNarrowDm(): hasDmElement = true;
+      case ApiNarrowDm():   hasDmElement = true;
+      case ApiNarrowWith(): hasWithElement = true;
       default:
     }
   }
-  if (!hasDmElement) return narrow;
+  if (!hasDmElement && !hasWithElement) return narrow;
 
   final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
+  final supportsOperatorWith = zulipFeatureLevel >= 271; // TODO(server-9)
 
-  return narrow.map((element) => switch (element) {
-    ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
-    _             => element,
-  }).toList();
+  ApiNarrow result = narrow;
+  if (hasDmElement) {
+    result = narrow.map((element) => switch (element) {
+      ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
+      _             => element,
+    }).toList();
+  }
+  if (hasWithElement && !supportsOperatorWith) {
+    result.removeWhere((element) => element is ApiNarrowWith);
+  }
+  return result;
 }
 
 /// An element in the list representing a narrow in the Zulip API.
@@ -68,6 +78,22 @@ class ApiNarrowTopic extends ApiNarrowElement {
 
   factory ApiNarrowTopic.fromJson(Map<String, dynamic> json) => ApiNarrowTopic(
     json['operand'] as String,
+    negated: json['negated'] as bool? ?? false,
+  );
+}
+
+/// An [ApiNarrowElement] with the 'with' operator.
+///
+/// If part of [ApiNarrow] use [resolveApiNarrowElements].
+class ApiNarrowWith extends ApiNarrowElement {
+  @override String get operator => 'with';
+
+  @override final int operand;
+
+  ApiNarrowWith(this.operand, {super.negated});
+
+  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
+    json['operand'] as int,
     negated: json['negated'] as bool? ?? false,
   );
 }
