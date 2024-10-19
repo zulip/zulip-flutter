@@ -511,6 +511,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: 0,
     );
     if (this.generation > generation) return;
+    _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
     for (final message in result.messages) {
@@ -524,12 +525,47 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     notifyListeners();
   }
 
+  /// Update [narrow] for the result of a "with" narrow (topic permalink) fetch.
+  ///
+  /// To avoid an extra round trip, the server handles [ApiNarrowWith]
+  /// by returning results from the indicated message's current stream/topic
+  /// (if the user has access),
+  /// even if that differs from the narrow's stream/topic filters
+  /// because the message was moved.
+  ///
+  /// If such a "redirect" happened, this helper updates the stream and topic
+  /// in [narrow] to match the message's current conversation.
+  /// It also removes the "with" component from [narrow]
+  /// whether or not a redirect happened.
+  ///
+  /// See API doc:
+  ///   https://zulip.com/api/construct-narrow#message-ids
+  void _adjustNarrowForTopicPermalink(Message? someFetchedMessageOrNull) {
+    final narrow = this.narrow;
+    if (narrow is! TopicNarrow || narrow.with_ == null) return;
+
+    switch (someFetchedMessageOrNull) {
+      case null:
+        // This can't be a redirect; a redirect can't produce an empty result.
+        // (The server only redirects if the message is accessible to the user,
+        // and if it is, it'll appear in the result, making it non-empty.)
+        this.narrow = narrow.sansWith();
+      case StreamMessage():
+        this.narrow = TopicNarrow.ofMessage(someFetchedMessageOrNull);
+      case DmMessage(): // TODO(log)
+        assert(false);
+    }
+  }
+
   /// Fetch the next batch of older messages, if applicable.
   Future<void> fetchOlder() async {
     if (haveOldest) return;
     if (fetchingOlder) return;
     if (fetchOlderCoolingDown) return;
     assert(fetched);
+    assert(narrow is! TopicNarrow
+      // We only intend to send "with" in [fetchInitial]; see there.
+      || (narrow as TopicNarrow).with_ == null);
     assert(messages.isNotEmpty);
     _fetchingOlder = true;
     _updateEndMarkers();
