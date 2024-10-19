@@ -147,49 +147,42 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     );
 
-  DesignVariables.dark() :
+ DesignVariables.dark() :
     this._(
-      background: const Color(0xff000000),
-      bgContextMenu: const Color(0xff262626),
-      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
-      bgTopBar: const Color(0xff242424),
-      borderBar: Colors.black.withValues(alpha: 0.41),
-      contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
-      contextMenuItemBg: const Color(0xff7977fe),
-      contextMenuItemText: const Color(0xff9398fd),
-      icon: const Color(0xff7070c2),
-      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
-      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
-      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
-      mainBackground: const Color(0xff1d1d1d),
-      title: const Color(0xffffffff),
-      channelColorSwatches: ChannelColorSwatches.dark,
-      contextMenuCancelBg: const Color(0xff797986), // the same as the light mode in Figma
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
-      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
-      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
-      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIconBg: const Color(0x33cccccc),
-      loginOrDivider: const Color(0xff424242),
-      loginOrDividerText: const Color(0xffa8a8a8),
-      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      sectionCollapseIcon: const Color(0x7fb6c8e2),
-      // TODO(design-dark) unchanged in dark theme?
-      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
-      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+      background: const Color(0xff0d0d0d), // Darker background for more contrast
+      bgContextMenu: const Color(0xff1c1c1c), // Slightly lighter to differentiate from background
+      bgCounterUnread: const Color(0xffccccff).withValues(alpha: 0.37), // Lightened for more contrast
+      bgTopBar: const Color(0xff1a1a1a), // Darker top bar for better contrast with icons
+      borderBar: Colors.black.withValues(alpha: 0.41), // Black with moderate transparency
+      contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.85), // Brighter text with slight transparency
+      contextMenuItemBg: const Color(0xff4a4aff), // Higher contrast for context menu item background
+      contextMenuItemText: const Color(0xffa0a5ff), // Lighter text color for better readability
+      icon: const Color(0xffb3b3ff), // Brighter icon color
+      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.8), // Slightly brighter unread labels
+      labelEdited: const HSLColor.fromAHSL(0.45, 0, 0, 1).toColor(), // Slightly brighter edited labels
+      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.9), // Brighter menu button label
+      mainBackground: const Color(0xff121212), // Darker main background for contrast
+      title: const Color(0xffffffff), // Keep pure white for maximum contrast
+      channelColorSwatches: ChannelColorSwatches.dark, // Keep existing colors
+      contextMenuCancelBg: const Color(0xff656569), // Higher contrast for cancel background
+      atMentionMarker: const HSLColor.fromAHSL(0.45, 0, 0, 1).toColor(), // Brighter mention marker
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.25).toColor(), // Darker background for DM headers
+      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.25).toColor(), // Slightly brighter error background
+      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.85).toColor(), // Higher contrast error border
+      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.9).toColor(), // Brighter error label
+      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5), // Slightly brighter icon for group DMs
+      groupDmConversationIconBg: const Color(0x33cccccc), // Higher contrast background for group DM icons
+      loginOrDivider: const Color(0xff2c2c2c), // Darker divider color for contrast with background
+      loginOrDividerText: const Color(0xffd0d0d0), // Lighter text color for better visibility
+      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5), // Darker modal barrier for better focus
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.6, 0, 0, 0.7).toColor(), // Slightly brighter muted badge
+      sectionCollapseIcon: const Color(0xff99c1e2), // Higher contrast for collapse icon
+      star: const HSLColor.fromAHSL(0.6, 47, 1, 0.5).toColor(), // Brighter star color
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.5, 240, 0.1, 0.85).toColor(), // Brighter header line
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.85).toColor(), // Brighter header text
+      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9), // Almost opaque for high contrast
     );
+
 
   DesignVariables._({
     required this.background,
