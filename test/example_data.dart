@@ -801,7 +801,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
-    emailAddressVisibility: EmailAddressVisibility.everyone,
+    emailAddressVisibility: emailAddressVisibility ?? EmailAddressVisibility.everyone,
     serverTypingStartedExpiryPeriodMilliseconds:
       serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
     serverTypingStoppedWaitPeriodMilliseconds:
