@@ -188,6 +188,11 @@ void main() {
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+        {'operator': 'with', 'operand': 1},
+      ]));
       checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
         {'operator': 'is', 'operand': 'mentioned'},
       ]));
@@ -202,6 +207,11 @@ void main() {
       connection.zulipFeatureLevel = 176;
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
         {'operator': 'pm-with', 'operand': [123, 234]},
+      ]));
+      connection.zulipFeatureLevel = 270;
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
       ]));
       connection.zulipFeatureLevel = eg.futureZulipFeatureLevel;
     });

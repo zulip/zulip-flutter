@@ -99,6 +99,9 @@ void main() {
     final someChannel = eg.stream();
     const someTopic = 'some topic';
 
+    final otherChannel = eg.stream();
+    const otherTopic = 'other topic';
+
     group('smoke', () {
       Future<void> smoke(
         Narrow narrow,
@@ -180,6 +183,32 @@ void main() {
 
       check(model).messages.length.equals(1);
       recent_senders_test.checkMatchesMessages(store.recentSenders, messages);
+    });
+
+    group('topic permalinks', () {
+      test('if redirect, we follow it and remove "with" element', () async {
+        await prepare(narrow: TopicNarrow(someChannel.streamId, eg.t(someTopic), with_: 1));
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: [eg.streamMessage(id: 1, stream: otherChannel, topic: otherTopic)],
+        ).toJson());
+        await model.fetchInitial();
+        checkNotifiedOnce();
+        check(model).narrow
+          .equals(TopicNarrow(otherChannel.streamId, eg.t(otherTopic)));
+      });
+
+      test('if no redirect, we still remove "with" element', () async {
+        await prepare(narrow: TopicNarrow(someChannel.streamId, eg.t(someTopic), with_: 1));
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: [eg.streamMessage(id: 1, stream: someChannel, topic: someTopic)],
+        ).toJson());
+        await model.fetchInitial();
+        checkNotifiedOnce();
+        check(model).narrow
+          .equals(TopicNarrow(someChannel.streamId, eg.t(someTopic)));
+      });
     });
   });
 
