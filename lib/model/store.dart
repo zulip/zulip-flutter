@@ -504,6 +504,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     switch (event) {
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
+        isLoading = false;
 
       case RealmEmojiUpdateEvent():
         assert(debugLog("server event: realm_emoji/update"));
@@ -940,6 +941,7 @@ class UpdateMachine {
             assert(debugLog('Lost event queue for $store.  Replacing…'));
             // This disposes the store, which disposes this update machine.
             await store._globalStore._reloadPerAccount(store.accountId);
+            store.isLoading = false;
             debugLog('… Event queue replaced.');
             return;
 
