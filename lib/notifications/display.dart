@@ -192,10 +192,7 @@ class NotificationDisplayManager {
         // The intent data URL is distinct for each conversation, so this value
         // doesn't matter.
         requestCode: 0,
-
-        // TODO is setting PendingIntentFlag.updateCurrent OK?
-        //   (That's a legacy of `flutter_local_notifications`.)
-        flags: PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent,
+        flags: PendingIntentFlag.immutable,
         intent: AndroidIntent(
           action: IntentAction.view,
           dataUrl: intentDataUrl.toString(),
