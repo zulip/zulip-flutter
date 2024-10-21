@@ -5,7 +5,6 @@ import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -160,9 +159,6 @@ abstract class ZulipBinding {
 
   /// Wraps [firebase_messaging.FirebaseMessaging.onBackgroundMessage].
   void firebaseMessagingOnBackgroundMessage(firebase_messaging.BackgroundMessageHandler handler);
-
-  /// Wraps the [FlutterLocalNotificationsPlugin] singleton constructor.
-  FlutterLocalNotificationsPlugin get notifications;
 
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
@@ -434,9 +430,6 @@ class LiveZulipBinding extends ZulipBinding {
   void firebaseMessagingOnBackgroundMessage(firebase_messaging.BackgroundMessageHandler handler) {
     firebase_messaging.FirebaseMessaging.onBackgroundMessage(handler);
   }
-
-  @override
-  FlutterLocalNotificationsPlugin get notifications => FlutterLocalNotificationsPlugin();
 
   @override
   AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
