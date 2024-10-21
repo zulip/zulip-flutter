@@ -196,10 +196,22 @@ class NotificationDisplayManager {
         intent: AndroidIntent(
           action: IntentAction.view,
           dataUrl: intentDataUrl.toString(),
-          extras: {}),
-        // TODO this doesn't set the Intent flags we set in zulip-mobile; is that OK?
-        //   (This is a legacy of `flutter_local_notifications`.)
-        ),
+          extras: {},
+          // See these sections in the Android docs:
+          //   https://developer.android.com/guide/components/activities/tasks-and-back-stack#TaskLaunchModes
+          //   https://developer.android.com/reference/android/content/Intent#FLAG_ACTIVITY_CLEAR_TOP
+          //
+          // * From the doc on `PendingIntent.getActivity` at
+          //     https://developer.android.com/reference/android/app/PendingIntent#getActivity(android.content.Context,%20int,%20android.content.Intent,%20int)
+          //   > Note that the activity will be started outside of the context of an
+          //   > existing activity, so you must use the Intent.FLAG_ACTIVITY_NEW_TASK
+          //   > launch flag in the Intent.
+          //
+          // * The flag FLAG_ACTIVITY_CLEAR_TOP is mentioned as being what the
+          //   notification manager does; so use that.  It has no effect as long
+          //   as we only have one activity; but if we add more, it will destroy
+          //   all the activities on top of the target one.
+          flags: IntentFlag.activityClearTop | IntentFlag.activityNewTask)),
       autoCancel: true,
     );
 
