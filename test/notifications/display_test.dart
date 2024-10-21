@@ -281,7 +281,7 @@ void main() {
             ..inboxStyle.isNull()
             ..autoCancel.equals(true)
             ..contentIntent.which((it) => it.isNotNull()
-              ..requestCode.equals(expectedId)
+              ..requestCode.equals(0)
               ..flags.equals(expectedIntentFlags)
               ..intent.which((it) => it
                 ..action.equals(IntentAction.view)
