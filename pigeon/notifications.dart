@@ -36,19 +36,25 @@ class NotificationChannel {
   final Int64List? vibrationPattern;
 }
 
+/// Corresponds to `android.content.Intent`
+///
+/// See: https://developer.android.com/reference/android/content/Intent
+class AndroidIntent {
+  AndroidIntent({required this.action, required this.extras});
+
+  final String action;
+  final Map<String?, String?> extras;
+}
+
 /// Corresponds to `android.app.PendingIntent`.
 ///
 /// See: https://developer.android.com/reference/android/app/PendingIntent
 class PendingIntent {
   /// Corresponds to `PendingIntent.getActivity`.
-  PendingIntent({required this.requestCode, required this.intentPayload, required this.flags});
+  PendingIntent({required this.requestCode, required this.intent, required this.flags});
 
   final int requestCode;
-
-  /// A value set on an extra on the Intent, and passed to
-  /// the on-notification-opened callback.
-  // TODO replace intentPayload with a more direct wrapping of the underlying API
-  final String intentPayload;
+  final AndroidIntent intent;
 
   /// A combination of flags from [PendingIntent.flags], and others associated
   /// with `Intent`; see Android docs for `PendingIntent.getActivity`.
