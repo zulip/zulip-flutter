@@ -27,13 +27,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-
-        // The use of desugar_jdk_libs causes warning noise at build time:
-        //   https://github.com/zulip/zulip-flutter/pull/887#issuecomment-2287653388
-        //   https://issuetracker.google.com/issues/294273986
-        // TODO(#351): Try removing core-library desugaring once we've
-        //   removed flutter_local_notifications.
-        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -103,5 +96,4 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
 }
