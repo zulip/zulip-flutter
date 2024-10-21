@@ -196,7 +196,6 @@ class NotificationDisplayManager {
         intent: AndroidIntent(
           action: IntentAction.view,
           dataUrl: intentDataUrl.toString(),
-          extras: {},
           // See these sections in the Android docs:
           //   https://developer.android.com/guide/components/activities/tasks-and-back-stack#TaskLaunchModes
           //   https://developer.android.com/reference/android/content/Intent#FLAG_ACTIVITY_CLEAR_TOP
