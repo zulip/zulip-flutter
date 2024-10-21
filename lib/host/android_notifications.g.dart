@@ -63,21 +63,48 @@ class NotificationChannel {
   }
 }
 
+/// Corresponds to `android.content.Intent`
+///
+/// See: https://developer.android.com/reference/android/content/Intent
+class AndroidIntent {
+  AndroidIntent({
+    required this.action,
+    required this.extras,
+  });
+
+  String action;
+
+  Map<String?, String?> extras;
+
+  Object encode() {
+    return <Object?>[
+      action,
+      extras,
+    ];
+  }
+
+  static AndroidIntent decode(Object result) {
+    result as List<Object?>;
+    return AndroidIntent(
+      action: result[0]! as String,
+      extras: (result[1] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+    );
+  }
+}
+
 /// Corresponds to `android.app.PendingIntent`.
 ///
 /// See: https://developer.android.com/reference/android/app/PendingIntent
 class PendingIntent {
   PendingIntent({
     required this.requestCode,
-    required this.intentPayload,
+    required this.intent,
     required this.flags,
   });
 
   int requestCode;
 
-  /// A value set on an extra on the Intent, and passed to
-  /// the on-notification-opened callback.
-  String intentPayload;
+  AndroidIntent intent;
 
   /// A combination of flags from [PendingIntent.flags], and others associated
   /// with `Intent`; see Android docs for `PendingIntent.getActivity`.
@@ -86,7 +113,7 @@ class PendingIntent {
   Object encode() {
     return <Object?>[
       requestCode,
-      intentPayload,
+      intent,
       flags,
     ];
   }
@@ -95,7 +122,7 @@ class PendingIntent {
     result as List<Object?>;
     return PendingIntent(
       requestCode: result[0]! as int,
-      intentPayload: result[1]! as String,
+      intent: result[1]! as AndroidIntent,
       flags: result[2]! as int,
     );
   }
@@ -311,26 +338,29 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is NotificationChannel) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else     if (value is PendingIntent) {
+    } else     if (value is AndroidIntent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else     if (value is InboxStyle) {
+    } else     if (value is PendingIntent) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else     if (value is Person) {
+    } else     if (value is InboxStyle) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else     if (value is MessagingStyleMessage) {
+    } else     if (value is Person) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else     if (value is MessagingStyle) {
+    } else     if (value is MessagingStyleMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else     if (value is Notification) {
+    } else     if (value is MessagingStyle) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else     if (value is StatusBarNotification) {
+    } else     if (value is Notification) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else     if (value is StatusBarNotification) {
+      buffer.putUint8(137);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -343,18 +373,20 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129: 
         return NotificationChannel.decode(readValue(buffer)!);
       case 130: 
-        return PendingIntent.decode(readValue(buffer)!);
+        return AndroidIntent.decode(readValue(buffer)!);
       case 131: 
-        return InboxStyle.decode(readValue(buffer)!);
+        return PendingIntent.decode(readValue(buffer)!);
       case 132: 
-        return Person.decode(readValue(buffer)!);
+        return InboxStyle.decode(readValue(buffer)!);
       case 133: 
-        return MessagingStyleMessage.decode(readValue(buffer)!);
+        return Person.decode(readValue(buffer)!);
       case 134: 
-        return MessagingStyle.decode(readValue(buffer)!);
+        return MessagingStyleMessage.decode(readValue(buffer)!);
       case 135: 
-        return Notification.decode(readValue(buffer)!);
+        return MessagingStyle.decode(readValue(buffer)!);
       case 136: 
+        return Notification.decode(readValue(buffer)!);
+      case 137: 
         return StatusBarNotification.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
