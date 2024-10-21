@@ -104,7 +104,6 @@ private class AndroidNotificationHost(val context: Context)
                         context,
                         MainActivity::class.java
                     ).apply {
-                        intent.extras.forEach { (k, v) -> putExtra(k!!, v!!) }
                         flags = intent.flags.toInt()
                     } },
                     it.flags.toInt())

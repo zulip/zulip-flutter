@@ -286,7 +286,6 @@ void main() {
               ..intent.which((it) => it
                 ..action.equals(IntentAction.view)
                 ..dataUrl.equals(expectedIntentDataUrl.toString())
-                ..extras.deepEquals({})
                 ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
@@ -1219,7 +1218,6 @@ extension on Subject<PendingIntent> {
 extension on Subject<AndroidIntent> {
   Subject<String> get action => has((x) => x.action, 'action');
   Subject<String> get dataUrl => has((x) => x.dataUrl, 'dataUrl');
-  Subject<Map<String?, String?>> get extras => has((x) => x.extras, 'extras');
   Subject<int> get flags => has((x) => x.flags, 'flags');
 }
 
