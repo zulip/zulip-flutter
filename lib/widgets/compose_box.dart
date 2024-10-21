@@ -275,12 +275,14 @@ class _ContentInput extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.hintText,
+    required this.readOnly,
   });
 
   final Narrow narrow;
   final ComposeContentController controller;
   final FocusNode focusNode;
   final String hintText;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -303,10 +305,11 @@ class _ContentInput extends StatelessWidget {
             return TextField(
               controller: controller,
               focusNode: focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
+              style: TextStyle(color: readOnly ? colorScheme.onSurface.withOpacity(0.5) : colorScheme.onSurface),
               decoration: InputDecoration.collapsed(hintText: hintText),
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
+              readOnly: readOnly,
             );
           }),
         ));
@@ -320,12 +323,14 @@ class _StreamContentInput extends StatefulWidget {
     required this.controller,
     required this.topicController,
     required this.focusNode,
+    required this.readOnly,
   });
 
   final ChannelNarrow narrow;
   final ComposeContentController controller;
   final ComposeTopicController topicController;
   final FocusNode focusNode;
+  final bool readOnly;
 
   @override
   State<_StreamContentInput> createState() => _StreamContentInputState();
@@ -372,7 +377,8 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       narrow: widget.narrow,
       controller: widget.controller,
       focusNode: widget.focusNode,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized),
+      readOnly: widget.readOnly);
   }
 }
 
@@ -381,12 +387,15 @@ class _TopicInput extends StatelessWidget {
     required this.streamId,
     required this.controller,
     required this.focusNode,
-    required this.contentFocusNode});
+    required this.contentFocusNode,
+    required this.readOnly,
+  });
 
   final int streamId;
   final ComposeTopicController controller;
   final FocusNode focusNode;
   final FocusNode contentFocusNode;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -404,6 +413,7 @@ class _TopicInput extends StatelessWidget {
         textInputAction: TextInputAction.next,
         style: TextStyle(color: colorScheme.onSurface),
         decoration: InputDecoration(hintText: zulipLocalizations.composeBoxTopicHintText),
+        readOnly: readOnly,
       ));
   }
 }
@@ -413,11 +423,13 @@ class _FixedDestinationContentInput extends StatelessWidget {
     required this.narrow,
     required this.controller,
     required this.focusNode,
+    required this.readOnly,
   });
 
   final SendableNarrow narrow;
   final ComposeContentController controller;
   final FocusNode focusNode;
+  final bool readOnly;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -448,7 +460,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
       narrow: narrow,
       controller: controller,
       focusNode: focusNode,
-      hintText: _hintText(context));
+      hintText: _hintText(context),
+      readOnly: readOnly);
   }
 }
 
@@ -538,10 +551,15 @@ Future<void> _uploadFiles({
 }
 
 abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
+  const _AttachUploadsButton({
+    required this.contentController,
+    required this.contentFocusNode,
+    required this.disabled,
+  });
 
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
+  final bool disabled;
 
   IconData get icon;
   String tooltip(ZulipLocalizations zulipLocalizations);
@@ -580,7 +598,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
     return IconButton(
       icon: Icon(icon),
       tooltip: tooltip(zulipLocalizations),
-      onPressed: () => _handlePress(context));
+      onPressed: disabled ? null : () => _handlePress(context));
   }
 }
 
@@ -639,7 +657,11 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFileButton({
+    required super.contentController,
+    required super.contentFocusNode,
+    required super.disabled,
+  });
 
   @override
   IconData get icon => Icons.attach_file;
@@ -655,7 +677,11 @@ class _AttachFileButton extends _AttachUploadsButton {
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
+  const _AttachMediaButton({
+    required super.contentController,
+    required super.contentFocusNode,
+    required super.disabled,
+  });
 
   @override
   IconData get icon => Icons.image;
@@ -672,7 +698,11 @@ class _AttachMediaButton extends _AttachUploadsButton {
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFromCameraButton({
+    required super.contentController,
+    required super.contentFocusNode,
+    required super.disabled,
+  });
 
   @override
   IconData get icon => Icons.camera_alt;
@@ -748,11 +778,15 @@ class _SendButton extends StatefulWidget {
     required this.topicController,
     required this.contentController,
     required this.getDestination,
+    required this.isSending,
+    required this.setIsSending,
   });
 
   final ComposeTopicController? topicController;
   final ComposeContentController contentController;
   final MessageDestination Function() getDestination;
+  final bool isSending;
+  final void Function(bool value) setIsSending;
 
   @override
   State<_SendButton> createState() => _SendButtonState();
@@ -817,12 +851,8 @@ class _SendButtonState extends State<_SendButton> {
     final store = PerAccountStoreWidget.of(context);
     final content = widget.contentController.textNormalized;
 
-    widget.contentController.clear();
-
+    widget.setIsSending(true);
     try {
-      // TODO(#720) clear content input only on success response;
-      //   while waiting, put input(s) and send button into a disabled
-      //   "working on it" state (letting input text be selected for copying).
       await store.sendMessage(destination: widget.getDestination(), content: content);
     } on ApiRequestException catch (e) {
       if (!mounted) return;
@@ -835,7 +865,10 @@ class _SendButtonState extends State<_SendButton> {
         title: zulipLocalizations.errorMessageNotSent,
         message: message);
       return;
+    } finally {
+      widget.setIsSending(false);
     }
+    widget.contentController.clear();
   }
 
   @override
@@ -872,7 +905,7 @@ class _SendButtonState extends State<_SendButton> {
         ),
         color: foregroundColor,
         icon: const Icon(Icons.send),
-        onPressed: _send));
+        onPressed: widget.isSending ? null : _send));
   }
 }
 
@@ -905,6 +938,7 @@ class _ComposeBoxLayout extends StatelessWidget {
     required this.sendButton,
     required this.contentController,
     required this.contentFocusNode,
+    required this.isSending,
   });
 
   final Widget? topicInput;
@@ -912,6 +946,7 @@ class _ComposeBoxLayout extends StatelessWidget {
   final Widget sendButton;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
+  final bool isSending;
 
   @override
   Widget build(BuildContext context) {
@@ -950,9 +985,9 @@ class _ComposeBoxLayout extends StatelessWidget {
           data: themeData.copyWith(
             iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
           child: Row(children: [
-            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode, disabled: isSending),
+            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode, disabled: isSending),
+            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode, disabled: isSending),
           ])),
       ]));
   }
@@ -991,6 +1026,14 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   FocusNode get topicFocusNode => _topicFocusNode;
   final _topicFocusNode = FocusNode();
 
+  bool get isSending => _isSending;
+  bool _isSending = false;
+  void setIsSending(bool value) {
+    setState(() {
+      _isSending = value;
+    });
+  }
+
   @override
   void dispose() {
     _topicController.dispose();
@@ -1004,23 +1047,28 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
     return _ComposeBoxLayout(
       contentController: _contentController,
       contentFocusNode: _contentFocusNode,
+      isSending: _isSending,
       topicInput: _TopicInput(
         streamId: widget.narrow.streamId,
         controller: _topicController,
         focusNode: topicFocusNode,
         contentFocusNode: _contentFocusNode,
+        readOnly: _isSending,
       ),
       contentInput: _StreamContentInput(
         narrow: widget.narrow,
         topicController: _topicController,
         controller: _contentController,
         focusNode: _contentFocusNode,
+        readOnly: _isSending,
       ),
       sendButton: _SendButton(
         topicController: _topicController,
         contentController: _contentController,
         getDestination: () => StreamDestination(
           widget.narrow.streamId, _topicController.textNormalized),
+        isSending: _isSending,
+        setIsSending: setIsSending,
       ));
   }
 }
@@ -1064,6 +1112,14 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
   @override FocusNode get contentFocusNode => _contentFocusNode;
   final _contentFocusNode = FocusNode();
 
+  bool get isSending => _isSending;
+  bool _isSending = false;
+  void setIsSending(bool value) {
+    setState(() {
+      _isSending = value;
+    });
+  }
+
   @override
   void dispose() {
     _contentController.dispose();
@@ -1095,15 +1151,19 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
       contentController: _contentController,
       contentFocusNode: _contentFocusNode,
       topicInput: null,
+      isSending: _isSending,
       contentInput: _FixedDestinationContentInput(
         narrow: widget.narrow,
         controller: _contentController,
         focusNode: _contentFocusNode,
+        readOnly: _isSending,
       ),
       sendButton: _SendButton(
         topicController: null,
         contentController: _contentController,
         getDestination: () => widget.narrow.destination,
+        isSending: _isSending,
+        setIsSending: setIsSending,
       ));
   }
 }
