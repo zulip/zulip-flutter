@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,8 +6,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
+import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
@@ -29,8 +28,11 @@ import 'package:zulip/widgets/theme.dart';
 import '../fake_async.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
+import '../model/narrow_checks.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
+import '../widgets/dialog_checks.dart';
 import '../widgets/message_list_checks.dart';
 import '../widgets/page_checks.dart';
 
@@ -226,6 +228,15 @@ void main() {
       const expectedIntentFlags =
         PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
       final expectedSelfUserKey = '${data.realmUrl}|${data.userId}';
+      final expectedIntentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -273,10 +284,9 @@ void main() {
               ..requestCode.equals(expectedId)
               ..flags.equals(expectedIntentFlags)
               ..intent.which((it) => it
-                ..action.equals('SELECT_NOTIFICATION')
-                ..extras.deepEquals({
-                  'payload': jsonEncode(data.toJson()),
-                }))),
+                ..action.equals(IntentAction.view)
+                ..dataUrl.equals(expectedIntentDataUrl.toString())
+                ..extras.deepEquals({}))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
             ..tag.equals(expectedGroupKey)
@@ -715,7 +725,6 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
-
     test('remove: different realm URLs but same user-ids and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
@@ -838,11 +847,19 @@ void main() {
     }
 
     Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
-      final fcmMessage = messageFcmMessage(message, account: account);
-      testBinding.notifications.receiveNotificationResponse(NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: jsonEncode(fcmMessage)));
-      await tester.idle(); // let _navigateForNotification find navigator
+      final data = messageFcmMessage(message, account: account);
+      final intentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
+      unawaited(
+        WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
+      await tester.idle(); // let navigateForNotification find navigator
     }
 
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
@@ -877,7 +894,11 @@ void main() {
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
       await openNotification(tester, eg.selfAccount, eg.streamMessage());
-      check(pushedRoutes).isEmpty();
+      await tester.pump();
+      check(pushedRoutes.single).isA<DialogRoute<void>>();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
     });
 
     testWidgets('mismatching account', (tester) async {
@@ -885,7 +906,11 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await openNotification(tester, eg.otherAccount, eg.streamMessage());
-      check(pushedRoutes).isEmpty();
+      await tester.pump();
+      check(pushedRoutes.single).isA<DialogRoute<void>>();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
     });
 
     testWidgets('find account among several', (tester) async {
@@ -933,14 +958,21 @@ void main() {
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
-      // Set up a value for `getNotificationLaunchDetails` to return.
+      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
+      // for determining the intial route.
       final account = eg.selfAccount;
       final message = eg.streamMessage();
-      final response = NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: jsonEncode(messageFcmMessage(message, account: account)));
-      testBinding.notifications.appLaunchDetails =
-        NotificationAppLaunchDetails(true, notificationResponse: response);
+      final data = messageFcmMessage(message, account: account);
+      final intentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
+      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
       // Now start the app.
       await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -951,6 +983,202 @@ void main() {
       await tester.pump();
       takeStartingRoutes();
       matchesNavigation(check(pushedRoutes).single, account, message);
+    });
+  });
+
+  group('NotificationOpenPayload', () {
+    test('smoke round-trip', () {
+      // DM narrow
+      var payload = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+      );
+      var url = payload.buildUrl();
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(payload.realmUrl)
+        ..userId.equals(payload.userId)
+        ..narrow.equals(payload.narrow);
+
+      // Topic narrow
+      payload = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: const TopicNarrow(1, 'topic A'),
+      );
+      url = payload.buildUrl();
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(payload.realmUrl)
+        ..userId.equals(payload.userId)
+        ..narrow.equals(payload.narrow);
+    });
+
+    test('buildUrl: smoke DM', () {
+      final url = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+      ).buildUrl();
+      check(url)
+        ..scheme.equals('zulip')
+        ..host.equals('notification')
+        ..queryParameters.deepEquals({
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'dm',
+          'all_recipient_ids': '1001,1002',
+        });
+    });
+
+    test('buildUrl: smoke topic', () {
+      final url = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: const TopicNarrow(1, 'topic A'),
+      ).buildUrl();
+      check(url)
+        ..scheme.equals('zulip')
+        ..host.equals('notification')
+        ..queryParameters.deepEquals({
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+    });
+
+    test('parse: smoke DM', () {
+      final url = Uri(
+        scheme: 'zulip',
+        host: 'notification',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'dm',
+          'all_recipient_ids': '1001,1002',
+        });
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(Uri.parse('http://chat.example'))
+        ..userId.equals(1001)
+        ..narrow.which((it) => it.isA<DmNarrow>()
+          ..allRecipientIds.deepEquals([1001, 1002])
+          ..otherRecipientIds.deepEquals([1002]));
+    });
+
+    test('parse: smoke topic', () {
+      final url = Uri(
+        scheme: 'zulip',
+        host: 'notification',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(Uri.parse('http://chat.example'))
+        ..userId.equals(1001)
+        ..narrow.which((it) => it.isA<TopicNarrow>()
+          ..streamId.equals(1)
+          ..topic.equals('topic A'));
+    });
+
+    test('parse: fails when missing any expected query parameters', () {
+      final testCases = <Map<String, String>>[
+        {
+          // 'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        },
+        {
+          'realm_url': 'http://chat.example',
+          // 'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        },
+        {
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          // 'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        },
+        {
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          // 'channel_id': '1',
+          'topic': 'topic A',
+        },
+        {
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          // 'topic': 'topic A',
+        },
+        {
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          // 'narrow_type': 'dm',
+          'all_recipient_ids': '1001,1002',
+        },
+        {
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'dm',
+          // 'all_recipient_ids': '1001,1002',
+        },
+      ];
+      for (final params in testCases) {
+        check(() => NotificationOpenPayload.parseUrl(Uri(
+          scheme: 'zulip',
+          host: 'notification',
+          queryParameters: params,
+        )))
+          // Missing 'realm_url', 'user_id' and 'narrow_type'
+          // throws 'FormatException'.
+          // Missing 'channel_id', 'topic', when narrow_type == 'topic'
+          // throws 'TypeError'.
+          // Missing 'all_recipient_ids', when narrow_type == 'dm'
+          // throws 'TypeError'.
+          .throws<Object>();
+      }
+    });
+
+    test('parse: fails when scheme is not "zulip"', () {
+      final url = Uri(
+        scheme: 'http',
+        host: 'notification',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+      check(() => NotificationOpenPayload.parseUrl(url))
+        .throws<FormatException>();
+    });
+
+    test('parse: fails when host is not "notification"', () {
+      final url = Uri(
+        scheme: 'zulip',
+        host: 'example',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+      check(() => NotificationOpenPayload.parseUrl(url))
+        .throws<FormatException>();
     });
   });
 }
@@ -989,6 +1217,7 @@ extension on Subject<PendingIntent> {
 
 extension on Subject<AndroidIntent> {
   Subject<String> get action => has((x) => x.action, 'action');
+  Subject<String> get dataUrl => has((x) => x.dataUrl, 'dataUrl');
   Subject<Map<String?, String?>> get extras => has((x) => x.extras, 'extras');
 }
 
@@ -1024,4 +1253,10 @@ extension on Subject<StatusBarNotification> {
   Subject<int> get id => has((x) => x.id, 'id');
   Subject<Notification> get notification => has((x) => x.notification, 'notification');
   Subject<String> get tag => has((x) => x.tag, 'tag');
+}
+
+extension on Subject<NotificationOpenPayload> {
+  Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
+  Subject<int> get userId => has((x) => x.userId, 'userId');
+  Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
 }

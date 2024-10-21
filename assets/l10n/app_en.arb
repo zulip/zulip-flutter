@@ -558,5 +558,13 @@
   "pollWidgetOptionsMissing": "This poll has no options yet.",
   "@pollWidgetOptionsMissing": {
     "description": "Text to display for a poll when it has no options"
+  },
+  "errorNotificationOpenTitle": "Failed to open notification",
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "errorNotificationOpenAccountMissing": "The account associated with this notification no longer exists.",
+  "@errorNotificationOpenAccountMissing": {
+    "description": "Error message when the account associated with the notification is not found"
   }
 }

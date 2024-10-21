@@ -11,3 +11,8 @@ extension DmNarrowChecks on Subject<DmNarrow> {
   Subject<List<int>> get allRecipientIds => has((x) => x.allRecipientIds, 'allRecipientIds');
   Subject<List<int>> get otherRecipientIds => has((x) => x.otherRecipientIds, 'otherRecipientIds');
 }
+
+extension TopicNarrowChecks on Subject<TopicNarrow> {
+  Subject<int> get streamId => has((x) => x.streamId, 'streamId');
+  Subject<String> get topic => has((x) => x.topic, 'topic');
+}

@@ -60,3 +60,11 @@ abstract class PendingIntentFlag {
   /// Corresponds to `FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT`.
   static const allowUnsafeImplicitIntent = 1 << 24;
 }
+
+/// For use in [AndroidIntent.action].
+///
+/// See: https://developer.android.com/reference/android/content/Intent#constants_1
+abstract class IntentAction {
+  /// Corresponds to `ACTION_VIEW`.
+  static const view = 'android.intent.action.VIEW';
+}
