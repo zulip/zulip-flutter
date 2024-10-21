@@ -732,7 +732,7 @@ void main() {
 
       final account2 = eg.account(
         realmUrl: Uri.parse('https://2.chat.example'),
-        id: 1001,
+        id: 1002,
         user: eg.user(userId: 1001));
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
