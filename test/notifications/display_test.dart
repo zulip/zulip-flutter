@@ -223,8 +223,6 @@ void main() {
 
       final expectedTag = '${data.realmUrl}|${data.userId}|$expectedTagComponent';
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
-      final expectedId =
-        NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       const expectedPendingIntentFlags = PendingIntentFlag.immutable;
       const expectedIntentFlags = IntentFlag.activityClearTop | IntentFlag.activityNewTask;
       final expectedSelfUserKey = '${data.realmUrl}|${data.userId}';
@@ -256,7 +254,7 @@ void main() {
       check(testBinding.androidNotificationHost.takeNotifyCalls())
         .deepEquals(<Condition<Object?>>[
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(expectedId)
+            ..id.equals(NotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedTag)
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
@@ -288,7 +286,7 @@ void main() {
                 ..dataUrl.equals(expectedIntentDataUrl.toString())
                 ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+            ..id.equals(NotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedGroupKey)
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
@@ -344,7 +342,7 @@ void main() {
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedTag))
+        ..id.equals(NotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
@@ -355,7 +353,7 @@ void main() {
 
     Condition<Object?> conditionSummaryActiveNotif(String expectedGroupKey) {
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+        ..id.equals(NotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.isEmpty())
