@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
@@ -170,9 +168,7 @@ class NotificationDisplayManager {
       }).buildUrl();
 
     await _androidHost.notify(
-      // TODO the notification ID can be constant, instead of matching requestCode
-      //   (This is a legacy of `flutter_local_notifications`.)
-      id: notificationIdAsHashOf(conversationKey),
+      id: kNotificationId,
       tag: conversationKey,
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
@@ -215,7 +211,7 @@ class NotificationDisplayManager {
     );
 
     await _androidHost.notify(
-      id: notificationIdAsHashOf(groupKey),
+      id: kNotificationId,
       tag: groupKey,
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
@@ -300,10 +296,17 @@ class NotificationDisplayManager {
       // Even though we enable the `autoCancel` flag for summary notification
       // during creation, the summary notification doesn't get auto canceled if
       // child notifications are canceled programatically as done above.
-      await _androidHost.cancel(
-        tag: groupKey, id: notificationIdAsHashOf(groupKey));
+      await _androidHost.cancel(tag: groupKey, id: kNotificationId);
     }
   }
+
+  /// The constant numeric "ID" we use for all non-test notifications,
+  /// along with unique tags.
+  ///
+  /// Because we construct a unique string "tag" for each distinct
+  /// notification, and Android notifications are identified by the
+  /// pair (tag, ID), it's simplest to leave these numeric IDs all the same.
+  static const kNotificationId = 0x00C0FFEE;
 
   /// A key we use in [Notification.extras] for the [Message.id] of the
   /// latest Zulip message in the notification's conversation.
@@ -312,21 +315,6 @@ class NotificationDisplayManager {
   /// clear that specific notification.
   @visibleForTesting
   static const kExtraLastZulipMessageId = 'lastZulipMessageId';
-
-  /// A notification ID, derived as a hash of the given string key.
-  ///
-  /// The result fits in 31 bits, the size of a nonnegative Java `int`,
-  /// so that it can be used as an Android notification ID.  (It's possible
-  /// negative values would work too, which would add one bit.)
-  ///
-  /// This is a cryptographic hash, meaning that collisions are about as
-  /// unlikely as one could hope for given the size of the hash.
-  @visibleForTesting
-  static int notificationIdAsHashOf(String key) {
-    final bytes = sha256.convert(utf8.encode(key)).bytes;
-    return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16)
-      | ((bytes[3] & 0x7f) << 24);
-  }
 
   static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
