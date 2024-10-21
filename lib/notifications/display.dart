@@ -189,18 +189,9 @@ class NotificationDisplayManager {
       },
 
       contentIntent: PendingIntent(
-        // TODO make intent URLs distinct, instead of requestCode
-        //   (This way is a legacy of flutter_local_notifications.)
-        //   The Intent objects we make for different conversations look the same.
-        //   They differ in their extras, but that doesn't count:
-        //     https://developer.android.com/reference/android/app/PendingIntent
-        //
-        //   This leaves only PendingIntent.requestCode to distinguish one
-        //   PendingIntent from another; the plugin sets that to the notification ID.
-        //   We need a distinct PendingIntent for each conversation, so that the
-        //   notifications can lead to the right conversations when opened.
-        //   So, use a hash of the conversation key.
-        requestCode: notificationIdAsHashOf(conversationKey),
+        // The intent data URL is distinct for each conversation, so this value
+        // doesn't matter.
+        requestCode: 0,
 
         // TODO is setting PendingIntentFlag.updateCurrent OK?
         //   (That's a legacy of `flutter_local_notifications`.)
