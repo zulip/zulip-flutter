@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../notifications/display.dart';
 import 'about_zulip.dart';
 import 'app_bar.dart';
 import 'dialog.dart';
@@ -144,19 +145,29 @@ class ZulipApp extends StatefulWidget {
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
-    if (routeInformation case RouteInformation(
-      uri: Uri(scheme: 'zulip', host: 'login') && var url)
-    ) {
-      await LoginPage.handleWebAuthUrl(url);
-      return true;
+    switch (routeInformation.uri) {
+      case Uri(scheme: 'zulip', host: 'login') && var url:
+        await LoginPage.handleWebAuthUrl(url);
+        return true;
+      case Uri(scheme: 'zulip', host: 'notification') && var url:
+        await NotificationDisplayManager.navigateForNotification(url);
+        return true;
     }
     return super.didPushRouteInformation(routeInformation);
+  }
+
+  Future<void> _handleInitialRoute() async {
+    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
+    }
   }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _handleInitialRoute();
   }
 
   @override

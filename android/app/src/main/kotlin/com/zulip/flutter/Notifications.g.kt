@@ -90,12 +90,15 @@ data class NotificationChannel (
 /**
  * Corresponds to `android.content.Intent`
  *
- * See: https://developer.android.com/reference/android/content/Intent
+ * See:
+ *   https://developer.android.com/reference/android/content/Intent
+ *   https://developer.android.com/reference/android/content/Intent#Intent(java.lang.String,%20android.net.Uri,%20android.content.Context,%20java.lang.Class%3C?%3E)
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
 data class AndroidIntent (
   val action: String,
+  val dataUrl: String,
   val extras: Map<String?, String?>
 
 ) {
@@ -103,13 +106,15 @@ data class AndroidIntent (
     @Suppress("LocalVariableName")
     fun fromList(__pigeon_list: List<Any?>): AndroidIntent {
       val action = __pigeon_list[0] as String
-      val extras = __pigeon_list[1] as Map<String?, String?>
-      return AndroidIntent(action, extras)
+      val dataUrl = __pigeon_list[1] as String
+      val extras = __pigeon_list[2] as Map<String?, String?>
+      return AndroidIntent(action, dataUrl, extras)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       action,
+      dataUrl,
       extras,
     )
   }

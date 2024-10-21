@@ -3,6 +3,7 @@ package com.zulip.flutter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.Keep
@@ -97,8 +98,12 @@ private class AndroidNotificationHost(val context: Context)
             contentIntent?.let { setContentIntent(
                 android.app.PendingIntent.getActivity(context,
                     it.requestCode.toInt(),
-                    it.intent.let { intent -> Intent(context, MainActivity::class.java).apply {
-                        action = intent.action
+                    it.intent.let { intent -> Intent(
+                        intent.action,
+                        Uri.parse(intent.dataUrl),
+                        context,
+                        MainActivity::class.java
+                    ).apply {
                         intent.extras.forEach { (k, v) -> putExtra(k!!, v!!) }
                     } },
                     it.flags.toInt())
