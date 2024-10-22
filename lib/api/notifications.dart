@@ -64,7 +64,8 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   ///
   /// This is a real, absolute URL which is the base for all URLs a client uses
   /// with this realm.  It corresponds to [GetServerSettingsResult.realmUri].
-  final Uri realmUri;
+  @JsonKey(readValue: _readRealmUrl) // TODO(server-9)
+  final Uri realmUrl;
 
   /// This user's ID within the server.
   ///
@@ -75,9 +76,14 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   FcmMessageWithIdentity({
     required this.server,
     required this.realmId,
-    required this.realmUri,
+    required this.realmUrl,
     required this.userId,
   });
+
+  // TODO(server-9): FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
+  static String _readRealmUrl(Map<dynamic, dynamic> json, String key) {
+    return (json['realm_url'] ?? json['realm_uri']) as String;
+  }
 }
 
 /// Parsed version of an FCM message of type `message`.
@@ -117,7 +123,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   MessageFcmMessage({
     required super.server,
     required super.realmId,
-    required super.realmUri,
+    required super.realmUrl,
     required super.userId,
     required this.senderId,
     required this.senderAvatarUrl,
@@ -147,6 +153,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
         if (recipient.streamName != null) result['stream'] = recipient.streamName;
         result['topic'] = recipient.topic;
     }
+    result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
     return result;
   }
 }
@@ -236,7 +243,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   RemoveFcmMessage({
     required super.server,
     required super.realmId,
-    required super.realmUri,
+    required super.realmUrl,
     required super.userId,
     required this.zulipMessageIds,
   });
@@ -247,7 +254,11 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   }
 
   @override
-  Map<String, dynamic> toJson() => _$RemoveFcmMessageToJson(this);
+  Map<String, dynamic> toJson() {
+    final result = _$RemoveFcmMessageToJson(this);
+    result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
+    return result;
+  }
 }
 
 class _IntListConverter extends JsonConverter<List<int>, String> {

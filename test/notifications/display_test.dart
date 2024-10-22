@@ -217,20 +217,20 @@ void main() {
       List<int>? expectedIconBitmap = kSolidBlueAvatar,
     }) {
       assert(messageStyleMessages.every((e) => e.userId == data.userId));
-      assert(messageStyleMessages.every((e) => e.realmUri == data.realmUri));
+      assert(messageStyleMessages.every((e) => e.realmUrl == data.realmUrl));
 
-      final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
-      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+      final expectedTag = '${data.realmUrl}|${data.userId}|$expectedTagComponent';
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       const expectedIntentFlags =
         PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
-      final expectedSelfUserKey = '${data.realmUri}|${data.userId}';
+      final expectedSelfUserKey = '${data.realmUrl}|${data.userId}';
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
           final expectedSenderKey =
-            '${messageData.realmUri}|${messageData.senderId}';
+            '${messageData.realmUrl}|${messageData.senderId}';
           final isLast = i == (messageStyleMessages.length - 1);
           return (Subject<Object?> it) => it.isA<MessagingStyleMessage>()
             ..text.equals(messageData.content)
@@ -285,7 +285,7 @@ void main() {
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.equals(true)
             ..inboxStyle.which((it) => it.isNotNull()
-              ..summaryText.equals(data.realmUri.toString()))
+              ..summaryText.equals(data.realmUrl.toString()))
             ..autoCancel.equals(true)
             ..contentIntent.isNull(),
         ]);
@@ -327,7 +327,7 @@ void main() {
     }
 
     Condition<Object?> conditionActiveNotif(MessageFcmMessage data, String tagComponent) {
-      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
       return (it) => it.isA<StatusBarNotification>()
         ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedTag))
@@ -615,7 +615,7 @@ void main() {
       await init();
       final message = eg.streamMessage();
       final data = messageFcmMessage(message);
-      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -652,7 +652,7 @@ void main() {
       final data2 = messageFcmMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(stream: stream, topic: topicA);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
-      final expectedGroupKey = '${data1.realmUri}|${data1.userId}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -685,7 +685,7 @@ void main() {
       const topicB = 'Topic B';
       final message2 = eg.streamMessage(stream: stream, topic: topicB);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
-      final expectedGroupKey = '${data1.realmUri}|${data1.userId}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 

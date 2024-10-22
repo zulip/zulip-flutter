@@ -8,7 +8,8 @@ void main() {
   final baseBaseJson = {
     "server": "zulip.example.cloud",
     "realm_id": "4",
-    "realm_uri": "https://zulip.example.com/",
+    "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
+    "realm_url": "https://zulip.example.com/",
     "user_id": "234",
   };
 
@@ -70,7 +71,8 @@ void main() {
       check(parse(streamJson))
         ..server.equals(baseJson['server']!)
         ..realmId.equals(4)
-        ..realmUri.equals(Uri.parse(baseJson['realm_uri']!))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_url']!))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!)) // TODO(server-9)
         ..userId.equals(234)
         ..senderId.equals(123)
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
@@ -137,17 +139,28 @@ void main() {
       checkInert({ 'awesome_feature': 'enabled' });
     });
 
+    test('uses deprecated fields when newer fields are missing', () {
+      final baseline = parse(dmJson);
+
+      // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
+      final jsonSansRealm =
+        { ...dmJson }..remove('realm_url')..remove('realm_uri');
+      check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' })).jsonEquals(baseline);
+    });
+
     group("parse failures on malformed 'message'", () {
       int n = 1;
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('server')));
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_id')));
       test("${n++}", () => checkParseFails({ ...dmJson, 'realm_id': '12,34' }));
       test("${n++}", () => checkParseFails({ ...dmJson, 'realm_id': 'abc' }));
-      test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_uri')));
+      test("${n++}", () => checkParseFails({ ...dmJson }
+                                            ..remove('realm_url')
+                                            ..remove('realm_uri'))); // TODO(server-9)
       test(skip: true, // Dart's Uri.parse is lax in what it accepts.
-           "${n++}", () => checkParseFails({ ...dmJson, 'realm_uri': 'zulip.example.com' }));
+           "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
       test(skip: true, // Dart's Uri.parse is lax in what it accepts.
-           "${n++}", () => checkParseFails({ ...dmJson, 'realm_uri': '/examplecorp' }));
+           "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
 
       test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': '12,34' }));
       test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': 'abc' }));
@@ -190,7 +203,8 @@ void main() {
       check(parse(baseJson))
         ..server.equals(baseJson['server']!)
         ..realmId.equals(4)
-        ..realmUri.equals(Uri.parse(baseJson['realm_uri']!))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_url']!))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!)) // TODO(server-9)
         ..userId.equals(234)
         ..zulipMessageIds.deepEquals([123, 234]);
     });
@@ -210,6 +224,15 @@ void main() {
       check(parse({ ...baseJson, 'awesome_feature': 'enabled' })).jsonEquals(baseline);
     });
 
+    test('uses deprecated fields when newer fields are missing', () {
+      final baseline = parse(baseJson);
+
+      // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
+      final jsonSansRealm =
+        { ...baseJson }..remove('realm_url')..remove('realm_uri');
+      check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' })).jsonEquals(baseline);
+    });
+
     group('parse failures on malformed data', () {
       int n = 1;
 
@@ -217,11 +240,13 @@ void main() {
       test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_id')));
       test("${n++}", () => checkParseFails({ ...baseJson, 'realm_id': 'abc' }));
       test("${n++}", () => checkParseFails({ ...baseJson, 'realm_id': '12,34' }));
-      test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_uri')));
+      test("${n++}", () => checkParseFails({ ...baseJson }
+                                            ..remove('realm_url')
+                                            ..remove('realm_uri'))); // TODO(server-9)
       test(skip: true, // Dart's Uri.parse is lax in what it accepts.
-           "${n++}", () => checkParseFails({ ...baseJson, 'realm_uri': 'zulip.example.com' }));
+           "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': 'zulip.example.com' }));
       test(skip: true, // Dart's Uri.parse is lax in what it accepts.
-           "${n++}", () => checkParseFails({ ...baseJson, 'realm_uri': '/examplecorp' }));
+           "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
 
       for (final badIntList in ["abc,34", "12,abc", "12,", ""]) {
         test("${n++}", () => checkParseFails({ ...baseJson, 'zulip_message_ids': badIntList }));
@@ -237,7 +262,7 @@ extension UnexpectedFcmMessageChecks on Subject<UnexpectedFcmMessage> {
 extension FcmMessageWithIdentityChecks on Subject<FcmMessageWithIdentity> {
   Subject<String> get server => has((x) => x.server, 'server');
   Subject<int> get realmId => has((x) => x.realmId, 'realmId');
-  Subject<Uri> get realmUri => has((x) => x.realmUri, 'realmUri');
+  Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
 
