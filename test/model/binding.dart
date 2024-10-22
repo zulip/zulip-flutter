@@ -591,6 +591,51 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeChannels.remove(channelId);
   }
 
+  /// Generates a fake uri for a notification sound present in media store.
+  String fakeStoredNotificationSoundUri(String resourceName) {
+    return 'content://media/external_primary/audio/media/$resourceName';
+  }
+
+  final _storedNotificationSounds = <StoredNotificationsSound>[];
+
+  /// Populates the media store with the provided entries.
+  void setupStoredNotificationSounds(List<StoredNotificationsSound> sounds) {
+    _storedNotificationSounds.addAll(sounds);
+  }
+
+  @override
+  Future<List<StoredNotificationsSound?>> listStoredSoundsInNotificationsDirectory() async {
+    return _storedNotificationSounds.toList(growable: false);
+  }
+
+  /// Consume the log of calls made to [copySoundResourceToMediaStore].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [copySoundResourceToMediaStore] since the last call to this method.
+  List<CopySoundResourceToMediaStoreCall> takeCopySoundResourceToMediaStoreCalls() {
+    final result = _copySoundResourceToMediaStoreCalls;
+    _copySoundResourceToMediaStoreCalls = [];
+    return result;
+  }
+  List<CopySoundResourceToMediaStoreCall> _copySoundResourceToMediaStoreCalls = [];
+
+  @override
+  Future<String> copySoundResourceToMediaStore({
+    required String targetFileDisplayName,
+    required String sourceResourceName,
+  }) async {
+    _copySoundResourceToMediaStoreCalls.add((
+      targetFileDisplayName: targetFileDisplayName,
+      sourceResourceName: sourceResourceName));
+
+    final uri = fakeStoredNotificationSoundUri(sourceResourceName);
+    _storedNotificationSounds.add(StoredNotificationsSound(
+      fileName: targetFileDisplayName,
+      isOwner: true,
+      uri: uri));
+    return uri;
+  }
+
   /// Consume the log of calls made to [notify].
   ///
   /// This returns a list of the arguments to all calls made
@@ -712,4 +757,9 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   MessagingStyle? messagingStyle,
   int? number,
   String? smallIconResourceName,
+});
+
+typedef CopySoundResourceToMediaStoreCall = ({
+  String targetFileDisplayName,
+  String sourceResourceName,
 });

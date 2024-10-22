@@ -24,6 +24,7 @@ class NotificationChannel {
     required this.importance,
     this.name,
     this.lightsEnabled,
+    this.soundUri,
     this.vibrationPattern,
   });
 
@@ -39,6 +40,8 @@ class NotificationChannel {
 
   bool? lightsEnabled;
 
+  String? soundUri;
+
   Int64List? vibrationPattern;
 
   Object encode() {
@@ -47,6 +50,7 @@ class NotificationChannel {
       importance,
       name,
       lightsEnabled,
+      soundUri,
       vibrationPattern,
     ];
   }
@@ -58,7 +62,8 @@ class NotificationChannel {
       importance: result[1]! as int,
       name: result[2] as String?,
       lightsEnabled: result[3] as bool?,
-      vibrationPattern: result[4] as Int64List?,
+      soundUri: result[4] as String?,
+      vibrationPattern: result[5] as Int64List?,
     );
   }
 }
@@ -303,6 +308,42 @@ class StatusBarNotification {
   }
 }
 
+/// Represents a row in the media database when queried via
+/// `android.content.ContentResolver.query`.
+///
+/// Returned as a list entry by
+/// [AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory].
+class StoredNotificationsSound {
+  StoredNotificationsSound({
+    required this.fileName,
+    required this.isOwner,
+    required this.uri,
+  });
+
+  String fileName;
+
+  bool isOwner;
+
+  String uri;
+
+  Object encode() {
+    return <Object?>[
+      fileName,
+      isOwner,
+      uri,
+    ];
+  }
+
+  static StoredNotificationsSound decode(Object result) {
+    result as List<Object?>;
+    return StoredNotificationsSound(
+      fileName: result[0]! as String,
+      isOwner: result[1]! as bool,
+      uri: result[2]! as String,
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -332,6 +373,9 @@ class _PigeonCodec extends StandardMessageCodec {
     } else     if (value is StatusBarNotification) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
+    } else     if (value is StoredNotificationsSound) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -356,6 +400,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return Notification.decode(readValue(buffer)!);
       case 136: 
         return StatusBarNotification.decode(readValue(buffer)!);
+      case 137: 
+        return StoredNotificationsSound.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -452,6 +498,82 @@ class AndroidNotificationHostApi {
       );
     } else {
       return;
+    }
+  }
+
+  /// Corresponds to `android.content.ContentResolver.query`.
+  ///
+  /// Returns the list of notification sounds present under
+  /// `Notifications/Zulip/` directory in device's shared media storage.
+  ///
+  /// Requires minimum of Android 10 (API 29) or higher.
+  ///
+  /// See: https://developer.android.com/reference/android/content/ContentResolver#query(android.net.Uri,%20java.lang.String[],%20java.lang.String,%20java.lang.String[],%20java.lang.String)
+  Future<List<StoredNotificationsSound?>> listStoredSoundsInNotificationsDirectory() async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(null) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else if (__pigeon_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (__pigeon_replyList[0] as List<Object?>?)!.cast<StoredNotificationsSound?>();
+    }
+  }
+
+  /// Wraps `android.content.ContentResolver.insert` combined with
+  /// `android.content.ContentResolver.openOutputStream` and
+  /// `android.content.res.Resources.openRawResource`.
+  ///
+  /// Copies a raw resource audio file to `Notifications/Zulip/`
+  /// directory in device's shared media storage. Returns the uri
+  /// of the target file in media store.
+  ///
+  /// Requires minimum of Android 10 (API 29) or higher.
+  ///
+  /// See:
+  ///   https://developer.android.com/reference/android/content/ContentResolver#insert(android.net.Uri,%20android.content.ContentValues)
+  ///   https://developer.android.com/reference/android/content/ContentResolver#openOutputStream(android.net.Uri)
+  ///   https://developer.android.com/reference/android/content/res/Resources#openRawResource(int)
+  Future<String> copySoundResourceToMediaStore({required String targetFileDisplayName, required String sourceResourceName}) async {
+    final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.copySoundResourceToMediaStore$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[targetFileDisplayName, sourceResourceName]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else if (__pigeon_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (__pigeon_replyList[0] as String?)!;
     }
   }
 
