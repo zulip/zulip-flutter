@@ -177,7 +177,7 @@ abstract class AndroidNotificationHostApi {
   /// The rest go to method calls on the builder.
   ///
   /// The `color` should be in the form 0xAARRGGBB.
-  /// This is the form returned by [Color.value].
+  /// See [ColorExtension.argbInt].
   ///
   /// The `smallIconResourceName` is passed to `android.content.res.Resources.getIdentifier`
   /// to get a resource ID to pass to `Builder.setSmallIcon`.
