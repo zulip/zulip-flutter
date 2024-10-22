@@ -59,7 +59,7 @@ String? decodeHashComponent(String str) {
 // you do so by passing the `anchor` param.
 Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   // TODO(server-7)
-  final apiNarrow = resolveDmElements(
+  final apiNarrow = resolveApiNarrowForServer(
     narrow.apiEncode(), store.connection.zulipFeatureLevel!);
   final fragment = StringBuffer('narrow');
   for (ApiNarrowElement element in apiNarrow) {

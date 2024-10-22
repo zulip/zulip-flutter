@@ -91,7 +91,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   // bool? useFirstUnreadAnchor // omitted because deprecated
 }) {
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
-    'narrow': resolveDmElements(narrow, connection.zulipFeatureLevel!),
+    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
     'anchor': RawParameter(anchor.toJson()),
     if (includeAnchor != null) 'include_anchor': includeAnchor,
     'num_before': numBefore,
@@ -400,7 +400,7 @@ Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnect
     if (includeAnchor != null) 'include_anchor': includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
-    'narrow': resolveDmElements(narrow, connection.zulipFeatureLevel!),
+    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
     'op': RawParameter(op.toJson()),
     'flag': RawParameter(flag.toJson()),
   });
