@@ -92,6 +92,9 @@ void main() {
   }
 
   group('fetchInitial', () {
+    final someStream = eg.stream();
+    const someTopic = 'some topic';
+
     group('smoke', () {
       Future<void> smoke(
         Narrow narrow,
@@ -121,6 +124,11 @@ void main() {
 
       test('CombinedFeedNarrow', () async {
         await smoke(const CombinedFeedNarrow(), (i) => eg.streamMessage());
+      });
+
+      test('TopicNarrow', () async {
+        await smoke(TopicNarrow(someStream.streamId, someTopic),
+          (i) => eg.streamMessage(stream: someStream, topic: someTopic));
       });
     });
 
