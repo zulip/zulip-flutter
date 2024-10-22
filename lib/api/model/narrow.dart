@@ -6,14 +6,24 @@ part 'narrow.g.dart';
 
 typedef ApiNarrow = List<ApiNarrowElement>;
 
-/// Resolve any [ApiNarrowDm] elements appropriately.
+/// Adapt the given narrow to be sent to the given Zulip server version.
 ///
-/// This encapsulates a server-feature check.
-ApiNarrow resolveDmElements(ApiNarrow narrow, int zulipFeatureLevel) {
-  if (!narrow.any((element) => element is ApiNarrowDm)) {
-    return narrow;
-  }
+/// Any elements that take a different name on old vs. new servers
+/// will be resolved to the specific name to use.
+/// Any elements that are unknown to old servers and can
+/// reasonably be omitted will be omitted.
+ApiNarrow resolveApiNarrowForServer(ApiNarrow narrow, int zulipFeatureLevel) {
   final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
+
+  bool hasDmElement = false;
+  for (final element in narrow) {
+    switch (element) {
+      case ApiNarrowDm(): hasDmElement = true;
+      default:
+    }
+  }
+  if (!hasDmElement) return narrow;
+
   return narrow.map((element) => switch (element) {
     ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
     _             => element,
@@ -102,7 +112,7 @@ class ApiNarrowTopic extends ApiNarrowElement {
 /// and more generally its [operator] getter must not be called.
 /// Instead, call [resolve] and use the object it returns.
 ///
-/// If part of [ApiNarrow] use [resolveDmElements].
+/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
 class ApiNarrowDm extends ApiNarrowElement {
   @override String get operator {
     assert(false,
