@@ -176,7 +176,7 @@ void main() {
   test('Narrow.toJson', () {
     return FakeApiConnection.with_((connection) async {
       void checkNarrow(ApiNarrow narrow, String expected) {
-        narrow = resolveDmElements(narrow, connection.zulipFeatureLevel!);
+        narrow = resolveApiNarrowElements(narrow, connection.zulipFeatureLevel!);
         check(jsonEncode(narrow)).equals(expected);
       }
 
@@ -263,7 +263,7 @@ void main() {
       });
     });
 
-    test('narrow uses resolveDmElements to encode', () {
+    test('narrow uses resolveApiNarrowElements to encode', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
         connection.prepare(json: fakeResult.toJson());
         await checkGetMessages(connection,
@@ -650,7 +650,7 @@ void main() {
       });
     });
 
-    test('narrow uses resolveDmElements to encode', () {
+    test('narrow uses resolveApiNarrowElements to encode', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
         connection.prepare(json: mkResult(foundOldest: true).toJson());
         await checkUpdateMessageFlagsForNarrow(connection,
