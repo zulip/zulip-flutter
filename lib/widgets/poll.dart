@@ -85,7 +85,6 @@ class _PollWidgetState extends State<PollWidget> {
                   borderRadius: BorderRadius.circular(3)),
                 child: Center(
                   child: Text(option.voters.length.toString(),
-                    textAlign: TextAlign.center,
                     style: textStyleBold.copyWith(
                       color: theme.colorPollVoteCountText, fontSize: 13))))),
             Expanded(
