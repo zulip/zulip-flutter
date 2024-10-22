@@ -133,7 +133,7 @@ class NotificationDisplayManager {
     } else {
       messagingStyle = MessagingStyle(
         user: Person(
-          key: _personKey(data.realmUri, data.userId),
+          key: _personKey(data.realmUrl, data.userId),
           name: zulipLocalizations.notifSelfUser),
         messages: [],
         isGroupConversation: switch (data.recipient) {
@@ -164,7 +164,7 @@ class NotificationDisplayManager {
       text: data.content,
       timestampMs: data.time * 1000,
       person: Person(
-        key: _personKey(data.realmUri, data.senderId),
+        key: _personKey(data.realmUrl, data.senderId),
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
@@ -223,7 +223,7 @@ class NotificationDisplayManager {
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
       inboxStyle: InboxStyle(
         // TODO(#570) Show organization name, not URL
-        summaryText: data.realmUri.toString()),
+        summaryText: data.realmUrl.toString()),
 
       // On Android 11 and lower, if autoCancel is not specified,
       // the summary notification may linger even after all child
@@ -336,10 +336,10 @@ class NotificationDisplayManager {
   static String _groupKey(FcmMessageWithIdentity data) {
     // The realm URL can't contain a `|`, because `|` is not a URL code point:
     //   https://url.spec.whatwg.org/#url-code-points
-    return "${data.realmUri}|${data.userId}";
+    return "${data.realmUrl}|${data.userId}";
   }
 
-  static String _personKey(Uri realmUri, int userId) => "$realmUri|$userId";
+  static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
   static void _onNotificationOpened(NotificationResponse response) async {
     final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
@@ -366,7 +366,7 @@ class NotificationDisplayManager {
 
     final globalStore = GlobalStoreWidget.of(context);
     final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == data.realmUri && account.userId == data.userId);
+      account.realmUrl == data.realmUrl && account.userId == data.userId);
     if (account == null) return; // TODO(log)
 
     final narrow = switch (data.recipient) {

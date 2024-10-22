@@ -9,6 +9,7 @@ void main() {
     "server": "zulip.example.cloud",
     "realm_id": "4",
     "realm_uri": "https://zulip.example.com/",
+    "realm_url": "https://zulip.example.com/",
     "user_id": "234",
   };
 
@@ -70,7 +71,7 @@ void main() {
       check(parse(streamJson))
         ..server.equals(baseJson['server']!)
         ..realmId.equals(4)
-        ..realmUri.equals(Uri.parse(baseJson['realm_uri']!))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!))
         ..userId.equals(234)
         ..senderId.equals(123)
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
@@ -190,7 +191,7 @@ void main() {
       check(parse(baseJson))
         ..server.equals(baseJson['server']!)
         ..realmId.equals(4)
-        ..realmUri.equals(Uri.parse(baseJson['realm_uri']!))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!))
         ..userId.equals(234)
         ..zulipMessageIds.deepEquals([123, 234]);
     });
@@ -237,7 +238,7 @@ extension UnexpectedFcmMessageChecks on Subject<UnexpectedFcmMessage> {
 extension FcmMessageWithIdentityChecks on Subject<FcmMessageWithIdentity> {
   Subject<String> get server => has((x) => x.server, 'server');
   Subject<int> get realmId => has((x) => x.realmId, 'realmId');
-  Subject<Uri> get realmUri => has((x) => x.realmUri, 'realmUri');
+  Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
 
