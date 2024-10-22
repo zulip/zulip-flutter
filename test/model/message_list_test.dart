@@ -95,221 +95,225 @@ void main() {
       });
   }
 
-  test('fetchInitial', () async {
-    const narrow = CombinedFeedNarrow();
-    await prepare(narrow: narrow);
-    connection.prepare(json: newestResult(
-      foundOldest: false,
-      messages: List.generate(kMessageListFetchBatchSize,
-        (i) => eg.streamMessage()),
-    ).toJson());
-    final fetchFuture = model.fetchInitial();
-    check(model).fetched.isFalse();
+  group('fetchInitial', () {
+    test('smoke', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow);
+      connection.prepare(json: newestResult(
+        foundOldest: false,
+        messages: List.generate(kMessageListFetchBatchSize,
+          (i) => eg.streamMessage()),
+      ).toJson());
+      final fetchFuture = model.fetchInitial();
+      check(model).fetched.isFalse();
 
-    checkNotNotified();
-    await fetchFuture;
-    checkNotifiedOnce();
-    check(model)
-      ..messages.length.equals(kMessageListFetchBatchSize)
-      ..haveOldest.isFalse();
-    checkLastRequest(
-      narrow: narrow.apiEncode(),
-      anchor: 'newest',
-      numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
-    );
+      checkNotNotified();
+      await fetchFuture;
+      checkNotifiedOnce();
+      check(model)
+        ..messages.length.equals(kMessageListFetchBatchSize)
+        ..haveOldest.isFalse();
+      checkLastRequest(
+        narrow: narrow.apiEncode(),
+        anchor: 'newest',
+        numBefore: kMessageListFetchBatchSize,
+        numAfter: 0,
+      );
+    });
+
+    test('short history', () async {
+      await prepare();
+      connection.prepare(json: newestResult(
+        foundOldest: true,
+        messages: List.generate(30, (i) => eg.streamMessage()),
+      ).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(model)
+        ..messages.length.equals(30)
+        ..haveOldest.isTrue();
+    });
+
+    test('no messages found', () async {
+      await prepare();
+      connection.prepare(json: newestResult(
+        foundOldest: true,
+        messages: [],
+      ).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(model)
+        ..fetched.isTrue()
+        ..messages.isEmpty()
+        ..haveOldest.isTrue();
+    });
+
+    // TODO(#824): move this test
+    test('recent senders track all the messages', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow);
+      final messages = [
+        eg.streamMessage(),
+        // Not subscribed to the stream with id 10.
+        eg.streamMessage(stream: eg.stream(streamId: 10)),
+      ];
+      connection.prepare(json: newestResult(
+        foundOldest: false,
+        messages: messages,
+      ).toJson());
+      await model.fetchInitial();
+
+      check(model).messages.length.equals(1);
+      recent_senders_test.checkMatchesMessages(store.recentSenders, messages);
+    });
   });
 
-  test('fetchInitial, short history', () async {
-    await prepare();
-    connection.prepare(json: newestResult(
-      foundOldest: true,
-      messages: List.generate(30, (i) => eg.streamMessage()),
-    ).toJson());
-    await model.fetchInitial();
-    checkNotifiedOnce();
-    check(model)
-      ..messages.length.equals(30)
-      ..haveOldest.isTrue();
-  });
+  group('fetchOlder', () {
+    test('smoke', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow);
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
-  test('fetchInitial, no messages found', () async {
-    await prepare();
-    connection.prepare(json: newestResult(
-      foundOldest: true,
-      messages: [],
-    ).toJson());
-    await model.fetchInitial();
-    checkNotifiedOnce();
-    check(model)
-      ..fetched.isTrue()
-      ..messages.isEmpty()
-      ..haveOldest.isTrue();
-  });
+      connection.prepare(json: olderResult(
+        anchor: 1000, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+      ).toJson());
+      final fetchFuture = model.fetchOlder();
+      checkNotifiedOnce();
+      check(model).fetchingOlder.isTrue();
 
-  // TODO(#824): move this test
-  test('fetchInitial, recent senders track all the messages', () async {
-    const narrow = CombinedFeedNarrow();
-    await prepare(narrow: narrow);
-    final messages = [
-      eg.streamMessage(),
-      // Not subscribed to the stream with id 10.
-      eg.streamMessage(stream: eg.stream(streamId: 10)),
-    ];
-    connection.prepare(json: newestResult(
-      foundOldest: false,
-      messages: messages,
-    ).toJson());
-    await model.fetchInitial();
+      await fetchFuture;
+      checkNotifiedOnce();
+      check(model)
+        ..fetchingOlder.isFalse()
+        ..messages.length.equals(200);
+      checkLastRequest(
+        narrow: narrow.apiEncode(),
+        anchor: '1000',
+        includeAnchor: false,
+        numBefore: kMessageListFetchBatchSize,
+        numAfter: 0,
+      );
+    });
 
-    check(model).messages.length.equals(1);
-    recent_senders_test.checkMatchesMessages(store.recentSenders, messages);
-  });
+    test('nop when already fetching', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow);
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
-  test('fetchOlder', () async {
-    const narrow = CombinedFeedNarrow();
-    await prepare(narrow: narrow);
-    await prepareMessages(foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+      connection.prepare(json: olderResult(
+        anchor: 1000, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+      ).toJson());
+      final fetchFuture = model.fetchOlder();
+      checkNotifiedOnce();
+      check(model).fetchingOlder.isTrue();
 
-    connection.prepare(json: olderResult(
-      anchor: 1000, foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
-    ).toJson());
-    final fetchFuture = model.fetchOlder();
-    checkNotifiedOnce();
-    check(model).fetchingOlder.isTrue();
+      // Don't prepare another response.
+      final fetchFuture2 = model.fetchOlder();
+      checkNotNotified();
+      check(model).fetchingOlder.isTrue();
 
-    await fetchFuture;
-    checkNotifiedOnce();
-    check(model)
-      ..fetchingOlder.isFalse()
-      ..messages.length.equals(200);
-    checkLastRequest(
-      narrow: narrow.apiEncode(),
-      anchor: '1000',
-      includeAnchor: false,
-      numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
-    );
-  });
+      await fetchFuture;
+      await fetchFuture2;
+      // We must not have made another request, because we didn't
+      // prepare another response and didn't get an exception.
+      checkNotifiedOnce();
+      check(model)
+        ..fetchingOlder.isFalse()
+        ..messages.length.equals(200);
+    });
 
-  test('fetchOlder nop when already fetching', () async {
-    const narrow = CombinedFeedNarrow();
-    await prepare(narrow: narrow);
-    await prepareMessages(foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+    test('nop when already haveOldest true', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: true, messages:
+        List.generate(30, (i) => eg.streamMessage()));
+      check(model)
+        ..haveOldest.isTrue()
+        ..messages.length.equals(30);
 
-    connection.prepare(json: olderResult(
-      anchor: 1000, foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
-    ).toJson());
-    final fetchFuture = model.fetchOlder();
-    checkNotifiedOnce();
-    check(model).fetchingOlder.isTrue();
+      await model.fetchOlder();
+      // We must not have made a request, because we didn't
+      // prepare a response and didn't get an exception.
+      checkNotNotified();
+      check(model)
+        ..haveOldest.isTrue()
+        ..messages.length.equals(30);
+    });
 
-    // Don't prepare another response.
-    final fetchFuture2 = model.fetchOlder();
-    checkNotNotified();
-    check(model).fetchingOlder.isTrue();
+    test('nop during backoff', () => awaitFakeAsync((async) async {
+      final olderMessages = List.generate(5, (i) => eg.streamMessage());
+      final initialMessages = List.generate(5, (i) => eg.streamMessage());
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: false, messages: initialMessages);
+      check(connection.takeRequests()).single;
 
-    await fetchFuture;
-    await fetchFuture2;
-    // We must not have made another request, because we didn't
-    // prepare another response and didn't get an exception.
-    checkNotifiedOnce();
-    check(model)
-      ..fetchingOlder.isFalse()
-      ..messages.length.equals(200);
-  });
+      connection.prepare(apiException: eg.apiBadRequest());
+      check(async.pendingTimers).isEmpty();
+      await check(model.fetchOlder()).throws<ZulipApiException>();
+      checkNotified(count: 2);
+      check(model).fetchOlderCoolingDown.isTrue();
+      check(connection.takeRequests()).single;
 
-  test('fetchOlder nop when already haveOldest true', () async {
-    await prepare(narrow: const CombinedFeedNarrow());
-    await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage()));
-    check(model)
-      ..haveOldest.isTrue()
-      ..messages.length.equals(30);
+      await model.fetchOlder();
+      checkNotNotified();
+      check(model).fetchOlderCoolingDown.isTrue();
+      check(model).fetchingOlder.isFalse();
+      check(connection.lastRequest).isNull();
 
-    await model.fetchOlder();
-    // We must not have made a request, because we didn't
-    // prepare a response and didn't get an exception.
-    checkNotNotified();
-    check(model)
-      ..haveOldest.isTrue()
-      ..messages.length.equals(30);
-  });
+      // Wait long enough that a first backoff is sure to finish.
+      async.elapse(const Duration(seconds: 1));
+      check(model).fetchOlderCoolingDown.isFalse();
+      checkNotifiedOnce();
+      check(connection.lastRequest).isNull();
 
-  test('fetchOlder nop during backoff', () => awaitFakeAsync((async) async {
-    final olderMessages = List.generate(5, (i) => eg.streamMessage());
-    final initialMessages = List.generate(5, (i) => eg.streamMessage());
-    await prepare(narrow: const CombinedFeedNarrow());
-    await prepareMessages(foundOldest: false, messages: initialMessages);
-    check(connection.takeRequests()).single;
+      connection.prepare(json: olderResult(
+        anchor: 1000, foundOldest: false, messages: olderMessages).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(connection.takeRequests()).single;
+    }));
 
-    connection.prepare(apiException: eg.apiBadRequest());
-    check(async.pendingTimers).isEmpty();
-    await check(model.fetchOlder()).throws<ZulipApiException>();
-    checkNotified(count: 2);
-    check(model).fetchOlderCoolingDown.isTrue();
-    check(connection.takeRequests()).single;
+    test('handles servers not understanding includeAnchor', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow);
+      await prepareMessages(foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
-    await model.fetchOlder();
-    checkNotNotified();
-    check(model).fetchOlderCoolingDown.isTrue();
-    check(model).fetchingOlder.isFalse();
-    check(connection.lastRequest).isNull();
+      // The old behavior is to include the anchor message regardless of includeAnchor.
+      connection.prepare(json: olderResult(
+        anchor: 1000, foundOldest: false, foundAnchor: true,
+        messages: List.generate(101, (i) => eg.streamMessage(id: 900 + i)),
+      ).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      check(model)
+        ..fetchingOlder.isFalse()
+        ..messages.length.equals(200);
+    });
 
-    // Wait long enough that a first backoff is sure to finish.
-    async.elapse(const Duration(seconds: 1));
-    check(model).fetchOlderCoolingDown.isFalse();
-    checkNotifiedOnce();
-    check(connection.lastRequest).isNull();
+    // TODO(#824): move this test
+    test('recent senders track all the messages', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow);
+      final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
+      await prepareMessages(foundOldest: false, messages: initialMessages);
 
-    connection.prepare(json: olderResult(
-      anchor: 1000, foundOldest: false, messages: olderMessages).toJson());
-    await model.fetchOlder();
-    checkNotified(count: 2);
-    check(connection.takeRequests()).single;
-  }));
+      final oldMessages = List.generate(10, (i) => eg.streamMessage(id: 89 + i))
+        // Not subscribed to the stream with id 10.
+        ..add(eg.streamMessage(id: 99, stream: eg.stream(streamId: 10)));
+      connection.prepare(json: olderResult(
+        anchor: 100, foundOldest: false,
+        messages: oldMessages,
+      ).toJson());
+      await model.fetchOlder();
 
-  test('fetchOlder handles servers not understanding includeAnchor', () async {
-    const narrow = CombinedFeedNarrow();
-    await prepare(narrow: narrow);
-    await prepareMessages(foundOldest: false,
-      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
-
-    // The old behavior is to include the anchor message regardless of includeAnchor.
-    connection.prepare(json: olderResult(
-      anchor: 1000, foundOldest: false, foundAnchor: true,
-      messages: List.generate(101, (i) => eg.streamMessage(id: 900 + i)),
-    ).toJson());
-    await model.fetchOlder();
-    checkNotified(count: 2);
-    check(model)
-      ..fetchingOlder.isFalse()
-      ..messages.length.equals(200);
-  });
-
-  // TODO(#824): move this test
-  test('fetchOlder, recent senders track all the messages', () async {
-    const narrow = CombinedFeedNarrow();
-    await prepare(narrow: narrow);
-    final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
-    await prepareMessages(foundOldest: false, messages: initialMessages);
-
-    final oldMessages = List.generate(10, (i) => eg.streamMessage(id: 89 + i))
-      // Not subscribed to the stream with id 10.
-      ..add(eg.streamMessage(id: 99, stream: eg.stream(streamId: 10)));
-    connection.prepare(json: olderResult(
-      anchor: 100, foundOldest: false,
-      messages: oldMessages,
-    ).toJson());
-    await model.fetchOlder();
-
-    check(model).messages.length.equals(20);
-    recent_senders_test.checkMatchesMessages(store.recentSenders,
-      [...initialMessages, ...oldMessages]);
+      check(model).messages.length.equals(20);
+      recent_senders_test.checkMatchesMessages(store.recentSenders,
+        [...initialMessages, ...oldMessages]);
+    });
   });
 
   test('MessageEvent', () async {
