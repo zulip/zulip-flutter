@@ -78,6 +78,9 @@ class _PollWidgetState extends State<PollWidget> {
             ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 25, minHeight: 25),
               child: Container(
+                // Inner padding preserves whitespace even when the text's
+                // width approaches the button's min-width (e.g. because
+                // there are more than three digits).
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: theme.colorPollVoteCountBackground,
