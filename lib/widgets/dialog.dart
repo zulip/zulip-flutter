@@ -44,7 +44,8 @@ DialogStatus showErrorDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: message != null ? SingleChildScrollView(child: Text(message)) : null,
+      content: message != null ? Text(message) : null,
+      scrollable: true,
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -65,7 +66,8 @@ void showSuggestedActionDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: SingleChildScrollView(child: Text(message)),
+      content: Text(message),
+      scrollable: true,
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
