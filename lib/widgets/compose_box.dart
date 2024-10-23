@@ -659,9 +659,10 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
     return IconButton(
-      icon: Icon(icon),
+      icon: Icon(icon, color: colorScheme.onSurfaceVariant),
       tooltip: tooltip(zulipLocalizations),
       onPressed: () => _handlePress(context));
   }
@@ -1033,14 +1034,11 @@ class _ComposeBoxLayout extends StatelessWidget {
           const SizedBox(width: 8),
           sendButton,
         ]),
-        Theme(
-          data: themeData.copyWith(
-            iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-          child: Row(children: [
-            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          ])),
+        Row(children: [
+          _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+          _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+          _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+        ]),
       ]));
   }
 }
