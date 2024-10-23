@@ -344,6 +344,23 @@ class ContentExample {
       ]),
     ]);
 
+  static const codeBlockSpansWithMultipleClasses = ContentExample(
+    'code block spans with multiple CSS classes',
+    '```yaml\n- item\n```',
+    expectedText: '- item',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/1949014
+    '<div class="codehilite" data-code-language="YAML">'
+        '<pre><span></span><code><span class="p p-Indicator">-</span>'
+        '<span class="w"> </span>'
+        '<span class="l l-Scalar l-Scalar-Plain">item</span>\n'
+        '</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: "-", type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: " ", type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: "item", type: CodeBlockSpanType.literal)
+      ]),
+    ]);
+
   // Current servers no longer produce this, but it can be found in ancient
   // messages.  For example:
   //   https://chat.zulip.org/#narrow/stream/2-general/topic/Error.20in.20dev.20server/near/18765
@@ -1160,6 +1177,7 @@ void main() {
   testParseExample(ContentExample.codeBlockPlain);
   testParseExample(ContentExample.codeBlockHighlightedShort);
   testParseExample(ContentExample.codeBlockHighlightedMultiline);
+  testParseExample(ContentExample.codeBlockSpansWithMultipleClasses);
   testParseExample(ContentExample.codeBlockWithEmptyBody);
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);

@@ -480,6 +480,7 @@ void main() {
     testContentSmoke(ContentExample.codeBlockPlain);
     testContentSmoke(ContentExample.codeBlockHighlightedShort);
     testContentSmoke(ContentExample.codeBlockHighlightedMultiline);
+    testContentSmoke(ContentExample.codeBlockSpansWithMultipleClasses);
 
     testFontWeight('syntax highlighting: non-bold span',
       expectedWght: 400,
