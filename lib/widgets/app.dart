@@ -322,15 +322,9 @@ class HomePage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18),
               child: Column(children: [
-                const Text('🚧 Under construction 🚧'),
-                const SizedBox(height: 12),
                 Text.rich(TextSpan(
                   text: 'Connected to: ',
                   children: [bold(store.realmUrl.toString())])),
-                Text.rich(TextSpan(
-                  text: 'Zulip server version: ',
-                  children: [bold(store.zulipVersion)])),
-                Text(zulipLocalizations.subscribedToNChannels(store.subscriptions.length)),
               ])),
             const SizedBox(height: 16),
             ElevatedButton(

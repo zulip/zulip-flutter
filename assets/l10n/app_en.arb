@@ -376,13 +376,6 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
-  "subscribedToNChannels": "Subscribed to {num, plural, =0{no channels} =1{1 channel} other{{num} channels}}",
-  "@subscribedToNChannels": {
-    "description": "Test page label showing number of channels user is subscribed to.",
-    "placeholders": {
-      "num": {"type": "int", "example": "4"}
-    }
-  },
   "errorInvalidResponse": "The server sent an invalid response",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
