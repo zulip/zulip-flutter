@@ -395,6 +395,23 @@ class ContentExample {
       ParagraphNode(links: null, nodes: [TextNode("some content")]),
     ]);
 
+  static const codeBlockNodesWithMultipleClasses = ContentExample(
+    'code block nodes with multiple class names',
+    '```yaml\n- item\n```',
+    expectedText: '- item',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/1949014
+    '<div class="codehilite" data-code-language="YAML">'
+      '<pre><span></span><code><span class="p p-Indicator">-</span>'
+      '<span class="w"> </span>'
+      '<span class="l l-Scalar l-Scalar-Plain">item</span>\n'
+      '</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: "-", type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: " ", type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: "item", type: CodeBlockSpanType.literal)
+      ]),
+    ]);
+
   static final mathInline = ContentExample.inline(
     'inline math',
     r"$$ \lambda $$",
@@ -1164,6 +1181,7 @@ void main() {
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
+  testParseExample(ContentExample.codeBlockNodesWithMultipleClasses);
 
   testParseExample(ContentExample.mathBlock);
   testParseExample(ContentExample.mathBlockInQuote);
