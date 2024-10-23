@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -143,6 +144,7 @@ class ReactionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final reactionType = reactionWithVotes.reactionType;
     final emojiCode = reactionWithVotes.emojiCode;
@@ -157,7 +159,7 @@ class ReactionChip extends StatelessWidget {
       ? userIds.map((id) {
           return id == store.selfUserId
             ? 'You'
-            : store.users[id]?.fullName ?? '(unknown user)'; // TODO(i18n)
+            : store.users[id]?.fullName ?? zulipLocalizations.unknownUserName;
         }).join(', ')
       : userIds.length.toString();
 
