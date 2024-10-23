@@ -26,7 +26,7 @@ class TypingStatus extends ChangeNotifier {
     _timerMapsByNarrow[narrow]?.keys ?? [];
 
   // Using SendableNarrow as the key covers the narrows
-  // where typing notifications are supported (topics and DMs).
+  // where typing notices are supported (topics and DMs).
   final Map<SendableNarrow, Map<int, Timer>> _timerMapsByNarrow = {};
 
   @override
