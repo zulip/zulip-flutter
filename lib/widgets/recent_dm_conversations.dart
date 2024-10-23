@@ -80,6 +80,7 @@ class RecentDmConversationsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final designVariables = DesignVariables.of(context);
 
@@ -94,13 +95,15 @@ class RecentDmConversationsItem extends StatelessWidget {
         //   (should we offer a "spam folder" style summary screen of recent
         //   1:1 DM conversations from muted users?)
         final otherUser = store.users[otherUserId];
-        title = otherUser?.fullName ?? '(unknown user)';
+        title = otherUser?.fullName ?? zulipLocalizations.unknownUserName;
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
         //   // 'Chris、Greg、Alya'
-        title = narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', ');
+        title = narrow.otherRecipientIds.map((id) =>
+          store.users[id]?.fullName ?? zulipLocalizations.unknownUserName
+        ).join(', ');
         avatar = ColoredBox(color: designVariables.groupDmConversationIconBg,
           child: Center(
             child: Icon(color: designVariables.groupDmConversationIcon,

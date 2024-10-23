@@ -290,8 +290,9 @@ class _UserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final user = store.users[userId];
-    final fullName = user?.fullName ?? '(unknown user)';
+    final fullName = user?.fullName ?? zulipLocalizations.unknownUserName;
     return InkWell(
       onTap: () => Navigator.push(context,
         ProfilePage.buildRoute(context: context,
