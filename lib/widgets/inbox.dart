@@ -4,6 +4,7 @@ import '../api/model/model.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import 'action_sheet.dart';
 import 'app_bar.dart';
 import 'icons.dart';
 import 'message_list.dart';
@@ -525,6 +526,8 @@ class _TopicItem extends StatelessWidget {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
+        onLongPress: () => showTopicActionSheet(context,
+          channelId: streamId, topic: topic),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             const SizedBox(width: 63),
