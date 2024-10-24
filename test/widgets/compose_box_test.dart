@@ -41,6 +41,8 @@ void main() {
 
   Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
+    User? selfUser,
+    int? realmWaitingPeriodThreshold,
     List<User> users = const [],
     List<ZulipStream> streams = const [],
   }) async {
@@ -49,16 +51,19 @@ void main() {
         'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
     }
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    selfUser ??= eg.selfUser;
+    final selfAccount = eg.account(user: selfUser);
+    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
 
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-    await store.addUsers([eg.selfUser, ...users]);
+    await store.addUsers([selfUser, ...users]);
     await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
     final controllerKey = GlobalKey<ComposeBoxController>();
-    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: Column(
         // This positions the compose box at the bottom of the screen,
         // simulating the layout of the message list page.
@@ -303,9 +308,12 @@ void main() {
 
     Future<void> prepareComposeBoxWithNavigation(WidgetTester tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final selfUser = eg.selfUser;
+      final selfAccount = eg.account(user: selfUser);
+      await testBinding.globalStore.add(selfAccount, eg.initialSnapshot());
 
-      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      store = await testBinding.globalStore.perAccount(selfAccount.id);
+      await store.addUser(selfUser);
       await store.addStream(channel);
       connection = store.connection as FakeApiConnection;
 
@@ -313,7 +321,7 @@ void main() {
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(MaterialAccountWidgetRoute(
-        accountId: eg.selfAccount.id, page: ComposeBox(narrow: narrow))));
+        accountId: selfAccount.id, page: ComposeBox(narrow: narrow))));
       await tester.pumpAndSettle();
     }
 
@@ -581,7 +589,9 @@ void main() {
   });
 
   group('error banner', () {
-    Finder contentFieldFinder() => find.descendant(
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+    Finder inputFieldFinder() => find.descendant(
       of: find.byType(ComposeBox),
       matching: find.byType(TextField));
 
@@ -590,24 +600,26 @@ void main() {
       matching: find.widgetWithIcon(IconButton, icon));
 
     void checkComposeBoxParts({required bool areShown}) {
-      check(contentFieldFinder().evaluate().length).equals(areShown ? 1 : 0);
+      final inputFieldCount = inputFieldFinder().evaluate().length;
+      areShown ? check(inputFieldCount).isGreaterThan(0) : check(inputFieldCount).equals(0);
       check(attachButtonFinder(Icons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(Icons.image).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(Icons.camera_alt).evaluate().length).equals(areShown ? 1 : 0);
     }
 
-    void checkBanner({required bool isShown}) {
-      final bannerTextFinder = find.text(GlobalLocalizations.zulipLocalizations
-        .errorBannerDeactivatedDmLabel);
-      check(bannerTextFinder.evaluate().length).equals(isShown ? 1 : 0);
+    void checkBannerWithLabel(String label, {required bool isShown}) {
+      check(find.text(label).evaluate().length).equals(isShown ? 1 : 0);
     }
 
-    void checkComposeBox({required bool isShown}) {
+    void checkComposeBoxIsShown(bool isShown, {required String bannerLabel}) {
       checkComposeBoxParts(areShown: isShown);
-      checkBanner(isShown: !isShown);
+      checkBannerWithLabel(bannerLabel, isShown: !isShown);
     }
 
     group('in DMs with deactivated users', () {
+      void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
+        bannerLabel: zulipLocalizations.errorBannerDeactivatedDmLabel);
+
       Future<void> changeUserStatus(WidgetTester tester,
           {required User user, required bool isActive}) async {
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -684,6 +696,102 @@ void main() {
           await changeUserStatus(tester, user: deactivatedUsers[1], isActive: true);
           checkComposeBox(isShown: true);
         });
+      });
+    });
+
+    group('in channel/topic narrow according to channel post policy', () {
+      void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
+        bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+
+      final narrowTestCases = [
+        ('channel', const ChannelNarrow(1)),
+        ('topic',   const TopicNarrow(1, 'topic')),
+      ];
+
+      for (final (String narrowType, Narrow narrow) in narrowTestCases) {
+        testWidgets('compose box is shown in $narrowType narrow', (tester) async {
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            selfUser: eg.user(role: UserRole.administrator),
+            streams: [eg.stream(streamId: 1,
+              channelPostPolicy: ChannelPostPolicy.moderators)]);
+          checkComposeBox(isShown: true);
+        });
+
+        testWidgets('error banner is shown in $narrowType narrow', (tester) async {
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            selfUser: eg.user(role: UserRole.moderator),
+            streams: [eg.stream(streamId: 1,
+              channelPostPolicy: ChannelPostPolicy.administrators)]);
+          checkComposeBox(isShown: false);
+        });
+      }
+
+      testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
+        final selfUser = eg.user(role: UserRole.administrator);
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.administrators)]);
+        checkComposeBox(isShown: true);
+
+        await store.handleEvent(RealmUserUpdateEvent(id: 1,
+          userId: selfUser.userId, role: UserRole.moderator));
+        await tester.pump();
+        checkComposeBox(isShown: false);
+      });
+
+      testWidgets('user gains privilege -> banner is replaced with the compose box', (tester) async {
+        final selfUser = eg.user(role: UserRole.guest);
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.moderators)]);
+        checkComposeBox(isShown: false);
+
+        await store.handleEvent(RealmUserUpdateEvent(id: 1,
+          userId: selfUser.userId, role: UserRole.administrator));
+        await tester.pump();
+        checkComposeBox(isShown: true);
+      });
+
+      testWidgets('channel policy becomes stricter -> compose box is replaced with the banner', (tester) async {
+        final selfUser = eg.user(role: UserRole.guest);
+        final channel = eg.stream(streamId: 1,
+          channelPostPolicy: ChannelPostPolicy.any);
+
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [channel]);
+        checkComposeBox(isShown: true);
+
+        await store.handleEvent(eg.channelUpdateEvent(channel,
+          property: ChannelPropertyName.channelPostPolicy,
+          value: ChannelPostPolicy.fullMembers));
+        await tester.pump();
+        checkComposeBox(isShown: false);
+      });
+
+      testWidgets('channel policy becomes less strict -> banner is replaced with the compose box', (tester) async {
+        final selfUser = eg.user(role: UserRole.moderator);
+        final channel = eg.stream(streamId: 1,
+          channelPostPolicy: ChannelPostPolicy.administrators);
+
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [channel]);
+        checkComposeBox(isShown: false);
+
+        await store.handleEvent(eg.channelUpdateEvent(channel,
+          property: ChannelPropertyName.channelPostPolicy,
+          value: ChannelPostPolicy.moderators));
+        await tester.pump();
+        checkComposeBox(isShown: true);
       });
     });
   });

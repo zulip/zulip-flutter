@@ -216,6 +216,10 @@
   "@errorBannerDeactivatedDmLabel": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
+  "errorBannerCannotPostInChannelLabel": "You do not have permission to post in this channel.",
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
   "composeBoxAttachFilesTooltip": "Attach files",
   "@composeBoxAttachFilesTooltip": {
     "description": "Tooltip for compose box icon to attach a file to the message."
