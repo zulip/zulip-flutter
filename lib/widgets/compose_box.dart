@@ -1071,26 +1071,8 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
     super.dispose();
   }
 
-  Widget? _errorBanner(BuildContext context) {
-    if (widget.narrow case DmNarrow(:final otherRecipientIds)) {
-      final store = PerAccountStoreWidget.of(context);
-      final hasDeactivatedUser = otherRecipientIds.any((id) =>
-        !(store.users[id]?.isActive ?? true));
-      if (hasDeactivatedUser) {
-        return _ErrorBanner(label: ZulipLocalizations.of(context)
-          .errorBannerDeactivatedDmLabel);
-      }
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final errorBanner = _errorBanner(context);
-    if (errorBanner != null) {
-      return _ComposeBoxContainer(child: errorBanner);
-    }
-
     return _ComposeBoxLayout(
       contentController: _contentController,
       contentFocusNode: _contentFocusNode,
@@ -1128,8 +1110,40 @@ class ComposeBox extends StatelessWidget {
     }
   }
 
+  Widget? _errorBanner(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final selfUser = store.users[store.selfUserId]!;
+    final localizations = ZulipLocalizations.of(context);
+    switch (narrow) {
+      case ChannelNarrow(:final streamId):
+      case TopicNarrow(:final streamId):
+        final channel = store.streams[streamId]!;
+        if (!channel.hasPostingPermission(selfUser,
+            byDate: DateTime.now(),
+            realmWaitingPeriodThreshold: store.realmWaitingPeriodThreshold)) {
+          return _ErrorBanner(label: localizations.errorBannerCannotPostInChannelLabel);
+        }
+      case DmNarrow(:final otherRecipientIds):
+        final hasDeactivatedUser = otherRecipientIds.any((id) =>
+          !(store.users[id]?.isActive ?? true));
+        if (hasDeactivatedUser) {
+          return _ErrorBanner(label: localizations.errorBannerDeactivatedDmLabel);
+        }
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        return null;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final errorBanner = _errorBanner(context);
+    if (errorBanner != null) {
+      return _ComposeBoxContainer(child: errorBanner);
+    }
+
     final narrow = this.narrow;
     switch (narrow) {
       case ChannelNarrow():
