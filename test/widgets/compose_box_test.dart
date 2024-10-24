@@ -580,7 +580,7 @@ void main() {
     });
   });
 
-  group('compose box in DMs with deactivated users', () {
+  group('error banner', () {
     Finder contentFieldFinder() => find.descendant(
       of: find.byType(ComposeBox),
       matching: find.byType(TextField));
@@ -607,81 +607,83 @@ void main() {
       checkBanner(isShown: !isShown);
     }
 
-    Future<void> changeUserStatus(WidgetTester tester,
-        {required User user, required bool isActive}) async {
-      await store.handleEvent(RealmUserUpdateEvent(id: 1,
-        userId: user.userId, isActive: isActive));
-      await tester.pump();
-    }
+    group('in DMs with deactivated users', () {
+      Future<void> changeUserStatus(WidgetTester tester,
+          {required User user, required bool isActive}) async {
+        await store.handleEvent(RealmUserUpdateEvent(id: 1,
+          userId: user.userId, isActive: isActive));
+        await tester.pump();
+      }
 
-    DmNarrow dmNarrowWith(User otherUser) => DmNarrow.withUser(otherUser.userId,
-      selfUserId: eg.selfUser.userId);
+      DmNarrow dmNarrowWith(User otherUser) => DmNarrow.withUser(otherUser.userId,
+        selfUserId: eg.selfUser.userId);
 
-    DmNarrow groupDmNarrowWith(List<User> otherUsers) => DmNarrow.withOtherUsers(
-      otherUsers.map((u) => u.userId), selfUserId: eg.selfUser.userId);
+      DmNarrow groupDmNarrowWith(List<User> otherUsers) => DmNarrow.withOtherUsers(
+        otherUsers.map((u) => u.userId), selfUserId: eg.selfUser.userId);
 
-    group('1:1 DMs', () {
-      testWidgets('compose box replaced with a banner', (tester) async {
-        final deactivatedUser = eg.user(isActive: false);
-        await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-          users: [deactivatedUser]);
-        checkComposeBox(isShown: false);
+      group('1:1 DMs', () {
+        testWidgets('compose box replaced with a banner', (tester) async {
+          final deactivatedUser = eg.user(isActive: false);
+          await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
+            users: [deactivatedUser]);
+          checkComposeBox(isShown: false);
+        });
+
+        testWidgets('active user becomes deactivated -> '
+            'compose box is replaced with a banner', (tester) async {
+          final activeUser = eg.user(isActive: true);
+          await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
+            users: [activeUser]);
+          checkComposeBox(isShown: true);
+
+          await changeUserStatus(tester, user: activeUser, isActive: false);
+          checkComposeBox(isShown: false);
+        });
+
+        testWidgets('deactivated user becomes active -> '
+            'banner is replaced with the compose box', (tester) async {
+          final deactivatedUser = eg.user(isActive: false);
+          await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
+            users: [deactivatedUser]);
+          checkComposeBox(isShown: false);
+
+          await changeUserStatus(tester, user: deactivatedUser, isActive: true);
+          checkComposeBox(isShown: true);
+        });
       });
 
-      testWidgets('active user becomes deactivated -> '
-          'compose box is replaced with a banner', (tester) async {
-        final activeUser = eg.user(isActive: true);
-        await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
-          users: [activeUser]);
-        checkComposeBox(isShown: true);
+      group('group DMs', () {
+        testWidgets('compose box replaced with a banner', (tester) async {
+          final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
+          await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
+            users: deactivatedUsers);
+          checkComposeBox(isShown: false);
+        });
 
-        await changeUserStatus(tester, user: activeUser, isActive: false);
-        checkComposeBox(isShown: false);
-      });
+        testWidgets('at least one user becomes deactivated -> '
+            'compose box is replaced with a banner', (tester) async {
+          final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
+          await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
+            users: activeUsers);
+          checkComposeBox(isShown: true);
 
-      testWidgets('deactivated user becomes active -> '
-          'banner is replaced with the compose box', (tester) async {
-        final deactivatedUser = eg.user(isActive: false);
-        await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-          users: [deactivatedUser]);
-        checkComposeBox(isShown: false);
+          await changeUserStatus(tester, user: activeUsers[0], isActive: false);
+          checkComposeBox(isShown: false);
+        });
 
-        await changeUserStatus(tester, user: deactivatedUser, isActive: true);
-        checkComposeBox(isShown: true);
-      });
-    });
+        testWidgets('all deactivated users become active -> '
+            'banner is replaced with the compose box', (tester) async {
+          final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
+          await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
+            users: deactivatedUsers);
+          checkComposeBox(isShown: false);
 
-    group('group DMs', () {
-      testWidgets('compose box replaced with a banner', (tester) async {
-        final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
-        await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-          users: deactivatedUsers);
-        checkComposeBox(isShown: false);
-      });
+          await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);
+          checkComposeBox(isShown: false);
 
-      testWidgets('at least one user becomes deactivated -> '
-          'compose box is replaced with a banner', (tester) async {
-        final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
-        await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
-          users: activeUsers);
-        checkComposeBox(isShown: true);
-
-        await changeUserStatus(tester, user: activeUsers[0], isActive: false);
-        checkComposeBox(isShown: false);
-      });
-
-      testWidgets('all deactivated users become active -> '
-          'banner is replaced with the compose box', (tester) async {
-        final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
-        await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-          users: deactivatedUsers);
-        checkComposeBox(isShown: false);
-
-        await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);
-        checkComposeBox(isShown: false);
-
-        await changeUserStatus(tester, user: deactivatedUsers[1], isActive: true);
-        checkComposeBox(isShown: true);
+          await changeUserStatus(tester, user: deactivatedUsers[1], isActive: true);
+          checkComposeBox(isShown: true);
+        });
       });
     });
   });
