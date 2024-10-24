@@ -114,6 +114,11 @@ abstract class ZulipBinding {
   /// This wraps [url_launcher.closeInAppWebView].
   Future<void> closeInAppWebView();
 
+  /// Provides access to a new stopwatch.
+  ///
+  /// Outside tests, this just calls the [Stopwatch] constructor.
+  Stopwatch stopwatch();
+
   /// Provides device and operating system information,
   /// via package:device_info_plus.
   ///
@@ -363,6 +368,9 @@ class LiveZulipBinding extends ZulipBinding {
   Future<void> closeInAppWebView() async {
     return url_launcher.closeInAppWebView();
   }
+
+  @override
+  Stopwatch stopwatch() => Stopwatch();
 
   @override
   Future<BaseDeviceInfo?> get deviceInfo => _deviceInfo;

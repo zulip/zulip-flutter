@@ -14,6 +14,7 @@ import 'package:zulip/model/internal_link.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
@@ -259,6 +260,8 @@ void main() {
       await tester.ensureVisible(find.byIcon(ZulipIcons.format_quote, skipOffstage: false));
       final quoteAndReplyButton = findQuoteAndReplyButton(tester);
       check(quoteAndReplyButton).isNotNull();
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
       await tester.tap(find.byWidget(quoteAndReplyButton!));
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
