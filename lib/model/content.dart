@@ -1022,10 +1022,20 @@ class _ZulipContentParser {
           }
           span = CodeBlockSpanNode(text: text, type: CodeBlockSpanType.text);
 
-        case dom.Element(localName: 'span', :final text, :final className):
-          final CodeBlockSpanType type = codeBlockSpanTypeFromClassName(className);
-          switch (type) {
-            case CodeBlockSpanType.unknown:
+        case dom.Element(localName: 'span', :final text, :final classes):
+          // The general form for Pygments nodes with multiple classes observed
+          // are, that the first class is the standard token class and trailing
+          // tokens are non-standard tokens. Zulip web client only styles the
+          // standard tokens classes. Same is done here, only standard token
+          // class names are emitted.
+          // See: https://github.com/zulip/zulip-flutter/issues/933
+          final spanType =
+            classes
+              .map(codeBlockSpanTypeFromClassName)
+              .firstWhereOrNull((e) => e != CodeBlockSpanType.unknown);
+
+          switch (spanType) {
+            case null:
               // TODO(#194): Show these as un-syntax-highlighted code, in production.
               return UnimplementedBlockContentNode(htmlNode: divElement);
             case CodeBlockSpanType.highlightedLines:
@@ -1033,7 +1043,7 @@ class _ZulipContentParser {
               //       inherited styles for `span.hll` nodes.
               return UnimplementedBlockContentNode(htmlNode: divElement);
             default:
-              span = CodeBlockSpanNode(text: text, type: type);
+              span = CodeBlockSpanNode(text: text, type: spanType);
           }
 
         default:
