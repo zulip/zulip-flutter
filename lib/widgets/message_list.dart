@@ -375,12 +375,18 @@ class MessageListAppBarTitle extends StatelessWidget {
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildStreamRow(context, stream: stream),
-            _buildTopicRow(context, stream: stream, topic: topic),
-          ]);
+        return SizedBox(
+          width: double.infinity,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onLongPress: () => showTopicActionSheet(context,
+              channelId: streamId, topic: topic),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStreamRow(context, stream: stream),
+                _buildTopicRow(context, stream: stream, topic: topic),
+              ])));
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
@@ -1055,6 +1061,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: TopicNarrow.ofMessage(message))),
+      onLongPress: () => showTopicActionSheet(context,
+        channelId: message.streamId, topic: topic),
       child: ColoredBox(
         color: backgroundColor,
         child: Row(
