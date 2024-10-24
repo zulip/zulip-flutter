@@ -23,6 +23,90 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
+abstract class ActionSheetMenuItemButton extends StatelessWidget {
+  const ActionSheetMenuItemButton({super.key, required this.pageContext});
+
+  IconData get icon;
+  String label(ZulipLocalizations zulipLocalizations);
+
+  /// Called when the button is pressed, after dismissing the action sheet.
+  ///
+  /// If the action may take a long time, this method is responsible for
+  /// arranging any form of progress feedback that may be desired.
+  ///
+  /// For operations that need a [BuildContext], see [pageContext].
+  void onPressed();
+
+  /// A context within the [MessageListPage] this action sheet was
+  /// triggered from.
+  final BuildContext pageContext;
+
+  /// The [MessageListPageState] this action sheet was triggered from.
+  ///
+  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
+  /// don't call this in a build method.
+  MessageListPageState findMessageListPage() {
+    assert(pageContext.mounted,
+      'findMessageListPage should be called only when pageContext is known to still be mounted');
+    return MessageListPage.ancestorOf(pageContext);
+  }
+
+  void _handlePressed(BuildContext context) {
+    // Dismiss the enclosing action sheet immediately,
+    // for swift UI feedback that the user's selection was received.
+    Navigator.of(context).pop();
+
+    assert(pageContext.mounted);
+    onPressed();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return MenuItemButton(
+      trailingIcon: Icon(icon, color: designVariables.contextMenuItemText),
+      style: MenuItemButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        foregroundColor: designVariables.contextMenuItemText,
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+          designVariables.contextMenuItemBg.withFadedAlpha(
+            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+      onPressed: () => _handlePressed(context),
+      child: Text(label(zulipLocalizations),
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600)),
+      ));
+  }
+}
+
+class ActionSheetCancelButton extends StatelessWidget {
+  const ActionSheetCancelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.all(10),
+        foregroundColor: designVariables.contextMenuCancelText,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
+        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
+        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+      })),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: Text(ZulipLocalizations.of(context).dialogCancel,
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600))),
+    );
+  }
+}
+
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
@@ -93,64 +177,6 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     });
 }
 
-abstract class ActionSheetMenuItemButton extends StatelessWidget {
-  const ActionSheetMenuItemButton({super.key, required this.pageContext});
-
-  IconData get icon;
-  String label(ZulipLocalizations zulipLocalizations);
-
-  /// Called when the button is pressed, after dismissing the action sheet.
-  ///
-  /// If the action may take a long time, this method is responsible for
-  /// arranging any form of progress feedback that may be desired.
-  ///
-  /// For operations that need a [BuildContext], see [pageContext].
-  void onPressed();
-
-  /// A context within the [MessageListPage] this action sheet was
-  /// triggered from.
-  final BuildContext pageContext;
-
-  /// The [MessageListPageState] this action sheet was triggered from.
-  ///
-  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
-  /// don't call this in a build method.
-  MessageListPageState findMessageListPage() {
-    assert(pageContext.mounted,
-      'findMessageListPage should be called only when pageContext is known to still be mounted');
-    return MessageListPage.ancestorOf(pageContext);
-  }
-
-  void _handlePressed(BuildContext context) {
-    // Dismiss the enclosing action sheet immediately,
-    // for swift UI feedback that the user's selection was received.
-    Navigator.of(context).pop();
-
-    assert(pageContext.mounted);
-    onPressed();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return MenuItemButton(
-      trailingIcon: Icon(icon, color: designVariables.contextMenuItemText),
-      style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        foregroundColor: designVariables.contextMenuItemText,
-        splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuItemBg.withFadedAlpha(
-            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
-      onPressed: () => _handlePressed(context),
-      child: Text(label(zulipLocalizations),
-        style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600)),
-      ));
-  }
-}
-
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
   MessageActionSheetMenuItemButton({
     super.key,
@@ -159,32 +185,6 @@ abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButto
   }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
 
   final Message message;
-}
-
-class ActionSheetCancelButton extends StatelessWidget {
-  const ActionSheetCancelButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    return TextButton(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.all(10),
-        foregroundColor: designVariables.contextMenuCancelText,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-        splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
-        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
-        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
-      })),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-      child: Text(ZulipLocalizations.of(context).dialogCancel,
-        style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600))),
-    );
-  }
 }
 
 // This button is very temporary, to complete #125 before we have a way to
