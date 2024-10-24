@@ -82,9 +82,12 @@ class Submessage {
 /// The only type of submessage that actually exists in Zulip (as of 2024,
 /// and since this "submessages" subsystem was created in 2017–2018)
 /// is [SubmessageType.widget].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum SubmessageType {
   widget,
-  unknown,
+  unknown;
+
+  String toJson() => _$SubmessageTypeEnumMap[this]!;
 }
 
 /// The data encoded in a submessage at [Submessage.content].
@@ -459,7 +462,7 @@ class Poll extends ChangeNotifier {
 
     final key = PollEventSubmessage.optionKey(senderId: senderId, idx: idx);
     assert(!_options.containsKey(key));
-    _options[key] = PollOption(text: option);
+    _options[key] = PollOption(key: key, text: option);
     _existingOptionTexts.add(option);
   }
 
@@ -476,8 +479,9 @@ class Poll extends ChangeNotifier {
 }
 
 class PollOption {
-  PollOption({required this.text});
+  PollOption({required this.key, required this.text});
 
+  final PollOptionKey key;
   final String text;
   final Set<int> voters = {};
 
