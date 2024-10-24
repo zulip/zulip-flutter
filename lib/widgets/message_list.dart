@@ -322,6 +322,8 @@ class MessageListAppBarTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    // TODO(i18n): provide tranlations just as 'zulipLocalizations.unknownUserName'
+    // for 'unknown channel'
     switch (narrow) {
       case CombinedFeedNarrow():
         return Text(zulipLocalizations.combinedFeedPageTitle);
@@ -349,7 +351,7 @@ class MessageListAppBarTitle extends StatelessWidget {
         if (otherRecipientIds.isEmpty) {
           return const Text("DMs with yourself");
         } else {
-          final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)');
+          final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
           return Text("DMs with ${names.join(", ")}"); // TODO show avatars
         }
     }
