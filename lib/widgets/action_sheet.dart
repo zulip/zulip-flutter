@@ -93,12 +93,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     });
 }
 
-abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
-  MessageActionSheetMenuItemButton({
-    super.key,
-    required this.message,
-    required this.pageContext,
-  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+abstract class ActionSheetMenuItemButton extends StatelessWidget {
+  const ActionSheetMenuItemButton({super.key, required this.pageContext});
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
@@ -110,8 +106,6 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   ///
   /// For operations that need a [BuildContext], see [pageContext].
   void onPressed();
-
-  final Message message;
 
   /// A context within the [MessageListPage] this action sheet was
   /// triggered from.
@@ -155,6 +149,16 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
           .merge(weightVariableTextStyle(context, wght: 600)),
       ));
   }
+}
+
+abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
+  MessageActionSheetMenuItemButton({
+    super.key,
+    required this.message,
+    required super.pageContext,
+  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+
+  final Message message;
 }
 
 class MessageActionSheetCancelButton extends StatelessWidget {
