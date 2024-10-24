@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
@@ -16,9 +17,12 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/action_sheet.dart';
+import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
 import '../api/fake_api.dart';
@@ -98,6 +102,285 @@ void main() {
     };
     connection.prepare(httpStatus: 400, json: fakeResponseJson);
   }
+
+  group('showTopicActionSheet', () {
+    final channel = eg.stream();
+    const topic = 'my topic';
+    final message = eg.streamMessage(
+      stream: channel, topic: topic, sender: eg.otherUser);
+
+    Future<void> prepare() async {
+      addTearDown(testBinding.reset);
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        realmUsers: [eg.selfUser, eg.otherUser],
+        streams: [channel],
+        subscriptions: [eg.subscription(channel)]));
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+
+      await store.addMessage(message);
+    }
+
+    testWidgets('show from inbox', (tester) async {
+      await prepare();
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const InboxPage()));
+      await tester.pump();
+
+      await tester.longPress(find.text(topic));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+      check(find.byType(BottomSheet)).findsOne();
+      check(find.text('Follow topic')).findsOne();
+    });
+
+    testWidgets('show from app bar', (tester) async {
+      await prepare();
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: MessageListPage(
+          initNarrow: TopicNarrow(channel.streamId, topic))));
+      // global store, per-account store, and message list get loaded
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.byType(ZulipAppBar));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+      check(find.byType(BottomSheet)).findsOne();
+      check(find.text('Follow topic')).findsOne();
+    });
+
+    testWidgets('show from recipient header', (tester) async {
+      await prepare();
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
+      // global store, per-account store, and message list get loaded
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(RecipientHeader), matching: find.text(topic)));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+      check(find.byType(BottomSheet)).findsOne();
+      check(find.text('Follow topic')).findsOne();
+    });
+  });
+
+  group('UserTopicUpdateButton', () {
+    late ZulipStream channel;
+    late String topic;
+
+    final mute =     find.text('Mute topic');
+    final unmute =   find.text('Unmute topic');
+    final follow =   find.text('Follow topic');
+    final unfollow = find.text('Unfollow topic');
+
+    /// Prepare store and bring up a topic action sheet.
+    ///
+    /// If `isChannelMuted` is `null`, the user is not subscribed to the
+    /// channel.
+    Future<void> setupToTopicActionSheet(WidgetTester tester, {
+      required bool? isChannelMuted,
+      required UserTopicVisibilityPolicy visibilityPolicy,
+      int? zulipFeatureLevel,
+    }) async {
+      addTearDown(testBinding.reset);
+
+      channel = eg.stream();
+      topic = 'isChannelMuted: $isChannelMuted, policy: $visibilityPolicy';
+
+      final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+      final subscriptions = isChannelMuted == null ? <Subscription>[]
+        : [eg.subscription(channel, isMuted: isChannelMuted)];
+      await testBinding.globalStore.add(account, eg.initialSnapshot(
+        realmUsers: [eg.selfUser],
+        streams: [channel],
+        subscriptions: subscriptions,
+        userTopics: [eg.userTopicItem(channel, topic, visibilityPolicy)],
+        zulipFeatureLevel: zulipFeatureLevel));
+      store = await testBinding.globalStore.perAccount(account.id);
+      connection = store.connection as FakeApiConnection;
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [
+          eg.streamMessage(stream: channel, topic: topic)]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: account.id,
+        child: MessageListPage(
+          initNarrow: TopicNarrow(channel.streamId, topic))));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(RecipientHeader), matching: find.text(topic)));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
+    void checkButtons(List<Finder> expectedButtonFinders) {
+      if (expectedButtonFinders.isEmpty) {
+        check(find.byType(BottomSheet)).findsNothing();
+        return;
+      }
+      check(find.byType(BottomSheet)).findsOne();
+
+      for (final buttonFinder in expectedButtonFinders) {
+        check(buttonFinder).findsOne();
+      }
+      check(find.bySubtype<UserTopicUpdateButton>())
+        .findsExactly(expectedButtonFinders.length);
+    }
+
+    void checkUpdateUserTopicRequest(UserTopicVisibilityPolicy expectedPolicy) async {
+      check(connection.lastRequest).isA<http.Request>()
+        ..url.path.equals('/api/v1/user_topics')
+        ..bodyFields.deepEquals({
+          'stream_id': '${channel.streamId}',
+          'topic': topic,
+          'visibility_policy': jsonEncode(expectedPolicy),
+        });
+    }
+
+    testWidgets('unmuteInMutedChannel', (tester) async {
+      await setupToTopicActionSheet(tester,
+        isChannelMuted: true,
+        visibilityPolicy: UserTopicVisibilityPolicy.none);
+      await tester.tap(unmute);
+      await tester.pump();
+      checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.unmuted);
+    });
+
+    testWidgets('unmute', (tester) async {
+      await setupToTopicActionSheet(tester,
+        isChannelMuted: false,
+        visibilityPolicy: UserTopicVisibilityPolicy.muted);
+      await tester.tap(unmute);
+      await tester.pump();
+      checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.none);
+    });
+
+    testWidgets('mute', (tester) async {
+      await setupToTopicActionSheet(tester,
+        isChannelMuted: false,
+        visibilityPolicy: UserTopicVisibilityPolicy.none);
+      await tester.tap(mute);
+      await tester.pump();
+      checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.muted);
+    });
+
+    testWidgets('follow', (tester) async {
+      await setupToTopicActionSheet(tester,
+        isChannelMuted: false,
+        visibilityPolicy: UserTopicVisibilityPolicy.none);
+      await tester.tap(follow);
+      await tester.pump();
+      checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.followed);
+    });
+
+    testWidgets('unfollow', (tester) async {
+      await setupToTopicActionSheet(tester,
+        isChannelMuted: false,
+        visibilityPolicy: UserTopicVisibilityPolicy.followed);
+      await tester.tap(unfollow);
+      await tester.pump();
+      checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.none);
+    });
+
+    testWidgets('request fails with an error dialog', (tester) async {
+      await setupToTopicActionSheet(tester,
+        isChannelMuted: false,
+        visibilityPolicy: UserTopicVisibilityPolicy.followed);
+
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_REQUEST', 'msg': ''});
+      await tester.tap(unfollow);
+      await tester.pumpAndSettle();
+
+      checkErrorDialog(tester, expectedTitle: 'Failed to unfollow topic');
+    });
+
+    group('check expected buttons', () {
+      final testCases = [
+        (false, UserTopicVisibilityPolicy.muted,    [unmute, follow]),
+        (false, UserTopicVisibilityPolicy.none,     [mute, follow]),
+        (false, UserTopicVisibilityPolicy.unmuted,  [mute, follow]),
+        (false, UserTopicVisibilityPolicy.followed, [mute, unfollow]),
+
+        (true,  UserTopicVisibilityPolicy.muted,    [unmute, follow]),
+        (true,  UserTopicVisibilityPolicy.none,     [unmute, follow]),
+        (true,  UserTopicVisibilityPolicy.unmuted,  [mute, follow]),
+        (true,  UserTopicVisibilityPolicy.followed, [mute, unfollow]),
+
+        (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+      ];
+
+      for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
+        final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
+        testWidgets(description, (tester) async {
+          await setupToTopicActionSheet(tester,
+            isChannelMuted: isChannelMuted,
+            visibilityPolicy: visibilityPolicy);
+          checkButtons(buttons);
+        });
+      }
+    });
+
+    group('legacy: follow is unsupported when FL < 219', () {
+      final testCases = [
+        (false, UserTopicVisibilityPolicy.muted,    [unmute]),
+        (false, UserTopicVisibilityPolicy.none,     [mute]),
+        (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
+        (false, UserTopicVisibilityPolicy.followed, [mute]),
+
+        (true,  UserTopicVisibilityPolicy.muted,    [unmute]),
+        (true,  UserTopicVisibilityPolicy.none,     [unmute]),
+        (true,  UserTopicVisibilityPolicy.unmuted,  [mute]),
+        (true,  UserTopicVisibilityPolicy.followed, [mute]),
+
+        (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+      ];
+
+      for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
+        final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
+        testWidgets(description, (tester) async {
+          await setupToTopicActionSheet(tester,
+            isChannelMuted: isChannelMuted,
+            visibilityPolicy: visibilityPolicy,
+            zulipFeatureLevel: 218);
+          checkButtons(buttons);
+        });
+      }
+    });
+
+    group('legacy: unmute is unsupported when FL < 170', () {
+      final testCases = [
+        (false, UserTopicVisibilityPolicy.muted,    [unmute]),
+        (false, UserTopicVisibilityPolicy.none,     [mute]),
+        (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
+        (false, UserTopicVisibilityPolicy.followed, [mute]),
+
+        (true,  UserTopicVisibilityPolicy.muted,    <Finder>[]),
+        (true,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+        (true,  UserTopicVisibilityPolicy.unmuted,  <Finder>[]),
+        (true,  UserTopicVisibilityPolicy.followed, <Finder>[]),
+
+        (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+      ];
+
+      for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
+        final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
+        testWidgets(description, (tester) async {
+          await setupToTopicActionSheet(tester,
+            isChannelMuted: isChannelMuted,
+            visibilityPolicy: visibilityPolicy,
+            zulipFeatureLevel: 169);
+          checkButtons(buttons);
+        });
+      }
+    });
+  });
 
   group('AddThumbsUpButton', () {
     Future<void> tapButton(WidgetTester tester) async {

@@ -54,6 +54,18 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
 
   @override
+  String get actionSheetOptionMuteTopic => 'Mute topic';
+
+  @override
+  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+
+  @override
+  String get actionSheetOptionFollowTopic => 'Follow topic';
+
+  @override
+  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Skopiuj tekst wiadomości';
 
   @override
@@ -164,6 +176,18 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String errorHandlingEventDetails(String serverUrl, String error, String event) {
     return 'Błąd zdarzenia Zulip z $serverUrl; ponawiam.\n\nBłąd: $error\n\nZdarzenie: $event';
   }
+
+  @override
+  String get errorMuteTopicFailed => 'Failed to mute topic';
+
+  @override
+  String get errorUnmuteTopicFailed => 'Failed to unmute topic';
+
+  @override
+  String get errorFollowTopicFailed => 'Failed to follow topic';
+
+  @override
+  String get errorUnfollowTopicFailed => 'Failed to unfollow topic';
 
   @override
   String get errorSharingFailed => 'Udostępnianie bez powodzenia';
