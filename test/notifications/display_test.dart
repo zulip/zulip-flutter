@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,8 +6,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Message, Person;
+import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
@@ -29,8 +28,11 @@ import 'package:zulip/widgets/theme.dart';
 import '../fake_async.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
+import '../model/narrow_checks.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
+import '../widgets/dialog_checks.dart';
 import '../widgets/message_list_checks.dart';
 import '../widgets/page_checks.dart';
 
@@ -217,20 +219,27 @@ void main() {
       List<int>? expectedIconBitmap = kSolidBlueAvatar,
     }) {
       assert(messageStyleMessages.every((e) => e.userId == data.userId));
-      assert(messageStyleMessages.every((e) => e.realmUri == data.realmUri));
+      assert(messageStyleMessages.every((e) => e.realmUrl == data.realmUrl));
 
-      final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
-      final expectedGroupKey = '${data.realmUri}|${data.userId}';
-      final expectedId =
-        NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
-      const expectedIntentFlags =
-        PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
-      final expectedSelfUserKey = '${data.realmUri}|${data.userId}';
+      final expectedTag = '${data.realmUrl}|${data.userId}|$expectedTagComponent';
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
+      const expectedPendingIntentFlags = PendingIntentFlag.immutable;
+      const expectedIntentFlags = IntentFlag.activityClearTop | IntentFlag.activityNewTask;
+      final expectedSelfUserKey = '${data.realmUrl}|${data.userId}';
+      final expectedIntentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
           final expectedSenderKey =
-            '${messageData.realmUri}|${messageData.senderId}';
+            '${messageData.realmUrl}|${messageData.senderId}';
           final isLast = i == (messageStyleMessages.length - 1);
           return (Subject<Object?> it) => it.isA<MessagingStyleMessage>()
             ..text.equals(messageData.content)
@@ -245,7 +254,7 @@ void main() {
       check(testBinding.androidNotificationHost.takeNotifyCalls())
         .deepEquals(<Condition<Object?>>[
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(expectedId)
+            ..id.equals(NotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedTag)
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
@@ -270,11 +279,14 @@ void main() {
             ..inboxStyle.isNull()
             ..autoCancel.equals(true)
             ..contentIntent.which((it) => it.isNotNull()
-              ..requestCode.equals(expectedId)
-              ..flags.equals(expectedIntentFlags)
-              ..intentPayload.equals(jsonEncode(data.toJson()))),
+              ..requestCode.equals(0)
+              ..flags.equals(expectedPendingIntentFlags)
+              ..intent.which((it) => it
+                ..action.equals(IntentAction.view)
+                ..dataUrl.equals(expectedIntentDataUrl.toString())
+                ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+            ..id.equals(NotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedGroupKey)
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
@@ -285,7 +297,7 @@ void main() {
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.equals(true)
             ..inboxStyle.which((it) => it.isNotNull()
-              ..summaryText.equals(data.realmUri.toString()))
+              ..summaryText.equals(data.realmUrl.toString()))
             ..autoCancel.equals(true)
             ..contentIntent.isNull(),
         ]);
@@ -327,10 +339,10 @@ void main() {
     }
 
     Condition<Object?> conditionActiveNotif(MessageFcmMessage data, String tagComponent) {
-      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedTag))
+        ..id.equals(NotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
@@ -341,7 +353,7 @@ void main() {
 
     Condition<Object?> conditionSummaryActiveNotif(String expectedGroupKey) {
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+        ..id.equals(NotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.isEmpty())
@@ -615,7 +627,7 @@ void main() {
       await init();
       final message = eg.streamMessage();
       final data = messageFcmMessage(message);
-      final expectedGroupKey = '${data.realmUri}|${data.userId}';
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -652,7 +664,7 @@ void main() {
       final data2 = messageFcmMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(stream: stream, topic: topicA);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
-      final expectedGroupKey = '${data1.realmUri}|${data1.userId}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -685,7 +697,7 @@ void main() {
       const topicB = 'Topic B';
       final message2 = eg.streamMessage(stream: stream, topic: topicB);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
-      final expectedGroupKey = '${data1.realmUri}|${data1.userId}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -711,7 +723,6 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
-
     test('remove: different realm URLs but same user-ids and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
@@ -728,7 +739,7 @@ void main() {
 
       final account2 = eg.account(
         realmUrl: Uri.parse('https://2.chat.example'),
-        id: 1001,
+        id: 1002,
         user: eg.user(userId: 1001));
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
@@ -834,11 +845,19 @@ void main() {
     }
 
     Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
-      final fcmMessage = messageFcmMessage(message, account: account);
-      testBinding.notifications.receiveNotificationResponse(NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: jsonEncode(fcmMessage)));
-      await tester.idle(); // let _navigateForNotification find navigator
+      final data = messageFcmMessage(message, account: account);
+      final intentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
+      unawaited(
+        WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
+      await tester.idle(); // let navigateForNotification find navigator
     }
 
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
@@ -873,7 +892,11 @@ void main() {
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
       await openNotification(tester, eg.selfAccount, eg.streamMessage());
-      check(pushedRoutes).isEmpty();
+      await tester.pump();
+      check(pushedRoutes.single).isA<DialogRoute<void>>();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
     });
 
     testWidgets('mismatching account', (tester) async {
@@ -881,7 +904,11 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await openNotification(tester, eg.otherAccount, eg.streamMessage());
-      check(pushedRoutes).isEmpty();
+      await tester.pump();
+      check(pushedRoutes.single).isA<DialogRoute<void>>();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
     });
 
     testWidgets('find account among several', (tester) async {
@@ -929,14 +956,21 @@ void main() {
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
-      // Set up a value for `getNotificationLaunchDetails` to return.
+      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
+      // for determining the intial route.
       final account = eg.selfAccount;
       final message = eg.streamMessage();
-      final response = NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: jsonEncode(messageFcmMessage(message, account: account)));
-      testBinding.notifications.appLaunchDetails =
-        NotificationAppLaunchDetails(true, notificationResponse: response);
+      final data = messageFcmMessage(message, account: account);
+      final intentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
+      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
       // Now start the app.
       await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -947,6 +981,197 @@ void main() {
       await tester.pump();
       takeStartingRoutes();
       matchesNavigation(check(pushedRoutes).single, account, message);
+    });
+  });
+
+  group('NotificationOpenPayload', () {
+    test('smoke round-trip', () {
+      // DM narrow
+      var payload = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+      );
+      var url = payload.buildUrl();
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(payload.realmUrl)
+        ..userId.equals(payload.userId)
+        ..narrow.equals(payload.narrow);
+
+      // Topic narrow
+      payload = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: const TopicNarrow(1, 'topic A'),
+      );
+      url = payload.buildUrl();
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(payload.realmUrl)
+        ..userId.equals(payload.userId)
+        ..narrow.equals(payload.narrow);
+    });
+
+    test('buildUrl: smoke DM', () {
+      final url = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+      ).buildUrl();
+      check(url)
+        ..scheme.equals('zulip')
+        ..host.equals('notification')
+        ..userInfo
+        ..queryParameters.deepEquals({
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'dm',
+          'all_recipient_ids': '1001,1002',
+        });
+    });
+
+    test('buildUrl: smoke topic', () {
+      final url = NotificationOpenPayload(
+        realmUrl: Uri.parse('http://chat.example'),
+        userId: 1001,
+        narrow: const TopicNarrow(1, 'topic A'),
+      ).buildUrl();
+      check(url)
+        ..scheme.equals('zulip')
+        ..host.equals('notification')
+        ..userInfo
+        ..queryParameters.deepEquals({
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+    });
+
+    test('parse: smoke DM', () {
+      final url = Uri(
+        scheme: 'zulip',
+        host: 'notification',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'dm',
+          'all_recipient_ids': '1001,1002',
+        });
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(Uri.parse('http://chat.example'))
+        ..userId.equals(1001)
+        ..narrow.which((it) => it.isA<DmNarrow>()
+          ..allRecipientIds.deepEquals([1001, 1002])
+          ..otherRecipientIds.deepEquals([1002]));
+    });
+
+    test('parse: smoke topic', () {
+      final url = Uri(
+        scheme: 'zulip',
+        host: 'notification',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+      check(NotificationOpenPayload.parseUrl(url))
+        ..realmUrl.equals(Uri.parse('http://chat.example'))
+        ..userId.equals(1001)
+        ..narrow.which((it) => it.isA<TopicNarrow>()
+          ..streamId.equals(1)
+          ..topic.equals('topic A'));
+    });
+
+    test('parse: fails when missing any expected query parameters', () {
+      final testCases = [
+        <String, String>{
+          // 'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        },
+        <String, String>{
+          'realm_url': 'http://chat.example',
+          // 'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        },
+        <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          // 'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        },
+        <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          // 'channel_id': '1',
+          'topic': 'topic A',
+        },
+        <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          // 'topic': 'topic A',
+        },
+        <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          // 'narrow_type': 'dm',
+          'all_recipient_ids': '1001,1002',
+        },
+        <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'dm',
+          // 'all_recipient_ids': '1001,1002',
+        },
+      ];
+      for (final params in testCases) {
+        check(() => NotificationOpenPayload.parseUrl(Uri(
+          scheme: 'zulip',
+          host: 'notification',
+          queryParameters: params,
+        ))).throws<FormatException>();
+      }
+    });
+
+    test('parse: fails when scheme is not "zulip"', () {
+      final url = Uri(
+        scheme: 'http',
+        host: 'notification',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+      check(() => NotificationOpenPayload.parseUrl(url))
+        .throws<FormatException>();
+    });
+
+    test('parse: fails when host is not "notification"', () {
+      final url = Uri(
+        scheme: 'zulip',
+        host: 'example',
+        queryParameters: <String, String>{
+          'realm_url': 'http://chat.example',
+          'user_id': '1001',
+          'narrow_type': 'topic',
+          'channel_id': '1',
+          'topic': 'topic A',
+        });
+      check(() => NotificationOpenPayload.parseUrl(url))
+        .throws<FormatException>();
     });
   });
 }
@@ -979,7 +1204,13 @@ extension on Subject<AndroidNotificationHostApiNotifyCall> {
 
 extension on Subject<PendingIntent> {
   Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
-  Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
+  Subject<AndroidIntent> get intent => has((x) => x.intent, 'intent');
+  Subject<int> get flags => has((x) => x.flags, 'flags');
+}
+
+extension on Subject<AndroidIntent> {
+  Subject<String> get action => has((x) => x.action, 'action');
+  Subject<String> get dataUrl => has((x) => x.dataUrl, 'dataUrl');
   Subject<int> get flags => has((x) => x.flags, 'flags');
 }
 
@@ -1015,4 +1246,10 @@ extension on Subject<StatusBarNotification> {
   Subject<int> get id => has((x) => x.id, 'id');
   Subject<Notification> get notification => has((x) => x.notification, 'notification');
   Subject<String> get tag => has((x) => x.tag, 'tag');
+}
+
+extension on Subject<NotificationOpenPayload> {
+  Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
+  Subject<int> get userId => has((x) => x.userId, 'userId');
+  Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
 }

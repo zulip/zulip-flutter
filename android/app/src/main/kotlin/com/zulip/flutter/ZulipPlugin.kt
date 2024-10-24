@@ -3,6 +3,7 @@ package com.zulip.flutter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.Keep
@@ -97,13 +98,14 @@ private class AndroidNotificationHost(val context: Context)
             contentIntent?.let { setContentIntent(
                 android.app.PendingIntent.getActivity(context,
                     it.requestCode.toInt(),
-                    Intent(context, MainActivity::class.java).apply {
-                        // This action name and extra name are special to
-                        // FlutterLocalNotificationsPlugin, which handles receiving the Intent.
-                        // TODO take care of receiving the notification-opened Intent ourselves
-                        action = "SELECT_NOTIFICATION"
-                        putExtra("payload", it.intentPayload)
-                    },
+                    it.intent.let { intent -> Intent(
+                        intent.action,
+                        Uri.parse(intent.dataUrl),
+                        context,
+                        MainActivity::class.java
+                    ).apply {
+                        flags = intent.flags.toInt()
+                    } },
                     it.flags.toInt())
             ) }
             contentText?.let { setContentText(it) }

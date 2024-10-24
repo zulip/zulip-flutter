@@ -60,11 +60,15 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   /// The realm's ID within the server.
   final int realmId;
 
+  /// Same as [realmUrl].
+  final Uri realmUri;
+
   /// The realm's own URL.
   ///
   /// This is a real, absolute URL which is the base for all URLs a client uses
   /// with this realm.  It corresponds to [GetServerSettingsResult.realmUri].
-  final Uri realmUri;
+  @JsonKey(readValue: _readRealmUrl) // TODO(server-9)
+  final Uri realmUrl;
 
   /// This user's ID within the server.
   ///
@@ -76,8 +80,14 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
     required this.server,
     required this.realmId,
     required this.realmUri,
+    required this.realmUrl,
     required this.userId,
   });
+
+  static String _readRealmUrl(Map<dynamic, dynamic> json, String key) {
+    // Before feature level 257, 'realm_url' didn't exists.
+    return (json['realm_url'] ?? json['realm_uri']) as String;
+  }
 }
 
 /// Parsed version of an FCM message of type `message`.
@@ -118,6 +128,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
     required super.server,
     required super.realmId,
     required super.realmUri,
+    required super.realmUrl,
     required super.userId,
     required this.senderId,
     required this.senderAvatarUrl,
@@ -237,6 +248,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
     required super.server,
     required super.realmId,
     required super.realmUri,
+    required super.realmUrl,
     required super.userId,
     required this.zulipMessageIds,
   });

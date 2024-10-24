@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide Person;
 
 import '../api/notifications.dart';
 import '../host/android_notifications.dart';
@@ -17,6 +15,7 @@ import '../model/localizations.dart';
 import '../model/narrow.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
+import '../widgets/dialog.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
@@ -95,16 +94,6 @@ class NotificationChannelManager {
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
   static Future<void> init() async {
-    await ZulipBinding.instance.notifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('zulip_notification'),
-      ),
-      onDidReceiveNotificationResponse: _onNotificationOpened,
-    );
-    final launchDetails = await ZulipBinding.instance.notifications.getNotificationAppLaunchDetails();
-    if (launchDetails?.didNotificationLaunchApp ?? false) {
-      _handleNotificationAppLaunch(launchDetails!.notificationResponse);
-    }
     await NotificationChannelManager.ensureChannel();
   }
 
@@ -133,7 +122,7 @@ class NotificationDisplayManager {
     } else {
       messagingStyle = MessagingStyle(
         user: Person(
-          key: _personKey(data.realmUri, data.userId),
+          key: _personKey(data.realmUrl, data.userId),
           name: zulipLocalizations.notifSelfUser),
         messages: [],
         isGroupConversation: switch (data.recipient) {
@@ -164,14 +153,22 @@ class NotificationDisplayManager {
       text: data.content,
       timestampMs: data.time * 1000,
       person: Person(
-        key: _personKey(data.realmUri, data.senderId),
+        key: _personKey(data.realmUrl, data.senderId),
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
+    final intentDataUrl = NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+          TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
+
     await _androidHost.notify(
-      // TODO the notification ID can be constant, instead of matching requestCode
-      //   (This is a legacy of `flutter_local_notifications`.)
-      id: notificationIdAsHashOf(conversationKey),
+      id: kNotificationId,
       tag: conversationKey,
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
@@ -188,31 +185,33 @@ class NotificationDisplayManager {
       },
 
       contentIntent: PendingIntent(
-        // TODO make intent URLs distinct, instead of requestCode
-        //   (This way is a legacy of flutter_local_notifications.)
-        //   The Intent objects we make for different conversations look the same.
-        //   They differ in their extras, but that doesn't count:
-        //     https://developer.android.com/reference/android/app/PendingIntent
-        //
-        //   This leaves only PendingIntent.requestCode to distinguish one
-        //   PendingIntent from another; the plugin sets that to the notification ID.
-        //   We need a distinct PendingIntent for each conversation, so that the
-        //   notifications can lead to the right conversations when opened.
-        //   So, use a hash of the conversation key.
-        requestCode: notificationIdAsHashOf(conversationKey),
-
-        // TODO is setting PendingIntentFlag.updateCurrent OK?
-        //   (That's a legacy of `flutter_local_notifications`.)
-        flags: PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent,
-        intentPayload: jsonEncode(dataJson),
-        // TODO this doesn't set the Intent flags we set in zulip-mobile; is that OK?
-        //   (This is a legacy of `flutter_local_notifications`.)
-        ),
+        // The intent data URL is distinct for each conversation, so this value
+        // doesn't matter.
+        requestCode: 0,
+        flags: PendingIntentFlag.immutable,
+        intent: AndroidIntent(
+          action: IntentAction.view,
+          dataUrl: intentDataUrl.toString(),
+          // See these sections in the Android docs:
+          //   https://developer.android.com/guide/components/activities/tasks-and-back-stack#TaskLaunchModes
+          //   https://developer.android.com/reference/android/content/Intent#FLAG_ACTIVITY_CLEAR_TOP
+          //
+          // * From the doc on `PendingIntent.getActivity` at
+          //     https://developer.android.com/reference/android/app/PendingIntent#getActivity(android.content.Context,%20int,%20android.content.Intent,%20int)
+          //   > Note that the activity will be started outside of the context of an
+          //   > existing activity, so you must use the Intent.FLAG_ACTIVITY_NEW_TASK
+          //   > launch flag in the Intent.
+          //
+          // * The flag FLAG_ACTIVITY_CLEAR_TOP is mentioned as being what the
+          //   notification manager does; so use that.  It has no effect as long
+          //   as we only have one activity; but if we add more, it will destroy
+          //   all the activities on top of the target one.
+          flags: IntentFlag.activityClearTop | IntentFlag.activityNewTask)),
       autoCancel: true,
     );
 
     await _androidHost.notify(
-      id: notificationIdAsHashOf(groupKey),
+      id: kNotificationId,
       tag: groupKey,
       channelId: NotificationChannelManager.kChannelId,
       groupKey: groupKey,
@@ -223,7 +222,7 @@ class NotificationDisplayManager {
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
       inboxStyle: InboxStyle(
         // TODO(#570) Show organization name, not URL
-        summaryText: data.realmUri.toString()),
+        summaryText: data.realmUrl.toString()),
 
       // On Android 11 and lower, if autoCancel is not specified,
       // the summary notification may linger even after all child
@@ -297,10 +296,17 @@ class NotificationDisplayManager {
       // Even though we enable the `autoCancel` flag for summary notification
       // during creation, the summary notification doesn't get auto canceled if
       // child notifications are canceled programatically as done above.
-      await _androidHost.cancel(
-        tag: groupKey, id: notificationIdAsHashOf(groupKey));
+      await _androidHost.cancel(tag: groupKey, id: kNotificationId);
     }
   }
+
+  /// The constant numeric "ID" we use for all non-test notifications,
+  /// along with unique tags.
+  ///
+  /// Because we construct a unique string "tag" for each distinct
+  /// notification, and Android notifications are identified by the
+  /// pair (tag, ID), it's simplest to leave these numeric IDs all the same.
+  static const kNotificationId = 0x00C0FFEE;
 
   /// A key we use in [Notification.extras] for the [Message.id] of the
   /// latest Zulip message in the notification's conversation.
@@ -309,21 +315,6 @@ class NotificationDisplayManager {
   /// clear that specific notification.
   @visibleForTesting
   static const kExtraLastZulipMessageId = 'lastZulipMessageId';
-
-  /// A notification ID, derived as a hash of the given string key.
-  ///
-  /// The result fits in 31 bits, the size of a nonnegative Java `int`,
-  /// so that it can be used as an Android notification ID.  (It's possible
-  /// negative values would work too, which would add one bit.)
-  ///
-  /// This is a cryptographic hash, meaning that collisions are about as
-  /// unlikely as one could hope for given the size of the hash.
-  @visibleForTesting
-  static int notificationIdAsHashOf(String key) {
-    final bytes = sha256.convert(utf8.encode(key)).bytes;
-    return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16)
-      | ((bytes[3] & 0x7f) << 24);
-  }
 
   static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
@@ -336,51 +327,41 @@ class NotificationDisplayManager {
   static String _groupKey(FcmMessageWithIdentity data) {
     // The realm URL can't contain a `|`, because `|` is not a URL code point:
     //   https://url.spec.whatwg.org/#url-code-points
-    return "${data.realmUri}|${data.userId}";
+    return "${data.realmUrl}|${data.userId}";
   }
 
-  static String _personKey(Uri realmUri, int userId) => "$realmUri|$userId";
+  static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
-  static void _onNotificationOpened(NotificationResponse response) async {
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
-    final data = MessageFcmMessage.fromJson(payload);
-    assert(debugLog('opened notif: message ${data.zulipMessageId}, content ${data.content}'));
-    _navigateForNotification(data);
-  }
+  /// Navigates to the [MessageListPage] of the specific conversation
+  /// given the `zulip://notification/…` Android intent data URL,
+  /// generated with [NotificationOpenPayload.buildUrl] while creating
+  /// the notification.
+  static Future<void> navigateForNotification(Uri url) async {
+    assert(debugLog('opened notif: url: $url'));
 
-  static void _handleNotificationAppLaunch(NotificationResponse? response) async {
-    assert(response != null);
-    if (response == null) return; // TODO(log) seems like a bug in flutter_local_notifications if this can happen
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final payload = NotificationOpenPayload.parseUrl(url);
 
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
-    final data = MessageFcmMessage.fromJson(payload);
-    assert(debugLog('launched from notif: message ${data.zulipMessageId}, content ${data.content}'));
-    _navigateForNotification(data);
-  }
-
-  static void _navigateForNotification(MessageFcmMessage data) async {
     NavigatorState navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final globalStore = GlobalStoreWidget.of(context);
     final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == data.realmUri && account.userId == data.userId);
-    if (account == null) return; // TODO(log)
+      account.realmUrl == payload.realmUrl && account.userId == payload.userId);
+    if (account == null) { // TODO(log)
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorNotificationOpenTitle,
+        message: zulipLocalizations.errorNotificationOpenAccountMissing);
+      return;
+    }
 
-    final narrow = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var streamId, :var topic) =>
-        TopicNarrow(streamId, topic),
-      FcmMessageDmRecipient(:var allRecipientIds) =>
-        DmNarrow(allRecipientIds: allRecipientIds, selfUserId: account.userId),
-    };
-
-    assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
     unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: narrow))));
+      page: MessageListPage(initNarrow: payload.narrow))));
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {
@@ -394,5 +375,95 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
+  }
+}
+
+/// The information contained in 'zulip://notification/…' internal
+/// Android intent data URL, used for notification-open flow.
+class NotificationOpenPayload {
+  final Uri realmUrl;
+  final int userId;
+  final Narrow narrow;
+
+  NotificationOpenPayload({
+    required this.realmUrl,
+    required this.userId,
+    required this.narrow,
+  });
+
+  factory NotificationOpenPayload.parseUrl(Uri url) {
+    if (url case Uri(
+      scheme: 'zulip',
+      host: 'notification',
+      queryParameters: {
+        'realm_url': var realmUrlStr,
+        'user_id': var userIdStr,
+        'narrow_type': var narrowType,
+        // In case of narrowType == 'topic':
+        // 'channel_id' and 'topic' handled below.
+
+        // In case of narrowType == 'dm':
+        // 'all_recipient_ids' handled below.
+      },
+    )) {
+      final realmUrl = Uri.parse(realmUrlStr);
+      final userId = int.parse(userIdStr, radix: 10);
+
+      final Narrow narrow;
+      switch (narrowType) {
+        case 'topic':
+          final channelIdStr = url.queryParameters['channel_id'];
+          if (channelIdStr == null) throw const FormatException();
+          final channelId = int.parse(channelIdStr, radix: 10);
+          final topic = url.queryParameters['topic'];
+          if (topic == null) throw const FormatException();
+
+          narrow = TopicNarrow(channelId, topic);
+        case 'dm':
+          final allRecipientIdsStr = url.queryParameters['all_recipient_ids'];
+          if (allRecipientIdsStr == null) throw const FormatException();
+          final allRecipientIds =
+            allRecipientIdsStr
+              .split(',')
+              .map((idStr) => int.parse(idStr, radix: 10))
+              .toList(growable: false);
+
+          narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: userId);
+        default:
+          throw const FormatException();
+      }
+
+      return NotificationOpenPayload(
+        realmUrl: realmUrl,
+        userId: userId,
+        narrow: narrow,
+      );
+    } else {
+      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+      throw const FormatException();
+    }
+  }
+
+  Uri buildUrl() {
+    return Uri(
+      scheme: 'zulip',
+      host: 'notification',
+      queryParameters: <String, String>{
+        'realm_url': realmUrl.toString(),
+        'user_id': userId.toString(),
+        ...(switch (narrow) {
+          TopicNarrow(streamId: var channelId, :var topic) => {
+            'narrow_type': 'topic',
+            'channel_id': channelId.toString(),
+            'topic': topic,
+          },
+          DmNarrow(:var allRecipientIds) => {
+            'narrow_type': 'dm',
+            'all_recipient_ids': allRecipientIds.join(','),
+          },
+          _ => throw UnsupportedError('Found an unexpected Narrow of type ${narrow.runtimeType}.'),
+        })
+      },
+    );
   }
 }
