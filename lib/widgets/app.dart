@@ -275,24 +275,32 @@ class ChooseAccountPage extends StatelessWidget {
   }
 }
 
-enum ChooseAccountPageOverflowMenuItem { aboutZulip }
-
 class ChooseAccountPageOverflowButton extends StatelessWidget {
   const ChooseAccountPageOverflowButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<ChooseAccountPageOverflowMenuItem>(
-      itemBuilder: (BuildContext context) => const [
-        PopupMenuItem(
-          value: ChooseAccountPageOverflowMenuItem.aboutZulip,
-          child: Text('About Zulip')),
-      ],
-      onSelected: (item) {
-        switch (item) {
-          case ChooseAccountPageOverflowMenuItem.aboutZulip:
+    final designVariables = DesignVariables.of(context);
+    final materialLocalizations = MaterialLocalizations.of(context);
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () {
             Navigator.push(context, AboutZulipPage.buildRoute(context));
-        }
+          },
+          child: const Text('About Zulip')), // TODO(i18n)
+      ],
+      builder: (BuildContext context, MenuController controller, Widget? child) {
+        return IconButton(
+          tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: Icon(Icons.adaptive.more, color: designVariables.icon));
       });
   }
 }
