@@ -76,6 +76,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Finder findAppBarTitleWithChannelTopic(String streamName, String topic) =>
+    find.widgetWithText(MessageListAppBarTitle, '$streamName > $topic');
+
   ScrollController? findMessageListScrollController(WidgetTester tester) {
     final scrollView = tester.widget<CustomScrollView>(find.byType(CustomScrollView));
     return scrollView.controller;
@@ -691,10 +694,8 @@ void main() {
         of: find.byType(RecipientHeader),
         matching: find.text('new topic')).evaluate()
       ).length.equals(1);
-      check(find.descendant(
-        of: find.byType(MessageListAppBarTitle),
-        matching: find.text('${channel.name} > new topic')).evaluate()
-      ).length.equals(1);
+      check(findAppBarTitleWithChannelTopic(channel.name, 'new topic'))
+        .findsOne();
     });
   });
 
