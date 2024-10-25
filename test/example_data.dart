@@ -90,7 +90,7 @@ int _nextUserId() => (_lastUserId += 1 + Random().nextInt(100));
 int _lastUserId = 1000;
 
 /// A random email address, different from previously generated ones.
-String _nextEmail() => 'mail${_lastEmailSuffix += Random().nextInt(1000)}@example.com';
+String _nextEmail() => 'mail${_lastEmailSuffix += 1 + Random().nextInt(1000)}@example.com';
 int _lastEmailSuffix = 1000;
 
 /// Construct an example user.
