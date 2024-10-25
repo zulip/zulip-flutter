@@ -100,8 +100,8 @@ void main() {
 
   group('AddThumbsUpButton', () {
     Future<void> tapButton(WidgetTester tester) async {
-      await tester.ensureVisible(find.byIcon(Icons.add_reaction_outlined, skipOffstage: false));
-      await tester.tap(find.byIcon(Icons.add_reaction_outlined));
+      await tester.ensureVisible(find.byIcon(ZulipIcons.smile, skipOffstage: false));
+      await tester.tap(find.byIcon(ZulipIcons.smile));
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
@@ -147,15 +147,15 @@ void main() {
   });
 
   group('StarButton', () {
-    Future<void> tapButton(WidgetTester tester) async {
+    Future<void> tapButton(WidgetTester tester, {bool starred = false}) async {
       // Starred messages include the same icon so we need to
       // match only by descendants of [BottomSheet].
       await tester.ensureVisible(find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.byIcon(ZulipIcons.star_filled, skipOffstage: false)));
+        matching: find.byIcon(starred ? ZulipIcons.star_filled : ZulipIcons.star, skipOffstage: false)));
       await tester.tap(find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.byIcon(ZulipIcons.star_filled)));
+        matching: find.byIcon(starred ? ZulipIcons.star_filled : ZulipIcons.star)));
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
@@ -186,7 +186,7 @@ void main() {
 
       final connection = store.connection as FakeApiConnection;
       connection.prepare(json: {});
-      await tapButton(tester);
+      await tapButton(tester, starred: true);
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
@@ -233,7 +233,7 @@ void main() {
         'msg': 'Invalid message(s)',
         'result': 'error',
       });
-      await tapButton(tester);
+      await tapButton(tester, starred: true);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
@@ -249,14 +249,14 @@ void main() {
     }
 
     Widget? findQuoteAndReplyButton(WidgetTester tester) {
-      return tester.widgetList(find.byIcon(Icons.format_quote_outlined)).singleOrNull;
+      return tester.widgetList(find.byIcon(ZulipIcons.format_quote)).singleOrNull;
     }
 
     /// Simulates tapping the quote-and-reply button in the message action sheet.
     ///
     /// Checks that there is a quote-and-reply button.
     Future<void> tapQuoteAndReplyButton(WidgetTester tester) async {
-      await tester.ensureVisible(find.byIcon(Icons.format_quote_outlined, skipOffstage: false));
+      await tester.ensureVisible(find.byIcon(ZulipIcons.format_quote, skipOffstage: false));
       final quoteAndReplyButton = findQuoteAndReplyButton(tester);
       check(quoteAndReplyButton).isNotNull();
       await tester.tap(find.byWidget(quoteAndReplyButton!));
@@ -468,8 +468,8 @@ void main() {
     });
 
     Future<void> tapCopyMessageTextButton(WidgetTester tester) async {
-      await tester.ensureVisible(find.byIcon(Icons.copy, skipOffstage: false));
-      await tester.tap(find.byIcon(Icons.copy));
+      await tester.ensureVisible(find.byIcon(ZulipIcons.copy, skipOffstage: false));
+      await tester.tap(find.byIcon(ZulipIcons.copy));
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
@@ -565,8 +565,8 @@ void main() {
     }
 
     Future<void> tapShareButton(WidgetTester tester) async {
-      await tester.ensureVisible(find.byIcon(Icons.adaptive.share, skipOffstage: false));
-      await tester.tap(find.byIcon(Icons.adaptive.share));
+      await tester.ensureVisible(find.byIcon(ZulipIcons.share, skipOffstage: false));
+      await tester.tap(find.byIcon(ZulipIcons.share));
       await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
     }
 
@@ -614,6 +614,29 @@ void main() {
       )));
 
       check(mockSharePlus.sharedString).isNull();
+    });
+  });
+
+  group('MessageActionSheetCancelButton', () {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+    void checkActionSheet(WidgetTester tester, {required bool isShown}) {
+      check(find.text(zulipLocalizations.actionSheetOptionStarMessage)
+        .evaluate().length).equals(isShown ? 1 : 0);
+
+      final findCancelButton = find.text(zulipLocalizations.dialogCancel);
+      check(findCancelButton.evaluate().length).equals(isShown ? 1 : 0);
+    }
+
+    testWidgets('pressing the button dismisses the action sheet', (tester) async {
+      final message = eg.streamMessage();
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      checkActionSheet(tester, isShown: true);
+
+      final findCancelButton = find.text(zulipLocalizations.dialogCancel);
+      await tester.tap(findCancelButton);
+      await tester.pumpAndSettle();
+      checkActionSheet(tester, isShown: false);
     });
   });
 }

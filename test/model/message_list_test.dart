@@ -1257,12 +1257,13 @@ void main() {
     model.contents[0] = const ZulipContent(nodes: [
       ParagraphNode(links: null, nodes: [TextNode('something outdated')])
     ]);
-    check(model.contents[0]).not((it) => it.equalsNode(correctContent));
+    check(model.contents[0]).isA<ZulipContent>()
+      .not((it) => it.equalsNode(correctContent));
 
     model.reassemble();
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
-    check(model.contents[0]).equalsNode(correctContent);
+    check(model.contents[0]).isA<ZulipContent>().equalsNode(correctContent);
   });
 
   group('stream/topic muting', () {
@@ -1484,6 +1485,43 @@ void main() {
         checkNotifiedOnce();
         check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
       }
+    });
+  });
+
+  group('handle content parsing into subclasses of ZulipMessageContent', () {
+    test('ZulipContent', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMessages(foundOldest: true, messages: []);
+
+      await store.handleEvent(MessageEvent(id: 0,
+        message: eg.streamMessage(stream: stream)));
+      // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants]
+      // call, where the [ContentNode] gets checked.  The additional checks to
+      // make this test explicit.
+      checkNotifiedOnce();
+      check(model).messages.single.poll.isNull();
+      check(model).contents.single.isA<ZulipContent>();
+    });
+
+    test('PollContent', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMessages(foundOldest: true, messages: []);
+
+      await store.handleEvent(MessageEvent(id: 0, message: eg.streamMessage(
+        stream: stream,
+        sender: eg.selfUser,
+        submessages: [
+          eg.submessage(senderId: eg.selfUser.userId,
+            content: eg.pollWidgetData(question: 'question', options: ['A'])),
+        ])));
+      // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants]
+      // call, where the value of the [Poll] gets checked.  The additional
+      // checks make this test explicit.
+      checkNotifiedOnce();
+      check(model).messages.single.poll.isNotNull();
+      check(model).contents.single.isA<PollContent>();
     });
   });
 
@@ -1740,7 +1778,12 @@ void checkInvariants(MessageListView model) {
 
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
-    check(model.contents[i])
+    final poll = model.messages[i].poll;
+    if (poll != null) {
+      check(model).contents[i].isA<PollContent>().poll.identicalTo(poll);
+      continue;
+    }
+    check(model.contents[i]).isA<ZulipContent>()
       .equalsNode(parseContent(model.messages[i].content));
   }
 
@@ -1790,7 +1833,7 @@ extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparator
 
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
   Subject<Message> get message => has((x) => x.message, 'message');
-  Subject<ZulipContent> get content => has((x) => x.content, 'content');
+  Subject<ZulipMessageContent> get content => has((x) => x.content, 'content');
   Subject<bool> get showSender => has((x) => x.showSender, 'showSender');
   Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
 }
@@ -1799,7 +1842,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<PerAccountStore> get store => has((x) => x.store, 'store');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
-  Subject<List<ZulipContent>> get contents => has((x) => x.contents, 'contents');
+  Subject<List<ZulipMessageContent>> get contents => has((x) => x.contents, 'contents');
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');

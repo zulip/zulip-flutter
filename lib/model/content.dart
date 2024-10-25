@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
+import '../api/model/model.dart';
+import '../api/model/submessage.dart';
 import 'code_block.dart';
 
 /// A node in a parse tree for Zulip message-style content.
@@ -72,13 +74,26 @@ mixin UnimplementedNode on ContentNode {
   }
 }
 
+/// A parsed, ready-to-render representation of Zulip message content.
+sealed class ZulipMessageContent {}
+
+/// A wrapper around a mutable representation of a Zulip poll message.
+///
+/// Consumers are expected to listen for [Poll]'s changes to receive
+/// live-updates.
+class PollContent implements ZulipMessageContent {
+  const PollContent(this.poll);
+
+  final Poll poll;
+}
+
 /// A complete parse tree for a Zulip message's content,
 /// or other complete piece of Zulip HTML content.
 ///
 /// This is a parsed representation for an entire value of [Message.content],
 /// [Stream.renderedDescription], or other text from a Zulip server that comes
 /// in the same Zulip HTML format.
-class ZulipContent extends ContentNode {
+class ZulipContent extends ContentNode implements ZulipMessageContent {
   const ZulipContent({super.debugHtmlNode, required this.nodes});
 
   final List<BlockContentNode> nodes;
@@ -716,27 +731,6 @@ class GlobalTimeNode extends InlineContentNode {
 
 ////////////////////////////////////////////////////////////////
 
-// Ported from https://github.com/zulip/zulip-mobile/blob/c979530d6804db33310ed7d14a4ac62017432944/src/emoji/data.js#L108-L112
-//
-// Which was in turn ported from https://github.com/zulip/zulip/blob/63c9296d5339517450f79f176dc02d77b08020c8/zerver/models.py#L3235-L3242
-// and that describes the encoding as follows:
-//
-// > * For Unicode emoji, [emoji_code is] a dash-separated hex encoding of
-// >   the sequence of Unicode codepoints that define this emoji in the
-// >   Unicode specification.  For examples, see "non_qualified" or
-// >   "unified" in the following data, with "non_qualified" taking
-// >   precedence when both present:
-// >   https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pretty.json
-String? tryParseEmojiCodeToUnicode(String code) {
-  try {
-    return String.fromCharCodes(code.split('-').map((hex) => int.parse(hex, radix: 16)));
-  } on FormatException { // thrown by `int.parse`
-    return null;
-  } on ArgumentError { // thrown by `String.fromCharCodes`
-    return null;
-  }
-}
-
 /// What sort of nodes a [_ZulipContentParser] is currently expecting to find.
 enum _ParserContext {
   /// The parser is currently looking for block nodes.
@@ -995,7 +989,9 @@ class _ZulipContentParser {
         final first = child.nodes[0];
         if (first is! dom.Element
             || first.localName != 'span'
-            || first.nodes.isNotEmpty) return null;
+            || first.nodes.isNotEmpty) {
+          return null;
+        }
       }
       final grandchild = child.nodes.last;
       if (grandchild is! dom.Element) return null;

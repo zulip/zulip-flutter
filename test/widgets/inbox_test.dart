@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -332,7 +333,7 @@ void main() {
           final icon = findHeaderCollapseIcon(tester, headerRow!);
           check(icon).icon.equals(ZulipIcons.arrow_down);
           check(allDmsHeaderBackgroundColor(tester))
-            .isNotNull().equals(const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor());
+            .isNotNull().isSameColorAs(const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor());
           check(tester.widgetList(findSectionContent)).isNotEmpty();
         }
 
@@ -350,7 +351,7 @@ void main() {
           final icon = findHeaderCollapseIcon(tester, headerRow!);
           check(icon).icon.equals(ZulipIcons.arrow_right);
           check(allDmsHeaderBackgroundColor(tester))
-            .isNotNull().equals(Colors.white);
+            .isNotNull().isSameColorAs(Colors.white);
           check(tester.widgetList(findSectionContent)).isEmpty();
         }
 
@@ -425,10 +426,10 @@ void main() {
           final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
           check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
-          check(streamIcon).color.equals(
+          check(streamIcon).color.isNotNull().isSameColorAs(
             ChannelColorSwatch.light(subscription.color).iconOnBarBackground);
           check(streamHeaderBackgroundColor(tester, streamId))
-            .isNotNull().equals(ChannelColorSwatch.light(subscription.color).barBackground);
+            .isNotNull().isSameColorAs(ChannelColorSwatch.light(subscription.color).barBackground);
           check(tester.widgetList(findSectionContent)).isNotEmpty();
         }
 
@@ -448,10 +449,10 @@ void main() {
           final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
           check(collapseIcon).icon.equals(ZulipIcons.arrow_right);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
-          check(streamIcon).color.equals(
+          check(streamIcon).color.isNotNull().isSameColorAs(
             ChannelColorSwatch.light(subscription.color).iconOnPlainBackground);
           check(streamHeaderBackgroundColor(tester, streamId))
-            .isNotNull().equals(Colors.white);
+            .isNotNull().isSameColorAs(Colors.white);
           check(tester.widgetList(findSectionContent)).isEmpty();
         }
 
@@ -482,15 +483,15 @@ void main() {
           checkAppearsUncollapsed(tester, stream.streamId, find.text('specific topic'));
 
           check(streamHeaderBackgroundColor(tester, 1))
-            .equals(ChannelColorSwatch.light(initialColor).barBackground);
+            .isNotNull().isSameColorAs(ChannelColorSwatch.light(initialColor).barBackground);
 
           final newColor = Colors.orange.argbInt;
-          store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
+          await store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
             property: SubscriptionProperty.color, value: newColor));
           await tester.pump();
 
           check(streamHeaderBackgroundColor(tester, 1))
-            .equals(ChannelColorSwatch.light(newColor).barBackground);
+            .isNotNull().isSameColorAs(ChannelColorSwatch.light(newColor).barBackground);
         });
 
         testWidgets('collapse stream section when partially offscreen: '

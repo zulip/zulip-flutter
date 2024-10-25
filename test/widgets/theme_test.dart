@@ -9,6 +9,7 @@ import 'package:zulip/widgets/theme.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import 'colors_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -115,21 +116,21 @@ void main() {
       final element = tester.element(find.byType(Placeholder));
       // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
       check(colorSwatchFor(element, subscription))
-        .equals(ChannelColorSwatch.light(baseColor));
+        .isSameColorSwatchAs(ChannelColorSwatch.light(baseColor));
 
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       await tester.pump();
 
       await tester.pump(kThemeAnimationDuration * 0.4);
       check(colorSwatchFor(element, subscription))
-        .equals(ChannelColorSwatch.lerp(
+        .isSameColorSwatchAs(ChannelColorSwatch.lerp(
           ChannelColorSwatch.light(baseColor),
           ChannelColorSwatch.dark(baseColor),
           0.4)!);
 
       await tester.pump(kThemeAnimationDuration * 0.6);
       check(colorSwatchFor(element, subscription))
-        .equals(ChannelColorSwatch.dark(baseColor));
+        .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
     });
   });
 }

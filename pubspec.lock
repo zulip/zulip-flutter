@@ -47,7 +47,7 @@ packages:
     source: hosted
     version: "5.1.1"
   args:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: args
       sha256: "7cf60b9f0cc88203c5a190b4cd62a99feea42759a7fa695010eb5de1c0b2252a"
@@ -315,10 +315,10 @@ packages:
     dependency: transitive
     description:
       name: file
-      sha256: "5fc22d7c25582e38ad9a8515372cd9a93834027aacf1801cf01164dac0ffa08c"
+      sha256: a3b4f84adafef897088c160faf7dfffb7696046cb13ae90b508c2cbc95d3b8d4
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0"
+    version: "7.0.1"
   file_picker:
     dependency: "direct main"
     description:
@@ -420,6 +420,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_checks:
+    dependency: "direct dev"
+    description:
+      name: flutter_checks
+      sha256: b0a40b15d38436b7c08b83353e74b0569c1ec687bd81c9556091fbb8807c1b99
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   flutter_color_models:
     dependency: "direct main"
     description:
@@ -614,6 +622,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1+1"
+  ini:
+    dependency: "direct dev"
+    description:
+      name: ini
+      sha256: "12a76c53591ffdf86d1265be3f986888a6dfeb34a85957774bc65912d989a173"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -683,6 +699,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  legacy_checks:
+    dependency: "direct dev"
+    description:
+      name: legacy_checks
+      sha256: b22e5b1ff55a14e8bd91acafbabff909e14829b73ca492dcdaf0fbbb70476079
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   lints:
     dependency: transitive
     description:
@@ -1044,10 +1068,10 @@ packages:
     dependency: "direct dev"
     description:
       name: stack_trace
-      sha256: "73713990125a6d93122541237550ee3352a2d84baad52d375a4cad2eb9b7ce0b"
+      sha256: "9f47fd3630d76be3ab26f0ee06d213679aa425996925ff3feffdec504931c377"
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.1"
+    version: "1.12.0"
   stream_channel:
     dependency: transitive
     description:
@@ -1097,7 +1121,7 @@ packages:
     source: hosted
     version: "1.25.8"
   test_api:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: test_api
       sha256: "664d3a9a64782fcdeb83ce9c6b39e78fd2971d4e37827b9b06c3aa1edc5e760c"
@@ -1228,10 +1252,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_android
-      sha256: "4de50df9ee786f5891d3281e1e633d7b142ef1acf47392592eb91cba5d355849"
+      sha256: "50740044e9b7d290bc6ee3dd39787e7e28dada9546b82f842d3a1799865548a9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.0"
+    version: "2.7.8"
   video_player_avfoundation:
     dependency: transitive
     description:
@@ -1260,10 +1284,26 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "5c5f338a667b4c644744b661f309fb8080bb94b18a7e91ef1dbd343bed00ed6d"
+      sha256: f6be3ed8bd01289b34d679c2b62226f63c0e69f9fd2e50a6b3c1c729a961041b
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.5"
+    version: "14.3.0"
+  wakelock_plus:
+    dependency: "direct main"
+    description:
+      name: wakelock_plus
+      sha256: bf4ee6f17a2fa373ed3753ad0e602b7603f8c75af006d5b9bdade263928c0484
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.8"
+  wakelock_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: wakelock_plus_platform_interface
+      sha256: "422d1cdbb448079a8a62a5a770b69baa489f8f7ca21aef47800c726d404f9d16"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   watcher:
     dependency: transitive
     description:
@@ -1300,10 +1340,10 @@ packages:
     dependency: transitive
     description:
       name: webdriver
-      sha256: "003d7da9519e1e5f329422b36c4dcdf18d7d2978d1ba099ea4e45ba490ed845e"
+      sha256: "3d773670966f02a646319410766d3b5e1037efb7f07cc68f844d5e06cd4d61c8"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.4"
   webkit_inspection_protocol:
     dependency: transitive
     description:
@@ -1360,5 +1400,5 @@ packages:
     source: path
     version: "0.0.1"
 sdks:
-  dart: ">=3.6.0-217.0.dev <4.0.0"
-  flutter: ">=3.25.0-1.0.pre.296"
+  dart: ">=3.7.0-50.0.dev <4.0.0"
+  flutter: ">=3.27.0-1.0.pre.166"

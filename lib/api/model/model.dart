@@ -507,6 +507,35 @@ enum UserTopicVisibilityPolicy {
   int? toJson() => apiValue;
 }
 
+/// Convert a Unicode emoji's Zulip "emoji code" into the
+/// actual Unicode code points.
+///
+/// The argument corresponds to [Reaction.emojiCode] when [Reaction.emojiType]
+/// is [ReactionType.unicodeEmoji].  For docs, see:
+///   https://zulip.com/api/add-reaction#parameter-reaction_type
+///
+/// In addition to reactions, these appear in Zulip content HTML;
+/// see [UnicodeEmojiNode.emojiUnicode].
+String? tryParseEmojiCodeToUnicode(String emojiCode) {
+  // Ported from: https://github.com/zulip/zulip-mobile/blob/c979530d6804db33310ed7d14a4ac62017432944/src/emoji/data.js#L108-L112
+  // which refers to a comment in the server implementation:
+  //   https://github.com/zulip/zulip/blob/63c9296d5339517450f79f176dc02d77b08020c8/zerver/models.py#L3235-L3242
+  // In addition to what's in the doc linked above, that comment adds:
+  //
+  // > For examples, see "non_qualified" or "unified" in the following data,
+  // > with "non_qualified" taking precedence when both present:
+  // >   https://raw.githubusercontent.com/iamcal/emoji-data/a8174c74675355c8c6a9564516b2e961fe7257ef/emoji_pretty.json
+  // > [link fixed to permalink; original comment says "master" for the commit]
+  try {
+    return String.fromCharCodes(emojiCode.split('-')
+      .map((hex) => int.parse(hex, radix: 16)));
+  } on FormatException { // thrown by `int.parse`
+    return null;
+  } on ArgumentError { // thrown by `String.fromCharCodes`
+    return null;
+  }
+}
+
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response

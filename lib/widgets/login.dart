@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -142,7 +144,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.dispose();
   }
 
-  Future<void> _onSubmitted(BuildContext context) async {
+  void _onSubmitted(BuildContext context) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final url = _parseResult.url;
     final error = _parseResult.error;
@@ -184,8 +186,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         return;
       }
 
-      Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings));
+      unawaited(Navigator.push(context,
+        LoginPage.buildRoute(serverSettings: serverSettings)));
     } finally {
       setState(() {
         _inProgress = false;
@@ -307,7 +309,7 @@ class _LoginPageState extends State<LoginPage> {
       if (e is PlatformException && e.message != null) {
         message = e.message!;
       }
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     } finally {
@@ -351,7 +353,7 @@ class _LoginPageState extends State<LoginPage> {
       if (e is PlatformException && e.message != null) {
         message = e.message!;
       }
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     }
@@ -393,9 +395,9 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    Navigator.of(context).pushAndRemoveUntil(
+    unawaited(Navigator.of(context).pushAndRemoveUntil(
       HomePage.buildRoute(accountId: accountId),
-      (route) => (route is! _LoginSequenceRoute),
+      (route) => (route is! _LoginSequenceRoute)),
     );
   }
 
@@ -428,7 +430,8 @@ class _LoginPageState extends State<LoginPage> {
           final icon = method.displayIcon;
           return OutlinedButton.icon(
             style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer)),
+              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+              foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
             icon: icon != null
               ? Image.network(icon, width: 24, height: 24)
               : null,
@@ -436,7 +439,6 @@ class _LoginPageState extends State<LoginPage> {
               ? () => _beginWebAuth(method)
               : null,
             label: Text(
-              style: TextStyle(color: colorScheme.onSecondaryContainer),
               zulipLocalizations.signInWithFoo(method.displayName)));
         }),
       ],

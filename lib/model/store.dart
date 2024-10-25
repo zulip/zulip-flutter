@@ -16,10 +16,13 @@ import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
 import '../api/backoff.dart';
+import '../api/route/realm.dart';
 import '../log.dart';
 import '../notifications/receive.dart';
 import 'autocomplete.dart';
 import 'database.dart';
+import 'emoji.dart';
+import 'localizations.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'recent_dm_conversations.dart';
@@ -76,6 +79,8 @@ abstract class GlobalStore extends ChangeNotifier {
   }
 
   final Map<int, PerAccountStore> _perAccountStores = {};
+
+  int get debugNumPerAccountStoresLoading => _perAccountStoresLoading.length;
   final Map<int, Future<PerAccountStore>> _perAccountStoresLoading = {};
 
   /// The store's per-account data for the given account, if already loaded.
@@ -119,7 +124,7 @@ abstract class GlobalStore extends ChangeNotifier {
     _perAccountStoresLoading[accountId] = future;
     store = await future;
     _setPerAccount(accountId, store);
-    _perAccountStoresLoading.remove(accountId);
+    unawaited(_perAccountStoresLoading.remove(accountId));
     return store;
   }
 
@@ -142,7 +147,21 @@ abstract class GlobalStore extends ChangeNotifier {
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
-  Future<PerAccountStore> loadPerAccount(int accountId);
+  Future<PerAccountStore> loadPerAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    final store = await doLoadPerAccount(accountId);
+    if (!_accounts.containsKey(accountId)) {
+      // [removeAccount] was called during [doLoadPerAccount].
+      store.dispose();
+      throw AccountNotFoundException();
+    }
+    return store;
+  }
+
+  /// Load per-account data for the given account, unconditionally.
+  ///
+  /// This method should be called only by [loadPerAccount].
+  Future<PerAccountStore> doLoadPerAccount(int accountId);
 
   // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -190,9 +209,25 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
+  /// Remove an account from the store.
+  Future<void> removeAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
+    await doRemoveAccount(accountId);
+    if (!_accounts.containsKey(accountId)) return; // Already removed.
+    _accounts.remove(accountId);
+    _perAccountStores.remove(accountId)?.dispose();
+    unawaited(_perAccountStoresLoading.remove(accountId));
+    notifyListeners();
+  }
+
+  /// Remove an account from the underlying data store.
+  Future<void> doRemoveAccount(int accountId);
+
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
 }
+
+class AccountNotFoundException implements Exception {}
 
 /// Store for the user's data for a given Zulip account.
 ///
@@ -202,7 +237,7 @@ abstract class GlobalStore extends ChangeNotifier {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
+class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -227,16 +262,18 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
+    final realmUrl = account.realmUrl;
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
-      realmUrl: account.realmUrl,
+      realmUrl: realmUrl,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
-      realmEmoji: initialSnapshot.realmEmoji,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
+      emoji: EmojiStoreImpl(
+        realmUrl: realmUrl, realmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
@@ -268,9 +305,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     required this.realmUrl,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
-    required this.realmEmoji,
     required this.customProfileFields,
     required this.emailAddressVisibility,
+    required EmojiStoreImpl emoji,
     required this.accountId,
     required this.selfUserId,
     required this.userSettings,
@@ -284,7 +321,9 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
+       assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
+       _emoji = emoji,
        _channels = channels,
        _messages = messages;
 
@@ -296,6 +335,14 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
+
+  UpdateMachine? get updateMachine => _updateMachine;
+  UpdateMachine? _updateMachine;
+  set updateMachine(UpdateMachine? value) {
+    assert(_updateMachine == null);
+    assert(value != null);
+    _updateMachine = value;
+  }
 
   bool get isLoading => _isLoading;
   bool _isLoading = false;
@@ -320,15 +367,45 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   String get zulipVersion => account.zulipVersion;
   final int maxFileUploadSizeMib; // No event for this.
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
-  Map<String, RealmEmojiItem> realmEmoji;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
   final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
 
   ////////////////////////////////
+  // The realm's repertoire of available emoji.
+
+  @override
+  Map<String, RealmEmojiItem> get realmEmoji => _emoji.realmEmoji;
+
+  @override
+  EmojiDisplay emojiDisplayFor({
+    required ReactionType emojiType,
+    required String emojiCode,
+    required String emojiName
+  }) {
+    return _emoji.emojiDisplayFor(
+      emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName);
+  }
+
+  @override
+  Map<String, List<String>>? get debugServerEmojiData => _emoji.debugServerEmojiData;
+
+  @override
+  void setServerEmojiData(ServerEmojiData data) {
+    _emoji.setServerEmojiData(data);
+    notifyListeners();
+  }
+
+  EmojiStoreImpl _emoji;
+
+  ////////////////////////////////
   // Data attached to the self-account on the realm.
 
   final int accountId;
+
+  /// The [Account] this store belongs to.
+  ///
+  /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
 
   /// Always equal to `account.userId`.
@@ -407,23 +484,31 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
     autocompleteViewManager.reassemble();
   }
 
+  bool _disposed = false;
+
   @override
   void dispose() {
+    assert(!_disposed);
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
     typingStatus.dispose();
+    updateMachine?.dispose();
+    connection.close();
+    _disposed = true;
     super.dispose();
   }
 
   Future<void> handleEvent(Event event) async {
+    assert(!_disposed);
+
     switch (event) {
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
 
       case RealmEmojiUpdateEvent():
         assert(debugLog("server event: realm_emoji/update"));
-        realmEmoji = event.realmEmoji;
+        _emoji.handleRealmEmojiUpdateEvent(event);
         notifyListeners();
 
       case AlertWordsEvent():
@@ -558,6 +643,8 @@ class PerAccountStore extends ChangeNotifier with ChannelStore, MessageStore {
   }
 
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    assert(!_disposed);
+
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
     return _apiSendMessage(connection,
@@ -650,7 +737,7 @@ class LiveGlobalStore extends GlobalStore {
   final AppDatabase _db;
 
   @override
-  Future<PerAccountStore> loadPerAccount(int accountId) async {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) async {
     final updateMachine = await UpdateMachine.load(this, accountId);
     return updateMachine.store;
   }
@@ -677,6 +764,14 @@ class LiveGlobalStore extends GlobalStore {
   }
 
   @override
+  Future<void> doRemoveAccount(int accountId) async {
+    final rowsAffected = await (_db.delete(_db.accounts)
+      ..where((a) => a.id.equals(accountId))
+    ).go();
+    assert(rowsAffected == 1);
+  }
+
+  @override
   String toString() => '${objectRuntimeType(this, 'LiveGlobalStore')}#${shortHash(this)}';
 }
 
@@ -690,7 +785,9 @@ class UpdateMachine {
          // case of unauthenticated access to a web-public realm.  We authenticated.
          throw Exception("bad initial snapshot: missing queueId");
        })(),
-       lastEventId = initialSnapshot.lastEventId;
+       lastEventId = initialSnapshot.lastEventId {
+    store.updateMachine = this;
+  }
 
   /// Load the user's data from the server, and start an event queue going.
   ///
@@ -724,15 +821,23 @@ class UpdateMachine {
     final updateMachine = UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
     updateMachine.poll();
+    if (initialSnapshot.serverEmojiDataUrl != null) {
+      // TODO(server-6): If the server is ancient, just skip trying to have
+      //   a list of its emoji.  (The old servers that don't provide
+      //   serverEmojiDataUrl are already unsupported at time of writing.)
+      unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl!));
+    }
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
-    updateMachine.registerNotificationToken();
+    unawaited(updateMachine.registerNotificationToken());
     return updateMachine;
   }
 
   final PerAccountStore store;
   final String queueId;
   int lastEventId;
+
+  bool _disposed = false;
 
   static Future<InitialSnapshot> _registerQueueWithRetry(
       ApiConnection connection) async {
@@ -748,6 +853,43 @@ class UpdateMachine {
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
       }
     }
+  }
+
+  /// Fetch emoji data from the server, and update the store with the result.
+  ///
+  /// This functions a lot like [registerQueue] and the surrounding logic
+  /// in [load] above, but it's unusual in that we've separated it out.
+  /// Effectively it's data that *would have* been in the [registerQueue]
+  /// response, except that we pulled it out to its own endpoint as part of
+  /// a caching strategy, because the data changes infrequently.
+  ///
+  /// Conveniently (a) this deferred fetch doesn't cause any fetch/event race,
+  /// because this data doesn't get updated by events anyway (it can change
+  /// only on a server restart); and (b) we don't need this data for displaying
+  /// messages or anything else, only for certain UIs like the emoji picker,
+  /// so it's fine that we go without it for a while.
+  Future<void> fetchEmojiData(Uri serverEmojiDataUrl) async {
+    if (!debugEnableFetchEmojiData) return;
+    BackoffMachine? backoffMachine;
+    ServerEmojiData data;
+    while (true) {
+      try {
+        data = await fetchServerEmojiData(store.connection,
+          emojiDataUrl: serverEmojiDataUrl);
+        assert(debugLog('Got emoji data: ${data.codeToNames.length} emoji'));
+        break;
+      } catch (e) {
+        assert(debugLog('Error fetching emoji data: $e\n' // TODO(log)
+          'Backing off, then will retry…'));
+        // The emoji data is a lot less urgent than the initial fetch,
+        // or even the event-queue poll request.  So wait longer.
+        backoffMachine ??= BackoffMachine(firstBound: const Duration(seconds: 2),
+                                          maxBound: const Duration(minutes: 2));
+        await backoffMachine.wait();
+      }
+    }
+
+    store.setServerEmojiData(data);
   }
 
   Completer<void>? _debugLoopSignal;
@@ -771,12 +913,32 @@ class UpdateMachine {
     }());
   }
 
+  /// This controls when we start to report transient errors to the user when
+  /// polling.
+  ///
+  /// At the 6th failure, the expected time elapsed since the first failure
+  /// will be 1.55 seocnds.
+  static const transientFailureCountNotifyThreshold = 5;
+
   void poll() async {
+    assert(!_disposed);
+
     BackoffMachine? backoffMachine;
+    int accumulatedTransientFailureCount = 0;
+
+    /// This only reports transient errors after reaching
+    /// a pre-defined threshold of retries.
+    void maybeReportTransientError(String? message, {String? details}) {
+      accumulatedTransientFailureCount++;
+      if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+        reportErrorToUserBriefly(message, details: details);
+      }
+    }
 
     while (true) {
       if (_debugLoopSignal != null) {
         await _debugLoopSignal!.future;
+        if (_disposed) return;
         assert(() {
           _debugLoopSignal = Completer();
           return true;
@@ -787,20 +949,43 @@ class UpdateMachine {
       try {
         result = await getEvents(store.connection,
           queueId: queueId, lastEventId: lastEventId);
+        if (_disposed) return;
       } catch (e) {
+        if (_disposed) return;
+
         store.isLoading = true;
+        final localizations = GlobalLocalizations.zulipLocalizations;
+        final serverUrl = store.connection.realmUrl.origin;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
+            // This disposes the store, which disposes this update machine.
             await store._globalStore._reloadPerAccount(store.accountId);
-            dispose();
             debugLog('… Event queue replaced.');
             return;
 
-          case Server5xxException() || NetworkException():
+          case Server5xxException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
-            // TODO tell user if transient polling errors persist
+            maybeReportTransientError(
+              localizations.errorConnectingToServerShort,
+              details: localizations.errorConnectingToServerDetails(
+                serverUrl, e.toString()));
+            await (backoffMachine ??= BackoffMachine()).wait();
+            assert(debugLog('… Backoff wait complete, retrying poll.'));
+            continue;
+
+          case NetworkException():
+            assert(debugLog('Transient error polling event queue for $store: $e\n'
+                'Backing off, then will retry…'));
+            if (e.cause is! SocketException) {
+              // Heuristic check to only report interesting errors to the user.
+              // A [SocketException] is common when the app returns from sleep.
+              maybeReportTransientError(
+                localizations.errorConnectingToServerShort,
+                details: localizations.errorConnectingToServerDetails(
+                  serverUrl, e.toString()));
+            }
             await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
@@ -808,7 +993,11 @@ class UpdateMachine {
           default:
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
-            // TODO tell user on non-transient error in polling
+            // TODO(#186): Handle unrecoverable failures
+            reportErrorToUserBriefly(
+              localizations.errorConnectingToServerShort,
+              details: localizations.errorConnectingToServerDetails(
+                serverUrl, e.toString()));
             await (backoffMachine ??= BackoffMachine()).wait();
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
@@ -832,15 +1021,75 @@ class UpdateMachine {
       // and failures, the successes themselves should space out the requests.
       backoffMachine = null;
       store.isLoading = false;
+      // Dismiss existing errors, if any.
+      reportErrorToUserBriefly(null);
+      accumulatedTransientFailureCount = 0;
 
       final events = result.events;
       for (final event in events) {
         await store.handleEvent(event);
+        if (_disposed) return;
       }
       if (events.isNotEmpty) {
         lastEventId = events.last.id;
       }
     }
+  }
+
+  /// Send this client's notification token to the server, now and if it changes.
+  ///
+  /// TODO The returned future isn't especially meaningful (it may or may not
+  ///   mean we actually sent the token).  Make it just `void` once we fix the
+  ///   one test that relies on the future.
+  // TODO(#322) save acked token, to dedupe updating it on the server
+  // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
+  Future<void> registerNotificationToken() async {
+    assert(!_disposed);
+    if (!debugEnableRegisterNotificationToken) {
+      return;
+    }
+    NotificationService.instance.token.addListener(_registerNotificationToken);
+    await _registerNotificationToken();
+  }
+
+  Future<void> _registerNotificationToken() async {
+    final token = NotificationService.instance.token.value;
+    if (token == null) return;
+    await NotificationService.registerToken(store.connection, token: token);
+  }
+
+  /// Cleans up resources and tells the instance not to make new API requests.
+  ///
+  /// After this is called, the instance is not in a usable state
+  /// and should be abandoned.
+  ///
+  /// To abort polling mid-request, [store]'s [PerAccountStore.connection]
+  /// needs to be closed using [ApiConnection.close], which causes in-progress
+  /// requests to error. [PerAccountStore.dispose] does that.
+  void dispose() {
+    assert(!_disposed);
+    NotificationService.instance.token.removeListener(_registerNotificationToken);
+    _disposed = true;
+  }
+
+  /// In debug mode, controls whether [fetchEmojiData] should
+  /// have its normal effect.
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableFetchEmojiData {
+    bool result = true;
+    assert(() {
+      result = _debugEnableFetchEmojiData;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableFetchEmojiData = true;
+  static set debugEnableFetchEmojiData(bool value) {
+    assert(() {
+      _debugEnableFetchEmojiData = value;
+      return true;
+    }());
   }
 
   /// In debug mode, controls whether [registerNotificationToken] should
@@ -861,31 +1110,6 @@ class UpdateMachine {
       _debugEnableRegisterNotificationToken = value;
       return true;
     }());
-  }
-
-  /// Send this client's notification token to the server, now and if it changes.
-  ///
-  /// TODO The returned future isn't especially meaningful (it may or may not
-  ///   mean we actually sent the token).  Make it just `void` once we fix the
-  ///   one test that relies on the future.
-  // TODO(#322) save acked token, to dedupe updating it on the server
-  // TODO(#323) track the registerFcmToken/etc request, warn if not succeeding
-  Future<void> registerNotificationToken() async {
-    if (!debugEnableRegisterNotificationToken) {
-      return;
-    }
-    NotificationService.instance.token.addListener(_registerNotificationToken);
-    await _registerNotificationToken();
-  }
-
-  Future<void> _registerNotificationToken() async {
-    final token = NotificationService.instance.token.value;
-    if (token == null) return;
-    await NotificationService.registerToken(store.connection, token: token);
-  }
-
-  void dispose() { // TODO abort long-poll and close ApiConnection
-    NotificationService.instance.token.removeListener(_registerNotificationToken);
   }
 
   @override

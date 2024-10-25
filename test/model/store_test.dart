@@ -1,15 +1,20 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -153,15 +158,93 @@ void main() {
 
     test('reject changing id, realmUrl, or userId', () async {
       final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
         id: Value(1234)))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
         realmUrl: Value(Uri.parse('https://other.example'))))).throws();
-      check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
+      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
         userId: Value(1234)))).throws();
     });
 
     // TODO test database gets updated correctly (an integration test with sqlite?)
+  });
+
+  group('GlobalStore.removeAccount', () {
+    void checkGlobalStore(GlobalStore store, int accountId, {
+      required bool expectAccount,
+      required bool expectStore,
+    }) {
+      expectAccount
+        ? check(store.getAccount(accountId)).isNotNull()
+        : check(store.getAccount(accountId)).isNull();
+      expectStore
+        ? check(store.perAccountSync(accountId)).isNotNull()
+        : check(store.perAccountSync(accountId)).isNull();
+    }
+
+    test('when store loaded', () async {
+      final globalStore = eg.globalStore();
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await globalStore.perAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: true);
+      int notifyCount = 0;
+      globalStore.addListener(() => notifyCount++);
+
+      await globalStore.removeAccount(eg.selfAccount.id);
+
+      // TODO test that the removed store got disposed and its connection closed
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false);
+      check(notifyCount).equals(1);
+    });
+
+    test('when store not loaded', () async {
+      final globalStore = eg.globalStore();
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: false);
+      int notifyCount = 0;
+      globalStore.addListener(() => notifyCount++);
+
+      await globalStore.removeAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false);
+      check(notifyCount).equals(1);
+    });
+
+    test('when store loading', () async {
+      final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: false);
+
+      // don't await; we'll complete/await it manually after removeAccount
+      final loadingFuture = globalStore.perAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: true, expectStore: false);
+      int notifyCount = 0;
+      globalStore.addListener(() => notifyCount++);
+
+      await globalStore.removeAccount(eg.selfAccount.id);
+
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false);
+      check(notifyCount).equals(1);
+
+      globalStore.completers[eg.selfAccount.id]!.single
+        .complete(eg.store(account: eg.selfAccount, initialSnapshot: eg.initialSnapshot()));
+      // TODO test that the never-used store got disposed and its connection closed
+      await check(loadingFuture).throws<AccountNotFoundException>();
+      checkGlobalStore(globalStore, eg.selfAccount.id,
+        expectAccount: false, expectStore: false);
+      check(notifyCount).equals(1); // no extra notify
+
+      check(globalStore.debugNumPerAccountStoresLoading).equals(0);
+    });
   });
 
   group('PerAccountStore.handleEvent', () {
@@ -230,6 +313,8 @@ void main() {
       await globalStore.insertAccount(account.toCompanion(false));
       connection = (globalStore.apiConnectionFromAccount(account)
         as FakeApiConnection);
+      UpdateMachine.debugEnableFetchEmojiData = false;
+      addTearDown(() => UpdateMachine.debugEnableFetchEmojiData = true);
       UpdateMachine.debugEnableRegisterNotificationToken = false;
       addTearDown(() => UpdateMachine.debugEnableRegisterNotificationToken = true);
     }
@@ -243,6 +328,8 @@ void main() {
     test('smoke', () => awaitFakeAsync((async) async {
       await prepareStore();
       final users = [eg.selfUser, eg.otherUser];
+
+      globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(realmUsers: users).toJson());
       final updateMachine = await UpdateMachine.load(
         globalStore, eg.selfAccount.id);
@@ -270,6 +357,7 @@ void main() {
         ..zulipMergeBase.equals('6.0')
         ..zulipFeatureLevel.equals(123);
 
+      globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(
         zulipVersion: '8.0+g9876',
         zulipMergeBase: '8.0',
@@ -288,10 +376,11 @@ void main() {
       await prepareStore();
 
       // Try to load, inducing an error in the request.
+      globalStore.useCachedApiConnections = true;
       connection.prepare(exception: Exception('failed'));
       final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
       bool complete = false;
-      future.whenComplete(() => complete = true);
+      unawaited(future.whenComplete(() => complete = true));
       async.flushMicrotasks();
       checkLastRequest();
       check(complete).isFalse();
@@ -315,6 +404,69 @@ void main() {
 
     // TODO test UpdateMachine.load starts polling loop
     // TODO test UpdateMachine.load calls registerNotificationToken
+  });
+
+  group('UpdateMachine.fetchEmojiData', () {
+    late UpdateMachine updateMachine;
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    void prepareStore() {
+      updateMachine = eg.updateMachine();
+      store = updateMachine.store;
+      connection = store.connection as FakeApiConnection;
+    }
+
+    final emojiDataUrl = Uri.parse('https://cdn.example/emoji.json');
+    final data = {
+      '1f642': ['smile'],
+      '1f34a': ['orange', 'tangerine', 'mandarin'],
+    };
+
+    void checkLastRequest() {
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.equals(emojiDataUrl)
+        ..headers.deepEquals(kFallbackUserAgentHeader);
+    }
+
+    test('happy case', () => awaitFakeAsync((async) async {
+      prepareStore();
+      check(store.debugServerEmojiData).isNull();
+
+      connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
+      await updateMachine.fetchEmojiData(emojiDataUrl);
+      checkLastRequest();
+      check(store.debugServerEmojiData).deepEquals(data);
+    }));
+
+    test('retries on failure', () => awaitFakeAsync((async) async {
+      prepareStore();
+      check(store.debugServerEmojiData).isNull();
+
+      // Try to fetch, inducing an error in the request.
+      connection.prepare(exception: Exception('failed'));
+      final future = updateMachine.fetchEmojiData(emojiDataUrl);
+      bool complete = false;
+      unawaited(future.whenComplete(() => complete = true));
+      async.flushMicrotasks();
+      checkLastRequest();
+      check(complete).isFalse();
+      check(store.debugServerEmojiData).isNull();
+
+      // The retry doesn't happen immediately; there's a timer.
+      check(async.pendingTimers).length.equals(1);
+      async.elapse(Duration.zero);
+      check(connection.lastRequest).isNull();
+      check(async.pendingTimers).length.equals(1);
+
+      // After a timer, we retry.
+      connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
+      await future;
+      check(complete).isTrue();
+      checkLastRequest();
+      check(store.debugServerEmojiData).deepEquals(data);
+    }));
   });
 
   group('UpdateMachine.poll', () {
@@ -503,6 +655,88 @@ void main() {
     test('retries on MalformedServerResponseException', () {
       checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
     });
+
+    group('report error', () {
+      String? lastReportedError;
+      String? takeLastReportedError() {
+        final result = lastReportedError;
+        lastReportedError = null;
+        return result;
+      }
+
+      /// This is an alternative to [ZulipApp]'s implementation of
+      /// [reportErrorToUserBriefly] for testing.
+      Future<void> logAndReportErrorToUserBriefly(String? message, {
+        String? details,
+      }) async {
+        if (message == null) return;
+        lastReportedError = '$message\n$details';
+      }
+
+      Future<void> prepare() async {
+        reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
+        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
+        await prepareStore(lastEventId: 1);
+        updateMachine.debugPauseLoop();
+        updateMachine.poll();
+      }
+
+      void pollAndFail(FakeAsync async) {
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(store).isLoading.isTrue();
+      }
+
+      test('report non-transient errors', () => awaitFakeAsync((async) async {
+        await prepare();
+
+        connection.prepare(httpStatus: 400, json: {
+          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+        pollAndFail(async);
+        check(takeLastReportedError()).isNotNull().startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      }));
+
+      test('report transient errors', () => awaitFakeAsync((async) async {
+        await prepare();
+
+        // There should be no user visible error messages during these retries.
+        for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+          connection.prepare(httpStatus: 500, body: 'splat');
+          pollAndFail(async);
+          check(takeLastReportedError()).isNull();
+          // This skips the pending polling backoff.
+          async.flushTimers();
+        }
+
+        connection.prepare(httpStatus: 500, body: 'splat');
+        pollAndFail(async);
+        check(takeLastReportedError()).isNotNull().startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      }));
+
+      test('ignore boring errors', () => awaitFakeAsync((async) async {
+        await prepare();
+
+        for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+          connection.prepare(exception: const SocketException('failed'));
+          pollAndFail(async);
+          check(takeLastReportedError()).isNull();
+          // This skips the pending polling backoff.
+          async.flushTimers();
+        }
+
+        connection.prepare(exception: const SocketException('failed'));
+        pollAndFail(async);
+        // Normally we start showing user visible error messages for transient
+        // errors after enough number of retries.
+        check(takeLastReportedError()).isNull();
+      }));
+    });
   });
 
   group('UpdateMachine.registerNotificationToken', () {
@@ -603,7 +837,7 @@ class LoadingTestGlobalStore extends TestGlobalStore {
   Map<int, List<Completer<PerAccountStore>>> completers = {};
 
   @override
-  Future<PerAccountStore> loadPerAccount(int accountId) {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) {
     final completer = Completer<PerAccountStore>();
     (completers[accountId] ??= []).add(completer);
     return completer.future;

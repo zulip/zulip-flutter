@@ -35,7 +35,7 @@ class MessageListDateSeparatorItem extends MessageListItem {
 /// A message to show in the message list.
 class MessageListMessageItem extends MessageListItem {
   final Message message;
-  ZulipContent content;
+  ZulipMessageContent content;
   bool showSender;
   bool isLastInBlock;
 
@@ -98,7 +98,7 @@ mixin _MessageSequence {
   ///
   /// This information is completely derived from [messages].
   /// It exists as an optimization, to memoize the work of parsing.
-  final List<ZulipContent> contents = [];
+  final List<ZulipMessageContent> contents = [];
 
   /// The messages and their siblings in the UI, in order.
   ///
@@ -134,10 +134,16 @@ mixin _MessageSequence {
     }
   }
 
+  ZulipMessageContent _parseMessageContent(Message message) {
+    final poll = message.poll;
+    if (poll != null) return PollContent(poll);
+    return parseContent(message.content);
+  }
+
   /// Update data derived from the content of the index-th message.
   void _reparseContent(int index) {
     final message = messages[index];
-    final content = parseContent(message.content);
+    final content = _parseMessageContent(message);
     contents[index] = content;
 
     final itemIndex = findItemWithMessageId(message.id);
@@ -154,7 +160,7 @@ mixin _MessageSequence {
   void _addMessage(Message message) {
     assert(contents.length == messages.length);
     messages.add(message);
-    contents.add(parseContent(message.content));
+    contents.add(_parseMessageContent(message));
     assert(contents.length == messages.length);
     _processMessage(messages.length - 1);
   }
@@ -197,7 +203,7 @@ mixin _MessageSequence {
   /// If none of [messageIds] are found, this is a no-op.
   bool _removeMessagesById(Iterable<int> messageIds) {
     final messagesToRemoveById = <int>{};
-    final contentToRemove = Set<ZulipContent>.identity();
+    final contentToRemove = Set<ZulipMessageContent>.identity();
     for (final messageId in messageIds) {
       final index = _findMessageWithId(messageId);
       if (index == -1) continue;
@@ -223,7 +229,7 @@ mixin _MessageSequence {
     assert(contents.length == messages.length);
     messages.insertAll(index, toInsert);
     contents.insertAll(index, toInsert.map(
-      (message) => parseContent(message.content)));
+      (message) => _parseMessageContent(message)));
     assert(contents.length == messages.length);
     _reprocessAll();
   }
@@ -243,7 +249,7 @@ mixin _MessageSequence {
   void _recompute() {
     assert(contents.length == messages.length);
     contents.clear();
-    contents.addAll(messages.map((message) => parseContent(message.content)));
+    contents.addAll(messages.map((message) => _parseMessageContent(message)));
     assert(contents.length == messages.length);
     _reprocessAll();
   }

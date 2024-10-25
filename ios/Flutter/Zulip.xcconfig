@@ -1,0 +1,10 @@
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+// TODO(firebase/flutterfire#13323): remove this flag
+//
+// This flag is added to work around the iOS build failing
+// on Xcode 16.  Remove it when `package:firebase_messaging`
+// is patched with a fix to build successfully on Xcode 16:
+//   https://github.com/firebase/flutterfire/issues/13323
+CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES

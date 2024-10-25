@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
@@ -158,17 +159,17 @@ void main() {
       return widget.color;
     }
 
-    check(backgroundColor()).equals(MessageListTheme.light().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.light().streamMessageBgDefault);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
     final expectedLerped = MessageListTheme.light().lerp(MessageListTheme.dark(), 0.4);
-    check(backgroundColor()).equals(expectedLerped.streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(expectedLerped.streamMessageBgDefault);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor()).equals(MessageListTheme.dark().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.dark().streamMessageBgDefault);
   });
 
   group('fetch older messages on scroll', () {
@@ -765,7 +766,7 @@ void main() {
           find.descendant(
             of: find.byType(StreamMessageRecipientHeader),
             matching: find.byType(ColoredBox),
-        ))).color.equals(swatch.barBackground);
+        ))).color.isNotNull().isSameColorAs(swatch.barBackground);
       });
 
       testWidgets('color of stream icon', (tester) async {
@@ -777,7 +778,7 @@ void main() {
           subscriptions: [subscription]);
         await tester.pump();
         check(tester.widget<Icon>(find.byIcon(ZulipIcons.globe)))
-          .color.equals(swatch.iconOnBarBackground);
+          .color.isNotNull().isSameColorAs(swatch.iconOnBarBackground);
       });
 
       testWidgets('normal streams show hash icon', (tester) async {
@@ -893,7 +894,7 @@ void main() {
           zulipLocalizations.messageListGroupYouAndOthers(
             zulipLocalizations.unknownUserName))).text;
         final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.user));
-        check(textSpan).style.isNotNull().color.equals(icon.color);
+        check(textSpan).style.isNotNull().color.isNotNull().isSameColorAs(icon.color!);
       });
     });
 

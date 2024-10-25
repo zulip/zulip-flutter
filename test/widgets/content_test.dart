@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
@@ -880,7 +881,7 @@ void main() {
         final textColor = mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.color;
         check(textColor).isNotNull();
 
-        check(icon).color.equals(textColor!);
+        check(icon).color.isNotNull().isSameColorAs(textColor!);
       });
     }
 

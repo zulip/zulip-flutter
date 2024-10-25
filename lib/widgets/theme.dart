@@ -88,6 +88,13 @@ ThemeData zulipThemeData(BuildContext context) {
     ),
     scaffoldBackgroundColor: designVariables.mainBackground,
     tooltipTheme: const TooltipThemeData(preferBelow: false),
+    bottomSheetTheme: BottomSheetThemeData(
+      clipBehavior: Clip.antiAlias,
+      backgroundColor: designVariables.bgContextMenu,
+      modalBarrierColor: designVariables.modalBarrierColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
+    ),
   );
 }
 
@@ -107,9 +114,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.light() :
     this._(
       background: const Color(0xffffffff),
+      bgContextMenu: const Color(0xfff2f2f2),
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: const Color(0x33000000),
+      contextMenuCancelText: const Color(0xff222222),
+      contextMenuItemBg: const Color(0xff6159e1),
+      contextMenuItemText: const Color(0xff381da7),
       icon: const Color(0xff666699),
       labelCounterUnread: const Color(0xff222222),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
@@ -118,6 +129,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: const Color(0xff1a1a1a),
       channelColorSwatches: ChannelColorSwatches.light,
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
+      contextMenuCancelBg: const Color(0xff797986),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
       errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
       errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.57, 0.33).toColor(),
@@ -126,6 +138,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: const Color(0x33808080),
       loginOrDivider: const Color(0xffdedede),
       loginOrDividerText: const Color(0xff575757),
+      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
       sectionCollapseIcon: const Color(0x7f1e2e48),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
@@ -136,9 +150,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.dark() :
     this._(
       background: const Color(0xff000000),
+      bgContextMenu: const Color(0xff262626),
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
       bgTopBar: const Color(0xff242424),
       borderBar: Colors.black.withValues(alpha: 0.41),
+      contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
+      contextMenuItemBg: const Color(0xff7977fe),
+      contextMenuItemText: const Color(0xff9398fd),
       icon: const Color(0xff7070c2),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
@@ -146,6 +164,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xff1d1d1d),
       title: const Color(0xffffffff),
       channelColorSwatches: ChannelColorSwatches.dark,
+      contextMenuCancelBg: const Color(0xff797986), // the same as the light mode in Figma
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
@@ -158,6 +177,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: const Color(0x33cccccc),
       loginOrDivider: const Color(0xff424242),
       loginOrDividerText: const Color(0xffa8a8a8),
+      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       sectionCollapseIcon: const Color(0x7fb6c8e2),
       // TODO(design-dark) unchanged in dark theme?
@@ -171,9 +193,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   DesignVariables._({
     required this.background,
+    required this.bgContextMenu,
     required this.bgCounterUnread,
     required this.bgTopBar,
     required this.borderBar,
+    required this.contextMenuCancelText,
+    required this.contextMenuItemBg,
+    required this.contextMenuItemText,
     required this.icon,
     required this.labelCounterUnread,
     required this.labelEdited,
@@ -182,6 +208,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.title,
     required this.channelColorSwatches,
     required this.atMentionMarker,
+    required this.contextMenuCancelBg,
     required this.dmHeaderBg,
     required this.errorBannerBackground,
     required this.errorBannerBorder,
@@ -190,6 +217,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.groupDmConversationIconBg,
     required this.loginOrDivider,
     required this.loginOrDividerText,
+    required this.modalBarrierColor,
+    required this.mutedUnreadBadge,
     required this.sectionCollapseIcon,
     required this.star,
     required this.subscriptionListHeaderLine,
@@ -208,9 +237,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }
 
   final Color background;
+  final Color bgContextMenu;
   final Color bgCounterUnread;
   final Color bgTopBar;
   final Color borderBar;
+  final Color contextMenuCancelText;
+  final Color contextMenuItemBg;
+  final Color contextMenuItemText;
   final Color icon;
   final Color labelCounterUnread;
   final Color labelEdited;
@@ -223,6 +256,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
   final Color atMentionMarker;
+  final Color contextMenuCancelBg; // In Figma, but unnamed.
   final Color dmHeaderBg;
   final Color errorBannerBackground;
   final Color errorBannerBorder;
@@ -231,6 +265,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color groupDmConversationIconBg;
   final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+  final Color modalBarrierColor;
+  final Color mutedUnreadBadge;
   final Color sectionCollapseIcon;
   final Color star;
   final Color subscriptionListHeaderLine;
@@ -240,9 +276,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   @override
   DesignVariables copyWith({
     Color? background,
+    Color? bgContextMenu,
     Color? bgCounterUnread,
     Color? bgTopBar,
     Color? borderBar,
+    Color? contextMenuCancelText,
+    Color? contextMenuItemBg,
+    Color? contextMenuItemText,
     Color? icon,
     Color? labelCounterUnread,
     Color? labelEdited,
@@ -251,6 +291,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? title,
     ChannelColorSwatches? channelColorSwatches,
     Color? atMentionMarker,
+    Color? contextMenuCancelBg,
     Color? dmHeaderBg,
     Color? errorBannerBackground,
     Color? errorBannerBorder,
@@ -259,6 +300,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? groupDmConversationIconBg,
     Color? loginOrDivider,
     Color? loginOrDividerText,
+    Color? modalBarrierColor,
+    Color? mutedUnreadBadge,
     Color? sectionCollapseIcon,
     Color? star,
     Color? subscriptionListHeaderLine,
@@ -267,9 +310,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }) {
     return DesignVariables._(
       background: background ?? this.background,
+      bgContextMenu: bgContextMenu ?? this.bgContextMenu,
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
+      contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
+      contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
+      contextMenuItemText: contextMenuItemText ?? this.contextMenuItemBg,
       icon: icon ?? this.icon,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       labelEdited: labelEdited ?? this.labelEdited,
@@ -278,6 +325,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
+      contextMenuCancelBg: contextMenuCancelBg ?? this.contextMenuCancelBg,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
       errorBannerBackground: errorBannerBackground ?? this.errorBannerBackground,
       errorBannerBorder: errorBannerBorder ?? this.errorBannerBorder,
@@ -286,6 +334,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
+      modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
+      mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
@@ -301,9 +351,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     }
     return DesignVariables._(
       background: Color.lerp(background, other.background, t)!,
+      bgContextMenu: Color.lerp(bgContextMenu, other.bgContextMenu, t)!,
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
+      contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
+      contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
+      contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemBg, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
@@ -312,6 +366,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
+      contextMenuCancelBg: Color.lerp(contextMenuCancelBg, other.contextMenuCancelBg, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
       errorBannerBackground: Color.lerp(errorBannerBackground, other.errorBannerBackground, t)!,
       errorBannerBorder: Color.lerp(errorBannerBorder, other.errorBannerBorder, t)!,
@@ -320,6 +375,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
+      modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
+      mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,

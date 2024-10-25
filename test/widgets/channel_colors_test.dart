@@ -1,9 +1,11 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 
 import 'channel_colors_checks.dart';
+import 'colors_checks.dart';
 
 void main() {
   group('ChannelColorSwatches', () {
@@ -12,12 +14,12 @@ void main() {
 
       const base1 = 0xff76ce90;
       final swatch1 = instance.forBaseColor(base1);
-      check(swatch1).equals(ChannelColorSwatch.light(base1));
+      check(swatch1).isSameColorSwatchAs(ChannelColorSwatch.light(base1));
       check(instance.forBaseColor(base1)).identicalTo(swatch1);
 
       const base2 = 0xfffae589;
       final swatch2 = instance.forBaseColor(base2);
-      check(swatch2).equals(ChannelColorSwatch.light(base2));
+      check(swatch2).isSameColorSwatchAs(ChannelColorSwatch.light(base2));
       check(instance.forBaseColor(base2)).identicalTo(swatch2);
       check(instance.forBaseColor(base1)).identicalTo(swatch1);
     });
@@ -28,12 +30,12 @@ void main() {
 
       const base1 = 0xff76ce90;
       final swatch1 = instance.forBaseColor(base1);
-      check(swatch1).equals(ChannelColorSwatch.dark(base1));
+      check(swatch1).isSameColorSwatchAs(ChannelColorSwatch.dark(base1));
       check(instance.forBaseColor(base1)).identicalTo(swatch1);
 
       const base2 = 0xfffae589;
       final swatch2 = instance.forBaseColor(base2);
-      check(swatch2).equals(ChannelColorSwatch.dark(base2));
+      check(swatch2).isSameColorSwatchAs(ChannelColorSwatch.dark(base2));
       check(instance.forBaseColor(base2)).identicalTo(swatch2);
       check(instance.forBaseColor(base1)).identicalTo(swatch1);
     });
@@ -53,13 +55,13 @@ void main() {
 
         const base1 = 0xff76ce90;
         final swatch1 = instance.forBaseColor(base1);
-        check(swatch1).equals(ChannelColorSwatch.lerp(
+        check(swatch1).isSameColorSwatchAs(ChannelColorSwatch.lerp(
           ChannelColorSwatch.light(base1), ChannelColorSwatch.dark(base1), 0.4)!);
         check(instance.forBaseColor(base1)).identicalTo(swatch1);
 
         const base2 = 0xfffae589;
         final swatch2 = instance.forBaseColor(base2);
-        check(swatch2).equals(ChannelColorSwatch.lerp(
+        check(swatch2).isSameColorSwatchAs(ChannelColorSwatch.lerp(
           ChannelColorSwatch.light(base2), ChannelColorSwatch.dark(base2), 0.4)!);
         check(instance.forBaseColor(base2)).identicalTo(swatch2);
         check(instance.forBaseColor(base1)).identicalTo(swatch1);
@@ -70,12 +72,14 @@ void main() {
   group('ChannelColorSwatch', () {
     group('light', () {
       test('base', () {
-        check(ChannelColorSwatch.light(0xffffffff)).base.equals(const Color(0xffffffff));
+        check(ChannelColorSwatch.light(0xffffffff))
+          .base.isSameColorAs(const Color(0xffffffff));
       });
 
       test('unreadCountBadgeBackground', () {
         void runCheck(int base, Color expected) {
-          check(ChannelColorSwatch.light(base)).unreadCountBadgeBackground.equals(expected);
+          check(ChannelColorSwatch.light(base))
+            .unreadCountBadgeBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS and EXTREME_COLORS
@@ -137,7 +141,8 @@ void main() {
 
       test('iconOnPlainBackground', () {
         void runCheck(int base, Color expected) {
-          check(ChannelColorSwatch.light(base)).iconOnPlainBackground.equals(expected);
+          check(ChannelColorSwatch.light(base))
+            .iconOnPlainBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -178,7 +183,8 @@ void main() {
 
       test('iconOnBarBackground', () {
         void runCheck(int base, Color expected) {
-          check(ChannelColorSwatch.light(base)).iconOnBarBackground.equals(expected);
+          check(ChannelColorSwatch.light(base))
+            .iconOnBarBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -219,7 +225,8 @@ void main() {
 
       test('barBackground', () {
         void runCheck(int base, Color expected) {
-          check(ChannelColorSwatch.light(base)).barBackground.equals(expected);
+          check(ChannelColorSwatch.light(base))
+            .barBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -262,13 +269,13 @@ void main() {
     group('dark', () {
       test('base', () {
         check(ChannelColorSwatch.dark(0xffffffff))
-          .base.equals(const Color(0xffffffff));
+          .base.isSameColorAs(const Color(0xffffffff));
       });
 
       test('unreadCountBadgeBackground', () {
         void runCheck(int base, Color expected) {
           check(ChannelColorSwatch.dark(base))
-            .unreadCountBadgeBackground.equals(expected);
+            .unreadCountBadgeBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS and EXTREME_COLORS
@@ -331,7 +338,7 @@ void main() {
       test('iconOnPlainBackground', () {
         void runCheck(int base, Color expected) {
           check(ChannelColorSwatch.dark(base))
-            .iconOnPlainBackground.equals(expected);
+            .iconOnPlainBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -373,7 +380,7 @@ void main() {
       test('iconOnBarBackground', () {
         void runCheck(int base, Color expected) {
           check(ChannelColorSwatch.dark(base))
-            .iconOnBarBackground.equals(expected);
+            .iconOnBarBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -415,7 +422,7 @@ void main() {
       test('barBackground', () {
         void runCheck(int base, Color expected) {
           check(ChannelColorSwatch.dark(base))
-            .barBackground.equals(expected);
+            .barBackground.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -473,7 +480,7 @@ void main() {
             ChannelColorVariant.barBackground => (check(result).barBackground,
               Color.lerp(swatchA.barBackground, swatchB.barBackground, t)!),
           };
-          subject.equals(expected);
+          subject.isSameColorAs(expected);
         }
       }
     });
@@ -484,7 +491,7 @@ void main() {
       final swatch = ChannelColorSwatch.light(0xff76ce90);
       check(ChannelColorSwatch.lerp(swatch, swatch, 0.5)).isNotNull()
         ..identicalTo(swatch)
-        ..base.equals(const Color(0xff76ce90));
+        ..base.isSameColorAs(const Color(0xff76ce90));
     });
   });
 }

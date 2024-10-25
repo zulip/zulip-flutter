@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
@@ -7,6 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
 import '../host/android_notifications.dart';
 import '../log.dart';
@@ -73,14 +76,20 @@ abstract class ZulipBinding {
     _instance = this;
   }
 
-  /// Prepare the app's [GlobalStore], loading the necessary data.
+  /// Get the app's singleton [GlobalStore],
+  /// calling [loadGlobalStore] if not already loaded.
   ///
-  /// Generally the app should call this function only once.
+  /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
+  /// Use this method only in contexts like notifications where
+  /// a widget tree may not exist.
+  Future<GlobalStore> getGlobalStore();
+
+  /// Like [getGlobalStore], but assert this method was not previously called.
   ///
-  /// This is part of the implementation of [GlobalStoreWidget].
-  /// In application code, use [GlobalStoreWidget.of] to get access
-  /// to a [GlobalStore].
-  Future<GlobalStore> loadGlobalStore();
+  /// This is used by the implementation of [GlobalStoreWidget],
+  /// so that our test framework code can detect some cases where
+  /// a widget test neglects to clean up with `testBinding.reset`.
+  Future<GlobalStore> getGlobalStoreUniquely();
 
   /// Checks whether the platform can launch [url], via package:url_launcher.
   ///
@@ -174,6 +183,19 @@ abstract class ZulipBinding {
     required image_picker.ImageSource source,
     bool requestFullMetadata,
   });
+
+  /// Enables or disables keeping the screen on, via package:wakelock_plus.
+  ///
+  /// This wraps [wakelock_plus.WakelockPlus.toggle].
+  ///
+  /// Despite the name, this does not involve Android's "wake locks".
+  /// The implementation sets FLAG_KEEP_SCREEN_ON on Android:
+  ///   https://developer.android.com/develop/background-work/background-tasks/awake/screen-on
+  ///   https://github.com/fluttercommunity/wakelock_plus/blob/5ca5243e7894830ce289fc367bc5fdec27c7f0cf/wakelock_plus/android/src/main/kotlin/dev/fluttercommunity/plus/wakelock/Wakelock.kt
+  /// and idleTimerDisabled on iOS:
+  ///   https://developer.apple.com/documentation/uikit/uiapplication/1623070-idletimerdisabled
+  ///   https://github.com/fluttercommunity/wakelock_plus/blob/5ca5243e7894830ce289fc367bc5fdec27c7f0cf/wakelock_plus/ios/Classes/WakelockPlusPlugin.m
+  Future<void> toggleWakelock({required bool enable});
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -310,9 +332,16 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> loadGlobalStore() {
-    return LiveGlobalStore.load();
+  Future<GlobalStore> getGlobalStore() => _globalStore ??= LiveGlobalStore.load();
+  Future<GlobalStore>? _globalStore;
+
+  @override
+  Future<GlobalStore> getGlobalStoreUniquely() {
+    assert(!_debugCalledGetGlobalStoreUniquely);
+    assert(_debugCalledGetGlobalStoreUniquely = true);
+    return getGlobalStore();
   }
+  bool _debugCalledGetGlobalStoreUniquely = false;
 
   @override
   Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);
@@ -432,5 +461,10 @@ class LiveZulipBinding extends ZulipBinding {
   }) async {
     return image_picker.ImagePicker()
       .pickImage(source: source, requestFullMetadata: requestFullMetadata);
+  }
+
+  @override
+  Future<void> toggleWakelock({required bool enable}) async {
+    return wakelock_plus.WakelockPlus.toggle(enable: enable);
   }
 }

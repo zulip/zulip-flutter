@@ -189,7 +189,9 @@ files_check() {
 check_no_changes() {
     local change_description="$1"; shift
 
-    if git diff --quiet -- "$@" \
+    # We use `git diff -a` in order to include all matching files,
+    # overriding our `.gitattributes` which excludes generated files.
+    if git diff -a --quiet -- "$@" \
             && no_untracked_files "$@"; then
         return
     fi

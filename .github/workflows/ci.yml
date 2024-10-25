@@ -4,9 +4,12 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4.1.7
+
+    - name: Install system dependencies
+      run: TERM=dumb sudo apt install libsqlite3-dev -y
 
     - name: Set up JDK
       uses: actions/setup-java@v4.2.1

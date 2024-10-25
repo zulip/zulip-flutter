@@ -116,12 +116,24 @@ class ApiConnection {
   bool _isOpen = true;
 
   Future<T> send<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      http.BaseRequest request, {String? overrideUserAgent}) async {
+    http.BaseRequest request, {
+    bool useAuth = true,
+    String? overrideUserAgent,
+  }) async {
     assert(_isOpen);
 
     assert(debugLog("${request.method} ${request.url}"));
 
-    addAuth(request);
+    if (useAuth) {
+      if (request.url.origin != realmUrl.origin) {
+        // No caller should get here with a URL whose origin isn't the realm's.
+        // If this does happen, it's important not to proceed, because we'd be
+        // sending the user's auth credentials.
+        throw StateError("ApiConnection.send called with useAuth on off-realm URL");
+      }
+      addAuth(request);
+    }
+
     if (overrideUserAgent != null) {
       request.headers['User-Agent'] = overrideUserAgent;
     } else {
@@ -147,8 +159,10 @@ class ApiConnection {
     final int httpStatus = response.statusCode;
     Map<String, dynamic>? json;
     try {
-      final bytes = await response.stream.toBytes();
-      json = jsonUtf8Decoder.convert(bytes) as Map<String, dynamic>?;
+      // The stream-oriented `bind` method allows decoding to happen in chunks
+      // while the response is still being downloaded, improving latency.
+      final jsonStream = jsonUtf8Decoder.bind(response.stream);
+      json = await jsonStream.single as Map<String, dynamic>?;
     } catch (e) {
       // We'll throw something below, seeing `json` is null.
     }

@@ -15,28 +15,42 @@ Widget _dialogActionText(String text) {
   );
 }
 
-Future<void> showErrorDialog({
+/// Tracks the status of a dialog, in being still open or already closed.
+///
+/// See also:
+///  * [showDialog], whose return value this class is intended to wrap.
+class DialogStatus {
+  const DialogStatus(this.closed);
+
+  /// Resolves when the dialog is closed.
+  final Future<void> closed;
+}
+
+/// Displays an [AlertDialog] with a dismiss button.
+///
+/// The [DialogStatus.closed] field of the return value can be used
+/// for waiting for the dialog to be closed.
+// This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
+// [showDialog]'s return value, a [Future], inside [DialogStatus]
+// whose documentation can be accessed.  This helps avoid confusion when
+// intepreting the meaning of the [Future].
+DialogStatus showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
-  VoidCallback? onDismiss,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
-  return showDialog(
+  final future = showDialog<void>(
     context: context,
-    // `showDialog` doesn't take an `onDismiss`, so dismissing via the barrier
-    // always causes the default dismiss behavior of popping just this route.
-    // When we want a non-default `onDismiss`, disable that.
-    // TODO(upstream): add onDismiss to showDialog, passing through to [ModalBarrier.onDismiss]
-    barrierDismissible: onDismiss == null,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
       content: message != null ? SingleChildScrollView(child: Text(message)) : null,
       actions: [
         TextButton(
-          onPressed: onDismiss ?? () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
       ]));
+  return DialogStatus(future);
 }
 
 void showSuggestedActionDialog({

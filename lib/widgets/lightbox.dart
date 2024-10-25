@@ -8,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../log.dart';
+import '../model/binding.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
@@ -473,17 +474,15 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
       await _controller!.play();
     } catch (error) { // TODO(log)
       assert(debugLog("VideoPlayerController.initialize failed: $error"));
-      if (mounted) {
-        final zulipLocalizations = ZulipLocalizations.of(context);
-        await showErrorDialog(
-          context: context,
-          title: zulipLocalizations.errorDialogTitle,
-          message: zulipLocalizations.errorVideoPlayerFailed,
-          onDismiss: () {
-            Navigator.pop(context); // Pops the dialog
-            Navigator.pop(context); // Pops the lightbox
-          });
-      }
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final dialog = showErrorDialog(
+        context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: zulipLocalizations.errorVideoPlayerFailed);
+      await dialog.closed;
+      if (!mounted) return;
+      Navigator.pop(context); // Pops the lightbox
     }
   }
 
@@ -492,11 +491,24 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     _controller?.removeListener(_handleVideoControllerUpdate);
     _controller?.dispose();
     _controller = null;
+    // The VideoController doesn't emit a pause event
+    // while disposing, so disable the wakelock here
+    // explicitly.
+    ZulipBinding.instance.toggleWakelock(enable: false);
     super.dispose();
   }
 
   void _handleVideoControllerUpdate() {
     setState(() {});
+    _updateWakelock();
+  }
+
+  Future<void> _updateWakelock() async {
+    if (_controller!.value.isPlaying) {
+      await ZulipBinding.instance.toggleWakelock(enable: true);
+    } else {
+      await ZulipBinding.instance.toggleWakelock(enable: false);
+    }
   }
 
   Widget? _buildBottomAppBar(BuildContext context, Color color, double elevation) {

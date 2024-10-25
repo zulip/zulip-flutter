@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
@@ -12,10 +15,12 @@ import 'actions.dart';
 import 'clipboard.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
-import 'draggable_scrollable_modal_bottom_sheet.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
 
 /// Show a sheet of actions you can take on a message in the message list.
 ///
@@ -41,21 +46,48 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       && reactionWithVotes.userIds.contains(store.selfUserId))
     ?? false;
 
-  showDraggableScrollableModalBottomSheet<void>(
+  final optionButtons = [
+    if (!hasThumbsUpReactionVote)
+      AddThumbsUpButton(message: message, messageListContext: context),
+    StarButton(message: message, messageListContext: context),
+    if (isComposeBoxOffered)
+      QuoteAndReplyButton(message: message, messageListContext: context),
+    if (showMarkAsUnreadButton)
+      MarkAsUnreadButton(message: message, messageListContext: context, narrow: narrow),
+    CopyMessageTextButton(message: message, messageListContext: context),
+    CopyMessageLinkButton(message: message, messageListContext: context),
+    ShareButton(message: message, messageListContext: context),
+  ];
+
+  showModalBottomSheet<void>(
     context: context,
+    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+    // on my iPhone 13 Pro but is marked as "much slower":
+    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
     builder: (BuildContext _) {
-      return Column(children: [
-        if (!hasThumbsUpReactionVote)
-          AddThumbsUpButton(message: message, messageListContext: context),
-        StarButton(message: message, messageListContext: context),
-        if (isComposeBoxOffered)
-          QuoteAndReplyButton(message: message, messageListContext: context),
-        if (showMarkAsUnreadButton)
-          MarkAsUnreadButton(message: message, messageListContext: context, narrow: narrow),
-        CopyMessageTextButton(message: message, messageListContext: context),
-        CopyMessageLinkButton(message: message, messageListContext: context),
-        ShareButton(message: message, messageListContext: context),
-      ]);
+      return SafeArea(
+        minimum: const EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // TODO(#217): show message text
+              Flexible(child: InsetShadowBox(
+                top: 8, bottom: 8,
+                color: DesignVariables.of(context).bgContextMenu,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 16, bottom: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: Column(spacing: 1,
+                      children: optionButtons))))),
+              const MessageActionSheetCancelButton(),
+            ])));
     });
 }
 
@@ -75,11 +107,47 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     return MenuItemButton(
-      leadingIcon: Icon(icon),
+      trailingIcon: Icon(icon, color: designVariables.contextMenuItemText),
+      style: MenuItemButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        foregroundColor: designVariables.contextMenuItemText,
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+          designVariables.contextMenuItemBg.withValues(
+            alpha: states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
       onPressed: () => onPressed(context),
-      child: Text(label(zulipLocalizations)));
+      child: Text(label(zulipLocalizations),
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600)),
+      ));
+  }
+}
+
+class MessageActionSheetCancelButton extends StatelessWidget {
+  const MessageActionSheetCancelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.all(10),
+        foregroundColor: designVariables.contextMenuCancelText,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+          designVariables.contextMenuCancelBg.withValues(
+            alpha: states.contains(WidgetState.pressed) ? 0.20 : 0.15))),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: Text(ZulipLocalizations.of(context).dialogCancel,
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600))),
+    );
   }
 }
 
@@ -92,7 +160,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.add_reaction_outlined;
+  @override IconData get icon => ZulipIcons.smile;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -120,7 +188,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
         default:
       }
 
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: 'Adding reaction failed', message: errorMessage);
     }
   }
@@ -133,11 +201,13 @@ class StarButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => ZulipIcons.star_filled;
+  @override IconData get icon => _isStarred ? ZulipIcons.star_filled : ZulipIcons.star;
+
+  bool get _isStarred => message.flags.contains(MessageFlag.starred);
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
-    return message.flags.contains(MessageFlag.starred)
+    return _isStarred
       ? zulipLocalizations.actionSheetOptionUnstarMessage
       : zulipLocalizations.actionSheetOptionStarMessage;
   }
@@ -165,7 +235,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
         default:
       }
 
-      await showErrorDialog(context: messageListContext,
+      showErrorDialog(context: messageListContext,
         title: switch(op) {
           UpdateMessageFlagsOp.remove => zulipLocalizations.errorUnstarMessageFailedTitle,
           UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
@@ -215,7 +285,7 @@ Future<String?> fetchRawContentWithFeedback({
       // TODO(?) give no feedback on error conditions we expect to
       //   flag centrally in event polling, like invalid auth,
       //   user/realm deactivated. (Support with reusable code.)
-      await showErrorDialog(context: context,
+      showErrorDialog(context: context,
         title: errorDialogTitle, message: errorMessage);
     }
 
@@ -229,7 +299,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.format_quote_outlined;
+  @override IconData get icon => ZulipIcons.format_quote;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -303,7 +373,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
-    markNarrowAsUnreadFromMessage(messageListContext, message, narrow);
+    unawaited(markNarrowAsUnreadFromMessage(messageListContext, message, narrow));
   }
 }
 
@@ -314,7 +384,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.copy;
+  @override IconData get icon => ZulipIcons.copy;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -382,7 +452,10 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     required super.messageListContext,
   });
 
-  @override IconData get icon => Icons.adaptive.share;
+  @override
+  IconData get icon => defaultTargetPlatform == TargetPlatform.iOS
+    ? ZulipIcons.share_ios
+    : ZulipIcons.share;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -423,7 +496,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       // Until we learn otherwise, assume something wrong happened.
       case ShareResultStatus.unavailable:
         if (!messageListContext.mounted) return;
-        await showErrorDialog(context: messageListContext,
+        showErrorDialog(context: messageListContext,
           title: zulipLocalizations.errorSharingFailed);
       case ShareResultStatus.success:
       case ShareResultStatus.dismissed:

@@ -8,6 +8,33 @@ This file covers specific topics in more detail.
 [readme-setup]: https://github.com/zulip/zulip-flutter#setting-up
 
 
+<div id="autocrlf" />
+
+## Windows
+
+If you've checked out the repo on Windows, then by default
+Git will convert the `\n` character at the end of each line
+to the `\r\n` sequence that is traditional on Windows.
+These are also called LF and CRLF line endings.
+
+You'll need to disable this Git behavior.  To do that, run
+the command
+`git config core.autocrlf input`
+from inside your checkout.
+
+If you want to disable this behavior for all your Git checkouts
+of other projects, the command
+`git config --global core.autocrlf input`
+will do that.
+
+With the default behavior, you may see Git report certain files
+as modified when nothing should have changed them.  For details,
+or to fix such modifications once they're present,
+see the troubleshooting section
+["Unexpected modified files on Windows"](#windows-modified-files)
+below.
+
+
 ## Android without Android Studio
 
 The standard [Flutter installation guide](https://docs.flutter.dev/get-started/install)
@@ -57,3 +84,98 @@ To set up the development environment on Linux without Android Studio:
    or send a PR.)
 
 [`#mobile-dev-help`]: https://chat.zulip.org/#narrow/stream/516-mobile-dev-help
+
+
+## Troubleshooting
+
+<div id="dart-sdk" />
+
+### Dart SDK version
+
+You might see an error message about the Dart SDK version,
+like so:
+```
+$ flutter pub get
+Resolving dependencies...
+The current Dart SDK version is 3.6.0-216.1.beta.
+
+Because zulip requires SDK version >=3.6.0-279.0.dev <4.0.0,
+version solving failed.
+Failed to update packages.
+```
+
+This error message says your Dart SDK version is too old.
+Because Flutter provides its own Dart SDK,
+that means your Flutter version is too old.
+
+To fix the issue, follow [our setup instructions][readme-setup]
+by running `flutter channel main` and `flutter upgrade`.
+
+For previous discussion of this symptom, see
+[this chat thread](https://chat.zulip.org/#narrow/stream/516-mobile-dev-help/topic/setup.3A.20Dart.20SDK.20dev.20version/near/1831351).
+
+
+<div id="windows-modified-files" />
+
+### Unexpected modified files on Windows
+
+On Windows, you might find Git reporting certain files are modified
+when you haven't made any changes that should affect them.  For
+example:
+```
+$ git status
+…
+        modified:   linux/flutter/generated_plugin_registrant.cc
+        modified:   linux/flutter/generated_plugin_registrant.h
+        modified:   linux/flutter/generated_plugins.cmake
+        modified:   macos/Flutter/GeneratedPluginRegistrant.swift
+        modified:   windows/flutter/generated_plugin_registrant.cc
+        modified:   windows/flutter/generated_plugin_registrant.h
+        modified:   windows/flutter/generated_plugins.cmake
+```
+
+or:
+```
+$ git status
+…
+        modified:   lib/api/model/events.g.dart
+        modified:   lib/api/model/initial_snapshot.g.dart
+        modified:   lib/api/model/model.g.dart
+…
+        modified:   lib/model/internal_link.g.dart
+```
+
+When seeing this issue, `git diff` will report lines like:
+```
+warning: in the working copy of 'linux/flutter/generated_plugin_registrant.cc', LF will be replaced by CRLF the next time Git touches it
+```
+
+To fix the issue, run the command `git config core.autocrlf input`.
+
+Then use `git restore` or `git reset` to restore the affected files
+to the version that Git expects.
+For example you can run `git reset --hard` to restore all files
+in the checkout to the version from the current HEAD commit.
+
+The background of the issue is described [above](#autocrlf).
+Specifically, the affected files are generated files,
+and the tools from the Flutter and Dart ecosystems that
+generate the files are generating them with LF line endings (`\n`)
+regardless of platform.  When Git is translating line endings
+to CRLF (`\r\n`), which it does by default, this means the
+freshly generated files don't match what Git expects.
+
+Even though CRLF line endings are traditional for Windows,
+most Windows tools today work just as well with LF line endings.
+So the fix is to use the same LF line endings that we use
+on Linux and macOS.
+
+A similar effect can be gotten with `git config core.eol lf`.
+The reason we recommend a different fix above is that
+the `core.eol` setting is overridden if you happen to have
+`core.autocrlf` set to `true` in your global Git config.
+
+For the original reports and debugging of this issue, see
+chat threads
+[here](https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.20json_annotation.20unexpected.20behavior/near/1824410)
+and [here](https://chat.zulip.org/#narrow/stream/516-mobile-dev-help/topic/generated.20plugin.20files.20changed/near/1944826).

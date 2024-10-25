@@ -74,6 +74,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetNotifications();
     _resetPickFiles();
     _resetPickImage();
+    _resetWakelock();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -99,7 +100,10 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> loadGlobalStore() {
+  Future<GlobalStore> getGlobalStore() => Future.value(globalStore);
+
+  @override
+  Future<GlobalStore> getGlobalStoreUniquely() {
     assert(() {
       if (_debugAlreadyLoadedStore) {
         throw FlutterError.fromParts([
@@ -120,7 +124,7 @@ class TestZulipBinding extends ZulipBinding {
       _debugAlreadyLoadedStore = true;
       return true;
     }());
-    return Future.value(globalStore);
+    return getGlobalStore();
   }
 
   /// The value that `ZulipBinding.instance.canLaunchUrl()` should return.
@@ -367,6 +371,20 @@ class TestZulipBinding extends ZulipBinding {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
     return pickImageResult;
   }
+
+  /// Returns the current status of wakelock, which can be
+  /// changed via [toggleWakelock].
+  bool get wakelockEnabled => _wakelockEnabled;
+  bool _wakelockEnabled = false;
+
+  void _resetWakelock() {
+    _wakelockEnabled = false;
+  }
+
+  @override
+  Future<void> toggleWakelock({required bool enable}) async {
+    _wakelockEnabled = enable;
+  }
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
@@ -528,6 +546,12 @@ class FakeFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
 }
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
+  /// Lists currently active channels, result is aggregated from calls made to
+  /// [createNotificationChannel] and [deleteNotificationChannel],
+  /// order of creation is preserved.
+  Iterable<NotificationChannel> get activeChannels => _activeChannels.values;
+  final Map<String, NotificationChannel> _activeChannels = {};
+
   /// Consume the log of calls made to [createNotificationChannel].
   ///
   /// This returns a list of the arguments to all calls made
@@ -542,6 +566,29 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<void> createNotificationChannel(NotificationChannel channel) async {
     _createdChannels.add(channel);
+    _activeChannels[channel.id] = channel;
+  }
+
+  @override
+  Future<List<NotificationChannel?>> getNotificationChannels() async {
+    return _activeChannels.values.toList(growable: false);
+  }
+
+  /// Consume the log of calls made to [deleteNotificationChannel].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [deleteNotificationChannel] since the last call to this method.
+  List<String> takeDeletedChannels() {
+    final result = _deletedChannels;
+    _deletedChannels = [];
+    return result;
+  }
+  List<String> _deletedChannels = [];
+
+  @override
+  Future<void> deleteNotificationChannel(String channelId) async {
+    _deletedChannels.add(channelId);
+    _activeChannels.remove(channelId);
   }
 
   /// Consume the log of calls made to [notify].

@@ -3,15 +3,6 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  exclude:
-    # Skip analysis on Pigeon-generated code, because it currently
-    # triggers some stylistic lints and they aren't actionable for us.
-    # (Some lints could signal a bug, which would be good to catch...
-    # but typically those are lints Flutter upstream keeps enabled, so
-    # if Pigeon tripped them it'd immediately get caught.)
-    # TODO(pigeon) re-enable lints once clean: https://github.com/flutter/flutter/issues/145633
-    - lib/host/*.g.dart
-
   language:
     strict-inference: true
     strict-raw-types: true
@@ -25,3 +16,4 @@ linter:
     no_literal_bool_comparisons: true
     prefer_relative_imports: true
     unnecessary_statements: true
+    unawaited_futures: true

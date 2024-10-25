@@ -7,12 +7,12 @@ import '../../stdlib_checks.dart';
 import '../fake_api.dart';
 
 void main() {
-  group('registerFcmToken', () {
-    Future<void> checkRegisterFcmToken(FakeApiConnection connection, {
+  group('addFcmToken', () {
+    Future<void> checkAddFcmToken(FakeApiConnection connection, {
       required String token,
     }) async {
       connection.prepare(json: {});
-      await registerFcmToken(connection, token: token);
+      await addFcmToken(connection, token: token);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/users/me/android_gcm_reg_id')
@@ -23,36 +23,30 @@ void main() {
 
     test('smoke', () {
       return FakeApiConnection.with_((connection) async {
-        await checkRegisterFcmToken(connection, token: 'asdf');
+        await checkAddFcmToken(connection, token: 'asdf');
       });
     });
   });
 
-  group('registerApnsToken', () {
-    Future<void> checkRegisterApnsToken(FakeApiConnection connection, {
+  group('addApnsToken', () {
+    Future<void> checkAddApnsToken(FakeApiConnection connection, {
       required String token,
-      required String? appid,
+      required String appid,
     }) async {
       connection.prepare(json: {});
-      await registerApnsToken(connection, token: token, appid: appid);
+      await addApnsToken(connection, token: token, appid: appid);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/users/me/apns_device_token')
         ..bodyFields.deepEquals({
           'token': token,
-          if (appid != null) 'appid': appid,
+          'appid': appid,
         });
     }
 
-    test('no appid', () {
+    test('smoke', () {
       return FakeApiConnection.with_((connection) async {
-        await checkRegisterApnsToken(connection, token: 'asdf', appid: null);
-      });
-    });
-
-    test('with appid', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkRegisterApnsToken(connection, token: 'asdf', appid: 'qwer');
+        await checkAddApnsToken(connection, token: 'asdf', appid: 'qwer');
       });
     });
   });

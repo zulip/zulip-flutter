@@ -131,6 +131,81 @@ void main() {
             NotificationChannelManager.kVibrationPattern)
       ;
     });
+
+    test('channel is not recreated if one with same id already exists', () async {
+      addTearDown(testBinding.reset);
+
+      // Setup initial channel.
+      await testBinding.androidNotificationHost.createNotificationChannel(
+        NotificationChannel(
+          id: NotificationChannelManager.kChannelId,
+          name: 'Messages',
+          importance: NotificationImportance.high,
+          lightsEnabled: true,
+          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+      // Clear the log.
+      check(testBinding.androidNotificationHost.takeCreatedChannels())
+        .length.equals(1);
+
+      // Ensure that no calls were made to the deleteChannel or createChannel
+      // functions.
+      await NotificationChannelManager.ensureChannel();
+      check(testBinding.androidNotificationHost.takeDeletedChannels())
+        .isEmpty();
+      check(testBinding.androidNotificationHost.takeCreatedChannels())
+        .isEmpty();
+      check(testBinding.androidNotificationHost.activeChannels).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
+
+    test('obsolete channels are removed', () async {
+      addTearDown(testBinding.reset);
+
+      // Setup initial channels.
+      await testBinding.androidNotificationHost.createNotificationChannel(
+        NotificationChannel(
+          id: 'obsolete-1',
+          name: 'Obsolete 1',
+          importance: NotificationImportance.high,
+          lightsEnabled: true,
+          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+      await testBinding.androidNotificationHost.createNotificationChannel(
+        NotificationChannel(
+          id: 'obsolete-2',
+          name: 'Obsolete 2',
+          importance: NotificationImportance.high,
+          lightsEnabled: true,
+          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+      // Clear the log.
+      check(testBinding.androidNotificationHost.takeCreatedChannels())
+        .length.equals(2);
+
+      // Ensure that any channel whose channel-id differs from the desired
+      // channel-id (NotificationChannelManager.kChannelId) is deleted, and a
+      // new one with the desired channel-id is created.
+      await NotificationChannelManager.ensureChannel();
+      check(testBinding.androidNotificationHost.takeDeletedChannels())
+        .deepEquals(['obsolete-1', 'obsolete-2']);
+      check(testBinding.androidNotificationHost.takeCreatedChannels()).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+      check(testBinding.androidNotificationHost.activeChannels).single
+        ..id.equals(NotificationChannelManager.kChannelId)
+        ..name.equals('Messages')
+        ..importance.equals(NotificationImportance.high)
+        ..lightsEnabled.equals(true)
+        ..vibrationPattern.isNotNull().deepEquals(
+            NotificationChannelManager.kVibrationPattern);
+    });
   });
 
   group('NotificationDisplayManager show', () {
@@ -245,7 +320,7 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     }
 
-    Future<void> receiveFcmMessage(FakeAsync async, FcmMessage data) async {
+    void receiveFcmMessage(FakeAsync async, FcmMessage data) {
       testBinding.firebaseMessaging.onMessage.add(
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
@@ -297,21 +372,21 @@ void main() {
       final expectedTitle = '#${stream.name} > $topic';
       final expectedTagComponent = 'stream:${stream.streamId}:$topic';
 
-      await receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
-      await receiveFcmMessage(async, data3);
+      receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data2, data3],
         expectedIsGroupConversation: true,
@@ -331,21 +406,21 @@ void main() {
       final message3 = eg.streamMessage(topic: topicA, stream: stream);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
 
-      await receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
         expectedTagComponent: 'stream:${stream.streamId}:$topicA');
 
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicB',
         expectedTagComponent: 'stream:${stream.streamId}:$topicB');
 
-      await receiveFcmMessage(async, data3);
+      receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data3],
         expectedIsGroupConversation: true,
@@ -360,7 +435,7 @@ void main() {
       final message1 = eg.streamMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
 
-      await receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
@@ -371,7 +446,7 @@ void main() {
       final message2 = eg.streamMessage(topic: topic, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
 
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -417,14 +492,14 @@ void main() {
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      await receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.otherUser.fullName} to you and 1 other",
         expectedTagComponent: expectedTagComponent);
 
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -449,7 +524,7 @@ void main() {
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      await receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
@@ -460,7 +535,7 @@ void main() {
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data2 = messageFcmMessage(message2);
 
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
@@ -476,7 +551,7 @@ void main() {
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      await receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
@@ -487,7 +562,7 @@ void main() {
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data2 = messageFcmMessage(message2);
 
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
@@ -500,7 +575,7 @@ void main() {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
-        await receiveFcmMessage(async, data);
+        receiveFcmMessage(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
           expectedIsGroupConversation: false,
@@ -516,7 +591,7 @@ void main() {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
-        await receiveFcmMessage(async, data);
+        receiveFcmMessage(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
           expectedIsGroupConversation: false,
@@ -545,7 +620,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Check on foreground event; onMessage
-      await receiveFcmMessage(async, data);
+      receiveFcmMessage(async, data);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -556,7 +631,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Check on background event; onBackgroundMessage
-      await receiveFcmMessage(async, data);
+      receiveFcmMessage(async, data);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -581,9 +656,9 @@ void main() {
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      await receiveFcmMessage(async, data1);
-      await receiveFcmMessage(async, data2);
-      await receiveFcmMessage(async, data3);
+      receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data3);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data3, 'stream:${stream.streamId}:$topicA'),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -615,8 +690,8 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Two notifications for different conversations; but same account.
-      await receiveFcmMessage(async, data1);
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, 'stream:${stream.streamId}:$topicA'),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -624,7 +699,7 @@ void main() {
       ]);
 
       // A RemoveFcmMessage for first conversation; only clears the first conversation notif.
-      await receiveFcmMessage(async, removeFcmMessage([message1]));
+      receiveFcmMessage(async, removeFcmMessage([message1]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionSummaryActiveNotif(expectedGroupKey),
         conditionActiveNotif(data2, 'stream:${stream.streamId}:$topicB'),
@@ -632,7 +707,7 @@ void main() {
 
       // Then a RemoveFcmMessage for the only remaining conversation;
       // clears both the conversation notif and summary notif.
-      await receiveFcmMessage(async, removeFcmMessage([message2]));
+      receiveFcmMessage(async, removeFcmMessage([message2]));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -662,8 +737,8 @@ void main() {
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      await receiveFcmMessage(async, data1);
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, 'stream:${stream.streamId}:$topic'),
         conditionSummaryActiveNotif(groupKey1),
@@ -671,13 +746,13 @@ void main() {
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      await receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      await receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -701,8 +776,8 @@ void main() {
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      await receiveFcmMessage(async, data1);
-      await receiveFcmMessage(async, data2);
+      receiveFcmMessage(async, data1);
+      receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, 'stream:${stream.streamId}:$topic'),
         conditionSummaryActiveNotif(groupKey1),
@@ -710,13 +785,13 @@ void main() {
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      await receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      await receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
   });
@@ -781,13 +856,15 @@ void main() {
     }
 
     testWidgets('stream message', (tester) async {
-      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     });
 
     testWidgets('direct message', (tester) async {
-      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
@@ -800,13 +877,15 @@ void main() {
     });
 
     testWidgets('mismatching account', (tester) async {
-      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await openNotification(tester, eg.otherAccount, eg.streamMessage());
       check(pushedRoutes).isEmpty();
     });
 
     testWidgets('find account among several', (tester) async {
+      addTearDown(testBinding.reset);
       final realmUrlA = Uri.parse('https://a-chat.example/');
       final realmUrlB = Uri.parse('https://chat-b.example/');
       final user1 = eg.user();
@@ -818,7 +897,7 @@ void main() {
         eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
       ];
       for (final account in accounts) {
-        testBinding.globalStore.add(account, eg.initialSnapshot());
+        await testBinding.globalStore.add(account, eg.initialSnapshot());
       }
       await prepare(tester);
 
@@ -829,7 +908,8 @@ void main() {
     });
 
     testWidgets('wait for app to become ready', (tester) async {
-      testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester, early: true);
       final message = eg.streamMessage();
       await openNotification(tester, eg.selfAccount, message);
@@ -848,6 +928,7 @@ void main() {
     });
 
     testWidgets('at app launch', (tester) async {
+      addTearDown(testBinding.reset);
       // Set up a value for `getNotificationLaunchDetails` to return.
       final account = eg.selfAccount;
       final message = eg.streamMessage();
@@ -858,7 +939,7 @@ void main() {
         NotificationAppLaunchDetails(true, notificationResponse: response);
 
       // Now start the app.
-      testBinding.globalStore.add(account, eg.initialSnapshot());
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
       await prepare(tester, early: true);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 

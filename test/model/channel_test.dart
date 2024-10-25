@@ -264,7 +264,7 @@ void main() {
                 await store.addSubscription(
                   eg.subscription(stream1, isMuted: streamMuted));
               }
-              store.handleEvent(mkEvent(oldPolicy));
+              await store.handleEvent(mkEvent(oldPolicy));
               final oldVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, 'topic');
               final oldVisible         = store.isTopicVisible(stream1.streamId, 'topic');
 
@@ -272,7 +272,7 @@ void main() {
               final willChangeInStream = store.willChangeIfTopicVisibleInStream(event);
               final willChange         = store.willChangeIfTopicVisible(event);
 
-              store.handleEvent(event);
+              await store.handleEvent(event);
               final newVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, 'topic');
               final newVisible         = store.isTopicVisible(stream1.streamId, 'topic');
 

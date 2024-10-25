@@ -62,6 +62,25 @@ GetServerSettingsResult serverSettings({
   );
 }
 
+RealmEmojiItem realmEmojiItem({
+  required String emojiCode,
+  required String emojiName,
+  String? sourceUrl,
+  String? stillUrl,
+  bool deactivated = false,
+  int? authorId,
+}) {
+  assert(RegExp(r'^[1-9][0-9]*$').hasMatch(emojiCode));
+  return RealmEmojiItem(
+    id: emojiCode,
+    name: emojiName,
+    sourceUrl: sourceUrl ?? '/emoji/$emojiCode.png',
+    stillUrl: stillUrl,
+    deactivated: deactivated,
+    authorId: authorId ?? user().userId,
+  );
+}
+
 ////////////////////////////////////////////////////////////////
 // Users and accounts.
 //
@@ -772,6 +791,7 @@ InitialSnapshot initialSnapshot({
   List<UserTopicItem>? userTopics,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
+  Uri? serverEmojiDataUrl,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
@@ -804,6 +824,8 @@ InitialSnapshot initialSnapshot({
     userTopics: userTopics,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
+    serverEmojiDataUrl: serverEmojiDataUrl
+      ?? realmUrl.replace(path: '/static/emoji.json'),
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],

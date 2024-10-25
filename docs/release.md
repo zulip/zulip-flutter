@@ -6,7 +6,8 @@
   Flutter and packages dependencies, do that first.
   For details of how, see our README.
 
-* Add an entry in `docs/changelog.md`.  Commit that change.
+* Write an entry in `docs/changelog.md`, as "Unreleased".
+  Commit that change.
 
 * Increment the version number in `pubspec.yaml`:
 
@@ -14,8 +15,11 @@
   and increment both of the last two numbers.
   They should remain equal to each other.
 
-* Commit the version-number change, and tag:
-  `git commit pubspec.yaml -m 'version: Bump version to 0.0.NNN'
+  Edit the "Unreleased" heading in `docs/changelog.md` to the
+  new version number.
+
+* Commit the version-number changes, and tag:
+  `git commit pubspec.yaml docs/changelog.md -m 'version: Bump version to 0.0.NNN'
   && git tag v0.0.NNN`
 
 * Push the tag to our central repo: `git push origin main v0.0.NNN`
@@ -100,7 +104,8 @@
 
 * Android via GitHub:
 
-  * Create a GitHub release, named the same as the tag.
+  * [Create a GitHub release](https://github.com/zulip/zulip-flutter/releases/new),
+    named the same as the tag.
 
   * For the release notes, use `tools/format-changelog notes`,
     and fix formatting as needed.
@@ -145,6 +150,9 @@
   follow up with the requesters: post on the relevant thread (in
   GitHub or Zulip) and @-mention the individuals who asked for the
   change.
+
+  In particular, for each fixed issue 123, do a Zulip search for
+  "f123".  This efficiently finds any threads that mentioned "#F123".
 
 
 ## One-time or annual setup

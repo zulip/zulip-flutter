@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,6 +26,10 @@ AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNoti
 
 /// Service for configuring our Android "notification channel".
 class NotificationChannelManager {
+  /// The channel ID we use for our one notification channel, which we use for
+  /// all notifications.
+  // TODO(launch) check this doesn't match zulip-mobile's current or previous
+  //   channel IDs
   @visibleForTesting
   static const kChannelId = 'messages-1';
 
@@ -36,6 +41,8 @@ class NotificationChannelManager {
   static final kVibrationPattern = Int64List.fromList([0, 125, 100, 450]);
 
   /// Create our notification channel, if it doesn't already exist.
+  ///
+  /// Deletes obsolete channels, if present, from old versions of the app.
   //
   // NOTE when changing anything here: the changes will not take effect
   // for existing installs of the app!  That's because we'll have already
@@ -52,11 +59,28 @@ class NotificationChannelManager {
   //    settings for the channel -- like "override Do Not Disturb", or "use
   //    a different sound", or "don't pop on screen" -- their changes get
   //    reset.  So this has to be done sparingly.
-  //
-  //    If we do this, we should also look for any channel with the old
-  //    channel ID and delete it.  See zulip-mobile's `createNotificationChannel`
-  //    in android/app/src/main/java/com/zulipmobile/notifications/NotificationChannelManager.kt .
-  static Future<void> _ensureChannel() async {
+  @visibleForTesting
+  static Future<void> ensureChannel() async {
+    // See if our current-version channel already exists; delete any obsolete
+    // previous channels.
+    var found = false;
+    final channels = await _androidHost.getNotificationChannels();
+    for (final channel in channels) {
+      assert(channel != null); // TODO(#942)
+      if (channel!.id == kChannelId) {
+        found = true;
+      } else {
+        await _androidHost.deleteNotificationChannel(channel.id);
+      }
+    }
+
+    if (found) {
+      // The channel already exists; nothing to do.
+      return;
+    }
+
+    // The channel doesn't exist. Create it.
+
     await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
       name: 'Messages', // TODO(i18n)
@@ -81,7 +105,7 @@ class NotificationDisplayManager {
     if (launchDetails?.didNotificationLaunchApp ?? false) {
       _handleNotificationAppLaunch(launchDetails!.notificationResponse);
     }
-    await NotificationChannelManager._ensureChannel();
+    await NotificationChannelManager.ensureChannel();
   }
 
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
@@ -354,10 +378,9 @@ class NotificationDisplayManager {
 
     assert(debugLog('  account: $account, narrow: $narrow'));
     // TODO(nav): Better interact with existing nav stack on notif open
-    navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
+    unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: narrow)));
-    return;
+      page: MessageListPage(initNarrow: narrow))));
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {

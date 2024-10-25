@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
+import '../log.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'app_bar.dart';
+import 'dialog.dart';
 import 'inbox.dart';
 import 'login.dart';
 import 'message_list.dart';
@@ -63,11 +65,29 @@ class ZulipApp extends StatefulWidget {
   /// to be mounted.
   static final navigatorKey = GlobalKey<NavigatorState>();
 
+  /// The [ScaffoldMessengerState] for the app.
+  ///
+  /// This is null during the app's early startup, while [ready] is still false.
+  ///
+  /// For code that exists entirely outside the widget tree and has no natural
+  /// [BuildContext] of its own, this enables controlling snack bars.
+  /// Where a relevant [BuildContext] does exist, prefer using that instead,
+  /// with [ScaffoldMessenger.of].
+  static ScaffoldMessengerState? get scaffoldMessenger {
+    final context = navigatorKey.currentContext;
+    if (context == null) return null;
+    // Not maybeOf; we use MaterialApp, which provides ScaffoldMessenger,
+    // so it's a bug if navigatorKey is mounted somewhere lacking that.
+    return ScaffoldMessenger.of(context);
+  }
+
   /// Reset the state of [ZulipApp] statics, for testing.
   ///
   /// TODO refactor this better, perhaps unify with ZulipBinding
   @visibleForTesting
   static void debugReset() {
+    _snackBarCount = 0;
+    reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
     _ready.dispose();
     _ready = ValueNotifier(false);
   }
@@ -76,9 +96,45 @@ class ZulipApp extends StatefulWidget {
   /// Useful in tests.
   final List<NavigatorObserver>? navigatorObservers;
 
+  static int _snackBarCount = 0;
+
+  /// The callback we normally use as [reportErrorToUserBriefly].
+  static void _reportErrorToUserBriefly(String? message, {String? details}) {
+    assert(_ready.value);
+
+    if (message == null) {
+      if (_snackBarCount == 0) return;
+      assert(_snackBarCount > 0);
+      // The [SnackBar] API only exposes ways to hide ether the current snack
+      // bar or all of them.
+      //
+      // To reduce the possibility of hiding snack bars not created by this
+      // helper, only clear when there are known active snack bars.
+      scaffoldMessenger!.clearSnackBars();
+      return;
+    }
+
+    final localizations = ZulipLocalizations.of(navigatorKey.currentContext!);
+    final newSnackBar = scaffoldMessenger!.showSnackBar(
+      snackBarAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 200),
+        reverseDuration: const Duration(milliseconds: 50)),
+      SnackBar(
+        content: Text(message),
+        action: (details == null) ? null : SnackBarAction(
+          label: localizations.snackBarDetails,
+          onPressed: () => showErrorDialog(context: navigatorKey.currentContext!,
+            title: localizations.errorDialogTitle,
+            message: details))));
+
+    _snackBarCount++;
+    newSnackBar.closed.whenComplete(() => _snackBarCount--);
+  }
+
   void _declareReady() {
     assert(navigatorKey.currentContext != null);
     _ready.value = true;
+    reportErrorToUserBriefly = _reportErrorToUserBriefly;
   }
 
   @override
@@ -243,6 +299,8 @@ class HomePage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    final colorScheme = ColorScheme.of(context);
+
     InlineSpan bold(String text) => TextSpan(
       style: const TextStyle().merge(weightVariableTextStyle(context, wght: 700)),
       text: text);
@@ -254,63 +312,61 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: ZulipAppBar(title: const Text("Home")),
-      body: Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          DefaultTextStyle.merge(
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18),
-            child: Column(children: [
-              const Text('🚧 Under construction 🚧'),
-              const SizedBox(height: 12),
-              Text.rich(TextSpan(
-                text: 'Connected to: ',
-                children: [bold(store.realmUrl.toString())])),
-              Text.rich(TextSpan(
-                text: 'Zulip server version: ',
-                children: [bold(store.zulipVersion)])),
-              Text(zulipLocalizations.subscribedToNChannels(store.subscriptions.length)),
-            ])),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const CombinedFeedNarrow())),
-            child: Text(zulipLocalizations.combinedFeedPageTitle)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const MentionsNarrow())),
-            child: Text(zulipLocalizations.mentionsPageTitle)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: const StarredMessagesNarrow())),
-            child: Text(zulipLocalizations.starredMessagesPageTitle)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              InboxPage.buildRoute(context: context)),
-            child: const Text("Inbox")), // TODO(i18n)
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              SubscriptionListPage.buildRoute(context: context)),
-            child: const Text("Subscribed channels")),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context,
-              RecentDmConversationsPage.buildRoute(context: context)),
-            child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
-          if (testStreamId != null) ...[
+      body: ElevatedButtonTheme(
+        data: ElevatedButtonThemeData(style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+          foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer))),
+        child: Center(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            DefaultTextStyle.merge(
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+              child: Column(children: [
+                Text.rich(TextSpan(
+                  text: 'Connected to: ',
+                  children: [bold(store.realmUrl.toString())])),
+              ])),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.push(context,
                 MessageListPage.buildRoute(context: context,
-                  narrow: ChannelNarrow(testStreamId!))),
-              child: const Text("#test here")), // scaffolding hack, see above
-          ],
-        ])));
+                  narrow: const CombinedFeedNarrow())),
+              child: Text(zulipLocalizations.combinedFeedPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: const MentionsNarrow())),
+              child: Text(zulipLocalizations.mentionsPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: const StarredMessagesNarrow())),
+              child: Text(zulipLocalizations.starredMessagesPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                InboxPage.buildRoute(context: context)),
+              child: const Text("Inbox")), // TODO(i18n)
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                SubscriptionListPage.buildRoute(context: context)),
+              child: const Text("Subscribed channels")),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                RecentDmConversationsPage.buildRoute(context: context)),
+              child: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+            if (testStreamId != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.push(context,
+                  MessageListPage.buildRoute(context: context,
+                    narrow: ChannelNarrow(testStreamId!))),
+                child: const Text("#test here")), // scaffolding hack, see above
+            ],
+          ]))));
   }
 }

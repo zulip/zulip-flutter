@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -240,9 +241,9 @@ void main() {
     ], unreadMsgs: unreadMsgs);
     check(getItemCount()).equals(1);
     check(tester.widget<Icon>(find.byIcon(iconDataForStream(stream))).color)
-      .equals(swatch.iconOnPlainBackground);
+      .isNotNull().isSameColorAs(swatch.iconOnPlainBackground);
     check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
-      .equals(swatch);
+      .isNotNull().isSameColorAs(swatch);
   });
 
   testWidgets('muted streams are displayed as faded', (tester) async {

@@ -58,7 +58,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Colors.white,
       dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.6, 0, 0, 1).toColor(),
+      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
       recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
       senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
@@ -601,11 +601,11 @@ class ScrollToBottomButton extends StatelessWidget {
   final ValueNotifier<bool> visibleValue;
   final ScrollController scrollController;
 
-  Future<void> _navigateToBottom() async {
+  Future<void> _navigateToBottom() {
     final distance = scrollController.position.pixels;
     final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
     final durationMs = max(300, durationMsAtSpeedLimit);
-    scrollController.animateTo(
+    return scrollController.animateTo(
       0,
       duration: Duration(milliseconds: durationMs),
       curve: Curves.ease);

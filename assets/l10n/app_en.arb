@@ -160,6 +160,18 @@
       "message": {"type": "String", "example": "Invalid format"}
     }
   },
+  "errorConnectingToServerShort": "Error connecting to Zulip. Retrying…",
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "errorConnectingToServerDetails": "Error connecting to Zulip at {serverUrl}. Will retry:\n\n{error}",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "serverUrl": {"type": "String", "example": "http://example.com/"},
+      "error": {"type": "String", "example": "Invalid format"}
+    }
+  },
   "errorSharingFailed": "Sharing failed",
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
@@ -293,6 +305,10 @@
   "@errorDialogTitle": {
     "description": "Generic title for error dialog."
   },
+  "snackBarDetails": "Details",
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
   "lightboxCopyLinkTooltip": "Copy link",
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
@@ -359,13 +375,6 @@
   "topicValidationErrorMandatoryButEmpty": "Topics are required in this organization.",
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
-  },
-  "subscribedToNChannels": "Subscribed to {num, plural, =0{no channels} =1{1 channel} other{{num} channels}}",
-  "@subscribedToNChannels": {
-    "description": "Test page label showing number of channels user is subscribed to.",
-    "placeholders": {
-      "num": {"type": "int", "example": "4"}
-    }
   },
   "errorInvalidResponse": "The server sent an invalid response",
   "@errorInvalidResponse": {
@@ -541,5 +550,13 @@
   "messageIsMovedLabel": "MOVED",
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "pollWidgetQuestionMissing": "No question.",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "pollWidgetOptionsMissing": "This poll has no options yet.",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
   }
 }
