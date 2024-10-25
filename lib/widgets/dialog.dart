@@ -9,20 +9,6 @@ import 'app.dart';
 import 'content.dart';
 import 'store.dart';
 
-Widget _materialDialogActionText(String text) {
-  return Text(
-    text,
-
-    // As suggested by
-    //   https://api.flutter.dev/flutter/material/AlertDialog/actions.html :
-    // > It is recommended to set the Text.textAlign to TextAlign.end
-    // > for the Text within the TextButton, so that buttons whose
-    // > labels wrap to an extra line align with the overall
-    // > OverflowBar's alignment within the dialog.
-    textAlign: TextAlign.end,
-  );
-}
-
 /// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
 Widget _adaptiveAction({required VoidCallback onPressed, required String text}) {
   switch (defaultTargetPlatform) {
@@ -30,7 +16,18 @@ Widget _adaptiveAction({required VoidCallback onPressed, required String text}) 
     case TargetPlatform.fuchsia:
     case TargetPlatform.linux:
     case TargetPlatform.windows:
-      return TextButton(onPressed: onPressed, child: _materialDialogActionText(text));
+      return TextButton(
+        onPressed: onPressed,
+        child: Text(
+          text,
+          // As suggested by
+          //   https://api.flutter.dev/flutter/material/AlertDialog/actions.html :
+          // > It is recommended to set the Text.textAlign to TextAlign.end
+          // > for the Text within the TextButton, so that buttons whose
+          // > labels wrap to an extra line align with the overall
+          // > OverflowBar's alignment within the dialog.
+          textAlign: TextAlign.end));
+
     case TargetPlatform.iOS:
     case TargetPlatform.macOS:
       return CupertinoDialogAction(onPressed: onPressed, child: Text(text));
