@@ -229,8 +229,8 @@ void main() {
     late TopicNarrow narrow;
 
     void checkSetTypingStatusRequests(
-      FakeApiConnection connection,
-      List<(TypingOp, SendableNarrow)> requests,
+      List<http.BaseRequest> requests,
+      List<(TypingOp, SendableNarrow)> expected,
     ) {
       Condition<Object?> conditionTypingRequest(Map<String, String> expected) {
         return (Subject<Object?> it) => it.isA<http.Request>()
@@ -239,8 +239,8 @@ void main() {
           ..bodyFields.deepEquals(expected);
       }
 
-      check(connection.takeRequests()).deepEquals([
-        for (final (op, narrow) in requests)
+      check(requests).deepEquals([
+        for (final (op, narrow) in expected)
           switch (narrow) {
             TopicNarrow() => conditionTypingRequest({
               'type': 'channel',
@@ -256,7 +256,7 @@ void main() {
     }
 
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
-      checkSetTypingStatusRequests(connection, [(op, narrow)]);
+      checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
 
     Future<void> prepare() async {
       addTearDown(testBinding.reset);
@@ -421,7 +421,7 @@ void main() {
       connection.prepare(json: {});
       connection.prepare(json: {});
       model.keystroke(dmNarrow);
-      checkSetTypingStatusRequests(connection,
+      checkSetTypingStatusRequests(connection.takeRequests(),
         [(TypingOp.stop, topicNarrow), (TypingOp.start, dmNarrow)]);
 
       async.elapse(Duration.zero);
@@ -466,7 +466,7 @@ void main() {
       connection.prepare(json: {});
       connection.prepare(json: {});
       model.keystroke(dmNarrow);
-      checkSetTypingStatusRequests(connection,
+      checkSetTypingStatusRequests(connection.takeRequests(),
         [(TypingOp.stop, topicNarrow), (TypingOp.start, dmNarrow)]);
 
       while (async.elapsed <= model.typingStartedWaitPeriod) {
