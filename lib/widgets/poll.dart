@@ -113,8 +113,11 @@ class _PollWidgetState extends State<PollWidget> {
       children: [
         Padding(padding: const EdgeInsets.only(bottom: 6), child: question),
         if (widget.poll.options.isEmpty)
-          Text(zulipLocalizations.pollWidgetOptionsMissing,
-            style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic)),
+          Padding(
+            // This is consistent with the option rows' bottom padding.
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Text(zulipLocalizations.pollWidgetOptionsMissing,
+              style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic))),
         for (final option in widget.poll.options)
           buildOptionItem(option),
       ]);
