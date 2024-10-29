@@ -71,7 +71,10 @@ void showSuggestedActionDialog({
           onPressed: () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.dialogCancel)),
         TextButton(
-          onPressed: onActionButtonPress,
+          onPressed: () {
+            onActionButtonPress();
+            Navigator.pop(context);
+          },
           child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
       ]));
 }
