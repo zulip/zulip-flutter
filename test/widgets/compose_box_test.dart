@@ -383,6 +383,43 @@ void main() {
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isNull();
     });
+
+    testWidgets('uploading does not send "typing stopped" notices when content input is blank', (tester) async {
+      final controllerKey = await prepareComposeBox(tester, narrow: narrow);
+      final composeBoxController = controllerKey.currentState!;
+
+      testBinding.pickImageResult = XFile.fromData(
+        // TODO test inference of MIME type when it's missing here
+        mimeType: 'image/jpeg',
+        utf8.encode('asdf'),
+        name: 'image.jpg',
+        length: 12345,
+        path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
+      );
+
+      connection.prepare(json: {});
+      check(composeBoxController.contentController.textNormalized).isEmpty();
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      // The content is unchanged because the user has not picked an image yet;
+      // otherwise a placeholder text will be added, which triggers a "typing
+      // started" notice.
+      check(composeBoxController.contentController.textNormalized).isEmpty();
+      check(connection.lastRequest).isNull();
+
+      connection.prepare(json:
+        UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+      await tester.pump(Duration.zero);
+      check(composeBoxController.contentController.textNormalized).isNotEmpty();
+      final requests = connection.takeRequests();
+      checkSetTypingStatusRequests([requests[0]], [(TypingOp.start, narrow)]);
+      check(requests[1]).isA<http.MultipartRequest>();
+
+      // Ensures that a "typing stopped" notice is sent when the test ends.
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
+
   });
 
   group('message-send request response', () {
