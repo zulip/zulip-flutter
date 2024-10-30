@@ -2,16 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -384,7 +383,7 @@ void main() {
       check(connection.lastRequest).isNull();
     });
 
-    testWidgets('uploading does not send "typing stopped" notices when content input is blank', (tester) async {
+    testWidgets('interacting with compose buttons sends a "typing started" notice', (tester) async {
       final controllerKey = await prepareComposeBox(tester, narrow: narrow);
       final composeBoxController = controllerKey.currentState!;
 
@@ -402,24 +401,22 @@ void main() {
       await tester.tap(find.byIcon(Icons.camera_alt));
       // The content is unchanged because the user has not picked an image yet;
       // otherwise a placeholder text will be added, which triggers a "typing
-      // started" notice.
+      // started" notice.  A "typing started" notice is still sent because
+      // interactions with the compose buttons also count as typing activities.
       check(composeBoxController.contentController.textNormalized).isEmpty();
-      check(connection.lastRequest).isNull();
+      checkTypingRequest(TypingOp.start, narrow);
 
       connection.prepare(json:
         UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
       await tester.pump(Duration.zero);
       check(composeBoxController.contentController.textNormalized).isNotEmpty();
-      final requests = connection.takeRequests();
-      checkSetTypingStatusRequests([requests[0]], [(TypingOp.start, narrow)]);
-      check(requests[1]).isA<http.MultipartRequest>();
+      check(connection.takeRequests()).single.isA<http.MultipartRequest>();
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
       await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
     });
-
   });
 
   group('message-send request response', () {

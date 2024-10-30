@@ -624,10 +624,12 @@ Future<void> _uploadFiles({
 
 class _ComposeButtonRow extends StatelessWidget {
   const _ComposeButtonRow({
+    required this.destination,
     required this.contentController,
     required this.contentFocusNode,
   });
 
+  final SendableNarrow destination;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
@@ -640,16 +642,85 @@ class _ComposeButtonRow extends StatelessWidget {
       data: themeData.copyWith(
         iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
       child: Row(children: [
-        _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-        _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-        _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachFileButton(
+          destination: destination,
+          contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachMediaButton(
+          destination: destination,
+          contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachFromCameraButton(
+          destination: destination,
+          contentController: contentController, contentFocusNode: contentFocusNode),
       ]));
   }
 }
 
-abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
+class _ChannelComposeButtonRow extends StatefulWidget {
+  const _ChannelComposeButtonRow({
+    required this.narrow,
+    required this.topicController,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
 
+  final ChannelNarrow narrow;
+  final ComposeTopicController topicController;
+  final ComposeContentController contentController;
+  final FocusNode contentFocusNode;
+
+  @override
+  State<_ChannelComposeButtonRow> createState() => _ChannelComposeButtonRowState();
+}
+
+class _ChannelComposeButtonRowState extends State<_ChannelComposeButtonRow> {
+  late String _topicTextNormalized;
+
+  void _topicChanged() {
+    setState(() {
+      _topicTextNormalized = widget.topicController.textNormalized;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _topicTextNormalized = widget.topicController.textNormalized;
+    widget.topicController.addListener(_topicChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ChannelComposeButtonRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.topicController != oldWidget.topicController) {
+      oldWidget.topicController.removeListener(_topicChanged);
+      widget.topicController.addListener(_topicChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.topicController.addListener(_topicChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ComposeButtonRow(
+      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
+      contentController: widget.contentController,
+      contentFocusNode: widget.contentFocusNode,
+    );
+  }
+}
+
+abstract class _AttachUploadsButton extends StatelessWidget {
+  const _AttachUploadsButton({
+    required this.destination,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
+
+  final SendableNarrow destination;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
@@ -666,6 +737,9 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   Future<Iterable<_File>> getFiles(BuildContext context);
 
   void _handlePress(BuildContext context) async {
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.keystroke(destination);
+
     final files = await getFiles(context);
     if (files.isEmpty) {
       return; // Nothing to do (getFiles handles user feedback)
@@ -749,7 +823,11 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFileButton({
+    required super.destination,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => Icons.attach_file;
@@ -765,7 +843,11 @@ class _AttachFileButton extends _AttachUploadsButton {
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
+  const _AttachMediaButton({
+    required super.destination,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => Icons.image;
@@ -782,7 +864,11 @@ class _AttachMediaButton extends _AttachUploadsButton {
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFromCameraButton({
+    required super.destination,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => Icons.camera_alt;
@@ -1125,7 +1211,9 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
         getDestination: () => StreamDestination(
           widget.narrow.streamId, _topicController.textNormalized),
       ),
-      composeButtonRow: _ComposeButtonRow(
+      composeButtonRow: _ChannelComposeButtonRow(
+        narrow: widget.narrow,
+        topicController: _topicController,
         contentController: contentController,
         contentFocusNode: contentFocusNode,
       ));
@@ -1211,6 +1299,7 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
         getDestination: () => widget.narrow.destination,
       ),
       composeButtonRow: _ComposeButtonRow(
+        destination: widget.narrow,
         contentController: contentController,
         contentFocusNode: contentFocusNode,
       ));
