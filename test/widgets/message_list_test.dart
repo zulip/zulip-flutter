@@ -56,6 +56,7 @@ void main() {
     List<User>? users,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
+    int? zulipFeatureLevel,
     List<NavigatorObserver> navObservers = const [],
     bool skipAssertAccountExists = false,
   }) async {
@@ -63,9 +64,12 @@ void main() {
     addTearDown(TypingNotifier.debugReset);
     addTearDown(testBinding.reset);
     streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+    zulipFeatureLevel ??= eg.recentZulipFeatureLevel;
+    final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel,
       streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store = await testBinding.globalStore.perAccount(selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
     // prepare message list data
@@ -78,7 +82,7 @@ void main() {
     connection.prepare(json:
       eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
 
-    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
       navigatorObservers: navObservers,
       child: MessageListPage(initNarrow: narrow)));
