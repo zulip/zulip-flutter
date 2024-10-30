@@ -96,29 +96,36 @@ void main() {
   }
 
   group('fetchInitial', () {
-    test('smoke', () async {
-      const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
-      connection.prepare(json: newestResult(
-        foundOldest: false,
-        messages: List.generate(kMessageListFetchBatchSize,
-          (i) => eg.streamMessage()),
-      ).toJson());
-      final fetchFuture = model.fetchInitial();
-      check(model).fetched.isFalse();
+    group('smoke', () {
+      Future<void> smoke(
+        Narrow narrow,
+        Message Function(int i) generateMessages,
+      ) async {
+        await prepare(narrow: narrow);
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: List.generate(kMessageListFetchBatchSize, generateMessages),
+        ).toJson());
+        final fetchFuture = model.fetchInitial();
+        check(model).fetched.isFalse();
 
-      checkNotNotified();
-      await fetchFuture;
-      checkNotifiedOnce();
-      check(model)
-        ..messages.length.equals(kMessageListFetchBatchSize)
-        ..haveOldest.isFalse();
-      checkLastRequest(
-        narrow: narrow.apiEncode(),
-        anchor: 'newest',
-        numBefore: kMessageListFetchBatchSize,
-        numAfter: 0,
-      );
+        checkNotNotified();
+        await fetchFuture;
+        checkNotifiedOnce();
+        check(model)
+          ..messages.length.equals(kMessageListFetchBatchSize)
+          ..haveOldest.isFalse();
+        checkLastRequest(
+          narrow: narrow.apiEncode(),
+          anchor: 'newest',
+          numBefore: kMessageListFetchBatchSize,
+          numAfter: 0,
+        );
+      }
+
+      test('CombinedFeedNarrow', () async {
+        await smoke(const CombinedFeedNarrow(), (i) => eg.streamMessage());
+      });
     });
 
     test('short history', () async {
