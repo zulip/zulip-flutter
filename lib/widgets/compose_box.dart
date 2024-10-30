@@ -339,6 +339,12 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
     store.typingNotifier.stoppedComposing();
   }
 
+  bool _handleScroll(ScrollNotification notification) {
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.keystroke(widget.destination);
+    return false;
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -377,21 +383,23 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
           // TODO constrain this adaptively (i.e. not hard-coded 200)
           maxHeight: 200,
         ),
-        child: ComposeAutocomplete(
-          narrow: widget.narrow,
-          controller: widget.controller,
-          focusNode: widget.focusNode,
-          fieldViewBuilder: (context) {
-            return TextField(
-              controller: widget.controller,
-              focusNode: widget.focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: widget.hintText),
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-            );
-          }),
-        ));
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _handleScroll,
+          child: ComposeAutocomplete(
+            narrow: widget.narrow,
+            controller: widget.controller,
+            focusNode: widget.focusNode,
+            fieldViewBuilder: (context) {
+              return TextField(
+                controller: widget.controller,
+                focusNode: widget.focusNode,
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration.collapsed(hintText: widget.hintText),
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+              );
+            }),
+        )));
   }
 }
 

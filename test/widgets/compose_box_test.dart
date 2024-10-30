@@ -423,6 +423,35 @@ void main() {
       await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
     });
+
+    testWidgets('scrolling autocompletion sends "typing started" notice', (tester) async {
+      final users = List.generate(10, (i) => eg.user(fullName: 'User $i'));
+      final narrow = DmNarrow.withUser(
+        users[0].userId, selfUserId: eg.selfUser.userId);
+      await prepareComposeBox(tester,
+        narrow: narrow, users: [eg.otherUser, ...users]);
+
+      connection.prepare(json: {});
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(contentInputFinder, '@Use');
+      await tester.enterText(contentInputFinder, '@User');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkTypingRequest(TypingOp.start, narrow);
+
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+
+      connection.prepare(json: {});
+      await tester.drag(find.text(users[0].fullName), const Offset(0, 5));
+      await tester.pump(Duration.zero);
+      checkTypingRequest(TypingOp.start, narrow);
+
+      // Ensures that a "typing stopped" notice is sent when the test ends.
+      connection.prepare(json: {});
+      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      checkTypingRequest(TypingOp.stop, narrow);
+    });
   });
 
   group('message-send request response', () {
