@@ -325,7 +325,8 @@ class TestZulipBinding extends ZulipBinding {
     FileType? type,
   }) async {
     (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
-    return pickFilesResult;
+    return Future<FilePickerResult?>.delayed(
+      Duration.zero, () => pickFilesResult);
   }
 
   /// The value that `ZulipBinding.instance.pickImage()` should return.
@@ -364,7 +365,7 @@ class TestZulipBinding extends ZulipBinding {
     bool requestFullMetadata = true,
   }) async {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
-    return pickImageResult;
+    return Future<XFile?>.delayed(Duration.zero, () => pickImageResult);
   }
 
   /// Returns the current status of wakelock, which can be

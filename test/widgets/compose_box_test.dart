@@ -486,6 +486,7 @@ void main() {
         final errorDialogs = tester.widgetList(find.byType(AlertDialog));
         check(errorDialogs).isEmpty();
 
+        await tester.pump(Duration.zero); // picked a file
         check(composeBoxController.contentController.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
@@ -543,6 +544,7 @@ void main() {
         final errorDialogs = tester.widgetList(find.byType(AlertDialog));
         check(errorDialogs).isEmpty();
 
+        await tester.pump(Duration.zero); // picked an image
         check(composeBoxController.contentController.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
