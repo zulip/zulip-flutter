@@ -32,8 +32,18 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester,
-      {required Narrow narrow, List<User> users = const []}) async {
+  final topicInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeTopicController);
+  final contentInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(
+    WidgetTester tester, {
+    required Narrow narrow,
+    String? topic,
+    String? content,
+    List<User> users = const [],
+  }) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
@@ -42,15 +52,25 @@ void main() {
     await store.addUsers([eg.selfUser, ...users]);
     connection = store.connection as FakeApiConnection;
 
-    if (narrow is ChannelNarrow) {
-      // Ensure topics are loaded before testing actual logic.
-      connection.prepare(body:
-        jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
-    }
     final controllerKey = GlobalKey<ComposeBoxController>();
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
     await tester.pumpAndSettle();
+
+    if (topic != null) {
+      // The topic input is currently only available to ChannelNarrow.
+      narrow as ChannelNarrow;
+      connection.prepare(body:
+        jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+      await tester.enterText(topicInputFinder, topic);
+      check(connection.takeRequests()).single
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
+    }
+    if (content != null) {
+      await tester.enterText(contentInputFinder, content);
+    }
+    await tester.pump();
 
     return controllerKey;
   }
@@ -206,8 +226,6 @@ void main() {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'));
 
-      final contentInputFinder = find.byWidgetPredicate(
-        (widget) => widget is TextField && widget.controller is ComposeContentController);
       await tester.enterText(contentInputFinder, 'hello world');
 
       prepareResponse(456);
@@ -271,14 +289,12 @@ void main() {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
 
-        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
+        final controllerKey = await prepareComposeBox(tester,
+          narrow: ChannelNarrow(eg.stream().streamId),
+          topic: 'some topic', content: 'see image: ');
         final composeBoxController = controllerKey.currentState!;
-
         // (When we check that the send button looks disabled, it should be because
         // the file is uploading, not a pre-existing reason.)
-        composeBoxController.topicController!.value = const TextEditingValue(text: 'some topic');
-        composeBoxController.contentController.value = const TextEditingValue(text: 'see image: ');
-        await tester.pump();
         checkAppearsLoading(tester, false);
 
         testBinding.pickFilesResult = FilePickerResult([PlatformFile(
@@ -330,14 +346,12 @@ void main() {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
 
-        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
+        final controllerKey = await prepareComposeBox(tester,
+          narrow: ChannelNarrow(eg.stream().streamId),
+          topic: 'some topic', content: 'see image: ');
         final composeBoxController = controllerKey.currentState!;
-
         // (When we check that the send button looks disabled, it should be because
         // the file is uploading, not a pre-existing reason.)
-        composeBoxController.topicController!.value = const TextEditingValue(text: 'some topic');
-        composeBoxController.contentController.value = const TextEditingValue(text: 'see image: ');
-        await tester.pump();
         checkAppearsLoading(tester, false);
 
         testBinding.pickImageResult = XFile.fromData(
