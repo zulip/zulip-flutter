@@ -57,7 +57,13 @@ void main() {
 
     final controllerKey = GlobalKey<ComposeBoxController>();
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-      child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
+      child: Column(
+        // This positions the compose box at the bottom of the screen,
+        // simulating the layout of the message list page.
+        children: [
+          const Expanded(child: SizedBox.expand()),
+          ComposeBox(controllerKey: controllerKey, narrow: narrow),
+        ])));
     await tester.pumpAndSettle();
 
     if (topic != null) {
