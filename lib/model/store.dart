@@ -1042,21 +1042,14 @@ class UpdateMachine {
             assert(debugLog('… Event queue replaced.'));
             return;
 
+          case NetworkException():
           case Server5xxException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
-            maybeReportToUserTransientError(e);
-            await (backoffMachine ??= BackoffMachine()).wait();
-            if (_disposed) return;
-            assert(debugLog('… Backoff wait complete, retrying poll.'));
-            continue;
-
-          case NetworkException():
-            assert(debugLog('Transient error polling event queue for $store: $e\n'
-                'Backing off, then will retry…'));
-            if (e.cause is! SocketException) {
-              // Heuristic check to only report interesting errors to the user.
+            if (e is NetworkException && e.cause is SocketException) {
+              // The error is boring; skip reporting it to the user.
               // A [SocketException] is common when the app returns from sleep.
+            } else {
               maybeReportToUserTransientError(e);
             }
             await (backoffMachine ??= BackoffMachine()).wait();
