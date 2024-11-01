@@ -1008,10 +1008,10 @@ class UpdateMachine {
 
     /// This only reports transient errors after reaching
     /// a pre-defined threshold of retries.
-    void maybeReportTransientError(String? message, {String? details}) {
+    void maybeReportToUserTransientError(Object error) {
       accumulatedTransientFailureCount++;
       if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
-        reportErrorToUserBriefly(message, details: details);
+        _reportToUserErrorConnectingToServer(error);
       }
     }
 
@@ -1034,8 +1034,6 @@ class UpdateMachine {
         if (_disposed) return;
 
         store.isLoading = true;
-        final localizations = GlobalLocalizations.zulipLocalizations;
-        final serverUrl = store.realmUrl.toString();
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
@@ -1047,10 +1045,7 @@ class UpdateMachine {
           case Server5xxException():
             assert(debugLog('Transient error polling event queue for $store: $e\n'
                 'Backing off, then will retry…'));
-            maybeReportTransientError(
-              localizations.errorConnectingToServerShort,
-              details: localizations.errorConnectingToServerDetails(
-                serverUrl, e.toString()));
+            maybeReportToUserTransientError(e);
             await (backoffMachine ??= BackoffMachine()).wait();
             if (_disposed) return;
             assert(debugLog('… Backoff wait complete, retrying poll.'));
@@ -1062,10 +1057,7 @@ class UpdateMachine {
             if (e.cause is! SocketException) {
               // Heuristic check to only report interesting errors to the user.
               // A [SocketException] is common when the app returns from sleep.
-              maybeReportTransientError(
-                localizations.errorConnectingToServerShort,
-                details: localizations.errorConnectingToServerDetails(
-                  serverUrl, e.toString()));
+              maybeReportToUserTransientError(e);
             }
             await (backoffMachine ??= BackoffMachine()).wait();
             if (_disposed) return;
@@ -1076,10 +1068,7 @@ class UpdateMachine {
             assert(debugLog('Error polling event queue for $store: $e\n'
                 'Backing off and retrying even though may be hopeless…'));
             // TODO(#186): Handle unrecoverable failures
-            reportErrorToUserBriefly(
-              localizations.errorConnectingToServerShort,
-              details: localizations.errorConnectingToServerDetails(
-                serverUrl, e.toString()));
+            _reportToUserErrorConnectingToServer(e);
             await (backoffMachine ??= BackoffMachine()).wait();
             if (_disposed) return;
             assert(debugLog('… Backoff wait complete, retrying poll.'));
@@ -1117,6 +1106,14 @@ class UpdateMachine {
         lastEventId = events.last.id;
       }
     }
+  }
+
+  void _reportToUserErrorConnectingToServer(Object error) {
+    final localizations = GlobalLocalizations.zulipLocalizations;
+    reportErrorToUserBriefly(
+      localizations.errorConnectingToServerShort,
+      details: localizations.errorConnectingToServerDetails(
+        store.realmUrl.toString(), error.toString()));
   }
 
   /// Send this client's notification token to the server, now and if it changes.
