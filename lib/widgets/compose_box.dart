@@ -1086,7 +1086,7 @@ class _ComposeBoxContainer extends StatelessWidget {
     };
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
-    //   the message list itself
+    //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: designVariables.borderBar))),
@@ -1275,6 +1275,9 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
+/// The compose box.
+///
+/// Takes the full screen width, covering the horizontal insets with its surface.
 class ComposeBox extends StatefulWidget {
   ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));

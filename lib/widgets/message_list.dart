@@ -294,8 +294,10 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //   we matched to the Figma in 21dbae120. See another frame, which uses that:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
-        builder: (BuildContext context) => Center(
-          child: Column(children: [
+        builder: (BuildContext context) => Column(
+          // Children are expected to take the full horizontal space
+          // and handle the horizontal device insets.
+          children: [
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
               // BuildContext, which is under `body`, through
@@ -315,7 +317,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]))));
+          ])));
   }
 }
 
@@ -432,6 +434,10 @@ const _kShortMessageHeight = 80;
 // previous batch.
 const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
 
+/// The message list.
+///
+/// Takes the full screen width, keeping its contents
+/// out of the horizontal insets with transparent [SafeArea] padding.
 class MessageList extends StatefulWidget {
   const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
 
@@ -531,6 +537,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
       bottom: false,
 
+      // Horizontally, on wide screens, this Center grows the SafeArea
+      // to position its padding over the device insets and centers content.
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
