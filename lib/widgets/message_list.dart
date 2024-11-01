@@ -467,6 +467,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
       bottom: false,
 
+      // (center horizontally on wide screens; a no-op in the vertical direction)
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
