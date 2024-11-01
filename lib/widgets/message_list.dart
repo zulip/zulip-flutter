@@ -274,23 +274,22 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //   we matched to the Figma in 21dbae120. See another frame, which uses that:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
-        builder: (BuildContext context) => Center(
-          child: Column(children: [
-            MediaQuery.removePadding(
-              // Scaffold knows about the app bar, and so has run this
-              // BuildContext, which is under `body`, through
-              // MediaQuery.removePadding with `removeTop: true`.
-              context: context,
+        builder: (BuildContext context) => Column(children: [
+          MediaQuery.removePadding(
+            // Scaffold knows about the app bar, and so has run this
+            // BuildContext, which is under `body`, through
+            // MediaQuery.removePadding with `removeTop: true`.
+            context: context,
 
-              // The compose box, when present, pads the bottom inset.
-              // TODO(#311) If we have a bottom nav, it will pad the bottom
-              //   inset, and this should always be true.
-              removeBottom: ComposeBox.hasComposeBox(narrow),
+            // The compose box, when present, pads the bottom inset.
+            // TODO(#311) If we have a bottom nav, it will pad the bottom
+            //   inset, and this should always be true.
+            removeBottom: ComposeBox.hasComposeBox(narrow),
 
-              child: Expanded(
-                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
-            ComposeBox(controllerKey: _composeBoxKey, narrow: narrow),
-          ]))));
+            child: Expanded(
+              child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
+          ComposeBox(controllerKey: _composeBoxKey, narrow: narrow),
+        ])));
   }
 }
 
