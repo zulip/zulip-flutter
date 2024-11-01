@@ -1033,6 +1033,7 @@ class UpdateMachine {
               details: localizations.errorConnectingToServerDetails(
                 serverUrl, e.toString()));
             await (backoffMachine ??= BackoffMachine()).wait();
+            if (_disposed) return;
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
 
@@ -1048,6 +1049,7 @@ class UpdateMachine {
                   serverUrl, e.toString()));
             }
             await (backoffMachine ??= BackoffMachine()).wait();
+            if (_disposed) return;
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
 
@@ -1060,6 +1062,7 @@ class UpdateMachine {
               details: localizations.errorConnectingToServerDetails(
                 serverUrl, e.toString()));
             await (backoffMachine ??= BackoffMachine()).wait();
+            if (_disposed) return;
             assert(debugLog('… Backoff wait complete, retrying poll.'));
             continue;
         }
