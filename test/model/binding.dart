@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -209,6 +210,9 @@ class TestZulipBinding extends ZulipBinding {
     _closeInAppWebViewCallCount++;
   }
 
+  @override
+  Stopwatch stopwatch() => clock.stopwatch();
+
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
   static const _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
@@ -321,7 +325,8 @@ class TestZulipBinding extends ZulipBinding {
     FileType? type,
   }) async {
     (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
-    return pickFilesResult;
+    return Future<FilePickerResult?>.delayed(
+      Duration.zero, () => pickFilesResult);
   }
 
   /// The value that `ZulipBinding.instance.pickImage()` should return.
@@ -360,7 +365,7 @@ class TestZulipBinding extends ZulipBinding {
     bool requestFullMetadata = true,
   }) async {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
-    return pickImageResult;
+    return Future<XFile?>.delayed(Duration.zero, () => pickImageResult);
   }
 
   /// Returns the current status of wakelock, which can be

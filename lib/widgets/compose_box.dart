@@ -218,8 +218,8 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
     final placeholder = inlineLink(linkText, null);
     _uploads[tag] = (filename: filename, placeholder: placeholder);
-    notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');
+    notifyListeners(); // _uploads change could affect validationErrors
     return tag;
   }
 
@@ -269,18 +269,106 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatelessWidget {
+class _ContentInput extends StatefulWidget {
   const _ContentInput({
     required this.narrow,
+    required this.destination,
     required this.controller,
     required this.focusNode,
     required this.hintText,
   });
 
   final Narrow narrow;
+  final SendableNarrow destination;
   final ComposeContentController controller;
   final FocusNode focusNode;
   final String hintText;
+
+  @override
+  State<_ContentInput> createState() => _ContentInputState();
+}
+
+class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_contentChanged);
+    widget.focusNode.addListener(_focusChanged);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContentInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_contentChanged);
+      widget.controller.addListener(_contentChanged);
+    }
+    if (widget.focusNode != oldWidget.focusNode) {
+      oldWidget.focusNode.removeListener(_focusChanged);
+      widget.focusNode.addListener(_focusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_contentChanged);
+    widget.focusNode.removeListener(_focusChanged);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _contentChanged() {
+    final store = PerAccountStoreWidget.of(context);
+    (widget.controller.text.isEmpty)
+      ? store.typingNotifier.stoppedComposing()
+      : store.typingNotifier.keystroke(widget.destination);
+  }
+
+  void _focusChanged() {
+    if (widget.focusNode.hasFocus) {
+      // Content input getting focus doesn't necessarily mean that
+      // the user started typing, so do nothing.
+      return;
+    }
+    // Losing focus usually indicates that the user has navigated away or
+    // clicked on other UI elements.  On Android, this does not get triggered
+    // unless the user navigates away from the page or focuses on another input.
+    // See: https://github.com/zulip/zulip-flutter/pull/897#discussion_r1818188643
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.stoppedComposing();
+  }
+
+  bool _handleScroll(ScrollNotification notification) {
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.keystroke(widget.destination);
+    return false;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        // Transition to either of these states signals that
+        // > [the] application is not currently visible to the user, and not
+        // > responding to user input.
+        final store = PerAccountStoreWidget.of(context);
+        store.typingNotifier.stoppedComposing();
+      case AppLifecycleState.detached:
+        // > The application defaults to this state before it initializes, and
+        // > can be in this state (applicable on Android, iOS, and web) after
+        // > all views have been detached.
+        // At the point, the compose box might not exist, so it is irrelevant
+        // to the composing session.
+      case AppLifecycleState.inactive:
+        // > At least one view of the application is visible, but none have
+        // > input focus. The application is otherwise running normally.
+        // For example, we expect this state when the user is selecting a file
+        // to upload.
+      case AppLifecycleState.resumed:
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -295,21 +383,23 @@ class _ContentInput extends StatelessWidget {
           // TODO constrain this adaptively (i.e. not hard-coded 200)
           maxHeight: 200,
         ),
-        child: ComposeAutocomplete(
-          narrow: narrow,
-          controller: controller,
-          focusNode: focusNode,
-          fieldViewBuilder: (context) {
-            return TextField(
-              controller: controller,
-              focusNode: focusNode,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration.collapsed(hintText: hintText),
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-            );
-          }),
-        ));
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _handleScroll,
+          child: ComposeAutocomplete(
+            narrow: widget.narrow,
+            controller: widget.controller,
+            focusNode: widget.focusNode,
+            fieldViewBuilder: (context) {
+              return TextField(
+                controller: widget.controller,
+                focusNode: widget.focusNode,
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration.collapsed(hintText: widget.hintText),
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+              );
+            }),
+        )));
   }
 }
 
@@ -370,6 +460,8 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
+      destination: TopicNarrow(
+        widget.narrow.streamId, widget.topicController.textNormalized),
       controller: widget.controller,
       focusNode: widget.focusNode,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
@@ -446,6 +538,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ContentInput(
       narrow: narrow,
+      destination: narrow,
       controller: controller,
       focusNode: focusNode,
       hintText: _hintText(context));
@@ -537,9 +630,105 @@ Future<void> _uploadFiles({
   }
 }
 
-abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
+class _ComposeButtonRow extends StatelessWidget {
+  const _ComposeButtonRow({
+    required this.destination,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
 
+  final SendableNarrow destination;
+  final ComposeContentController contentController;
+  final FocusNode contentFocusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+    ColorScheme colorScheme = themeData.colorScheme;
+
+    return Theme(
+      data: themeData.copyWith(
+        iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
+      child: Row(children: [
+        _AttachFileButton(
+          destination: destination,
+          contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachMediaButton(
+          destination: destination,
+          contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachFromCameraButton(
+          destination: destination,
+          contentController: contentController, contentFocusNode: contentFocusNode),
+      ]));
+  }
+}
+
+class _ChannelComposeButtonRow extends StatefulWidget {
+  const _ChannelComposeButtonRow({
+    required this.narrow,
+    required this.topicController,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
+
+  final ChannelNarrow narrow;
+  final ComposeTopicController topicController;
+  final ComposeContentController contentController;
+  final FocusNode contentFocusNode;
+
+  @override
+  State<_ChannelComposeButtonRow> createState() => _ChannelComposeButtonRowState();
+}
+
+class _ChannelComposeButtonRowState extends State<_ChannelComposeButtonRow> {
+  late String _topicTextNormalized;
+
+  void _topicChanged() {
+    setState(() {
+      _topicTextNormalized = widget.topicController.textNormalized;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _topicTextNormalized = widget.topicController.textNormalized;
+    widget.topicController.addListener(_topicChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ChannelComposeButtonRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.topicController != oldWidget.topicController) {
+      oldWidget.topicController.removeListener(_topicChanged);
+      widget.topicController.addListener(_topicChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.topicController.addListener(_topicChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ComposeButtonRow(
+      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
+      contentController: widget.contentController,
+      contentFocusNode: widget.contentFocusNode,
+    );
+  }
+}
+
+abstract class _AttachUploadsButton extends StatelessWidget {
+  const _AttachUploadsButton({
+    required this.destination,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
+
+  final SendableNarrow destination;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
@@ -556,6 +745,9 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   Future<Iterable<_File>> getFiles(BuildContext context);
 
   void _handlePress(BuildContext context) async {
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.keystroke(destination);
+
     final files = await getFiles(context);
     if (files.isEmpty) {
       return; // Nothing to do (getFiles handles user feedback)
@@ -639,7 +831,11 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFileButton({
+    required super.destination,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => Icons.attach_file;
@@ -655,7 +851,11 @@ class _AttachFileButton extends _AttachUploadsButton {
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
+  const _AttachMediaButton({
+    required super.destination,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => Icons.image;
@@ -672,7 +872,11 @@ class _AttachMediaButton extends _AttachUploadsButton {
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFromCameraButton({
+    required super.destination,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => Icons.camera_alt;
@@ -818,6 +1022,10 @@ class _SendButtonState extends State<_SendButton> {
     final content = widget.contentController.textNormalized;
 
     widget.contentController.clear();
+    // The following `stoppedComposing` call is currently redundant,
+    // because clearing input sends a "typing stopped" notice.
+    // It will be necessary once we resolve #720.
+    store.typingNotifier.stoppedComposing();
 
     try {
       // TODO(#720) clear content input only on success response;
@@ -903,15 +1111,13 @@ class _ComposeBoxLayout extends StatelessWidget {
     required this.topicInput,
     required this.contentInput,
     required this.sendButton,
-    required this.contentController,
-    required this.contentFocusNode,
+    required this.composeButtonRow,
   });
 
   final Widget? topicInput;
   final Widget contentInput;
   final Widget sendButton;
-  final ComposeContentController contentController;
-  final FocusNode contentFocusNode;
+  final Widget composeButtonRow;
 
   @override
   Widget build(BuildContext context) {
@@ -946,14 +1152,7 @@ class _ComposeBoxLayout extends StatelessWidget {
           const SizedBox(width: 8),
           sendButton,
         ]),
-        Theme(
-          data: themeData.copyWith(
-            iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
-          child: Row(children: [
-            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          ])),
+        composeButtonRow,
       ]));
   }
 }
@@ -1002,8 +1201,6 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   @override
   Widget build(BuildContext context) {
     return _ComposeBoxLayout(
-      contentController: _contentController,
-      contentFocusNode: _contentFocusNode,
       topicInput: _TopicInput(
         streamId: widget.narrow.streamId,
         controller: _topicController,
@@ -1021,6 +1218,12 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
         contentController: _contentController,
         getDestination: () => StreamDestination(
           widget.narrow.streamId, _topicController.textNormalized),
+      ),
+      composeButtonRow: _ChannelComposeButtonRow(
+        narrow: widget.narrow,
+        topicController: _topicController,
+        contentController: contentController,
+        contentFocusNode: contentFocusNode,
       ));
   }
 }
@@ -1092,8 +1295,6 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
     }
 
     return _ComposeBoxLayout(
-      contentController: _contentController,
-      contentFocusNode: _contentFocusNode,
       topicInput: null,
       contentInput: _FixedDestinationContentInput(
         narrow: widget.narrow,
@@ -1104,6 +1305,11 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
         topicController: null,
         contentController: _contentController,
         getDestination: () => widget.narrow.destination,
+      ),
+      composeButtonRow: _ComposeButtonRow(
+        destination: widget.narrow,
+        contentController: contentController,
+        contentFocusNode: contentFocusNode,
       ));
   }
 }
