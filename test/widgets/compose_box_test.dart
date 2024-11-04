@@ -42,17 +42,27 @@ void main() {
     await store.addUsers([eg.selfUser, ...users]);
     connection = store.connection as FakeApiConnection;
 
-    if (narrow is ChannelNarrow) {
-      // Ensure topics are loaded before testing actual logic.
-      connection.prepare(body:
-        jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
-    }
     final controllerKey = GlobalKey<ComposeBoxController>();
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: ComposeBox(controllerKey: controllerKey, narrow: narrow)));
     await tester.pumpAndSettle();
 
     return controllerKey;
+  }
+
+  Future<void> enterTopic(WidgetTester tester, {
+    required ChannelNarrow narrow,
+    required String topic,
+  }) async {
+    final topicInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeTopicController);
+
+    connection.prepare(body:
+      jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+    await tester.enterText(topicInputFinder, topic);
+    check(connection.takeRequests()).single
+      ..method.equals('GET')
+      ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
   }
 
   group('ComposeContentController', () {
@@ -271,12 +281,13 @@ void main() {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
 
-        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
+        final narrow = ChannelNarrow(eg.stream().streamId);
+        final controllerKey = await prepareComposeBox(tester, narrow: narrow);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
         // the file is uploading, not a pre-existing reason.)
-        composeBoxController.topicController!.value = const TextEditingValue(text: 'some topic');
+        await enterTopic(tester, narrow: narrow, topic: 'some topic');
         composeBoxController.contentController.value = const TextEditingValue(text: 'see image: ');
         await tester.pump();
         checkAppearsLoading(tester, false);
@@ -330,12 +341,13 @@ void main() {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
 
-        final controllerKey = await prepareComposeBox(tester, narrow: ChannelNarrow(eg.stream().streamId));
+        final narrow = ChannelNarrow(eg.stream().streamId);
+        final controllerKey = await prepareComposeBox(tester, narrow: narrow);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
         // the file is uploading, not a pre-existing reason.)
-        composeBoxController.topicController!.value = const TextEditingValue(text: 'some topic');
+        await enterTopic(tester, narrow: narrow, topic: 'some topic');
         composeBoxController.contentController.value = const TextEditingValue(text: 'see image: ');
         await tester.pump();
         checkAppearsLoading(tester, false);
