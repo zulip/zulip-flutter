@@ -892,6 +892,160 @@ class ContentExample {
     ]),
     InlineVideoNode(srcUrl: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm'),
   ]);
+
+  static const tableWithSingleRow = ContentExample(
+    'table with single row',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/1971202
+    '| a | b | c | d |\n| - | - | - | - |\n| 1 | 2 | 3 | 4 |',
+    '<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n<th>c</th>\n<th>d</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td>1</td>\n<td>2</td>\n<td>3</td>\n<td>4</td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('a')], links: []),
+        TableCellNode(nodes: [TextNode('b')], links: []),
+        TableCellNode(nodes: [TextNode('c')], links: []),
+        TableCellNode(nodes: [TextNode('d')], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('1')], links: []),
+        TableCellNode(nodes: [TextNode('2')], links: []),
+        TableCellNode(nodes: [TextNode('3')], links: []),
+        TableCellNode(nodes: [TextNode('4')], links: []),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableWithMultipleRows = ContentExample(
+    'table with multiple rows',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/1971203
+    '| heading 1 | heading 2 | heading 3 |\n| - | - | - |\n| body11 | body12 | body13 |\n| body21 | body22 | body23 |\n| body31 | body32 | body33 |',
+    '<table>\n<thead>\n<tr>\n<th>heading 1</th>\n<th>heading 2</th>\n<th>heading 3</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td>body11</td>\n<td>body12</td>\n<td>body13</td>\n</tr>\n'
+      '<tr>\n<td>body21</td>\n<td>body22</td>\n<td>body23</td>\n</tr>\n'
+      '<tr>\n<td>body31</td>\n<td>body32</td>\n<td>body33</td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('heading 1')], links: []),
+        TableCellNode(nodes: [TextNode('heading 2')], links: []),
+        TableCellNode(nodes: [TextNode('heading 3')], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('body11')], links: []),
+        TableCellNode(nodes: [TextNode('body12')], links: []),
+        TableCellNode(nodes: [TextNode('body13')], links: []),
+      ], isHeader: false),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('body21')], links: []),
+        TableCellNode(nodes: [TextNode('body22')], links: []),
+        TableCellNode(nodes: [TextNode('body23')], links: []),
+      ], isHeader: false),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('body31')], links: []),
+        TableCellNode(nodes: [TextNode('body32')], links: []),
+        TableCellNode(nodes: [TextNode('body33')], links: []),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableWithBoldAndItalicHeaders = ContentExample(
+    'table with bold and italic headers',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/1971911
+    '| normal heading | *italic heading* | **bold heading** | ***italic bold heading*** |\n| - | - | - | - |\n| text | text | text | text |',
+    '<table>\n<thead>\n<tr>\n<th>normal heading</th>\n<th><em>italic heading</em></th>\n<th><strong>bold heading</strong></th>\n<th><strong><em>italic bold heading</em></strong></th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td>text</td>\n<td>text</td>\n<td>text</td>\n<td>text</td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('normal heading')], links: []),
+        TableCellNode(nodes: [EmphasisNode(nodes: [TextNode('italic heading')])], links: []),
+        TableCellNode(nodes: [StrongNode(nodes: [TextNode('bold heading')])], links: []),
+        TableCellNode(nodes: [StrongNode(nodes: [EmphasisNode(nodes: [TextNode('italic bold heading')])])], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('text')], links: []),
+        TableCellNode(nodes: [TextNode('text')], links: []),
+        TableCellNode(nodes: [TextNode('text')], links: []),
+        TableCellNode(nodes: [TextNode('text')], links: []),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableWithLinksInCells = ContentExample(
+    'table with links in cells',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/1987662
+    '| https://zulip.com |\n| - |\n| https://zulip.com |',
+    '<table>\n<thead>\n<tr>\n<th><a href="https://zulip.com">https://zulip.com</a></th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td><a href="https://zulip.com">https://zulip.com</a></td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: []),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableWithImage = ContentExample(
+    'table with image',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/1987666
+    '| a |\n| - |\n| [image2.jpg](/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg) |',
+    '<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td><a href="/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg">image2.jpg</a></td>\n</tr>\n</tbody>\n</table>\n'
+      '<div class="message_inline_image"><a href="/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg" title="image2.jpg"><img data-original-dimensions="2760x4912" src="/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp"></a></div>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('a')], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('image2.jpg')], url: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg')], links: []),
+      ], isHeader: false),
+    ]),
+    ImageNodeList([
+      ImageNode(srcUrl: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg',
+        thumbnailUrl: '/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp',
+        loading: false,
+        originalWidth: 2760,
+        originalHeight: 4912),
+    ]),
+  ]);
+
+  // As is, this HTML doesn't look particularly different to our parser.
+  // But if Zulip's table support followed GFM, this would have no <tbody>:
+  //   https://github.github.com/gfm/#example-205
+  //   https://github.com/zulip/zulip-flutter/pull/1031#discussion_r1855931989
+  static const tableWithoutAnyBodyCellsInMarkdown = ContentExample(
+    'table without any body cells in markdown',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/1987687
+    '| table |\n| - |',
+    '<table>\n<thead>\n<tr>\n<th>table</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('table')], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [], links: []),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableMissingOneBodyColumnInMarkdown = ContentExample(
+    'table missing one body column in markdown',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/1987693
+    '| a | b |\n| - | - |\n| text |',
+    '<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td>text</td>\n<td></td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('a')], links: []),
+        TableCellNode(nodes: [TextNode('b')], links: []),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('text')], links: []),
+        TableCellNode(nodes: [], links: []),
+      ], isHeader: false),
+    ]),
+  ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -1220,6 +1374,14 @@ void main() {
   testParseExample(ContentExample.videoEmbedVimeoClassesFlipped);
   testParseExample(ContentExample.videoInline);
   testParseExample(ContentExample.videoInlineClassesFlipped);
+
+  testParseExample(ContentExample.tableWithSingleRow);
+  testParseExample(ContentExample.tableWithMultipleRows);
+  testParseExample(ContentExample.tableWithBoldAndItalicHeaders);
+  testParseExample(ContentExample.tableWithLinksInCells);
+  testParseExample(ContentExample.tableWithImage);
+  testParseExample(ContentExample.tableWithoutAnyBodyCellsInMarkdown);
+  testParseExample(ContentExample.tableMissingOneBodyColumnInMarkdown);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"

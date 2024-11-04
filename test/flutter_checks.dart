@@ -146,3 +146,15 @@ extension MaterialChecks on Subject<Material> {
 extension InputDecorationChecks on Subject<InputDecoration> {
   Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
 }
+
+extension BoxDecorationChecks on Subject<BoxDecoration> {
+  Subject<Color?> get color => has((x) => x.color, 'color');
+}
+
+extension TableRowChecks on Subject<TableRow> {
+  Subject<Decoration?> get decoration => has((x) => x.decoration, 'decoration');
+}
+
+extension TableChecks on Subject<Table> {
+  Subject<List<TableRow>> get children => has((x) => x.children, 'children');
+}

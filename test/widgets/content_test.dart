@@ -607,6 +607,30 @@ void main() {
       ),
       styleFinder: findWordBold,
     );
+
+    testFontWeight('in table column header',
+      expectedWght: 900,
+      // | **bold** |
+      // | - |
+      // | text |
+      content: plainContent(
+        '<table>\n'
+          '<thead>\n<tr>\n<th><strong>bold</strong></th>\n</tr>\n</thead>\n'
+          '<tbody>\n<tr>\n<td>text</td>\n</tr>\n</tbody>\n'
+          '</table>'),
+      styleFinder: findWordBold);
+
+    testFontWeight('in different kind of span in table column header',
+      expectedWght: 900,
+      // | *italic **bold*** |
+      // | - |
+      // | text |
+      content: plainContent(
+        '<table>\n'
+          '<thead>\n<tr>\n<th><em>italic <strong>bold</strong></em></th>\n</tr>\n</thead>\n'
+          '<tbody>\n<tr>\n<td>text</td>\n</tr>\n</tbody>\n'
+          '</table>'),
+      styleFinder: findWordBold);
   });
 
   testContentSmoke(ContentExample.emphasis);
@@ -1055,6 +1079,28 @@ void main() {
       const avatarUrl = '::not a URL::';
       check(await actualUrl(tester, avatarUrl)).isNull();
       debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('MessageTable', () {
+    testFontWeight('bold column header label',
+      // | a | b | c | d |
+      // | - | - | - | - |
+      // | 1 | 2 | 3 | 4 |
+      content: plainContent(ContentExample.tableWithSingleRow.html),
+      expectedWght: 700,
+      styleFinder: (tester) {
+        final root = tester.renderObject<RenderParagraph>(find.textContaining('a')).text;
+        return mergedStyleOfSubstring(root, 'a')!;
+      });
+
+    testWidgets('header row background color', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.tableWithSingleRow.html));
+      final BuildContext context = tester.element(find.byType(Table));
+      check(tester.widget<Table>(find.byType(Table))).children.first
+        .decoration
+        .isA<BoxDecoration>()
+        .color.equals(ContentTheme.of(context).colorTableHeaderBackground);
     });
   });
 }

@@ -48,6 +48,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountBackground: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
       colorPollVoteCountBorder: const HSLColor.fromAHSL(1, 156, 0.28, 0.7).toColor(),
       colorPollVoteCountText: const HSLColor.fromAHSL(1, 156, 0.41, 0.4).toColor(),
+      colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.80).toColor(),
+      colorTableHeaderBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -77,6 +79,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorPollVoteCountBorder: const HSLColor.fromAHSL(1, 185, 0.35, 0.35).toColor(),
       colorPollVoteCountText: const HSLColor.fromAHSL(1, 185, 0.35, 0.65).toColor(),
+      colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.33).toColor(),
+      colorTableHeaderBackground: const HSLColor.fromAHSL(0.5, 0, 0, 0).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
@@ -105,6 +109,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorPollVoteCountBackground,
     required this.colorPollVoteCountBorder,
     required this.colorPollVoteCountText,
+    required this.colorTableCellBorder,
+    required this.colorTableHeaderBackground,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
     required this.codeBlockTextStyles,
@@ -134,6 +140,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorPollVoteCountBackground;
   final Color colorPollVoteCountBorder;
   final Color colorPollVoteCountText;
+  final Color colorTableCellBorder;
+  final Color colorTableHeaderBackground;
   final Color colorThematicBreak;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
@@ -189,6 +197,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorPollVoteCountBackground,
     Color? colorPollVoteCountBorder,
     Color? colorPollVoteCountText,
+    Color? colorTableCellBorder,
+    Color? colorTableHeaderBackground,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
     CodeBlockTextStyles? codeBlockTextStyles,
@@ -208,6 +218,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountBackground: colorPollVoteCountBackground ?? this.colorPollVoteCountBackground,
       colorPollVoteCountBorder: colorPollVoteCountBorder ?? this.colorPollVoteCountBorder,
       colorPollVoteCountText: colorPollVoteCountText ?? this.colorPollVoteCountText,
+      colorTableCellBorder: colorTableCellBorder ?? this.colorTableCellBorder,
+      colorTableHeaderBackground: colorTableHeaderBackground ?? this.colorTableHeaderBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
@@ -234,6 +246,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountBackground: Color.lerp(colorPollVoteCountBackground, other.colorPollVoteCountBackground, t)!,
       colorPollVoteCountBorder: Color.lerp(colorPollVoteCountBorder, other.colorPollVoteCountBorder, t)!,
       colorPollVoteCountText: Color.lerp(colorPollVoteCountText, other.colorPollVoteCountText, t)!,
+      colorTableCellBorder: Color.lerp(colorTableCellBorder, other.colorTableCellBorder, t)!,
+      colorTableHeaderBackground: Color.lerp(colorTableHeaderBackground, other.colorTableHeaderBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
@@ -324,6 +338,21 @@ class BlockContentList extends StatelessWidget {
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
           EmbedVideoNode() => MessageEmbedVideo(node: node),
+          TableNode() => MessageTable(node: node),
+          TableRowNode() => () {
+            assert(false,
+              "[TableRowNode] not allowed in [BlockContentList]. "
+              "It should be wrapped in [TableNode]."
+            );
+            return const SizedBox.shrink();
+          }(),
+          TableCellNode() => () {
+            assert(false,
+              "[TableCellNode] not allowed in [BlockContentList]. "
+              "It should be wrapped in [TableRowNode]."
+            );
+            return const SizedBox.shrink();
+          }(),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
@@ -1193,6 +1222,62 @@ class GlobalTime extends StatelessWidget {
               const SizedBox(width: 1),
               Text(text, style: ambientTextStyle),
             ]))));
+  }
+}
+
+class MessageTable extends StatelessWidget {
+  const MessageTable({super.key, required this.node});
+
+  final TableNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final contentTheme = ContentTheme.of(context);
+    return SingleChildScrollViewWithScrollbar(
+      scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        child: Table(
+          border: TableBorder.all(
+            width: 1,
+            style: BorderStyle.solid,
+            color: contentTheme.colorTableCellBorder),
+          defaultColumnWidth: const IntrinsicColumnWidth(),
+          children: List.unmodifiable(node.rows.map((row) => TableRow(
+            decoration: row.isHeader
+              ? BoxDecoration(color: contentTheme.colorTableHeaderBackground)
+              : null,
+            children: List.unmodifiable(row.cells.map((cell) =>
+              MessageTableCell(node: cell, isHeader: row.isHeader)))))))));
+  }
+}
+
+class MessageTableCell extends StatelessWidget {
+  const MessageTableCell({super.key, required this.node, required this.isHeader});
+
+  final TableCellNode node;
+  final bool isHeader;
+
+  @override
+  Widget build(BuildContext context) {
+    return TableCell(
+      verticalAlignment: TableCellVerticalAlignment.middle,
+      child: Padding(
+        // Web has 4px padding and 1px border on all sides.
+        // In web, the 1px border grows each cell by 0.5px in all directions.
+        // Our border doesn't affect the layout, it's just painted on,
+        // so we add 0.5px on all sides to match web.
+        // Ref: https://github.com/flutter/flutter/issues/78691
+        padding: const EdgeInsets.all(4 + 0.5),
+        child: node.nodes.isEmpty
+          ? const SizedBox.shrink()
+          : _buildBlockInlineContainer(
+              node: node,
+              style: !isHeader
+                ? DefaultTextStyle.of(context).style
+                : DefaultTextStyle.of(context).style
+                    .merge(weightVariableTextStyle(context, wght: 700))),
+      ));
   }
 }
 

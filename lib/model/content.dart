@@ -504,6 +504,53 @@ class EmbedVideoNode extends BlockContentNode {
   }
 }
 
+class TableNode extends BlockContentNode {
+  const TableNode({super.debugHtmlNode, required this.rows});
+
+  final List<TableRowNode> rows;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return rows
+      .mapIndexed((i, row) => row.toDiagnosticsNode(name: 'row $i'))
+      .toList();
+  }
+}
+
+class TableRowNode extends BlockContentNode {
+  const TableRowNode({
+    super.debugHtmlNode,
+    required this.cells,
+    required this.isHeader,
+  });
+
+  final List<TableCellNode> cells;
+
+  /// Indicates whether this row is the header row.
+  final bool isHeader;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(FlagProperty('isHeader', value: isHeader, ifTrue: "is header"));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return cells
+      .mapIndexed((i, cell) => cell.toDiagnosticsNode(name: 'cell $i'))
+      .toList();
+  }
+}
+
+class TableCellNode extends BlockInlineContainerNode {
+  const TableCellNode({
+    super.debugHtmlNode,
+    required super.nodes,
+    required super.links,
+  });
+}
+
 /// A content node that expects an inline layout context from its parent.
 ///
 /// When rendered into a Flutter widget tree, an inline content node
@@ -1222,6 +1269,99 @@ class _ZulipContentParser {
     return EmbedVideoNode(hrefUrl: href, previewImageSrcUrl: imgSrc, debugHtmlNode: debugHtmlNode);
   }
 
+  BlockContentNode parseTableContent(dom.Element tableElement) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(tableElement.localName == 'table'
+        && tableElement.className.isEmpty);
+
+    TableCellNode? parseTableCell(dom.Element node, bool isHeader) {
+      assert(node.localName == (isHeader ? 'th' : 'td'));
+      assert(node.className.isEmpty);
+
+      final parsed = parseBlockInline(node.nodes);
+      return TableCellNode(
+        nodes: parsed.nodes,
+        links: parsed.links);
+    }
+
+    List<TableCellNode>? parseTableCells(dom.NodeList cellNodes, bool isHeader) {
+      final cells = <TableCellNode>[];
+      for (final node in cellNodes) {
+        if (node is dom.Text && node.text == '\n') continue;
+
+        if (node is! dom.Element) return null;
+        if (node.localName != (isHeader ? 'th' : 'td')) return null;
+        if (node.className.isNotEmpty) return null;
+
+        final cell = parseTableCell(node, isHeader);
+        if (cell == null) return null;
+        cells.add(cell);
+      }
+      return cells;
+    }
+
+    final TableNode? tableNode = (() {
+      if (tableElement.nodes case [
+        dom.Text(data: '\n'),
+        dom.Element(localName: 'thead') && final theadElement,
+        dom.Text(data: '\n'),
+        dom.Element(localName: 'tbody') && final tbodyElement,
+        dom.Text(data: '\n'),
+      ]) {
+        if (theadElement.className.isNotEmpty) return null;
+        if (theadElement.nodes.isEmpty) return null;
+        if (tbodyElement.className.isNotEmpty) return null;
+        if (tbodyElement.nodes.isEmpty) return null;
+
+        final int headerColumnCount;
+        final parsedRows = <TableRowNode>[];
+
+        // Parse header row element.
+        if (theadElement.nodes case [
+          dom.Text(data: '\n'),
+          dom.Element(localName: 'tr') && final rowElement,
+          dom.Text(data: '\n'),
+        ]) {
+          if (rowElement.className.isNotEmpty) return null;
+          if (rowElement.nodes.isEmpty) return null;
+
+          final cells = parseTableCells(rowElement.nodes, true);
+          if (cells == null) return null;
+          headerColumnCount = cells.length;
+          parsedRows.add(TableRowNode(cells: cells, isHeader: true));
+        } else {
+          // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+          return null;
+        }
+
+        // Parse body row elements.
+        for (final node in tbodyElement.nodes) {
+          if (node is dom.Text && node.text == '\n') continue;
+
+          if (node is! dom.Element) return null;
+          if (node.localName != 'tr') return null;
+          if (node.className.isNotEmpty) return null;
+          if (node.nodes.isEmpty) return null;
+
+          final cells = parseTableCells(node.nodes, false);
+          if (cells == null) return null;
+
+          // Ensure that the number of columns in this row matches
+          // the header row.
+          if (cells.length != headerColumnCount) return null;
+          parsedRows.add(TableRowNode(cells: cells, isHeader: false));
+        }
+
+        return TableNode(rows: parsedRows);
+      } else {
+        // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+        return null;
+      }
+    })();
+
+    return tableNode ?? UnimplementedBlockContentNode(htmlNode: tableElement);
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.block);
     final debugHtmlNode = kDebugMode ? node : null;
@@ -1290,6 +1430,10 @@ class _ZulipContentParser {
         parseBlockContentList(element.nodes));
     }
 
+    if (localName == 'table' && className.isEmpty) {
+      return parseTableContent(element);
+    }
+
     if (localName == 'div' && className == 'spoiler-block') {
       return parseSpoilerNode(element);
     }
@@ -1334,6 +1478,7 @@ class _ZulipContentParser {
       case 'h5':
       case 'h6':
       case 'blockquote':
+      case 'table':
       case 'div':
         return false;
       default:
