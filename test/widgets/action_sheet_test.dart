@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -436,6 +437,49 @@ void main() {
               'op': 'remove',
               'flag': 'read',
             });
+      });
+
+      testWidgets('on topic move, acts on new topic', (tester) async {
+        final stream = eg.stream();
+        const topic = 'old topic';
+        final message = eg.streamMessage(flags: [MessageFlag.read],
+          stream: stream, topic: topic);
+        await setupToMessageActionSheet(tester, message: message,
+          narrow: TopicNarrow.ofMessage(message));
+
+        // Get the action sheet fully deployed while the old narrow applies.
+        // (This way we maximize the range of potential bugs this test can catch,
+        // by giving the code maximum opportunity to latch onto the old topic.)
+        await tester.pumpAndSettle();
+
+        final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+        final newStream = eg.stream();
+        const newTopic = 'other topic';
+        // This result isn't quite realistic for this request: it should get
+        // the updated channel/stream ID and topic, because we don't even
+        // start the request until after we get the move event.
+        // But constructing the right result is annoying at the moment, and
+        // it doesn't matter anyway: [MessageStoreImpl.reconcileMessages] will
+        // keep the version updated by the event.  If that somehow changes in
+        // some future refactor, it'll cause this test to fail.
+        connection.prepare(json: newestResult(
+          foundOldest: true, messages: [message]).toJson());
+        await store.handleEvent(eg.updateMessageEventMoveFrom(
+          newStreamId: newStream.streamId, newTopic: newTopic,
+          propagateMode: PropagateMode.changeAll,
+          origMessages: [message]));
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 11, updatedCount: 3,
+          firstProcessedId: 1, lastProcessedId: 1980,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+        await tester.pumpAndSettle();
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields['narrow'].equals(
+              jsonEncode(TopicNarrow(newStream.streamId, newTopic).apiEncode()));
       });
 
       testWidgets('shows error when fails', (tester) async {

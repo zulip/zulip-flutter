@@ -29,11 +29,12 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
-  // method; see its doc). But currently it will be constant through the life of
-  // any message list, so that's fine.
+  // method; see its doc).
+  // So we rely on the fact that isComposeBoxOffered for any given message list
+  // will be constant through the page's life.
   final messageListPage = MessageListPage.ancestorOf(context);
   final isComposeBoxOffered = messageListPage.composeBoxController != null;
-  final narrow = messageListPage.narrow;
+
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
@@ -52,7 +53,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: context),
     if (showMarkAsUnreadButton)
-      MarkAsUnreadButton(message: message, pageContext: context, narrow: narrow),
+      MarkAsUnreadButton(message: message, pageContext: context),
     CopyMessageTextButton(message: message, pageContext: context),
     CopyMessageLinkButton(message: message, pageContext: context),
     ShareButton(message: message, pageContext: context),
@@ -383,10 +384,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
     super.key,
     required super.message,
     required super.pageContext,
-    required this.narrow,
   });
-
-  final Narrow narrow;
 
   @override IconData get icon => Icons.mark_chat_unread_outlined;
 
@@ -396,6 +394,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
   }
 
   @override void onPressed() async {
+    final narrow = findMessageListPage().narrow;
     unawaited(markNarrowAsUnreadFromMessage(pageContext, message, narrow));
   }
 }
