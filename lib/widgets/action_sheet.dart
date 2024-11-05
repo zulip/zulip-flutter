@@ -100,13 +100,13 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
 
-  /// Called when the button is pressed.
+  /// Called when the button is pressed, after dismissing the action sheet.
   ///
-  /// Generally this method's implementation should begin by dismissing the
-  /// action sheet with [NavigatorState.pop].
-  /// After that step, the given `context` may no longer be mounted;
-  /// operations that need a [BuildContext] should typically use [pageContext].
-  void onPressed(BuildContext context);
+  /// If the action may take a long time, this method is responsible for
+  /// arranging any form of progress feedback that may be desired.
+  ///
+  /// For operations that need a [BuildContext], see [pageContext].
+  void onPressed();
 
   final Message message;
 
@@ -124,6 +124,15 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
     return MessageListPage.ancestorOf(pageContext);
   }
 
+  void _handlePressed(BuildContext context) {
+    // Dismiss the enclosing action sheet immediately,
+    // for swift UI feedback that the user's selection was received.
+    Navigator.of(context).pop();
+
+    assert(pageContext.mounted);
+    onPressed();
+  }
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -137,7 +146,7 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
       ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
           designVariables.contextMenuItemBg.withValues(
             alpha: states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
-      onPressed: () => onPressed(context),
+      onPressed: () => _handlePressed(context),
       child: Text(label(zulipLocalizations),
         style: const TextStyle(fontSize: 20, height: 24 / 20)
           .merge(weightVariableTextStyle(context, wght: 600)),
@@ -186,8 +195,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     return 'React with 👍'; // TODO(i18n) skip translation for now
   }
 
-  @override void onPressed(BuildContext context) async {
-    Navigator.of(context).pop();
+  @override void onPressed() async {
     String? errorMessage;
     try {
       await addReaction(PerAccountStoreWidget.of(pageContext).connection,
@@ -231,8 +239,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
       : zulipLocalizations.actionSheetOptionStarMessage;
   }
 
-  @override void onPressed(BuildContext context) async {
-    Navigator.of(context).pop();
+  @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final op = message.flags.contains(MessageFlag.starred)
       ? UpdateMessageFlagsOp.remove
@@ -325,10 +332,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionQuoteAndReply;
   }
 
-  @override void onPressed(BuildContext context) async {
-    // Close the message action sheet. We'll show the request progress
-    // in the compose-box content input with a "[Quoting…]" placeholder.
-    Navigator.of(context).pop();
+  @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     // This will be null only if the compose box disappeared after the
@@ -343,6 +347,9 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     ) {
       topicController.value = TextEditingValue(text: message.topic);
     }
+
+    // This inserts a "[Quoting…]" placeholder into the content input,
+    // giving the user a form of progress feedback.
     final tag = composeBoxController.contentController
       .registerQuoteAndReplyStart(PerAccountStoreWidget.of(pageContext),
         message: message,
@@ -388,8 +395,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionMarkAsUnread;
   }
 
-  @override void onPressed(BuildContext context) async {
-    Navigator.of(context).pop();
+  @override void onPressed() async {
     unawaited(markNarrowAsUnreadFromMessage(pageContext, message, narrow));
   }
 }
@@ -408,11 +414,11 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionCopyMessageText;
   }
 
-  @override void onPressed(BuildContext context) async {
-    // Close the message action sheet. We won't be showing request progress,
-    // but hopefully it won't take long at all, and
+  @override void onPressed() async {
+    // This action doesn't show request progress.
+    // But hopefully it won't take long at all; and
     // fetchRawContentWithFeedback has a TODO for giving feedback if it does.
-    Navigator.of(context).pop();
+
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     final rawContent = await fetchRawContentWithFeedback(
@@ -445,8 +451,7 @@ class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionCopyMessageLink;
   }
 
-  @override void onPressed(BuildContext context) {
-    Navigator.of(context).pop();
+  @override void onPressed() {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     final store = PerAccountStoreWidget.of(pageContext);
@@ -479,15 +484,16 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     return zulipLocalizations.actionSheetOptionShare;
   }
 
-  @override void onPressed(BuildContext context) async {
-    // Close the message action sheet; we're about to show the share
-    // sheet. (We could do this after the sharing Future settles
-    // with [ShareResultStatus.success], but on iOS I get impatient with
-    // how slowly our action sheet dismisses in that case.)
+  @override void onPressed() async {
     // TODO(#591): Fix iOS bug where if the keyboard was open before the call
     //   to `showMessageActionSheet`, it reappears briefly between
     //   the `pop` of the action sheet and the appearance of the share sheet.
-    Navigator.of(context).pop();
+    //
+    //   (Alternatively we could delay the [NavigatorState.pop] that
+    //   dismisses the action sheet until after the sharing Future settles
+    //   with [ShareResultStatus.success].  But on iOS one gets impatient with
+    //   how slowly our action sheet dismisses in that case.)
+
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     final rawContent = await fetchRawContentWithFeedback(
