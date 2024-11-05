@@ -183,11 +183,7 @@ class MessageActionSheetCancelButton extends StatelessWidget {
 // This button is very temporary, to complete #125 before we have a way to
 // choose an arbitrary reaction (#388). So, skipping i18n.
 class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
-  AddThumbsUpButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  AddThumbsUpButton({super.key, required super.message, required super.pageContext});
 
   @override IconData get icon => ZulipIcons.smile;
 
@@ -223,11 +219,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
 }
 
 class StarButton extends MessageActionSheetMenuItemButton {
-  StarButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  StarButton({super.key, required super.message, required super.pageContext});
 
   @override IconData get icon => _isStarred ? ZulipIcons.star_filled : ZulipIcons.star;
 
@@ -320,11 +312,7 @@ Future<String?> fetchRawContentWithFeedback({
 }
 
 class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
-  QuoteAndReplyButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  QuoteAndReplyButton({super.key, required super.message, required super.pageContext});
 
   @override IconData get icon => ZulipIcons.format_quote;
 
@@ -380,11 +368,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 }
 
 class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
-  MarkAsUnreadButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  MarkAsUnreadButton({super.key, required super.message, required super.pageContext});
 
   @override IconData get icon => Icons.mark_chat_unread_outlined;
 
@@ -400,11 +384,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
 }
 
 class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
-  CopyMessageTextButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  CopyMessageTextButton({super.key, required super.message, required super.pageContext});
 
   @override IconData get icon => ZulipIcons.copy;
 
@@ -437,11 +417,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
 }
 
 class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
-  CopyMessageLinkButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  CopyMessageLinkButton({super.key, required super.message, required super.pageContext});
 
   @override IconData get icon => Icons.link;
 
@@ -467,11 +443,7 @@ class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
 }
 
 class ShareButton extends MessageActionSheetMenuItemButton {
-  ShareButton({
-    super.key,
-    required super.message,
-    required super.pageContext,
-  });
+  ShareButton({super.key, required super.message, required super.pageContext});
 
   @override
   IconData get icon => defaultTargetPlatform == TargetPlatform.iOS
