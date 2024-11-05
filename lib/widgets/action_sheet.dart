@@ -99,6 +99,13 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
+
+  /// Called when the button is pressed.
+  ///
+  /// Generally this method's implementation should begin by dismissing the
+  /// action sheet with [NavigatorState.pop].
+  /// After that step, the given `context` may no longer be mounted;
+  /// operations that need a [BuildContext] should typically use [pageContext].
   void onPressed(BuildContext context);
 
   final Message message;
@@ -200,7 +207,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
         default:
       }
 
-      showErrorDialog(context: context,
+      showErrorDialog(context: pageContext,
         title: 'Adding reaction failed', message: errorMessage);
     }
   }
