@@ -13,7 +13,6 @@ import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
 import 'clipboard.dart';
-import 'compose_box.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
@@ -104,6 +103,16 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
 
   final Message message;
   final BuildContext messageListContext;
+
+  /// The [MessageListPageState] this action sheet was triggered from.
+  ///
+  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
+  /// don't call this in a build method.
+  MessageListPageState findMessageListPage() {
+    assert(messageListContext.mounted,
+      'findMessageListPage should be called only when messageListContext is known to still be mounted');
+    return MessageListPage.ancestorOf(messageListContext);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -315,8 +324,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // This will be null only if the compose box disappeared after the
     // message action sheet opened, and before "Quote and reply" was pressed.
     // Currently a compose box can't ever disappear, so this is impossible.
-    ComposeBoxController composeBoxController =
-      MessageListPage.ancestorOf(messageListContext).composeBoxController!;
+    var composeBoxController = findMessageListPage().composeBoxController!;
     final topicController = composeBoxController.topicController;
     if (
       topicController != null
@@ -341,8 +349,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // This will be null only if the compose box disappeared during the
     // quotation request. Currently a compose box can't ever disappear,
     // so this is impossible.
-    composeBoxController =
-      MessageListPage.ancestorOf(messageListContext).composeBoxController!;
+    composeBoxController = findMessageListPage().composeBoxController!;
     composeBoxController.contentController
       .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(messageListContext), tag,
         message: message,
