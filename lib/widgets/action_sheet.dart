@@ -23,6 +23,42 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
+void _showActionSheet(
+  BuildContext context, {
+  required List<ActionSheetMenuItemButton> optionButtons,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+    // on my iPhone 13 Pro but is marked as "much slower":
+    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (BuildContext _) {
+      return SafeArea(
+        minimum: const EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // TODO(#217): show message text
+              Flexible(child: InsetShadowBox(
+                top: 8, bottom: 8,
+                color: DesignVariables.of(context).bgContextMenu,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 16, bottom: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: Column(spacing: 1,
+                      children: optionButtons))))),
+              const ActionSheetCancelButton(),
+            ])));
+    });
+}
+
 abstract class ActionSheetMenuItemButton extends StatelessWidget {
   const ActionSheetMenuItemButton({super.key, required this.pageContext});
 
@@ -145,36 +181,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     ShareButton(message: message, pageContext: context),
   ];
 
-  showModalBottomSheet<void>(
-    context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (BuildContext _) {
-      return SafeArea(
-        minimum: const EdgeInsets.only(bottom: 16),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // TODO(#217): show message text
-              Flexible(child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: DesignVariables.of(context).bgContextMenu,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 16, bottom: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(7),
-                    child: Column(spacing: 1,
-                      children: optionButtons))))),
-              const ActionSheetCancelButton(),
-            ])));
-    });
+  _showActionSheet(context, optionButtons: optionButtons);
 }
 
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
