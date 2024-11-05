@@ -272,12 +272,14 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 class _ContentInput extends StatefulWidget {
   const _ContentInput({
     required this.narrow,
+    required this.destination,
     required this.controller,
     required this.focusNode,
     required this.hintText,
   });
 
   final Narrow narrow;
+  final SendableNarrow destination;
   final ComposeContentController controller;
   final FocusNode focusNode;
   final String hintText;
@@ -287,6 +289,50 @@ class _ContentInput extends StatefulWidget {
 }
 
 class _ContentInputState extends State<_ContentInput> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_contentChanged);
+    widget.focusNode.addListener(_focusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContentInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_contentChanged);
+      widget.controller.addListener(_contentChanged);
+    }
+    if (widget.focusNode != oldWidget.focusNode) {
+      oldWidget.focusNode.removeListener(_focusChanged);
+      widget.focusNode.addListener(_focusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_contentChanged);
+    widget.focusNode.removeListener(_focusChanged);
+    super.dispose();
+  }
+
+  void _contentChanged() {
+    final store = PerAccountStoreWidget.of(context);
+    (widget.controller.text.isEmpty)
+      ? store.typingNotifier.stoppedComposing()
+      : store.typingNotifier.keystroke(widget.destination);
+  }
+
+  void _focusChanged() {
+    if (widget.focusNode.hasFocus) {
+      // Content input getting focus doesn't necessarily mean that
+      // the user started typing, so do nothing.
+      return;
+    }
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.stoppedComposing();
+  }
+
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -375,6 +421,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
+      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
       controller: widget.controller,
       focusNode: widget.focusNode,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
@@ -451,6 +498,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ContentInput(
       narrow: narrow,
+      destination: narrow,
       controller: controller,
       focusNode: focusNode,
       hintText: _hintText(context));
@@ -823,6 +871,10 @@ class _SendButtonState extends State<_SendButton> {
     final content = widget.contentController.textNormalized;
 
     widget.contentController.clear();
+    // The following `stoppedComposing` call is currently redundant,
+    // because clearing input sends a "typing stopped" notice.
+    // It will be necessary once we resolve #720.
+    store.typingNotifier.stoppedComposing();
 
     try {
       // TODO(#720) clear content input only on success response;
