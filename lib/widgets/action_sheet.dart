@@ -47,15 +47,15 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final optionButtons = [
     if (!hasThumbsUpReactionVote)
-      AddThumbsUpButton(message: message, messageListContext: context),
-    StarButton(message: message, messageListContext: context),
+      AddThumbsUpButton(message: message, pageContext: context),
+    StarButton(message: message, pageContext: context),
     if (isComposeBoxOffered)
-      QuoteAndReplyButton(message: message, messageListContext: context),
+      QuoteAndReplyButton(message: message, pageContext: context),
     if (showMarkAsUnreadButton)
-      MarkAsUnreadButton(message: message, messageListContext: context, narrow: narrow),
-    CopyMessageTextButton(message: message, messageListContext: context),
-    CopyMessageLinkButton(message: message, messageListContext: context),
-    ShareButton(message: message, messageListContext: context),
+      MarkAsUnreadButton(message: message, pageContext: context, narrow: narrow),
+    CopyMessageTextButton(message: message, pageContext: context),
+    CopyMessageLinkButton(message: message, pageContext: context),
+    ShareButton(message: message, pageContext: context),
   ];
 
   showModalBottomSheet<void>(
@@ -94,24 +94,27 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   MessageActionSheetMenuItemButton({
     super.key,
     required this.message,
-    required this.messageListContext,
-  }) : assert(messageListContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+    required this.pageContext,
+  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
   void onPressed(BuildContext context);
 
   final Message message;
-  final BuildContext messageListContext;
+
+  /// A context within the [MessageListPage] this action sheet was
+  /// triggered from.
+  final BuildContext pageContext;
 
   /// The [MessageListPageState] this action sheet was triggered from.
   ///
   /// Uses the inefficient [BuildContext.findAncestorStateOfType];
   /// don't call this in a build method.
   MessageListPageState findMessageListPage() {
-    assert(messageListContext.mounted,
-      'findMessageListPage should be called only when messageListContext is known to still be mounted');
-    return MessageListPage.ancestorOf(messageListContext);
+    assert(pageContext.mounted,
+      'findMessageListPage should be called only when pageContext is known to still be mounted');
+    return MessageListPage.ancestorOf(pageContext);
   }
 
   @override
@@ -166,7 +169,7 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
   AddThumbsUpButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
   });
 
   @override IconData get icon => ZulipIcons.smile;
@@ -180,14 +183,14 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
     Navigator.of(context).pop();
     String? errorMessage;
     try {
-      await addReaction(PerAccountStoreWidget.of(messageListContext).connection,
+      await addReaction(PerAccountStoreWidget.of(pageContext).connection,
         messageId: message.id,
         reactionType: ReactionType.unicodeEmoji,
         emojiCode: '1f44d',
         emojiName: '+1',
       );
     } catch (e) {
-      if (!messageListContext.mounted) return;
+      if (!pageContext.mounted) return;
 
       switch (e) {
         case ZulipApiException():
@@ -207,7 +210,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
   StarButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
   });
 
   @override IconData get icon => _isStarred ? ZulipIcons.star_filled : ZulipIcons.star;
@@ -223,17 +226,17 @@ class StarButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
-    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final op = message.flags.contains(MessageFlag.starred)
       ? UpdateMessageFlagsOp.remove
       : UpdateMessageFlagsOp.add;
 
     try {
-      final connection = PerAccountStoreWidget.of(messageListContext).connection;
+      final connection = PerAccountStoreWidget.of(pageContext).connection;
       await updateMessageFlags(connection, messages: [message.id],
         op: op, flag: MessageFlag.starred);
     } catch (e) {
-      if (!messageListContext.mounted) return;
+      if (!pageContext.mounted) return;
 
       String? errorMessage;
       switch (e) {
@@ -244,7 +247,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
         default:
       }
 
-      showErrorDialog(context: messageListContext,
+      showErrorDialog(context: pageContext,
         title: switch(op) {
           UpdateMessageFlagsOp.remove => zulipLocalizations.errorUnstarMessageFailedTitle,
           UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
@@ -305,7 +308,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
   QuoteAndReplyButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
   });
 
   @override IconData get icon => ZulipIcons.format_quote;
@@ -319,7 +322,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // Close the message action sheet. We'll show the request progress
     // in the compose-box content input with a "[Quoting…]" placeholder.
     Navigator.of(context).pop();
-    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     // This will be null only if the compose box disappeared after the
     // message action sheet opened, and before "Quote and reply" was pressed.
@@ -334,24 +337,24 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
       topicController.value = TextEditingValue(text: message.topic);
     }
     final tag = composeBoxController.contentController
-      .registerQuoteAndReplyStart(PerAccountStoreWidget.of(messageListContext),
+      .registerQuoteAndReplyStart(PerAccountStoreWidget.of(pageContext),
         message: message,
       );
 
     final rawContent = await fetchRawContentWithFeedback(
-      context: messageListContext,
+      context: pageContext,
       messageId: message.id,
       errorDialogTitle: zulipLocalizations.errorQuotationFailed,
     );
 
-    if (!messageListContext.mounted) return;
+    if (!pageContext.mounted) return;
 
     // This will be null only if the compose box disappeared during the
     // quotation request. Currently a compose box can't ever disappear,
     // so this is impossible.
     composeBoxController = findMessageListPage().composeBoxController!;
     composeBoxController.contentController
-      .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(messageListContext), tag,
+      .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(pageContext), tag,
         message: message,
         rawContent: rawContent,
       );
@@ -365,7 +368,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
   MarkAsUnreadButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
     required this.narrow,
   });
 
@@ -380,7 +383,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed(BuildContext context) async {
     Navigator.of(context).pop();
-    unawaited(markNarrowAsUnreadFromMessage(messageListContext, message, narrow));
+    unawaited(markNarrowAsUnreadFromMessage(pageContext, message, narrow));
   }
 }
 
@@ -388,7 +391,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
   CopyMessageTextButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
   });
 
   @override IconData get icon => ZulipIcons.copy;
@@ -403,19 +406,19 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
     // but hopefully it won't take long at all, and
     // fetchRawContentWithFeedback has a TODO for giving feedback if it does.
     Navigator.of(context).pop();
-    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     final rawContent = await fetchRawContentWithFeedback(
-      context: messageListContext,
+      context: pageContext,
       messageId: message.id,
       errorDialogTitle: zulipLocalizations.errorCopyingFailed,
     );
 
     if (rawContent == null) return;
 
-    if (!messageListContext.mounted) return;
+    if (!pageContext.mounted) return;
 
-    copyWithPopup(context: messageListContext,
+    copyWithPopup(context: pageContext,
       successContent: Text(zulipLocalizations.successMessageTextCopied),
       data: ClipboardData(text: rawContent));
   }
@@ -425,7 +428,7 @@ class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
   CopyMessageLinkButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
   });
 
   @override IconData get icon => Icons.link;
@@ -437,16 +440,16 @@ class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed(BuildContext context) {
     Navigator.of(context).pop();
-    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
-    final store = PerAccountStoreWidget.of(messageListContext);
+    final store = PerAccountStoreWidget.of(pageContext);
     final messageLink = narrowLink(
       store,
       SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
       nearMessageId: message.id,
     );
 
-    copyWithPopup(context: messageListContext,
+    copyWithPopup(context: pageContext,
       successContent: Text(zulipLocalizations.successMessageLinkCopied),
       data: ClipboardData(text: messageLink.toString()));
   }
@@ -456,7 +459,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
   ShareButton({
     super.key,
     required super.message,
-    required super.messageListContext,
+    required super.pageContext,
   });
 
   @override
@@ -479,17 +482,17 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     //   `showMessageActionSheet` call) and cover a large part of the
     //   share sheet.
     Navigator.of(context).pop();
-    final zulipLocalizations = ZulipLocalizations.of(messageListContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     final rawContent = await fetchRawContentWithFeedback(
-      context: messageListContext,
+      context: pageContext,
       messageId: message.id,
       errorDialogTitle: zulipLocalizations.errorSharingFailed,
     );
 
     if (rawContent == null) return;
 
-    if (!messageListContext.mounted) return;
+    if (!pageContext.mounted) return;
 
     // TODO: to support iPads, we're asked to give a
     //   `sharePositionOrigin` param, or risk crashing / hanging:
@@ -502,8 +505,8 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       // The plugin isn't very helpful: "The status can not be determined".
       // Until we learn otherwise, assume something wrong happened.
       case ShareResultStatus.unavailable:
-        if (!messageListContext.mounted) return;
-        showErrorDialog(context: messageListContext,
+        if (!pageContext.mounted) return;
+        showErrorDialog(context: pageContext,
           title: zulipLocalizations.errorSharingFailed);
       case ShareResultStatus.success:
       case ShareResultStatus.dismissed:
