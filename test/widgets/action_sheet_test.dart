@@ -35,6 +35,7 @@ import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 
+late PerAccountStore store;
 late FakeApiConnection connection;
 
 /// Simulates loading a [MessageListPage] and long-pressing on [message].
@@ -45,7 +46,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   addTearDown(testBinding.reset);
 
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUser(eg.user(userId: message.senderId));
   if (message is StreamMessage) {
     final stream = eg.stream(streamId: message.streamId);
@@ -103,9 +104,7 @@ void main() {
     testWidgets('success', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      final connection = store.connection as FakeApiConnection;
       connection.prepare(json: {});
       await tapButton(tester);
       await tester.pump(Duration.zero);
@@ -123,9 +122,6 @@ void main() {
     testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      final connection = store.connection as FakeApiConnection;
 
       connection.prepare(httpStatus: 400, json: {
         'code': 'BAD_REQUEST',
@@ -157,9 +153,7 @@ void main() {
     testWidgets('star success', (tester) async {
       final message = eg.streamMessage(flags: []);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      final connection = store.connection as FakeApiConnection;
       connection.prepare(json: {});
       await tapButton(tester);
       await tester.pump(Duration.zero);
@@ -177,9 +171,7 @@ void main() {
     testWidgets('unstar success', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.starred]);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      final connection = store.connection as FakeApiConnection;
       connection.prepare(json: {});
       await tapButton(tester, starred: true);
       await tester.pump(Duration.zero);
@@ -197,10 +189,7 @@ void main() {
     testWidgets('star request has an error', (tester) async {
       final message = eg.streamMessage(flags: []);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-
-      final connection = store.connection as FakeApiConnection;
 
       connection.prepare(httpStatus: 400, json: {
         'code': 'BAD_REQUEST',
@@ -218,10 +207,7 @@ void main() {
     testWidgets('unstar request has an error', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.starred]);
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-
-      final connection = store.connection as FakeApiConnection;
 
       connection.prepare(httpStatus: 400, json: {
         'code': 'BAD_REQUEST',
@@ -291,7 +277,6 @@ void main() {
     testWidgets('in channel narrow', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -315,7 +300,6 @@ void main() {
     testWidgets('in topic narrow', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -334,7 +318,6 @@ void main() {
       final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
       await setupToMessageActionSheet(tester,
         message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -352,7 +335,6 @@ void main() {
     testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       final composeBoxController = findComposeBoxController(tester)!;
       final contentController = composeBoxController.contentController;
@@ -452,7 +434,6 @@ void main() {
         // by giving the code maximum opportunity to latch onto the old topic.)
         await tester.pumpAndSettle();
 
-        final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         final newStream = eg.stream();
         const newTopic = 'other topic';
         // This result isn't quite realistic for this request: it should get
@@ -516,7 +497,6 @@ void main() {
     testWidgets('success', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
       await tapCopyMessageTextButton(tester);
@@ -530,7 +510,6 @@ void main() {
 
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       // Make the request take a bit of time to complete…
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world',
@@ -552,7 +531,6 @@ void main() {
     testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseError(store);
       await tapCopyMessageTextButton(tester);
@@ -584,7 +562,6 @@ void main() {
       final message = eg.streamMessage();
       final narrow = TopicNarrow.ofMessage(message);
       await setupToMessageActionSheet(tester, message: message, narrow: narrow);
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       await tapCopyMessageLinkButton(tester);
       await tester.pump(Duration.zero);
@@ -614,7 +591,6 @@ void main() {
       final mockSharePlus = setupMockSharePlus();
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
       await tapShareButton(tester);
@@ -626,7 +602,6 @@ void main() {
       final mockSharePlus = setupMockSharePlus();
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
       mockSharePlus.resultString = 'dev.fluttercommunity.plus/share/unavailable';
@@ -642,7 +617,6 @@ void main() {
       final mockSharePlus = setupMockSharePlus();
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       prepareRawContentResponseError(store);
       await tapShareButton(tester);
