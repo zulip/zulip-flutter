@@ -484,10 +484,9 @@ class ShareButton extends MessageActionSheetMenuItemButton {
     // sheet. (We could do this after the sharing Future settles
     // with [ShareResultStatus.success], but on iOS I get impatient with
     // how slowly our action sheet dismisses in that case.)
-    // TODO(#24): Fix iOS bug where this call causes the keyboard to
-    //   reopen (if it was open at the time of this
-    //   `showMessageActionSheet` call) and cover a large part of the
-    //   share sheet.
+    // TODO(#591): Fix iOS bug where if the keyboard was open before the call
+    //   to `showMessageActionSheet`, it reappears briefly between
+    //   the `pop` of the action sheet and the appearance of the share sheet.
     Navigator.of(context).pop();
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
