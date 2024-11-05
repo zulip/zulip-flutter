@@ -73,7 +73,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  void prepareRawContentResponseSuccess(PerAccountStore store, {
+  void prepareRawContentResponseSuccess({
     required Message message,
     required String rawContent,
     Duration delay = Duration.zero,
@@ -81,17 +81,17 @@ void main() {
     // Prepare fetch-raw-Markdown response
     // TODO: Message should really only differ from `message`
     //   in its content / content_type, not in `id` or anything else.
-    (store.connection as FakeApiConnection).prepare(delay: delay, json:
+    connection.prepare(delay: delay, json:
       GetMessageResult(message: eg.streamMessage(contentMarkdown: rawContent)).toJson());
   }
 
-  void prepareRawContentResponseError(PerAccountStore store) {
+  void prepareRawContentResponseError() {
     final fakeResponseJson = {
       'code': 'BAD_REQUEST',
       'msg': 'Invalid message(s)',
       'result': 'error',
     };
-    (store.connection as FakeApiConnection).prepare(httpStatus: 400, json: fakeResponseJson);
+    connection.prepare(httpStatus: 400, json: fakeResponseJson);
   }
 
   group('AddThumbsUpButton', () {
@@ -288,7 +288,7 @@ void main() {
       topicController?.value = const TextEditingValue(text: kNoTopicTopic);
 
       final valueBefore = contentController.value;
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
       await tapQuoteAndReplyButton(tester);
       checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
       await tester.pump(Duration.zero); // message is fetched; compose box updates
@@ -305,7 +305,7 @@ void main() {
       final contentController = composeBoxController.contentController;
 
       final valueBefore = contentController.value;
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
       await tapQuoteAndReplyButton(tester);
       checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
       await tester.pump(Duration.zero); // message is fetched; compose box updates
@@ -323,7 +323,7 @@ void main() {
       final contentController = composeBoxController.contentController;
 
       final valueBefore = contentController.value;
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
       await tapQuoteAndReplyButton(tester);
       checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
       await tester.pump(Duration.zero); // message is fetched; compose box updates
@@ -340,7 +340,7 @@ void main() {
       final contentController = composeBoxController.contentController;
 
       final valueBefore = contentController.value = TextEditingValue.empty;
-      prepareRawContentResponseError(store);
+      prepareRawContentResponseError();
       await tapQuoteAndReplyButton(tester);
       checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
@@ -498,7 +498,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
       await tapCopyMessageTextButton(tester);
       await tester.pump(Duration.zero);
       check(await Clipboard.getData('text/plain')).isNotNull().text.equals('Hello world');
@@ -512,7 +512,7 @@ void main() {
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
       // Make the request take a bit of time to complete…
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world',
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world',
         delay: const Duration(milliseconds: 500));
       await tapCopyMessageTextButton(tester);
       // … and pump a frame to finish the NavigationState.pop animation…
@@ -532,7 +532,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      prepareRawContentResponseError(store);
+      prepareRawContentResponseError();
       await tapCopyMessageTextButton(tester);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
@@ -592,7 +592,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
       await tapShareButton(tester);
       await tester.pump(Duration.zero);
       check(mockSharePlus.sharedString).equals('Hello world');
@@ -603,7 +603,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      prepareRawContentResponseSuccess(store, message: message, rawContent: 'Hello world');
+      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
       mockSharePlus.resultString = 'dev.fluttercommunity.plus/share/unavailable';
       await tapShareButton(tester);
       await tester.pump(Duration.zero);
@@ -618,7 +618,7 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      prepareRawContentResponseError(store);
+      prepareRawContentResponseError();
       await tapShareButton(tester);
       await tester.pump(Duration.zero); // error arrives; error dialog shows
 
