@@ -1273,7 +1273,7 @@ class MessageWithPossibleSender extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onLongPress: () => showMessageActionSheet(context: context, message: message),
+      onLongPress: () => showMessageActionSheet(context, message: message),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
