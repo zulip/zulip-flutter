@@ -195,6 +195,17 @@ class ContentExample {
     GlobalTimeNode(
       datetime: DateTime.parse("2024-03-07T23:00:00Z")));
 
+  static final messageLink = ContentExample.inline(
+    'message link',
+    '#**api design>notation for near links@1972281**',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/1976383
+    '<p><a class="message-link" '
+      'href="/#narrow/channel/378-api-design/topic/notation.20for.20near.20links/near/1972281">'
+      '#api design &gt; notation for near links @ 💬</a></p>',
+    const LinkNode(
+      url: '/#narrow/channel/378-api-design/topic/notation.20for.20near.20links/near/1972281',
+      nodes: [TextNode('#api design > notation for near links @ 💬')]));
+
   static const spoilerDefaultHeader = ContentExample(
     'spoiler with default header',
     '```spoiler\nhello world\n```',
@@ -973,6 +984,8 @@ void main() {
           '#mobile-team &gt; zulip-flutter</a></p>',
       const LinkNode(url: '/#narrow/stream/243-mobile-team/topic/zulip-flutter',
         nodes: [TextNode('#mobile-team > zulip-flutter')]));
+
+    testParseExample(ContentExample.messageLink);
   });
 
   testParseInline('parse nested link, del, strong, em, code',

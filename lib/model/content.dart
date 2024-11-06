@@ -855,7 +855,9 @@ class _ZulipContentParser {
 
     if (localName == 'a'
         && (className.isEmpty
-            || (className == 'stream-topic' || className == 'stream'))) {
+            || className == 'stream-topic'
+            || className == 'stream'
+            || className == 'message-link')) {
       final href = element.attributes['href'];
       if (href == null) return unimplemented();
       final link = LinkNode(nodes: nodes(), url: href, debugHtmlNode: debugHtmlNode);
