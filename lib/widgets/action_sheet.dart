@@ -146,7 +146,7 @@ class ActionSheetCancelButton extends StatelessWidget {
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
+void showMessageActionSheet(BuildContext context, {required Message message}) {
   final store = PerAccountStoreWidget.of(context);
 
   // The UI that's conditioned on this won't live-update during this appearance
