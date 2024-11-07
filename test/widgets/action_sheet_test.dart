@@ -25,6 +25,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
@@ -52,16 +53,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   }
   connection = store.connection as FakeApiConnection;
 
-  // prepare message list data
-  connection.prepare(json: GetMessagesResult(
-    anchor: message.id,
-    foundNewest: true,
-    foundOldest: true,
-    foundAnchor: true,
-    historyLimited: false,
-    messages: [message],
-  ).toJson());
-
+  connection.prepare(json: newestResult(
+    foundOldest: true, messages: [message]).toJson());
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
     child: MessageListPage(initNarrow: narrow)));
 
