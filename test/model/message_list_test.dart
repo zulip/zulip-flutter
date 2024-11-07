@@ -6,7 +6,6 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
-import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/algorithms.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/message_list.dart';
@@ -21,6 +20,9 @@ import '../stdlib_checks.dart';
 import 'content_checks.dart';
 import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
+
+const newestResult = eg.newestGetMessagesResult;
+const olderResult = eg.olderGetMessagesResult;
 
 void main() {
   // These variables are the common state operated on by each test.
@@ -1847,41 +1849,4 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
   Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
-}
-
-/// A GetMessagesResult the server might return on an `anchor=newest` request.
-GetMessagesResult newestResult({
-  required bool foundOldest,
-  bool historyLimited = false,
-  required List<Message> messages,
-}) {
-  return GetMessagesResult(
-    // These anchor, foundAnchor, and foundNewest values are what the server
-    // appears to always return when the request had `anchor=newest`.
-    anchor: 10000000000000000, // that's 16 zeros
-    foundAnchor: false,
-    foundNewest: true,
-
-    foundOldest: foundOldest,
-    historyLimited: historyLimited,
-    messages: messages,
-  );
-}
-
-/// A GetMessagesResult the server might return when we request older messages.
-GetMessagesResult olderResult({
-  required int anchor,
-  bool foundAnchor = false, // the value if the server understood includeAnchor false
-  required bool foundOldest,
-  bool historyLimited = false,
-  required List<Message> messages,
-}) {
-  return GetMessagesResult(
-    anchor: anchor,
-    foundAnchor: foundAnchor,
-    foundNewest: false, // empirically always this, even when anchor happens to be latest
-    foundOldest: foundOldest,
-    historyLimited: historyLimited,
-    messages: messages,
-  );
 }

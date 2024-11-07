@@ -65,7 +65,7 @@ void main() {
   }) async {
     assert(messages.every((message) => message.poll == null));
     connection.prepare(json:
-      newestResult(foundOldest: foundOldest, messages: messages).toJson());
+      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
     await messageList.fetchInitial();
     checkNotifiedOnce();
   }
@@ -645,7 +645,7 @@ void main() {
         // Perform a single-message initial message fetch for [messageList] with
         // submessages.
         connection.prepare(json:
-          newestResult(foundOldest: true, messages: []).toJson()
+          eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson()
             ..['messages'] = [{
               ...message.toJson(),
               "submessages": submessages.map(deepToJson).toList(),

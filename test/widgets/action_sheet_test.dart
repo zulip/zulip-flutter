@@ -26,7 +26,6 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
-import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
@@ -55,7 +54,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   }
   connection = store.connection as FakeApiConnection;
 
-  connection.prepare(json: newestResult(
+  connection.prepare(json: eg.newestGetMessagesResult(
     foundOldest: true, messages: [message]).toJson());
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
     child: MessageListPage(initNarrow: narrow)));
@@ -443,7 +442,7 @@ void main() {
         // it doesn't matter anyway: [MessageStoreImpl.reconcileMessages] will
         // keep the version updated by the event.  If that somehow changes in
         // some future refactor, it'll cause this test to fail.
-        connection.prepare(json: newestResult(
+        connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: [message]).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           newStreamId: newStream.streamId, newTopic: newTopic,
