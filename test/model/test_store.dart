@@ -111,6 +111,7 @@ class TestGlobalStore extends GlobalStore {
       zulipFeatureLevel: data.zulipFeatureLevel.value,
       zulipVersion: data.zulipVersion.value,
       zulipMergeBase: data.zulipMergeBase.value,
+      ackedPushToken: data.ackedPushToken.value,
     );
   }
 
