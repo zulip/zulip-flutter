@@ -919,19 +919,19 @@ void main() {
       });
 
       test('report rate limit: code RATE_LIMIT_HIT', () {
-        checkReported(prepareRateLimitExceptionCode).startsWith(
+        checkLateReported(prepareRateLimitExceptionCode).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
 
       test('report rate limit: status 429 ZulipApiException', () {
-        checkReported(prepareRateLimitExceptionStatus).startsWith(
+        checkLateReported(prepareRateLimitExceptionStatus).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
 
       test('report rate limit: status 429 MalformedServerResponseException', () {
-        checkReported(prepareRateLimitExceptionMalformed).startsWith(
+        checkLateReported(prepareRateLimitExceptionMalformed).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
