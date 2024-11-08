@@ -323,7 +323,9 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: ZulipAppBar(title: const Text("Home")),
-      body: ElevatedButtonTheme(
+      body: Center(
+        child: SingleChildScrollView(
+        child: ElevatedButtonTheme(
         data: ElevatedButtonThemeData(style: ButtonStyle(
           backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
           foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer))),
@@ -343,6 +345,12 @@ class HomePage extends StatelessWidget {
                 MessageListPage.buildRoute(context: context,
                   narrow: const CombinedFeedNarrow())),
               child: Text(zulipLocalizations.combinedFeedPageTitle)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: const MentionsNarrow())),
+              child: Text(zulipLocalizations.mentionsPageTitle)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.push(context,
@@ -378,6 +386,6 @@ class HomePage extends StatelessWidget {
                     narrow: ChannelNarrow(testStreamId!))),
                 child: const Text("#test here")), // scaffolding hack, see above
             ],
-          ]))));
+          ]))))));
   }
 }
