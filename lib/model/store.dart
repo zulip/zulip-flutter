@@ -1034,6 +1034,8 @@ class UpdateMachine {
         if (_disposed) return;
 
         store.isLoading = true;
+        bool isUnexpected;
+        bool shouldReportToUser;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
@@ -1042,31 +1044,38 @@ class UpdateMachine {
             assert(debugLog('… Event queue replaced.'));
             return;
 
+          case NetworkException(cause: SocketException()):
+            // A [SocketException] is common when the app returns from sleep.
+            isUnexpected = false;
+            shouldReportToUser = false;
+
           case NetworkException():
           case Server5xxException():
-            assert(debugLog('Transient error polling event queue for $store: $e\n'
-                'Backing off, then will retry…'));
-            if (e is NetworkException && e.cause is SocketException) {
-              // The error is boring; skip reporting it to the user.
-              // A [SocketException] is common when the app returns from sleep.
-            } else {
-              maybeReportToUserTransientError(e);
-            }
-            await (backoffMachine ??= BackoffMachine()).wait();
-            if (_disposed) return;
-            assert(debugLog('… Backoff wait complete, retrying poll.'));
-            continue;
+            isUnexpected = false;
+            shouldReportToUser = true;
 
           default:
-            assert(debugLog('Error polling event queue for $store: $e\n'
-                'Backing off and retrying even though may be hopeless…'));
-            // TODO(#186): Handle unrecoverable failures
-            _reportToUserErrorConnectingToServer(e);
-            await (backoffMachine ??= BackoffMachine()).wait();
-            if (_disposed) return;
-            assert(debugLog('… Backoff wait complete, retrying poll.'));
-            continue;
+            isUnexpected = true;
+            shouldReportToUser = true;
         }
+
+        if (isUnexpected) {
+          assert(shouldReportToUser);
+          assert(debugLog('Error polling event queue for $store: $e\n'
+              'Backing off and retrying even though may be hopeless…'));
+          // TODO(#186): Handle unrecoverable failures
+          _reportToUserErrorConnectingToServer(e);
+        } else {
+          assert(debugLog('Transient error polling event queue for $store: $e\n'
+              'Backing off, then will retry…'));
+          if (shouldReportToUser) {
+            maybeReportToUserTransientError(e);
+          }
+        }
+        await (backoffMachine ??= BackoffMachine()).wait();
+        if (_disposed) return;
+        assert(debugLog('… Backoff wait complete, retrying poll.'));
+        continue;
       }
 
       // After one successful request, we reset backoff to its initial state.
