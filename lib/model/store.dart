@@ -1029,8 +1029,6 @@ class UpdateMachine {
           if (_disposed) return;
         } catch (e) {
           if (_disposed) return;
-          store.isLoading = true;
-
           final shouldRetry = _triagePollRequestError(e);
           if (!shouldRetry) rethrow;
           await (backoffMachine ??= BackoffMachine()).wait();
@@ -1056,7 +1054,6 @@ class UpdateMachine {
         // and failures, the successes themselves should space out the requests.
         backoffMachine = null;
 
-        store.isLoading = false;
         _clearReportingErrorsToUser();
 
         final events = result.events;
@@ -1083,7 +1080,6 @@ class UpdateMachine {
       // or an unexpected exception representing a bug in our code or the server.
       // Either way, the show must go on.  So reload server data from scratch.
 
-      store.isLoading = true;
       final isUnexpected = _triagePollError(e);
 
       if (isUnexpected) {
@@ -1110,6 +1106,7 @@ class UpdateMachine {
   int _accumulatedTransientFailureCount = 0;
 
   void _clearReportingErrorsToUser() {
+    store.isLoading = false;
     _accumulatedTransientFailureCount = 0;
     reportErrorToUserBriefly(null);
   }
@@ -1120,6 +1117,8 @@ class UpdateMachine {
   /// after reporting the error if appropriate to the user and/or developer.
   /// Otherwise, this method returns false with no side effects.
   bool _triagePollRequestError(Object error) {
+    store.isLoading = true;
+
     if (error is! ApiRequestException) {
       // Some unexpected error, outside even making the HTTP request.
       // Definitely a bug in our code.
@@ -1167,6 +1166,8 @@ class UpdateMachine {
   /// Reports the error if appropriate to the user and/or developer;
   /// then returns true just if the error was unexpected.
   bool _triagePollError(Object error) {
+    store.isLoading = true;
+
     bool isUnexpected;
     switch (error) {
       case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
