@@ -1120,42 +1120,8 @@ class UpdateMachine {
       // or an unexpected exception representing a bug in our code or the server.
       // Either way, the show must go on.  So reload server data from scratch.
 
-      // First, log what happened.
       store.isLoading = true;
-      bool isUnexpected;
-      switch (e) {
-        case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-          assert(debugLog('Lost event queue for $store.  Replacing…'));
-          // The old event queue is gone, so we need a new one.  This is normal.
-          isUnexpected = false;
-
-        case _EventHandlingException(:final cause, :final event):
-          assert(debugLog('BUG: Error handling an event: $cause\n' // TODO(log)
-            '  event: $event\n'
-            'Replacing event queue…'));
-          reportErrorToUserBriefly(
-            GlobalLocalizations.zulipLocalizations.errorHandlingEventTitle,
-            details: GlobalLocalizations.zulipLocalizations.errorHandlingEventDetails(
-              store.realmUrl.toString(), cause.toString(), event.toString()));
-          // We can't just continue with the next event, because our state
-          // may be garbled due to failing to apply this one (and worse,
-          // any invariants that were left in a broken state from where
-          // the exception was thrown).  So reload from scratch.
-          // Hopefully (probably?) the bug only affects our implementation of
-          // the *change* in state represented by the event, and when we get the
-          // new state in a fresh InitialSnapshot we'll handle that just fine.
-          isUnexpected = true;
-
-        default:
-          assert(debugLog('BUG: Unexpected error in event polling: $e\n' // TODO(log)
-            'Replacing event queue…'));
-          _reportToUserErrorConnectingToServer(e);
-          // Similar story to the _EventHandlingException case;
-          // separate only so that that other case can print more context.
-          // The bug here could be in the server if it's an ApiRequestException,
-          // but our remedy is the same either way.
-          isUnexpected = true;
-      }
+      final isUnexpected = _triagePollError(e);
 
       if (isUnexpected) {
         // We don't know the cause of the failure; it might well keep happening.
@@ -1183,6 +1149,48 @@ class UpdateMachine {
   void _clearReportingErrorsToUser() {
     _accumulatedTransientFailureCount = 0;
     reportErrorToUserBriefly(null);
+  }
+
+  /// Sort out an error in [poll].
+  ///
+  /// Reports the error if appropriate to the user and/or developer;
+  /// then returns true just if the error was unexpected.
+  bool _triagePollError(Object error) {
+    bool isUnexpected;
+    switch (error) {
+      case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+        assert(debugLog('Lost event queue for $store.  Replacing…'));
+        // The old event queue is gone, so we need a new one.  This is normal.
+        isUnexpected = false;
+
+      case _EventHandlingException(:final cause, :final event):
+        assert(debugLog('BUG: Error handling an event: $cause\n' // TODO(log)
+          '  event: $event\n'
+          'Replacing event queue…'));
+        reportErrorToUserBriefly(
+          GlobalLocalizations.zulipLocalizations.errorHandlingEventTitle,
+          details: GlobalLocalizations.zulipLocalizations.errorHandlingEventDetails(
+            store.realmUrl.toString(), cause.toString(), event.toString()));
+        // We can't just continue with the next event, because our state
+        // may be garbled due to failing to apply this one (and worse,
+        // any invariants that were left in a broken state from where
+        // the exception was thrown).  So reload from scratch.
+        // Hopefully (probably?) the bug only affects our implementation of
+        // the *change* in state represented by the event, and when we get the
+        // new state in a fresh InitialSnapshot we'll handle that just fine.
+        isUnexpected = true;
+
+      default:
+        assert(debugLog('BUG: Unexpected error in event polling: $error\n' // TODO(log)
+          'Replacing event queue…'));
+        _reportToUserErrorConnectingToServer(error);
+        // Similar story to the _EventHandlingException case;
+        // separate only so that that other case can print more context.
+        // The bug here could be in the server if it's an ApiRequestException,
+        // but our remedy is the same either way.
+        isUnexpected = true;
+    }
+    return isUnexpected;
   }
 
   /// This only reports transient errors after reaching
