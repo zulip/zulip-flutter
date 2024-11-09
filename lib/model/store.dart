@@ -1094,9 +1094,7 @@ class UpdateMachine {
         backoffMachine = null;
 
         store.isLoading = false;
-        // Dismiss existing errors, if any.
-        reportErrorToUserBriefly(null);
-        _accumulatedTransientFailureCount = 0;
+        _clearReportingErrorsToUser();
 
         final events = result.events;
         for (final event in events) {
@@ -1181,6 +1179,11 @@ class UpdateMachine {
   static const transientFailureCountNotifyThreshold = 5;
 
   int _accumulatedTransientFailureCount = 0;
+
+  void _clearReportingErrorsToUser() {
+    _accumulatedTransientFailureCount = 0;
+    reportErrorToUserBriefly(null);
+  }
 
   /// This only reports transient errors after reaching
   /// a pre-defined threshold of retries.
