@@ -1101,6 +1101,7 @@ class UpdateMachine {
       // duration (which is 10 seconds).  So if we're getting a mix of successes
       // and failures, the successes themselves should space out the requests.
       backoffMachine = null;
+
       store.isLoading = false;
       // Dismiss existing errors, if any.
       reportErrorToUserBriefly(null);
