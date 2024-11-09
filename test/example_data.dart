@@ -18,6 +18,10 @@ void _checkPositive(int? value, String description) {
   assert(value == null || value > 0, '$description should be positive');
 }
 
+Object nullCheckError() {
+  try { null!; } catch (e) { return e; } // ignore: null_check_always_fails
+}
+
 ////////////////////////////////////////////////////////////////
 // Realm-wide (or server-wide) metadata.
 //

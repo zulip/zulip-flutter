@@ -993,6 +993,18 @@ class UpdateMachine {
     }());
   }
 
+  // This is static so that it persists through new UpdateMachine instances
+  // as we attempt to fix things by reloading data from scratch.  In principle
+  // it could also be per-account (or per-realm or per-server); but currently
+  // we skip that complication, as well as attempting to reset backoff on
+  // later success.  After all, these unexpected errors should be uncommon;
+  // ideally they'd never happen.
+  static BackoffMachine get _unexpectedErrorBackoffMachine {
+    return __unexpectedErrorBackoffMachine
+      ??= BackoffMachine(maxBound: const Duration(seconds: 60));
+  }
+  static BackoffMachine? __unexpectedErrorBackoffMachine;
+
   /// This controls when we start to report transient errors to the user when
   /// polling.
   ///
@@ -1113,13 +1125,42 @@ class UpdateMachine {
         }
       }
     } catch (e) {
+      if (_disposed) return;
+
+      // An error occurred, other than the request errors we retry on.
+      // This means either a lost/expired event queue on the server (which is
+      // normal after the app is offline for a period like 10 minutes),
+      // or an unexpected exception representing a bug in our code or the server.
+      // Either way, the show must go on.  So reload server data from scratch.
+
+      // First, log what happened.
+      store.isLoading = true;
+      bool isUnexpected;
       switch (e) {
         case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
           assert(debugLog('Lost event queue for $store.  Replacing…'));
           // The old event queue is gone, so we need a new one.  This is normal.
+          isUnexpected = false;
 
         default:
-          rethrow; // TODO(#563) try to recover instead
+          assert(debugLog('BUG: Unexpected error in event polling: $e\n' // TODO(log)
+            'Replacing event queue…'));
+          _reportToUserErrorConnectingToServer(e);
+          // We can't just continue with the next event, because our state
+          // may be garbled due to failing to apply this one (and worse,
+          // any invariants that were left in a broken state from where
+          // the exception was thrown).  So reload from scratch.
+          // Hopefully (probably?) the bug only affects our implementation of
+          // the *change* in state represented by the event, and when we get the
+          // new state in a fresh InitialSnapshot we'll handle that just fine.
+          isUnexpected = true;
+      }
+
+      if (isUnexpected) {
+        // We don't know the cause of the failure; it might well keep happening.
+        // Avoid creating a retry storm.
+        await _unexpectedErrorBackoffMachine.wait();
+        if (_disposed) return;
       }
 
       // This disposes the store, which disposes this update machine.

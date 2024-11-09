@@ -639,15 +639,24 @@ void main() {
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
-    void checkReload(void Function() prepareError) {
+    void checkReload(FutureOr<void> Function() prepareError, {
+      bool expectBackoff = true,
+    }) {
       awaitFakeAsync((async) async {
         await preparePoll();
         check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
 
-        prepareError();
+        await prepareError();
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
         check(store).isLoading.isTrue();
+
+        if (expectBackoff) {
+          // The reload doesn't happen immediately; there's a timer.
+          check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
+          check(async.pendingTimers).length.equals(1);
+          async.flushTimers();
+        }
 
         // The global store has a new store.
         check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
@@ -699,6 +708,10 @@ void main() {
     }
 
     // These cases are ordered by how far the request got before it failed.
+
+    void prepareUnexpectedLoopError() {
+      updateMachine.debugPrepareLoopError(eg.nullCheckError());
+    }
 
     void prepareNetworkExceptionSocketException() {
       connection.prepare(exception: const SocketException('failed'));
@@ -753,6 +766,23 @@ void main() {
       });
     }
 
+    Future<void> prepareHandleEventError() async {
+      final stream = eg.stream();
+      await store.addStream(stream);
+      // Set up a situation that breaks our data structures' invariants:
+      // a stream/channel found in the by-ID map is missing in the by-name map.
+      store.streamsByName.remove(stream.name);
+      // Then prepare an event on which handleEvent will throw
+      // because it hits that broken invariant.
+      connection.prepare(json: GetEventsResult(events: [
+        ChannelDeleteEvent(id: 1, streams: [stream]),
+      ], queueId: null).toJson());
+    }
+
+    test('reloads on unexpected error within loop', () {
+      checkReload(prepareUnexpectedLoopError);
+    });
+
     test('retries on NetworkException from SocketException', () {
       // We skip reporting errors on these; check we retry them all the same.
       checkRetry(prepareNetworkExceptionSocketException);
@@ -786,8 +816,12 @@ void main() {
       checkRetry(prepareZulipApiExceptionBadRequest);
     });
 
-    test('reloads on expired queue', () {
-      checkReload(prepareExpiredEventQueue);
+    test('reloads immediately on expired queue', () {
+      checkReload(expectBackoff: false, prepareExpiredEventQueue);
+    });
+
+    test('reloads on handleEvent error', () {
+      checkReload(prepareHandleEventError);
     });
 
     test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
@@ -828,10 +862,10 @@ void main() {
         await preparePoll(lastEventId: 1);
       }
 
-      void pollAndFail(FakeAsync async) {
+      void pollAndFail(FakeAsync async, {bool shouldCheckRequest = true}) {
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
-        checkLastRequest(lastEventId: 1);
+        if (shouldCheckRequest) checkLastRequest(lastEventId: 1);
         check(store).isLoading.isTrue();
       }
 
@@ -839,7 +873,9 @@ void main() {
         return awaitFakeAsync((async) async {
           await prepare();
           prepareError();
-          pollAndFail(async);
+          // No need to check on the request; there's no later step of this test
+          // for it to be needed as setup for.
+          pollAndFail(async, shouldCheckRequest: false);
           return check(takeLastReportedError()).isNotNull();
         });
       }
@@ -892,6 +928,10 @@ void main() {
         });
       }
 
+      test('report unexpected error within loop', () {
+        checkReported(prepareUnexpectedLoopError);
+      });
+
       test('ignore NetworkException from SocketException', () {
         checkNotReported(prepareNetworkExceptionSocketException);
       });
@@ -940,6 +980,12 @@ void main() {
 
       test('ignore expired queue', () {
         checkNotReported(prepareExpiredEventQueue);
+      });
+
+      test('report handleEvent error', () {
+        checkReported(prepareHandleEventError).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
       });
     });
   });
