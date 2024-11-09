@@ -40,6 +40,7 @@ mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
     return PerAccountStoreWidget(
       accountId: accountId,
       placeholder: const LoadingPlaceholderPage(),
+      routeToRemoveOnLogout: this,
       child: super.buildPage(context, animation, secondaryAnimation));
   }
 }

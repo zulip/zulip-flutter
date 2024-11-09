@@ -47,6 +47,10 @@ class TestGlobalStore extends GlobalStore {
   /// but that breach is sometimes convenient for tests.
   bool useCachedApiConnections = false;
 
+  void clearCachedApiConnections() {
+    _apiConnections.clear();
+  }
+
   /// Get or construct a [FakeApiConnection] with the given arguments.
   ///
   /// To access the same [FakeApiConnection] that the code under test will get,
@@ -120,9 +124,21 @@ class TestGlobalStore extends GlobalStore {
     // Nothing to do.
   }
 
+  static const Duration removeAccountDuration = Duration(milliseconds: 1);
+
+  /// Consume the log of calls made to [doRemoveAccount].
+  List<int> takeDoRemoveAccountCalls() {
+    final result = _doRemoveAccountCalls;
+    _doRemoveAccountCalls = null;
+    return result ?? [];
+  }
+  List<int>? _doRemoveAccountCalls;
+
   @override
   Future<void> doRemoveAccount(int accountId) async {
-    // Nothing to do.
+    (_doRemoveAccountCalls ??= []).add(accountId);
+    await Future<void>.delayed(removeAccountDuration);
+    // Nothing else to do.
   }
 
   @override

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../model/binding.dart';
 import '../model/store.dart';
+import 'page.dart';
 
 /// Provides access to the app's data.
 ///
@@ -112,11 +114,19 @@ class PerAccountStoreWidget extends StatefulWidget {
     super.key,
     required this.accountId,
     this.placeholder = const LoadingPlaceholder(),
+    this.routeToRemoveOnLogout,
     required this.child,
   });
 
   final int accountId;
   final Widget placeholder;
+
+  /// A per-account [Route] that should be removed on logout.
+  ///
+  /// Use this when the widget is a page on a route that should go away
+  /// when the account is logged out, instead of lingering with [placeholder].
+  final AccountPageRouteMixin? routeToRemoveOnLogout;
+
   final Widget child;
 
   /// The user's data for the relevant Zulip account for this widget.
@@ -195,6 +205,16 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final globalStore = GlobalStoreWidget.of(context);
+    final accountExists = globalStore.getAccount(widget.accountId) != null;
+    if (!accountExists) {
+      // logged out
+      _setStore(null);
+      if (widget.routeToRemoveOnLogout != null) {
+        SchedulerBinding.instance.addPostFrameCallback(
+          (_) => Navigator.of(context).removeRoute(widget.routeToRemoveOnLogout!));
+      }
+      return;
+    }
     // If we already have data, get it immediately. This avoids showing one
     // frame of loading indicator each time we have a new PerAccountStoreWidget.
     final store = globalStore.perAccountSync(widget.accountId);
@@ -212,13 +232,13 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
           // The account was logged out while its store was loading.
           // This widget will be showing [placeholder] perpetually,
           // but that's OK as long as other code will be removing it from the UI
-          // (for example by removing a per-account route from the nav).
+          // (usually by using [routeToRemoveOnLogout]).
         }
       }();
     }
   }
 
-  void _setStore(PerAccountStore store) {
+  void _setStore(PerAccountStore? store) {
     if (store != this.store) {
       setState(() {
         this.store = store;
