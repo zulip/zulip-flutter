@@ -1008,28 +1008,10 @@ class UpdateMachine {
   }
   static BackoffMachine? __unexpectedErrorBackoffMachine;
 
-  /// This controls when we start to report transient errors to the user when
-  /// polling.
-  ///
-  /// At the 6th failure, the expected time elapsed since the first failure
-  /// will be 1.55 seocnds.
-  static const transientFailureCountNotifyThreshold = 5;
-
   void poll() async {
     assert(!_disposed);
     try {
       BackoffMachine? backoffMachine;
-      int accumulatedTransientFailureCount = 0;
-
-      /// This only reports transient errors after reaching
-      /// a pre-defined threshold of retries.
-      void maybeReportToUserTransientError(Object error) {
-        accumulatedTransientFailureCount++;
-        if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
-          _reportToUserErrorConnectingToServer(error);
-        }
-      }
-
       while (true) {
         if (_debugLoopSignal != null) {
           await _debugLoopSignal!.future;
@@ -1086,7 +1068,7 @@ class UpdateMachine {
           assert(debugLog('Transient error polling event queue for $store: $e\n'
               'Backing off, then will retry…'));
           if (shouldReportToUser) {
-            maybeReportToUserTransientError(e);
+            _maybeReportToUserTransientError(e);
           }
           await (backoffMachine ??= BackoffMachine()).wait();
           if (_disposed) return;
@@ -1114,7 +1096,7 @@ class UpdateMachine {
         store.isLoading = false;
         // Dismiss existing errors, if any.
         reportErrorToUserBriefly(null);
-        accumulatedTransientFailureCount = 0;
+        _accumulatedTransientFailureCount = 0;
 
         final events = result.events;
         for (final event in events) {
@@ -1188,6 +1170,24 @@ class UpdateMachine {
       await store._globalStore._reloadPerAccount(store.accountId);
       assert(debugLog('… Event queue replaced.'));
       return;
+    }
+  }
+
+  /// This controls when we start to report transient errors to the user when
+  /// polling.
+  ///
+  /// At the 6th failure, the expected time elapsed since the first failure
+  /// will be 1.55 seocnds.
+  static const transientFailureCountNotifyThreshold = 5;
+
+  int _accumulatedTransientFailureCount = 0;
+
+  /// This only reports transient errors after reaching
+  /// a pre-defined threshold of retries.
+  void _maybeReportToUserTransientError(Object error) {
+    _accumulatedTransientFailureCount++;
+    if (_accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+      _reportToUserErrorConnectingToServer(error);
     }
   }
 
