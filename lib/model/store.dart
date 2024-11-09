@@ -1002,119 +1002,130 @@ class UpdateMachine {
 
   void poll() async {
     assert(!_disposed);
+    try {
+      BackoffMachine? backoffMachine;
+      int accumulatedTransientFailureCount = 0;
 
-    BackoffMachine? backoffMachine;
-    int accumulatedTransientFailureCount = 0;
-
-    /// This only reports transient errors after reaching
-    /// a pre-defined threshold of retries.
-    void maybeReportToUserTransientError(Object error) {
-      accumulatedTransientFailureCount++;
-      if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
-        _reportToUserErrorConnectingToServer(error);
-      }
-    }
-
-    while (true) {
-      if (_debugLoopSignal != null) {
-        await _debugLoopSignal!.future;
-        if (_disposed) return;
-        assert(() {
-          _debugLoopSignal = Completer();
-          return true;
-        }());
+      /// This only reports transient errors after reaching
+      /// a pre-defined threshold of retries.
+      void maybeReportToUserTransientError(Object error) {
+        accumulatedTransientFailureCount++;
+        if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+          _reportToUserErrorConnectingToServer(error);
+        }
       }
 
-      final GetEventsResult result;
-      try {
-        result = await getEvents(store.connection,
-          queueId: queueId, lastEventId: lastEventId);
-        if (_disposed) return;
-      } catch (e) {
-        if (_disposed) return;
-
-        store.isLoading = true;
-        bool isUnexpected;
-        bool shouldReportToUser;
-        switch (e) {
-          case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-            assert(debugLog('Lost event queue for $store.  Replacing…'));
-            // This disposes the store, which disposes this update machine.
-            await store._globalStore._reloadPerAccount(store.accountId);
-            assert(debugLog('… Event queue replaced.'));
-            return;
-
-          case NetworkException(cause: SocketException()):
-            // A [SocketException] is common when the app returns from sleep.
-            isUnexpected = false;
-            shouldReportToUser = false;
-
-          case NetworkException():
-          case Server5xxException():
-            isUnexpected = false;
-            shouldReportToUser = true;
-
-          case ServerException(httpStatus: 429):
-          case ZulipApiException(httpStatus: 429):
-          case ZulipApiException(code: 'RATE_LIMIT_HIT'):
-            // TODO(#946) handle rate-limit errors more generally, in ApiConnection
-            isUnexpected = false;
-            shouldReportToUser = true;
-
-          default:
-            isUnexpected = true;
-            shouldReportToUser = true;
+      while (true) {
+        if (_debugLoopSignal != null) {
+          await _debugLoopSignal!.future;
+          if (_disposed) return;
+          assert(() {
+            _debugLoopSignal = Completer();
+            return true;
+          }());
         }
 
-        if (isUnexpected) {
-          assert(shouldReportToUser);
-          assert(debugLog('Error polling event queue for $store: $e\n'
-              'Backing off and retrying even though may be hopeless…'));
-          // TODO(#186): Handle unrecoverable failures
-          _reportToUserErrorConnectingToServer(e);
-        } else {
-          assert(debugLog('Transient error polling event queue for $store: $e\n'
-              'Backing off, then will retry…'));
-          if (shouldReportToUser) {
-            maybeReportToUserTransientError(e);
+        final GetEventsResult result;
+        try {
+          result = await getEvents(store.connection,
+            queueId: queueId, lastEventId: lastEventId);
+          if (_disposed) return;
+        } catch (e) {
+          if (_disposed) return;
+
+          store.isLoading = true;
+          bool isUnexpected;
+          bool shouldReportToUser;
+          switch (e) {
+            case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+              rethrow;
+
+            case NetworkException(cause: SocketException()):
+              // A [SocketException] is common when the app returns from sleep.
+              isUnexpected = false;
+              shouldReportToUser = false;
+
+            case NetworkException():
+            case Server5xxException():
+              isUnexpected = false;
+              shouldReportToUser = true;
+
+            case ServerException(httpStatus: 429):
+            case ZulipApiException(httpStatus: 429):
+            case ZulipApiException(code: 'RATE_LIMIT_HIT'):
+              // TODO(#946) handle rate-limit errors more generally, in ApiConnection
+              isUnexpected = false;
+              shouldReportToUser = true;
+
+            default:
+              isUnexpected = true;
+              shouldReportToUser = true;
           }
+
+          if (isUnexpected) {
+            assert(shouldReportToUser);
+            assert(debugLog('Error polling event queue for $store: $e\n'
+                'Backing off and retrying even though may be hopeless…'));
+            // TODO(#186): Handle unrecoverable failures
+            _reportToUserErrorConnectingToServer(e);
+          } else {
+            assert(debugLog('Transient error polling event queue for $store: $e\n'
+                'Backing off, then will retry…'));
+            if (shouldReportToUser) {
+              maybeReportToUserTransientError(e);
+            }
+          }
+          await (backoffMachine ??= BackoffMachine()).wait();
+          if (_disposed) return;
+          assert(debugLog('… Backoff wait complete, retrying poll.'));
+          continue;
         }
-        await (backoffMachine ??= BackoffMachine()).wait();
-        if (_disposed) return;
-        assert(debugLog('… Backoff wait complete, retrying poll.'));
-        continue;
+
+        // After one successful request, we reset backoff to its initial state.
+        // That way if the user is off the network and comes back on, the app
+        // doesn't wind up in a state where it's slow to recover the next time
+        // one request fails.
+        //
+        // This does mean that if the server is having trouble and handling some
+        // but not all of its requests, we'll end up doing a lot more retries than
+        // if we stayed at the max backoff interval; partway toward what would
+        // happen if we weren't backing off at all.
+        //
+        // But at least for [getEvents] requests, as here, it should be OK,
+        // because this is a long-poll.  That means a typical successful request
+        // takes a long time to come back; in fact longer than our max backoff
+        // duration (which is 10 seconds).  So if we're getting a mix of successes
+        // and failures, the successes themselves should space out the requests.
+        backoffMachine = null;
+
+        store.isLoading = false;
+        // Dismiss existing errors, if any.
+        reportErrorToUserBriefly(null);
+        accumulatedTransientFailureCount = 0;
+
+        final events = result.events;
+        for (final event in events) {
+          await store.handleEvent(event);
+          if (_disposed) return;
+        }
+        if (events.isNotEmpty) {
+          lastEventId = events.last.id;
+        }
+      }
+    } catch (e) {
+      switch (e) {
+        case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+          assert(debugLog('Lost event queue for $store.  Replacing…'));
+          // The old event queue is gone, so we need a new one.  This is normal.
+
+        default:
+          rethrow; // TODO(#563) try to recover instead
       }
 
-      // After one successful request, we reset backoff to its initial state.
-      // That way if the user is off the network and comes back on, the app
-      // doesn't wind up in a state where it's slow to recover the next time
-      // one request fails.
-      //
-      // This does mean that if the server is having trouble and handling some
-      // but not all of its requests, we'll end up doing a lot more retries than
-      // if we stayed at the max backoff interval; partway toward what would
-      // happen if we weren't backing off at all.
-      //
-      // But at least for [getEvents] requests, as here, it should be OK,
-      // because this is a long-poll.  That means a typical successful request
-      // takes a long time to come back; in fact longer than our max backoff
-      // duration (which is 10 seconds).  So if we're getting a mix of successes
-      // and failures, the successes themselves should space out the requests.
-      backoffMachine = null;
-
-      store.isLoading = false;
-      // Dismiss existing errors, if any.
-      reportErrorToUserBriefly(null);
-      accumulatedTransientFailureCount = 0;
-
-      final events = result.events;
-      for (final event in events) {
-        await store.handleEvent(event);
-        if (_disposed) return;
-      }
-      if (events.isNotEmpty) {
-        lastEventId = events.last.id;
-      }
+      // This disposes the store, which disposes this update machine.
+      await store._globalStore._reloadPerAccount(store.accountId);
+      assert(debugLog('… Event queue replaced.'));
+      return;
     }
   }
 
