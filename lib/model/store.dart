@@ -1016,7 +1016,7 @@ class UpdateMachine {
 
         store.isLoading = true;
         final localizations = GlobalLocalizations.zulipLocalizations;
-        final serverUrl = store.connection.realmUrl.origin;
+        final serverUrl = store.realmUrl.origin;
         switch (e) {
           case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
             assert(debugLog('Lost event queue for $store.  Replacing…'));
