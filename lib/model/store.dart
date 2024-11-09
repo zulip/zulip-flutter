@@ -1022,7 +1022,7 @@ class UpdateMachine {
             assert(debugLog('Lost event queue for $store.  Replacing…'));
             // This disposes the store, which disposes this update machine.
             await store._globalStore._reloadPerAccount(store.accountId);
-            debugLog('… Event queue replaced.');
+            assert(debugLog('… Event queue replaced.'));
             return;
 
           case Server5xxException():
