@@ -996,22 +996,9 @@ class UpdateMachine {
     }());
   }
 
-  // This is static so that it persists through new UpdateMachine instances
-  // as we attempt to fix things by reloading data from scratch.  In principle
-  // it could also be per-account (or per-realm or per-server); but currently
-  // we skip that complication, as well as attempting to reset backoff on
-  // later success.  After all, these unexpected errors should be uncommon;
-  // ideally they'd never happen.
-  static BackoffMachine get _unexpectedErrorBackoffMachine {
-    return __unexpectedErrorBackoffMachine
-      ??= BackoffMachine(maxBound: const Duration(seconds: 60));
-  }
-  static BackoffMachine? __unexpectedErrorBackoffMachine;
-
   void poll() async {
     assert(!_disposed);
     try {
-      BackoffMachine? backoffMachine;
       while (true) {
         if (_debugLoopSignal != null) {
           await _debugLoopSignal!.future;
@@ -1027,34 +1014,13 @@ class UpdateMachine {
           result = await getEvents(store.connection,
             queueId: queueId, lastEventId: lastEventId);
           if (_disposed) return;
-        } catch (e) {
+        } catch (e, stackTrace) {
           if (_disposed) return;
-          final shouldRetry = _triagePollRequestError(e);
-          if (!shouldRetry) rethrow;
-          await (backoffMachine ??= BackoffMachine()).wait();
+          await _handlePollRequestError(e, stackTrace); // may rethrow
           if (_disposed) return;
-          assert(debugLog('… Backoff wait complete, retrying poll.'));
           continue;
         }
-
-        // After one successful request, we reset backoff to its initial state.
-        // That way if the user is off the network and comes back on, the app
-        // doesn't wind up in a state where it's slow to recover the next time
-        // one request fails.
-        //
-        // This does mean that if the server is having trouble and handling some
-        // but not all of its requests, we'll end up doing a lot more retries than
-        // if we stayed at the max backoff interval; partway toward what would
-        // happen if we weren't backing off at all.
-        //
-        // But at least for [getEvents] requests, as here, it should be OK,
-        // because this is a long-poll.  That means a typical successful request
-        // takes a long time to come back; in fact longer than our max backoff
-        // duration (which is 10 seconds).  So if we're getting a mix of successes
-        // and failures, the successes themselves should space out the requests.
-        backoffMachine = null;
-
-        _clearReportingErrorsToUser();
+        _clearPollErrors();
 
         final events = result.events;
         for (final event in events) {
@@ -1073,28 +1039,25 @@ class UpdateMachine {
       }
     } catch (e) {
       if (_disposed) return;
-
-      // An error occurred, other than the transient request errors we retry on.
-      // This means either a lost/expired event queue on the server (which is
-      // normal after the app is offline for a period like 10 minutes),
-      // or an unexpected exception representing a bug in our code or the server.
-      // Either way, the show must go on.  So reload server data from scratch.
-
-      final isUnexpected = _triagePollError(e);
-
-      if (isUnexpected) {
-        // We don't know the cause of the failure; it might well keep happening.
-        // Avoid creating a retry storm.
-        await _unexpectedErrorBackoffMachine.wait();
-        if (_disposed) return;
-      }
-
-      // This disposes the store, which disposes this update machine.
-      await store._globalStore._reloadPerAccount(store.accountId);
-      assert(debugLog('… Event queue replaced.'));
+      await _handlePollError(e);
+      assert(_disposed);
       return;
     }
   }
+
+  // This is static so that it persists through new UpdateMachine instances
+  // as we attempt to fix things by reloading data from scratch.  In principle
+  // it could also be per-account (or per-realm or per-server); but currently
+  // we skip that complication, as well as attempting to reset backoff on
+  // later success.  After all, these unexpected errors should be uncommon;
+  // ideally they'd never happen.
+  static BackoffMachine get _unexpectedErrorBackoffMachine {
+    return __unexpectedErrorBackoffMachine
+      ??= BackoffMachine(maxBound: const Duration(seconds: 60));
+  }
+  static BackoffMachine? __unexpectedErrorBackoffMachine;
+
+  BackoffMachine? _pollBackoffMachine;
 
   /// This controls when we start to report transient errors to the user when
   /// polling.
@@ -1105,24 +1068,49 @@ class UpdateMachine {
 
   int _accumulatedTransientFailureCount = 0;
 
-  void _clearReportingErrorsToUser() {
+  void _clearPollErrors() {
+    // After one successful request, we reset backoff to its initial state.
+    // That way if the user is off the network and comes back on, the app
+    // doesn't wind up in a state where it's slow to recover the next time
+    // one request fails.
+    //
+    // This does mean that if the server is having trouble and handling some
+    // but not all of its requests, we'll end up doing a lot more retries than
+    // if we stayed at the max backoff interval; partway toward what would
+    // happen if we weren't backing off at all.
+    //
+    // But at least for [getEvents] requests, as here, it should be OK,
+    // because this is a long-poll.  That means a typical successful request
+    // takes a long time to come back; in fact longer than our max backoff
+    // duration (which is 10 seconds).  So if we're getting a mix of successes
+    // and failures, the successes themselves should space out the requests.
+    _pollBackoffMachine = null;
+
     store.isLoading = false;
     _accumulatedTransientFailureCount = 0;
     reportErrorToUserBriefly(null);
   }
 
-  /// Sort out an error from the network request in [poll].
+  /// Sort out an error from the network request in [poll]:
+  /// either wait for a backoff duration (and possibly report the error),
+  /// or rethrow.
   ///
-  /// If the request should be retried, this method returns true,
+  /// If the request should be retried, this method uses [_pollBackoffMachine]
+  /// to wait an appropriate backoff duration for that retry,
   /// after reporting the error if appropriate to the user and/or developer.
-  /// Otherwise, this method returns false with no side effects.
-  bool _triagePollRequestError(Object error) {
+  ///
+  /// Otherwise this method rethrows the error, with no other side effects.
+  ///
+  /// See also:
+  ///  * [_handlePollError], which handles errors from the rest of [poll]
+  ///    and errors this method rethrows.
+  Future<void> _handlePollRequestError(Object error, StackTrace stackTrace) async {
     store.isLoading = true;
 
     if (error is! ApiRequestException) {
       // Some unexpected error, outside even making the HTTP request.
       // Definitely a bug in our code.
-      return false;
+      Error.throwWithStackTrace(error, stackTrace);
     }
 
     bool shouldReportToUser;
@@ -1142,7 +1130,7 @@ class UpdateMachine {
         shouldReportToUser = true;
 
       case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-        return false;
+        Error.throwWithStackTrace(error, stackTrace);
 
       case ZulipApiException():
       case MalformedServerResponseException():
@@ -1150,7 +1138,7 @@ class UpdateMachine {
         // in either case, a mismatch of the client's expectations to the
         // server's behavior, and therefore a bug in one or the other.
         // TODO(#1054) handle auth failures specifically
-        return false;
+        Error.throwWithStackTrace(error, stackTrace);
     }
 
     assert(debugLog('Transient error polling event queue for $store: $error\n'
@@ -1158,14 +1146,24 @@ class UpdateMachine {
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
-    return true;
+    await (_pollBackoffMachine ??= BackoffMachine()).wait();
+    if (_disposed) return;
+    assert(debugLog('… Backoff wait complete, retrying poll.'));
   }
 
-  /// Sort out an error in [poll].
+  /// Deal with an error in [poll]: reload server data to replace the store,
+  /// after reporting the error as appropriate to the user and/or developer.
   ///
-  /// Reports the error if appropriate to the user and/or developer;
-  /// then returns true just if the error was unexpected.
-  bool _triagePollError(Object error) {
+  /// See also:
+  ///  * [_handlePollRequestError], which handles certain errors
+  ///    and causes them not to reach this method.
+  Future<void> _handlePollError(Object error) async {
+    // An error occurred, other than the transient request errors we retry on.
+    // This means either a lost/expired event queue on the server (which is
+    // normal after the app is offline for a period like 10 minutes),
+    // or an unexpected exception representing a bug in our code or the server.
+    // Either way, the show must go on.  So reload server data from scratch.
+
     store.isLoading = true;
 
     bool isUnexpected;
@@ -1202,7 +1200,17 @@ class UpdateMachine {
         // but our remedy is the same either way.
         isUnexpected = true;
     }
-    return isUnexpected;
+
+    if (isUnexpected) {
+      // We don't know the cause of the failure; it might well keep happening.
+      // Avoid creating a retry storm.
+      await _unexpectedErrorBackoffMachine.wait();
+      if (_disposed) return;
+    }
+
+    await store._globalStore._reloadPerAccount(store.accountId);
+    assert(_disposed);
+    assert(debugLog('… Event queue replaced.'));
   }
 
   /// This only reports transient errors after reaching
