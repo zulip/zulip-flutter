@@ -1031,45 +1031,8 @@ class UpdateMachine {
           if (_disposed) return;
           store.isLoading = true;
 
-          if (e is! ApiRequestException) {
-            // Some unexpected error, outside even making the HTTP request.
-            // Definitely a bug in our code.
-            rethrow;
-          }
-
-          bool shouldReportToUser;
-          switch (e) {
-            case NetworkException(cause: SocketException()):
-              // A [SocketException] is common when the app returns from sleep.
-              shouldReportToUser = false;
-
-            case NetworkException():
-            case Server5xxException():
-              shouldReportToUser = true;
-
-            case ServerException(httpStatus: 429):
-            case ZulipApiException(httpStatus: 429):
-            case ZulipApiException(code: 'RATE_LIMIT_HIT'):
-              // TODO(#946) handle rate-limit errors more generally, in ApiConnection
-              shouldReportToUser = true;
-
-            case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-              rethrow;
-
-            case ZulipApiException():
-            case MalformedServerResponseException():
-              // Either a 4xx we didn't expect, or a malformed response;
-              // in either case, a mismatch of the client's expectations to the
-              // server's behavior, and therefore a bug in one or the other.
-              // TODO(#1054) handle auth failures specifically
-              rethrow;
-          }
-
-          assert(debugLog('Transient error polling event queue for $store: $e\n'
-              'Backing off, then will retry…'));
-          if (shouldReportToUser) {
-            _maybeReportToUserTransientError(e);
-          }
+          final shouldRetry = _triagePollRequestError(e);
+          if (!shouldRetry) rethrow;
           await (backoffMachine ??= BackoffMachine()).wait();
           if (_disposed) return;
           assert(debugLog('… Backoff wait complete, retrying poll.'));
@@ -1149,6 +1112,54 @@ class UpdateMachine {
   void _clearReportingErrorsToUser() {
     _accumulatedTransientFailureCount = 0;
     reportErrorToUserBriefly(null);
+  }
+
+  /// Sort out an error from the network request in [poll].
+  ///
+  /// If the request should be retried, this method returns true,
+  /// after reporting the error if appropriate to the user and/or developer.
+  /// Otherwise, this method returns false with no side effects.
+  bool _triagePollRequestError(Object error) {
+    if (error is! ApiRequestException) {
+      // Some unexpected error, outside even making the HTTP request.
+      // Definitely a bug in our code.
+      return false;
+    }
+
+    bool shouldReportToUser;
+    switch (error) {
+      case NetworkException(cause: SocketException()):
+        // A [SocketException] is common when the app returns from sleep.
+        shouldReportToUser = false;
+
+      case NetworkException():
+      case Server5xxException():
+        shouldReportToUser = true;
+
+      case ServerException(httpStatus: 429):
+      case ZulipApiException(httpStatus: 429):
+      case ZulipApiException(code: 'RATE_LIMIT_HIT'):
+        // TODO(#946) handle rate-limit errors more generally, in ApiConnection
+        shouldReportToUser = true;
+
+      case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+        return false;
+
+      case ZulipApiException():
+      case MalformedServerResponseException():
+        // Either a 4xx we didn't expect, or a malformed response;
+        // in either case, a mismatch of the client's expectations to the
+        // server's behavior, and therefore a bug in one or the other.
+        // TODO(#1054) handle auth failures specifically
+        return false;
+    }
+
+    assert(debugLog('Transient error polling event queue for $store: $error\n'
+        'Backing off, then will retry…'));
+    if (shouldReportToUser) {
+      _maybeReportToUserTransientError(error);
+    }
+    return true;
   }
 
   /// Sort out an error in [poll].
