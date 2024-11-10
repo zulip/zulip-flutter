@@ -736,7 +736,7 @@ void main() {
       checkRetry(() => connection.prepare(exception: Exception("failed")));
     });
 
-    test('retries on ZulipApiException', () {
+    test('retries on generic ZulipApiException', () {
       checkRetry(() => connection.prepare(httpStatus: 400, json: {
         'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
     });
