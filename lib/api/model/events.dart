@@ -215,6 +215,7 @@ sealed class RealmUserEvent extends Event {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class RealmUserAddEvent extends RealmUserEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'add';
 
   final User person;
@@ -231,6 +232,7 @@ class RealmUserAddEvent extends RealmUserEvent {
 /// A [RealmUserEvent] with op `remove`: https://zulip.com/api/get-events#realm_user-remove
 class RealmUserRemoveEvent extends RealmUserEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'remove';
 
   final int userId;
@@ -268,6 +270,7 @@ class RealmUserUpdateCustomProfileField {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class RealmUserUpdateEvent extends RealmUserEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'update';
 
   @JsonKey(readValue: _readFromPerson) final int userId;
@@ -351,6 +354,7 @@ sealed class ChannelEvent extends Event {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ChannelCreateEvent extends ChannelEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'create';
 
   final List<ZulipStream> streams;
@@ -368,6 +372,7 @@ class ChannelCreateEvent extends ChannelEvent {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ChannelDeleteEvent extends ChannelEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'delete';
 
   final List<ZulipStream> streams;
@@ -385,6 +390,7 @@ class ChannelDeleteEvent extends ChannelEvent {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ChannelUpdateEvent extends ChannelEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'update';
 
   final int streamId;
@@ -666,6 +672,7 @@ class UserTopicEvent extends Event {
 //   in order to skip the boilerplate in [fromJson] and [toJson].
 class MessageEvent extends Event {
   @override
+  @JsonKey(includeToJson: true)
   String get type => 'message';
 
   // In the server API, the `flags` field appears directly on the event rather
@@ -857,6 +864,7 @@ sealed class UpdateMessageFlagsEvent extends Event {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsAddEvent extends UpdateMessageFlagsEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'add';
 
   final bool all;
@@ -879,6 +887,7 @@ class UpdateMessageFlagsAddEvent extends UpdateMessageFlagsEvent {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
   @override
+  @JsonKey(includeToJson: true)
   String get op => 'remove';
 
   // final bool all; // deprecated, ignore

@@ -94,6 +94,7 @@ Map<String, dynamic> _$RealmUserAddEventToJson(RealmUserAddEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
+      'op': instance.op,
       'person': instance.person,
     };
 
@@ -160,6 +161,7 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
+      'op': instance.op,
       'user_id': instance.userId,
       'full_name': instance.fullName,
       'avatar_url': instance.avatarUrl,
@@ -210,6 +212,7 @@ Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
+      'op': instance.op,
       'streams': instance.streams,
     };
 
@@ -225,6 +228,7 @@ Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
+      'op': instance.op,
       'streams': instance.streams,
     };
 
@@ -247,6 +251,7 @@ Map<String, dynamic> _$ChannelUpdateEventToJson(ChannelUpdateEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
+      'op': instance.op,
       'stream_id': instance.streamId,
       'name': instance.name,
       'property': _$ChannelPropertyNameEnumMap[instance.property],
@@ -517,6 +522,7 @@ Map<String, dynamic> _$UpdateMessageFlagsAddEventToJson(
       'type': instance.type,
       'flag': instance.flag,
       'messages': instance.messages,
+      'op': instance.op,
       'all': instance.all,
     };
 
@@ -544,6 +550,7 @@ Map<String, dynamic> _$UpdateMessageFlagsRemoveEventToJson(
       'type': instance.type,
       'flag': instance.flag,
       'messages': instance.messages,
+      'op': instance.op,
       'message_details':
           instance.messageDetails?.map((k, e) => MapEntry(k.toString(), e)),
     };
