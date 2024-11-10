@@ -821,6 +821,12 @@ void main() {
             pollAndFail(async);
             check(takeLastReportedError()).isNull();
             async.flushTimers();
+            if (!identical(store, globalStore.perAccountSync(store.accountId))) {
+              // Store was reloaded.
+              updateFromGlobalStore();
+              updateMachine.debugPauseLoop();
+              updateMachine.poll();
+            }
           }
 
           prepareError();
@@ -838,6 +844,12 @@ void main() {
             pollAndFail(async);
             check(takeLastReportedError()).isNull();
             async.flushTimers();
+            if (!identical(store, globalStore.perAccountSync(store.accountId))) {
+              // Store was reloaded.
+              updateFromGlobalStore();
+              updateMachine.debugPauseLoop();
+              updateMachine.poll();
+            }
           }
 
           prepareError();
@@ -862,6 +874,10 @@ void main() {
         checkReported(prepareZulipApiExceptionBadRequest).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
+      });
+
+      test('ignore expired queue', () {
+        checkNotReported(prepareExpiredEventQueue);
       });
     });
   });
