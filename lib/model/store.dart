@@ -954,6 +954,7 @@ class UpdateMachine {
   }
 
   Completer<void>? _debugLoopSignal;
+  Object? _debugLoopError;
 
   /// In debug mode, causes the polling loop to pause before the next
   /// request and wait for [debugAdvanceLoop] to be called.
@@ -965,11 +966,29 @@ class UpdateMachine {
     }());
   }
 
+  /// In debug mode, causes the next [debugAdvanceLoop] call to induce
+  /// the given error to be thrown from the polling loop.
+  void debugPrepareLoopError(Object error) {
+    assert(() {
+      assert(_debugLoopError == null);
+      _debugLoopError = error;
+      return true;
+    }());
+  }
+
   /// In debug mode, after a call to [debugPauseLoop], causes the
   /// polling loop to make one more request and then pause again.
+  ///
+  /// If [debugPrepareLoopError] was called since the last [debugAdvanceLoop]
+  /// or [debugPauseLoop], the polling loop will throw the prepared error
+  /// instead of making a request.
   void debugAdvanceLoop() {
     assert((){
-      _debugLoopSignal!.complete();
+      if (_debugLoopError != null) {
+        _debugLoopSignal!.completeError(_debugLoopError!);
+      } else {
+        _debugLoopSignal!.complete();
+      }
       return true;
     }());
   }
