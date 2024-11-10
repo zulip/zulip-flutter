@@ -366,15 +366,15 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return InputDecorator(
       decoration: const InputDecoration(),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
+        constraints: BoxConstraints(
           minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
 
-          // TODO constrain this adaptively (i.e. not hard-coded 200)
-          maxHeight: 200,
+          maxHeight: screenHeight * 0.2,
         ),
         child: ComposeAutocomplete(
           narrow: widget.narrow,
@@ -389,8 +389,10 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
             );
-          }),
-        ));
+          },
+        ),
+      ),
+    );
   }
 }
 
@@ -1002,6 +1004,7 @@ class _ComposeBoxLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     ThemeData themeData = Theme.of(context);
     ColorScheme colorScheme = themeData.colorScheme;
 
@@ -1011,6 +1014,7 @@ class _ComposeBoxLayout extends StatelessWidget {
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12.0, vertical: _inputVerticalPadding),
+
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),
           borderSide: BorderSide.none),
@@ -1043,6 +1047,8 @@ class _ComposeBoxLayout extends StatelessWidget {
           ])),
       ]));
   }
+
+
 }
 
 abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
