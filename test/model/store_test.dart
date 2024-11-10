@@ -640,39 +640,36 @@ void main() {
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
-    test('handles expired queue', () => awaitFakeAsync((async) async {
-      await preparePoll();
-      check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
+    void checkReload(void Function() prepareError) {
+      awaitFakeAsync((async) async {
+        await preparePoll();
+        check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
 
-      // Let the server expire the event queue.
-      connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
-        'queue_id': updateMachine.queueId,
-        'msg': 'Bad event queue ID: ${updateMachine.queueId}',
+        prepareError();
+        updateMachine.debugAdvanceLoop();
+        async.flushMicrotasks();
+        await Future<void>.delayed(Duration.zero);
+        check(store).isLoading.isTrue();
+
+        // The global store has a new store.
+        check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
+        updateFromGlobalStore();
+        check(store).isLoading.isFalse();
+
+        // The new UpdateMachine updates the new store.
+        updateMachine.debugPauseLoop();
+        updateMachine.poll();
+        check(store.userSettings!.twentyFourHourTime).isFalse();
+        connection.prepare(json: GetEventsResult(events: [
+          UserSettingsUpdateEvent(id: 2,
+            property: UserSettingName.twentyFourHourTime, value: true),
+        ], queueId: null).toJson());
+        updateMachine.debugAdvanceLoop();
+        async.flushMicrotasks();
+        await Future<void>.delayed(Duration.zero);
+        check(store.userSettings!.twentyFourHourTime).isTrue();
       });
-      updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      await Future<void>.delayed(Duration.zero);
-      check(store).isLoading.isTrue();
-
-      // The global store has a new store.
-      check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
-      updateFromGlobalStore();
-      check(store).isLoading.isFalse();
-
-      // The new UpdateMachine updates the new store.
-      updateMachine.debugPauseLoop();
-      updateMachine.poll();
-      check(store.userSettings!.twentyFourHourTime).isFalse();
-      connection.prepare(json: GetEventsResult(events: [
-        UserSettingsUpdateEvent(id: 2,
-          property: UserSettingName.twentyFourHourTime, value: true),
-      ], queueId: null).toJson());
-      updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      await Future<void>.delayed(Duration.zero);
-      check(store.userSettings!.twentyFourHourTime).isTrue();
-    }));
+    }
 
     test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
@@ -745,6 +742,14 @@ void main() {
     test('retries on generic ZulipApiException', () {
       checkRetry(() => connection.prepare(httpStatus: 400, json: {
         'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
+    });
+
+    test('reloads on expired queue', () {
+      checkReload(() => connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
+        'queue_id': updateMachine.queueId,
+        'msg': 'Bad event queue ID: ${updateMachine.queueId}',
+      }));
     });
 
     group('report error', () {
