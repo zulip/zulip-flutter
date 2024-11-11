@@ -864,8 +864,20 @@ void main() {
         checkNotReported(prepareNetworkExceptionSocketException);
       });
 
+      test('eventually report generic NetworkException', () {
+        checkLateReported(prepareNetworkException).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      });
+
       test('eventually report Server5xxException', () {
         checkLateReported(prepareServer5xxException).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      });
+
+      test('report MalformedServerResponseException', () {
+        checkReported(prepareMalformedServerResponseException).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
