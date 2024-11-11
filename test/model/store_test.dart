@@ -580,12 +580,14 @@ void main() {
       connection = store.connection as FakeApiConnection;
     }
 
-    Future<void> prepareStore({int? lastEventId}) async {
+    Future<void> preparePoll({int? lastEventId}) async {
       globalStore = TestGlobalStore(accounts: []);
       await globalStore.add(eg.selfAccount, eg.initialSnapshot(
         lastEventId: lastEventId));
       await globalStore.perAccount(eg.selfAccount.id);
       updateFromGlobalStore();
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
     }
 
     void checkLastRequest({required int lastEventId}) {
@@ -599,11 +601,8 @@ void main() {
     }
 
     test('loops on success', () => awaitFakeAsync((async) async {
-      await prepareStore(lastEventId: 1);
+      await preparePoll(lastEventId: 1);
       check(updateMachine.lastEventId).equals(1);
-
-      updateMachine.debugPauseLoop();
-      updateMachine.poll();
 
       // Loop makes first request, and processes result.
       connection.prepare(json: GetEventsResult(events: [
@@ -627,9 +626,7 @@ void main() {
     }));
 
     test('handles events', () => awaitFakeAsync((async) async {
-      await prepareStore();
-      updateMachine.debugPauseLoop();
-      updateMachine.poll();
+      await preparePoll();
 
       // Pick some arbitrary event and check it gets processed on the store.
       check(store.userSettings!.twentyFourHourTime).isFalse();
@@ -644,9 +641,7 @@ void main() {
     }));
 
     test('handles expired queue', () => awaitFakeAsync((async) async {
-      await prepareStore();
-      updateMachine.debugPauseLoop();
-      updateMachine.poll();
+      await preparePoll();
       check(globalStore.perAccountSync(store.accountId)).identicalTo(store);
 
       // Let the server expire the event queue.
@@ -681,9 +676,7 @@ void main() {
 
     test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
-      await prepareStore();
-      updateMachine.debugPauseLoop();
-      updateMachine.poll();
+      await preparePoll();
 
       // Make sure there are [MessageListView]s in the message store.
       MessageListView.init(store: store, narrow: const MentionsNarrow());
@@ -707,9 +700,7 @@ void main() {
 
     void checkRetry(void Function() prepareError) {
       awaitFakeAsync((async) async {
-        await prepareStore(lastEventId: 1);
-        updateMachine.debugPauseLoop();
-        updateMachine.poll();
+        await preparePoll(lastEventId: 1);
         check(async.pendingTimers).length.equals(0);
 
         // Make the request, inducing an error in it.
@@ -774,10 +765,7 @@ void main() {
       Future<void> prepare() async {
         reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
         addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
-
-        await prepareStore(lastEventId: 1);
-        updateMachine.debugPauseLoop();
-        updateMachine.poll();
+        await preparePoll(lastEventId: 1);
       }
 
       void pollAndFail(FakeAsync async) {
