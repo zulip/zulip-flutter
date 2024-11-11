@@ -671,30 +671,6 @@ void main() {
       });
     }
 
-    test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
-      // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
-      await preparePoll();
-
-      // Make sure there are [MessageListView]s in the message store.
-      MessageListView.init(store: store, narrow: const MentionsNarrow());
-      MessageListView.init(store: store, narrow: const StarredMessagesNarrow());
-      check(store.debugMessageListViews).length.equals(2);
-
-      // Let the server expire the event queue.
-      connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
-        'queue_id': updateMachine.queueId,
-        'msg': 'Bad event queue ID: ${updateMachine.queueId}',
-      });
-      updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      await Future<void>.delayed(Duration.zero);
-
-      // The old store's [MessageListView]s have been disposed.
-      // (And no exception was thrown; that was #810.)
-      check(store.debugMessageListViews).isEmpty();
-    }));
-
     void checkRetry(void Function() prepareError) {
       awaitFakeAsync((async) async {
         await preparePoll(lastEventId: 1);
@@ -727,30 +703,74 @@ void main() {
 
     // These cases are ordered by how far the request got before it failed.
 
-    test('retries on NetworkException', () {
-      checkRetry(() => connection.prepare(exception: Exception("failed")));
-    });
+    void prepareNetworkExceptionSocketException() {
+      connection.prepare(exception: const SocketException('failed'));
+    }
 
-    test('retries on Server5xxException', () {
-      checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
-    });
+    void prepareNetworkException() {
+      connection.prepare(exception: Exception("failed"));
+    }
 
-    test('retries on MalformedServerResponseException', () {
-      checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
-    });
+    void prepareServer5xxException() {
+      connection.prepare(httpStatus: 500, body: 'splat');
+    }
 
-    test('retries on generic ZulipApiException', () {
-      checkRetry(() => connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
-    });
+    void prepareMalformedServerResponseException() {
+      connection.prepare(httpStatus: 200, body: 'nonsense');
+    }
 
-    test('reloads on expired queue', () {
-      checkReload(() => connection.prepare(httpStatus: 400, json: {
+    void prepareZulipApiExceptionBadRequest() {
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+    }
+
+    void prepareExpiredEventQueue() {
+      connection.prepare(httpStatus: 400, json: {
         'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
         'queue_id': updateMachine.queueId,
         'msg': 'Bad event queue ID: ${updateMachine.queueId}',
-      }));
+      });
+    }
+
+    test('retries on NetworkException', () {
+      checkRetry(prepareNetworkException);
     });
+
+    test('retries on Server5xxException', () {
+      checkRetry(prepareServer5xxException);
+    });
+
+    test('retries on MalformedServerResponseException', () {
+      checkRetry(prepareMalformedServerResponseException);
+    });
+
+    test('retries on generic ZulipApiException', () {
+      checkRetry(prepareZulipApiExceptionBadRequest);
+    });
+
+    test('reloads on expired queue', () {
+      checkReload(prepareExpiredEventQueue);
+    });
+
+    test('expired queue disposes registered MessageListView instances', () => awaitFakeAsync((async) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
+      await preparePoll();
+
+      // Make sure there are [MessageListView]s in the message store.
+      MessageListView.init(store: store, narrow: const MentionsNarrow());
+      MessageListView.init(store: store, narrow: const StarredMessagesNarrow());
+      check(store.debugMessageListViews).length.equals(2);
+
+      // Let the server expire the event queue.
+      prepareExpiredEventQueue();
+      updateMachine.debugAdvanceLoop();
+      async.flushMicrotasks();
+      await Future<void>.delayed(Duration.zero);
+
+      // The old store's [MessageListView]s have been disposed.
+      // (And no exception was thrown; that was #810.)
+      check(store.debugMessageListViews).isEmpty();
+    }));
 
     group('report error', () {
       String? lastReportedError;
@@ -781,8 +801,7 @@ void main() {
       test('report non-transient errors', () => awaitFakeAsync((async) async {
         await prepare();
 
-        connection.prepare(httpStatus: 400, json: {
-          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+        prepareZulipApiExceptionBadRequest();
         pollAndFail(async);
         check(takeLastReportedError()).isNotNull().startsWith(
           "Error connecting to Zulip. Retrying…\n"
@@ -794,14 +813,14 @@ void main() {
 
         // There should be no user visible error messages during these retries.
         for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
-          connection.prepare(httpStatus: 500, body: 'splat');
+          prepareServer5xxException();
           pollAndFail(async);
           check(takeLastReportedError()).isNull();
           // This skips the pending polling backoff.
           async.flushTimers();
         }
 
-        connection.prepare(httpStatus: 500, body: 'splat');
+        prepareServer5xxException();
         pollAndFail(async);
         check(takeLastReportedError()).isNotNull().startsWith(
           "Error connecting to Zulip. Retrying…\n"
@@ -812,14 +831,14 @@ void main() {
         await prepare();
 
         for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
-          connection.prepare(exception: const SocketException('failed'));
+          prepareNetworkExceptionSocketException();
           pollAndFail(async);
           check(takeLastReportedError()).isNull();
           // This skips the pending polling backoff.
           async.flushTimers();
         }
 
-        connection.prepare(exception: const SocketException('failed'));
+        prepareNetworkExceptionSocketException();
         pollAndFail(async);
         // Normally we start showing user visible error messages for transient
         // errors after enough number of retries.
