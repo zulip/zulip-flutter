@@ -728,21 +728,23 @@ void main() {
       });
     }
 
-    test('retries on Server5xxException', () {
-      checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
-    });
+    // These cases are ordered by how far the request got before it failed.
 
     test('retries on NetworkException', () {
       checkRetry(() => connection.prepare(exception: Exception("failed")));
     });
 
-    test('retries on generic ZulipApiException', () {
-      checkRetry(() => connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
+    test('retries on Server5xxException', () {
+      checkRetry(() => connection.prepare(httpStatus: 500, body: 'splat'));
     });
 
     test('retries on MalformedServerResponseException', () {
       checkRetry(() => connection.prepare(httpStatus: 200, body: 'nonsense'));
+    });
+
+    test('retries on generic ZulipApiException', () {
+      checkRetry(() => connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'}));
     });
 
     group('report error', () {
