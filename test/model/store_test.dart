@@ -803,52 +803,66 @@ void main() {
         check(store).isLoading.isTrue();
       }
 
-      test('report non-transient errors', () => awaitFakeAsync((async) async {
-        await prepare();
+      Subject<String> checkReported(void Function() prepareError) {
+        return awaitFakeAsync((async) async {
+          await prepare();
+          prepareError();
+          pollAndFail(async);
+          return check(takeLastReportedError()).isNotNull();
+        });
+      }
 
-        prepareZulipApiExceptionBadRequest();
-        pollAndFail(async);
-        check(takeLastReportedError()).isNotNull().startsWith(
+      Subject<String> checkLateReported(void Function() prepareError) {
+        return awaitFakeAsync((async) async {
+          await prepare();
+
+          for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+            prepareError();
+            pollAndFail(async);
+            check(takeLastReportedError()).isNull();
+            async.flushTimers();
+          }
+
+          prepareError();
+          pollAndFail(async);
+          return check(takeLastReportedError()).isNotNull();
+        });
+      }
+
+      void checkNotReported(void Function() prepareError) {
+        return awaitFakeAsync((async) async {
+          await prepare();
+
+          for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+            prepareError();
+            pollAndFail(async);
+            check(takeLastReportedError()).isNull();
+            async.flushTimers();
+          }
+
+          prepareError();
+          pollAndFail(async);
+          // Still no error reported, even after the same number of iterations
+          // where other errors get reported (as [checkLateReported] checks).
+          check(takeLastReportedError()).isNull();
+        });
+      }
+
+      test('report generic ZulipApiException', () {
+        checkReported(prepareZulipApiExceptionBadRequest).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
-      }));
+      });
 
-      test('report transient errors', () => awaitFakeAsync((async) async {
-        await prepare();
-
-        // There should be no user visible error messages during these retries.
-        for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
-          prepareServer5xxException();
-          pollAndFail(async);
-          check(takeLastReportedError()).isNull();
-          // This skips the pending polling backoff.
-          async.flushTimers();
-        }
-
-        prepareServer5xxException();
-        pollAndFail(async);
-        check(takeLastReportedError()).isNotNull().startsWith(
+      test('eventually report Server5xxException', () {
+        checkLateReported(prepareServer5xxException).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
-      }));
+      });
 
-      test('ignore boring errors', () => awaitFakeAsync((async) async {
-        await prepare();
-
-        for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
-          prepareNetworkExceptionSocketException();
-          pollAndFail(async);
-          check(takeLastReportedError()).isNull();
-          // This skips the pending polling backoff.
-          async.flushTimers();
-        }
-
-        prepareNetworkExceptionSocketException();
-        pollAndFail(async);
-        // Normally we start showing user visible error messages for transient
-        // errors after enough number of retries.
-        check(takeLastReportedError()).isNull();
-      }));
+      test('ignore NetworkException from SocketException', () {
+        checkNotReported(prepareNetworkExceptionSocketException);
+      });
     });
   });
 
