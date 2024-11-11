@@ -996,17 +996,22 @@ class UpdateMachine {
     }());
   }
 
+  Future<void> _debugLoopWait() async {
+    await _debugLoopSignal!.future;
+    if (_disposed) return;
+    assert(() {
+      _debugLoopSignal = Completer();
+      return true;
+    }());
+  }
+
   void poll() async {
     assert(!_disposed);
     try {
       while (true) {
         if (_debugLoopSignal != null) {
-          await _debugLoopSignal!.future;
+          await _debugLoopWait();
           if (_disposed) return;
-          assert(() {
-            _debugLoopSignal = Completer();
-            return true;
-          }());
         }
 
         final GetEventsResult result;
