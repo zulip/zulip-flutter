@@ -848,10 +848,8 @@ void main() {
         });
       }
 
-      test('report generic ZulipApiException', () {
-        checkReported(prepareZulipApiExceptionBadRequest).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+      test('ignore NetworkException from SocketException', () {
+        checkNotReported(prepareNetworkExceptionSocketException);
       });
 
       test('eventually report Server5xxException', () {
@@ -860,8 +858,10 @@ void main() {
           "Error connecting to Zulip at");
       });
 
-      test('ignore NetworkException from SocketException', () {
-        checkNotReported(prepareNetworkExceptionSocketException);
+      test('report generic ZulipApiException', () {
+        checkReported(prepareZulipApiExceptionBadRequest).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
       });
     });
   });
