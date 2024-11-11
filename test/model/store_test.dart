@@ -753,17 +753,13 @@ void main() {
         return result;
       }
 
-      /// This is an alternative to [ZulipApp]'s implementation of
-      /// [reportErrorToUserBriefly] for testing.
-      Future<void> logAndReportErrorToUserBriefly(String? message, {
-        String? details,
-      }) async {
+      Future<void> logReportedError(String? message, {String? details}) async {
         if (message == null) return;
         lastReportedError = '$message\n$details';
       }
 
       Future<void> prepare() async {
-        reportErrorToUserBriefly = logAndReportErrorToUserBriefly;
+        reportErrorToUserBriefly = logReportedError;
         addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
         await preparePoll(lastEventId: 1);
       }
