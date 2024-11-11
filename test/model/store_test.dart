@@ -719,6 +719,30 @@ void main() {
       connection.prepare(httpStatus: 200, body: 'nonsense');
     }
 
+    void prepareRateLimitExceptionCode() {
+      // Example from the Zulip API docs:
+      //   https://zulip.com/api/rest-error-handling#rate-limit-exceeded
+      // (The actual HTTP status should be 429, but that seems undocumented.)
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'RATE_LIMIT_HIT',
+        'msg': 'API usage exceeded rate limit',
+        'retry-after': 28.706807374954224});
+    }
+
+    void prepareRateLimitExceptionStatus() {
+      // The HTTP status code for hitting a rate limit,
+      // but for some reason a boring BAD_REQUEST error body.
+      connection.prepare(httpStatus: 429, json: {
+        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+    }
+
+    void prepareRateLimitExceptionMalformed() {
+      // The HTTP status code for hitting a rate limit,
+      // but for some reason a non-JSON body.
+      connection.prepare(httpStatus: 429,
+        body: '<html><body>An error occurred.</body></html>');
+    }
+
     void prepareZulipApiExceptionBadRequest() {
       connection.prepare(httpStatus: 400, json: {
         'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
@@ -747,6 +771,18 @@ void main() {
 
     test('retries on MalformedServerResponseException', () {
       checkRetry(prepareMalformedServerResponseException);
+    });
+
+    test('retries on rate limit: code RATE_LIMIT_HIT', () {
+      checkRetry(prepareRateLimitExceptionCode);
+    });
+
+    test('retries on rate limit: status 429 ZulipApiException', () {
+      checkRetry(prepareRateLimitExceptionStatus);
+    });
+
+    test('retries on rate limit: status 429 MalformedServerResponseException', () {
+      checkRetry(prepareRateLimitExceptionMalformed);
     });
 
     test('retries on generic ZulipApiException', () {
@@ -878,6 +914,24 @@ void main() {
 
       test('report MalformedServerResponseException', () {
         checkReported(prepareMalformedServerResponseException).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      });
+
+      test('report rate limit: code RATE_LIMIT_HIT', () {
+        checkReported(prepareRateLimitExceptionCode).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      });
+
+      test('report rate limit: status 429 ZulipApiException', () {
+        checkReported(prepareRateLimitExceptionStatus).startsWith(
+          "Error connecting to Zulip. Retrying…\n"
+          "Error connecting to Zulip at");
+      });
+
+      test('report rate limit: status 429 MalformedServerResponseException', () {
+        checkReported(prepareRateLimitExceptionMalformed).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
