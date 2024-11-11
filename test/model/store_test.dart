@@ -732,7 +732,12 @@ void main() {
       });
     }
 
-    test('retries on NetworkException', () {
+    test('retries on NetworkException from SocketException', () {
+      // We skip reporting errors on these; check we retry them all the same.
+      checkRetry(prepareNetworkExceptionSocketException);
+    });
+
+    test('retries on generic NetworkException', () {
       checkRetry(prepareNetworkException);
     });
 
