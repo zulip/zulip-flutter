@@ -996,6 +996,15 @@ class UpdateMachine {
     }());
   }
 
+  Future<void> _debugLoopWait() async {
+    await _debugLoopSignal!.future;
+    if (_disposed) return;
+    assert(() {
+      _debugLoopSignal = Completer();
+      return true;
+    }());
+  }
+
   // This is static so that it persists through new UpdateMachine instances
   // as we attempt to fix things by reloading data from scratch.  In principle
   // it could also be per-account (or per-realm or per-server); but currently
@@ -1013,12 +1022,8 @@ class UpdateMachine {
     try {
       while (true) {
         if (_debugLoopSignal != null) {
-          await _debugLoopSignal!.future;
+          await _debugLoopWait();
           if (_disposed) return;
-          assert(() {
-            _debugLoopSignal = Completer();
-            return true;
-          }());
         }
 
         final GetEventsResult result;
