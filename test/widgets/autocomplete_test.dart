@@ -13,6 +13,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -126,10 +127,13 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('@-mentions', () {
+
+    Finder findAvatarImage(int userId) =>
+      find.byWidgetPredicate((widget) => widget is AvatarImage && widget.userId == userId);
+
     void checkUserShown(User user, PerAccountStore store, {required bool expected}) {
       check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
-      final avatarFinder =
-        findNetworkImage(store.tryResolveUrl(user.avatarUrl!).toString());
+      final avatarFinder = findAvatarImage(user.userId);
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
 
