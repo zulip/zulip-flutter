@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/emoji.dart';
+import 'color.dart';
 import 'content.dart';
 import 'store.dart';
 import 'text.dart';
@@ -166,7 +167,7 @@ class ReactionChip extends StatelessWidget {
     final labelColor =      selfVoted ? reactionTheme.textSelected   : reactionTheme.textUnselected;
     final backgroundColor = selfVoted ? reactionTheme.bgSelected     : reactionTheme.bgUnselected;
     final splashColor =     selfVoted ? reactionTheme.bgUnselected   : reactionTheme.bgSelected;
-    final highlightColor =  splashColor.withValues(alpha: 0.5);
+    final highlightColor =  splashColor.withFadedAlpha(0.5);
 
     final borderSide = BorderSide(
       color: borderColor,
