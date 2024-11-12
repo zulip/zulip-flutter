@@ -13,6 +13,7 @@ import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
 import 'clipboard.dart';
+import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
@@ -145,8 +146,8 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
         foregroundColor: designVariables.contextMenuItemText,
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuItemBg.withValues(
-            alpha: states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+          designVariables.contextMenuItemBg.withFadedAlpha(
+            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
       onPressed: () => _handlePressed(context),
       child: Text(label(zulipLocalizations),
         style: const TextStyle(fontSize: 20, height: 24 / 20)
@@ -168,8 +169,8 @@ class MessageActionSheetCancelButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuCancelBg.withValues(
-            alpha: states.contains(WidgetState.pressed) ? 0.20 : 0.15))),
+          designVariables.contextMenuCancelBg.withFadedAlpha(
+            states.contains(WidgetState.pressed) ? 0.20 : 0.15))),
       onPressed: () {
         Navigator.pop(context);
       },

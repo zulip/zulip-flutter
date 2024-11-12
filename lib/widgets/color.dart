@@ -38,4 +38,21 @@ extension ColorExtension on Color {
            ((g * 255.0).round() & 0xff) << 8 |
            ((b * 255.0).round() & 0xff) << 0;
   }
+
+  /// Makes a copy of this color with [a] multiplied by `factor`.
+  ///
+  /// `factor` must be between 0 and 1, inclusive.
+  ///
+  /// To fade a color variable from [DesignVariables], [ContentTheme], etc.,
+  /// use this instead of calling [withValues] with `factor` passed as `alpha`,
+  /// which simply replaces the color's [a] instead of multiplying by it.
+  /// Using [withValues] gives the same result for an opaque color,
+  /// but a wrong result for a semi-transparent color,
+  /// and we want our color variables to be free to change
+  /// without breaking things.
+  Color withFadedAlpha(double factor) {
+    assert(factor >= 0);
+    assert(factor <= 1);
+    return withValues(alpha: a * factor);
+  }
 }
