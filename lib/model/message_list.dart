@@ -530,11 +530,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       _insertAllMessages(0, fetchedMessages);
       _haveOldest = result.foundOldest;
     } finally {
-      if (this.generation == generation) {
-        _fetchingOlder = false;
-        _updateEndMarkers();
-        notifyListeners();
+      if (this.generation != generation) {
+        // We need the finally block always clean up regardless of errors
+        // occured in the try block, and returning early here is necessary
+        // if such cleanup must be skipped, as the fetch is considered stale.
+        // ignore: control_flow_in_finally
+        return;
       }
+      _fetchingOlder = false;
+      _updateEndMarkers();
+      notifyListeners();
     }
   }
 
