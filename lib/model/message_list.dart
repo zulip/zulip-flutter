@@ -288,6 +288,7 @@ mixin _MessageSequence {
 
   /// Update [items] to include markers at start and end as appropriate.
   void _updateEndMarkers() {
+    assert(fetched);
     assert(!(haveOldest && fetchingOlder));
     final startMarker = switch ((fetchingOlder, haveOldest)) {
       (true, _) => const MessageListLoadingItem(MessageListDirection.older),
