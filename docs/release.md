@@ -6,23 +6,11 @@
   Flutter and packages dependencies, do that first.
   For details of how, see our README.
 
-* Write an entry in `docs/changelog.md`, as "Unreleased".
+* Write an entry in `docs/changelog.md`, under "Unreleased".
   Commit that change.
 
-* Increment the version number in `pubspec.yaml`:
-
-  Take the line near the top that looks like `version: 0.0.42+42`,
-  and increment both of the last two numbers.
-  They should remain equal to each other.
-
-  Edit the "Unreleased" heading in `docs/changelog.md` to the
-  new version number.
-
-* Commit the version-number changes, and tag:
-  `git commit pubspec.yaml docs/changelog.md -m 'version: Bump version to 0.0.NNN'
-  && git tag v0.0.NNN`
-
-* Push the tag to our central repo: `git push origin main v0.0.NNN`
+* Run `tools/bump-version` to update the version number.
+  Inspect the resulting commit and tag, and push.
 
 
 ## Build and upload alpha: Android
