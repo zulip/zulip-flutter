@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### Highlights for users
+
+* You can now vote in polls. (#166)
+* Design improvements: new bottom sheet, new bot icon,
+  adjusted dark-theme colors, others. (#90, #978, #955)
+* Support Zulip's new "message links". (#1046)
+* Fix bug affecting code blocks in YAML and some other
+  languages. (#933)
+* Communicate more when unable to connect to server. (#555)
+* Show others when you're typing. (#666)
+* Too many other improvements and fixes to list them all here.
+
+
+### Highlights for developers
+
+* The new `tools/content/check-features` script fetches public Zulip
+  messages from a server like chat.zulip.org, and identifies any
+  features of Zulip message content that the app's parser calls
+  unimplemented. (#190)
+
+* Expanded developer documentation, including on setup and on
+  implementing UI designs.
+
+* Resolved: PR #972, PR #983, PR #955, #978, #90, #190, #555, #614,
+  #933, #1026, #351, #166, #1046, #666, #1052, #1045, #941
+
+
 ## 0.0.20 (2024-10-01)
 
 ### Highlights for users
