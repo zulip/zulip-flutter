@@ -334,20 +334,6 @@ run_pigeon() {
         > >(filter_flutter_pub_run_output) \
     || return
 
-    # The `flutter pub run` disrupts `.dart_tool/package_config.json`,
-    # removing `flutter_gen`, which causes analysis failures everywhere
-    # that we use localization.  (And `dart run` has the same problem.)
-    # Fix it back, with `flutter pub get`.
-    # TODO(upstream): Find or file a bug for this `pub run` vs. `flutter_gen` issue.
-    if [ -n "${opt_verbose}" ]; then
-        flutter pub get \
-        || return
-    else
-        flutter pub get \
-            >/dev/null \
-        || return
-    fi
-
     check_no_changes "changes to pigeons" "${outputs[@]}"
 }
 
