@@ -96,7 +96,14 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
     fragment.write('/near/$nearMessageId');
   }
 
-  return store.realmUrl.replace(fragment: fragment.toString());
+  Uri result = store.realmUrl.replace(fragment: fragment.toString());
+  if (result.path.isEmpty) {
+    // Always ensure that there is a '/' right after the hostname.
+    // A generated URL without '/' looks odd,
+    // and if used in a Zulip message does not get automatically linkified.
+    result = result.replace(path: '/');
+  }
+  return result;
 }
 
 /// A [Narrow] from a given URL, on `store`'s realm.

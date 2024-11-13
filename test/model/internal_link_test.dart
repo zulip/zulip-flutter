@@ -127,6 +127,23 @@ void main() {
         '#narrow/dm/1,2-dm/near/12345',
         '#narrow/pm-with/1,2-pm/near/12345');
     });
+
+    test('normalize links to always include a "/" after hostname', () {
+      String narrowLinkFor({required String realmUrl}) {
+        final store = eg.store(
+          account: eg.account(user: eg.selfUser, realmUrl: Uri.parse(realmUrl)));
+        return narrowLink(store, const CombinedFeedNarrow()).toString();
+      }
+
+      check(narrowLinkFor(realmUrl: 'http://chat.example.com'))
+        .equals(                    'http://chat.example.com/#narrow');
+      check(narrowLinkFor(realmUrl: 'http://chat.example.com/'))
+        .equals(                    'http://chat.example.com/#narrow');
+      check(narrowLinkFor(realmUrl: 'http://chat.example.com/path'))
+        .equals(                    'http://chat.example.com/path#narrow');
+      check(narrowLinkFor(realmUrl: 'http://chat.example.com/path/'))
+        .equals(                    'http://chat.example.com/path/#narrow');
+    });
   });
 
   final realmUrl = Uri.parse('https://example.com/');
