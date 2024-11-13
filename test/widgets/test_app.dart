@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
+import 'package:zulip/generated/l10n/zulip_localizations.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/theme.dart';
 

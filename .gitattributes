@@ -3,6 +3,9 @@
 # Dart files generated from the files next to them, or by Pigeon:
 *.g.dart -diff
 
+# Generated files for localizations.
+lib/generated/l10n/*.dart -diff
+
 # Generated files for testing migrations:
 test/model/schemas/*.dart -diff
 test/model/schemas/*.json -diff

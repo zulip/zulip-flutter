@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';

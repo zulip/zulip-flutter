@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api/exception.dart';
@@ -11,6 +10,7 @@ import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
 import '../api/route/users.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/store.dart';

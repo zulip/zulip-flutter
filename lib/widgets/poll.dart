@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/submessage.dart';
 import '../api/route/submessage.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'content.dart';
 import 'store.dart';
 import 'text.dart';

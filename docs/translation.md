@@ -56,7 +56,7 @@ changes to the ARB file.
 
 To use in our widgets, you need to import the generated bindings:
 ```
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
+import '../generated/l10n/zulip_localizations.dart';
 ```
 
 Then in your widget code, pull the localizations object

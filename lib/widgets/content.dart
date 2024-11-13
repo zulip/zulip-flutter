@@ -7,10 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';

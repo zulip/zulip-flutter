@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import 'page.dart';
 
