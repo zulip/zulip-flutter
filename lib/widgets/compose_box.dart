@@ -16,6 +16,7 @@ import '../model/store.dart';
 import 'autocomplete.dart';
 import 'dialog.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 
 const double _inputVerticalPadding = 8;
@@ -991,7 +992,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   }
 }
 
-class _ComposeBoxLayout extends StatelessWidget {
+class _ComposeBoxLayout extends StatefulWidget {
   const _ComposeBoxLayout({
     required this.topicInput,
     required this.contentInput,
@@ -1007,16 +1008,31 @@ class _ComposeBoxLayout extends StatelessWidget {
   final FocusNode contentFocusNode;
 
   @override
+  State<_ComposeBoxLayout> createState() => _ComposeBoxLayoutState();
+}
+
+class _ComposeBoxLayoutState extends State<_ComposeBoxLayout> {
+  bool isPreviewMode = false;
+
+  void togglePreview() {
+
+    setState(() {
+      isPreviewMode = !isPreviewMode;
+    widget.contentFocusNode.requestFocus();
+
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
     ColorScheme colorScheme = themeData.colorScheme;
 
     final inputThemeData = themeData.copyWith(
       inputDecorationTheme: InputDecorationTheme(
-        // Both [contentPadding] and [isDense] combine to make the layout compact.
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12.0, vertical: _inputVerticalPadding),
+          horizontal: 10.0, vertical: _inputVerticalPadding),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),
           borderSide: BorderSide.none),
@@ -1032,25 +1048,190 @@ class _ComposeBoxLayout extends StatelessWidget {
             child: Theme(
               data: inputThemeData,
               child: Column(children: [
-                if (topicInput != null) topicInput!,
-                if (topicInput != null) const SizedBox(height: 8),
-                contentInput,
-              ]))),
+                if (widget.topicInput != null) widget.topicInput!,
+                if (widget.topicInput != null) const SizedBox(height: 8),
+                // Show input or preview box
+                isPreviewMode
+                    ? PreviewBox(
+                        content: widget.contentController.textNormalized,
+                      )
+                    : widget.contentInput,
+              ]),
+            ),
+          ),
           const SizedBox(width: 8),
-          sendButton,
+          widget.sendButton,
         ]),
         Theme(
           data: themeData.copyWith(
             iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurfaceVariant)),
           child: Row(children: [
-            _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-            _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          ])),
-      ]));
+            IconButton(
+              icon: Icon(isPreviewMode ? Icons.visibility_off : Icons.visibility),
+              tooltip: isPreviewMode
+                  ? 'Switch to Edit Mode'
+                  : 'Preview Content',
+              onPressed: togglePreview,
+            ),
+            _AttachFileButton(
+              contentController: widget.contentController,
+              contentFocusNode: widget.contentFocusNode,
+            ),
+            _AttachMediaButton(
+              contentController: widget.contentController,
+              contentFocusNode: widget.contentFocusNode,
+            ),
+            _AttachFromCameraButton(
+              contentController: widget.contentController,
+              contentFocusNode: widget.contentFocusNode,
+            ),
+
+          ]),
+        ),
+      ]),
+    );
   }
 }
 
+
+
+class PreviewBox extends StatelessWidget {
+  const PreviewBox({super.key, required this.content});
+
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      constraints: const BoxConstraints(
+        minHeight: _sendButtonSize - 2 * _inputVerticalPadding,
+        maxHeight: 200,
+      ),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10.0,
+        vertical: _inputVerticalPadding + 4,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: SingleChildScrollView(
+        child: content.isEmpty
+            ? Text(
+                '(No content to preview)',
+                style: weightVariableTextStyle(context).merge(
+                  const TextStyle(
+                    fontSize: 16,
+                    height: 22 / 16,
+                  ),
+                ),
+              )
+            : RichText(
+                text: _buildStyledText(content, context),
+              ),
+      ),
+    );
+  }
+
+  InlineSpan _buildStyledText(String text, BuildContext context) {
+    final boldPattern = RegExp(r'\*\*(.*?)\*\*');
+    final italicPattern = RegExp(r'\*(.*?)\*');
+    final codePattern = RegExp(r'```(.*?)```', dotAll: true); // Match ```code```
+
+    final normalStyle = weightVariableTextStyle(context).merge(
+      const TextStyle(
+        fontSize: 16,
+        height: 22 / 16,
+      ),
+    );
+    final boldStyle = normalStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
+    final italicStyle = normalStyle.merge(const TextStyle(fontStyle: FontStyle.italic));
+
+    List<InlineSpan> spans = [];
+    int currentIndex = 0;
+
+    // Process the text for code matches first
+    for (final match in codePattern.allMatches(text)) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(
+          text: text.substring(currentIndex, match.start),
+          style: normalStyle,
+        ));
+      }
+      spans.add(WidgetSpan(
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(156, 47, 47, 47), // Slightly darker gray for the background
+            borderRadius: BorderRadius.circular(6.0),
+            border: Border.all(color: Colors.grey[500]!), // Subtle border color
+          ),
+          child: Text(
+            match.group(1) ?? '',
+            style: const TextStyle(
+              fontFamily: 'Courier', // Monospace font for code
+              fontSize: 14, // Slightly smaller font for code
+              color: Colors.white, // Dark text color for good contrast
+            ),
+          ),
+        ),
+      ));
+      currentIndex = match.end;
+    }
+
+    // Handle remaining text
+    String remainingText = text.substring(currentIndex);
+    currentIndex = 0;
+
+    // Process bold text
+    for (final match in boldPattern.allMatches(remainingText)) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(
+          text: remainingText.substring(currentIndex, match.start),
+          style: normalStyle,
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: boldStyle,
+      ));
+      currentIndex = match.end;
+    }
+
+    // Process italic text
+    remainingText = remainingText.substring(currentIndex);
+    currentIndex = 0;
+
+    for (final match in italicPattern.allMatches(remainingText)) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(
+          text: remainingText.substring(currentIndex, match.start),
+          style: normalStyle,
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: italicStyle,
+      ));
+      currentIndex = match.end;
+    }
+
+    // Add any remaining unstyled text
+    if (currentIndex < remainingText.length) {
+      spans.add(TextSpan(
+        text: remainingText.substring(currentIndex),
+        style: normalStyle,
+      ));
+    }
+
+    return TextSpan(children: spans);
+  }
+}
 abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
   ComposeTopicController? get topicController;
   ComposeContentController get contentController;
