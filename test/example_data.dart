@@ -564,8 +564,8 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
 
 UpdateMessageEvent updateMessageEditEvent(
   Message origMessage, {
-  int? userId = -1, // null means null; default is [selfUser.userId]
-  bool? renderingOnly = false,
+  int? userId,
+  bool renderingOnly = false,
   int? messageId,
   List<MessageFlag>? flags,
   int? editTimestamp,
@@ -576,7 +576,7 @@ UpdateMessageEvent updateMessageEditEvent(
   messageId ??= origMessage.id;
   return UpdateMessageEvent(
     id: 0,
-    userId: userId == -1 ? selfUser.userId : userId,
+    userId: userId ?? selfUser.userId,
     renderingOnly: renderingOnly,
     messageId: messageId,
     messageIds: [messageId],
