@@ -1140,7 +1140,7 @@ class PreviewBox extends StatelessWidget {
   InlineSpan _buildStyledText(String text, BuildContext context) {
     final boldPattern = RegExp(r'\*\*(.*?)\*\*');
     final italicPattern = RegExp(r'\*(.*?)\*');
-    final codePattern = RegExp(r'```(.*?)```', dotAll: true); // Match ```code```
+    final codePattern = RegExp(r'```(.*?)```', dotAll: true);
 
     final normalStyle = weightVariableTextStyle(context).merge(
       const TextStyle(
@@ -1154,7 +1154,6 @@ class PreviewBox extends StatelessWidget {
     List<InlineSpan> spans = [];
     int currentIndex = 0;
 
-    // Process the text for code matches first
     for (final match in codePattern.allMatches(text)) {
       if (match.start > currentIndex) {
         spans.add(TextSpan(
@@ -1167,16 +1166,16 @@ class PreviewBox extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8.0),
           padding: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(156, 47, 47, 47), // Slightly darker gray for the background
+            color: const Color.fromARGB(156, 47, 47, 47),
             borderRadius: BorderRadius.circular(6.0),
-            border: Border.all(color: Colors.grey[500]!), // Subtle border color
+            border: Border.all(color: Colors.grey[500]!),
           ),
           child: Text(
             match.group(1) ?? '',
             style: const TextStyle(
-              fontFamily: 'Courier', // Monospace font for code
-              fontSize: 14, // Slightly smaller font for code
-              color: Colors.white, // Dark text color for good contrast
+              fontFamily: 'Courier',
+              fontSize: 14,
+              color: Colors.white,
             ),
           ),
         ),
