@@ -9,7 +9,6 @@ import 'package:zulip/widgets/message_list.dart';
 import '../test/api/fake_api.dart';
 import '../test/example_data.dart' as eg;
 import '../test/model/binding.dart';
-import '../test/model/message_list_test.dart';
 import '../test/widgets/test_app.dart';
 
 void main() {
@@ -29,7 +28,7 @@ void main() {
     final messages = List.generate(messageCount,
       (i) => eg.streamMessage(flags: [MessageFlag.read]));
     connection.prepare(json:
-      newestResult(foundOldest: true, messages: messages).toJson());
+      eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: const MessageListPage(initNarrow: CombinedFeedNarrow())));

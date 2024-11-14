@@ -28,7 +28,6 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/content_test.dart';
-import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../flutter_checks.dart';
 import '../stdlib_checks.dart';
@@ -70,7 +69,7 @@ void main() {
       return eg.streamMessage(sender: eg.selfUser);
     });
     connection.prepare(json:
-      newestResult(foundOldest: foundOldest, messages: messages).toJson());
+      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
@@ -189,7 +188,7 @@ void main() {
       await tester.pump();
 
       // ... and we should fetch more messages as we go.
-      connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
+      connection.prepare(json: eg.olderGetMessagesResult(anchor: 950, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
       await tester.pump(const Duration(seconds: 3)); // Fast-forward to end of fling.
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
@@ -208,7 +207,7 @@ void main() {
       await tester.pump();
 
       // ... and we fetch more messages as we go.
-      connection.prepare(json: olderResult(anchor: 950, foundOldest: false,
+      connection.prepare(json: eg.olderGetMessagesResult(anchor: 950, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
       for (int i = 0; i < 30; i++) {
         // Find the point in the fling where the fetch starts.
@@ -220,7 +219,7 @@ void main() {
 
       // On the next frame, we promptly fetch *another* batch.
       // This is a glitch and it'd be nicer if we didn't.
-      connection.prepare(json: olderResult(anchor: 850, foundOldest: false,
+      connection.prepare(json: eg.olderGetMessagesResult(anchor: 850, foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(Duration.zero);
@@ -619,7 +618,7 @@ void main() {
     final narrow = TopicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {
-      connection.prepare(json: newestResult(
+      connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: false, messages: messages).toJson());
     }
 

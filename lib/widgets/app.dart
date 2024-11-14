@@ -8,8 +8,10 @@ import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import '../notifications/display.dart';
 import 'about_zulip.dart';
+import 'actions.dart';
 import 'app_bar.dart';
 import 'dialog.dart';
 import 'inbox.dart';
@@ -232,11 +234,45 @@ class ChooseAccountPage extends StatelessWidget {
     required Widget title,
     Widget? subtitle,
   }) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final materialLocalizations = MaterialLocalizations.of(context);
     return Card(
       clipBehavior: Clip.hardEdge,
       child: ListTile(
         title: title,
         subtitle: subtitle,
+        trailing: MenuAnchor(
+          menuChildren: [
+            MenuItemButton(
+              onPressed: () {
+                showSuggestedActionDialog(context: context,
+                  title: zulipLocalizations.logOutConfirmationDialogTitle,
+                  message: zulipLocalizations.logOutConfirmationDialogMessage,
+                  // TODO(#1032) "destructive" style for action button
+                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
+                  onActionButtonPress: () {
+                    // TODO error handling if db write fails?
+                    logOutAccount(context, accountId);
+                  });
+              },
+              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+          ],
+        builder: (BuildContext context, MenuController controller, Widget? child) {
+          return IconButton(
+            tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+            onPressed: () {
+              if (controller.isOpen) {
+                controller.close();
+              } else {
+                controller.open();
+              }
+            },
+            icon: Icon(Icons.adaptive.more, color: designVariables.icon));
+        }),
+        // The default trailing padding with M3 is 24px. Decrease by 12 because
+        // IconButton (the "…" button) comes with 12px padding on all sides.
+        contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
         onTap: () => Navigator.push(context,
           HomePage.buildRoute(accountId: accountId))));
   }
@@ -275,24 +311,32 @@ class ChooseAccountPage extends StatelessWidget {
   }
 }
 
-enum ChooseAccountPageOverflowMenuItem { aboutZulip }
-
 class ChooseAccountPageOverflowButton extends StatelessWidget {
   const ChooseAccountPageOverflowButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<ChooseAccountPageOverflowMenuItem>(
-      itemBuilder: (BuildContext context) => const [
-        PopupMenuItem(
-          value: ChooseAccountPageOverflowMenuItem.aboutZulip,
-          child: Text('About Zulip')),
-      ],
-      onSelected: (item) {
-        switch (item) {
-          case ChooseAccountPageOverflowMenuItem.aboutZulip:
+    final designVariables = DesignVariables.of(context);
+    final materialLocalizations = MaterialLocalizations.of(context);
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () {
             Navigator.push(context, AboutZulipPage.buildRoute(context));
-        }
+          },
+          child: const Text('About Zulip')), // TODO(i18n)
+      ],
+      builder: (BuildContext context, MenuController controller, Widget? child) {
+        return IconButton(
+          tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: Icon(Icons.adaptive.more, color: designVariables.icon));
       });
   }
 }

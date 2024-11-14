@@ -10,6 +10,8 @@ import 'package:zulip/widgets/page.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/store_checks.dart';
+import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
 import 'page_checks.dart';
@@ -157,6 +159,40 @@ void main() {
       check(tester.getRect(findButton(withText: buttonText)))
         ..top.isGreaterThan(1 / 3 * screenHeight)
         ..bottom.isLessThan(2 / 3 * screenHeight);
+    });
+
+    group('log out', () {
+      Future<(Widget, Widget)> prepare(WidgetTester tester, {required Account account}) async {
+        await setupChooseAccountPage(tester, accounts: [account]);
+
+        final findThreeDotsButton = find.descendant(
+          of: find.widgetWithText(Card, eg.selfAccount.realmUrl.toString()),
+          matching: find.byIcon(Icons.adaptive.more));
+
+        await tester.tap(findThreeDotsButton);
+        await tester.pump();
+        await tester.tap(find.descendant(
+          of: find.byType(MenuItemButton), matching: find.text('Log out')));
+        await tester.pumpAndSettle(); // TODO just `pump`? But the dialog doesn't appear.
+        return checkSuggestedActionDialog(tester,
+          expectedTitle: 'Log out?',
+          expectedMessage: 'To use this account in the future, you will have to re-enter the URL for your organization and your account information.',
+          expectedActionButtonText: 'Log out');
+      }
+
+      testWidgets('user confirms logging out', (tester) async {
+        final (actionButton, _) = await prepare(tester, account: eg.selfAccount);
+        await tester.tap(find.byWidget(actionButton));
+        await tester.pump(TestGlobalStore.removeAccountDuration);
+        check(testBinding.globalStore).accounts.isEmpty();
+      });
+
+      testWidgets('user cancels logging out', (tester) async {
+        final (_, cancelButton) = await prepare(tester, account: eg.selfAccount);
+        await tester.tap(find.byWidget(cancelButton));
+        await tester.pumpAndSettle();
+        check(testBinding.globalStore).accounts.deepEquals([eg.selfAccount]);
+      });
     });
   });
 

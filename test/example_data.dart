@@ -5,6 +5,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/narrow.dart';
@@ -449,6 +450,43 @@ DmMessage dmMessage({
     'timestamp': timestamp ?? 1678139636,
     'type': 'private',
   }) as Map<String, dynamic>);
+}
+
+/// A GetMessagesResult the server might return on an `anchor=newest` request.
+GetMessagesResult newestGetMessagesResult({
+  required bool foundOldest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    // These anchor, foundAnchor, and foundNewest values are what the server
+    // appears to always return when the request had `anchor=newest`.
+    anchor: 10000000000000000, // that's 16 zeros
+    foundAnchor: false,
+    foundNewest: true,
+
+    foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
+/// A GetMessagesResult the server might return when we request older messages.
+GetMessagesResult olderGetMessagesResult({
+  required int anchor,
+  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  required bool foundOldest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundNewest: false, // empirically always this, even when anchor happens to be latest
+    foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
 }
 
 PollWidgetData pollWidgetData({

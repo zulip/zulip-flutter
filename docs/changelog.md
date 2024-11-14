@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.21 (2024-11-13)
+
 ### Highlights for users
 
 * You can now vote in polls. (#166)

@@ -19,6 +19,22 @@
   "@chooseAccountPageTitle": {
     "description": "Title for ChooseAccountPage"
   },
+  "chooseAccountPageLogOutButton": "Log out",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "logOutConfirmationDialogTitle": "Log out?",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogMessage": "To use this account in the future, you will have to re-enter the URL for your organization and your account information.",
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogConfirmButton": "Log out",
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
   "chooseAccountButtonAddAnAccount": "Add an account",
   "@chooseAccountButtonAddAnAccount": {
     "description": "Label for ChooseAccountPage button to add an account"
