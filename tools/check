@@ -26,7 +26,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 default_suites=(
     analyze test
-    build_runner drift pigeon icons
+    build_runner l10n drift pigeon icons
     android  # This takes multiple minutes in CI, so do it last.
 )
 
@@ -82,7 +82,7 @@ while (( $# )); do
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
         --verbose) opt_verbose=1; shift;;
-        analyze|test|build_runner|drift|pigeon|icons|android|shellcheck)
+        analyze|test|build_runner|l10n|drift|pigeon|icons|android|shellcheck)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
@@ -277,6 +277,23 @@ run_build_runner() {
     check_no_changes "updates to *.g.dart files" '*.g.dart'
 }
 
+run_l10n() {
+    local output_pathspec=lib/generated/l10n/zulip_localizations'*'.dart
+
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check l10n.yaml assets/l10n/ "${output_pathspec}" \
+    || return 0
+
+    check_no_uncommitted_or_untracked "${output_pathspec}" \
+    || return
+
+    flutter gen-l10n > /dev/null \
+    || return
+
+    check_no_changes "updates to l10n" "${output_pathspec}"
+}
+
 run_drift() {
     local schema_dir=test/model/schemas/
 
@@ -444,6 +461,7 @@ for suite in "${opt_suites[@]}"; do
         analyze)      run_analyze ;;
         test)         run_test ;;
         build_runner) run_build_runner ;;
+        l10n)         run_l10n ;;
         drift)        run_drift ;;
         pigeon)       run_pigeon ;;
         icons)        run_icons ;;
