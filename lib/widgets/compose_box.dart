@@ -1020,6 +1020,12 @@ class _ComposeBoxLayout extends StatelessWidget {
       ),
     );
 
+    final composeButtons = [
+      _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+      _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+      _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+    ];
+
     return _ComposeBoxContainer(
       child: Column(children: [
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -1034,11 +1040,7 @@ class _ComposeBoxLayout extends StatelessWidget {
           const SizedBox(width: 8),
           sendButton,
         ]),
-        Row(children: [
-          _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-          _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-        ]),
+        Row(children: composeButtons),
       ]));
   }
 }
