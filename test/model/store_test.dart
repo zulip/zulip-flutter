@@ -611,7 +611,7 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 1);
-      await Future<void>.delayed(Duration.zero);
+      async.elapse(Duration.zero);
       check(updateMachine.lastEventId).equals(2);
 
       // Loop makes second request, and processes result.
@@ -621,7 +621,7 @@ void main() {
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 2);
-      await Future<void>.delayed(Duration.zero);
+      async.elapse(Duration.zero);
       check(updateMachine.lastEventId).equals(3);
     }));
 
@@ -635,8 +635,7 @@ void main() {
           property: UserSettingName.twentyFourHourTime, value: true),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      await Future<void>.delayed(Duration.zero);
+      async.elapse(Duration.zero);
       check(store.userSettings!.twentyFourHourTime).isTrue();
     }));
 
@@ -647,8 +646,7 @@ void main() {
 
         prepareError();
         updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
-        await Future<void>.delayed(Duration.zero);
+        async.elapse(Duration.zero);
         check(store).isLoading.isTrue();
 
         // The global store has a new store.
@@ -665,8 +663,7 @@ void main() {
             property: UserSettingName.twentyFourHourTime, value: true),
         ], queueId: null).toJson());
         updateMachine.debugAdvanceLoop();
-        async.flushMicrotasks();
-        await Future<void>.delayed(Duration.zero);
+        async.elapse(Duration.zero);
         check(store.userSettings!.twentyFourHourTime).isTrue();
       });
     }
@@ -805,8 +802,7 @@ void main() {
       // Let the server expire the event queue.
       prepareExpiredEventQueue();
       updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      await Future<void>.delayed(Duration.zero);
+      async.elapse(Duration.zero);
 
       // The old store's [MessageListView]s have been disposed.
       // (And no exception was thrown; that was #810.)
