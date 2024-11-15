@@ -342,7 +342,29 @@ class MessageListAppBarTitle extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
         final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(context, stream: stream, text: "$streamName > $topic");
+        // return _buildStreamRow(context, stream: stream, text: "$streamName > $topic");
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStreamRow(
+                context,
+                stream: stream,
+                text: "$streamName > $topic",
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.arrow_upward),
+              tooltip: 'Go to channel feed',
+              onPressed: () => Navigator.pushReplacement(
+                context,
+                MessageListPage.buildRoute(
+                  context: context,
+                  narrow: ChannelNarrow(streamId),
+                ),
+              ),
+            ),
+          ],
+        );
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
