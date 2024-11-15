@@ -91,7 +91,7 @@ class NetworkException extends ApiRequestException {
 /// This should always represent either some kind of operational issue
 /// on the server, or a bug in the server where its responses don't
 /// agree with the documented API.
-abstract class ServerException extends ApiRequestException {
+sealed class ServerException extends ApiRequestException {
   final int httpStatus;
 
   /// The response body, decoded as a JSON object.
