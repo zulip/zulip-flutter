@@ -1050,16 +1050,14 @@ class _ComposeBoxLayout extends StatelessWidget {
   const _ComposeBoxLayout({
     required this.topicInput,
     required this.contentInput,
+    required this.composeButtonBar,
     required this.sendButton,
-    required this.contentController,
-    required this.contentFocusNode,
   });
 
   final Widget? topicInput;
   final Widget contentInput;
+  final Widget composeButtonBar;
   final Widget sendButton;
-  final ComposeContentController contentController;
-  final FocusNode contentFocusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -1102,7 +1100,7 @@ class _ComposeBoxLayout extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _ComposeButtonBar(contentController: contentController, contentFocusNode: contentFocusNode),
+                composeButtonBar,
                 sendButton,
               ]))),
       ]));
@@ -1153,8 +1151,6 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   @override
   Widget build(BuildContext context) {
     return _ComposeBoxLayout(
-      contentController: _contentController,
-      contentFocusNode: _contentFocusNode,
       topicInput: _TopicInput(
         streamId: widget.narrow.streamId,
         controller: _topicController,
@@ -1166,6 +1162,10 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
         topicController: _topicController,
         controller: _contentController,
         focusNode: _contentFocusNode,
+      ),
+      composeButtonBar: _ComposeButtonBar(
+        contentController: _contentController,
+        contentFocusNode: _contentFocusNode,
       ),
       sendButton: _SendButton(
         topicController: _topicController,
@@ -1225,13 +1225,15 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
   @override
   Widget build(BuildContext context) {
     return _ComposeBoxLayout(
-      contentController: _contentController,
-      contentFocusNode: _contentFocusNode,
       topicInput: null,
       contentInput: _FixedDestinationContentInput(
         narrow: widget.narrow,
         controller: _contentController,
         focusNode: _contentFocusNode,
+      ),
+      composeButtonBar: _ComposeButtonBar(
+        contentController: _contentController,
+        contentFocusNode: _contentFocusNode,
       ),
       sendButton: _SendButton(
         topicController: null,
