@@ -23,7 +23,7 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 
   Widget buildItem(BuildContext context, int index, ResultT option);
 
-  AutocompleteView<QueryT, ResultT> initViewModel(BuildContext context);
+  AutocompleteView<QueryT, ResultT> initViewModel(BuildContext context, QueryT query);
 
   @override
   State<AutocompleteField<QueryT, ResultT>> createState() => _AutocompleteFieldState<QueryT, ResultT>();
@@ -32,18 +32,18 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends State<AutocompleteField<QueryT, ResultT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
   AutocompleteView<QueryT, ResultT>? _viewModel;
 
-  void _initViewModel() {
-    _viewModel = widget.initViewModel(context)
+  void _initViewModel(QueryT query) {
+    _viewModel = widget.initViewModel(context, query)
       ..addListener(_viewModelChanged);
   }
 
   void _handleControllerChange() {
-    final newAutocompleteIntent = widget.autocompleteIntent();
-    if (newAutocompleteIntent != null) {
+    final newQuery = widget.autocompleteIntent()?.query;
+    if (newQuery != null) {
       if (_viewModel == null) {
-        _initViewModel();
+        _initViewModel(newQuery);
       }
-      _viewModel!.query = newAutocompleteIntent.query;
+      _viewModel!.query = newQuery;
     } else {
       if (_viewModel != null) {
         _viewModel!.dispose(); // removes our listener
@@ -64,7 +64,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
     if (_viewModel != null) {
       final query = _viewModel!.query;
       _viewModel!.dispose();
-      _initViewModel();
+      _initViewModel(query);
       _viewModel!.query = query;
     }
   }
@@ -162,9 +162,9 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
   AutocompleteIntent<MentionAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
 
   @override
-  MentionAutocompleteView initViewModel(BuildContext context) {
+  MentionAutocompleteView initViewModel(BuildContext context, MentionAutocompleteQuery query) {
     final store = PerAccountStoreWidget.of(context);
-    return MentionAutocompleteView.init(store: store, narrow: narrow);
+    return MentionAutocompleteView.init(store: store, narrow: narrow, query: query);
   }
 
   void _onTapOption(BuildContext context, MentionAutocompleteResult option) {
@@ -238,9 +238,9 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
 
   @override
-  TopicAutocompleteView initViewModel(BuildContext context) {
+  TopicAutocompleteView initViewModel(BuildContext context, TopicAutocompleteQuery query) {
     final store = PerAccountStoreWidget.of(context);
-    return TopicAutocompleteView.init(store: store, streamId: streamId);
+    return TopicAutocompleteView.init(store: store, streamId: streamId, query: query);
   }
 
   void _onTapOption(BuildContext context, TopicAutocompleteResult option) {

@@ -184,37 +184,42 @@ class AutocompleteViewManager {
 /// and the [AutocompleteResult] subclass in `ResultT` describes the
 /// possible results that the user might choose in the autocomplete interaction.
 ///
+/// When an [AutocompleteView] is created, its constructor begins the search
+/// for results corresponding to the initial [query].
+/// The query may later be updated, causing a new search.
+///
 /// The owner of one of these objects must call [dispose] when the object
 /// will no longer be used, in order to free resources on the [PerAccountStore].
 ///
 /// Lifecycle:
-///  * Create an instance of a concrete subtype.
+///  * Create an instance of a concrete subtype, beginning a search
 ///  * Add listeners with [addListener].
-///  * Use the [query] setter to start a search for a query.
+///  * When the user edits the query, use the [query] setter to update the search.
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends ChangeNotifier {
-  AutocompleteView({required this.store});
+  /// Construct a view-model for an autocomplete interaction,
+  /// and begin the search for the initial query.
+  AutocompleteView({required this.store, required QueryT query})
+      : _query = query {
+    _startSearch();
+  }
 
   final PerAccountStore store;
 
-  QueryT? get query => _query;
-  QueryT? _query;
-  set query(QueryT? query) {
+  QueryT get query => _query;
+  QueryT _query;
+  set query(QueryT query) {
     _query = query;
-    if (query != null) {
-      _startSearch();
-    }
+    _startSearch();
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// This will redo the search from scratch for the current query, if any.
   void reassemble() {
-    if (_query != null) {
-      _startSearch();
-    }
+    _startSearch();
   }
 
   Iterable<ResultT> get results => _results;
@@ -271,8 +276,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     required Iterable<T> candidates,
     required List<ResultT> results,
   }) async {
-    assert(_query != null);
-    final query = _query!;
+    final query = _query;
 
     final iterator = candidates.iterator;
     outer: while (true) {
@@ -295,6 +299,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
 class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
   MentionAutocompleteView._({
     required super.store,
+    required super.query,
     required this.narrow,
     required this.sortedUsers,
   });
@@ -302,9 +307,11 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   factory MentionAutocompleteView.init({
     required PerAccountStore store,
     required Narrow narrow,
+    required MentionAutocompleteQuery query,
   }) {
     final view = MentionAutocompleteView._(
       store: store,
+      query: query,
       narrow: narrow,
       sortedUsers: _usersByRelevance(store: store, narrow: narrow),
     );
@@ -634,10 +641,19 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
 
 /// An autocomplete interaction for choosing a topic for a message.
 class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
-  TopicAutocompleteView._({required super.store, required this.streamId});
+  TopicAutocompleteView._({
+    required super.store,
+    required super.query,
+    required this.streamId,
+  });
 
-  factory TopicAutocompleteView.init({required PerAccountStore store, required int streamId}) {
-    final view = TopicAutocompleteView._(store: store, streamId: streamId);
+  factory TopicAutocompleteView.init({
+    required PerAccountStore store,
+    required int streamId,
+    required TopicAutocompleteQuery query,
+  }) {
+    final view = TopicAutocompleteView._(
+      store: store, streamId: streamId, query: query);
     store.autocompleteViewManager.registerTopicAutocomplete(view);
     view._fetch();
     return view;
@@ -661,7 +677,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     final result = await getStreamTopics(store.connection, streamId: streamId);
     _topics = result.topics.map((e) => e.name);
     _isFetching = false;
-    if (_query != null) return _startSearch();
+    return _startSearch();
   }
 
   @override

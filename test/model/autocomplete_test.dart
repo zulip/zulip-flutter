@@ -175,11 +175,11 @@ void main() {
     const narrow = ChannelNarrow(1);
     final store = eg.store();
     await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
+    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+      query: MentionAutocompleteQuery('Third'));
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('Third');
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
@@ -193,12 +193,8 @@ void main() {
       const narrow = ChannelNarrow(1);
       final store = eg.store();
       await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
-      final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
       bool searchDone = false;
-      view.addListener(() {
-        searchDone = true;
-      });
 
       // Schedule a timer event with zero delay.
       // This stands in for a user interaction, or frame rendering timer,
@@ -210,9 +206,11 @@ void main() {
         check(searchDone).isFalse();
       });
 
-      view.query = MentionAutocompleteQuery('Third');
-      check(timerDone).isFalse();
-      check(searchDone).isFalse();
+      final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+        query: MentionAutocompleteQuery('Third'));
+      view.addListener(() {
+        searchDone = true;
+      });
 
       binding.elapse(const Duration(seconds: 1));
 
@@ -230,11 +228,11 @@ void main() {
     for (int i = 1; i <= 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
     bool done = false;
+    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+      query: MentionAutocompleteQuery('User 2222'));
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 2222');
 
     await Future(() {});
     check(done).isFalse();
@@ -253,11 +251,11 @@ void main() {
     for (int i = 1; i <= 1500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
     bool done = false;
+    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+      query: MentionAutocompleteQuery('User 1111'));
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 1111');
 
     await Future(() {});
     check(done).isFalse();
@@ -288,11 +286,11 @@ void main() {
     for (int i = 1; i <= 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow);
 
     bool done = false;
+    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+      query: MentionAutocompleteQuery('User 110'));
     view.addListener(() { done = true; });
-    view.query = MentionAutocompleteQuery('User 110');
 
     await Future(() {});
     check(done).isFalse();
@@ -544,7 +542,8 @@ void main() {
 
     group('ranking across signals', () {
       void checkPrecedes(Narrow narrow, User userA, Iterable<User> usersB) {
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+          query: MentionAutocompleteQuery(''));
         for (final userB in usersB) {
           check(view.debugCompareUsers(userA, userB)).isLessThan(0);
           check(view.debugCompareUsers(userB, userA)).isGreaterThan(0);
@@ -552,7 +551,8 @@ void main() {
       }
 
       void checkRankEqual(Narrow narrow, List<User> users) {
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+          query: MentionAutocompleteQuery(''));
         for (int i = 0; i < users.length; i++) {
           for (int j = i + 1; j < users.length; j++) {
             check(view.debugCompareUsers(users[i], users[j])).equals(0);
@@ -669,21 +669,24 @@ void main() {
       test('CombinedFeedNarrow gives error', () async {
         await prepare(users: [eg.user(), eg.user()], messages: []);
         const narrow = CombinedFeedNarrow();
-        check(() => MentionAutocompleteView.init(store: store, narrow: narrow))
+        check(() => MentionAutocompleteView.init(store: store, narrow: narrow,
+                      query: MentionAutocompleteQuery('')))
           .throws<AssertionError>();
       });
 
       test('MentionsNarrow gives error', () async {
         await prepare(users: [eg.user(), eg.user()], messages: []);
         const narrow = MentionsNarrow();
-        check(() => MentionAutocompleteView.init(store: store, narrow: narrow))
+        check(() => MentionAutocompleteView.init(store: store, narrow: narrow,
+                      query: MentionAutocompleteQuery('')))
           .throws<AssertionError>();
       });
 
       test('StarredMessagesNarrow gives error', () async {
         await prepare(users: [eg.user(), eg.user()], messages: []);
         const narrow = StarredMessagesNarrow();
-        check(() => MentionAutocompleteView.init(store: store, narrow: narrow))
+        check(() => MentionAutocompleteView.init(store: store, narrow: narrow,
+                      query: MentionAutocompleteQuery('')))
           .throws<AssertionError>();
       });
     });
@@ -692,9 +695,9 @@ void main() {
       Future<Iterable<int>> getResults(
           Narrow narrow, MentionAutocompleteQuery query) async {
         bool done = false;
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow);
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+          query: query);
         view.addListener(() { done = true; });
-        view.query = query;
         await Future(() {});
         check(done).isTrue();
         final results = view.results
@@ -777,13 +780,14 @@ void main() {
     final third = eg.getStreamTopicsEntry(maxId: 3, name: 'Third Topic');
     connection.prepare(json: GetStreamTopicsResult(
       topics: [first, second, third]).toJson());
+
     final view = TopicAutocompleteView.init(
       store: store,
-      streamId: eg.stream().streamId);
-
+      streamId: eg.stream().streamId,
+      query: TopicAutocompleteQuery('Third'));
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = TopicAutocompleteQuery('Third');
+
     // those are here to wait for topics to be loaded
     await Future(() {});
     await Future(() {});
@@ -802,11 +806,10 @@ void main() {
 
     final view = TopicAutocompleteView.init(
       store: store,
-      streamId: eg.stream().streamId);
-
+      streamId: eg.stream().streamId,
+      query: TopicAutocompleteQuery('te'));
     bool done = false;
     view.addListener(() { done = true; });
-    view.query = TopicAutocompleteQuery('te');
 
     check(done).isFalse();
     await Future(() {});
