@@ -3,7 +3,7 @@ import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 extension ComposeContentControllerChecks on Subject<ComposeContentController> {
-  Subject<AutocompleteIntent<MentionAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
+  Subject<AutocompleteIntent<ComposeAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
 }
 
 extension ComposeTopicControllerChecks on Subject<ComposeTopicController> {

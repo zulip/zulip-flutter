@@ -9,7 +9,7 @@ import 'narrow.dart';
 import 'store.dart';
 
 extension ComposeContentAutocomplete on ComposeContentController {
-  AutocompleteIntent<MentionAutocompleteQuery>? autocompleteIntent() {
+  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
       // autocorrect and even backspace involve programmatically expanding the
@@ -208,6 +208,10 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
 
   final PerAccountStore store;
 
+  /// True just if this [AutocompleteView] is of the appropriate type
+  /// to handle the given query.
+  bool acceptsQuery(AutocompleteQuery query) => query is QueryT;
+
   /// The last query this [AutocompleteView] was asked to perform for the user.
   ///
   /// If this view-model is currently performing a search,
@@ -311,7 +315,12 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   }
 }
 
-/// An [AutocompleteView] for an @-mention autocomplete interaction.
+/// An [AutocompleteView] for an autocomplete interaction
+/// in the compose box's content input.
+typedef ComposeAutocompleteView = AutocompleteView<ComposeAutocompleteQuery, ComposeAutocompleteResult>;
+
+/// An [AutocompleteView] for an @-mention autocomplete interaction,
+/// an example of a [ComposeAutocompleteView].
 class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
   MentionAutocompleteView._({
     required super.store,
@@ -572,12 +581,26 @@ abstract class AutocompleteQuery {
   }
 }
 
+/// Any autocomplete query in the compose box's content input.
+abstract class ComposeAutocompleteQuery extends AutocompleteQuery {
+  ComposeAutocompleteQuery(super.raw);
+
+  /// Construct an [AutocompleteView] initialized with this query
+  /// and ready to handle queries of the same type.
+  ComposeAutocompleteView initViewModel(PerAccountStore store, Narrow narrow);
+}
+
 /// A @-mention autocomplete query, used by [MentionAutocompleteView].
-class MentionAutocompleteQuery extends AutocompleteQuery {
+class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   MentionAutocompleteQuery(super.raw, {this.silent = false});
 
   /// Whether the user wants a silent mention (@_query, vs. @query).
   final bool silent;
+
+  @override
+  MentionAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
+    return MentionAutocompleteView.init(store: store, narrow: narrow, query: this);
+  }
 
   bool testUser(User user, AutocompleteDataCache cache) {
     // TODO(#236) test email too, not just name
@@ -636,13 +659,18 @@ class AutocompleteDataCache {
 /// have corresponding subclasses of [AutocompleteResult] they might produce.
 class AutocompleteResult {}
 
+/// A result from some autocomplete interaction in
+/// the compose box's content input, initiated by a [ComposeAutocompleteQuery]
+/// and managed by some [ComposeAutocompleteView].
+sealed class ComposeAutocompleteResult extends AutocompleteResult {}
+
 /// A result from an @-mention autocomplete interaction,
 /// managed by a [MentionAutocompleteView].
 ///
 /// This is abstract because there are several kinds of result
 /// that can all be offered in the same @-mention autocomplete interaction:
 /// a user, a wildcard, or a user group.
-sealed class MentionAutocompleteResult extends AutocompleteResult {}
+sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {}
 
 /// An autocomplete result for an @-mention of an individual user.
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {

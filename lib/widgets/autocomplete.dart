@@ -39,16 +39,23 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
 
   void _handleControllerChange() {
     final newQuery = widget.autocompleteIntent()?.query;
+    // First, tear down the old view-model if necessary.
+    if (_viewModel != null
+        && (newQuery == null
+            || !_viewModel!.acceptsQuery(newQuery))) {
+      // The autocomplete interaction has ended, or has switched to a
+      // different kind of autocomplete (e.g. @-mention vs. emoji).
+      _viewModel!.dispose(); // removes our listener
+      _viewModel = null;
+      _resultsToDisplay = [];
+    }
+    // Then, update the view-model or build a new one.
     if (newQuery != null) {
       if (_viewModel == null) {
         _initViewModel(newQuery);
-      }
-      _viewModel!.query = newQuery;
-    } else {
-      if (_viewModel != null) {
-        _viewModel!.dispose(); // removes our listener
-        _viewModel = null;
-        _resultsToDisplay = [];
+      } else {
+        assert(_viewModel!.acceptsQuery(newQuery));
+        _viewModel!.query = newQuery;
       }
     }
   }
@@ -144,7 +151,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 }
 
-class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, MentionAutocompleteResult> {
+class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, ComposeAutocompleteResult> {
   const ComposeAutocomplete({
     super.key,
     required this.narrow,
@@ -159,15 +166,15 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
   ComposeContentController get controller => super.controller as ComposeContentController;
 
   @override
-  AutocompleteIntent<MentionAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
+  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
 
   @override
-  MentionAutocompleteView initViewModel(BuildContext context, MentionAutocompleteQuery query) {
+  ComposeAutocompleteView initViewModel(BuildContext context, ComposeAutocompleteQuery query) {
     final store = PerAccountStoreWidget.of(context);
-    return MentionAutocompleteView.init(store: store, narrow: narrow, query: query);
+    return query.initViewModel(store, narrow);
   }
 
-  void _onTapOption(BuildContext context, MentionAutocompleteResult option) {
+  void _onTapOption(BuildContext context, ComposeAutocompleteResult option) {
     // Probably the same intent that brought up the option that was tapped.
     // If not, it still shouldn't be off by more than the time it takes
     // to compute the autocomplete results, which we do asynchronously.
@@ -175,14 +182,18 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
     if (intent == null) {
       return; // Shrug.
     }
+    final query = intent.query;
 
     final store = PerAccountStoreWidget.of(context);
     final String replacementString;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
+        if (query is! MentionAutocompleteQuery) {
+          return; // Shrug; similar to `intent == null` case above.
+        }
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${mention(store.users[userId]!, silent: intent.query.silent, users: store.users)} ';
+        replacementString = '${mention(store.users[userId]!, silent: query.silent, users: store.users)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -194,7 +205,25 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
   }
 
   @override
-  Widget buildItem(BuildContext context, int index, MentionAutocompleteResult option) {
+  Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
+    final child = switch (option) {
+      MentionAutocompleteResult() => _MentionAutocompleteItem(option: option),
+    };
+    return InkWell(
+      onTap: () {
+        _onTapOption(context, option);
+      },
+      child: child);
+  }
+}
+
+class _MentionAutocompleteItem extends StatelessWidget {
+  const _MentionAutocompleteItem({required this.option});
+
+  final MentionAutocompleteResult option;
+
+  @override
+  Widget build(BuildContext context) {
     Widget avatar;
     String label;
     switch (option) {
@@ -202,18 +231,14 @@ class ComposeAutocomplete extends AutocompleteField<MentionAutocompleteQuery, Me
         avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
         label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
     }
-    return InkWell(
-      onTap: () {
-        _onTapOption(context, option);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Row(
-          children: [
-            avatar,
-            const SizedBox(width: 8),
-            Text(label),
-          ])));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(children: [
+        avatar,
+        const SizedBox(width: 8),
+        Text(label),
+      ]));
   }
 }
 
