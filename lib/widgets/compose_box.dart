@@ -887,6 +887,22 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+class _ComposeButtonBar extends StatelessWidget {
+  const _ComposeButtonBar({required this.contentController, required this.contentFocusNode});
+
+  final ComposeContentController contentController;
+  final FocusNode contentFocusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
+      _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
+      _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+    ]);
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({
     required this.topicController,
@@ -1069,12 +1085,6 @@ class _ComposeBoxLayout extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
-    final composeButtons = [
-      _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-      _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-      _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-    ];
-
     return _ComposeBoxContainer(
       child: Column(children: [
         Padding(
@@ -1092,7 +1102,7 @@ class _ComposeBoxLayout extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(children: composeButtons),
+                _ComposeButtonBar(contentController: contentController, contentFocusNode: contentFocusNode),
                 sendButton,
               ]))),
       ]));
