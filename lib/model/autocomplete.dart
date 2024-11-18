@@ -177,6 +177,13 @@ class AutocompleteViewManager {
 
 /// A view-model for an autocomplete interaction.
 ///
+/// Subclasses correspond to subclasses of [AutocompleteQuery],
+/// i.e. different types of autocomplete interaction initiated by the user.
+/// Each subclass specifies the corresponding [AutocompleteQuery] subclass
+/// as `QueryT`,
+/// and the [AutocompleteResult] subclass in `ResultT` describes the
+/// possible results that the user might choose in the autocomplete interaction.
+///
 /// The owner of one of these objects must call [dispose] when the object
 /// will no longer be used, in order to free resources on the [PerAccountStore].
 ///
@@ -284,6 +291,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   }
 }
 
+/// An [AutocompleteView] for an @-mention autocomplete interaction.
 class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery, MentionAutocompleteResult> {
   MentionAutocompleteView._({
     required super.store,
@@ -493,11 +501,29 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 }
 
+/// A query the user has entered into some form of autocomplete.
+///
+/// Subclasses correspond to different types of autocomplete interaction
+/// initiated by the user:
+/// for example typing `@` into a compose box's content input
+/// to autocomplete an @-mention ([MentionAutocompleteQuery]),
+/// or typing into a topic input
+/// to autocomplete a topic name ([TopicAutocompleteQuery]).
+/// Each subclass has a corresponding subclass of [AutocompleteView].
+///
+/// An [AutocompleteQuery] object stores the user's actual query string
+/// as [raw].
+/// It may also store processed forms of the query
+/// (for example, converted to lowercase or split on whitespace)
+/// to prepare for whatever particular form of searching will be done
+/// for the given type of autocomplete interaction.
 abstract class AutocompleteQuery {
   AutocompleteQuery(this.raw)
     : _lowercaseWords = raw.toLowerCase().split(' ');
 
+  /// The actual string the user entered.
   final String raw;
+
   final List<String> _lowercaseWords;
 
   /// Whether all of this query's words have matches in [words] that appear in order.
@@ -523,6 +549,7 @@ abstract class AutocompleteQuery {
   }
 }
 
+/// A @-mention autocomplete query, used by [MentionAutocompleteView].
 class MentionAutocompleteQuery extends AutocompleteQuery {
   MentionAutocompleteQuery(super.raw, {this.silent = false});
 
@@ -555,6 +582,10 @@ class MentionAutocompleteQuery extends AutocompleteQuery {
   int get hashCode => Object.hash('MentionAutocompleteQuery', raw, silent);
 }
 
+/// Cached data that is used for autocomplete
+/// but kept around in between autocomplete interactions.
+///
+/// An instance of this class is managed by [AutocompleteViewManager].
 class AutocompleteDataCache {
   final Map<int, String> _normalizedNamesByUser = {};
 
@@ -575,10 +606,22 @@ class AutocompleteDataCache {
   }
 }
 
+/// A result the user chose, or might choose, from an autocomplete interaction.
+///
+/// Different subclasses of [AutocompleteView],
+/// representing different types of autocomplete interaction,
+/// have corresponding subclasses of [AutocompleteResult] they might produce.
 class AutocompleteResult {}
 
+/// A result from an @-mention autocomplete interaction,
+/// managed by a [MentionAutocompleteView].
+///
+/// This is abstract because there are several kinds of result
+/// that can all be offered in the same @-mention autocomplete interaction:
+/// a user, a wildcard, or a user group.
 sealed class MentionAutocompleteResult extends AutocompleteResult {}
 
+/// An autocomplete result for an @-mention of an individual user.
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   UserMentionAutocompleteResult({required this.userId});
 
@@ -589,6 +632,7 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
 
 // TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
 
+/// An autocomplete interaction for choosing a topic for a message.
 class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
   TopicAutocompleteView._({required super.store, required this.streamId});
 
@@ -599,7 +643,9 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     return view;
   }
 
+  /// The channel/stream the eventual message will be sent to.
   final int streamId;
+
   Iterable<String> _topics = [];
   bool _isFetching = false;
 
@@ -642,6 +688,8 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   }
 }
 
+/// A query for autocompleting a topic to send to,
+/// used by [TopicAutocompleteView].
 class TopicAutocompleteQuery extends AutocompleteQuery {
   TopicAutocompleteQuery(super.raw);
 
@@ -664,6 +712,7 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
   int get hashCode => Object.hash('TopicAutocompleteQuery', raw);
 }
 
+/// A topic chosen in an autocomplete interaction, via a [TopicAutocompleteView].
 class TopicAutocompleteResult extends AutocompleteResult {
   final String topic;
 
