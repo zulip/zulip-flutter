@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
@@ -7,7 +9,7 @@ import 'app.dart';
 import 'content.dart';
 import 'store.dart';
 
-Widget _dialogActionText(String text) {
+Widget _materialDialogActionText(String text) {
   return Text(
     text,
 
@@ -19,6 +21,20 @@ Widget _dialogActionText(String text) {
     // > OverflowBar's alignment within the dialog.
     textAlign: TextAlign.end,
   );
+}
+
+/// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
+Widget _adaptiveAction({required VoidCallback onPressed, required String text}) {
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.windows:
+      return TextButton(onPressed: onPressed, child: _materialDialogActionText(text));
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      return CupertinoDialogAction(onPressed: onPressed, child: Text(text));
+  }
 }
 
 /// Tracks the status of a dialog, in being still open or already closed.
@@ -71,17 +87,17 @@ DialogStatus<void> showErrorDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
     context: context,
-    builder: (BuildContext context) => AlertDialog(
+    builder: (BuildContext context) => AlertDialog.adaptive(
       title: Text(title),
       content: message != null ? SingleChildScrollView(child: Text(message)) : null,
       actions: [
         if (learnMoreButtonUrl != null)
-          TextButton(
+          _adaptiveAction(
             onPressed: () => PlatformActions.launchUrl(context, learnMoreButtonUrl),
-            child: _dialogActionText(zulipLocalizations.errorDialogLearnMore)),
-        TextButton(
+            text: zulipLocalizations.errorDialogLearnMore),
+        _adaptiveAction(
           onPressed: () => Navigator.pop(context),
-          child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
+          text: zulipLocalizations.errorDialogContinue),
       ]));
   return DialogStatus(future);
 }
@@ -103,16 +119,16 @@ DialogStatus<bool> showSuggestedActionDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<bool>(
     context: context,
-    builder: (BuildContext context) => AlertDialog(
+    builder: (BuildContext context) => AlertDialog.adaptive(
       title: Text(title),
       content: SingleChildScrollView(child: Text(message)),
       actions: [
-        TextButton(
+        _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, null),
-          child: _dialogActionText(zulipLocalizations.dialogCancel)),
-        TextButton(
+          text: zulipLocalizations.dialogCancel),
+        _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, true),
-          child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
+          text: actionButtonText ?? zulipLocalizations.dialogContinue),
       ]));
   return DialogStatus(future);
 }
@@ -164,7 +180,7 @@ class UpgradeWelcomeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return AlertDialog(
+    return AlertDialog.adaptive(
       title: Text(zulipLocalizations.upgradeWelcomeDialogTitle),
       content: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -177,8 +193,9 @@ class UpgradeWelcomeDialog extends StatelessWidget {
               zulipLocalizations.upgradeWelcomeDialogLinkText)),
         ])),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context),
-          child: Text(zulipLocalizations.upgradeWelcomeDialogDismiss)),
+        _adaptiveAction(
+          onPressed: () => Navigator.pop(context),
+          text: zulipLocalizations.upgradeWelcomeDialogDismiss)
       ]);
   }
 }
