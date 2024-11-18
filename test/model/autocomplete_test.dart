@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
-import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -15,6 +14,7 @@ import 'package:zulip/widgets/compose_box.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
@@ -189,7 +189,7 @@ void main() {
   });
 
   test('MentionAutocompleteView not starve timers', () {
-    fakeAsync((binding) async {
+    return awaitFakeAsync((binding) async {
       const narrow = ChannelNarrow(1);
       final store = eg.store();
       await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
