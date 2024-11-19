@@ -208,6 +208,15 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
 
   final PerAccountStore store;
 
+  /// The last query this [AutocompleteView] was asked to perform for the user.
+  ///
+  /// If this view-model is currently performing a search,
+  /// the search is for this query.
+  /// If not, then [results] reflect this query.
+  ///
+  /// When set, the existing query is aborted if still in progress,
+  /// and a search for the new query is begun.
+  /// Any existing value in [results] remains until the new query finishes.
   QueryT get query => _query;
   QueryT _query;
   set query(QueryT query) {
@@ -222,6 +231,13 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     _startSearch();
   }
 
+  /// The latest set of results available for any value of [query].
+  ///
+  /// When this changes, listeners will be notified with [notifyListeners].
+  ///
+  /// These results might not correspond to the current value of [query],
+  /// if a search is still in progress.
+  /// Before any search completes, [results] will be empty.
   Iterable<ResultT> get results => _results;
   List<ResultT> _results = [];
 
