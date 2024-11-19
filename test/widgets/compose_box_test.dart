@@ -398,14 +398,14 @@ void main() {
   });
 
   group('message-send request response', () {
-    Future<void> setupAndTapSend(WidgetTester tester, {
+    Future<GlobalKey<ComposeBoxController>> setupAndTapSend(WidgetTester tester, {
       required void Function(int messageId) prepareResponse,
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
+      final controllerKey = await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
         streams: [eg.stream(streamId: 123)]);
 
       await tester.enterText(contentInputFinder, 'hello world');
@@ -424,6 +424,7 @@ void main() {
             'content': 'hello world',
             'read_by_sender': 'true',
           });
+      return controllerKey;
     }
 
     testWidgets('success', (tester) async {
@@ -432,6 +433,45 @@ void main() {
       });
       final errorDialogs = tester.widgetList(find.byType(AlertDialog));
       check(errorDialogs).isEmpty();
+    });
+
+    testWidgets('disable compose box while pending; clear text when finished', (tester) async {
+      final controllerKey = await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(
+          id: messageId).toJson(), delay: const Duration(seconds: 2));
+      });
+      final composeBoxController = controllerKey.currentState!;
+      check(composeBoxController.enabled).isFalse();
+      check(composeBoxController.contentController.text).isNotEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests()).isEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
+      await tester.pump(Duration.zero);
+      check(testBinding.takePickFilesCalls()).isEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(composeBoxController.enabled).isTrue();
+      check(composeBoxController.contentController.text).isEmpty();
+    });
+
+    testWidgets('re-enable compose box even on failure; do not clear text', (tester) async {
+      final controllerKey = await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: const Duration(seconds: 2));
+      });
+      final composeBoxController = controllerKey.currentState!;
+      check(composeBoxController.enabled).isFalse();
+      final oldText = composeBoxController.contentController.text;
+      check(oldText).isNotEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(composeBoxController.enabled).isTrue();
+      check(composeBoxController.contentController.text).equals(oldText);
     });
 
     testWidgets('ZulipApiException', (tester) async {

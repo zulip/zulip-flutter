@@ -274,6 +274,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
 class _ContentInput extends StatefulWidget {
   const _ContentInput({
+    required this.enabled,
     required this.narrow,
     required this.destination,
     required this.controller,
@@ -281,6 +282,7 @@ class _ContentInput extends StatefulWidget {
     required this.hintText,
   });
 
+  final bool enabled;
   final Narrow narrow;
   final SendableNarrow destination;
   final ComposeContentController controller;
@@ -399,56 +401,61 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
       narrow: widget.narrow,
       controller: widget.controller,
       focusNode: widget.focusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: _verticalPadding, bottom: _verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: TextField(
-              controller: widget.controller,
-              focusNode: widget.focusNode,
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeightRatio,
-                color: designVariables.textInput),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 2,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: widget.hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+      fieldViewBuilder: (context) => Opacity(
+        opacity: widget.enabled ? 1 : 0.5,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight(context)),
+          // This [ClipRect] replaces the [TextField] clipping we disable below.
+          child: ClipRect(
+            child: InsetShadowBox(
+              top: _verticalPadding, bottom: _verticalPadding,
+              color: designVariables.composeBoxBg,
+              child: TextField(
+                enabled: widget.enabled,
+                controller: widget.controller,
+                focusNode: widget.focusNode,
+                // Let the content show through the `contentPadding` so that
+                // our [InsetShadowBox] can fade it smoothly there.
+                clipBehavior: Clip.none,
+                style: TextStyle(
+                  fontSize: _fontSize,
+                  height: _lineHeightRatio,
+                  color: designVariables.textInput),
+                // From the spec at
+                //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+                // > Compose box has the height to fit 2 lines. This is [done] to
+                // > have a bigger hit area for the user to start the input. […]
+                minLines: 2,
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  // This padding ensures that the user can always scroll long
+                  // content entirely out of the top or bottom shadow if desired.
+                  // With this and the `minLines: 2` above, an empty content input
+                  // gets 60px vertical distance (with no text-size scaling)
+                  // between the top of the top shadow and the bottom of the
+                  // bottom shadow. That's a bit more than the 54px given in the
+                  // Figma, and we can revisit if needed, but it's tricky to get
+                  // that 54px distance while also making the scrolling work like
+                  // this and offering two lines of touchable area.
+                  contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+                  hintText: widget.hintText,
+                  hintStyle: TextStyle(
+                    color: designVariables.textInput.withFadedAlpha(0.5)))))))));
   }
 }
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
   const _StreamContentInput({
+    required this.enabled,
     required this.narrow,
     required this.controller,
     required this.topicController,
     required this.focusNode,
   });
 
+  final bool enabled;
   final ChannelNarrow narrow;
   final ComposeContentController controller;
   final ComposeTopicController topicController;
@@ -496,6 +503,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
+      enabled: widget.enabled,
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
       controller: widget.controller,
@@ -506,11 +514,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
 class _TopicInput extends StatelessWidget {
   const _TopicInput({
+    required this.enabled,
     required this.streamId,
     required this.controller,
     required this.focusNode,
     required this.contentFocusNode});
 
+  final bool enabled;
   final int streamId;
   final ComposeTopicController controller;
   final FocusNode focusNode;
@@ -531,30 +541,36 @@ class _TopicInput extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       contentFocusNode: contentFocusNode,
-      fieldViewBuilder: (context) => Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 9),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1,
-          color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
-          controller: controller,
-          focusNode: focusNode,
-          textInputAction: TextInputAction.next,
-          style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+      fieldViewBuilder: (context) => Opacity(
+        opacity: (enabled) ? 1 : 0.5,
+        child: Container(
+          padding: const EdgeInsets.only(top: 10, bottom: 9),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(
+            width: 1,
+            color: designVariables.foreground.withFadedAlpha(0.2)))),
+          child: TextField(
+            enabled: enabled,
+            controller: controller,
+            focusNode: focusNode,
+            textInputAction: TextInputAction.next,
+            style: topicTextStyle,
+            decoration: InputDecoration(
+              hintText: zulipLocalizations.composeBoxTopicHintText,
+              hintStyle: topicTextStyle.copyWith(
+                color: designVariables.textInput.withFadedAlpha(0.5))))),
+      ));
   }
 }
 
 class _FixedDestinationContentInput extends StatelessWidget {
   const _FixedDestinationContentInput({
+    required this.enabled,
     required this.narrow,
     required this.controller,
     required this.focusNode,
   });
 
+  final bool enabled;
   final SendableNarrow narrow;
   final ComposeContentController controller;
   final FocusNode focusNode;
@@ -585,6 +601,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ContentInput(
+      enabled: enabled,
       narrow: narrow,
       destination: narrow,
       controller: controller,
@@ -679,8 +696,13 @@ Future<void> _uploadFiles({
 }
 
 abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
+  const _AttachUploadsButton({
+    required this.enabled,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
 
+  final bool enabled;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
@@ -724,7 +746,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       child: IconButton(
         icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
         tooltip: tooltip(zulipLocalizations),
-        onPressed: () => _handlePress(context)));
+        onPressed: (enabled) ? () => _handlePress(context) : null));
   }
 }
 
@@ -783,7 +805,11 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFileButton({
+    required super.enabled,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => ZulipIcons.attach_file;
@@ -799,7 +825,11 @@ class _AttachFileButton extends _AttachUploadsButton {
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
+  const _AttachMediaButton({
+    required super.enabled,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => ZulipIcons.image;
@@ -816,7 +846,11 @@ class _AttachMediaButton extends _AttachUploadsButton {
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFromCameraButton({
+    required super.enabled,
+    required super.contentController,
+    required super.contentFocusNode,
+  });
 
   @override
   IconData get icon => ZulipIcons.camera;
@@ -888,28 +922,38 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 }
 
 class _ComposeButtonBar extends StatelessWidget {
-  const _ComposeButtonBar({required this.contentController, required this.contentFocusNode});
+  const _ComposeButtonBar({
+    required this.enabled,
+    required this.contentController,
+    required this.contentFocusNode,
+  });
 
+  final bool enabled;
   final ComposeContentController contentController;
   final FocusNode contentFocusNode;
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-      _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-      _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
-    ]);
+    return Opacity(
+      opacity: (enabled) ? 1 : 0.5,
+      child: Row(children: [
+        _AttachFileButton(enabled: enabled, contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachMediaButton(enabled: enabled, contentController: contentController, contentFocusNode: contentFocusNode),
+        _AttachFromCameraButton(enabled: enabled, contentController: contentController, contentFocusNode: contentFocusNode),
+      ]),
+    );
   }
 }
 
 class _SendButton extends StatefulWidget {
   const _SendButton({
+    required this.enabled,
     required this.topicController,
     required this.contentController,
     required this.getDestination,
   });
 
+  final ValueNotifier<bool> enabled;
   final ComposeTopicController? topicController;
   final ComposeContentController contentController;
   final MessageDestination Function() getDestination;
@@ -973,21 +1017,22 @@ class _SendButtonState extends State<_SendButton> {
         message: validationErrorMessages.join('\n\n'));
       return;
     }
+    if (!widget.enabled.value) {
+      // The send button should have been disabled
+      // by the time the user tries to tap it.
+      assert(false);
+      return;
+    }
 
     final store = PerAccountStoreWidget.of(context);
     final content = widget.contentController.textNormalized;
 
-    widget.contentController.clear();
-    // The following `stoppedComposing` call is currently redundant,
-    // because clearing input sends a "typing stopped" notice.
-    // It will be necessary once we resolve #720.
     store.typingNotifier.stoppedComposing();
+    widget.enabled.value = false;
 
     try {
-      // TODO(#720) clear content input only on success response;
-      //   while waiting, put input(s) and send button into a disabled
-      //   "working on it" state (letting input text be selected for copying).
       await store.sendMessage(destination: widget.getDestination(), content: content);
+      widget.contentController.clear();
     } on ApiRequestException catch (e) {
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -999,6 +1044,8 @@ class _SendButtonState extends State<_SendButton> {
         title: zulipLocalizations.errorMessageNotSent,
         message: message);
       return;
+    } finally {
+      widget.enabled.value = true;
     }
   }
 
@@ -1007,7 +1054,7 @@ class _SendButtonState extends State<_SendButton> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final iconColor = _hasValidationErrors
+    final iconColor = _hasValidationErrors || !widget.enabled.value
       ? designVariables.icon.withFadedAlpha(0.5)
       : designVariables.icon;
 
@@ -1021,7 +1068,7 @@ class _SendButtonState extends State<_SendButton> {
           // ambient [ButtonStyle.overlayColor], where we set the color for
           // the highlight state to match the Figma design.
           color: iconColor),
-        onPressed: _send));
+        onPressed: (widget.enabled.value) ? _send : null));
   }
 }
 
@@ -1108,6 +1155,7 @@ class _ComposeBoxLayout extends StatelessWidget {
 }
 
 abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
+  bool get enabled;
   ComposeTopicController? get topicController;
   ComposeContentController get contentController;
   FocusNode get contentFocusNode;
@@ -1128,6 +1176,9 @@ class _StreamComposeBox extends StatefulWidget {
 }
 
 class _StreamComposeBoxState extends State<_StreamComposeBox> implements ComposeBoxController<_StreamComposeBox> {
+  @override bool get enabled => _enabled.value;
+  final _enabled = ValueNotifier<bool>(true);
+
   @override ComposeTopicController get topicController => _topicController;
   final _topicController = ComposeTopicController();
 
@@ -1150,29 +1201,37 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
 
   @override
   Widget build(BuildContext context) {
-    return _ComposeBoxLayout(
-      topicInput: _TopicInput(
-        streamId: widget.narrow.streamId,
-        controller: _topicController,
-        focusNode: topicFocusNode,
-        contentFocusNode: _contentFocusNode,
-      ),
-      contentInput: _StreamContentInput(
-        narrow: widget.narrow,
-        topicController: _topicController,
-        controller: _contentController,
-        focusNode: _contentFocusNode,
-      ),
-      composeButtonBar: _ComposeButtonBar(
-        contentController: _contentController,
-        contentFocusNode: _contentFocusNode,
-      ),
-      sendButton: _SendButton(
-        topicController: _topicController,
-        contentController: _contentController,
-        getDestination: () => StreamDestination(
-          widget.narrow.streamId, _topicController.textNormalized),
-      ));
+    return ValueListenableBuilder(
+      valueListenable: _enabled,
+      builder: (context, enabled, child) {
+        return _ComposeBoxLayout(
+          topicInput: _TopicInput(
+            enabled: enabled,
+            streamId: widget.narrow.streamId,
+            controller: _topicController,
+            focusNode: topicFocusNode,
+            contentFocusNode: _contentFocusNode,
+          ),
+          contentInput: _StreamContentInput(
+            enabled: enabled,
+            narrow: widget.narrow,
+            topicController: _topicController,
+            controller: _contentController,
+            focusNode: _contentFocusNode,
+          ),
+          composeButtonBar: _ComposeButtonBar(
+            enabled: enabled,
+            contentController: _contentController,
+            contentFocusNode: _contentFocusNode,
+          ),
+          sendButton: _SendButton(
+            enabled: _enabled,
+            topicController: _topicController,
+            contentController: _contentController,
+            getDestination: () => StreamDestination(
+              widget.narrow.streamId, _topicController.textNormalized),
+          ));
+      });
   }
 }
 
@@ -1207,6 +1266,9 @@ class _FixedDestinationComposeBox extends StatefulWidget {
 }
 
 class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> implements ComposeBoxController<_FixedDestinationComposeBox>  {
+  @override bool get enabled => _enabled.value;
+  final _enabled = ValueNotifier<bool>(true);
+
   @override ComposeTopicController? get topicController => null;
 
   @override ComposeContentController get contentController => _contentController;
@@ -1224,22 +1286,29 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
 
   @override
   Widget build(BuildContext context) {
-    return _ComposeBoxLayout(
-      topicInput: null,
-      contentInput: _FixedDestinationContentInput(
-        narrow: widget.narrow,
-        controller: _contentController,
-        focusNode: _contentFocusNode,
-      ),
-      composeButtonBar: _ComposeButtonBar(
-        contentController: _contentController,
-        contentFocusNode: _contentFocusNode,
-      ),
-      sendButton: _SendButton(
-        topicController: null,
-        contentController: _contentController,
-        getDestination: () => widget.narrow.destination,
-      ));
+    return ValueListenableBuilder(
+      valueListenable: _enabled,
+      builder: (context, enabled, child) {
+        return _ComposeBoxLayout(
+          topicInput: null,
+          contentInput: _FixedDestinationContentInput(
+            enabled: enabled,
+            narrow: widget.narrow,
+            controller: _contentController,
+            focusNode: _contentFocusNode,
+          ),
+          composeButtonBar: _ComposeButtonBar(
+            enabled: enabled,
+            contentController: _contentController,
+            contentFocusNode: _contentFocusNode,
+          ),
+          sendButton: _SendButton(
+            enabled: _enabled,
+            topicController: null,
+            contentController: _contentController,
+            getDestination: () => widget.narrow.destination,
+          ));
+      });
   }
 }
 
