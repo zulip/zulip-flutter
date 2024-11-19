@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../model/emoji.dart';
 import 'content.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
@@ -38,7 +39,8 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   void _handleControllerChange() {
-    final newQuery = widget.autocompleteIntent()?.query;
+    var newQuery = widget.autocompleteIntent()?.query;
+    if (newQuery is EmojiAutocompleteQuery) newQuery = null; // TODO(#670)
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
         && (newQuery == null

@@ -8,6 +8,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/autocomplete.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
@@ -89,11 +90,14 @@ void main() {
 
     MentionAutocompleteQuery mention(String raw) => MentionAutocompleteQuery(raw, silent: false);
     MentionAutocompleteQuery silentMention(String raw) => MentionAutocompleteQuery(raw, silent: true);
+    EmojiAutocompleteQuery emoji(String raw) => EmojiAutocompleteQuery(raw);
 
     doTest('', null);
     doTest('^', null);
 
     doTest('!@#\$%&*()_+', null);
+
+    // @-mentions.
 
     doTest('^@', null);                doTest('^@_', null);
     doTest('^@abc', null);             doTest('^@_abc', null);
@@ -169,6 +173,72 @@ void main() {
     doTest('~@_Родион Романович Раскольнико^', silentMention('Родион Романович Раскольнико'));
     doTest('If @chris is around, please ask him.^', null); // @ sign is too far away from cursor
     doTest('If @_chris is around, please ask him.^', null); // @ sign is too far away from cursor
+
+    // Emoji (":smile:").
+
+    // Basic positive examples, to contrast with all the negative examples below.
+    doTest('~:^', emoji(''));
+    doTest('~:a^', emoji('a'));
+    doTest('~:a ^', emoji('a '));
+    doTest('~:a_^', emoji('a_'));
+    doTest('~:a b^', emoji('a b'));
+    doTest('ok ~:s^', emoji('s'));
+    doTest('this: ~:s^', emoji('s'));
+
+    doTest('^:', null);
+    doTest('^:abc', null);
+    doTest(':abc', null); // (no cursor)
+
+    // Avoid interpreting colons in normal prose as queries.
+    doTest(': ^', null);
+    doTest(':\n^', null);
+    doTest('this:^', null);
+    doTest('this: ^', null);
+    doTest('là ~:^', emoji('')); // ambiguous in French prose, tant pis
+    doTest('là : ^', null);
+    doTest('8:30^', null);
+
+    // Avoid interpreting already-entered `:foo:` syntax as queries.
+    doTest(':smile:^', null);
+
+    // Avoid interpreting emoticons as queries.
+    doTest(':-^', null);
+    doTest(':)^', null); doTest(':-)^', null);
+    doTest(':(^', null); doTest(':-(^', null);
+    doTest(':/^', null); doTest(':-/^', null);
+    doTest('~:p^', emoji('p')); // ambiguously an emoticon
+    doTest(':-p^', null);
+
+    // Avoid interpreting as queries some ways colons appear in source code.
+    doTest('::^', null);
+    doTest(':<^', null);
+    doTest(':=^', null);
+
+    // Emoji names may have letters and numbers in various scripts.
+    // (A few appear in the server's list of Unicode emoji;
+    // many more might be in a given realm's custom emoji.)
+    doTest('~:コ^', emoji('コ'));
+    doTest('~:空^', emoji('空'));
+    doTest('~:φ^', emoji('φ'));
+    doTest('~:100^', emoji('100'));
+    doTest('~:１^', emoji('１')); // U+FF11 FULLWIDTH DIGIT ONE
+    doTest('~:٢^', emoji('٢')); // U+0662 ARABIC-INDIC DIGIT TWO
+
+    // Accept punctuation before the emoji: opening…
+    doTest('(~:^', emoji('')); doTest('(~:a^', emoji('a'));
+    doTest('[~:^', emoji('')); doTest('[~:a^', emoji('a'));
+    doTest('«~:^', emoji('')); doTest('«~:a^', emoji('a'));
+    doTest('（~:^', emoji('')); doTest('（~:a^', emoji('a'));
+    // … closing…
+    doTest(')~:^', emoji('')); doTest(')~:a^', emoji('a'));
+    doTest(']~:^', emoji('')); doTest(']~:a^', emoji('a'));
+    doTest('»~:^', emoji('')); doTest('»~:a^', emoji('a'));
+    doTest('）~:^', emoji('')); doTest('）~:a^', emoji('a'));
+    // … and other.
+    doTest('.~:^', emoji('')); doTest('.~:a^', emoji('a'));
+    doTest(',~:^', emoji('')); doTest(',~:a^', emoji('a'));
+    doTest('，~:^', emoji('')); doTest('，~:a^', emoji('a'));
+    doTest('。~:^', emoji('')); doTest('。~:a^', emoji('a'));
   });
 
   test('MentionAutocompleteView misc', () async {

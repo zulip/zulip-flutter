@@ -39,6 +39,9 @@ extension ComposeContentAutocomplete on ComposeContentController {
       if (charAtPos == '@') {
         final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
+      } else if (charAtPos == ':') {
+        final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
       } else {
         continue;
       }
@@ -53,6 +56,10 @@ extension ComposeContentAutocomplete on ComposeContentController {
         final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
         query = MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_');
+      } else if (charAtPos == ':') {
+        final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
+        query = EmojiAutocompleteQuery(match[1]!);
       } else {
         continue;
       }
@@ -96,6 +103,30 @@ final RegExp _mentionIntentRegex = (() {
       + r'[^'   + fullNameAndEmailCharExclusions + r']*'
     + r')$',
     unicode: true);
+})();
+
+final RegExp _emojiIntentRegex = (() {
+  // Similar reasoning as in _mentionIntentRegex.
+  // Specifically forbid a preceding ":", though, to make "::" not a query.
+  const before = r'(?<=^|\s|\p{Punctuation})(?<!:)';
+  // TODO(dart-future): Regexps in ES 2024 have a /v aka unicodeSets flag;
+  //   if Dart matches that, we could combine into one character class
+  //   meaning "whitespace and punctuation, except not `:`":
+  //     r'(?<=^|[[\s\p{Punctuation}]--[:]])'
+
+  /// Characters that might be meant as part of (a query for) an emoji's name,
+  /// other than whitespace.
+  const nameCharacters = r'_\p{Letter}\p{Number}';
+
+  return RegExp(unicode: true,
+    before
+    + r':'
+    + r'(|'
+      // Reject on whitespace right after ':'; interpret that
+      // as the user choosing to get out of the emoji autocomplete.
+      + r'['   + nameCharacters + r']'
+      + r'[\s' + nameCharacters + r']*'
+    + r')$');
 })();
 
 /// The text controller's recognition that the user might want autocomplete UI.
