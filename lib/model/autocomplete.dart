@@ -32,20 +32,20 @@ extension ComposeContentAutocomplete on ComposeContentController {
     }
 
     final textUntilCursor = text.substring(0, selection.end);
-    for (int position = selection.end - 1; position >= earliest; position--) {
-      if (textUntilCursor[position] != '@') {
+    for (int pos = selection.end - 1; pos >= earliest; pos--) {
+      if (textUntilCursor[pos] != '@') {
         continue;
       }
-      final match = mentionAutocompleteMarkerRegex.matchAsPrefix(textUntilCursor, position);
+      final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
       if (match == null) {
         continue;
       }
-      if (selection.start < position) {
+      if (selection.start < pos) {
         // See comment about [TextSelection.isCollapsed] above.
         return null;
       }
       return AutocompleteIntent(
-        syntaxStart: position,
+        syntaxStart: pos,
         query: MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
         textEditingValue: value);
     }
@@ -62,7 +62,7 @@ extension ComposeTopicAutocomplete on ComposeTopicController {
   }
 }
 
-final RegExp mentionAutocompleteMarkerRegex = (() {
+final RegExp _mentionIntentRegex = (() {
   // What's likely to come before an @-mention: the start of the string,
   // whitespace, or punctuation. Letters are unlikely; in that case an email
   // might be intended. (By punctuation, we mean *some* punctuation, like "(".
