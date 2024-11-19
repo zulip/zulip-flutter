@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
@@ -304,47 +303,11 @@ class _UnicodeEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        return Text(
-          textScaler: _squareEmojiScalerClamped(context),
-          style: const TextStyle(
-            fontFamily: 'Noto Color Emoji',
-            fontSize: _notoColorEmojiTextSize,
-          ),
-          strutStyle: const StrutStyle(fontSize: _notoColorEmojiTextSize, forceStrutHeight: true),
-          emojiDisplay.emojiUnicode);
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        // We expect the font "Apple Color Emoji" to be used. There are some
-        // surprises in how Flutter ends up rendering emojis in this font:
-        // - With a font size of 17px, the emoji visually seems to be about 17px
-        //   square. (Unlike on Android, with Noto Color Emoji, where a 14.5px font
-        //   size gives an emoji that looks 17px square.) See:
-        //     <https://github.com/flutter/flutter/issues/28894>
-        // - The emoji doesn't fill the space taken by the [Text] in the layout.
-        //   There's whitespace above, below, and on the right. See:
-        //     <https://github.com/flutter/flutter/issues/119623>
-        //
-        // That extra space would be problematic, except we've used a [Stack] to
-        // make the [Text] "positioned" so the space doesn't add margins around the
-        // visible part. Key points that enable the [Stack] workaround:
-        // - The emoji seems approximately vertically centered (this is
-        //   accomplished with help from a [StrutStyle]; see below).
-        // - There seems to be approximately no space on its left.
-        final boxSize = _squareEmojiScalerClamped(context).scale(_squareEmojiSize);
-        return Stack(alignment: Alignment.centerLeft, clipBehavior: Clip.none, children: [
-          SizedBox(height: boxSize, width: boxSize),
-          PositionedDirectional(start: 0, child: Text(
-            textScaler: _squareEmojiScalerClamped(context),
-            style: const TextStyle(fontSize: _squareEmojiSize),
-            strutStyle: const StrutStyle(fontSize: _squareEmojiSize, forceStrutHeight: true),
-            emojiDisplay.emojiUnicode)),
-        ]);
-    }
+    return UnicodeEmojiWidget(
+      size: _squareEmojiSize,
+      notoColorEmojiTextSize: _notoColorEmojiTextSize,
+      textScaler: _squareEmojiScalerClamped(context),
+      emojiDisplay: emojiDisplay);
   }
 }
 
