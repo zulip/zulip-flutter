@@ -33,21 +33,21 @@ extension ComposeContentAutocomplete on ComposeContentController {
 
     final textUntilCursor = text.substring(0, selection.end);
     for (int pos = selection.end - 1; pos >= earliest; pos--) {
-      if (textUntilCursor[pos] != '@') {
-        continue;
+      final charAtPos = textUntilCursor[pos];
+      if (charAtPos == '@') {
+        final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) {
+          continue;
+        }
+        if (selection.start < pos) {
+          // See comment about [TextSelection.isCollapsed] above.
+          return null;
+        }
+        return AutocompleteIntent(
+          syntaxStart: pos,
+          query: MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
+          textEditingValue: value);
       }
-      final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
-      if (match == null) {
-        continue;
-      }
-      if (selection.start < pos) {
-        // See comment about [TextSelection.isCollapsed] above.
-        return null;
-      }
-      return AutocompleteIntent(
-        syntaxStart: pos,
-        query: MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_'),
-        textEditingValue: value);
     }
     return null;
   }
