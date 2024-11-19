@@ -182,7 +182,7 @@ class ReactionChip extends StatelessWidget {
 
     final emoji = switch (emojiDisplay) {
       UnicodeEmojiDisplay() => _UnicodeEmoji(
-        emojiDisplay: emojiDisplay, selected: selfVoted),
+        emojiDisplay: emojiDisplay),
       ImageEmojiDisplay() => _ImageEmoji(
         emojiDisplay: emojiDisplay, emojiName: emojiName, selected: selfVoted),
       TextEmojiDisplay() => _TextEmoji(
@@ -293,13 +293,9 @@ TextScaler _labelTextScalerClamped(BuildContext context) =>
   MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
 class _UnicodeEmoji extends StatelessWidget {
-  const _UnicodeEmoji({
-    required this.emojiDisplay,
-    required this.selected,
-  });
+  const _UnicodeEmoji({required this.emojiDisplay});
 
   final UnicodeEmojiDisplay emojiDisplay;
-  final bool selected;
 
   @override
   Widget build(BuildContext context) {
