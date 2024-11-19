@@ -25,6 +25,12 @@ extension ComposeContentAutocomplete on ComposeContentController {
     // in long messages, we bound how far back we look for the intent's start.
     final earliest = max(0, selection.end - 30);
 
+    if (selection.start < earliest) {
+      // The selection extends to before any position we'd consider
+      // for the start of the intent.  So there can't be a match.
+      return null;
+    }
+
     final textUntilCursor = text.substring(0, selection.end);
     for (int position = selection.end - 1; position >= earliest; position--) {
       if (textUntilCursor[position] != '@') {
