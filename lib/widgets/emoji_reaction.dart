@@ -5,7 +5,7 @@ import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../model/emoji.dart';
 import 'color.dart';
-import 'content.dart';
+import 'emoji.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -361,29 +361,11 @@ class _ImageEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Some people really dislike animated emoji.
-    final doNotAnimate =
-      // From reading code, this doesn't actually get set on iOS:
-      //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
-      MediaQuery.disableAnimationsOf(context)
-      || (defaultTargetPlatform == TargetPlatform.iOS
-        // TODO(upstream) On iOS 17+ (new in 2023), there's a more closely
-        //   relevant setting than "reduce motion". It's called "auto-play
-        //   animated images", and we should file an issue to expose it.
-        //   See GitHub comment linked above.
-        && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion);
-
-    final resolvedUrl = doNotAnimate
-      ? (emojiDisplay.resolvedStillUrl ?? emojiDisplay.resolvedUrl)
-      : emojiDisplay.resolvedUrl;
-
-    // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
-    final size = _squareEmojiScalerClamped(context).scale(_squareEmojiSize);
-
-    return RealmContentNetworkImage(
-      resolvedUrl,
-      width: size,
-      height: size,
+    return ImageEmojiWidget(
+      size: _squareEmojiSize,
+      // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
+      textScaler: _squareEmojiScalerClamped(context),
+      emojiDisplay: emojiDisplay,
       errorBuilder: (context, _, __) => _TextEmoji(
         emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selected),
     );
