@@ -169,6 +169,10 @@
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
+  "errorSendMessageTimeout": "Your message was not sent. Check your connection.",
+  "@errorSendMessageTimeout": {
+    "description": "Error message when failed to send a message due to timeout."
+  },
   "errorServerMessage": "The server said:\n\n{message}",
   "@errorServerMessage": {
     "description": "Error message that quotes an error from the server.",

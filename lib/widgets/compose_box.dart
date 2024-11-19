@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_settings/app_settings.dart';
@@ -21,6 +22,8 @@ import 'inset_shadow.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+
+const Duration kSendMessageTimeout = Duration(seconds: 5);
 
 const double _composeButtonSize = 44;
 
@@ -999,15 +1002,20 @@ class _SendButtonState extends State<_SendButton> {
     widget.controller._enabled.value = false;
 
     try {
-      await store.sendMessage(destination: widget.getDestination(), content: content);
+      await store
+        .sendMessage(destination: widget.getDestination(), content: content)
+        .timeout(kSendMessageTimeout);
       widget.controller.content.clear();
-    } on ApiRequestException catch (e) {
+    } catch (e) {
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
-      final message = switch (e) {
-        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
-        _ => e.message,
-      };
+      String message;
+      switch (e) {
+        case ZulipApiException(): message = zulipLocalizations.errorServerMessage(e.message);
+        case ApiRequestException(): message = e.message;
+        case TimeoutException(): message = zulipLocalizations.errorSendMessageTimeout;
+        default: rethrow;
+      }
       showErrorDialog(context: context,
         title: zulipLocalizations.errorMessageNotSent,
         message: message);

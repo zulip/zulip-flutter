@@ -480,6 +480,25 @@ void main() {
       check(find.byType(LinearProgressIndicator)).findsNothing();
     });
 
+    testWidgets('fail after timeout', (tester) async {
+      const longDelay = Duration(hours: 1);
+      assert(longDelay > kSendMessageTimeout);
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: longDelay);
+      });
+
+      await tester.pump(kSendMessageTimeout);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorMessageNotSent,
+        expectedMessage: zulipLocalizations.errorSendMessageTimeout)));
+
+      await tester.pump(longDelay);
+    });
+
     testWidgets('ZulipApiException', (tester) async {
       await setupAndTapSend(tester, prepareResponse: (message) {
         connection.prepare(

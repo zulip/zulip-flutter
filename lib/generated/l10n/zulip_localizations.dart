@@ -325,6 +325,12 @@ abstract class ZulipLocalizations {
   /// **'Quotation failed'**
   String get errorQuotationFailed;
 
+  /// Error message when failed to send a message due to timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message was not sent. Check your connection.'**
+  String get errorSendMessageTimeout;
+
   /// Error message that quotes an error from the server.
   ///
   /// In en, this message translates to:
