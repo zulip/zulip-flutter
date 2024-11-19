@@ -410,7 +410,7 @@ void main() {
       await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
       await tester.pump(Duration.zero);
 
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
@@ -428,6 +428,43 @@ void main() {
       });
       final errorDialogs = tester.widgetList(find.byType(AlertDialog));
       check(errorDialogs).isEmpty();
+    });
+
+    testWidgets('disable compose box while pending; clear text when finished', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(
+          id: messageId).toJson(), delay: const Duration(seconds: 2));
+      });
+      check(controller!.enabled).isFalse();
+      check(controller!.content.text).isNotEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests()).isEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
+      await tester.pump(Duration.zero);
+      check(testBinding.takePickFilesCalls()).isEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(controller!.enabled).isTrue();
+      check(controller!.content.text).isEmpty();
+    });
+
+    testWidgets('re-enable compose box even on failure; do not clear text', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: const Duration(seconds: 2));
+      });
+      check(controller!.enabled).isFalse();
+      final oldText = controller!.content.text;
+      check(oldText).isNotEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(controller!.enabled).isTrue();
+      check(controller!.content.text).equals(oldText);
     });
 
     testWidgets('ZulipApiException', (tester) async {
