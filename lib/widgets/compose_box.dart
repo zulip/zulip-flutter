@@ -1073,9 +1073,9 @@ class _SendButtonState extends State<_SendButton> {
 }
 
 class _ComposeBoxContainer extends StatelessWidget {
-  const _ComposeBoxContainer({required this.child});
+  const _ComposeBoxContainer({required this.children});
 
-  final Widget child;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -1088,8 +1088,7 @@ class _ComposeBoxContainer extends StatelessWidget {
         border: Border(top: BorderSide(color: designVariables.borderBar))),
       child: Material(
         color: designVariables.composeBoxBg,
-        child: SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
-          child: child)));
+        child: Column(children: children)));
   }
 }
 
@@ -1133,24 +1132,28 @@ class _ComposeBoxLayout extends StatelessWidget {
     return IconButtonTheme(
       data: iconButtonThemeData,
       child: _ComposeBoxContainer(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Theme(
-              data: inputThemeData,
-              child: Column(children: [
-                if (topicInput != null) topicInput!,
-                contentInput,
-              ]))),
-          SizedBox(
-            height: _composeButtonSize,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                composeButtonBar,
-                sendButton,
-              ])),
-        ])));
+        children: [
+          SafeArea(
+            minimum: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Theme(
+                  data: inputThemeData,
+                  child: Column(children: [
+                    if (topicInput != null) topicInput!,
+                    contentInput,
+                  ]))),
+              SizedBox(
+                height: _composeButtonSize,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    composeButtonBar,
+                    sendButton,
+                  ])),
+            ])),
+        ]));
   }
 }
 
@@ -1363,7 +1366,10 @@ class ComposeBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final errorBanner = _errorBanner(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(child: errorBanner);
+      return _ComposeBoxContainer(children: [
+        SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
+          child: errorBanner)
+      ]);
     }
 
     final narrow = this.narrow;
