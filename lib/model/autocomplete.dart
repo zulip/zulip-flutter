@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -18,12 +20,13 @@ extension ComposeContentAutocomplete on ComposeContentController {
       // see below.
       return null;
     }
+
+    // To avoid spending a lot of time searching for autocomplete intents
+    // in long messages, we bound how far back we look for the intent's start.
+    final earliest = max(0, selection.end - 30);
+
     final textUntilCursor = text.substring(0, selection.end);
-    for (
-      int position = selection.end - 1;
-      position >= 0 && (selection.end - position <= 30);
-      position--
-    ) {
+    for (int position = selection.end - 1; position >= earliest; position--) {
       if (textUntilCursor[position] != '@') {
         continue;
       }
