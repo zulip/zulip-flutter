@@ -90,7 +90,7 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
     final store = PerAccountStoreWidget.of(context);
     final subscriptions = store.subscriptions;
 
-    // TODO(perf) make an incrementally-updated view-model for InboxPage
+    // TODO(#1065) make an incrementally-updated view-model for InboxPage
     final sections = <_InboxSectionData>[];
 
     // TODO efficiently include DM conversations that aren't recent enough
