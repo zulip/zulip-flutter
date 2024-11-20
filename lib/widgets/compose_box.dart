@@ -275,6 +275,42 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.label, this.action});
+
+  final String label;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final labelTextStyle = TextStyle(
+      fontSize: 17,
+      height: 22 / 17,
+      color: designVariables.btnLabelAttMediumDanger,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+
+    final padding = (action == null)
+      // Ensure that the text is centered when it is the only element.
+      ? const EdgeInsets.symmetric(horizontal: 16, vertical: 9)
+      : const EdgeInsetsDirectional.fromSTEB(16, 9, 8, 9);
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 40),
+      decoration: BoxDecoration(color: designVariables.bannerBgIntDanger),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: padding,
+              child: Text(label, style: labelTextStyle))),
+          if (action != null) action!,
+        ]));
+  }
+}
+
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.showProgressIndicator, required this.sendMessageError});
 
@@ -1298,42 +1334,6 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
               widget.narrow.streamId, _topicController.textNormalized),
           ));
       });
-  }
-}
-
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label, this.action});
-
-  final String label;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final labelTextStyle = TextStyle(
-      fontSize: 17,
-      height: 22 / 17,
-      color: designVariables.btnLabelAttMediumDanger,
-    ).merge(weightVariableTextStyle(context, wght: 600));
-
-    final padding = (action == null)
-      // Ensure that the text is centered when it is the only element.
-      ? const EdgeInsets.symmetric(horizontal: 16, vertical: 9)
-      : const EdgeInsetsDirectional.fromSTEB(16, 9, 8, 9);
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 40),
-      decoration: BoxDecoration(color: designVariables.bannerBgIntDanger),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: padding,
-              child: Text(label, style: labelTextStyle))),
-          if (action != null) action!,
-        ]));
   }
 }
 
