@@ -603,6 +603,10 @@ void main() {
       of: find.byType(ComposeBox),
       matching: find.widgetWithIcon(IconButton, icon));
 
+    Finder findBannerByLabel(String label) => find.descendant(
+      of: find.byType(ComposeBox),
+      matching: find.text(label));
+
     void checkComposeBoxParts({required bool areShown}) {
       final inputFieldCount = inputFieldFinder.evaluate().length;
       areShown ? check(inputFieldCount).isGreaterThan(0) : check(inputFieldCount).equals(0);
@@ -612,7 +616,7 @@ void main() {
     }
 
     void checkBannerWithLabel(String label, {required bool isShown}) {
-      check(find.text(label).evaluate().length).equals(isShown ? 1 : 0);
+      check(findBannerByLabel(label).evaluate().length).equals(isShown ? 1 : 0);
     }
 
     void checkComposeBoxIsShown(bool isShown, {required String bannerLabel}) {
