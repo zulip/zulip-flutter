@@ -467,6 +467,19 @@ void main() {
       check(controller!.content.text).equals(oldText);
     });
 
+    testWidgets('show progress bar while pending', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(
+          id: messageId).toJson(), delay: const Duration(seconds: 2));
+      });
+      check(controller!.enabled).isFalse();
+      check(find.byType(LinearProgressIndicator)).findsOne();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(controller!.enabled).isTrue();
+      check(find.byType(LinearProgressIndicator)).findsNothing();
+    });
+
     testWidgets('ZulipApiException', (tester) async {
       await setupAndTapSend(tester, prepareResponse: (message) {
         connection.prepare(

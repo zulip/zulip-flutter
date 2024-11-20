@@ -1142,6 +1142,16 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final topicInput = buildTopicInput();
     return Column(children: [
+      ValueListenableBuilder(
+        valueListenable: controller._enabled,
+        builder: (context, enabled, child) {
+          return (!enabled) ? child! : const SizedBox.shrink();
+        },
+        child: LinearProgressIndicator(
+          minHeight: 2.0,
+          backgroundColor: designVariables.foreground.withFadedAlpha(0.2),
+          color: designVariables.foreground.withFadedAlpha(0.5),
+        )),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Theme(
