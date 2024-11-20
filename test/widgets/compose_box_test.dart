@@ -443,6 +443,7 @@ void main() {
       final composeBoxController = controllerKey.currentState!;
       check(composeBoxController.enabled).isFalse();
       check(composeBoxController.contentController.text).isNotEmpty();
+      check(find.byType(LinearProgressIndicator)).findsOne();
 
       await tester.tap(find.byIcon(ZulipIcons.send));
       await tester.pump(Duration.zero);
@@ -455,6 +456,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       check(composeBoxController.enabled).isTrue();
       check(composeBoxController.contentController.text).isEmpty();
+      check(find.byType(LinearProgressIndicator)).findsNothing();
     });
 
     testWidgets('re-enable compose box even on failure; do not clear text', (tester) async {
