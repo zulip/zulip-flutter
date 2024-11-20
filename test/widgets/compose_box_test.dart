@@ -30,7 +30,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
-import 'dialog_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -480,6 +479,39 @@ void main() {
       check(find.byType(LinearProgressIndicator)).findsNothing();
     });
 
+    testWidgets('dismiss validation error banner by tapping the remove icon', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        return connection.prepare(httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'error'});
+      });
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.tap(find.byIcon(ZulipIcons.remove));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.remove)).findsNothing();
+    });
+
+    testWidgets('dismiss error banner after a successful request', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        return connection.prepare(httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'error'});
+      });
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.enterText(contentInputFinder, 'hello world');
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      connection.prepare(
+        json: SendMessageResult(id: 123).toJson(),
+        delay: const Duration(seconds: 2));
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(find.byIcon(ZulipIcons.remove)).findsNothing();
+    });
+
     testWidgets('fail after timeout', (tester) async {
       const longDelay = Duration(hours: 1);
       assert(longDelay > kSendMessageTimeout);
@@ -492,9 +524,7 @@ void main() {
 
       await tester.pump(kSendMessageTimeout);
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMessageNotSent,
-        expectedMessage: zulipLocalizations.errorSendMessageTimeout)));
+      check(find.text(zulipLocalizations.errorSendMessageTimeout)).findsOne();
 
       await tester.pump(longDelay);
     });
@@ -510,11 +540,9 @@ void main() {
           });
       });
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMessageNotSent,
-        expectedMessage: zulipLocalizations.errorServerMessage(
-          'You do not have permission to initiate direct message conversations.'),
-      )));
+      check(find.text(zulipLocalizations.errorServerMessage(
+        'You do not have permission to initiate direct message conversations.'),
+      )).findsOne();
     });
   });
 

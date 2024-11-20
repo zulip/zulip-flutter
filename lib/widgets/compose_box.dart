@@ -1006,6 +1006,7 @@ class _SendButtonState extends State<_SendButton> {
         .sendMessage(destination: widget.getDestination(), content: content)
         .timeout(kSendMessageTimeout);
       widget.controller.content.clear();
+      widget.controller._sendMessageError.value = null;
     } catch (e) {
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -1016,9 +1017,7 @@ class _SendButtonState extends State<_SendButton> {
         case TimeoutException(): message = zulipLocalizations.errorSendMessageTimeout;
         default: rethrow;
       }
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorMessageNotSent,
-        message: message);
+      widget.controller._sendMessageError.value = message;
       return;
     } finally {
       widget.controller._enabled.value = true;
@@ -1246,11 +1245,15 @@ sealed class ComposeBoxController {
   bool get enabled => _enabled.value;
   final ValueNotifier<bool> _enabled = ValueNotifier<bool>(true);
 
+  String? get sendMessageError => _sendMessageError.value;
+  final ValueNotifier<String?> _sendMessageError = ValueNotifier<String?>(null);
+
   @mustCallSuper
   void dispose() {
     content.dispose();
     contentFocusNode.dispose();
     _enabled.dispose();
+    _sendMessageError.dispose();
   }
 }
 
@@ -1269,13 +1272,15 @@ class StreamComposeBoxController extends ComposeBoxController {
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
 
 class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label});
+  const _ErrorBanner({required this.label, this.onDismiss});
 
   final String label;
+  final void Function()? onDismiss;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final iconButtonTheme = IconButtonTheme.of(context);
     final labelTextStyle = TextStyle(
       fontSize: 17,
       height: 22 / 17,
@@ -1297,8 +1302,16 @@ class _ErrorBanner extends StatelessWidget {
                 child: Text(style: labelTextStyle,
                   label))),
             const SizedBox(width: 8),
-            // TODO(#720) "x" button goes here.
-            //   24px square with 8px touchable padding in all directions?
+            if (onDismiss != null)
+              IconButton(
+                icon: Icon(
+                  ZulipIcons.remove, color: designVariables.btnLabelAttLowIntDanger),
+                style: iconButtonTheme.style!.copyWith(
+                  overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+                  splashFactory: NoSplash.splashFactory,
+                  shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4))))),
+                onPressed: onDismiss),
           ])));
   }
 }
@@ -1385,6 +1398,21 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
     return null;
   }
 
+  Widget _sendMessageErrorErrorBanner(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return ValueListenableBuilder(
+      valueListenable: controller._sendMessageError,
+      builder: (context, sendMessageError, child) {
+        if (sendMessageError == null) return const SizedBox.shrink();
+        return _ErrorBanner(
+          label: sendMessageError,
+          onDismiss: () => controller._sendMessageError.value = null);
+      },
+      child: IconButton(icon: Icon(ZulipIcons.remove,
+        color: designVariables.btnLabelAttLowIntDanger),
+        onPressed: () => controller._sendMessageError.value = null));
+  }
+
   @override
   Widget build(BuildContext context) {
     final Widget? body;
@@ -1406,11 +1434,7 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
       }
     }
 
-    // TODO(#720) dismissable message-send error, maybe something like:
-    //     if (controller.sendMessageError.value != null) {
-    //       errorBanner = _ErrorBanner(label:
-    //         ZulipLocalizations.of(context).errorSendMessageTimeout);
-    //     }
-    return _ComposeBoxContainer(body: body, errorBanner: null);
+    return _ComposeBoxContainer(
+      body: body, errorBanner: _sendMessageErrorErrorBanner(context));
   }
 }
