@@ -276,16 +276,33 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.showProgressIndicator});
+  const _TopBar({required this.showProgressIndicator, required this.sendMessageError});
 
   final bool showProgressIndicator;
+  final ValueNotifier<String?> sendMessageError;
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final iconButtonTheme = IconButtonTheme.of(context);
     // TODO: Figure out a way so that this does not shift the message list
     //   when it gains more height.
     return Column(children: [
       if (showProgressIndicator) _progressIndicator(context),
+      ValueListenableBuilder(
+        valueListenable: sendMessageError,
+        builder: (context, errorMessage, child) {
+          if (errorMessage != null) {
+            return _ErrorBanner(label: errorMessage, action: child);
+          }
+          return const SizedBox.shrink();
+        },
+        child: IconButton(
+          style: iconButtonTheme.style!.copyWith(
+            shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4))))),
+          icon: Icon(ZulipIcons.remove, color: designVariables.btnLabelAttLowIntDanger),
+            onPressed: () => sendMessageError.value = null)),
     ]);
   }
 }
@@ -968,12 +985,14 @@ class _SendButton extends StatefulWidget {
     required this.enabled,
     required this.topicController,
     required this.contentController,
+    required this.sendMessageError,
     required this.getDestination,
   });
 
   final ValueNotifier<bool> enabled;
   final ComposeTopicController? topicController;
   final ComposeContentController contentController;
+  final ValueNotifier<String?> sendMessageError;
   final MessageDestination Function() getDestination;
 
   @override
@@ -1053,6 +1072,7 @@ class _SendButtonState extends State<_SendButton> {
         .sendMessage(destination: widget.getDestination(), content: content)
         .timeout(kSendMessageTimeout);
       widget.contentController.clear();
+      widget.sendMessageError.value = null;
     } catch (e) {
       if (!mounted) return;
 
@@ -1064,9 +1084,7 @@ class _SendButtonState extends State<_SendButton> {
         case TimeoutException():    message = zulipLocalizations.errorSendMessageTimeout;
         default: rethrow;
       }
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorMessageNotSent,
-        message: message);
+      widget.sendMessageError.value = message;
       return;
     } finally {
       widget.enabled.value = true;
@@ -1197,6 +1215,7 @@ abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
   ComposeTopicController? get topicController;
   ComposeContentController get contentController;
   FocusNode get contentFocusNode;
+  ValueNotifier<String?> get sendMessageError;
 }
 
 /// A compose box for use in a channel narrow.
@@ -1229,11 +1248,15 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
   FocusNode get topicFocusNode => _topicFocusNode;
   final _topicFocusNode = FocusNode();
 
+  @override ValueNotifier<String?> get sendMessageError => _sendMessageError;
+  final _sendMessageError = ValueNotifier<String?>(null);
+
   @override
   void dispose() {
     _topicController.dispose();
     _contentController.dispose();
     _contentFocusNode.dispose();
+    _sendMessageError.dispose();
     super.dispose();
   }
 
@@ -1243,7 +1266,10 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
       valueListenable: _enabled,
       builder: (context, enabled, child) {
         return _ComposeBoxLayout(
-          topBar: _TopBar(showProgressIndicator: !enabled),
+          topBar: _TopBar(
+            showProgressIndicator: !enabled,
+            sendMessageError: sendMessageError,
+          ),
           topicInput: _TopicInput(
             enabled: enabled,
             streamId: widget.narrow.streamId,
@@ -1267,6 +1293,7 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
             enabled: _enabled,
             topicController: _topicController,
             contentController: _contentController,
+            sendMessageError: _sendMessageError,
             getDestination: () => StreamDestination(
               widget.narrow.streamId, _topicController.textNormalized),
           ));
@@ -1275,9 +1302,10 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
 }
 
 class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label});
+  const _ErrorBanner({required this.label, this.action});
 
   final String label;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -1288,17 +1316,23 @@ class _ErrorBanner extends StatelessWidget {
       color: designVariables.btnLabelAttMediumDanger,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    final padding = (action == null)
+      // Ensure that the text is centered when it is the only element.
+      ? const EdgeInsets.symmetric(horizontal: 16, vertical: 9)
+      : const EdgeInsetsDirectional.fromSTEB(16, 9, 8, 9);
+
     return Container(
       constraints: const BoxConstraints(minHeight: 40),
-      decoration: BoxDecoration(
-        color: designVariables.bannerBgIntDanger),
+      decoration: BoxDecoration(color: designVariables.bannerBgIntDanger),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              padding: padding,
               child: Text(label, style: labelTextStyle))),
+          if (action != null) action!,
         ]));
   }
 }
@@ -1324,10 +1358,14 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
   @override FocusNode get contentFocusNode => _contentFocusNode;
   final _contentFocusNode = FocusNode();
 
+  @override ValueNotifier<String?> get sendMessageError => _sendMessageError;
+  final _sendMessageError = ValueNotifier<String?>(null);
+
   @override
   void dispose() {
     _contentController.dispose();
     _contentFocusNode.dispose();
+    _sendMessageError.dispose();
     super.dispose();
   }
 
@@ -1337,7 +1375,10 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
       valueListenable: _enabled,
       builder: (context, enabled, child) {
         return _ComposeBoxLayout(
-          topBar: _TopBar(showProgressIndicator: !enabled),
+          topBar: _TopBar(
+            showProgressIndicator: !enabled,
+            sendMessageError: sendMessageError,
+          ),
           topicInput: null,
           contentInput: _FixedDestinationContentInput(
             enabled: enabled,
@@ -1354,6 +1395,7 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
             enabled: _enabled,
             topicController: null,
             contentController: _contentController,
+            sendMessageError: _sendMessageError,
             getDestination: () => widget.narrow.destination,
           ));
       });
