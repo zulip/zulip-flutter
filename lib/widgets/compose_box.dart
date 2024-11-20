@@ -1083,27 +1083,27 @@ class _ComposeBoxLayout extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
-    return _ComposeBoxContainer(
-      child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Theme(
-            data: inputThemeData,
-            child: Column(children: [
-              if (topicInput != null) topicInput!,
-              contentInput,
-            ]))),
-        SizedBox(
-          height: _composeButtonSize,
-          child: IconButtonTheme(
-            data: iconButtonThemeData,
+    return IconButtonTheme(
+      data: iconButtonThemeData,
+      child: _ComposeBoxContainer(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Theme(
+              data: inputThemeData,
+              child: Column(children: [
+                if (topicInput != null) topicInput!,
+                contentInput,
+              ]))),
+          SizedBox(
+            height: _composeButtonSize,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 composeButtonBar,
                 sendButton,
-              ]))),
-      ]));
+              ])),
+        ])));
   }
 }
 
