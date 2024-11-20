@@ -595,20 +595,20 @@ void main() {
   group('error banner', () {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-    Finder inputFieldFinder() => find.descendant(
+    Finder inputFieldFinder = find.descendant(
       of: find.byType(ComposeBox),
       matching: find.byType(TextField));
 
-    Finder attachButtonFinder(IconData icon) => find.descendant(
+    Finder findAttachButton(IconData icon) => find.descendant(
       of: find.byType(ComposeBox),
       matching: find.widgetWithIcon(IconButton, icon));
 
     void checkComposeBoxParts({required bool areShown}) {
-      final inputFieldCount = inputFieldFinder().evaluate().length;
+      final inputFieldCount = inputFieldFinder.evaluate().length;
       areShown ? check(inputFieldCount).isGreaterThan(0) : check(inputFieldCount).equals(0);
-      check(attachButtonFinder(ZulipIcons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
-      check(attachButtonFinder(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
-      check(attachButtonFinder(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
+      check(findAttachButton(ZulipIcons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
+      check(findAttachButton(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
+      check(findAttachButton(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
     }
 
     void checkBannerWithLabel(String label, {required bool isShown}) {
