@@ -414,7 +414,7 @@ void main() {
       await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
       await tester.pump(Duration.zero);
 
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
