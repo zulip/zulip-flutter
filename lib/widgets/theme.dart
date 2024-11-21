@@ -36,6 +36,9 @@ ThemeData zulipThemeData(BuildContext context) {
     brightness: brightness,
     typography: zulipTypography(context),
     extensions: themeExtensions,
+    iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
+      foregroundColor: designVariables.icon,
+    )),
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
@@ -45,10 +48,7 @@ ThemeData zulipThemeData(BuildContext context) {
       scrolledUnderElevation: 0,
       backgroundColor: designVariables.bgTopBar,
 
-      // TODO match layout to Figma
-      actionsIconTheme: IconThemeData(
-        color: designVariables.icon,
-      ),
+      // TODO match actions layout to Figma
 
       titleTextStyle: TextStyle(
         inherit: false,
