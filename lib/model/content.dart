@@ -623,9 +623,13 @@ class LinkNode extends InlineContainerNode {
   }
 }
 
+sealed class MentionNode extends InlineContainerNode {
+  const MentionNode({super.debugHtmlNode, required super.nodes});
+}
+
 enum UserMentionType { user, userGroup }
 
-class UserMentionNode extends InlineContainerNode {
+class UserMentionNode extends MentionNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
