@@ -11,6 +11,7 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/page.dart';
 
