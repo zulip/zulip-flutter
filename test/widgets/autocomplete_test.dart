@@ -30,6 +30,9 @@ import 'test_app.dart';
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   required List<User> users,
 }) async {
+  TypingNotifier.debugEnable = false;
+  addTearDown(TypingNotifier.debugReset);
+
   addTearDown(testBinding.reset);
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -132,9 +135,6 @@ void main() {
       final composeInputFinder = await setupToComposeInput(tester, users: [user1, user2, user3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      TypingNotifier.debugEnable = false;
-      addTearDown(TypingNotifier.debugReset);
-
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(composeInputFinder, 'hello @user ');
@@ -185,9 +185,6 @@ void main() {
       final topic3 = eg.getStreamTopicsEntry(maxId: 3, name: 'Topic three');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2, topic3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      TypingNotifier.debugEnable = false;
-      addTearDown(TypingNotifier.debugReset);
 
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
