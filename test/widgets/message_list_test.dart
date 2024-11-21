@@ -13,6 +13,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
@@ -51,14 +52,19 @@ void main() {
     List<User>? users,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
+    int? zulipFeatureLevel,
+    bool skipPumpAndSettle = false,
   }) async {
     TypingNotifier.debugEnable = false;
     addTearDown(TypingNotifier.debugReset);
     addTearDown(testBinding.reset);
     streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+    final effectiveFeatureLevel = zulipFeatureLevel ?? eg.recentZulipFeatureLevel;
+    final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: effectiveFeatureLevel);
+    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      zulipFeatureLevel: effectiveFeatureLevel,
       streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store = await testBinding.globalStore.perAccount(selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
     // prepare message list data
@@ -71,12 +77,16 @@ void main() {
     connection.prepare(json:
       eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
 
-    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
 
+    if (skipPumpAndSettle) return;
     // global store, per-account store, and message list get loaded
     await tester.pumpAndSettle();
   }
+
+  Finder findAppBarTitleWithChannelTopic(String streamName, String topic) =>
+    find.widgetWithText(MessageListAppBarTitle, '$streamName > $topic');
 
   ScrollController? findMessageListScrollController(WidgetTester tester) {
     final scrollView = tester.widget<CustomScrollView>(find.byType(CustomScrollView));
@@ -174,6 +184,91 @@ void main() {
 
     await tester.pump(kThemeAnimationDuration * 0.6);
     check(backgroundColor()).isSameColorAs(MessageListTheme.dark().streamMessageBgDefault);
+  });
+
+  group('fetch initial batch of messages', () {
+    group('topic permalink', () {
+      final someStream = eg.stream();
+      const someTopic = 'some topic';
+
+      final otherStream = eg.stream();
+      const otherTopic = 'other topic';
+
+      testWidgets('with message move', (tester) async {
+        final narrow = TopicNarrow(someStream.streamId, someTopic, with_: 1);
+        await setupMessageListPage(tester,
+          narrow: narrow,
+          // server sends the /with/<id> message in its current, different location
+          messages: [eg.streamMessage(id: 1, stream: otherStream, topic: otherTopic)],
+          streams: [someStream, otherStream],
+          subscriptions: [eg.subscription(someStream), eg.subscription(otherStream)],
+          skipPumpAndSettle: true);
+        await tester.pump(); // global store loaded
+        await tester.pump(); // per-account store loaded
+
+        // Until we learn the conversation was moved,
+        // we put the link's stream/topic in the app bar.
+        check(findAppBarTitleWithChannelTopic(someStream.name, someTopic)).findsOne();
+
+        await tester.pumpAndSettle(); // initial message fetch plus anything else
+
+        // When we learn the conversation was moved,
+        // we put the new stream/topic in the app bar.
+        check(findAppBarTitleWithChannelTopic(otherStream.name, otherTopic)).findsOne();
+
+        // We followed the move in just one fetch.
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/messages')
+          ..url.queryParameters.deepEquals({
+            'narrow': jsonEncode(narrow.apiEncode()),
+            'anchor': AnchorCode.newest.toJson(),
+            'num_before': kMessageListFetchBatchSize.toString(),
+            'num_after': '0',
+          });
+      });
+
+      // TODO(server-9) remove legacy test
+      for (final useLegacy in [false, true]) {
+        testWidgets('without message move; ${useLegacy ? 'legacy' : 'modern'}', (tester) async {
+          final narrow = TopicNarrow(someStream.streamId, someTopic, with_: 1);
+          await setupMessageListPage(tester,
+            narrow: narrow,
+            // server sends the /with/<id> message in its current, different location
+            messages: [eg.streamMessage(id: 1, stream: someStream, topic: someTopic)],
+            streams: [someStream],
+            subscriptions: [eg.subscription(someStream)],
+            zulipFeatureLevel: useLegacy ? 270 : null,
+            skipPumpAndSettle: true);
+          await tester.pump(); // global store loaded
+          await tester.pump(); // per-account store loaded
+
+          // Until we learn if the conversation was moved,
+          // we put the link's stream/topic in the app bar.
+          check(findAppBarTitleWithChannelTopic(someStream.name, someTopic)).findsOne();
+
+          await tester.pumpAndSettle(); // initial message fetch plus anything else
+
+          // There was no move, so we're still showing the same stream/topic.
+          check(findAppBarTitleWithChannelTopic(someStream.name, someTopic)).findsOne();
+
+          // We only made one fetch.
+          check(connection.takeRequests()).single.isA<http.Request>()
+            ..method.equals('GET')
+            ..url.path.equals('/api/v1/messages')
+            ..url.queryParameters.deepEquals({
+              'narrow': jsonEncode([
+                ApiNarrowStream(someStream.streamId),
+                ApiNarrowTopic(someTopic),
+                if (!useLegacy) ApiNarrowWith(1),
+              ]),
+              'anchor': AnchorCode.newest.toJson(),
+              'num_before': kMessageListFetchBatchSize.toString(),
+              'num_after': '0',
+            });
+        });
+      }
+    });
   });
 
   group('fetch older messages on scroll', () {
@@ -695,10 +790,8 @@ void main() {
         of: find.byType(RecipientHeader),
         matching: find.text('new topic')).evaluate()
       ).length.equals(1);
-      check(find.descendant(
-        of: find.byType(MessageListAppBarTitle),
-        matching: find.text('${channel.name} > new topic')).evaluate()
-      ).length.equals(1);
+      check(findAppBarTitleWithChannelTopic(channel.name, 'new topic'))
+        .findsOne();
     });
   });
 
