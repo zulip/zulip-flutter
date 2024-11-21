@@ -13,7 +13,7 @@ import 'store.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
-class RecentDmConversationsPage extends StatefulWidget {
+class RecentDmConversationsPage extends StatelessWidget {
   const RecentDmConversationsPage({super.key});
 
   static Route<void> buildRoute({int? accountId, BuildContext? context}) {
@@ -22,10 +22,23 @@ class RecentDmConversationsPage extends StatefulWidget {
   }
 
   @override
-  State<RecentDmConversationsPage> createState() => _RecentDmConversationsPageState();
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Scaffold(
+      appBar: ZulipAppBar(
+        title: Text(zulipLocalizations.recentDmConversationsPageTitle)),
+      body: const RecentDmConversationsPageBody());
+  }
 }
 
-class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> with PerAccountStoreAwareStateMixin<RecentDmConversationsPage> {
+class RecentDmConversationsPageBody extends StatefulWidget {
+  const RecentDmConversationsPageBody({super.key});
+
+  @override
+  State<RecentDmConversationsPageBody> createState() => _RecentDmConversationsPageBodyState();
+}
+
+class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPageBody> with PerAccountStoreAwareStateMixin<RecentDmConversationsPageBody> {
   RecentDmConversationsView? model;
   Unreads? unreadsModel;
 
@@ -56,24 +69,19 @@ class _RecentDmConversationsPageState extends State<RecentDmConversationsPage> w
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
-    return Scaffold(
-      appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.recentDmConversationsPageTitle)),
-      body: SafeArea(
-        // Don't pad the bottom here; we want the list content to do that.
-        bottom: false,
-        child: ListView.builder(
-          itemCount: sorted.length,
-          itemBuilder: (context, index) {
-            final narrow = sorted[index];
-            return RecentDmConversationsItem(
-              narrow: narrow,
-              unreadCount: unreadsModel!.countInDmNarrow(narrow),
-            );
-          }),
-      ));
+    return SafeArea(
+      // Don't pad the bottom here; we want the list content to do that.
+      bottom: false,
+      child: ListView.builder(
+        itemCount: sorted.length,
+        itemBuilder: (context, index) {
+          final narrow = sorted[index];
+          return RecentDmConversationsItem(
+            narrow: narrow,
+            unreadCount: unreadsModel!.countInDmNarrow(narrow),
+          );
+        }));
   }
 }
 
