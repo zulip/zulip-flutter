@@ -202,6 +202,151 @@ void main() {
       check(store.allEmojiCandidates()).identicalTo(candidates);
     });
   });
+
+  group('EmojiAutocompleteQuery.matches', () {
+    EmojiCandidate unicode(List<String> names, {String? emojiCode}) {
+      emojiCode ??= '10ffff';
+      return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
+        emojiCode: emojiCode,
+        emojiName: names.first, aliases: names.sublist(1),
+        emojiDisplay: UnicodeEmojiDisplay(
+          emojiName: names.first,
+          emojiUnicode: tryParseEmojiCodeToUnicode(emojiCode)!));
+    }
+
+    bool matchesName(String query, String emojiName) {
+      return EmojiAutocompleteQuery(query).matches(unicode([emojiName]));
+    }
+
+    test('one-word query matches anywhere in name', () {
+      check(matchesName('', 'smile')).isTrue();
+      check(matchesName('s', 'smile')).isTrue();
+      check(matchesName('sm', 'smile')).isTrue();
+      check(matchesName('smile', 'smile')).isTrue();
+      check(matchesName('m', 'smile')).isTrue();
+      check(matchesName('mile', 'smile')).isTrue();
+      check(matchesName('e', 'smile')).isTrue();
+
+      check(matchesName('smiley', 'smile')).isFalse();
+      check(matchesName('a', 'smile')).isFalse();
+
+      check(matchesName('o', 'open_book')).isTrue();
+      check(matchesName('open', 'open_book')).isTrue();
+      check(matchesName('pe', 'open_book')).isTrue();
+      check(matchesName('boo', 'open_book')).isTrue();
+      check(matchesName('ok', 'open_book')).isTrue();
+    });
+
+    test('multi-word query matches from start of a word', () {
+      check(matchesName('open_', 'open_book')).isTrue();
+      check(matchesName('open_b', 'open_book')).isTrue();
+      check(matchesName('open_book', 'open_book')).isTrue();
+
+      check(matchesName('pen_', 'open_book')).isFalse();
+      check(matchesName('n_b', 'open_book')).isFalse();
+
+      check(matchesName('blue_dia', 'large_blue_diamond')).isTrue();
+    });
+
+    test('spaces in query behave as underscores', () {
+      check(matchesName('open ', 'open_book')).isTrue();
+      check(matchesName('open b', 'open_book')).isTrue();
+      check(matchesName('open book', 'open_book')).isTrue();
+
+      check(matchesName('pen ', 'open_book')).isFalse();
+      check(matchesName('n b', 'open_book')).isFalse();
+
+      check(matchesName('blue dia', 'large_blue_diamond')).isTrue();
+    });
+
+    test('query is lower-cased', () {
+      check(matchesName('Smi', 'smile')).isTrue();
+    });
+
+    test('query matches aliases same way as primary name', () {
+      bool matchesNames(String query, List<String> names) {
+        return EmojiAutocompleteQuery(query).matches(unicode(names));
+      }
+
+      check(matchesNames('a', ['a', 'b'])).isTrue();
+      check(matchesNames('b', ['a', 'b'])).isTrue();
+      check(matchesNames('c', ['a', 'b'])).isFalse();
+
+      check(matchesNames('pe', ['x', 'open_book'])).isTrue();
+      check(matchesNames('ok', ['x', 'open_book'])).isTrue();
+
+      check(matchesNames('open_', ['x', 'open_book'])).isTrue();
+      check(matchesNames('open b', ['x', 'open_book'])).isTrue();
+      check(matchesNames('pen_', ['x', 'open_book'])).isFalse();
+
+      check(matchesNames('Smi', ['x', 'smile'])).isTrue();
+    });
+
+    test('query matches literal Unicode value', () {
+      bool matchesLiteral(String query, String emojiCode, {required String aka}) {
+        assert(aka == query);
+        return EmojiAutocompleteQuery(query)
+          .matches(unicode(['asdf'], emojiCode: emojiCode));
+      }
+
+      // Matching the code, in hex, doesn't count.
+      check(matchesLiteral('1f642', aka: '1f642', '1f642')).isFalse();
+
+      // Matching the Unicode value the code describes does count…
+      check(matchesLiteral('🙂', aka: '\u{1f642}', '1f642')).isTrue();
+      // … and failing to match it doesn't make a match.
+      check(matchesLiteral('🙁', aka: '\u{1f641}', '1f642')).isFalse();
+
+      // Multi-code-point emoji work fine.
+      check(matchesLiteral('🏳‍🌈', aka: '\u{1f3f3}\u{200d}\u{1f308}',
+        '1f3f3-200d-1f308')).isTrue();
+      // Only exact matches count; no partial matches.
+      check(matchesLiteral('🏳', aka: '\u{1f3f3}',
+        '1f3f3-200d-1f308')).isFalse();
+      check(matchesLiteral('‍🌈', aka: '\u{200d}\u{1f308}',
+        '1f3f3-200d-1f308')).isFalse();
+      check(matchesLiteral('🏳‍🌈', aka: '\u{1f3f3}\u{200d}\u{1f308}',
+        '1f3f3')).isFalse();
+    });
+
+    test('can match realm emoji', () {
+      EmojiCandidate realmCandidate(String emojiName) {
+        return EmojiCandidate(
+          emojiType: ReactionType.realmEmoji,
+          emojiCode: '1', emojiName: emojiName, aliases: null,
+          emojiDisplay: ImageEmojiDisplay(
+            emojiName: emojiName,
+            resolvedUrl: eg.realmUrl.resolve('/emoji/1.png'),
+            resolvedStillUrl: eg.realmUrl.resolve('/emoji/1-still.png')));
+      }
+
+      check(EmojiAutocompleteQuery('eqeq')
+        .matches(realmCandidate('eqeq'))).isTrue();
+      check(EmojiAutocompleteQuery('open_')
+        .matches(realmCandidate('open_book'))).isTrue();
+      check(EmojiAutocompleteQuery('n_b')
+        .matches(realmCandidate('open_book'))).isFalse();
+      check(EmojiAutocompleteQuery('blue dia')
+        .matches(realmCandidate('large_blue_diamond'))).isTrue();
+      check(EmojiAutocompleteQuery('Smi')
+        .matches(realmCandidate('smile'))).isTrue();
+    });
+
+    test('can match Zulip extra emoji', () {
+      final store = eg.store();
+      final zulipCandidate = EmojiCandidate(
+        emojiType: ReactionType.zulipExtraEmoji,
+        emojiCode: 'zulip', emojiName: 'zulip', aliases: null,
+        emojiDisplay: store.emojiDisplayFor(
+          emojiType: ReactionType.zulipExtraEmoji,
+          emojiCode: 'zulip', emojiName: 'zulip'));
+
+      check(EmojiAutocompleteQuery('z').matches(zulipCandidate)).isTrue();
+      check(EmojiAutocompleteQuery('Zulip').matches(zulipCandidate)).isTrue();
+      check(EmojiAutocompleteQuery('p').matches(zulipCandidate)).isTrue();
+      check(EmojiAutocompleteQuery('x').matches(zulipCandidate)).isFalse();
+    });
+  });
 }
 
 extension EmojiDisplayChecks on Subject<EmojiDisplay> {

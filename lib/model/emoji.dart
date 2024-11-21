@@ -1,9 +1,13 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/realm.dart';
+import 'autocomplete.dart';
+import 'narrow.dart';
+import 'store.dart';
 
 /// An emoji, described by how to display it in the UI.
 sealed class EmojiDisplay {
@@ -262,4 +266,61 @@ class EmojiStoreImpl with EmojiStore {
     realmEmoji = event.realmEmoji;
     _allEmojiCandidates = null;
   }
+}
+
+class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
+  EmojiAutocompleteQuery(super.raw)
+    : _adjusted = _adjustQuery(raw);
+
+  final String _adjusted;
+
+  static String _adjustQuery(String raw) {
+    return raw.toLowerCase().replaceAll(' ', '_'); // TODO(#1067) remove diacritics too
+  }
+
+  @override
+  ComposeAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
+    throw UnimplementedError(); // TODO(#670)
+  }
+
+  // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .
+  bool matches(EmojiCandidate candidate) {
+    if (candidate.emojiDisplay case UnicodeEmojiDisplay(:var emojiUnicode)) {
+      if (_adjusted == emojiUnicode) return true;
+    }
+    return _nameMatches(candidate.emojiName)
+      || candidate.aliases.any((alias) => _nameMatches(alias));
+  }
+
+  // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts .
+  bool _nameMatches(String emojiName) {
+    // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
+    const String separator = '_';
+
+    if (!_adjusted.contains(separator)) {
+      // If the query is a single token (doesn't contain a separator),
+      // the match can be anywhere in the string.
+      return emojiName.contains(_adjusted);
+    }
+
+    // If there is a separator in the query, then we
+    // require the match to start at the start of a token.
+    // (E.g. for 'ab_cd_ef', query could be 'ab_c' or 'cd_ef',
+    // but not 'b_cd_ef'.)
+    return emojiName.startsWith(_adjusted)
+      || emojiName.contains(separator + _adjusted);
+  }
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'EmojiAutocompleteQuery')}($raw)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is EmojiAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('EmojiAutocompleteQuery', raw);
 }
