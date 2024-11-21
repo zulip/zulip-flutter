@@ -316,7 +316,6 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
     final materialLocalizations = MaterialLocalizations.of(context);
     return MenuAnchor(
       menuChildren: [
@@ -336,7 +335,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
               controller.open();
             }
           },
-          icon: Icon(Icons.adaptive.more, color: designVariables.icon));
+          icon: Icon(Icons.adaptive.more));
       });
   }
 }
