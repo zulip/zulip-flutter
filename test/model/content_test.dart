@@ -139,6 +139,27 @@ class ContentExample {
     '<p><span class="silent user-group-mention" data-user-group-id="186">test-empty</span></p>',
     const UserMentionNode(nodes: [TextNode('test-empty')]));
 
+  static final topicMentionPlain = ContentExample.inline(
+    'plain @-topic',
+    "@**topic**",
+    expectedText: '@topic',
+    '<p><span class="topic-mention">@topic</span></p>',
+    const TopicMentionNode(nodes: [TextNode('@topic')]));
+
+  static final topicMentionSilent = ContentExample.inline(
+    'silent @-topic',
+    "@_**topic**",
+    expectedText: 'topic',
+    '<p><span class="topic-mention silent">topic</span></p>',
+    const TopicMentionNode(nodes: [TextNode('topic')]));
+
+  static final topicMentionSilentClassOrderReversed = ContentExample.inline(
+    'silent @-topic, class order reversed',
+    "@_**topic**", // (hypothetical server variation)
+    expectedText: 'topic',
+    '<p><span class="silent topic-mention">topic</span></p>',
+    const TopicMentionNode(nodes: [TextNode('topic')]));
+
   static final emojiUnicode = ContentExample.inline(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
@@ -1012,6 +1033,10 @@ void main() {
     testParseExample(ContentExample.groupMentionPlain);
     testParseExample(ContentExample.groupMentionSilent);
     testParseExample(ContentExample.groupMentionSilentClassOrderReversed);
+
+    testParseExample(ContentExample.topicMentionPlain);
+    testParseExample(ContentExample.topicMentionSilent);
+    testParseExample(ContentExample.topicMentionSilentClassOrderReversed);
 
     // TODO test wildcard mentions
   });

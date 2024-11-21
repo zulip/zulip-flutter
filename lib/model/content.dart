@@ -646,6 +646,10 @@ class UserMentionNode extends MentionNode {
   //   final bool isSilent;
 }
 
+class TopicMentionNode extends MentionNode {
+  const TopicMentionNode({super.debugHtmlNode, required super.nodes});
+}
+
 sealed class EmojiNode extends InlineContentNode {
   const EmojiNode({super.debugHtmlNode});
 }
@@ -818,6 +822,13 @@ class _ZulipContentParser {
     return RegExp("^(?:$mentionClass(?: silent)?|silent $mentionClass)\$");
   }();
 
+  static final _topicMentionClassNameRegexp = () {
+    // This matches a class `topic-mention`, plus an optional class `silent`,
+    // appearing in either order.
+    const mentionClass = "topic-mention";
+    return RegExp("^(?:$mentionClass(?: silent)?|silent $mentionClass)\$");
+  }();
+
   static final _emojiClassNameRegexp = () {
     const specificEmoji = r"emoji(?:-[0-9a-f]+)+";
     return RegExp("^(?:emoji $specificEmoji|$specificEmoji emoji)\$");
@@ -875,6 +886,14 @@ class _ZulipContentParser {
       //   either a debug-mode check, or perhaps we can make expectations much
       //   tighter on a UserMentionNode's contents overall.
       return UserMentionNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
+    }
+
+    if (localName == 'span'
+        && _topicMentionClassNameRegexp.hasMatch(className)) {
+      // TODO assert TopicMentionNode can't contain LinkNode;
+      //   either a debug-mode check, or perhaps we can make expectations much
+      //   tighter on a TopicMentionNode's contents overall.
+      return TopicMentionNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'span'

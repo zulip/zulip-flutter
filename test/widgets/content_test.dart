@@ -647,7 +647,7 @@ void main() {
       return mergedStyleOfSubstring(fullNameSpan, mentionText)!;
     }
 
-    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+    testWidgets('user-mention maintains font-size ratio with surrounding text', (tester) async {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         targetFontSizeFinder: (rootSpan) {
@@ -683,6 +683,47 @@ void main() {
 
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
+    //    expectedWght: 800, // [etc.]
+
+    testContentSmoke(ContentExample.topicMentionPlain);
+    testContentSmoke(ContentExample.topicMentionSilent);
+
+    testWidgets('topic-mention maintains font-size ratio with surrounding text', (tester) async {
+      await checkFontSizeRatio(tester,
+        targetHtml: '<span class="topic-mention">@topic</span>',
+        targetFontSizeFinder: (rootSpan) {
+          final widget = findMentionWidgetInSpan(rootSpan);
+          final style = textStyleFromWidget(tester, widget!, '@topic');
+          return style.fontSize!;
+        });
+    });
+
+    testFontWeight('silent topic mention in plain paragraph',
+      expectedWght: 400,
+      // @_**topic**
+      content: plainContent(
+        '<p><span class="topic-mention silent">topic</span></p>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), 'topic');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent topic mention in plain paragraph',
+    //    expectedWght: 600, // [etc.]
+
+    testFontWeight('silent topic mention in bold context',
+      expectedWght: 600,
+      // # @_**topic**
+      content: plainContent(
+        '<h1><span class="topic-mention silent">topic</span></h1>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), 'topic');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent topic mention in bold context',
     //    expectedWght: 800, // [etc.]
   });
 
