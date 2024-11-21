@@ -876,8 +876,9 @@ class _ZulipContentParser {
     final debugHtmlNode = kDebugMode ? element : null;
 
     final classes = element.className.split(' ')..sort();
-    assert(classes.contains('user-mention')
-        || classes.contains('user-group-mention'));
+    assert(classes.contains('topic-mention')
+      || classes.contains('user-mention')
+      || classes.contains('user-group-mention'));
     int i = 0;
 
     if (i >= classes.length) return null;
@@ -895,12 +896,14 @@ class _ZulipContentParser {
     }
 
     if (i >= classes.length) return null;
-    if (classes[i] == 'user-mention'
+    if ((classes[i] == 'topic-mention' && !hasChannelWildcardClass)
+        || classes[i] == 'user-mention'
         || (classes[i] == 'user-group-mention' && !hasChannelWildcardClass)) {
       // The class we already knew we'd find before we called this function.
       // We ignore the distinction between these; see [UserMentionNode].
       // Also, we don't expect "user-group-mention" and "channel-wildcard-mention"
-      // to be in the list at the same time.
+      // to be in the list at the same time and neither we expect "topic-mention"
+      // and "channel-wildcard-mention" to be in the list at the same time.
       i++;
     }
 
@@ -931,9 +934,9 @@ class _ZulipContentParser {
   /// Matches all className values that could be a UserMentionNode,
   /// and no className values that could be any other type of node.
   // Specifically, checks for `user-mention` or `user-group-mention`
-  // as a member of the list.
+  // or `topic-mention` as a member of the list.
   static final _userMentionClassNameRegexp = RegExp(
-    r"(^| )" r"user(?:-group)?-mention" r"( |$)");
+    r"(^| )" r"(?:user(?:-group)?|topic)-mention" r"( |$)");
 
   static final _emojiClassNameRegexp = () {
     const specificEmoji = r"emoji(?:-[0-9a-f]+)+";
