@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -51,6 +53,37 @@ class TextEmojiDisplay extends EmojiDisplay {
   TextEmojiDisplay({required super.emojiName});
 }
 
+/// An emoji that might be offered in an emoji picker UI.
+final class EmojiCandidate {
+  /// The Zulip "emoji type" for this emoji.
+  final ReactionType emojiType;
+
+  /// The Zulip "emoji code" for this emoji.
+  ///
+  /// This is the value that would appear in [Reaction.emojiCode].
+  final String emojiCode;
+
+  /// The Zulip "emoji name" to use for this emoji.
+  ///
+  /// This might not be the only name this emoji has; see [aliases].
+  final String emojiName;
+
+  /// Additional Zulip "emoji name" values for this emoji,
+  /// to show in the emoji picker UI.
+  Iterable<String> get aliases => _aliases ?? const [];
+  final List<String>? _aliases;
+
+  final EmojiDisplay emojiDisplay;
+
+  EmojiCandidate({
+    required this.emojiType,
+    required this.emojiCode,
+    required this.emojiName,
+    required List<String>? aliases,
+    required this.emojiDisplay,
+  }) : _aliases = aliases;
+}
+
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
   /// The realm's custom emoji (for [ReactionType.realmEmoji],
@@ -62,6 +95,8 @@ mixin EmojiStore {
     required String emojiCode,
     required String emojiName,
   });
+
+  Iterable<EmojiCandidate> allEmojiCandidates();
 
   // TODO cut debugServerEmojiData once we can query for lists of emoji;
   //   have tests make those queries end-to-end
@@ -148,12 +183,83 @@ class EmojiStoreImpl with EmojiStore {
   /// retrieving the data.
   Map<String, List<String>>? _serverEmojiData;
 
+  List<EmojiCandidate>? _allEmojiCandidates;
+
+  EmojiCandidate _emojiCandidateFor({
+    required ReactionType emojiType,
+    required String emojiCode,
+    required String emojiName,
+    required List<String>? aliases,
+  }) {
+    return EmojiCandidate(
+      emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName,
+      aliases: aliases,
+      emojiDisplay: emojiDisplayFor(
+        emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName));
+  }
+
+  List<EmojiCandidate> _generateAllCandidates() {
+    final results = <EmojiCandidate>[];
+
+    final namesOverridden = {
+      for (final emoji in realmEmoji.values) emoji.name,
+      'zulip',
+    };
+    // TODO(log) if _serverEmojiData missing
+    for (final entry in (_serverEmojiData ?? {}).entries) {
+      final allNames = entry.value;
+      final String emojiName;
+      final List<String>? aliases;
+      if (allNames.any(namesOverridden.contains)) {
+        final names = allNames.whereNot(namesOverridden.contains).toList();
+        if (names.isEmpty) continue;
+        emojiName = names.removeAt(0);
+        aliases = names;
+      } else {
+        // Most emoji aren't overridden, so avoid copying the list.
+        emojiName = allNames.first;
+        aliases = allNames.length > 1 ? allNames.sublist(1) : null;
+      }
+      results.add(_emojiCandidateFor(
+        emojiType: ReactionType.unicodeEmoji,
+        emojiCode: entry.key, emojiName: emojiName,
+        aliases: aliases));
+    }
+
+    for (final entry in realmEmoji.entries) {
+      final emojiName = entry.value.name;
+      if (emojiName == 'zulip') {
+        // TODO does 'zulip' really override realm emoji?
+        //   (This is copied from zulip-mobile's behavior.)
+        continue;
+      }
+      results.add(_emojiCandidateFor(
+        emojiType: ReactionType.realmEmoji,
+        emojiCode: entry.key, emojiName: emojiName,
+        aliases: null));
+    }
+
+    results.add(_emojiCandidateFor(
+      emojiType: ReactionType.zulipExtraEmoji,
+      emojiCode: 'zulip', emojiName: 'zulip',
+      aliases: null));
+
+    return results;
+  }
+
+  @override
+  Iterable<EmojiCandidate> allEmojiCandidates() {
+    return _allEmojiCandidates ??= _generateAllCandidates();
+  }
+
   @override
   void setServerEmojiData(ServerEmojiData data) {
     _serverEmojiData = data.codeToNames;
+    _allEmojiCandidates = null;
   }
 
   void handleRealmEmojiUpdateEvent(RealmEmojiUpdateEvent event) {
     realmEmoji = event.realmEmoji;
+    _allEmojiCandidates = null;
   }
 }
