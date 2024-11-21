@@ -987,9 +987,9 @@ class _InlineContentBuilder {
       case InlineCodeNode():
         return _buildInlineCode(node);
 
-      case UserMentionNode():
+      case MentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: UserMention(ambientTextStyle: widget.style, node: node));
+          child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
@@ -1065,15 +1065,15 @@ class _InlineContentBuilder {
 
 const kInlineCodeFontSizeFactor = 0.825;
 
-class UserMention extends StatelessWidget {
-  const UserMention({
+class Mention extends StatelessWidget {
+  const Mention({
     super.key,
     required this.ambientTextStyle,
     required this.node,
   });
 
   final TextStyle ambientTextStyle;
-  final UserMentionNode node;
+  final MentionNode node;
 
   @override
   Widget build(BuildContext context) {

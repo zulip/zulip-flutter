@@ -621,16 +621,16 @@ void main() {
     });
   });
 
-  group('UserMention', () {
+  group('Mention', () {
     testContentSmoke(ContentExample.userMentionPlain);
     testContentSmoke(ContentExample.userMentionSilent);
     testContentSmoke(ContentExample.groupMentionPlain);
     testContentSmoke(ContentExample.groupMentionSilent);
 
-    UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
-      UserMention? result;
+    Mention? findMentionWidgetInSpan(InlineSpan rootSpan) {
+      Mention? result;
       rootSpan.visitChildren((span) {
-        if (span case (WidgetSpan(child: UserMention() && var widget))) {
+        if (span case (WidgetSpan(child: Mention() && var widget))) {
           result = widget;
           return false;
         }
@@ -639,7 +639,7 @@ void main() {
       return result;
     }
 
-    TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
+    TextStyle textStyleFromWidget(WidgetTester tester, Mention widget, String mentionText) {
       final fullNameSpan = tester.renderObject<RenderParagraph>(
         find.descendant(
           of: find.byWidget(widget), matching: find.text(mentionText))
@@ -651,7 +651,7 @@ void main() {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         targetFontSizeFinder: (rootSpan) {
-          final widget = findUserMentionInSpan(rootSpan);
+          final widget = findMentionWidgetInSpan(rootSpan);
           final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
           return style.fontSize!;
         });
@@ -664,7 +664,7 @@ void main() {
         '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>'),
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Greg Price');
+          tester.widget(find.byType(Mention)), 'Greg Price');
       });
 
     // TODO(#647):
@@ -678,7 +678,7 @@ void main() {
         '<h1><span class="user-mention silent" data-user-id="13313">Chris Bobbe</span></h1>'),
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Chris Bobbe');
+          tester.widget(find.byType(Mention)), 'Chris Bobbe');
       });
 
     // TODO(#647):
