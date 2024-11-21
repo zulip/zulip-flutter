@@ -268,6 +268,34 @@ class EmojiStoreImpl with EmojiStore {
   }
 }
 
+class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, EmojiAutocompleteResult> {
+  EmojiAutocompleteView._({required super.store, required super.query});
+
+  factory EmojiAutocompleteView.init({
+    required PerAccountStore store,
+    required EmojiAutocompleteQuery query,
+  }) {
+    final view = EmojiAutocompleteView._(store: store, query: query);
+    store.autocompleteViewManager.registerEmojiAutocomplete(view);
+    return view;
+  }
+
+  @override
+  Future<List<EmojiAutocompleteResult>?> computeResults() async {
+    // TODO(#1068): rank emoji results (popular, realm, other; exact match, prefix, other)
+    final results = <EmojiAutocompleteResult>[];
+    if (await filterCandidates(filter: _testCandidate,
+          candidates: store.allEmojiCandidates(), results: results)) {
+      return null;
+    }
+    return results;
+  }
+
+  EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
+    return query.matches(candidate) ? EmojiAutocompleteResult(candidate) : null;
+  }
+}
+
 class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   EmojiAutocompleteQuery(super.raw)
     : _adjusted = _adjustQuery(raw);

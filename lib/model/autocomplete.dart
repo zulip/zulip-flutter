@@ -7,6 +7,7 @@ import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../widgets/compose_box.dart';
+import 'emoji.dart';
 import 'narrow.dart';
 import 'store.dart';
 
@@ -142,6 +143,7 @@ class AutocompleteIntent<QueryT extends AutocompleteQuery> {
 class AutocompleteViewManager {
   final Set<MentionAutocompleteView> _mentionAutocompleteViews = {};
   final Set<TopicAutocompleteView> _topicAutocompleteViews = {};
+  final Set<EmojiAutocompleteView> _emojiAutocompleteViews = {};
 
   AutocompleteDataCache autocompleteDataCache = AutocompleteDataCache();
 
@@ -162,6 +164,16 @@ class AutocompleteViewManager {
 
   void unregisterTopicAutocomplete(TopicAutocompleteView view) {
     final removed = _topicAutocompleteViews.remove(view);
+    assert(removed);
+  }
+
+  void registerEmojiAutocomplete(EmojiAutocompleteView view) {
+    final added = _emojiAutocompleteViews.add(view);
+    assert(added);
+  }
+
+  void unregisterEmojiAutocomplete(EmojiAutocompleteView view) {
+    final removed = _emojiAutocompleteViews.remove(view);
     assert(removed);
   }
 
@@ -682,6 +694,13 @@ class AutocompleteResult {}
 /// the compose box's content input, initiated by a [ComposeAutocompleteQuery]
 /// and managed by some [ComposeAutocompleteView].
 sealed class ComposeAutocompleteResult extends AutocompleteResult {}
+
+/// An emoji chosen in an autocomplete interaction, via [EmojiAutocompleteView].
+class EmojiAutocompleteResult extends ComposeAutocompleteResult {
+  EmojiAutocompleteResult(this.candidate);
+
+  final EmojiCandidate candidate;
+}
 
 /// A result from an @-mention autocomplete interaction,
 /// managed by a [MentionAutocompleteView].

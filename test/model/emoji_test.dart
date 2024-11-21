@@ -3,6 +3,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/store.dart';
 
@@ -203,6 +204,74 @@ void main() {
     });
   });
 
+  group('EmojiAutocompleteView', () {
+    Condition<Object?> isUnicodeResult({String? emojiCode, List<String>? names}) {
+      return (it) => it.isA<EmojiAutocompleteResult>().candidate.which(
+        isUnicodeCandidate(emojiCode, names));
+    }
+
+    Condition<Object?> isRealmResult({String? emojiCode, String? emojiName}) {
+      return (it) => it.isA<EmojiAutocompleteResult>().candidate.which(
+        isRealmCandidate(emojiCode: emojiCode, emojiName: emojiName));
+    }
+
+    Condition<Object?> isZulipResult() {
+      return (it) => it.isA<EmojiAutocompleteResult>().candidate.which(
+        isZulipCandidate());
+    }
+
+    PerAccountStore prepare({
+      Map<String, String> realmEmoji = const {},
+      Map<String, List<String>>? unicodeEmoji,
+    }) {
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(realmEmoji: {
+          for (final MapEntry(:key, :value) in realmEmoji.entries)
+            key: eg.realmEmojiItem(emojiCode: key, emojiName: value),
+        }));
+      if (unicodeEmoji != null) {
+        store.setServerEmojiData(ServerEmojiData(codeToNames: unicodeEmoji));
+      }
+      return store;
+    }
+
+    test('results can include all three emoji types', () async {
+      final store = prepare(
+        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f642': ['smile']});
+      final view = EmojiAutocompleteView.init(store: store,
+        query: EmojiAutocompleteQuery(''));
+      bool done = false;
+      view.addListener(() { done = true; });
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).deepEquals([
+        isUnicodeResult(names: ['smile']),
+        isRealmResult(emojiName: 'happy'),
+        isZulipResult(),
+      ]);
+    });
+
+    test('results update after query change', () async {
+      final store = prepare(
+        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f642': ['smile']});
+      final view = EmojiAutocompleteView.init(store: store,
+        query: EmojiAutocompleteQuery('h'));
+      bool done = false;
+      view.addListener(() { done = true; });
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(
+        isRealmResult(emojiName: 'happy'));
+
+      done = false;
+      view.query = EmojiAutocompleteQuery('s');
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(
+        isUnicodeResult(names: ['smile']));
+    });
+  });
+
   group('EmojiAutocompleteQuery.matches', () {
     EmojiCandidate unicode(List<String> names, {String? emojiCode}) {
       emojiCode ??= '10ffff';
@@ -368,4 +437,8 @@ extension EmojiCandidateChecks on Subject<EmojiCandidate> {
   Subject<String> get emojiName => has((x) => x.emojiName, 'emojiName');
   Subject<Iterable<String>> get aliases => has((x) => x.aliases, 'aliases');
   Subject<EmojiDisplay> get emojiDisplay => has((x) => x.emojiDisplay, 'emojiDisplay');
+}
+
+extension EmojiAutocompleteResultChecks on Subject<EmojiAutocompleteResult> {
+  Subject<EmojiCandidate> get candidate => has((x) => x.candidate, 'candidate');
 }

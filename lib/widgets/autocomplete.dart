@@ -187,6 +187,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     final store = PerAccountStoreWidget.of(context);
     final String replacementString;
     switch (option) {
+      case EmojiAutocompleteResult():
+        throw UnimplementedError(); // TODO(#670)
       case UserMentionAutocompleteResult(:var userId):
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
@@ -208,6 +210,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
     final child = switch (option) {
       MentionAutocompleteResult() => _MentionAutocompleteItem(option: option),
+      EmojiAutocompleteResult() => throw UnimplementedError(), // TODO(#670)
     };
     return InkWell(
       onTap: () {
