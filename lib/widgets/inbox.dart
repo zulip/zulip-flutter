@@ -14,7 +14,7 @@ import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
-class InboxPage extends StatefulWidget {
+class InboxPage extends StatelessWidget {
   const InboxPage({super.key});
 
   static Route<void> buildRoute({int? accountId, BuildContext? context}) {
@@ -23,10 +23,21 @@ class InboxPage extends StatefulWidget {
   }
 
   @override
-  State<InboxPage> createState() => _InboxPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: ZulipAppBar(title: const Text('Inbox')),
+      body: const InboxPageBody());
+  }
 }
 
-class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMixin<InboxPage> {
+class InboxPageBody extends StatefulWidget {
+  const InboxPageBody({super.key});
+
+  @override
+  State<InboxPageBody> createState() => _InboxPageState();
+}
+
+class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
@@ -160,27 +171,25 @@ class _InboxPageState extends State<InboxPage> with PerAccountStoreAwareStateMix
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
 
-    return Scaffold(
-      appBar: ZulipAppBar(title: const Text('Inbox')),
-      body: SafeArea(
-        // Don't pad the bottom here; we want the list content to do that.
-        bottom: false,
-        child: StickyHeaderListView.builder(
-          itemCount: sections.length,
-          itemBuilder: (context, index) {
-            final section = sections[index];
-            switch (section) {
-              case _AllDmsSectionData():
-                return _AllDmsSection(
-                  data: section,
-                  collapsed: allDmsCollapsed,
-                  pageState: this,
-                );
-              case _StreamSectionData(:var streamId):
-                final collapsed = collapsedStreamIds.contains(streamId);
-                return _StreamSection(data: section, collapsed: collapsed, pageState: this);
-            }
-          })));
+    return SafeArea(
+      // Don't pad the bottom here; we want the list content to do that.
+      bottom: false,
+      child: StickyHeaderListView.builder(
+        itemCount: sections.length,
+        itemBuilder: (context, index) {
+          final section = sections[index];
+          switch (section) {
+            case _AllDmsSectionData():
+              return _AllDmsSection(
+                data: section,
+                collapsed: allDmsCollapsed,
+                pageState: this,
+              );
+            case _StreamSectionData(:var streamId):
+              final collapsed = collapsedStreamIds.contains(streamId);
+              return _StreamSection(data: section, collapsed: collapsed, pageState: this);
+          }
+        }));
   }
 }
 
