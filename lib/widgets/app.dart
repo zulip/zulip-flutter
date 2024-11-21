@@ -258,18 +258,18 @@ class ChooseAccountPage extends StatelessWidget {
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
           ],
-        builder: (BuildContext context, MenuController controller, Widget? child) {
-          return IconButton(
-            tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
-            onPressed: () {
-              if (controller.isOpen) {
-                controller.close();
-              } else {
-                controller.open();
-              }
-            },
-            icon: Icon(Icons.adaptive.more, color: designVariables.icon));
-        }),
+          builder: (BuildContext context, MenuController controller, Widget? child) {
+            return IconButton(
+              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: Icon(Icons.adaptive.more, color: designVariables.icon));
+          }),
         // The default trailing padding with M3 is 24px. Decrease by 12 because
         // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
