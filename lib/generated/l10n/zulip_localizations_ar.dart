@@ -432,6 +432,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Starred messages';
 
   @override
+  String get channelFeedButtonTooltip => 'Channel feed';
+
+  @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,

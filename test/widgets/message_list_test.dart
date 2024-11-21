@@ -21,6 +21,7 @@ import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 
@@ -32,8 +33,11 @@ import '../model/test_store.dart';
 import '../flutter_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
+import '../test_navigation.dart';
 import 'content_checks.dart';
 import 'dialog_checks.dart';
+import 'message_list_checks.dart';
+import 'page_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -51,6 +55,7 @@ void main() {
     List<User>? users,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
+    List<NavigatorObserver> navObservers = const [],
   }) async {
     TypingNotifier.debugEnable = false;
     addTearDown(TypingNotifier.debugReset);
@@ -72,6 +77,7 @@ void main() {
       eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      navigatorObservers: navObservers,
       child: MessageListPage(initNarrow: narrow)));
 
     // global store, per-account store, and message list get loaded
@@ -123,6 +129,28 @@ void main() {
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxController).isNull();
+    });
+  });
+
+  group('app bar', () {
+    testWidgets('has channel-feed action for topic narrows', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream();
+      await setupMessageListPage(tester, narrow: TopicNarrow(channel.streamId, 'hi'),
+        navObservers: [navObserver],
+        streams: [channel], messageCount: 1);
+
+      // Clear out initial route.
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      // Tap button; it works.
+      await tester.tap(find.byIcon(ZulipIcons.message_feed));
+      check(pushedRoutes).single.isA<WidgetRoute>()
+        .page.isA<MessageListPage>().initNarrow
+          .equals(ChannelNarrow(channel.streamId));
     });
   });
 

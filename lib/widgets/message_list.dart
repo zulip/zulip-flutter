@@ -233,6 +233,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final messageListTheme = MessageListTheme.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
@@ -259,9 +260,20 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         removeAppBarBottomBorder = true;
     }
 
+    List<Widget>? actions;
+    if (narrow case TopicNarrow(:final streamId)) {
+      (actions ??= []).add(IconButton(
+        icon: const Icon(ZulipIcons.message_feed),
+        tooltip: zulipLocalizations.channelFeedButtonTooltip,
+        onPressed: () => Navigator.push(context,
+          MessageListPage.buildRoute(context: context,
+            narrow: ChannelNarrow(streamId)))));
+    }
+
     return Scaffold(
       appBar: ZulipAppBar(
         title: MessageListAppBarTitle(narrow: narrow),
+        actions: actions,
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
           ? const Border()

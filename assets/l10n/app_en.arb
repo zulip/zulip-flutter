@@ -545,6 +545,10 @@
   "@starredMessagesPageTitle": {
     "description": "Title for the page of starred messages."
   },
+  "channelFeedButtonTooltip": "Channel feed",
+  "@channelFeedButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's feed"
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",

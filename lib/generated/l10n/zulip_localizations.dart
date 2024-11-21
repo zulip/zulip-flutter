@@ -823,6 +823,12 @@ abstract class ZulipLocalizations {
   /// **'Starred messages'**
   String get starredMessagesPageTitle;
 
+  /// Tooltip for button to navigate to a given channel's feed
+  ///
+  /// In en, this message translates to:
+  /// **'Channel feed'**
+  String get channelFeedButtonTooltip;
+
   /// Label for a group DM conversation notification.
   ///
   /// In en, this message translates to:
