@@ -955,6 +955,31 @@ void main() {
     });
   });
 
+  group('MessageLinkPreview', () {
+    Future<void> prepare(WidgetTester tester, String html) async {
+      await prepareContent(tester, plainContent(html),
+        wrapWithPerAccountStoreWidget: true);
+    }
+
+    testWidgets('smoke', (tester) async {
+      await prepare(tester, ContentExample.linkPreviewSmoke.html);
+      tester.widget(find.byType(MessageLinkPreview));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: without title', (tester) async {
+      await prepare(tester, ContentExample.linkPreviewWithoutTitle.html);
+      tester.widget(find.byType(MessageLinkPreview));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: without description', (tester) async {
+      await prepare(tester, ContentExample.linkPreviewWithoutDescription.html);
+      tester.widget(find.byType(MessageLinkPreview));
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 

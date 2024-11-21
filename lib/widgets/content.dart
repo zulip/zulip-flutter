@@ -18,6 +18,7 @@ import '../model/internal_link.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -324,6 +325,7 @@ class BlockContentList extends StatelessWidget {
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
           EmbedVideoNode() => MessageEmbedVideo(node: node),
+          LinkPreviewNode() => MessageLinkPreview(node: node),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
@@ -796,6 +798,90 @@ class MathBlock extends StatelessWidget {
       child: Text.rich(TextSpan(
         style: ContentTheme.of(context).codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
+  }
+}
+
+class MessageLinkPreview extends StatelessWidget {
+  const MessageLinkPreview({super.key, required this.node});
+
+  final LinkPreviewNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final messageListTheme = MessageListTheme.of(context);
+    final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+
+    final dataContainer = Container(
+      constraints: const BoxConstraints(maxHeight: 80),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: InsetShadowBox(
+        bottom: 8,
+        color: messageListTheme.streamMessageBgDefault,
+        child: UnconstrainedBox(
+          alignment: Alignment.topCenter,
+          constrainedAxis: Axis.horizontal,
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (node.title != null)
+                GestureDetector(
+                  onTap: () => _launchUrl(context, node.hrefUrl),
+                  child: Text(node.title!,
+                    style: TextStyle(
+                      fontSize: 1.2 * kBaseFontSize,
+                      color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()))),
+              if (node.description != null) ...[
+                const SizedBox(height: 3),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: Text(node.description!)),
+              ],
+              const SizedBox(height: 8),
+            ]))));
+
+    if (isSmallWidth) {
+      return Container(
+        decoration: const BoxDecoration(border:
+          Border(left: BorderSide(color: Color(0xFFEDEDED), width: 3))),
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () => _launchUrl(context, node.hrefUrl),
+              child: RealmContentNetworkImage(
+                Uri.parse(node.imageSrcUrl),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 100)),
+            const SizedBox(height: 5),
+            dataContainer,
+          ]));
+    }
+
+    return Container(
+      decoration: const BoxDecoration(border:
+        Border(left: BorderSide(color: Color(0xFFEDEDED), width: 3))),
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          GestureDetector(
+            onTap: () => _launchUrl(context, node.hrefUrl),
+            child: RealmContentNetworkImage(Uri.parse(node.imageSrcUrl),
+              fit: BoxFit.cover,
+              width: 80,
+              height: 80,
+              alignment: Alignment.center)),
+          Flexible(child: dataContainer),
+        ]));
   }
 }
 
