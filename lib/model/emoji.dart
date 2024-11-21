@@ -307,8 +307,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   @override
-  ComposeAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
-    throw UnimplementedError(); // TODO(#670)
+  EmojiAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
+    return EmojiAutocompleteView.init(store: store, query: this);
   }
 
   // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .

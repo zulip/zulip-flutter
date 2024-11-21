@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../model/emoji.dart';
 import 'content.dart';
+import 'emoji.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
@@ -39,8 +40,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   void _handleControllerChange() {
-    var newQuery = widget.autocompleteIntent()?.query;
-    if (newQuery is EmojiAutocompleteQuery) newQuery = null; // TODO(#670)
+    final newQuery = widget.autocompleteIntent()?.query;
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
         && (newQuery == null
@@ -189,8 +189,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     final store = PerAccountStoreWidget.of(context);
     final String replacementString;
     switch (option) {
-      case EmojiAutocompleteResult():
-        throw UnimplementedError(); // TODO(#670)
+      case EmojiAutocompleteResult(:var candidate):
+        replacementString = ':${candidate.emojiName}:';
       case UserMentionAutocompleteResult(:var userId):
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
@@ -212,7 +212,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
     final child = switch (option) {
       MentionAutocompleteResult() => _MentionAutocompleteItem(option: option),
-      EmojiAutocompleteResult() => throw UnimplementedError(), // TODO(#670)
+      EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
       onTap: () {
@@ -243,6 +243,50 @@ class _MentionAutocompleteItem extends StatelessWidget {
         avatar,
         const SizedBox(width: 8),
         Text(label),
+      ]));
+  }
+}
+
+class _EmojiAutocompleteItem extends StatelessWidget {
+  const _EmojiAutocompleteItem({required this.option});
+
+  final EmojiAutocompleteResult option;
+
+  static const _size = 32.0;
+  static const _notoColorEmojiTextSize = 25.7;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final candidate = option.candidate;
+
+    final emojiDisplay = candidate.emojiDisplay.resolve(store.userSettings);
+    final Widget? glyph = switch (emojiDisplay) {
+      ImageEmojiDisplay() =>
+        ImageEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
+      UnicodeEmojiDisplay() =>
+        UnicodeEmojiWidget(
+          size: _size, notoColorEmojiTextSize: _notoColorEmojiTextSize,
+          emojiDisplay: emojiDisplay),
+      TextEmojiDisplay() => null, // The text is already shown separately.
+    };
+
+    final label = candidate.aliases.isEmpty
+      ? candidate.emojiName
+      : [candidate.emojiName, ...candidate.aliases].join(", "); // TODO(#1080)
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(children: [
+        if (glyph != null) ...[
+          glyph,
+          const SizedBox(width: 8),
+        ],
+        Expanded(
+          child: Text(
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            label)),
       ]));
   }
 }

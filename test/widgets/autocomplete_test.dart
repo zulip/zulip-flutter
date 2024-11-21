@@ -1,10 +1,14 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/compose.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -28,7 +32,7 @@ import 'test_app.dart';
 /// The caller must set [debugNetworkImageHttpClientProvider] back to null
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
-  required List<User> users,
+  List<User> users = const [],
 }) async {
   TypingNotifier.debugEnable = false;
   addTearDown(TypingNotifier.debugReset);
@@ -108,19 +112,20 @@ Future<Finder> setupToTopicInput(WidgetTester tester, {
   return finder;
 }
 
+Finder findNetworkImage(String url) {
+  return find.byWidgetPredicate((widget) => switch(widget) {
+    Image(image: NetworkImage(url: var imageUrl)) when imageUrl == url
+      => true,
+    _ => false,
+  });
+}
+
+typedef ExpectedEmoji = (String label, EmojiDisplay display);
+
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('ComposeAutocomplete', () {
-
-    Finder findNetworkImage(String url) {
-      return find.byWidgetPredicate((widget) => switch(widget) {
-        Image(image: NetworkImage(url: var imageUrl)) when imageUrl == url
-          => true,
-        _ => false,
-      });
-    }
-
+  group('@-mentions', () {
     void checkUserShown(User user, PerAccountStore store, {required bool expected}) {
       check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
       final avatarFinder =
@@ -169,6 +174,98 @@ void main() {
       checkUserShown(user1, store, expected: false);
       checkUserShown(user2, store, expected: false);
       checkUserShown(user3, store, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('emoji', () {
+    void checkEmojiShown(ExpectedEmoji option, {required bool expected}) {
+      final (label, display) = option;
+      final labelSubject = check(find.text(label));
+      expected ? labelSubject.findsOne() : labelSubject.findsNothing();
+
+      final Subject<Finder> displaySubject;
+      switch (display) {
+        case UnicodeEmojiDisplay():
+          displaySubject = check(find.text(display.emojiUnicode));
+        case ImageEmojiDisplay():
+          displaySubject = check(findNetworkImage(display.resolvedUrl.toString()));
+        case TextEmojiDisplay():
+          // We test this case in the "text emoji" test below,
+          // but that doesn't use this helper method.
+          throw UnimplementedError();
+      }
+      expected ? displaySubject.findsOne(): displaySubject.findsNothing();
+    }
+
+    testWidgets('show, update, choose', (tester) async {
+      final composeInputFinder = await setupToComposeInput(tester);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      store.setServerEmojiData(ServerEmojiData(codeToNames: {
+        '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
+      }));
+      await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
+      }));
+
+      final zulipOption = ('zulip', store.emojiDisplayFor(
+        emojiType: ReactionType.zulipExtraEmoji,
+        emojiCode: 'zulip', emojiName: 'zulip'));
+      final buzzingOption = ('buzzing', store.emojiDisplayFor(
+        emojiType: ReactionType.realmEmoji,
+        emojiCode: '1', emojiName: 'buzzing'));
+      final zzzOption = ('zzz, sleepy', store.emojiDisplayFor(
+        emojiType: ReactionType.unicodeEmoji,
+        emojiCode: '1f4a4', emojiName: 'zzz'));
+
+      // Enter a query; options appear, of all three emoji types.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hi :');
+      await tester.enterText(composeInputFinder, 'hi :z');
+      await tester.pump();
+      checkEmojiShown(expected: true, zzzOption);
+      checkEmojiShown(expected: true, buzzingOption);
+      checkEmojiShown(expected: true, zulipOption);
+
+      // Edit query; options change.
+      await tester.enterText(composeInputFinder, 'hi :zz');
+      await tester.pump();
+      checkEmojiShown(expected: true, zzzOption);
+      checkEmojiShown(expected: true, buzzingOption);
+      checkEmojiShown(expected: false, zulipOption);
+
+      // Choosing an option enters result and closes autocomplete.
+      await tester.tap(find.text('buzzing'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .equals('hi :buzzing:');
+      checkEmojiShown(expected: false, zzzOption);
+      checkEmojiShown(expected: false, buzzingOption);
+      checkEmojiShown(expected: false, zulipOption);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('text emoji means just show text', (tester) async {
+      final composeInputFinder = await setupToComposeInput(tester);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+        property: UserSettingName.emojiset, value: Emojiset.text));
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hi :');
+      await tester.enterText(composeInputFinder, 'hi :z');
+      await tester.pump();
+
+      // The emoji's name appears.  (And only once.)
+      check(find.text('zulip')).findsOne();
+
+      // But no emoji image appears.
+      check(find.byWidgetPredicate((widget) => switch(widget) {
+        Image(image: NetworkImage()) => true,
+        _ => false,
+      })).findsNothing();
 
       debugNetworkImageHttpClientProvider = null;
     });
