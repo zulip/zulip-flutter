@@ -21,6 +21,7 @@ import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
+import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
