@@ -881,15 +881,26 @@ class _ZulipContentParser {
     int i = 0;
 
     if (i >= classes.length) return null;
+    bool hasChannelWildcardClass = false;
+    if (classes[i] == 'channel-wildcard-mention') {
+      // Newer channel wildcard mentions have this class; older ones don't.
+      i++;
+      hasChannelWildcardClass = true;
+    }
+
+    if (i >= classes.length) return null;
     if (classes[i] == 'silent') {
       // A silent @-mention.  We ignore this flag; see [UserMentionNode].
       i++;
     }
 
     if (i >= classes.length) return null;
-    if (classes[i] == 'user-mention' || classes[i] == 'user-group-mention') {
+    if (classes[i] == 'user-mention'
+        || (classes[i] == 'user-group-mention' && !hasChannelWildcardClass)) {
       // The class we already knew we'd find before we called this function.
       // We ignore the distinction between these; see [UserMentionNode].
+      // Also, we don't expect "user-group-mention" and "channel-wildcard-mention"
+      // to be in the list at the same time.
       i++;
     }
 

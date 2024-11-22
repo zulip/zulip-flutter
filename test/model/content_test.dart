@@ -139,6 +139,48 @@ class ContentExample {
     '<p><span class="silent user-group-mention" data-user-group-id="186">test-empty</span></p>',
     const UserMentionNode(nodes: [TextNode('test-empty')]));
 
+  static final channelWildcardMentionPlain = ContentExample.inline(
+    'plain channel wildcard @-mention',
+    "@**all**",
+    expectedText: '@all',
+    '<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>',
+    const UserMentionNode(nodes: [TextNode('@all')]));
+
+  static final channelWildcardMentionSilent = ContentExample.inline(
+    'silent channel wildcard @-mention',
+    "@_**everyone**",
+    expectedText: 'everyone',
+    '<p><span class="user-mention channel-wildcard-mention silent" data-user-id="*">everyone</span></p>',
+    const UserMentionNode(nodes: [TextNode('everyone')]));
+
+  static final channelWildcardMentionSilentClassOrderReversed = ContentExample.inline(
+    'silent channel wildcard @-mention, class order reversed',
+    "@_**channel**", // (hypothetical server variation)
+    expectedText: 'channel',
+    '<p><span class="silent user-mention channel-wildcard-mention" data-user-id="*">channel</span></p>',
+    const UserMentionNode(nodes: [TextNode('channel')]));
+
+  static final legacyChannelWildcardMentionPlain = ContentExample.inline(
+    'legacy plain channel wildcard @-mention',
+    "@**channel**",
+    expectedText: '@channel',
+    '<p><span class="user-mention" data-user-id="*">@channel</span></p>',
+    const UserMentionNode(nodes: [TextNode('@channel')]));
+
+  static final legacyChannelWildcardMentionSilent = ContentExample.inline(
+    'legacy silent channel wildcard @-mention',
+    "@_**stream**",
+    expectedText: 'stream',
+    '<p><span class="user-mention silent" data-user-id="*">stream</span></p>',
+    const UserMentionNode(nodes: [TextNode('stream')]));
+
+  static final legacyChannelWildcardMentionSilentClassOrderReversed = ContentExample.inline(
+    'legacy silent channel wildcard @-mention, class order reversed',
+    "@_**all**", // (hypothetical server variation)
+    expectedText: 'all',
+    '<p><span class="silent user-mention" data-user-id="*">all</span></p>',
+    const UserMentionNode(nodes: [TextNode('all')]));
+
   static final emojiUnicode = ContentExample.inline(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
@@ -1213,7 +1255,13 @@ void main() {
     testParseExample(ContentExample.groupMentionSilent);
     testParseExample(ContentExample.groupMentionSilentClassOrderReversed);
 
-    // TODO test wildcard mentions
+    testParseExample(ContentExample.channelWildcardMentionPlain);
+    testParseExample(ContentExample.channelWildcardMentionSilent);
+    testParseExample(ContentExample.channelWildcardMentionSilentClassOrderReversed);
+
+    testParseExample(ContentExample.legacyChannelWildcardMentionPlain);
+    testParseExample(ContentExample.legacyChannelWildcardMentionSilent);
+    testParseExample(ContentExample.legacyChannelWildcardMentionSilentClassOrderReversed);
   });
 
   testParseExample(ContentExample.emojiUnicode);

@@ -650,6 +650,12 @@ void main() {
     testContentSmoke(ContentExample.userMentionSilent);
     testContentSmoke(ContentExample.groupMentionPlain);
     testContentSmoke(ContentExample.groupMentionSilent);
+    testContentSmoke(ContentExample.channelWildcardMentionPlain);
+    testContentSmoke(ContentExample.channelWildcardMentionSilent);
+    testContentSmoke(ContentExample.channelWildcardMentionSilentClassOrderReversed);
+    testContentSmoke(ContentExample.legacyChannelWildcardMentionPlain);
+    testContentSmoke(ContentExample.legacyChannelWildcardMentionSilent);
+    testContentSmoke(ContentExample.legacyChannelWildcardMentionSilentClassOrderReversed);
 
     UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
       UserMention? result;
