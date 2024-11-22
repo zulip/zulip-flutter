@@ -169,9 +169,10 @@ class MessageActionSheetCancelButton extends StatelessWidget {
         foregroundColor: designVariables.contextMenuCancelText,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuCancelBg.withFadedAlpha(
-            states.contains(WidgetState.pressed) ? 0.20 : 0.15))),
+      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
+        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
+        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+      })),
       onPressed: () {
         Navigator.pop(context);
       },
