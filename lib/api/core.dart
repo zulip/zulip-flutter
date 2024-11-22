@@ -224,6 +224,16 @@ class ApiConnection {
     return send(routeName, fromJson, request);
   }
 
+  Future<T> patch<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
+      String path, Map<String, dynamic>? params) async {
+    final url = realmUrl.replace(path: "/api/v1/$path");
+    final request = http.Request('PATCH', url);
+    if (params != null) {
+      request.bodyFields = encodeParameters(params)!;
+    }
+    return send(routeName, fromJson, request);
+  }
+
   Future<T> delete<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
       String path, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(path: "/api/v1/$path");
