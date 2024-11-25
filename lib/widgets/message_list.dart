@@ -262,6 +262,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     List<Widget>? actions;
     if (narrow case TopicNarrow(:final streamId)) {
+      // The helper [_getEffectiveCenterTitle] relies on the fact that we
+      // have at most one action here.
       (actions ??= []).add(IconButton(
         icon: const Icon(ZulipIcons.message_feed),
         tooltip: zulipLocalizations.channelFeedButtonTooltip,
@@ -314,7 +316,6 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
-    required String text,
   }) {
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
@@ -327,8 +328,40 @@ class MessageListAppBarTitle extends StatelessWidget {
       children: [
         Icon(size: 16, icon),
         const SizedBox(width: 4),
-        Flexible(child: Text(text)),
+        Flexible(child: Text(stream?.name ?? '(unknown channel)')),
       ]);
+  }
+
+  Widget _buildTopicRow(BuildContext context, {
+    required ZulipStream? stream,
+    required String topic,
+  }) {
+    return Text(topic, style: const TextStyle(
+      fontSize: 13,
+    ).merge(weightVariableTextStyle(context)));
+  }
+
+  // TODO(upstream): provide an API for this
+  // Adapted from [AppBar._getEffectiveCenterTitle].
+  bool _getEffectiveCenterTitle(ThemeData theme) {
+    bool platformCenter() {
+      switch (theme.platform) {
+        case TargetPlatform.android:
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          return false;
+        case TargetPlatform.iOS:
+        case TargetPlatform.macOS:
+        // We rely on the fact that there is at most one action
+        // on the message list app bar, so that the expression returned
+        // in the original helper, `actions == null || actions!.length < 2`,
+        // always evaluates to `true`:
+          return true;
+      }
+    }
+
+    return theme.appBarTheme.centerTitle ?? platformCenter();
   }
 
   @override
@@ -348,14 +381,20 @@ class MessageListAppBarTitle extends StatelessWidget {
       case ChannelNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(context, stream: stream, text: streamName);
+        return _buildStreamRow(context, stream: stream);
 
       case TopicNarrow(:var streamId, :var topic):
+        final theme = Theme.of(context);
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(context, stream: stream, text: "$streamName > $topic");
+        final centerTitle = _getEffectiveCenterTitle(theme);
+        return Column(
+          crossAxisAlignment: centerTitle ? CrossAxisAlignment.center
+                                          : CrossAxisAlignment.start,
+          children: [
+            _buildStreamRow(context, stream: stream),
+            _buildTopicRow(context, stream: stream, topic: topic),
+          ]);
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
