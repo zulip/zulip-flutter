@@ -786,8 +786,6 @@ ChannelUpdateEvent channelUpdateEvent(
       assert(value is int?);
     case ChannelPropertyName.channelPostPolicy:
       assert(value is ChannelPostPolicy);
-    case ChannelPropertyName.canRemoveSubscribersGroup:
-    case ChannelPropertyName.canRemoveSubscribersGroupId:
     case ChannelPropertyName.streamWeeklyTraffic:
       assert(value is int?);
   }
