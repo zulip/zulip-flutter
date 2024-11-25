@@ -906,9 +906,12 @@ class UpdateMachine {
     while (true) {
       try {
         return await registerQueue(connection);
-      } catch (e) {
-        assert(debugLog('Error fetching initial snapshot: $e\n'
-          'Backing off, then will retry…'));
+      } catch (e, s) {
+        assert(debugLog('Error fetching initial snapshot: $e'));
+        // Print stack trace in its own log entry; log entries are truncated
+        // at 1 kiB (at least on Android), and stack can be longer than that.
+        assert(debugLog('Stack:\n$s'));
+        assert(debugLog('Backing off, then will retry…'));
         // TODO tell user if initial-fetch errors persist, or look non-transient
         await (backoffMachine ??= BackoffMachine()).wait();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
