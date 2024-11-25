@@ -171,9 +171,6 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
       channelPostPolicy:
           $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
-      canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
-              json, 'can_remove_subscribers_group') as num?)
-          ?.toInt(),
       streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
     );
 
@@ -190,7 +187,6 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
-      'can_remove_subscribers_group': instance.canRemoveSubscribersGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
 
@@ -215,9 +211,6 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
       channelPostPolicy:
           $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
-      canRemoveSubscribersGroup: (ZulipStream._readCanRemoveSubscribersGroup(
-              json, 'can_remove_subscribers_group') as num?)
-          ?.toInt(),
       streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
       desktopNotifications: json['desktop_notifications'] as bool?,
       emailNotifications: json['email_notifications'] as bool?,
@@ -242,7 +235,6 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
-      'can_remove_subscribers_group': instance.canRemoveSubscribersGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
       'desktop_notifications': instance.desktopNotifications,
       'email_notifications': instance.emailNotifications,
