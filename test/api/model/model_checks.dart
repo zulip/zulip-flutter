@@ -22,7 +22,6 @@ extension UserChecks on Subject<User> {
 }
 
 extension ZulipStreamChecks on Subject<ZulipStream> {
-  Subject<int?> get canRemoveSubscribersGroup => has((e) => e.canRemoveSubscribersGroup, 'canRemoveSubscribersGroup');
 }
 
 extension MessageChecks on Subject<Message> {
