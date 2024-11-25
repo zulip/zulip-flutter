@@ -706,17 +706,15 @@ class UserMentionNode extends InlineContainerNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
-    // required this.mentionType,
-    // required this.isSilent,
   });
 
-  // We don't currently seem to need this information in code.  Instead,
+  // For the legacy design, we don't need this information in code; instead,
   // the inner text already shows how to communicate it to the user
   // (e.g., silent mentions' text lacks a leading "@"),
   // and we show that text in the same style for all types of @-mention.
-  // If we need this information in the future, go ahead and add it here.
-  //   final UserMentionType mentionType;
-  //   final bool isSilent;
+  // We'll need these for implementing the post-2023 Zulip design, though.
+  //   final UserMentionType mentionType; // TODO(#646)
+  //   final bool isSilent; // TODO(#647)
 }
 
 sealed class EmojiNode extends InlineContentNode {
