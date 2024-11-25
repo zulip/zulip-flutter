@@ -224,6 +224,18 @@ void main() {
     doTest('~:１^', emoji('１')); // U+FF11 FULLWIDTH DIGIT ONE
     doTest('~:٢^', emoji('٢')); // U+0662 ARABIC-INDIC DIGIT TWO
 
+    // Emoji names may have dashes '-'.
+    doTest('~:e-m^', emoji('e-m'));
+    doTest('~:jack-o-l^', emoji('jack-o-l'));
+
+    // Just one emoji has a '+' in its name, namely ':+1:'.
+    doTest('~:+^', emoji('+'));
+    doTest('~:+1^', emoji('+1'));
+    doTest(':+2^', null);
+    doTest(':+100^', null);
+    doTest(':+1 ^', null);
+    doTest(':1+1^', null);
+
     // Accept punctuation before the emoji: opening…
     doTest('(~:^', emoji('')); doTest('(~:a^', emoji('a'));
     doTest('[~:^', emoji('')); doTest('[~:a^', emoji('a'));

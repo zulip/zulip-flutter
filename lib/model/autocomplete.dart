@@ -114,18 +114,48 @@ final RegExp _emojiIntentRegex = (() {
   //   meaning "whitespace and punctuation, except not `:`":
   //     r'(?<=^|[[\s\p{Punctuation}]--[:]])'
 
-  /// Characters that might be meant as part of (a query for) an emoji's name,
-  /// other than whitespace.
+  // What possible emoji queries do we want to anticipate?
+  //
+  // First, look only for queries aimed at emoji names (and aliases);
+  // there's little point in searching by literal emoji here, because once the
+  // user has entered a literal emoji they can simply leave it in.
+  // (Searching by literal emoji is useful, by contrast, for adding a reaction.)
+  //
+  // Then, what are the possible names (including aliases)?
+  // For custom emoji, the names the server allows are r'^[0-9a-z_-]*[0-9a-z]$';
+  // see check_valid_emoji_name in zerver/lib/emoji.py.
+  // So only ASCII lowercase alnum, underscore, and dash.
+  // A few Unicode emoji have more general names in the server's list:
+  // Latin letters with diacritics, a few kana and kanji, and the name "+1".
+  // (And the only "Zulip extra emoji" has one name, "zulip".)
+  // Details: https://github.com/zulip/zulip-flutter/pull/1069#discussion_r1855964953
+  //
+  // We generalize [0-9a-z] to "any letter or number".
+  // That handles the existing names except "+1", plus a potential future
+  // loosening of the constraints on custom emoji's names.
+  //
+  // Then "+1" we take as a special case, without generalizing,
+  // in order to recognize that name without adding false positives.
+  //
+  // Even though there could be a custom emoji whose name begins with "-",
+  // we reject queries that begin that way: ":-" is much more likely to be
+  // the start of an emoticon.
+
+  /// Characters that might be meant as part of (a query for) an emoji's name
+  /// at any point in the query.
   const nameCharacters = r'_\p{Letter}\p{Number}';
 
   return RegExp(unicode: true,
     before
     + r':'
     + r'(|'
+      // Recognize '+' only as part of '+1', the only emoji name that has it.
+      + r'\+1?|'
       // Reject on whitespace right after ':'; interpret that
       // as the user choosing to get out of the emoji autocomplete.
-      + r'['   + nameCharacters + r']'
-      + r'[\s' + nameCharacters + r']*'
+      // Similarly reject starting with ':-', which is common for emoticons.
+      + r'['    + nameCharacters + r']'
+      + r'[-\s' + nameCharacters + r']*'
     + r')$');
 })();
 
