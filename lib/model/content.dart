@@ -878,12 +878,24 @@ class _ZulipContentParser {
     final classes = element.className.split(' ')..sort();
     assert(classes.contains('user-mention')
         || classes.contains('user-group-mention'));
-    switch (classes) {
-      case ['user-mention' || 'user-group-mention']:
-      case ['silent', 'user-mention' || 'user-group-mention']:
-        break;
-      default:
-        return null;
+    int i = 0;
+
+    if (i >= classes.length) return null;
+    if (classes[i] == 'silent') {
+      // A silent @-mention.  We ignore this flag; see [UserMentionNode].
+      i++;
+    }
+
+    if (i >= classes.length) return null;
+    if (classes[i] == 'user-mention' || classes[i] == 'user-group-mention') {
+      // The class we already knew we'd find before we called this function.
+      // We ignore the distinction between these; see [UserMentionNode].
+      i++;
+    }
+
+    if (i != classes.length) {
+      // There was some class we didn't expect.
+      return null;
     }
 
     // TODO assert UserMentionNode can't contain LinkNode;
