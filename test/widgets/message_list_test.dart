@@ -725,7 +725,7 @@ void main() {
       ).length.equals(1);
       check(find.descendant(
         of: find.byType(MessageListAppBarTitle),
-        matching: find.text('${channel.name} > new topic')).evaluate()
+        matching: find.text('new topic')).evaluate()
       ).length.equals(1);
     });
   });
