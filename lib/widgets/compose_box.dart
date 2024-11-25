@@ -1232,7 +1232,8 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
 }
 
 class ComposeBox extends StatelessWidget {
-  const ComposeBox({super.key, this.controllerKey, required this.narrow});
+  ComposeBox({super.key, this.controllerKey, required this.narrow})
+    : assert(ComposeBox.hasComposeBox(narrow));
 
   final GlobalKey<ComposeBoxController>? controllerKey;
   final Narrow narrow;
@@ -1296,6 +1297,7 @@ class ComposeBox extends StatelessWidget {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+        assert(false);
         return const SizedBox.shrink();
     }
   }

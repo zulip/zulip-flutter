@@ -224,8 +224,8 @@ void main() {
 
   group('QuoteAndReplyButton', () {
     ComposeBoxController? findComposeBoxController(WidgetTester tester) {
-      return tester.widget<ComposeBox>(find.byType(ComposeBox))
-        .controllerKey?.currentState;
+      return tester.widgetList<ComposeBox>(find.byType(ComposeBox))
+        .singleOrNull?.controllerKey?.currentState;
     }
 
     Widget? findQuoteAndReplyButton(WidgetTester tester) {
