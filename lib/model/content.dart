@@ -872,6 +872,29 @@ class _ZulipContentParser {
     return descendant4.text.trim();
   }
 
+  UserMentionNode? parseUserMention(dom.Element element) {
+    assert(_debugParserContext == _ParserContext.inline);
+    assert(element.localName == 'span');
+    final debugHtmlNode = kDebugMode ? element : null;
+
+    final classes = element.className.split(' ')..sort();
+    assert(classes.contains('user-mention')
+        || classes.contains('user-group-mention'));
+    switch (classes) {
+      case ['user-mention' || 'user-group-mention']:
+      case ['silent', 'user-mention' || 'user-group-mention']:
+        break;
+      default:
+        return null;
+    }
+
+    // TODO assert UserMentionNode can't contain LinkNode;
+    //   either a debug-mode check, or perhaps we can make expectations much
+    //   tighter on a UserMentionNode's contents overall.
+    final nodes = parseInlineContentList(element.nodes);
+    return UserMentionNode(nodes: nodes, debugHtmlNode: debugHtmlNode);
+  }
+
   /// The links found so far in the current block inline container.
   ///
   /// Empty is represented as null.
@@ -884,12 +907,12 @@ class _ZulipContentParser {
     return result;
   }
 
-  static final _userMentionClassNameRegexp = () {
-    // This matches a class `user-mention` or `user-group-mention`,
-    // plus an optional class `silent`, appearing in either order.
-    const mentionClass = r"user(?:-group)?-mention";
-    return RegExp("^(?:$mentionClass(?: silent)?|silent $mentionClass)\$");
-  }();
+  /// Matches all className values that could be a UserMentionNode,
+  /// and no className values that could be any other type of node.
+  // Specifically, checks for `user-mention` or `user-group-mention`
+  // as a member of the list.
+  static final _userMentionClassNameRegexp = RegExp(
+    r"(^| )" r"user(?:-group)?-mention" r"( |$)");
 
   static final _emojiClassNameRegexp = () {
     const specificEmoji = r"emoji(?:-[0-9a-f]+)+";
@@ -944,10 +967,7 @@ class _ZulipContentParser {
 
     if (localName == 'span'
         && _userMentionClassNameRegexp.hasMatch(className)) {
-      // TODO assert UserMentionNode can't contain LinkNode;
-      //   either a debug-mode check, or perhaps we can make expectations much
-      //   tighter on a UserMentionNode's contents overall.
-      return UserMentionNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
+      return parseUserMention(element) ?? unimplemented();
     }
 
     if (localName == 'span'
