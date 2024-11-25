@@ -835,22 +835,28 @@ class MathBlock extends StatelessWidget {
 Widget _buildBlockInlineContainer({
   required TextStyle style,
   required BlockInlineContainerNode node,
+  TextAlign? textAlign,
 }) {
   if (node.links == null) {
     return InlineContent(recognizer: null, linkRecognizers: null,
-      style: style, nodes: node.nodes);
+      style: style, nodes: node.nodes, textAlign: textAlign);
   }
   return _BlockInlineContainer(links: node.links!,
-    style: style, nodes: node.nodes);
+    style: style, nodes: node.nodes, textAlign: textAlign);
 }
 
 class _BlockInlineContainer extends StatefulWidget {
-  const _BlockInlineContainer(
-    {required this.links, required this.style, required this.nodes});
+  const _BlockInlineContainer({
+    required this.links,
+    required this.style,
+    required this.nodes,
+    this.textAlign,
+  });
 
   final List<LinkNode> links;
   final TextStyle style;
   final List<InlineContentNode> nodes;
+  final TextAlign? textAlign;
 
   @override
   State<_BlockInlineContainer> createState() => _BlockInlineContainerState();
@@ -895,7 +901,7 @@ class _BlockInlineContainerState extends State<_BlockInlineContainer> {
   @override
   Widget build(BuildContext context) {
     return InlineContent(recognizer: null, linkRecognizers: _recognizers,
-      style: widget.style, nodes: widget.nodes);
+      style: widget.style, nodes: widget.nodes, textAlign: widget.textAlign);
   }
 }
 
@@ -906,6 +912,7 @@ class InlineContent extends StatelessWidget {
     required this.linkRecognizers,
     required this.style,
     required this.nodes,
+    this.textAlign,
   }) {
     assert(style.fontSize != null);
     assert(
@@ -927,13 +934,16 @@ class InlineContent extends StatelessWidget {
   /// Similarly must set a font weight using [weightVariableTextStyle].
   final TextStyle style;
 
+  /// A [TextAlign] applied to this content.
+  final TextAlign? textAlign;
+
   final List<InlineContentNode> nodes;
 
   late final _InlineContentBuilder _builder;
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(_builder.build(context));
+    return Text.rich(_builder.build(context), textAlign: textAlign);
   }
 }
 
@@ -1260,6 +1270,18 @@ class MessageTableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textAlign = switch (node.textAlignment) {
+      TableColumnTextAlignment.left => TextAlign.left,
+      TableColumnTextAlignment.center => TextAlign.center,
+      TableColumnTextAlignment.right => TextAlign.right,
+      // The web client sets `text-align: left;` for the header cells,
+      // overriding the default browser alignment (which is `center` for header
+      // and `start` for body). By default, the [Table] widget uses `start` for
+      // text alignment, a saner choice that supports RTL text. So, defer to that.
+      // See discussion:
+      //  https://github.com/zulip/zulip-flutter/pull/1031#discussion_r1831950371
+      TableColumnTextAlignment.defaults => null,
+    };
     return TableCell(
       verticalAlignment: TableCellVerticalAlignment.middle,
       child: Padding(
@@ -1273,6 +1295,7 @@ class MessageTableCell extends StatelessWidget {
           ? const SizedBox.shrink()
           : _buildBlockInlineContainer(
               node: node,
+              textAlign: textAlign,
               style: !isHeader
                 ? DefaultTextStyle.of(context).style
                 : DefaultTextStyle.of(context).style

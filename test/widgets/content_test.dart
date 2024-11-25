@@ -1102,5 +1102,37 @@ void main() {
         .isA<BoxDecoration>()
         .color.equals(ContentTheme.of(context).colorTableHeaderBackground);
     });
+
+    testWidgets('different text alignment in columns', (tester) async {
+      await prepareContent(tester,
+        // | default-aligned | left-aligned | center-aligned | right-aligned |
+        // | - | :- | :-: | -: |
+        // | text | text | text | text |
+        // | long text long text long text  | long text long text long text  | long text long text long text | long text long text long text |
+        plainContent(ContentExample.tableWithDifferentTextAlignmentInColumns.html));
+
+      final defaultAlignedText = tester.renderObject<RenderParagraph>(find.textContaining('default-aligned'));
+      check(defaultAlignedText.textAlign).equals(TextAlign.start);
+
+      final leftAlignedText = tester.renderObject<RenderParagraph>(find.textContaining('left-aligned'));
+      check(leftAlignedText.textAlign).equals(TextAlign.left);
+
+      final centerAlignedText = tester.renderObject<RenderParagraph>(find.textContaining('center-aligned'));
+      check(centerAlignedText.textAlign).equals(TextAlign.center);
+
+      final rightAlignedText = tester.renderObject<RenderParagraph>(find.textContaining('right-aligned'));
+      check(rightAlignedText.textAlign).equals(TextAlign.right);
+    });
+
+    testWidgets('text alignment in column; with link', (tester) async {
+      await prepareContent(tester,
+        // | header |
+        // | :-: |
+        // | https://zulip.com |
+        plainContent(ContentExample.tableWithLinkCenterAligned.html));
+
+      final linkText = tester.renderObject<RenderParagraph>(find.textContaining('https://zulip.com'));
+      check(linkText.textAlign).equals(TextAlign.center);
+    });
   });
 }

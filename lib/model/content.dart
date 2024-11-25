@@ -543,12 +543,42 @@ class TableRowNode extends BlockContentNode {
   }
 }
 
+// The text-alignment setting that applies to a cell's column, from the delimiter row.
+//
+// See GitHub-flavored Markdown:
+//   https://github.github.com/gfm/#tables-extension-
+enum TableColumnTextAlignment {
+  /// All cells' text left-aligned, represented in Markdown as `|: --- |`.
+  left, // TODO(i18n) RTL issues? https://github.com/zulip/zulip/issues/32265
+  /// All cells' text center-aligned, represented in Markdown as `|: --- :|`.
+  center,
+  /// All cells' text right-aligned, represented in Markdown as `| --- :|`.
+  right, // TODO(i18n) RTL issues? https://github.com/zulip/zulip/issues/32265
+  /// Cells' text aligned the default way, represented in Markdown as `| --- |`.
+  defaults
+}
+
 class TableCellNode extends BlockInlineContainerNode {
   const TableCellNode({
     super.debugHtmlNode,
     required super.nodes,
     required super.links,
+    required this.textAlignment,
   });
+
+  /// The table column text-alignment to be used for this cell.
+  // In Markdown, alignment is defined per column using the delimiter row.
+  // However, the generated HTML specifies alignment for each cell in a row
+  // individually, that matches the UI widget implementation which is also
+  // row based and needs alignment information to be per cell.
+  final TableColumnTextAlignment textAlignment;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(EnumProperty('textAlignment', textAlignment,
+      defaultValue: TableColumnTextAlignment.defaults));
+  }
 }
 
 /// A content node that expects an inline layout context from its parent.
@@ -1278,10 +1308,25 @@ class _ZulipContentParser {
       assert(node.localName == (isHeader ? 'th' : 'td'));
       assert(node.className.isEmpty);
 
+      final cellStyle = node.attributes['style'];
+      final TableColumnTextAlignment? textAlignment;
+      switch (cellStyle) {
+        case null:
+          textAlignment = TableColumnTextAlignment.defaults;
+        case 'text-align: left;':
+          textAlignment = TableColumnTextAlignment.left;
+        case 'text-align: center;':
+          textAlignment = TableColumnTextAlignment.center;
+        case 'text-align: right;':
+          textAlignment = TableColumnTextAlignment.right;
+        default:
+          return null;
+      }
       final parsed = parseBlockInline(node.nodes);
       return TableCellNode(
         nodes: parsed.nodes,
-        links: parsed.links);
+        links: parsed.links,
+        textAlignment: textAlignment);
     }
 
     List<TableCellNode>? parseTableCells(dom.NodeList cellNodes, bool isHeader) {

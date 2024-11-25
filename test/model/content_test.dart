@@ -901,16 +901,16 @@ class ContentExample {
       '<tbody>\n<tr>\n<td>1</td>\n<td>2</td>\n<td>3</td>\n<td>4</td>\n</tr>\n</tbody>\n</table>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('a')], links: []),
-        TableCellNode(nodes: [TextNode('b')], links: []),
-        TableCellNode(nodes: [TextNode('c')], links: []),
-        TableCellNode(nodes: [TextNode('d')], links: []),
+        TableCellNode(nodes: [TextNode('a')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('b')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('c')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('d')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('1')], links: []),
-        TableCellNode(nodes: [TextNode('2')], links: []),
-        TableCellNode(nodes: [TextNode('3')], links: []),
-        TableCellNode(nodes: [TextNode('4')], links: []),
+        TableCellNode(nodes: [TextNode('1')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('2')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('3')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('4')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
     ]),
   ]);
@@ -925,24 +925,24 @@ class ContentExample {
       '<tr>\n<td>body31</td>\n<td>body32</td>\n<td>body33</td>\n</tr>\n</tbody>\n</table>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('heading 1')], links: []),
-        TableCellNode(nodes: [TextNode('heading 2')], links: []),
-        TableCellNode(nodes: [TextNode('heading 3')], links: []),
+        TableCellNode(nodes: [TextNode('heading 1')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('heading 2')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('heading 3')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('body11')], links: []),
-        TableCellNode(nodes: [TextNode('body12')], links: []),
-        TableCellNode(nodes: [TextNode('body13')], links: []),
+        TableCellNode(nodes: [TextNode('body11')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('body12')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('body13')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('body21')], links: []),
-        TableCellNode(nodes: [TextNode('body22')], links: []),
-        TableCellNode(nodes: [TextNode('body23')], links: []),
+        TableCellNode(nodes: [TextNode('body21')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('body22')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('body23')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('body31')], links: []),
-        TableCellNode(nodes: [TextNode('body32')], links: []),
-        TableCellNode(nodes: [TextNode('body33')], links: []),
+        TableCellNode(nodes: [TextNode('body31')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('body32')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('body33')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
     ]),
   ]);
@@ -955,16 +955,16 @@ class ContentExample {
       '<tbody>\n<tr>\n<td>text</td>\n<td>text</td>\n<td>text</td>\n<td>text</td>\n</tr>\n</tbody>\n</table>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('normal heading')], links: []),
-        TableCellNode(nodes: [EmphasisNode(nodes: [TextNode('italic heading')])], links: []),
-        TableCellNode(nodes: [StrongNode(nodes: [TextNode('bold heading')])], links: []),
-        TableCellNode(nodes: [StrongNode(nodes: [EmphasisNode(nodes: [TextNode('italic bold heading')])])], links: []),
+        TableCellNode(nodes: [TextNode('normal heading')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [EmphasisNode(nodes: [TextNode('italic heading')])], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [StrongNode(nodes: [TextNode('bold heading')])], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [StrongNode(nodes: [EmphasisNode(nodes: [TextNode('italic bold heading')])])], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('text')], links: []),
-        TableCellNode(nodes: [TextNode('text')], links: []),
-        TableCellNode(nodes: [TextNode('text')], links: []),
-        TableCellNode(nodes: [TextNode('text')], links: []),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
     ]),
   ]);
@@ -977,10 +977,10 @@ class ContentExample {
       '<tbody>\n<tr>\n<td><a href="https://zulip.com">https://zulip.com</a></td>\n</tr>\n</tbody>\n</table>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: []),
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: []),
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
     ]),
   ]);
@@ -994,10 +994,10 @@ class ContentExample {
       '<div class="message_inline_image"><a href="/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg" title="image2.jpg"><img data-original-dimensions="2760x4912" src="/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp"></a></div>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('a')], links: []),
+        TableCellNode(nodes: [TextNode('a')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [LinkNode(nodes: [TextNode('image2.jpg')], url: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg')], links: []),
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('image2.jpg')], url: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
     ]),
     ImageNodeList([
@@ -1021,10 +1021,10 @@ class ContentExample {
       '<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('table')], links: []),
+        TableCellNode(nodes: [TextNode('table')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [], links: []),
+        TableCellNode(nodes: [], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: false),
     ]),
   ]);
@@ -1037,12 +1037,58 @@ class ContentExample {
       '<tbody>\n<tr>\n<td>text</td>\n<td></td>\n</tr>\n</tbody>\n</table>', [
     TableNode(rows: [
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('a')], links: []),
-        TableCellNode(nodes: [TextNode('b')], links: []),
+        TableCellNode(nodes: [TextNode('a')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('b')], links: [], textAlignment: TableColumnTextAlignment.defaults),
       ], isHeader: true),
       TableRowNode(cells: [
-        TableCellNode(nodes: [TextNode('text')], links: []),
-        TableCellNode(nodes: [], links: []),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [], links: [], textAlignment: TableColumnTextAlignment.defaults),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableWithDifferentTextAlignmentInColumns = ContentExample(
+    'table with different text alignment in columns',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/1971201
+    '| default-aligned | left-aligned | center-aligned | right-aligned |\n| - | :- | :-: | -: |\n| text | text | text | text |\n| long text long text long text  | long text long text long text  | long text long text long text | long text long text long text |',
+    '<table>\n<thead>\n<tr>\n<th>default-aligned</th>\n<th style="text-align: left;">left-aligned</th>\n<th style="text-align: center;">center-aligned</th>\n<th style="text-align: right;">right-aligned</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td>text</td>\n<td style="text-align: left;">text</td>\n<td style="text-align: center;">text</td>\n<td style="text-align: right;">text</td>\n</tr>\n'
+      '<tr>\n<td>long text long text long text</td>\n<td style="text-align: left;">long text long text long text</td>\n<td style="text-align: center;">long text long text long text</td>\n<td style="text-align: right;">long text long text long text</td>\n</tr>\n'
+      '</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('default-aligned')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('left-aligned')], links: [], textAlignment: TableColumnTextAlignment.left),
+        TableCellNode(nodes: [TextNode('center-aligned')], links: [], textAlignment: TableColumnTextAlignment.center),
+        TableCellNode(nodes: [TextNode('right-aligned')], links: [], textAlignment: TableColumnTextAlignment.right),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.left),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.center),
+        TableCellNode(nodes: [TextNode('text')], links: [], textAlignment: TableColumnTextAlignment.right),
+      ], isHeader: false),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('long text long text long text')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+        TableCellNode(nodes: [TextNode('long text long text long text')], links: [], textAlignment: TableColumnTextAlignment.left),
+        TableCellNode(nodes: [TextNode('long text long text long text')], links: [], textAlignment: TableColumnTextAlignment.center),
+        TableCellNode(nodes: [TextNode('long text long text long text')], links: [], textAlignment: TableColumnTextAlignment.right),
+      ], isHeader: false),
+    ]),
+  ]);
+
+  static const tableWithLinkCenterAligned = ContentExample(
+    'table with link; center aligned',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/1987982
+    '| header |\n| :-: |\n| https://zulip.com |',
+    '<table>\n<thead>\n<tr>\n<th style="text-align: center;">header</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td style="text-align: center;"><a href="https://zulip.com">https://zulip.com</a></td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('header')], links: [], textAlignment: TableColumnTextAlignment.center),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [LinkNode(nodes: [TextNode('https://zulip.com')], url: 'https://zulip.com')], links: [], textAlignment: TableColumnTextAlignment.center),
       ], isHeader: false),
     ]),
   ]);
@@ -1382,6 +1428,8 @@ void main() {
   testParseExample(ContentExample.tableWithImage);
   testParseExample(ContentExample.tableWithoutAnyBodyCellsInMarkdown);
   testParseExample(ContentExample.tableMissingOneBodyColumnInMarkdown);
+  testParseExample(ContentExample.tableWithDifferentTextAlignmentInColumns);
+  testParseExample(ContentExample.tableWithLinkCenterAligned);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"
