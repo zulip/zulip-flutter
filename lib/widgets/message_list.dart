@@ -303,7 +303,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(controllerKey: _composeBoxKey, narrow: narrow)
-            else const SizedBox.shrink(),
           ]))));
   }
 }
