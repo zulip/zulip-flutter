@@ -268,9 +268,6 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
-  ChannelPropertyName.canRemoveSubscribersGroup: 'can_remove_subscribers_group',
-  ChannelPropertyName.canRemoveSubscribersGroupId:
-      'can_remove_subscribers_group_id',
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
 

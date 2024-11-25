@@ -388,8 +388,8 @@ enum ChannelPropertyName {
   messageRetentionDays,
   @JsonValue('stream_post_policy')
   channelPostPolicy,
-  canRemoveSubscribersGroup,
-  canRemoveSubscribersGroupId, // TODO(server-8): remove, replaced by canRemoveSubscribersGroup
+  // canRemoveSubscribersGroup, // TODO(#814)
+  // canRemoveSubscribersGroupId, // TODO(#814) handle // TODO(server-8) remove
   streamWeeklyTraffic;
 
   /// Get a [ChannelPropertyName] from a raw, snake-case string we recognize, else null.
