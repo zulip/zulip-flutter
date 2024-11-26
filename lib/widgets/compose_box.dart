@@ -1351,21 +1351,15 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
     }
 
     final narrow = widget.narrow;
-    switch (narrow) {
-      case ChannelNarrow():
-        _controller as StreamComposeBoxController;
+    switch (_controller) {
+      case StreamComposeBoxController(): {
+        narrow as ChannelNarrow;
         body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
-      case TopicNarrow():
-        _controller as FixedDestinationComposeBoxController;
+      }
+      case FixedDestinationComposeBoxController(): {
+        narrow as SendableNarrow;
         body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
-      case DmNarrow():
-        _controller as FixedDestinationComposeBoxController;
-        body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
-      case CombinedFeedNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
-        assert(false);
-        body = null;
+      }
     }
 
     // TODO(#720) dismissable message-send error, maybe something like:
