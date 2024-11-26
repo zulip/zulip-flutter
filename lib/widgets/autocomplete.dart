@@ -327,12 +327,13 @@ class _EmojiAutocompleteItem extends StatelessWidget {
 
   final EmojiAutocompleteResult option;
 
-  static const _size = 32.0;
-  static const _notoColorEmojiTextSize = 25.7;
+  static const _size = 24.0;
+  static const _notoColorEmojiTextSize = 19.3;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
     // TODO deduplicate this logic with [EmojiPickerListEntry]
@@ -351,15 +352,26 @@ class _EmojiAutocompleteItem extends StatelessWidget {
       ? candidate.emojiName
       : [candidate.emojiName, ...candidate.aliases].join(", "); // TODO(#1080)
 
+    // TODO(design): emoji autocomplete results
+    // There's no design in Figma for emoji autocomplete results.
+    // Instead we adapt the design for the emoji picker to the
+    // context of autocomplete results as exemplified by _MentionAutocompleteItem.
+    // That means: emoji size, text size, text line-height, and font weight
+    // from emoji picker; text color (for contrast with background) and
+    // outer padding from _MentionAutocompleteItem; padding around emoji glyph
+    // to bring it to same size as avatar in _MentionAutocompleteItem.
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(children: [
         if (glyph != null) ...[
-          glyph,
-          const SizedBox(width: 8),
+          Padding(padding: const EdgeInsets.all(6),
+            child: glyph),
+          const SizedBox(width: 6),
         ],
         Expanded(
           child: Text(
+            style: TextStyle(fontSize: 17, height: 18 / 17,
+              color: designVariables.contextMenuItemLabel),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             label)),
