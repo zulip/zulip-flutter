@@ -296,39 +296,43 @@ void main() {
         valueBefore: valueBefore, message: message, rawContent: 'Hello world');
     });
 
-    testWidgets('in topic narrow', (tester) async {
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+    group('in topic narrow', () {
+      testWidgets('smoke', (tester) async {
+        final message = eg.streamMessage();
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      final composeBoxController = findComposeBoxController(tester)!;
-      final contentController = composeBoxController.contentController;
+        final composeBoxController = findComposeBoxController(tester)!;
+        final contentController = composeBoxController.contentController;
 
-      final valueBefore = contentController.value;
-      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
-      await tapQuoteAndReplyButton(tester);
-      checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
-      await tester.pump(Duration.zero); // message is fetched; compose box updates
-      check(composeBoxController.contentFocusNode.hasFocus).isTrue();
-      checkSuccessState(store, contentController,
-        valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+        final valueBefore = contentController.value;
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        await tapQuoteAndReplyButton(tester);
+        checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+        await tester.pump(Duration.zero); // message is fetched; compose box updates
+        check(composeBoxController.contentFocusNode.hasFocus).isTrue();
+        checkSuccessState(store, contentController,
+          valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+      });
     });
 
-    testWidgets('in DM narrow', (tester) async {
-      final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
-      await setupToMessageActionSheet(tester,
-        message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+    group('in DM narrow', () {
+      testWidgets('smoke', (tester) async {
+        final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
 
-      final composeBoxController = findComposeBoxController(tester)!;
-      final contentController = composeBoxController.contentController;
+        final composeBoxController = findComposeBoxController(tester)!;
+        final contentController = composeBoxController.contentController;
 
-      final valueBefore = contentController.value;
-      prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
-      await tapQuoteAndReplyButton(tester);
-      checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
-      await tester.pump(Duration.zero); // message is fetched; compose box updates
-      check(composeBoxController.contentFocusNode.hasFocus).isTrue();
-      checkSuccessState(store, contentController,
-        valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+        final valueBefore = contentController.value;
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        await tapQuoteAndReplyButton(tester);
+        checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+        await tester.pump(Duration.zero); // message is fetched; compose box updates
+        check(composeBoxController.contentFocusNode.hasFocus).isTrue();
+        checkSuccessState(store, contentController,
+          valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+      });
     });
 
     testWidgets('request has an error', (tester) async {
