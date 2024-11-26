@@ -125,7 +125,7 @@ User user({
   _checkPositive(userId, 'user ID');
   return User(
     userId: userId ?? _nextUserId(),
-    deliveryEmail: effectiveDeliveryEmail,
+    deliveryEmail: deliveryEmail,
     email: email ?? effectiveDeliveryEmail,
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: dateJoined ?? '2024-02-24T11:18+00:00',

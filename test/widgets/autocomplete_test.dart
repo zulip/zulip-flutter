@@ -131,9 +131,10 @@ void main() {
     Finder findAvatarImage(int userId) =>
       find.byWidgetPredicate((widget) => widget is AvatarImage && widget.userId == userId);
 
-    void checkUserShown(User user, {required bool expected}) {
+    void checkUserShown(User user, {required bool expected, bool? deliveryEmailExpected}) {
+      deliveryEmailExpected ??= expected;
       check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
-      check(find.text(user.deliveryEmail!).evaluate().length).equals(expected ? 1 : 0);
+      check(find.text(user.deliveryEmail?? "").evaluate().length).equals(deliveryEmailExpected ? 1 : 0);
       final avatarFinder = findAvatarImage(user.userId);
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
@@ -179,6 +180,27 @@ void main() {
       checkUserShown(user1, expected: false);
       checkUserShown(user2, expected: false);
       checkUserShown(user3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('test delivery email visibility', (tester) async {
+      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png',);
+      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png', deliveryEmail: 'email3@email.com');
+      final composeInputFinder = await setupToComposeInput(tester, users: [user2, user3]);
+
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      // Options are filtered correctly for query
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @user ');
+      await tester.enterText(composeInputFinder, 'hello @user t');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      // "User Two"'s delivery email is not visible and "User Three"'s delivery email is visible
+      checkUserShown(user2, expected: true, deliveryEmailExpected: false);
+      checkUserShown(user3, expected: true, deliveryEmailExpected: true);
 
       debugNetworkImageHttpClientProvider = null;
     });
