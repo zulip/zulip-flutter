@@ -121,10 +121,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     this._(
       background: const Color(0xffffffff),
       bannerBgIntDanger: const Color(0xfff2e4e4),
+      bgBotBar: const Color(0xfff6f6f6),
       bgContextMenu: const Color(0xfff2f2f2),
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
+      bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
+      bgMenuButtonSelected: Colors.white,
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: Colors.black.withValues(alpha: 0.2),
+      borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
       btnLabelAttLowIntDanger: const Color(0xffc0070a),
       btnLabelAttMediumIntDanger: const Color(0xffac0508),
       composeBoxBg: const Color(0xffffffff),
@@ -134,6 +138,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
       foreground: const Color(0xff000000),
       icon: const Color(0xff6159e1),
+      iconSelected: const Color(0xff222222),
       labelCounterUnread: const Color(0xff222222),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
       labelMenuButton: const Color(0xff222222),
@@ -152,6 +157,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: const Color(0xff575757),
       modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
       mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
+      navigationButtonBg: Colors.black.withValues(alpha: 0.05),
       sectionCollapseIcon: const Color(0x7f1e2e48),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
@@ -163,10 +169,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     this._(
       background: const Color(0xff000000),
       bannerBgIntDanger: const Color(0xff461616),
+      bgBotBar: const Color(0xff222222),
       bgContextMenu: const Color(0xff262626),
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
+      bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
+      bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
       bgTopBar: const Color(0xff242424),
       borderBar: Colors.black.withValues(alpha: 0.5),
+      borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
       btnLabelAttLowIntDanger: const Color(0xffff8b7c),
       btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
       composeBoxBg: const Color(0xff0f0f0f),
@@ -176,6 +186,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
       foreground: const Color(0xffffffff),
       icon: const Color(0xff7977fe),
+      iconSelected: Colors.white.withValues(alpha: 0.8),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
       labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
@@ -198,6 +209,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
+      navigationButtonBg: Colors.white.withValues(alpha: 0.05),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       sectionCollapseIcon: const Color(0x7fb6c8e2),
       // TODO(design-dark) unchanged in dark theme?
@@ -212,10 +224,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables._({
     required this.background,
     required this.bannerBgIntDanger,
+    required this.bgBotBar,
     required this.bgContextMenu,
     required this.bgCounterUnread,
+    required this.bgMenuButtonActive,
+    required this.bgMenuButtonSelected,
     required this.bgTopBar,
     required this.borderBar,
+    required this.borderMenuButtonSelected,
     required this.btnLabelAttLowIntDanger,
     required this.btnLabelAttMediumIntDanger,
     required this.composeBoxBg,
@@ -225,6 +241,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.editorButtonPressedBg,
     required this.foreground,
     required this.icon,
+    required this.iconSelected,
     required this.labelCounterUnread,
     required this.labelEdited,
     required this.labelMenuButton,
@@ -243,6 +260,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.loginOrDividerText,
     required this.modalBarrierColor,
     required this.mutedUnreadBadge,
+    required this.navigationButtonBg,
     required this.sectionCollapseIcon,
     required this.star,
     required this.subscriptionListHeaderLine,
@@ -262,10 +280,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   final Color background;
   final Color bannerBgIntDanger;
+  final Color bgBotBar;
   final Color bgContextMenu;
   final Color bgCounterUnread;
+  final Color bgMenuButtonActive;
+  final Color bgMenuButtonSelected;
   final Color bgTopBar;
   final Color borderBar;
+  final Color borderMenuButtonSelected;
   final Color btnLabelAttLowIntDanger;
   final Color btnLabelAttMediumIntDanger;
   final Color composeBoxBg;
@@ -275,6 +297,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color editorButtonPressedBg;
   final Color foreground;
   final Color icon;
+  final Color iconSelected;
   final Color labelCounterUnread;
   final Color labelEdited;
   final Color labelMenuButton;
@@ -297,6 +320,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color modalBarrierColor;
   final Color mutedUnreadBadge;
+  final Color navigationButtonBg;
   final Color sectionCollapseIcon;
   final Color star;
   final Color subscriptionListHeaderLine;
@@ -307,10 +331,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables copyWith({
     Color? background,
     Color? bannerBgIntDanger,
+    Color? bgBotBar,
     Color? bgContextMenu,
     Color? bgCounterUnread,
+    Color? bgMenuButtonActive,
+    Color? bgMenuButtonSelected,
     Color? bgTopBar,
     Color? borderBar,
+    Color? borderMenuButtonSelected,
     Color? btnLabelAttLowIntDanger,
     Color? btnLabelAttMediumIntDanger,
     Color? composeBoxBg,
@@ -320,6 +348,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? editorButtonPressedBg,
     Color? foreground,
     Color? icon,
+    Color? iconSelected,
     Color? labelCounterUnread,
     Color? labelEdited,
     Color? labelMenuButton,
@@ -338,6 +367,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? loginOrDividerText,
     Color? modalBarrierColor,
     Color? mutedUnreadBadge,
+    Color? navigationButtonBg,
     Color? sectionCollapseIcon,
     Color? star,
     Color? subscriptionListHeaderLine,
@@ -347,10 +377,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     return DesignVariables._(
       background: background ?? this.background,
       bannerBgIntDanger: bannerBgIntDanger ?? this.bannerBgIntDanger,
+      bgBotBar: bgBotBar ?? this.bgBotBar,
       bgContextMenu: bgContextMenu ?? this.bgContextMenu,
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
+      bgMenuButtonActive: bgMenuButtonActive ?? this.bgMenuButtonActive,
+      bgMenuButtonSelected: bgMenuButtonSelected ?? this.bgMenuButtonSelected,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
+      borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
       btnLabelAttLowIntDanger: btnLabelAttLowIntDanger ?? this.btnLabelAttLowIntDanger,
       btnLabelAttMediumIntDanger: btnLabelAttMediumIntDanger ?? this.btnLabelAttMediumIntDanger,
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
@@ -360,6 +394,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
+      iconSelected: iconSelected ?? this.iconSelected,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
@@ -378,6 +413,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
       mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
+      navigationButtonBg: navigationButtonBg ?? this.navigationButtonBg,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
@@ -394,10 +430,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     return DesignVariables._(
       background: Color.lerp(background, other.background, t)!,
       bannerBgIntDanger: Color.lerp(bannerBgIntDanger, other.bannerBgIntDanger, t)!,
+      bgBotBar: Color.lerp(bgBotBar, other.bgBotBar, t)!,
       bgContextMenu: Color.lerp(bgContextMenu, other.bgContextMenu, t)!,
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
+      bgMenuButtonActive: Color.lerp(bgMenuButtonActive, other.bgMenuButtonActive, t)!,
+      bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
+      borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,
       btnLabelAttLowIntDanger: Color.lerp(btnLabelAttLowIntDanger, other.btnLabelAttLowIntDanger, t)!,
       btnLabelAttMediumIntDanger: Color.lerp(btnLabelAttMediumIntDanger, other.btnLabelAttMediumIntDanger, t)!,
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
@@ -407,6 +447,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
+      iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
@@ -425,6 +466,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
       mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
+      navigationButtonBg: Color.lerp(navigationButtonBg, other.navigationButtonBg, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,

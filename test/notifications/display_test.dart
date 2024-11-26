@@ -22,7 +22,6 @@ import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -930,15 +929,12 @@ void main() {
 
     void takeStartingRoutes({bool withAccount = true}) {
       final expected = <Condition<Object?>>[
-        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
-        if (withAccount) ...[
+        if (withAccount)
           (it) => it.isA<MaterialAccountWidgetRoute>()
             ..accountId.equals(eg.selfAccount.id)
-            ..page.isA<HomePage>(),
-          (it) => it.isA<MaterialAccountWidgetRoute>()
-            ..accountId.equals(eg.selfAccount.id)
-            ..page.isA<InboxPage>(),
-        ],
+            ..page.isA<HomePage>()
+        else
+          (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
       ];
       check(pushedRoutes.take(expected.length)).deepEquals(expected);
       pushedRoutes.removeRange(0, expected.length);

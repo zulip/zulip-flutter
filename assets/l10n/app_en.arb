@@ -19,6 +19,19 @@
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."
   },
+  "switchAccountButton": "Switch account",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "tryAnotherAccountMessage": "Your account at {url} is taking a while to load.",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {"type": "String", "example": "http://chat.example.com/"}
+  },
+  "tryAnotherAccountButton": "Try another account",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
   "chooseAccountPageLogOutButton": "Log out",
   "@chooseAccountPageLogOutButton": {
     "description": "Label for the 'Log out' button for an account on the choose-account page"
@@ -561,6 +574,10 @@
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
   },
+  "inboxPageTitle": "Inbox",
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -576,6 +593,14 @@
   "starredMessagesPageTitle": "Starred messages",
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
+  },
+  "channelsPageTitle": "Channels",
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "mainMenuMyProfile": "My profile",
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
   },
   "channelFeedButtonTooltip": "Channel feed",
   "@channelFeedButtonTooltip": {

@@ -69,7 +69,8 @@ void main() {
 
   group('LoginPage', () {
     late FakeApiConnection connection;
-    late List<Route<dynamic>> pushedRoutes;
+    late List<Route<void>> pushedRoutes;
+    late List<Route<void>> poppedRoutes;
 
     void takeStartingRoutes() {
       final expected = <Condition<Object?>>[
@@ -89,8 +90,14 @@ void main() {
         zulipFeatureLevel: serverSettings.zulipFeatureLevel);
 
       pushedRoutes = [];
-      final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      poppedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) {
+        poppedRoutes.add(prevRoute!);
+        pushedRoutes.add(route!);
+      };
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump();
       final navigator = await ZulipApp.navigator;
@@ -144,6 +151,25 @@ void main() {
             id: testBinding.globalStore.accounts.single.id));
       });
 
+      testWidgets('logging into a second account', (tester) async {
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        final serverSettings = eg.serverSettings();
+        await prepare(tester, serverSettings);
+        check(poppedRoutes).isEmpty();
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<WidgetRoute>().page.isA<HomePage>(),
+          (it) => it.isA<WidgetRoute>().page.isA<LoginPage>(),
+        ]);
+        pushedRoutes.clear();
+
+        await login(tester, eg.otherAccount);
+        final newAccount = testBinding.globalStore.accounts.singleWhere(
+          (account) => account != eg.selfAccount);
+        check(newAccount).equals(eg.otherAccount.copyWith(id: newAccount.id));
+        check(poppedRoutes).length.equals(2);
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      });
+
       testWidgets('trims whitespace on username', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
@@ -192,7 +218,6 @@ void main() {
       });
 
       // TODO test validators on the TextFormField widgets
-      // TODO test navigation, i.e. the call to pushAndRemoveUntil
       // TODO test _getUserId case
       // TODO test handling failure in fetchApiKey request
       // TODO test _inProgress logic

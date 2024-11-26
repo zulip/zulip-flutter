@@ -44,6 +44,7 @@ extension IconChecks on Subject<Icon> {
 }
 
 extension RouteChecks<T> on Subject<Route<T>> {
+  Subject<bool> get isFirst => has((r) => r.isFirst, 'isFirst');
   Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
 }
 

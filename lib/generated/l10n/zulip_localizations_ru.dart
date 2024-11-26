@@ -24,6 +24,17 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Выберите учетную запись';
 
   @override
+  String get switchAccountButton => 'Switch account';
+
+  @override
+  String tryAnotherAccountMessage(Object url) {
+    return 'Your account at $url is taking a while to load.';
+  }
+
+  @override
+  String get tryAnotherAccountButton => 'Try another account';
+
+  @override
   String get chooseAccountPageLogOutButton => 'Выход из системы';
 
   @override
@@ -444,6 +455,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get userRoleUnknown => 'Unknown';
 
   @override
+  String get inboxPageTitle => 'Inbox';
+
+  @override
   String get recentDmConversationsPageTitle => 'Direct messages';
 
   @override
@@ -454,6 +468,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get starredMessagesPageTitle => 'Отмеченные сообщения';
+
+  @override
+  String get channelsPageTitle => 'Channels';
+
+  @override
+  String get mainMenuMyProfile => 'My profile';
 
   @override
   String get channelFeedButtonTooltip => 'Channel feed';
