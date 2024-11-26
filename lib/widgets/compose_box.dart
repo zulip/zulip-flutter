@@ -1032,18 +1032,21 @@ class _ComposeBoxContainer extends StatelessWidget {
 
 class _ComposeBoxBody extends StatelessWidget {
   const _ComposeBoxBody({
+    required this.narrow,
+    required this.controller,
     required this.topicInput,
     required this.contentInput,
     required this.sendButton,
-    required this.contentController,
-    required this.contentFocusNode,
   });
+
+  /// The narrow on view in the message list.
+  final Narrow narrow;
+
+  final ComposeBoxController controller;
 
   final Widget? topicInput;
   final Widget contentInput;
   final Widget sendButton;
-  final ComposeContentController contentController;
-  final FocusNode contentFocusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -1069,10 +1072,11 @@ class _ComposeBoxBody extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
+    final ComposeBoxController(:content, :contentFocusNode) = controller;
     final composeButtons = [
-      _AttachFileButton(contentController: contentController, contentFocusNode: contentFocusNode),
-      _AttachMediaButton(contentController: contentController, contentFocusNode: contentFocusNode),
-      _AttachFromCameraButton(contentController: contentController, contentFocusNode: contentFocusNode),
+      _AttachFileButton(contentController: content, contentFocusNode: contentFocusNode),
+      _AttachMediaButton(contentController: content, contentFocusNode: contentFocusNode),
+      _AttachFromCameraButton(contentController: content, contentFocusNode: contentFocusNode),
     ];
 
     return _ComposeBoxContainer(
@@ -1149,8 +1153,8 @@ class _StreamComposeBoxBody extends StatelessWidget {
     ) = controller;
 
     return _ComposeBoxBody(
-      contentController: content,
-      contentFocusNode: contentFocusNode,
+      narrow: narrow,
+      controller: controller,
       topicInput: _TopicInput(
         streamId: narrow.streamId,
         controller: topic,
@@ -1207,8 +1211,8 @@ class _FixedDestinationComposeBoxBody extends StatelessWidget {
     ) = controller;
 
     return _ComposeBoxBody(
-      contentController: content,
-      contentFocusNode: contentFocusNode,
+      narrow: narrow,
+      controller: controller,
       topicInput: null,
       contentInput: _FixedDestinationContentInput(
         narrow: narrow,
