@@ -13,7 +13,6 @@ import 'about_zulip.dart';
 import 'actions.dart';
 import 'dialog.dart';
 import 'home.dart';
-import 'inbox.dart';
 import 'login.dart';
 import 'page.dart';
 import 'store.dart';
@@ -209,11 +208,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
           onGenerateInitialRoutes: (_) {
             return [
-              MaterialWidgetRoute(page: const ChooseAccountPage()),
-              if (initialAccountId != null) ...[
+              if (initialAccountId == null)
+                MaterialWidgetRoute(page: const ChooseAccountPage())
+              else
                 HomePage.buildRoute(accountId: initialAccountId),
-                InboxPage.buildRoute(accountId: initialAccountId),
-              ],
             ];
           });
         }));
@@ -271,8 +269,7 @@ class ChooseAccountPage extends StatelessWidget {
         // The default trailing padding with M3 is 24px. Decrease by 12 because
         // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-        onTap: () => Navigator.push(context,
-          HomePage.buildRoute(accountId: accountId))));
+        onTap: () => HomePage.navigate(context, accountId: accountId)));
   }
 
   @override
@@ -281,13 +278,19 @@ class ChooseAccountPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
+
+    // Borrowed from [AppBar.build].
+    // See documentation on [ModalRoute.impliesAppBarDismissal]:
+    // > Whether an [AppBar] in the route should automatically add a back button or
+    // > close button.
+    final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
     return MenuButtonTheme(
       data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
         backgroundColor: colorScheme.secondaryContainer,
         foregroundColor: colorScheme.onSecondaryContainer)),
       child: Scaffold(
         appBar: AppBar(
-          titleSpacing: 16,
+          titleSpacing: hasBackButton ? null : 16,
           title: Text(zulipLocalizations.chooseAccountPageTitle),
           actions: const [ChooseAccountPageOverflowButton()]),
         body: SafeArea(

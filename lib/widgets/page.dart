@@ -161,7 +161,7 @@ class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T> wit
   final int accountId;
 
   @override
-  Widget? loadingPlaceholderPage;
+  final Widget? loadingPlaceholderPage;
 }
 
 class LoadingPlaceholderPage extends StatelessWidget {
