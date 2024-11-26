@@ -1,35 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
-import 'app_bar.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
-import 'page.dart';
 import 'store.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
-
-class RecentDmConversationsPage extends StatelessWidget {
-  const RecentDmConversationsPage({super.key});
-
-  static Route<void> buildRoute({int? accountId, BuildContext? context}) {
-    return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: const RecentDmConversationsPage());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return Scaffold(
-      appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.recentDmConversationsPageTitle)),
-      body: const RecentDmConversationsPageBody());
-  }
-}
 
 class RecentDmConversationsPageBody extends StatefulWidget {
   const RecentDmConversationsPageBody({super.key});

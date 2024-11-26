@@ -5,31 +5,13 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
-import 'app_bar.dart';
 import 'icons.dart';
 import 'message_list.dart';
-import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
-
-class InboxPage extends StatelessWidget {
-  const InboxPage({super.key});
-
-  static Route<void> buildRoute({int? accountId, BuildContext? context}) {
-    return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: const InboxPage());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: ZulipAppBar(title: const Text('Inbox')),
-      body: const InboxPageBody());
-  }
-}
 
 class InboxPageBody extends StatefulWidget {
   const InboxPageBody({super.key});
