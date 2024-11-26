@@ -171,23 +171,23 @@ Account account({
   );
 }
 
-final User selfUser = user(fullName: 'Self User', email: 'self@example');
+final User selfUser = user(fullName: 'Self User');
 final Account selfAccount = account(
   id: 1001,
   user: selfUser,
   apiKey: 'dQcEJWTq3LczosDkJnRTwf31zniGvMrO', // A Zulip API key is 32 digits of base64.
 );
 
-final User otherUser = user(fullName: 'Other User', email: 'other@example');
+final User otherUser = user(fullName: 'Other User');
 final Account otherAccount = account(
   id: 1002,
   user: otherUser,
   apiKey: '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY', // A Zulip API key is 32 digits of base64.
 );
 
-final User thirdUser = user(fullName: 'Third User', email: 'third@example');
+final User thirdUser = user(fullName: 'Third User');
 
-final User fourthUser  = user(fullName: 'Fourth User', email: 'fourth@example');
+final User fourthUser  = user(fullName: 'Fourth User');
 
 ////////////////////////////////////////////////////////////////
 // Streams and subscriptions.
