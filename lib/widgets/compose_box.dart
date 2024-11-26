@@ -1030,8 +1030,8 @@ class _ComposeBoxContainer extends StatelessWidget {
   }
 }
 
-class _ComposeBoxLayout extends StatelessWidget {
-  const _ComposeBoxLayout({
+class _ComposeBoxBody extends StatelessWidget {
+  const _ComposeBoxBody({
     required this.topicInput,
     required this.contentInput,
     required this.sendButton,
@@ -1134,8 +1134,8 @@ class FixedDestinationComposeBoxController extends ComposeBoxController {}
 ///
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
-class _StreamComposeBox extends StatelessWidget {
-  const _StreamComposeBox({required this.narrow, required this.controller});
+class _StreamComposeBoxBody extends StatelessWidget {
+  const _StreamComposeBoxBody({required this.narrow, required this.controller});
 
   /// The narrow on view in the message list.
   final ChannelNarrow narrow;
@@ -1148,7 +1148,7 @@ class _StreamComposeBox extends StatelessWidget {
       :topic, :content, :topicFocusNode, :contentFocusNode,
     ) = controller;
 
-    return _ComposeBoxLayout(
+    return _ComposeBoxBody(
       contentController: content,
       contentFocusNode: contentFocusNode,
       topicInput: _TopicInput(
@@ -1193,8 +1193,8 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-class _FixedDestinationComposeBox extends StatelessWidget {
-  const _FixedDestinationComposeBox({required this.narrow, required this.controller});
+class _FixedDestinationComposeBoxBody extends StatelessWidget {
+  const _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
 
   final SendableNarrow narrow;
 
@@ -1206,7 +1206,7 @@ class _FixedDestinationComposeBox extends StatelessWidget {
       :content, :contentFocusNode,
     ) = controller;
 
-    return _ComposeBoxLayout(
+    return _ComposeBoxBody(
       contentController: content,
       contentFocusNode: contentFocusNode,
       topicInput: null,
@@ -1316,13 +1316,13 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
     switch (narrow) {
       case ChannelNarrow():
         _controller as StreamComposeBoxController;
-        return _StreamComposeBox(controller: _controller, narrow: narrow);
+        return _StreamComposeBoxBody(controller: _controller, narrow: narrow);
       case TopicNarrow():
         _controller as FixedDestinationComposeBoxController;
-        return _FixedDestinationComposeBox(controller: _controller, narrow: narrow);
+        return _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
       case DmNarrow():
         _controller as FixedDestinationComposeBoxController;
-        return _FixedDestinationComposeBox(controller: _controller, narrow: narrow);
+        return _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
