@@ -1030,23 +1030,16 @@ class _ComposeBoxContainer extends StatelessWidget {
   }
 }
 
-class _ComposeBoxBody extends StatelessWidget {
-  const _ComposeBoxBody({
-    required this.narrow,
-    required this.controller,
-    required this.topicInput,
-    required this.contentInput,
-    required this.sendButton,
-  });
-
+/// The text inputs, compose-button row, and send button for the compose box.
+abstract class _ComposeBoxBody extends StatelessWidget {
   /// The narrow on view in the message list.
-  final Narrow narrow;
+  Narrow get narrow;
 
-  final ComposeBoxController controller;
+  ComposeBoxController get controller;
 
-  final Widget? topicInput;
-  final Widget contentInput;
-  final Widget sendButton;
+  Widget? buildTopicInput();
+  Widget buildContentInput();
+  Widget buildSendButton();
 
   @override
   Widget build(BuildContext context) {
@@ -1079,6 +1072,7 @@ class _ComposeBoxBody extends StatelessWidget {
       _AttachFromCameraButton(contentController: content, contentFocusNode: contentFocusNode),
     ];
 
+    final topicInput = buildTopicInput();
     return _ComposeBoxContainer(
       child: Column(children: [
         Padding(
@@ -1086,8 +1080,8 @@ class _ComposeBoxBody extends StatelessWidget {
           child: Theme(
             data: inputThemeData,
             child: Column(children: [
-              if (topicInput != null) topicInput!,
-              contentInput,
+              if (topicInput != null) topicInput,
+              buildContentInput(),
             ]))),
         SizedBox(
           height: _composeButtonSize,
@@ -1097,7 +1091,7 @@ class _ComposeBoxBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(children: composeButtons),
-                sendButton,
+                buildSendButton(),
               ]))),
       ]));
   }
@@ -1138,42 +1132,35 @@ class FixedDestinationComposeBoxController extends ComposeBoxController {}
 ///
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
-class _StreamComposeBoxBody extends StatelessWidget {
-  const _StreamComposeBoxBody({required this.narrow, required this.controller});
-
-  /// The narrow on view in the message list.
-  final ChannelNarrow narrow;
-
-  final StreamComposeBoxController controller;
+class _StreamComposeBoxBody extends _ComposeBoxBody {
+  _StreamComposeBoxBody({required this.narrow, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
-    final StreamComposeBoxController(
-      :topic, :content, :topicFocusNode, :contentFocusNode,
-    ) = controller;
+  final ChannelNarrow narrow;
 
-    return _ComposeBoxBody(
-      narrow: narrow,
-      controller: controller,
-      topicInput: _TopicInput(
-        streamId: narrow.streamId,
-        controller: topic,
-        focusNode: topicFocusNode,
-        contentFocusNode: contentFocusNode,
-      ),
-      contentInput: _StreamContentInput(
-        narrow: narrow,
-        topicController: topic,
-        controller: content,
-        focusNode: contentFocusNode,
-      ),
-      sendButton: _SendButton(
-        topicController: topic,
-        contentController: content,
-        getDestination: () => StreamDestination(
-          narrow.streamId, topic.textNormalized),
-      ));
-  }
+  @override
+  final StreamComposeBoxController controller;
+
+  @override Widget buildTopicInput() => _TopicInput(
+    streamId: narrow.streamId,
+    controller: controller.topic,
+    focusNode: controller.topicFocusNode,
+    contentFocusNode: controller.contentFocusNode,
+  );
+
+  @override Widget buildContentInput() => _StreamContentInput(
+    narrow: narrow,
+    topicController: controller.topic,
+    controller: controller.content,
+    focusNode: controller.contentFocusNode,
+  );
+
+  @override Widget buildSendButton() => _SendButton(
+    topicController: controller.topic,
+    contentController: controller.content,
+    getDestination: () => StreamDestination(
+      narrow.streamId, controller.topic.textNormalized),
+  );
 }
 
 class _ErrorBanner extends StatelessWidget {
@@ -1197,34 +1184,28 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-class _FixedDestinationComposeBoxBody extends StatelessWidget {
-  const _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
-
-  final SendableNarrow narrow;
-
-  final FixedDestinationComposeBoxController controller;
+class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
+  _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
-    final FixedDestinationComposeBoxController(
-      :content, :contentFocusNode,
-    ) = controller;
+  final SendableNarrow narrow;
 
-    return _ComposeBoxBody(
-      narrow: narrow,
-      controller: controller,
-      topicInput: null,
-      contentInput: _FixedDestinationContentInput(
-        narrow: narrow,
-        controller: content,
-        focusNode: contentFocusNode,
-      ),
-      sendButton: _SendButton(
-        topicController: null,
-        contentController: content,
-        getDestination: () => narrow.destination,
-      ));
-  }
+  @override
+  final FixedDestinationComposeBoxController controller;
+
+  @override Widget? buildTopicInput() => null;
+
+  @override Widget buildContentInput() => _FixedDestinationContentInput(
+    narrow: narrow,
+    controller: controller.content,
+    focusNode: controller.contentFocusNode,
+  );
+
+  @override Widget buildSendButton() => _SendButton(
+    topicController: null,
+    contentController: controller.content,
+    getDestination: () => narrow.destination,
+  );
 }
 
 class ComposeBox extends StatefulWidget {
