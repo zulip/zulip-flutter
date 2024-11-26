@@ -1060,6 +1060,7 @@ class _ComposeBoxContainer extends StatelessWidget {
     return Container(width: double.infinity,
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: designVariables.borderBar))),
+      // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
         child: Column(
