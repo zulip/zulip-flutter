@@ -106,9 +106,8 @@ int _lastEmailSuffix = 1000;
 /// other data in the test, or if the IDs need to increase in a different order
 /// from the calls to [user].
 ///
-/// If `deliveryEmail` is not given, it will be generated from a
-/// random sequence of distinct strings.
-/// If `email` is not given, it will be set to `deliveryEmail`.
+/// If `email` is not given, it defaults to `deliveryEmail` if given,
+/// or else to a value resembling the Zulip server's generated fake emails.
 User user({
   int? userId,
   String? deliveryEmail,
@@ -121,12 +120,12 @@ User user({
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
-  var effectiveDeliveryEmail = deliveryEmail ?? _nextEmail();
   _checkPositive(userId, 'user ID');
+  final effectiveUserId = userId ?? _nextUserId();
   return User(
-    userId: userId ?? _nextUserId(),
-    deliveryEmail: effectiveDeliveryEmail,
-    email: email ?? effectiveDeliveryEmail,
+    userId: effectiveUserId,
+    deliveryEmail: deliveryEmail,
+    email: email ?? deliveryEmail ?? 'user$effectiveUserId@${realmUrl.host}',
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: dateJoined ?? '2024-02-24T11:18+00:00',
     isActive: isActive ?? true,
