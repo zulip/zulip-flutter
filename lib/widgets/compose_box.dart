@@ -1099,11 +1099,36 @@ class _ComposeBoxLayout extends StatelessWidget {
   }
 }
 
-abstract class ComposeBoxController<T extends StatefulWidget> extends State<T> {
-  ComposeTopicController? get topicController;
-  ComposeContentController get contentController;
-  FocusNode get contentFocusNode;
+sealed class ComposeBoxController {
+  ComposeContentController get contentController => _contentController;
+  final _contentController = ComposeContentController();
+
+  FocusNode get contentFocusNode => _contentFocusNode;
+  final _contentFocusNode = FocusNode();
+
+  @mustCallSuper
+  void dispose() {
+    _contentController.dispose();
+    _contentFocusNode.dispose();
+  }
 }
+
+class StreamComposeBoxController extends ComposeBoxController {
+  ComposeTopicController get topicController => _topicController;
+  final _topicController = ComposeTopicController();
+
+  FocusNode get topicFocusNode => _topicFocusNode;
+  final _topicFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _topicController.dispose();
+    _topicFocusNode.dispose();
+    super.dispose();
+  }
+}
+
+class FixedDestinationComposeBoxController extends ComposeBoxController {}
 
 /// A compose box for use in a channel narrow.
 ///
@@ -1119,50 +1144,42 @@ class _StreamComposeBox extends StatefulWidget {
   State<_StreamComposeBox> createState() => _StreamComposeBoxState();
 }
 
-class _StreamComposeBoxState extends State<_StreamComposeBox> implements ComposeBoxController<_StreamComposeBox> {
-  @override ComposeTopicController get topicController => _topicController;
-  final _topicController = ComposeTopicController();
-
-  @override ComposeContentController get contentController => _contentController;
-  final _contentController = ComposeContentController();
-
-  @override FocusNode get contentFocusNode => _contentFocusNode;
-  final _contentFocusNode = FocusNode();
-
-  FocusNode get topicFocusNode => _topicFocusNode;
-  final _topicFocusNode = FocusNode();
+class _StreamComposeBoxState extends State<_StreamComposeBox> {
+  StreamComposeBoxController get controller => _controller;
+  final _controller = StreamComposeBoxController();
 
   @override
   void dispose() {
-    _topicController.dispose();
-    _contentController.dispose();
-    _contentFocusNode.dispose();
-    _topicFocusNode.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final StreamComposeBoxController(
+      :topicController, :contentController, :topicFocusNode, :contentFocusNode,
+    ) = controller;
+
     return _ComposeBoxLayout(
-      contentController: _contentController,
-      contentFocusNode: _contentFocusNode,
+      contentController: contentController,
+      contentFocusNode: contentFocusNode,
       topicInput: _TopicInput(
         streamId: widget.narrow.streamId,
-        controller: _topicController,
+        controller: topicController,
         focusNode: topicFocusNode,
-        contentFocusNode: _contentFocusNode,
+        contentFocusNode: contentFocusNode,
       ),
       contentInput: _StreamContentInput(
         narrow: widget.narrow,
-        topicController: _topicController,
-        controller: _contentController,
-        focusNode: _contentFocusNode,
+        topicController: topicController,
+        controller: contentController,
+        focusNode: contentFocusNode,
       ),
       sendButton: _SendButton(
-        topicController: _topicController,
-        contentController: _contentController,
+        topicController: topicController,
+        contentController: contentController,
         getDestination: () => StreamDestination(
-          widget.narrow.streamId, _topicController.textNormalized),
+          widget.narrow.streamId, topicController.textNormalized),
       ));
   }
 }
@@ -1197,46 +1214,43 @@ class _FixedDestinationComposeBox extends StatefulWidget {
   State<_FixedDestinationComposeBox> createState() => _FixedDestinationComposeBoxState();
 }
 
-class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> implements ComposeBoxController<_FixedDestinationComposeBox>  {
-  @override ComposeTopicController? get topicController => null;
-
-  @override ComposeContentController get contentController => _contentController;
-  final _contentController = ComposeContentController();
-
-  @override FocusNode get contentFocusNode => _contentFocusNode;
-  final _contentFocusNode = FocusNode();
+class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> {
+  FixedDestinationComposeBoxController get controller => _controller;
+  final _controller = FixedDestinationComposeBoxController();
 
   @override
   void dispose() {
-    _contentController.dispose();
-    _contentFocusNode.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final FixedDestinationComposeBoxController(
+      :contentController, :contentFocusNode,
+    ) = controller;
+
     return _ComposeBoxLayout(
-      contentController: _contentController,
-      contentFocusNode: _contentFocusNode,
+      contentController: contentController,
+      contentFocusNode: contentFocusNode,
       topicInput: null,
       contentInput: _FixedDestinationContentInput(
         narrow: widget.narrow,
-        controller: _contentController,
-        focusNode: _contentFocusNode,
+        controller: contentController,
+        focusNode: contentFocusNode,
       ),
       sendButton: _SendButton(
         topicController: null,
-        contentController: _contentController,
+        contentController: contentController,
         getDestination: () => widget.narrow.destination,
       ));
   }
 }
 
-class ComposeBox extends StatelessWidget {
-  ComposeBox({super.key, this.controllerKey, required this.narrow})
+class ComposeBox extends StatefulWidget {
+  ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));
 
-  final GlobalKey<ComposeBoxController>? controllerKey;
   final Narrow narrow;
 
   static bool hasComposeBox(Narrow narrow) {
@@ -1253,10 +1267,30 @@ class ComposeBox extends StatelessWidget {
     }
   }
 
+  @override
+  State<ComposeBox> createState() => _ComposeBoxState();
+}
+
+/// The interface for the state of a [ComposeBox].
+abstract class ComposeBoxState extends State<ComposeBox> {
+  ComposeBoxController? get controller;
+}
+
+class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
+  @override ComposeBoxController? get controller {
+    final forStream = _streamComposeBoxControllerKey.currentState?.controller;
+    final forFixedDestination = _fixedDestinationComposeBoxControllerKey.currentState?.controller;
+    assert(forStream == null || forFixedDestination == null);
+    // Both can be null (error-banner case).
+    return forStream ?? forFixedDestination;
+  }
+  final _streamComposeBoxControllerKey = GlobalKey<_StreamComposeBoxState>();
+  final _fixedDestinationComposeBoxControllerKey = GlobalKey<_FixedDestinationComposeBoxState>();
+
   Widget? _errorBanner(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
-    switch (narrow) {
+    switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
@@ -1287,14 +1321,16 @@ class ComposeBox extends StatelessWidget {
       return _ComposeBoxContainer(child: errorBanner);
     }
 
-    final narrow = this.narrow;
+    final narrow = widget.narrow;
     switch (narrow) {
       case ChannelNarrow():
-        return _StreamComposeBox(key: controllerKey, narrow: narrow);
+        return _StreamComposeBox(key: _streamComposeBoxControllerKey, narrow: narrow);
       case TopicNarrow():
-        return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
+        return _FixedDestinationComposeBox(key: _fixedDestinationComposeBoxControllerKey,
+          narrow: narrow);
       case DmNarrow():
-        return _FixedDestinationComposeBox(key: controllerKey, narrow: narrow);
+        return _FixedDestinationComposeBox(key: _fixedDestinationComposeBoxControllerKey,
+          narrow: narrow);
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():

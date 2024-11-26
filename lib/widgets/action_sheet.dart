@@ -14,6 +14,7 @@ import '../model/narrow.dart';
 import 'actions.dart';
 import 'clipboard.dart';
 import 'color.dart';
+import 'compose_box.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
@@ -331,13 +332,12 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // or when a DM recipient becomes deactivated.
     var composeBoxController = findMessageListPage().composeBoxController;
     if (composeBoxController == null) return;
-    final topicController = composeBoxController.topicController;
     if (
-      topicController != null
-      && topicController.textNormalized == kNoTopicTopic
+      composeBoxController is StreamComposeBoxController
+      && composeBoxController.topicController.textNormalized == kNoTopicTopic
       && message is StreamMessage
     ) {
-      topicController.value = TextEditingValue(text: message.topic);
+      composeBoxController.topicController.value = TextEditingValue(text: message.topic);
     }
 
     // This inserts a "[Quoting…]" placeholder into the content input,

@@ -230,8 +230,8 @@ void main() {
 
   group('QuoteAndReplyButton', () {
     ComposeBoxController? findComposeBoxController(WidgetTester tester) {
-      return tester.widgetList<ComposeBox>(find.byType(ComposeBox))
-        .singleOrNull?.controllerKey?.currentState;
+      return tester.stateList<ComposeBoxState>(find.byType(ComposeBox))
+        .singleOrNull?.controller;
     }
 
     Widget? findQuoteAndReplyButton(WidgetTester tester) {
@@ -283,14 +283,14 @@ void main() {
       final message = eg.streamMessage();
       await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
 
-      final composeBoxController = findComposeBoxController(tester)!;
+      final composeBoxController = findComposeBoxController(tester) as StreamComposeBoxController;
       final contentController = composeBoxController.contentController;
 
       // Ensure channel-topics are loaded before testing quote & reply behavior
       connection.prepare(body:
         jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
       final topicController = composeBoxController.topicController;
-      topicController?.value = const TextEditingValue(text: kNoTopicTopic);
+      topicController.value = const TextEditingValue(text: kNoTopicTopic);
 
       final valueBefore = contentController.value;
       prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');

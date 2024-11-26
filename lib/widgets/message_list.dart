@@ -213,9 +213,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   late Narrow narrow;
 
   @override
-  ComposeBoxController? get composeBoxController => _composeBoxKey.currentState;
+  ComposeBoxController? get composeBoxController => _composeBoxKey.currentState?.controller;
 
-  final GlobalKey<ComposeBoxController> _composeBoxKey = GlobalKey();
+  final GlobalKey<ComposeBoxState> _composeBoxKey = GlobalKey();
 
   @override
   void initState() {
@@ -302,7 +302,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               child: Expanded(
                 child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
             if (ComposeBox.hasComposeBox(narrow))
-              ComposeBox(controllerKey: _composeBoxKey, narrow: narrow)
+              ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
   }
 }
