@@ -1097,37 +1097,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
   }
 }
 
-sealed class ComposeBoxController {
-  ComposeContentController get content => _content;
-  final _content = ComposeContentController();
-
-  FocusNode get contentFocusNode => _contentFocusNode;
-  final _contentFocusNode = FocusNode();
-
-  @mustCallSuper
-  void dispose() {
-    _content.dispose();
-    _contentFocusNode.dispose();
-  }
-}
-
-class StreamComposeBoxController extends ComposeBoxController {
-  ComposeTopicController get topic => _topic;
-  final _topic = ComposeTopicController();
-
-  FocusNode get topicFocusNode => _topicFocusNode;
-  final _topicFocusNode = FocusNode();
-
-  @override
-  void dispose() {
-    _topic.dispose();
-    _topicFocusNode.dispose();
-    super.dispose();
-  }
-}
-
-class FixedDestinationComposeBoxController extends ComposeBoxController {}
-
 /// A compose box for use in a channel narrow.
 ///
 /// This offers a text input for the topic to send to,
@@ -1163,27 +1132,6 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   );
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: designVariables.errorBannerBackground,
-        border: Border.all(color: designVariables.errorBannerBorder),
-        borderRadius: BorderRadius.circular(5)),
-      child: Text(label,
-        style: TextStyle(fontSize: 18, color: designVariables.errorBannerLabel),
-      ),
-    );
-  }
-}
-
 class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
 
@@ -1206,6 +1154,58 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
     contentController: controller.content,
     getDestination: () => narrow.destination,
   );
+}
+
+sealed class ComposeBoxController {
+  ComposeContentController get content => _content;
+  final _content = ComposeContentController();
+
+  FocusNode get contentFocusNode => _contentFocusNode;
+  final _contentFocusNode = FocusNode();
+
+  @mustCallSuper
+  void dispose() {
+    _content.dispose();
+    _contentFocusNode.dispose();
+  }
+}
+
+class StreamComposeBoxController extends ComposeBoxController {
+  ComposeTopicController get topic => _topic;
+  final _topic = ComposeTopicController();
+
+  FocusNode get topicFocusNode => _topicFocusNode;
+  final _topicFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _topic.dispose();
+    _topicFocusNode.dispose();
+    super.dispose();
+  }
+}
+
+class FixedDestinationComposeBoxController extends ComposeBoxController {}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: designVariables.errorBannerBackground,
+        border: Border.all(color: designVariables.errorBannerBorder),
+        borderRadius: BorderRadius.circular(5)),
+      child: Text(label,
+        style: TextStyle(fontSize: 18, color: designVariables.errorBannerLabel),
+      ),
+    );
+  }
 }
 
 class ComposeBox extends StatefulWidget {
