@@ -327,8 +327,10 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
     // This will be null only if the compose box disappeared after the
     // message action sheet opened, and before "Quote and reply" was pressed.
-    // Currently a compose box can't ever disappear, so this is impossible.
-    var composeBoxController = findMessageListPage().composeBoxController!;
+    // This is rare: it happens when the self-user loses posting permission
+    // or when a DM recipient becomes deactivated.
+    var composeBoxController = findMessageListPage().composeBoxController;
+    if (composeBoxController == null) return;
     final topicController = composeBoxController.topicController;
     if (
       topicController != null
@@ -354,9 +356,10 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (!pageContext.mounted) return;
 
     // This will be null only if the compose box disappeared during the
-    // quotation request. Currently a compose box can't ever disappear,
-    // so this is impossible.
-    composeBoxController = findMessageListPage().composeBoxController!;
+    // quotation request. This is rare: it happens when the self-user loses
+    // posting permission or when a DM recipient becomes deactivated.
+    composeBoxController = findMessageListPage().composeBoxController;
+    if (composeBoxController == null) return;
     composeBoxController.contentController
       .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(pageContext), tag,
         message: message,

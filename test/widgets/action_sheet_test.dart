@@ -43,10 +43,16 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Narrow narrow,
 }) async {
   addTearDown(testBinding.reset);
+  assert(narrow.containsMessage(message));
 
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-  await store.addUsers([eg.selfUser, eg.user(userId: message.senderId)]);
+  await store.addUsers([
+    eg.selfUser,
+    eg.user(userId: message.senderId),
+    if (narrow is DmNarrow)
+      ...narrow.otherRecipientIds.map((id) => eg.user(userId: id)),
+  ]);
   if (message is StreamMessage) {
     final stream = eg.stream(streamId: message.streamId);
     await store.addStream(stream);
@@ -313,6 +319,22 @@ void main() {
         checkSuccessState(store, contentController,
           valueBefore: valueBefore, message: message, rawContent: 'Hello world');
       });
+
+      testWidgets('no error if user lost posting permission after action sheet opened', (tester) async {
+        final stream = eg.stream();
+        final message = eg.streamMessage(stream: stream);
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId,
+          role: UserRole.guest));
+        await store.handleEvent(eg.channelUpdateEvent(stream,
+          property: ChannelPropertyName.channelPostPolicy,
+          value: ChannelPostPolicy.administrators));
+        await tester.pump();
+
+        await tapQuoteAndReplyButton(tester);
+        // no error
+      });
     });
 
     group('in DM narrow', () {
@@ -332,6 +354,27 @@ void main() {
         check(composeBoxController.contentFocusNode.hasFocus).isTrue();
         checkSuccessState(store, contentController,
           valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+      });
+
+      testWidgets('no error if recipient was deactivated while raw-content request in progress', (tester) async {
+        final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+
+        prepareRawContentResponseSuccess(
+          message: message,
+          rawContent: 'Hello world',
+          delay: const Duration(seconds: 5),
+        );
+        await tapQuoteAndReplyButton(tester);
+        await tester.pump(const Duration(seconds: 1)); // message not yet fetched
+
+        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.otherUser.userId,
+          isActive: false));
+        await tester.pump();
+        // no error
+        await tester.pump(const Duration(seconds: 4));
       });
     });
 
