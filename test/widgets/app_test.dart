@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +7,6 @@ import 'package:zulip/log.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
@@ -41,7 +42,7 @@ void main() {
       ]);
     });
 
-    testWidgets('when have accounts, go to inbox for first account', (tester) async {
+    testWidgets('when have accounts, go to home page for first account', (tester) async {
       // We'll need per-account data for the account that a page will be opened
       // for, but not for the other account.
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -49,13 +50,9 @@ void main() {
       await prepare(tester);
 
       check(pushedRoutes).deepEquals(<Condition<Object?>>[
-        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
         (it) => it.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(eg.selfAccount.id)
           ..page.isA<HomePage>(),
-        (it) => it.isA<MaterialAccountWidgetRoute>()
-          ..accountId.equals(eg.selfAccount.id)
-          ..page.isA<InboxPage>(),
       ]);
     });
   });
@@ -160,6 +157,45 @@ void main() {
       check(tester.getRect(findButton(withText: buttonText)))
         ..top.isGreaterThan(1 / 3 * screenHeight)
         ..bottom.isLessThan(2 / 3 * screenHeight);
+    });
+
+    testWidgets('choosing an account clears the navigator stack', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
+
+      final pushedRoutes = <Route<dynamic>>[];
+      final poppedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) {
+        poppedRoutes.add(prevRoute!);
+        pushedRoutes.add(route!);
+      };
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump();
+
+      final navigator = await ZulipApp.navigator;
+      unawaited(navigator.push(
+        MaterialWidgetRoute(page: const ChooseAccountPage())));
+      await tester.pumpAndSettle();
+
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(eg.selfAccount.id)
+          ..page.isA<HomePage>(),
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>()
+      ]);
+      pushedRoutes.clear();
+
+      await tester.tap(find.text(eg.otherAccount.email));
+      await tester.pump();
+      check(poppedRoutes).length.equals(2);
+      check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(eg.otherAccount.id)
+        ..page.isA<HomePage>();
     });
 
     group('log out', () {
