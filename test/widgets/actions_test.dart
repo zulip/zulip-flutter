@@ -182,8 +182,10 @@ void main() {
 
       final pushedRoutes = <Route<dynamic>>[];
       testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      final account1Route = InboxPage.buildRoute(accountId: account1.id);
-      final account2Route = InboxPage.buildRoute(accountId: account2.id);
+      final account1Route = MaterialAccountWidgetRoute(
+        accountId: account1.id, page: const InboxPageBody());
+      final account2Route = MaterialAccountWidgetRoute(
+        accountId: account2.id, page: const InboxPageBody());
       unawaited(navigator.push(account1Route));
       unawaited(navigator.push(account2Route));
       await tester.pumpAndSettle();
