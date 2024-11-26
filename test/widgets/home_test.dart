@@ -41,8 +41,7 @@ void main () {
       id: 0, message: eg.streamMessage(stream: stream, sender: eg.otherUser)));
 
     await tester.pumpWidget(TestZulipApp(
-      accountId: eg.selfAccount.id,
-      child: const HomePage()));
+      accountId: eg.selfAccount.id, child: const HomePage()));
     await tester.pumpAndSettle();
   }
 
