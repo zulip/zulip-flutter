@@ -326,12 +326,11 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
   @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
-    // This will be null only if the compose box disappeared after the
-    // message action sheet opened, and before "Quote and reply" was pressed.
-    // This is rare: it happens when the self-user loses posting permission
-    // or when a DM recipient becomes deactivated.
     var composeBoxController = findMessageListPage().composeBoxController;
-    if (composeBoxController == null) return;
+    // The compose box doesn't null out its controller; it's either always null
+    // (e.g. in Combined Feed) or always non-null; it can't have been nulled out
+    // after the action sheet opened.
+    composeBoxController!;
     if (
       composeBoxController is StreamComposeBoxController
       && composeBoxController.topic.textNormalized == kNoTopicTopic
@@ -355,12 +354,11 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
     if (!pageContext.mounted) return;
 
-    // This will be null only if the compose box disappeared during the
-    // quotation request. This is rare: it happens when the self-user loses
-    // posting permission or when a DM recipient becomes deactivated.
     composeBoxController = findMessageListPage().composeBoxController;
-    if (composeBoxController == null) return;
-    composeBoxController.content
+    // The compose box doesn't null out its controller; it's either always null
+    // (e.g. in Combined Feed) or always non-null; it can't have been nulled out
+    // during the raw-content request.
+    composeBoxController!.content
       .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(pageContext), tag,
         message: message,
         rawContent: rawContent,

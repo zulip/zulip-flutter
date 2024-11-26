@@ -1134,25 +1134,13 @@ class FixedDestinationComposeBoxController extends ComposeBoxController {}
 ///
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
-class _StreamComposeBox extends StatefulWidget {
-  const _StreamComposeBox({super.key, required this.narrow});
+class _StreamComposeBox extends StatelessWidget {
+  const _StreamComposeBox({required this.narrow, required this.controller});
 
   /// The narrow on view in the message list.
   final ChannelNarrow narrow;
 
-  @override
-  State<_StreamComposeBox> createState() => _StreamComposeBoxState();
-}
-
-class _StreamComposeBoxState extends State<_StreamComposeBox> {
-  StreamComposeBoxController get controller => _controller;
-  final _controller = StreamComposeBoxController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final StreamComposeBoxController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -1164,13 +1152,13 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
       contentController: content,
       contentFocusNode: contentFocusNode,
       topicInput: _TopicInput(
-        streamId: widget.narrow.streamId,
+        streamId: narrow.streamId,
         controller: topic,
         focusNode: topicFocusNode,
         contentFocusNode: contentFocusNode,
       ),
       contentInput: _StreamContentInput(
-        narrow: widget.narrow,
+        narrow: narrow,
         topicController: topic,
         controller: content,
         focusNode: contentFocusNode,
@@ -1179,7 +1167,7 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
         topicController: topic,
         contentController: content,
         getDestination: () => StreamDestination(
-          widget.narrow.streamId, topic.textNormalized),
+          narrow.streamId, topic.textNormalized),
       ));
   }
 }
@@ -1205,24 +1193,12 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-class _FixedDestinationComposeBox extends StatefulWidget {
-  const _FixedDestinationComposeBox({super.key, required this.narrow});
+class _FixedDestinationComposeBox extends StatelessWidget {
+  const _FixedDestinationComposeBox({required this.narrow, required this.controller});
 
   final SendableNarrow narrow;
 
-  @override
-  State<_FixedDestinationComposeBox> createState() => _FixedDestinationComposeBoxState();
-}
-
-class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox> {
-  FixedDestinationComposeBoxController get controller => _controller;
-  final _controller = FixedDestinationComposeBoxController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final FixedDestinationComposeBoxController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -1235,14 +1211,14 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
       contentFocusNode: contentFocusNode,
       topicInput: null,
       contentInput: _FixedDestinationContentInput(
-        narrow: widget.narrow,
+        narrow: narrow,
         controller: content,
         focusNode: contentFocusNode,
       ),
       sendButton: _SendButton(
         topicController: null,
         contentController: content,
-        getDestination: () => widget.narrow.destination,
+        getDestination: () => narrow.destination,
       ));
   }
 }
@@ -1273,19 +1249,34 @@ class ComposeBox extends StatefulWidget {
 
 /// The interface for the state of a [ComposeBox].
 abstract class ComposeBoxState extends State<ComposeBox> {
-  ComposeBoxController? get controller;
+  ComposeBoxController get controller;
 }
 
 class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
-  @override ComposeBoxController? get controller {
-    final forStream = _streamComposeBoxControllerKey.currentState?.controller;
-    final forFixedDestination = _fixedDestinationComposeBoxControllerKey.currentState?.controller;
-    assert(forStream == null || forFixedDestination == null);
-    // Both can be null (error-banner case).
-    return forStream ?? forFixedDestination;
+  @override ComposeBoxController get controller => _controller;
+  late final ComposeBoxController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    switch (widget.narrow) {
+      case ChannelNarrow():
+        _controller = StreamComposeBoxController();
+      case TopicNarrow():
+      case DmNarrow():
+        _controller = FixedDestinationComposeBoxController();
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        assert(false);
+    }
   }
-  final _streamComposeBoxControllerKey = GlobalKey<_StreamComposeBoxState>();
-  final _fixedDestinationComposeBoxControllerKey = GlobalKey<_FixedDestinationComposeBoxState>();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   Widget? _errorBanner(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -1324,13 +1315,14 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
     final narrow = widget.narrow;
     switch (narrow) {
       case ChannelNarrow():
-        return _StreamComposeBox(key: _streamComposeBoxControllerKey, narrow: narrow);
+        _controller as StreamComposeBoxController;
+        return _StreamComposeBox(controller: _controller, narrow: narrow);
       case TopicNarrow():
-        return _FixedDestinationComposeBox(key: _fixedDestinationComposeBoxControllerKey,
-          narrow: narrow);
+        _controller as FixedDestinationComposeBoxController;
+        return _FixedDestinationComposeBox(controller: _controller, narrow: narrow);
       case DmNarrow():
-        return _FixedDestinationComposeBox(key: _fixedDestinationComposeBoxControllerKey,
-          narrow: narrow);
+        _controller as FixedDestinationComposeBoxController;
+        return _FixedDestinationComposeBox(controller: _controller, narrow: narrow);
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
