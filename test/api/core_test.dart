@@ -24,8 +24,7 @@ void main() {
     Future<http.BaseRequest> makeRequest(String realmUrl, String requestUrl, {
       bool? useAuth,
     }) {
-      final account = eg.account(user: eg.selfUser, apiKey: eg.selfAccount.apiKey,
-        realmUrl: Uri.parse(realmUrl));
+      final account = eg.selfAccount.copyWith(realmUrl: Uri.parse(realmUrl));
       return FakeApiConnection.with_(account: account, (connection) async {
         connection.prepare(json: {});
         final request = http.Request('GET', Uri.parse(requestUrl));
