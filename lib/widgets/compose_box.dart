@@ -1010,13 +1010,50 @@ class _SendButtonState extends State<_SendButton> {
 }
 
 class _ComposeBoxContainer extends StatelessWidget {
-  const _ComposeBoxContainer({required this.child});
+  const _ComposeBoxContainer({
+    required this.body,
+    this.errorBanner,
+  }) : assert(body != null || errorBanner != null);
 
-  final Widget child;
+  /// The text inputs, compose-button row, and send button.
+  ///
+  /// This widget does not need a [SafeArea] to consume any device insets.
+  ///
+  /// Can be null, but only if [errorBanner] is non-null.
+  final Widget? body;
+
+  /// An error bar that goes at the top.
+  ///
+  /// This may be present on its own or with a [body].
+  /// If [body] is null this must be present.
+  ///
+  /// This widget should use a [SafeArea] to pad the left, right,
+  /// and bottom device insets.
+  /// (A bottom inset may occur if [body] is null.)
+  final Widget? errorBanner;
+
+  Widget _paddedBody() {
+    assert(body != null);
+    return SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
+      child: body!);
+  }
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+
+    final List<Widget> children = switch ((errorBanner, body)) {
+      (Widget(), Widget()) => [
+        // _paddedBody() already pads the bottom inset,
+        // so make sure the error banner doesn't double-pad it.
+        MediaQuery.removePadding(context: context, removeBottom: true,
+          child: errorBanner!),
+        _paddedBody(),
+      ],
+      (Widget(),     null) => [errorBanner!],
+      (null,     Widget()) => [_paddedBody()],
+      (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
+    };
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
     //   the message list itself
@@ -1025,8 +1062,8 @@ class _ComposeBoxContainer extends StatelessWidget {
         border: Border(top: BorderSide(color: designVariables.borderBar))),
       child: Material(
         color: designVariables.composeBoxBg,
-        child: SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
-          child: child)));
+        child: Column(
+          children: children)));
   }
 }
 
@@ -1194,16 +1231,30 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    return Container(
-      padding: const EdgeInsets.all(8),
+    final labelTextStyle = TextStyle(
+      fontSize: 17,
+      height: 22 / 17,
+      color: designVariables.btnLabelAttMediumIntDanger,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: designVariables.errorBannerBackground,
-        border: Border.all(color: designVariables.errorBannerBorder),
-        borderRadius: BorderRadius.circular(5)),
-      child: Text(label,
-        style: TextStyle(fontSize: 18, color: designVariables.errorBannerLabel),
-      ),
-    );
+        color: designVariables.bannerBgIntDanger),
+      child: SafeArea(
+        minimum: const EdgeInsetsDirectional.only(start: 8)
+          // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
+          .resolve(Directionality.of(context)),
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8, 9, 0, 9),
+                child: Text(style: labelTextStyle,
+                  label))),
+            const SizedBox(width: 8),
+            // TODO(#720) "x" button goes here.
+            //   24px square with 8px touchable padding in all directions?
+          ])));
   }
 }
 
@@ -1291,13 +1342,14 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
 
   @override
   Widget build(BuildContext context) {
+    final Widget? body;
+
     final errorBanner = _errorBanner(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(child: errorBanner);
+      return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
     }
 
     final narrow = widget.narrow;
-    final Widget body;
     switch (narrow) {
       case ChannelNarrow():
         _controller as StreamComposeBoxController;
@@ -1312,9 +1364,14 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
       case MentionsNarrow():
       case StarredMessagesNarrow():
         assert(false);
-        body = const SizedBox.shrink();
+        body = null;
     }
 
-    return _ComposeBoxContainer(child: body);
+    // TODO(#720) dismissable message-send error, maybe something like:
+    //     if (controller.sendMessageError.value != null) {
+    //       errorBanner = _ErrorBanner(label:
+    //         ZulipLocalizations.of(context).errorSendMessageTimeout);
+    //     }
+    return _ComposeBoxContainer(body: body, errorBanner: null);
   }
 }

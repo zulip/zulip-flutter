@@ -114,10 +114,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.light() :
     this._(
       background: const Color(0xffffffff),
+      bannerBgIntDanger: const Color(0xfff2e4e4),
       bgContextMenu: const Color(0xfff2f2f2),
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
       bgTopBar: const Color(0xfff5f5f5),
       borderBar: Colors.black.withValues(alpha: 0.2),
+      btnLabelAttLowIntDanger: const Color(0xffc0070a),
+      btnLabelAttMediumIntDanger: const Color(0xffac0508),
       composeBoxBg: const Color(0xffffffff),
       contextMenuCancelText: const Color(0xff222222),
       contextMenuItemBg: const Color(0xff6159e1),
@@ -135,9 +138,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
       contextMenuCancelBg: const Color(0xff797986),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      errorBannerBackground: const HSLColor.fromAHSL(1, 4, 0.33, 0.90).toColor(),
-      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.57, 0.33).toColor(),
-      errorBannerLabel: const HSLColor.fromAHSL(1, 4, 0.58, 0.33).toColor(),
       groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
       groupDmConversationIconBg: const Color(0x33808080),
       loginOrDivider: const Color(0xffdedede),
@@ -154,10 +154,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   DesignVariables.dark() :
     this._(
       background: const Color(0xff000000),
+      bannerBgIntDanger: const Color(0xff461616),
       bgContextMenu: const Color(0xff262626),
       bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
       bgTopBar: const Color(0xff242424),
       borderBar: Colors.black.withValues(alpha: 0.5),
+      btnLabelAttLowIntDanger: const Color(0xffff8b7c),
+      btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
       composeBoxBg: const Color(0xff0f0f0f),
       contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
       contextMenuItemBg: const Color(0xff7977fe),
@@ -176,9 +179,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       atMentionMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
       dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      errorBannerBackground: const HSLColor.fromAHSL(1, 0, 0.61, 0.19).toColor(),
-      errorBannerBorder: const HSLColor.fromAHSL(0.4, 3, 0.73, 0.74).toColor(),
-      errorBannerLabel: const HSLColor.fromAHSL(1, 2, 0.73, 0.80).toColor(),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
@@ -201,10 +201,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   DesignVariables._({
     required this.background,
+    required this.bannerBgIntDanger,
     required this.bgContextMenu,
     required this.bgCounterUnread,
     required this.bgTopBar,
     required this.borderBar,
+    required this.btnLabelAttLowIntDanger,
+    required this.btnLabelAttMediumIntDanger,
     required this.composeBoxBg,
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
@@ -222,9 +225,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.atMentionMarker,
     required this.contextMenuCancelBg,
     required this.dmHeaderBg,
-    required this.errorBannerBackground,
-    required this.errorBannerBorder,
-    required this.errorBannerLabel,
     required this.groupDmConversationIcon,
     required this.groupDmConversationIconBg,
     required this.loginOrDivider,
@@ -249,10 +249,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }
 
   final Color background;
+  final Color bannerBgIntDanger;
   final Color bgContextMenu;
   final Color bgCounterUnread;
   final Color bgTopBar;
   final Color borderBar;
+  final Color btnLabelAttLowIntDanger;
+  final Color btnLabelAttMediumIntDanger;
   final Color composeBoxBg;
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
@@ -274,9 +277,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color atMentionMarker;
   final Color contextMenuCancelBg; // In Figma, but unnamed.
   final Color dmHeaderBg;
-  final Color errorBannerBackground;
-  final Color errorBannerBorder;
-  final Color errorBannerLabel;
   final Color groupDmConversationIcon;
   final Color groupDmConversationIconBg;
   final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
@@ -292,10 +292,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   @override
   DesignVariables copyWith({
     Color? background,
+    Color? bannerBgIntDanger,
     Color? bgContextMenu,
     Color? bgCounterUnread,
     Color? bgTopBar,
     Color? borderBar,
+    Color? btnLabelAttLowIntDanger,
+    Color? btnLabelAttMediumIntDanger,
     Color? composeBoxBg,
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
@@ -313,9 +316,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? atMentionMarker,
     Color? contextMenuCancelBg,
     Color? dmHeaderBg,
-    Color? errorBannerBackground,
-    Color? errorBannerBorder,
-    Color? errorBannerLabel,
     Color? groupDmConversationIcon,
     Color? groupDmConversationIconBg,
     Color? loginOrDivider,
@@ -330,10 +330,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }) {
     return DesignVariables._(
       background: background ?? this.background,
+      bannerBgIntDanger: bannerBgIntDanger ?? this.bannerBgIntDanger,
       bgContextMenu: bgContextMenu ?? this.bgContextMenu,
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
+      btnLabelAttLowIntDanger: btnLabelAttLowIntDanger ?? this.btnLabelAttLowIntDanger,
+      btnLabelAttMediumIntDanger: btnLabelAttMediumIntDanger ?? this.btnLabelAttMediumIntDanger,
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
@@ -351,9 +354,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
       contextMenuCancelBg: contextMenuCancelBg ?? this.contextMenuCancelBg,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
-      errorBannerBackground: errorBannerBackground ?? this.errorBannerBackground,
-      errorBannerBorder: errorBannerBorder ?? this.errorBannerBorder,
-      errorBannerLabel: errorBannerLabel ?? this.errorBannerLabel,
       groupDmConversationIcon: groupDmConversationIcon ?? this.groupDmConversationIcon,
       groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
@@ -375,10 +375,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     }
     return DesignVariables._(
       background: Color.lerp(background, other.background, t)!,
+      bannerBgIntDanger: Color.lerp(bannerBgIntDanger, other.bannerBgIntDanger, t)!,
       bgContextMenu: Color.lerp(bgContextMenu, other.bgContextMenu, t)!,
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
+      btnLabelAttLowIntDanger: Color.lerp(btnLabelAttLowIntDanger, other.btnLabelAttLowIntDanger, t)!,
+      btnLabelAttMediumIntDanger: Color.lerp(btnLabelAttMediumIntDanger, other.btnLabelAttMediumIntDanger, t)!,
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
       contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
       contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
@@ -396,9 +399,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
       contextMenuCancelBg: Color.lerp(contextMenuCancelBg, other.contextMenuCancelBg, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
-      errorBannerBackground: Color.lerp(errorBannerBackground, other.errorBannerBackground, t)!,
-      errorBannerBorder: Color.lerp(errorBannerBorder, other.errorBannerBorder, t)!,
-      errorBannerLabel: Color.lerp(errorBannerLabel, other.errorBannerLabel, t)!,
       groupDmConversationIcon: Color.lerp(groupDmConversationIcon, other.groupDmConversationIcon, t)!,
       groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
