@@ -284,12 +284,12 @@ void main() {
       await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
 
       final composeBoxController = findComposeBoxController(tester) as StreamComposeBoxController;
-      final contentController = composeBoxController.contentController;
+      final contentController = composeBoxController.content;
 
       // Ensure channel-topics are loaded before testing quote & reply behavior
       connection.prepare(body:
         jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
-      final topicController = composeBoxController.topicController;
+      final topicController = composeBoxController.topic;
       topicController.value = const TextEditingValue(text: kNoTopicTopic);
 
       final valueBefore = contentController.value;
@@ -308,7 +308,7 @@ void main() {
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
         final composeBoxController = findComposeBoxController(tester)!;
-        final contentController = composeBoxController.contentController;
+        final contentController = composeBoxController.content;
 
         final valueBefore = contentController.value;
         prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
@@ -344,7 +344,7 @@ void main() {
           message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
 
         final composeBoxController = findComposeBoxController(tester)!;
-        final contentController = composeBoxController.contentController;
+        final contentController = composeBoxController.content;
 
         final valueBefore = contentController.value;
         prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
@@ -383,7 +383,7 @@ void main() {
       await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
       final composeBoxController = findComposeBoxController(tester)!;
-      final contentController = composeBoxController.contentController;
+      final contentController = composeBoxController.content;
 
       final valueBefore = contentController.value = TextEditingValue.empty;
       prepareRawContentResponseError();

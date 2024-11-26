@@ -1100,29 +1100,29 @@ class _ComposeBoxLayout extends StatelessWidget {
 }
 
 sealed class ComposeBoxController {
-  ComposeContentController get contentController => _contentController;
-  final _contentController = ComposeContentController();
+  ComposeContentController get content => _content;
+  final _content = ComposeContentController();
 
   FocusNode get contentFocusNode => _contentFocusNode;
   final _contentFocusNode = FocusNode();
 
   @mustCallSuper
   void dispose() {
-    _contentController.dispose();
+    _content.dispose();
     _contentFocusNode.dispose();
   }
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  ComposeTopicController get topicController => _topicController;
-  final _topicController = ComposeTopicController();
+  ComposeTopicController get topic => _topic;
+  final _topic = ComposeTopicController();
 
   FocusNode get topicFocusNode => _topicFocusNode;
   final _topicFocusNode = FocusNode();
 
   @override
   void dispose() {
-    _topicController.dispose();
+    _topic.dispose();
     _topicFocusNode.dispose();
     super.dispose();
   }
@@ -1157,29 +1157,29 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> {
   @override
   Widget build(BuildContext context) {
     final StreamComposeBoxController(
-      :topicController, :contentController, :topicFocusNode, :contentFocusNode,
+      :topic, :content, :topicFocusNode, :contentFocusNode,
     ) = controller;
 
     return _ComposeBoxLayout(
-      contentController: contentController,
+      contentController: content,
       contentFocusNode: contentFocusNode,
       topicInput: _TopicInput(
         streamId: widget.narrow.streamId,
-        controller: topicController,
+        controller: topic,
         focusNode: topicFocusNode,
         contentFocusNode: contentFocusNode,
       ),
       contentInput: _StreamContentInput(
         narrow: widget.narrow,
-        topicController: topicController,
-        controller: contentController,
+        topicController: topic,
+        controller: content,
         focusNode: contentFocusNode,
       ),
       sendButton: _SendButton(
-        topicController: topicController,
-        contentController: contentController,
+        topicController: topic,
+        contentController: content,
         getDestination: () => StreamDestination(
-          widget.narrow.streamId, topicController.textNormalized),
+          widget.narrow.streamId, topic.textNormalized),
       ));
   }
 }
@@ -1227,21 +1227,21 @@ class _FixedDestinationComposeBoxState extends State<_FixedDestinationComposeBox
   @override
   Widget build(BuildContext context) {
     final FixedDestinationComposeBoxController(
-      :contentController, :contentFocusNode,
+      :content, :contentFocusNode,
     ) = controller;
 
     return _ComposeBoxLayout(
-      contentController: contentController,
+      contentController: content,
       contentFocusNode: contentFocusNode,
       topicInput: null,
       contentInput: _FixedDestinationContentInput(
         narrow: widget.narrow,
-        controller: contentController,
+        controller: content,
         focusNode: contentFocusNode,
       ),
       sendButton: _SendButton(
         topicController: null,
-        contentController: contentController,
+        contentController: content,
         getDestination: () => widget.narrow.destination,
       ));
   }

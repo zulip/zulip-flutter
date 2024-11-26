@@ -334,15 +334,15 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (composeBoxController == null) return;
     if (
       composeBoxController is StreamComposeBoxController
-      && composeBoxController.topicController.textNormalized == kNoTopicTopic
+      && composeBoxController.topic.textNormalized == kNoTopicTopic
       && message is StreamMessage
     ) {
-      composeBoxController.topicController.value = TextEditingValue(text: message.topic);
+      composeBoxController.topic.value = TextEditingValue(text: message.topic);
     }
 
     // This inserts a "[Quoting…]" placeholder into the content input,
     // giving the user a form of progress feedback.
-    final tag = composeBoxController.contentController
+    final tag = composeBoxController.content
       .registerQuoteAndReplyStart(PerAccountStoreWidget.of(pageContext),
         message: message,
       );
@@ -360,7 +360,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // posting permission or when a DM recipient becomes deactivated.
     composeBoxController = findMessageListPage().composeBoxController;
     if (composeBoxController == null) return;
-    composeBoxController.contentController
+    composeBoxController.content
       .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(pageContext), tag,
         message: message,
         rawContent: rawContent,
