@@ -154,10 +154,14 @@ Account account({
   String? ackedPushToken,
 }) {
   _checkPositive(id, 'account ID');
+  // When `user.deliveryEmail` is null, using `user.email`
+  // wouldn't be realistic: it's going to be a fake email address
+  // generated to serve as a "Zulip API email".
+  final email = user.deliveryEmail ?? _nextEmail();
   return Account(
     id: id ?? 1000, // TODO generate example IDs
     realmUrl: realmUrl ?? _realmUrl,
-    email: user.email,
+    email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
