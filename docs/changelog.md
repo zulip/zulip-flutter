@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.22 (2024-11-26)
+
 ### Highlights for users
 
 * (Android) Notifications now use Zulip's custom sound by default. (#340)
