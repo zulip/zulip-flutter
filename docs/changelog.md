@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* (Android) Notifications now use Zulip's custom sound by default. (#340)
+* New visual design for the compose box. (#915)
+* Autocomplete for emoji (":smile:"). (#670)
+* Support for logging out of an account. (#463)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* The generated localization files are now tracked in version control
+  instead of going in an ephemeral `flutter_gen` package, so switching
+  branches should no longer cause analysis issues (which used to
+  require running `flutter pub get` or another command to
+  resolve). (PR #1058)
+
+* Resolved: #463, #340, #674, #915, PR #1058, #563, #1040, #1082,
+  #669, #670, #360
+
 
 ## 0.0.21 (2024-11-13)
 
