@@ -645,16 +645,16 @@ void main() {
     });
   });
 
-  group('UserMention', () {
+  group('Mention', () {
     testContentSmoke(ContentExample.userMentionPlain);
     testContentSmoke(ContentExample.userMentionSilent);
     testContentSmoke(ContentExample.groupMentionPlain);
     testContentSmoke(ContentExample.groupMentionSilent);
 
-    UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
-      UserMention? result;
+    Mention? findMentionWidgetInSpan(InlineSpan rootSpan) {
+      Mention? result;
       rootSpan.visitChildren((span) {
-        if (span case (WidgetSpan(child: UserMention() && var widget))) {
+        if (span case (WidgetSpan(child: Mention() && var widget))) {
           result = widget;
           return false;
         }
@@ -663,7 +663,7 @@ void main() {
       return result;
     }
 
-    TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
+    TextStyle textStyleFromWidget(WidgetTester tester, Mention widget, String mentionText) {
       final fullNameSpan = tester.renderObject<RenderParagraph>(
         find.descendant(
           of: find.byWidget(widget), matching: find.text(mentionText))
@@ -671,11 +671,11 @@ void main() {
       return mergedStyleOfSubstring(fullNameSpan, mentionText)!;
     }
 
-    testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+    testWidgets('user-mention maintains font-size ratio with surrounding text', (tester) async {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         targetFontSizeFinder: (rootSpan) {
-          final widget = findUserMentionInSpan(rootSpan);
+          final widget = findMentionWidgetInSpan(rootSpan);
           final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
           return style.fontSize!;
         });
@@ -688,7 +688,7 @@ void main() {
         '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>'),
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Greg Price');
+          tester.widget(find.byType(Mention)), 'Greg Price');
       });
 
     // TODO(#647):
@@ -702,11 +702,52 @@ void main() {
         '<h1><span class="user-mention silent" data-user-id="13313">Chris Bobbe</span></h1>'),
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Chris Bobbe');
+          tester.widget(find.byType(Mention)), 'Chris Bobbe');
       });
 
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
+    //    expectedWght: 800, // [etc.]
+
+    testContentSmoke(ContentExample.topicMentionPlain);
+    testContentSmoke(ContentExample.topicMentionSilent);
+
+    testWidgets('topic-mention maintains font-size ratio with surrounding text', (tester) async {
+      await checkFontSizeRatio(tester,
+        targetHtml: '<span class="topic-mention">@topic</span>',
+        targetFontSizeFinder: (rootSpan) {
+          final widget = findMentionWidgetInSpan(rootSpan);
+          final style = textStyleFromWidget(tester, widget!, '@topic');
+          return style.fontSize!;
+        });
+    });
+
+    testFontWeight('silent topic mention in plain paragraph',
+      expectedWght: 400,
+      // @_**topic**
+      content: plainContent(
+        '<p><span class="topic-mention silent">topic</span></p>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), 'topic');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent topic mention in plain paragraph',
+    //    expectedWght: 600, // [etc.]
+
+    testFontWeight('silent topic mention in bold context',
+      expectedWght: 600,
+      // # @_**topic**
+      content: plainContent(
+        '<h1><span class="topic-mention silent">topic</span></h1>'),
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), 'topic');
+      });
+
+    // TODO(#647):
+    //  testFontWeight('non-silent topic mention in bold context',
     //    expectedWght: 800, // [etc.]
   });
 

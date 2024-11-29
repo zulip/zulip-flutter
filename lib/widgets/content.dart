@@ -40,6 +40,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
+      colorTopicMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
@@ -71,6 +72,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
+      colorTopicMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.52, 0.40).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
@@ -101,6 +103,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme._({
     required this.colorCodeBlockBackground,
     required this.colorDirectMentionBackground,
+    required this.colorTopicMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
     required this.colorMathBlockBorder,
@@ -132,6 +135,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   final Color colorCodeBlockBackground;
   final Color colorDirectMentionBackground;
+  final Color colorTopicMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
@@ -189,6 +193,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
     Color? colorDirectMentionBackground,
+    Color? colorTopicMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
     Color? colorMathBlockBorder,
@@ -210,6 +215,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
+      colorTopicMentionBackground: colorTopicMentionBackground ?? this.colorTopicMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
@@ -238,6 +244,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
+      colorTopicMentionBackground: Color.lerp(colorTopicMentionBackground, other.colorTopicMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
@@ -1026,9 +1033,9 @@ class _InlineContentBuilder {
       case InlineCodeNode():
         return _buildInlineCode(node);
 
-      case UserMentionNode():
+      case MentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: UserMention(ambientTextStyle: widget.style, node: node));
+          child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
@@ -1104,15 +1111,15 @@ class _InlineContentBuilder {
 
 const kInlineCodeFontSizeFactor = 0.825;
 
-class UserMention extends StatelessWidget {
-  const UserMention({
+class Mention extends StatelessWidget {
+  const Mention({
     super.key,
     required this.ambientTextStyle,
     required this.node,
   });
 
   final TextStyle ambientTextStyle;
-  final UserMentionNode node;
+  final MentionNode node;
 
   @override
   Widget build(BuildContext context) {
@@ -1120,7 +1127,10 @@ class UserMention extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
-        color: contentTheme.colorDirectMentionBackground,
+        color: switch (node) {
+          UserMentionNode() => contentTheme.colorDirectMentionBackground,
+          TopicMentionNode() => contentTheme.colorTopicMentionBackground,
+        },
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
