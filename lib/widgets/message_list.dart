@@ -347,12 +347,15 @@ class MessageListAppBarTitle extends StatelessWidget {
       case ChannelNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
+        // TODO(i18n): provide translations just as
+        //  'zulipLocalizations.unknownUserName' for 'unknown channel'
         final streamName = stream?.name ?? '(unknown channel)';
         return _buildStreamRow(context, stream: stream, text: streamName);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
+        // TODO(i18n): provide translations for 'unknown channel'
         final streamName = stream?.name ?? '(unknown channel)';
         return _buildStreamRow(context, stream: stream, text: "$streamName > $topic");
 
@@ -361,7 +364,8 @@ class MessageListAppBarTitle extends StatelessWidget {
         if (otherRecipientIds.isEmpty) {
           return const Text("DMs with yourself");
         } else {
-          final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)');
+          final names = otherRecipientIds.map((id) =>
+            store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
           return Text("DMs with ${names.join(", ")}"); // TODO show avatars
         }
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/zulip_localizations.dart';
 
 import '../api/model/model.dart';
 import '../model/narrow.dart';
@@ -368,18 +369,21 @@ class _DmItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final selfUser = store.users[store.selfUserId]!;
 
     final designVariables = DesignVariables.of(context);
 
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
       [] => selfUser.fullName,
-      [var otherUserId] => store.users[otherUserId]?.fullName ?? '(unknown user)',
+      [var otherUserId] => store.users[otherUserId]?.fullName ?? zulipLocalizations.unknownUserName,
 
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
       //   // 'Chris、Greg、Alya、Shu'
-      _ => narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', '),
+      _ => narrow.otherRecipientIds.map((id) =>
+             store.users[id]?.fullName ?? zulipLocalizations.unknownUserName
+           ).join(', '),
     };
 
     return Material(
