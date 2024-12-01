@@ -236,11 +236,15 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('app bar shows sender name and date', (tester) async {
+    testWidgets('app bar shows sender avatar, name and date', (tester) async {
       prepareBoringImageHttpClient();
       final timestamp = DateTime.parse("2024-07-23 23:12:24").millisecondsSinceEpoch ~/ 1000;
       final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
       await setupPage(tester, message: message, thumbnailUrl: null);
+
+      // Check Avatar properties
+      final avatar = tester.widget<Avatar>(find.byType(Avatar));
+      check(avatar.userId).equals(message.senderId);
 
       // We're looking for a RichText, in the app bar, with both the
       // sender's name and the timestamp.
