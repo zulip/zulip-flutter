@@ -658,10 +658,9 @@ Future<void> _uploadFiles({
 }
 
 abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.contentController, required this.contentFocusNode});
+  const _AttachUploadsButton({required this.controller});
 
-  final ComposeContentController contentController;
-  final FocusNode contentFocusNode;
+  final ComposeBoxController controller;
 
   IconData get icon;
   String tooltip(ZulipLocalizations zulipLocalizations);
@@ -689,8 +688,8 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 
     await _uploadFiles(
       context: context,
-      contentController: contentController,
-      contentFocusNode: contentFocusNode,
+      contentController: controller.content,
+      contentFocusNode: controller.contentFocusNode,
       files: files);
   }
 
@@ -762,7 +761,7 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFileButton({required super.controller});
 
   @override
   IconData get icon => ZulipIcons.attach_file;
@@ -778,7 +777,7 @@ class _AttachFileButton extends _AttachUploadsButton {
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.contentController, required super.contentFocusNode});
+  const _AttachMediaButton({required super.controller});
 
   @override
   IconData get icon => ZulipIcons.image;
@@ -795,7 +794,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.contentController, required super.contentFocusNode});
+  const _AttachFromCameraButton({required super.controller});
 
   @override
   IconData get icon => ZulipIcons.camera;
@@ -1096,11 +1095,10 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
-    final ComposeBoxController(:content, :contentFocusNode) = controller;
     final composeButtons = [
-      _AttachFileButton(contentController: content, contentFocusNode: contentFocusNode),
-      _AttachMediaButton(contentController: content, contentFocusNode: contentFocusNode),
-      _AttachFromCameraButton(contentController: content, contentFocusNode: contentFocusNode),
+      _AttachFileButton(controller: controller),
+      _AttachMediaButton(controller: controller),
+      _AttachFromCameraButton(controller: controller),
     ];
 
     final topicInput = buildTopicInput();
