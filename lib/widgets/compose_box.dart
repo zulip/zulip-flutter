@@ -442,17 +442,10 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
-  const _StreamContentInput({
-    required this.narrow,
-    required this.controller,
-    required this.topicController,
-    required this.focusNode,
-  });
+  const _StreamContentInput({required this.narrow, required this.controller});
 
   final ChannelNarrow narrow;
-  final ComposeContentController controller;
-  final ComposeTopicController topicController;
-  final FocusNode focusNode;
+  final StreamComposeBoxController controller;
 
   @override
   State<_StreamContentInput> createState() => _StreamContentInputState();
@@ -463,29 +456,29 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
   void _topicChanged() {
     setState(() {
-      _topicTextNormalized = widget.topicController.textNormalized;
+      _topicTextNormalized = widget.controller.topic.textNormalized;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _topicTextNormalized = widget.topicController.textNormalized;
-    widget.topicController.addListener(_topicChanged);
+    _topicTextNormalized = widget.controller.topic.textNormalized;
+    widget.controller.topic.addListener(_topicChanged);
   }
 
   @override
   void didUpdateWidget(covariant _StreamContentInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.topicController != oldWidget.topicController) {
-      oldWidget.topicController.removeListener(_topicChanged);
-      widget.topicController.addListener(_topicChanged);
+    if (widget.controller.topic != oldWidget.controller.topic) {
+      oldWidget.controller.topic.removeListener(_topicChanged);
+      widget.controller.topic.addListener(_topicChanged);
     }
   }
 
   @override
   void dispose() {
-    widget.topicController.removeListener(_topicChanged);
+    widget.controller.topic.removeListener(_topicChanged);
     super.dispose();
   }
 
@@ -498,8 +491,8 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
-      controller: widget.controller,
-      focusNode: widget.focusNode,
+      controller: widget.controller.content,
+      focusNode: widget.controller.contentFocusNode,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
   }
 }
@@ -1156,9 +1149,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
-    topicController: controller.topic,
-    controller: controller.content,
-    focusNode: controller.contentFocusNode,
+    controller: controller,
   );
 
   @override Widget buildSendButton() => _SendButton(
