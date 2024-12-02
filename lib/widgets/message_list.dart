@@ -552,13 +552,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
-      keyboardDismissBehavior: switch (Theme.of(context).platform) {
-        // This seems to offer the only built-in way to close the keyboard
-        // on iOS. It's not ideal; see TODO above.
-        TargetPlatform.iOS => ScrollViewKeyboardDismissBehavior.onDrag,
-        // The Android keyboard seems to have a built-in close button.
-        _ => ScrollViewKeyboardDismissBehavior.manual,
-      },
+      //   This seems to offer the only built-in way to close the keyboard
+      // on iOS. It's not ideal; see TODO above.
+      // For Android also users gets ability to dismiss the keyboard by dragging the message list.
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
 
       controller: scrollController,
       semanticChildCount: length + 2,
