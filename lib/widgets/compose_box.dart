@@ -493,16 +493,10 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 }
 
 class _TopicInput extends StatelessWidget {
-  const _TopicInput({
-    required this.streamId,
-    required this.controller,
-    required this.focusNode,
-    required this.contentFocusNode});
+  const _TopicInput({required this.streamId, required this.controller});
 
   final int streamId;
-  final ComposeTopicController controller;
-  final FocusNode focusNode;
-  final FocusNode contentFocusNode;
+  final StreamComposeBoxController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -516,17 +510,17 @@ class _TopicInput extends StatelessWidget {
 
     return TopicAutocomplete(
       streamId: streamId,
-      controller: controller,
-      focusNode: focusNode,
-      contentFocusNode: contentFocusNode,
+      controller: controller.topic,
+      focusNode: controller.topicFocusNode,
+      contentFocusNode: controller.contentFocusNode,
       fieldViewBuilder: (context) => Container(
         padding: const EdgeInsets.only(top: 10, bottom: 9),
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
         child: TextField(
-          controller: controller,
-          focusNode: focusNode,
+          controller: controller.topic,
+          focusNode: controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
           decoration: InputDecoration(
@@ -1134,9 +1128,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 
   @override Widget buildTopicInput() => _TopicInput(
     streamId: narrow.streamId,
-    controller: controller.topic,
-    focusNode: controller.topicFocusNode,
-    contentFocusNode: controller.contentFocusNode,
+    controller: controller,
   );
 
   @override Widget buildContentInput() => _StreamContentInput(
