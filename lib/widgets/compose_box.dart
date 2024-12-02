@@ -277,14 +277,12 @@ class _ContentInput extends StatefulWidget {
     required this.narrow,
     required this.destination,
     required this.controller,
-    required this.focusNode,
     required this.hintText,
   });
 
   final Narrow narrow;
   final SendableNarrow destination;
-  final ComposeContentController controller;
-  final FocusNode focusNode;
+  final ComposeBoxController controller;
   final String hintText;
 
   @override
@@ -295,8 +293,8 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_contentChanged);
-    widget.focusNode.addListener(_focusChanged);
+    widget.controller.content.addListener(_contentChanged);
+    widget.controller.contentFocusNode.addListener(_focusChanged);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -304,32 +302,30 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   void didUpdateWidget(covariant _ContentInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
-      oldWidget.controller.removeListener(_contentChanged);
-      widget.controller.addListener(_contentChanged);
-    }
-    if (widget.focusNode != oldWidget.focusNode) {
-      oldWidget.focusNode.removeListener(_focusChanged);
-      widget.focusNode.addListener(_focusChanged);
+      oldWidget.controller.content.removeListener(_contentChanged);
+      widget.controller.content.addListener(_contentChanged);
+      oldWidget.controller.contentFocusNode.removeListener(_focusChanged);
+      widget.controller.contentFocusNode.addListener(_focusChanged);
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_contentChanged);
-    widget.focusNode.removeListener(_focusChanged);
+    widget.controller.content.removeListener(_contentChanged);
+    widget.controller.contentFocusNode.removeListener(_focusChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   void _contentChanged() {
     final store = PerAccountStoreWidget.of(context);
-    (widget.controller.text.isEmpty)
+    (widget.controller.content.text.isEmpty)
       ? store.typingNotifier.stoppedComposing()
       : store.typingNotifier.keystroke(widget.destination);
   }
 
   void _focusChanged() {
-    if (widget.focusNode.hasFocus) {
+    if (widget.controller.contentFocusNode.hasFocus) {
       // Content input getting focus doesn't necessarily mean that
       // the user started typing, so do nothing.
       return;
@@ -397,8 +393,8 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
 
     return ComposeAutocomplete(
       narrow: widget.narrow,
-      controller: widget.controller,
-      focusNode: widget.focusNode,
+      controller: widget.controller.content,
+      focusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight(context)),
         // This [ClipRect] replaces the [TextField] clipping we disable below.
@@ -407,8 +403,8 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
             top: _verticalPadding, bottom: _verticalPadding,
             color: designVariables.composeBoxBg,
             child: TextField(
-              controller: widget.controller,
-              focusNode: widget.focusNode,
+              controller: widget.controller.content,
+              focusNode: widget.controller.contentFocusNode,
               // Let the content show through the `contentPadding` so that
               // our [InsetShadowBox] can fade it smoothly there.
               clipBehavior: Clip.none,
@@ -491,8 +487,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
-      controller: widget.controller.content,
-      focusNode: widget.controller.contentFocusNode,
+      controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
   }
 }
@@ -578,8 +573,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
     return _ContentInput(
       narrow: narrow,
       destination: narrow,
-      controller: controller.content,
-      focusNode: controller.contentFocusNode,
+      controller: controller,
       hintText: _hintText(context));
   }
 }
