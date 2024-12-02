@@ -38,11 +38,12 @@ void main() {
 
   late PerAccountStore store;
   late FakeApiConnection connection;
+  late GlobalKey<ComposeBoxController> controllerKey;
 
   final contentInputFinder = find.byWidgetPredicate(
     (widget) => widget is TextField && widget.controller is ComposeContentController);
 
-  Future<GlobalKey<ComposeBoxController>> prepareComposeBox(WidgetTester tester, {
+  Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
     int? realmWaitingPeriodThreshold,
@@ -65,7 +66,7 @@ void main() {
     await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
-    final controllerKey = GlobalKey<ComposeBoxController>();
+    controllerKey = GlobalKey<ComposeBoxController>();
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: Column(
         // This positions the compose box at the bottom of the screen,
@@ -75,8 +76,6 @@ void main() {
           ComposeBox(controllerKey: controllerKey, narrow: narrow),
         ])));
     await tester.pumpAndSettle();
-
-    return controllerKey;
   }
 
   Future<void> enterTopic(WidgetTester tester, {
@@ -198,7 +197,6 @@ void main() {
 
   group('ComposeBox textCapitalization', () {
     void checkComposeBoxTextFields(WidgetTester tester, {
-      required GlobalKey<ComposeBoxController> controllerKey,
       required bool expectTopicTextField,
     }) {
       final composeBoxController = controllerKey.currentState!;
@@ -222,18 +220,16 @@ void main() {
 
     testWidgets('_StreamComposeBox', (tester) async {
       final channel = eg.stream();
-      final key = await prepareComposeBox(tester,
+      await prepareComposeBox(tester,
         narrow: ChannelNarrow(channel.streamId), streams: [channel]);
-      checkComposeBoxTextFields(tester, controllerKey: key,
-        expectTopicTextField: true);
+      checkComposeBoxTextFields(tester, expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
       final channel = eg.stream();
-      final key = await prepareComposeBox(tester,
+      await prepareComposeBox(tester,
         narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
-      checkComposeBoxTextFields(tester, controllerKey: key,
-        expectTopicTextField: false);
+      checkComposeBoxTextFields(tester, expectTopicTextField: false);
     });
   });
 
@@ -354,7 +350,7 @@ void main() {
     });
 
     testWidgets('selection change sends a "typing started" notice', (tester) async {
-      final controllerKey = await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
       final composeBoxController = controllerKey.currentState!;
 
       await checkStartTyping(tester, narrow);
@@ -474,8 +470,7 @@ void main() {
 
         final channel = eg.stream();
         final narrow = ChannelNarrow(channel.streamId);
-        final controllerKey = await prepareComposeBox(tester,
-          narrow: narrow, streams: [channel]);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
@@ -536,8 +531,7 @@ void main() {
 
         final channel = eg.stream();
         final narrow = ChannelNarrow(channel.streamId);
-        final controllerKey = await prepareComposeBox(tester,
-          narrow: narrow, streams: [channel]);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
         final composeBoxController = controllerKey.currentState!;
 
         // (When we check that the send button looks disabled, it should be because
