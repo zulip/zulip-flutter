@@ -867,14 +867,9 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 }
 
 class _SendButton extends StatefulWidget {
-  const _SendButton({
-    required this.topicController,
-    required this.contentController,
-    required this.getDestination,
-  });
+  const _SendButton({required this.controller, required this.getDestination});
 
-  final ComposeTopicController? topicController;
-  final ComposeContentController contentController;
+  final ComposeBoxController controller;
   final MessageDestination Function() getDestination;
 
   @override
@@ -891,43 +886,62 @@ class _SendButtonState extends State<_SendButton> {
   @override
   void initState() {
     super.initState();
-    widget.topicController?.hasValidationErrors.addListener(_hasErrorsChanged);
-    widget.contentController.hasValidationErrors.addListener(_hasErrorsChanged);
+    final controller = widget.controller;
+    if (controller is StreamComposeBoxController) {
+      controller.topic.hasValidationErrors.addListener(_hasErrorsChanged);
+    }
+    controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
   }
 
   @override
   void didUpdateWidget(covariant _SendButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.topicController != oldWidget.topicController) {
-      oldWidget.topicController?.hasValidationErrors.removeListener(_hasErrorsChanged);
-      widget.topicController?.hasValidationErrors.addListener(_hasErrorsChanged);
+
+    final controller = widget.controller;
+    final oldController = oldWidget.controller;
+    if (controller == oldController) return;
+
+    if (oldController is StreamComposeBoxController) {
+      oldController.topic.hasValidationErrors.removeListener(_hasErrorsChanged);
     }
-    if (widget.contentController != oldWidget.contentController) {
-      oldWidget.contentController.hasValidationErrors.removeListener(_hasErrorsChanged);
-      widget.contentController.hasValidationErrors.addListener(_hasErrorsChanged);
+    if (controller is StreamComposeBoxController) {
+      controller.topic.hasValidationErrors.addListener(_hasErrorsChanged);
     }
+    oldController.content.hasValidationErrors.removeListener(_hasErrorsChanged);
+    controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
   }
 
   @override
   void dispose() {
-    widget.topicController?.hasValidationErrors.removeListener(_hasErrorsChanged);
-    widget.contentController.hasValidationErrors.removeListener(_hasErrorsChanged);
+    final controller = widget.controller;
+    if (controller is StreamComposeBoxController) {
+      controller.topic.hasValidationErrors.removeListener(_hasErrorsChanged);
+    }
+    controller.content.hasValidationErrors.removeListener(_hasErrorsChanged);
     super.dispose();
   }
 
   bool get _hasValidationErrors {
-    return (widget.topicController?.hasValidationErrors.value ?? false)
-      || widget.contentController.hasValidationErrors.value;
+    bool result = false;
+    final controller = widget.controller;
+    if (controller is StreamComposeBoxController) {
+      result = controller.topic.hasValidationErrors.value;
+    }
+    result |= controller.content.hasValidationErrors.value;
+    return result;
   }
 
   void _send() async {
+    final controller = widget.controller;
+
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
-        for (final error in widget.topicController?.validationErrors
-                            ?? const <TopicValidationError>[])
+        for (final error in (controller is StreamComposeBoxController
+                              ? controller.topic.validationErrors
+                              : const <TopicValidationError>[]))
           error.message(zulipLocalizations),
-        for (final error in widget.contentController.validationErrors)
+        for (final error in controller.content.validationErrors)
           error.message(zulipLocalizations),
       ];
       showErrorDialog(
@@ -938,9 +952,9 @@ class _SendButtonState extends State<_SendButton> {
     }
 
     final store = PerAccountStoreWidget.of(context);
-    final content = widget.contentController.textNormalized;
+    final content = controller.content.textNormalized;
 
-    widget.contentController.clear();
+    controller.content.clear();
     // The following `stoppedComposing` call is currently redundant,
     // because clearing input sends a "typing stopped" notice.
     // It will be necessary once we resolve #720.
@@ -1137,8 +1151,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   );
 
   @override Widget buildSendButton() => _SendButton(
-    topicController: controller.topic,
-    contentController: controller.content,
+    controller: controller,
     getDestination: () => StreamDestination(
       narrow.streamId, controller.topic.textNormalized),
   );
@@ -1161,8 +1174,7 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   );
 
   @override Widget buildSendButton() => _SendButton(
-    topicController: null,
-    contentController: controller.content,
+    controller: controller,
     getDestination: () => narrow.destination,
   );
 }
