@@ -545,12 +545,10 @@ class _FixedDestinationContentInput extends StatelessWidget {
   const _FixedDestinationContentInput({
     required this.narrow,
     required this.controller,
-    required this.focusNode,
   });
 
   final SendableNarrow narrow;
-  final ComposeContentController controller;
-  final FocusNode focusNode;
+  final FixedDestinationComposeBoxController controller;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -580,8 +578,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
     return _ContentInput(
       narrow: narrow,
       destination: narrow,
-      controller: controller,
-      focusNode: focusNode,
+      controller: controller.content,
+      focusNode: controller.contentFocusNode,
       hintText: _hintText(context));
   }
 }
@@ -1173,8 +1171,7 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
 
   @override Widget buildContentInput() => _FixedDestinationContentInput(
     narrow: narrow,
-    controller: controller.content,
-    focusNode: controller.contentFocusNode,
+    controller: controller,
   );
 
   @override Widget buildSendButton() => _SendButton(
