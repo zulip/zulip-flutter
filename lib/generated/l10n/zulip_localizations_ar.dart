@@ -462,6 +462,18 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get manyPeopleTyping => 'Several people are typing…';
 
   @override
+  String get notifyChannel => 'إخطار القناة';
+
+  @override
+  String get notifyStream => 'إخطار الدفق';
+
+  @override
+  String get notifyRecipients => 'إخطار المستلمين';
+
+  @override
+  String get notifyTopic => 'إخطار الموضوع';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override

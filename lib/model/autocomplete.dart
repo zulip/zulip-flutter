@@ -423,8 +423,8 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   factory MentionAutocompleteView.init({
     required PerAccountStore store,
-    required Narrow narrow,
     required MentionAutocompleteQuery query,
+    required Narrow narrow,
   }) {
     final view = MentionAutocompleteView._(
       store: store,
@@ -492,8 +492,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required String? topic,
     required PerAccountStore store,
   }) {
-    // TODO(#234): give preference to "all", "everyone" or "stream"
-
     // TODO(#618): give preference to subscribed users first
 
     if (streamId != null) {
@@ -598,9 +596,45 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
+  List<WildcardMentionAutocompleteResult> get wildcardMentionResults {
+    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+    final isChannelOrTopicNarrow = narrow is ChannelNarrow || narrow is TopicNarrow;
+
+    final wildcardMentions = <WildcardMentionAutocompleteResult>[];
+    // Only one of the (all, everyone, channel, stream) channel wildcards are
+    // shown.
+    if (query.testWildcard(Wildcard.all)) {
+      wildcardMentions.add(WildcardMentionAutocompleteResult(
+        wildcard: Wildcard.all));
+    } else if (query.testWildcard(Wildcard.everyone)) {
+      wildcardMentions.add(WildcardMentionAutocompleteResult(
+        wildcard: Wildcard.everyone));
+    } else if (isChannelOrTopicNarrow) {
+      if (query.testWildcard(Wildcard.channel) && isChannelWildcardAvailable) {
+        wildcardMentions.add(WildcardMentionAutocompleteResult(
+          wildcard: Wildcard.channel));
+      } else if (query.testWildcard(Wildcard.stream)) {
+        wildcardMentions.add(WildcardMentionAutocompleteResult(
+          wildcard: Wildcard.stream));
+      }
+    }
+
+    final isTopicWildcardAvailable = store.account.zulipFeatureLevel >= 224; // TODO(sever-8)
+    if (isChannelOrTopicNarrow
+        && isTopicWildcardAvailable
+        && query.testWildcard(Wildcard.topic)) {
+      wildcardMentions.add(WildcardMentionAutocompleteResult(
+        wildcard: Wildcard.topic));
+    }
+    return wildcardMentions;
+  }
+
   @override
   Future<List<MentionAutocompleteResult>?> computeResults() async {
     final results = <MentionAutocompleteResult>[];
+    // Give priority to wildcard mentions.
+    results.addAll(wildcardMentionResults);
+
     if (await filterCandidates(filter: _testUser,
         candidates: sortedUsers, results: results)) {
       return null;
@@ -624,6 +658,9 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     super.dispose();
   }
 }
+
+// The available user wildcard mention options.
+enum Wildcard { all, everyone, channel, stream, topic }
 
 /// A query the user has entered into some form of autocomplete.
 ///
@@ -694,9 +731,12 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     return MentionAutocompleteView.init(store: store, narrow: narrow, query: this);
   }
 
+  bool testWildcard(Wildcard wildcard) {
+    return wildcard.name.contains(raw.toLowerCase());
+  }
+
   bool testUser(User user, AutocompleteDataCache cache) {
     // TODO(#236) test email too, not just name
-
     if (!user.isActive) return false;
 
     return _testName(user, cache);
@@ -778,9 +818,13 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   final int userId;
 }
 
-// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
+class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+  WildcardMentionAutocompleteResult({required this.wildcard});
 
-// TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+  final Wildcard wildcard;
+}
+
+// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
 /// An autocomplete interaction for choosing a topic for a message.
 class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
