@@ -1137,6 +1137,7 @@ class _StreamComposeBoxState extends State<_StreamComposeBox> implements Compose
     _topicController.dispose();
     _contentController.dispose();
     _contentFocusNode.dispose();
+    _topicFocusNode.dispose();
     super.dispose();
   }
 
