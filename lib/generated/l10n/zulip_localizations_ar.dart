@@ -509,6 +509,33 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get manyPeopleTyping => 'Several people are typing…';
 
   @override
+  String get wildcardMentionAll => 'الجميع';
+
+  @override
+  String get wildcardMentionEveryone => 'الكل';
+
+  @override
+  String get wildcardMentionChannel => 'القناة';
+
+  @override
+  String get wildcardMentionStream => 'الدفق';
+
+  @override
+  String get wildcardMentionTopic => 'الموضوع';
+
+  @override
+  String get wildcardMentionChannelDescription => 'إخطار القناة';
+
+  @override
+  String get wildcardMentionStreamDescription => 'إخطار الدفق';
+
+  @override
+  String get wildcardMentionAllDmDescription => 'إخطار المستلمين';
+
+  @override
+  String get wildcardMentionTopicDescription => 'إخطار الموضوع';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override
