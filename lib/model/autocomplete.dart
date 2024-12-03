@@ -439,23 +439,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   final Narrow narrow;
   final List<User> sortedUsers;
 
-  @override
-  Future<List<MentionAutocompleteResult>?> computeResults() async {
-    final results = <MentionAutocompleteResult>[];
-    if (await filterCandidates(filter: _testUser,
-          candidates: sortedUsers, results: results)) {
-      return null;
-    }
-    return results;
-  }
-
-  MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
-      return UserMentionAutocompleteResult(userId: user.userId);
-    }
-    return null;
-  }
-
   static List<User> _usersByRelevance({
     required PerAccountStore store,
     required Narrow narrow,
@@ -613,6 +596,23 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     final userBName = store.autocompleteViewManager.autocompleteDataCache
       .normalizedNameForUser(userB);
     return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
+  }
+
+  @override
+  Future<List<MentionAutocompleteResult>?> computeResults() async {
+    final results = <MentionAutocompleteResult>[];
+    if (await filterCandidates(filter: _testUser,
+        candidates: sortedUsers, results: results)) {
+      return null;
+    }
+    return results;
+  }
+
+  MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
+    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
+      return UserMentionAutocompleteResult(userId: user.userId);
+    }
+    return null;
   }
 
   @override
