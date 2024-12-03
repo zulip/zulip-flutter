@@ -5,6 +5,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/realm.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'algorithms.dart';
 import 'autocomplete.dart';
 import 'narrow.dart';
@@ -465,7 +466,11 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   @override
-  EmojiAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
+  EmojiAutocompleteView initViewModel({
+    required PerAccountStore store,
+    required ZulipLocalizations localizations,
+    required Narrow narrow,
+  }) {
     return EmojiAutocompleteView.init(store: store, query: this);
   }
 
