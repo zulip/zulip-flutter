@@ -1178,30 +1178,24 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
 }
 
 sealed class ComposeBoxController {
-  ComposeContentController get content => _content;
-  final _content = ComposeContentController();
-
-  FocusNode get contentFocusNode => _contentFocusNode;
-  final _contentFocusNode = FocusNode();
+  final content = ComposeContentController();
+  final contentFocusNode = FocusNode();
 
   @mustCallSuper
   void dispose() {
-    _content.dispose();
-    _contentFocusNode.dispose();
+    content.dispose();
+    contentFocusNode.dispose();
   }
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  ComposeTopicController get topic => _topic;
-  final _topic = ComposeTopicController();
-
-  FocusNode get topicFocusNode => _topicFocusNode;
-  final _topicFocusNode = FocusNode();
+  final topic = ComposeTopicController();
+  final topicFocusNode = FocusNode();
 
   @override
   void dispose() {
-    _topic.dispose();
-    _topicFocusNode.dispose();
+    topic.dispose();
+    topicFocusNode.dispose();
     super.dispose();
   }
 }
