@@ -268,6 +268,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       globalStore: globalStore,
       connection: connection,
       realmUrl: realmUrl,
+      realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
@@ -311,6 +312,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required GlobalStore globalStore,
     required this.connection,
     required this.realmUrl,
+    required this.realmWildcardMentionPolicy,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
@@ -375,6 +377,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
   String get zulipVersion => account.zulipVersion;
+  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
