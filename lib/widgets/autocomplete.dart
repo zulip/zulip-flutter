@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/emoji.dart';
+import '../model/store.dart';
 import 'content.dart';
 import 'emoji.dart';
+import 'icons.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
@@ -21,7 +24,7 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
   final FocusNode focusNode;
   final WidgetBuilder fieldViewBuilder;
 
-  AutocompleteIntent<QueryT>? autocompleteIntent();
+  AutocompleteIntent<QueryT>? autocompleteIntent(BuildContext context);
 
   Widget buildItem(BuildContext context, int index, ResultT option);
 
@@ -40,7 +43,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   void _handleControllerChange() {
-    final newQuery = widget.autocompleteIntent()?.query;
+    final newQuery = widget.autocompleteIntent(context)?.query;
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
         && (newQuery == null
@@ -168,7 +171,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   ComposeContentController get controller => super.controller as ComposeContentController;
 
   @override
-  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
+  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent(
+    BuildContext context) => controller.autocompleteIntent(ZulipLocalizations.of(context));
 
   @override
   ComposeAutocompleteView initViewModel(BuildContext context, ComposeAutocompleteQuery query) {
@@ -180,7 +184,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     // Probably the same intent that brought up the option that was tapped.
     // If not, it still shouldn't be off by more than the time it takes
     // to compute the autocomplete results, which we do asynchronously.
-    final intent = autocompleteIntent();
+    final intent = autocompleteIntent(context);
     if (intent == null) {
       return; // Shrug.
     }
@@ -197,7 +201,9 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         }
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${mention(store.users[userId]!, silent: query.silent, users: store.users)} ';
+        replacementString = '${userMention(store.users[userId]!, silent: query.silent, users: store.users)} ';
+      case WildcardMentionAutocompleteResult(:var wildcard):
+        replacementString = '${wildcardMention(wildcard, store: store)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -211,7 +217,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   @override
   Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
     final child = switch (option) {
-      MentionAutocompleteResult() => _MentionAutocompleteItem(option: option),
+      MentionAutocompleteResult() => _MentionAutocompleteItem(
+        option: option, narrow: narrow),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -223,18 +230,23 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
 }
 
 class _MentionAutocompleteItem extends StatelessWidget {
-  const _MentionAutocompleteItem({required this.option});
+  const _MentionAutocompleteItem({required this.option, required this.narrow});
 
   final MentionAutocompleteResult option;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     Widget avatar;
-    String label;
+    Widget label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
-        label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+        avatar = Avatar(userId: userId, size: 32, borderRadius: 3); // web uses 21px
+        label = Text(store.users[userId]!.fullName);
+      case WildcardMentionAutocompleteResult(:var wildcard):
+        avatar = const Icon(ZulipIcons.three_person, size: 29); // web uses 19px
+        label = wildcardLabel(wildcard, context: context, store: store);
     }
 
     return Padding(
@@ -242,8 +254,32 @@ class _MentionAutocompleteItem extends StatelessWidget {
       child: Row(children: [
         avatar,
         const SizedBox(width: 8),
-        Text(label),
+        label,
       ]));
+  }
+
+  Widget wildcardLabel(WildcardMentionOption wildcard, {
+    required BuildContext context,
+    required PerAccountStore store,
+  }) {
+    final isDmNarrow = narrow is DmNarrow;
+    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+    final localizations = ZulipLocalizations.of(context);
+    final description = switch (wildcard) {
+      WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
+        ? localizations.wildcardMentionAllDmDescription
+        : isChannelWildcardAvailable
+            ? localizations.wildcardMentionChannelDescription
+            : localizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.channel => localizations.wildcardMentionChannelDescription,
+      WildcardMentionOption.stream => isChannelWildcardAvailable
+        ? localizations.wildcardMentionChannelDescription
+        : localizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.topic => localizations.wildcardMentionTopicDescription,
+    };
+    return Text.rich(TextSpan(text: '${wildcard.canonicalString} ', children: [
+      TextSpan(text: description, style: TextStyle(fontSize: 12,
+        color: Colors.black.withValues(alpha: 0.8)))]));
   }
 }
 
@@ -310,7 +346,8 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   ComposeTopicController get controller => super.controller as ComposeTopicController;
 
   @override
-  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
+  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent(
+    BuildContext context) => controller.autocompleteIntent();
 
   @override
   TopicAutocompleteView initViewModel(BuildContext context, TopicAutocompleteQuery query) {
@@ -319,7 +356,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   }
 
   void _onTapOption(BuildContext context, TopicAutocompleteResult option) {
-    final intent = autocompleteIntent();
+    final intent = autocompleteIntent(context);
     if (intent == null) return;
     assert(intent.syntaxStart == 0);
     controller.setTopic(option.topic);

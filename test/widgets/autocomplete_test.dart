@@ -13,6 +13,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -177,7 +178,7 @@ void main() {
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
 
-    testWidgets('options appear, disappear, and change correctly', (tester) async {
+    testWidgets('user options appear, disappear, and change correctly', (tester) async {
       final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
       final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
       final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png');
@@ -199,7 +200,7 @@ void main() {
       await tester.tap(find.text('User Three'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
-        .contains(mention(user3, users: store.users));
+        .contains(userMention(user3, users: store.users));
       checkUserShown(user1, store, expected: false);
       checkUserShown(user2, store, expected: false);
       checkUserShown(user3, store, expected: false);
@@ -218,6 +219,69 @@ void main() {
       checkUserShown(user1, store, expected: false);
       checkUserShown(user2, store, expected: false);
       checkUserShown(user3, store, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    void checkWildcardShown(WildcardMentionOption wildcard, PerAccountStore store, {
+      required bool expected,
+    }) {
+      final richTextFinder = find.textContaining(wildcard.canonicalString, findRichText: true);
+      final iconFinder = find.byIcon(ZulipIcons.three_person);
+      final wildcardItemFinder = find.ancestor(of: richTextFinder,
+        matching: find.ancestor(of: iconFinder, matching: find.byType(Row)));
+      check(wildcardItemFinder.evaluate().length).equals(expected ? 1 : 0);
+    }
+
+    testWidgets('wildcard options appear, disappear, and change correctly', (tester) async {
+      final composeInputFinder = await setupToComposeInput(tester,
+        narrow: const ChannelNarrow(1));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @');
+      await tester.enterText(composeInputFinder, 'hello @c');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkWildcardShown(WildcardMentionOption.channel, store, expected: true);
+      checkWildcardShown(WildcardMentionOption.topic, store, expected: true);
+      checkWildcardShown(WildcardMentionOption.all, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.everyone, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.stream, store, expected: false);
+
+      // Finishing autocomplete updates compose box; causes options to disappear
+      await tester.tap(find.textContaining(WildcardMentionOption.channel.canonicalString,
+        findRichText: true));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(wildcardMention(WildcardMentionOption.channel, store: store));
+      checkWildcardShown(WildcardMentionOption.channel, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.topic, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.all, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.everyone, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.stream, store, expected: false);
+
+      // Then a new autocomplete intent brings up options again
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @chan');
+      await tester.enterText(composeInputFinder, 'hello @channel');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkWildcardShown(WildcardMentionOption.channel, store, expected: true);
+      checkWildcardShown(WildcardMentionOption.topic, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.all, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.everyone, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.stream, store, expected: false);
+
+      // Removing autocomplete intent causes options to disappear
+      // TODO(#226): Remove one of these edits when this bug is fixed.
+      await tester.enterText(composeInputFinder, '');
+      await tester.enterText(composeInputFinder, ' ');
+      checkWildcardShown(WildcardMentionOption.channel, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.topic, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.all, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.everyone, store, expected: false);
+      checkWildcardShown(WildcardMentionOption.stream, store, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
     });

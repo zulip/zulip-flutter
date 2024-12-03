@@ -6,13 +6,15 @@ import 'package:flutter/services.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/channels.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
+import 'compose.dart';
 import 'emoji.dart';
 import 'narrow.dart';
 import 'store.dart';
 
 extension ComposeContentAutocomplete on ComposeContentController {
-  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
+  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent(ZulipLocalizations localizations) {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
       // autocorrect and even backspace involve programmatically expanding the
@@ -55,7 +57,8 @@ extension ComposeContentAutocomplete on ComposeContentController {
       if (charAtPos == '@') {
         final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
-        query = MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_');
+        query = MentionAutocompleteQuery(match[2]!,
+          silent: match[1]! == '_', localizations: localizations);
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
@@ -423,8 +426,8 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   factory MentionAutocompleteView.init({
     required PerAccountStore store,
-    required Narrow narrow,
     required MentionAutocompleteQuery query,
+    required Narrow narrow,
   }) {
     final view = MentionAutocompleteView._(
       store: store,
@@ -492,8 +495,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required TopicName? topic,
     required PerAccountStore store,
   }) {
-    // TODO(#234): give preference to "all", "everyone" or "stream"
-
     // TODO(#618): give preference to subscribed users first
 
     if (streamId != null) {
@@ -598,9 +599,48 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
+  List<WildcardMentionAutocompleteResult> computeWildcardMentionResults({
+      required bool isComposingChannelMessage}) {
+    if (query.silent) return [];
+
+    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+
+    final wildcardMentions = <WildcardMentionAutocompleteResult>[];
+    // Only one of the (all, everyone, channel, stream) channel wildcards are
+    // shown.
+    if (query.testWildcardOption(WildcardMentionOption.all)) {
+      wildcardMentions.add(WildcardMentionAutocompleteResult(
+        wildcard: WildcardMentionOption.all));
+    } else if (query.testWildcardOption(WildcardMentionOption.everyone)) {
+      wildcardMentions.add(WildcardMentionAutocompleteResult(
+        wildcard: WildcardMentionOption.everyone));
+    } else if (isComposingChannelMessage) {
+      if (query.testWildcardOption(WildcardMentionOption.channel) && isChannelWildcardAvailable) {
+        wildcardMentions.add(WildcardMentionAutocompleteResult(
+          wildcard: WildcardMentionOption.channel));
+      } else if (query.testWildcardOption(WildcardMentionOption.stream)) {
+        wildcardMentions.add(WildcardMentionAutocompleteResult(
+          wildcard: WildcardMentionOption.stream));
+      }
+    }
+
+    final isTopicWildcardAvailable = store.account.zulipFeatureLevel >= 224; // TODO(sever-8)
+    if (isComposingChannelMessage
+        && isTopicWildcardAvailable
+        && query.testWildcardOption(WildcardMentionOption.topic)) {
+      wildcardMentions.add(WildcardMentionAutocompleteResult(
+        wildcard: WildcardMentionOption.topic));
+    }
+    return wildcardMentions;
+  }
+
   @override
   Future<List<MentionAutocompleteResult>?> computeResults() async {
     final results = <MentionAutocompleteResult>[];
+    // Give priority to wildcard mentions.
+    results.addAll(computeWildcardMentionResults(isComposingChannelMessage:
+      narrow is ChannelNarrow || narrow is TopicNarrow));
+
     if (await filterCandidates(filter: _testUser,
         candidates: sortedUsers, results: results)) {
       return null;
@@ -642,13 +682,17 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 /// to prepare for whatever particular form of searching will be done
 /// for the given type of autocomplete interaction.
 abstract class AutocompleteQuery {
-  AutocompleteQuery(this.raw)
-    : _lowercaseWords = raw.toLowerCase().split(' ');
+  AutocompleteQuery(this.raw) {
+    _lowercase = raw.toLowerCase();
+    _lowercaseWords = _lowercase.split(' ');
+  }
 
   /// The actual string the user entered.
   final String raw;
 
-  final List<String> _lowercaseWords;
+  late final String _lowercase;
+
+  late final List<String> _lowercaseWords;
 
   /// Whether all of this query's words have matches in [words] that appear in order.
   ///
@@ -684,19 +728,26 @@ abstract class ComposeAutocompleteQuery extends AutocompleteQuery {
 
 /// A @-mention autocomplete query, used by [MentionAutocompleteView].
 class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
-  MentionAutocompleteQuery(super.raw, {this.silent = false});
+  MentionAutocompleteQuery(super.raw, {this.silent = false, required this.localizations});
 
   /// Whether the user wants a silent mention (@_query, vs. @query).
   final bool silent;
+
+  final ZulipLocalizations localizations;
 
   @override
   MentionAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
     return MentionAutocompleteView.init(store: store, narrow: narrow, query: this);
   }
 
+  bool testWildcardOption(WildcardMentionOption wildcardOption) {
+    // TODO(#237): match insensitively to diacritics
+    return wildcardOption.canonicalString.contains(_lowercase)
+      || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
+  }
+
   bool testUser(User user, AutocompleteDataCache cache) {
     // TODO(#236) test email too, not just name
-
     if (!user.isActive) return false;
 
     return _testName(user, cache);
@@ -718,6 +769,19 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
 
   @override
   int get hashCode => Object.hash('MentionAutocompleteQuery', raw, silent);
+}
+
+extension WildcardMentionOptionExtension on WildcardMentionOption {
+  /// A translation of [canonicalString], from [localizations].
+  String localizedCanonicalString(ZulipLocalizations localizations) {
+    return switch (this) {
+      WildcardMentionOption.all      => localizations.wildcardMentionAll,
+      WildcardMentionOption.everyone => localizations.wildcardMentionEveryone,
+      WildcardMentionOption.channel  => localizations.wildcardMentionChannel,
+      WildcardMentionOption.stream   => localizations.wildcardMentionStream,
+      WildcardMentionOption.topic    => localizations.wildcardMentionTopic,
+    };
+  }
 }
 
 /// Cached data that is used for autocomplete
@@ -788,9 +852,14 @@ class UserMentionAutocompleteResult extends MentionAutocompleteResult {
   final int userId;
 }
 
-// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
+/// An autocomplete result for an @-mention of all the users in a conversation.
+class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+  WildcardMentionAutocompleteResult({required this.wildcard});
 
-// TODO(#234): // class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
+  final WildcardMentionOption wildcard;
+}
+
+// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
 
 /// An autocomplete interaction for choosing a topic for a message.
 class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {

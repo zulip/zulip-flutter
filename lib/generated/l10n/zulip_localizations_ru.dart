@@ -509,6 +509,33 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get manyPeopleTyping => 'Несколько человек набирают сообщения…';
 
   @override
+  String get wildcardMentionAll => 'all';
+
+  @override
+  String get wildcardMentionEveryone => 'everyone';
+
+  @override
+  String get wildcardMentionChannel => 'channel';
+
+  @override
+  String get wildcardMentionStream => 'stream';
+
+  @override
+  String get wildcardMentionTopic => 'topic';
+
+  @override
+  String get wildcardMentionChannelDescription => 'Notify channel';
+
+  @override
+  String get wildcardMentionStreamDescription => 'Notify stream';
+
+  @override
+  String get wildcardMentionAllDmDescription => 'Notify recipients';
+
+  @override
+  String get wildcardMentionTopicDescription => 'Notify topic';
+
+  @override
   String get messageIsEditedLabel => 'ИЗМЕНЕНО';
 
   @override

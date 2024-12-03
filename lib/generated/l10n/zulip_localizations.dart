@@ -957,6 +957,60 @@ abstract class ZulipLocalizations {
   /// **'Several people are typing…'**
   String get manyPeopleTyping;
 
+  /// Text for "@all" wildcard-mention autocomplete option when writing a channel or DM message.
+  ///
+  /// In en, this message translates to:
+  /// **'all'**
+  String get wildcardMentionAll;
+
+  /// Text for "@everyone" wildcard-mention autocomplete option when writing a channel or DM message.
+  ///
+  /// In en, this message translates to:
+  /// **'everyone'**
+  String get wildcardMentionEveryone;
+
+  /// Text for "@channel" wildcard-mention autocomplete option when writing a channel message.
+  ///
+  /// In en, this message translates to:
+  /// **'channel'**
+  String get wildcardMentionChannel;
+
+  /// Text for "@stream" wildcard-mention autocomplete option when writing a channel message in older servers.
+  ///
+  /// In en, this message translates to:
+  /// **'stream'**
+  String get wildcardMentionStream;
+
+  /// Text for "@topic" wildcard-mention autocomplete option when writing a channel message.
+  ///
+  /// In en, this message translates to:
+  /// **'topic'**
+  String get wildcardMentionTopic;
+
+  /// Description for "@all", "@everyone", "@channel", and "@stream" wildcard-mention autocomplete options when writing a channel message.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify channel'**
+  String get wildcardMentionChannelDescription;
+
+  /// Description for "@all", "@everyone", and "@stream" wildcard-mention autocomplete options when writing a channel message in older servers.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify stream'**
+  String get wildcardMentionStreamDescription;
+
+  /// Description for "@all" and "@everyone" wildcard-mention autocomplete options when writing a DM message.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify recipients'**
+  String get wildcardMentionAllDmDescription;
+
+  /// Description for "@topic" wildcard-mention autocomplete options when writing a channel message.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify topic'**
+  String get wildcardMentionTopicDescription;
+
   /// Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
   ///
   /// In en, this message translates to:
