@@ -30,7 +30,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
-import 'dialog_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -398,14 +397,14 @@ void main() {
   });
 
   group('message-send request response', () {
-    Future<void> setupAndTapSend(WidgetTester tester, {
+    Future<GlobalKey<ComposeBoxController>> setupAndTapSend(WidgetTester tester, {
       required void Function(int messageId) prepareResponse,
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
+      final controllerKey = await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
         streams: [eg.stream(streamId: 123)]);
 
       await tester.enterText(contentInputFinder, 'hello world');
@@ -414,7 +413,7 @@ void main() {
       await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
       await tester.pump(Duration.zero);
 
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
@@ -424,6 +423,7 @@ void main() {
             'content': 'hello world',
             'read_by_sender': 'true',
           });
+      return controllerKey;
     }
 
     testWidgets('success', (tester) async {
@@ -432,6 +432,97 @@ void main() {
       });
       final errorDialogs = tester.widgetList(find.byType(AlertDialog));
       check(errorDialogs).isEmpty();
+    });
+
+    testWidgets('disable compose box while pending; clear text when finished', (tester) async {
+      final controllerKey = await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(
+          id: messageId).toJson(), delay: const Duration(seconds: 2));
+      });
+      final composeBoxController = controllerKey.currentState!;
+      check(composeBoxController.enabled).isFalse();
+      check(composeBoxController.contentController.text).isNotEmpty();
+      check(find.byType(LinearProgressIndicator)).findsOne();
+
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests()).isEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
+      await tester.pump(Duration.zero);
+      check(testBinding.takePickFilesCalls()).isEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(composeBoxController.enabled).isTrue();
+      check(composeBoxController.contentController.text).isEmpty();
+      check(find.byType(LinearProgressIndicator)).findsNothing();
+    });
+
+    testWidgets('re-enable compose box even on failure; do not clear text', (tester) async {
+      final controllerKey = await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: const Duration(seconds: 2));
+      });
+      final composeBoxController = controllerKey.currentState!;
+      check(composeBoxController.enabled).isFalse();
+      final oldText = composeBoxController.contentController.text;
+      check(oldText).isNotEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(composeBoxController.enabled).isTrue();
+      check(composeBoxController.contentController.text).equals(oldText);
+    });
+
+    testWidgets('dismiss validation error banner by tapping the remove icon', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        return connection.prepare(httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'error'});
+      });
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.tap(find.byIcon(ZulipIcons.remove));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.remove)).findsNothing();
+    });
+
+    testWidgets('dismiss error banner after a successful request', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        return connection.prepare(httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'error'});
+      });
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.enterText(contentInputFinder, 'hello world');
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      connection.prepare(
+        json: SendMessageResult(id: 123).toJson(),
+        delay: const Duration(seconds: 2));
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(find.byIcon(ZulipIcons.remove)).findsNothing();
+    });
+
+    testWidgets('fail after timeout', (tester) async {
+      const longDelay = Duration(hours: 1);
+      assert(longDelay > kSendMessageTimeout);
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: longDelay);
+      });
+
+      await tester.pump(kSendMessageTimeout);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      check(find.text(zulipLocalizations.errorSendMessageTimeout)).findsOne();
+
+      await tester.pump(longDelay);
     });
 
     testWidgets('ZulipApiException', (tester) async {
@@ -445,11 +536,9 @@ void main() {
           });
       });
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMessageNotSent,
-        expectedMessage: zulipLocalizations.errorServerMessage(
-          'You do not have permission to initiate direct message conversations.'),
-      )));
+      check(find.text(zulipLocalizations.errorServerMessage(
+        'You do not have permission to initiate direct message conversations.'),
+      )).findsOne();
     });
   });
 
@@ -595,29 +684,30 @@ void main() {
   group('error banner', () {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-    Finder inputFieldFinder() => find.descendant(
+    Finder inputFieldFinder = find.descendant(
       of: find.byType(ComposeBox),
       matching: find.byType(TextField));
 
-    Finder attachButtonFinder(IconData icon) => find.descendant(
+    Finder findAttachButton(IconData icon) => find.descendant(
       of: find.byType(ComposeBox),
       matching: find.widgetWithIcon(IconButton, icon));
 
-    void checkComposeBoxParts({required bool areShown}) {
-      final inputFieldCount = inputFieldFinder().evaluate().length;
-      areShown ? check(inputFieldCount).isGreaterThan(0) : check(inputFieldCount).equals(0);
-      check(attachButtonFinder(ZulipIcons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
-      check(attachButtonFinder(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
-      check(attachButtonFinder(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
-    }
+    Finder findBannerByLabel(String label) => find.descendant(
+      of: find.byType(ComposeBox),
+      matching: find.text(label));
 
-    void checkBannerWithLabel(String label, {required bool isShown}) {
-      check(find.text(label).evaluate().length).equals(isShown ? 1 : 0);
+    void checkComposeBoxParts({required bool areShown}) {
+      areShown ? check(inputFieldFinder).findsAtLeast(1)
+               : check(inputFieldFinder).findsNothing();
+      check(findAttachButton(ZulipIcons.attach_file)).findsExactly(areShown ? 1 : 0);
+      check(findAttachButton(ZulipIcons.image)).findsExactly(areShown ? 1 : 0);
+      check(findAttachButton(ZulipIcons.camera)).findsExactly(areShown ? 1 : 0);
     }
 
     void checkComposeBoxIsShown(bool isShown, {required String bannerLabel}) {
       checkComposeBoxParts(areShown: isShown);
-      checkBannerWithLabel(bannerLabel, isShown: !isShown);
+      (isShown) ? check(findBannerByLabel(bannerLabel)).findsNothing()
+                : check(findBannerByLabel(bannerLabel)).findsOne();
     }
 
     group('in DMs with deactivated users', () {

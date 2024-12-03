@@ -29,6 +29,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/content_test.dart';
+import '../model/message_list_test.dart';
 import '../model/test_store.dart';
 import '../flutter_checks.dart';
 import '../stdlib_checks.dart';
@@ -680,10 +681,16 @@ void main() {
         ..decoration.isNotNull().hintText.equals('Message #${otherChannel.name} > new topic')
         ..controller.isNotNull().text.equals('Some text');
 
+      connection.takeRequests();
       connection.prepare(json: SendMessageResult(id: 1).toJson());
+      // Prepare for the progress indicator that shifts the message list
+      // and triggers a message fetch as soon as we send the message.
+      connection.prepare(json: olderResult(
+        anchor: message.id, foundOldest: true, messages: []).toJson());
       await tester.tap(find.byIcon(ZulipIcons.send));
       await tester.pump();
-      check(connection.lastRequest).isA<http.Request>()
+      final requests = connection.takeRequests();
+      check(requests.first).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
