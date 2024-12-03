@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/emoji.dart';
+import '../model/store.dart';
 import 'content.dart';
 import 'emoji.dart';
+import 'icons.dart';
 import 'store.dart';
 import '../model/autocomplete.dart';
 import '../model/compose.dart';
@@ -197,7 +200,9 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         }
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${mention(store.users[userId]!, silent: query.silent, users: store.users)} ';
+        replacementString = '${userMention(store.users[userId]!, silent: query.silent, users: store.users)} ';
+      case WildcardMentionAutocompleteResult(:var wildcard):
+        replacementString = '${wildcardMention(wildcard, store: store)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -211,7 +216,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   @override
   Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
     final child = switch (option) {
-      MentionAutocompleteResult() => _MentionAutocompleteItem(option: option),
+      MentionAutocompleteResult() => _MentionAutocompleteItem(
+        option: option, narrow: narrow),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -223,18 +229,23 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
 }
 
 class _MentionAutocompleteItem extends StatelessWidget {
-  const _MentionAutocompleteItem({required this.option});
+  const _MentionAutocompleteItem({required this.option, required this.narrow});
 
   final MentionAutocompleteResult option;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     Widget avatar;
-    String label;
+    Widget label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
-        label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+        avatar = Avatar(userId: userId, size: 32, borderRadius: 3); // web uses 21px
+        label = Text(store.users[userId]!.fullName);
+      case WildcardMentionAutocompleteResult(:var wildcard):
+        avatar = const Icon(ZulipIcons.three_person, size: 29); // web uses 19px
+        label = wildcardLabel(wildcard, context: context, store: store);
     }
 
     return Padding(
@@ -242,8 +253,37 @@ class _MentionAutocompleteItem extends StatelessWidget {
       child: Row(children: [
         avatar,
         const SizedBox(width: 8),
-        Text(label),
+        label,
       ]));
+  }
+
+  Widget wildcardLabel(Wildcard wildcard, {
+    required BuildContext context,
+    required PerAccountStore store,
+  }) {
+    final isDmNarrow = narrow is DmNarrow;
+    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+    final localizations = ZulipLocalizations.of(context);
+    final description = switch (wildcard) {
+      Wildcard.all => isDmNarrow
+        ? localizations.notifyRecipients
+        : isChannelWildcardAvailable
+            ? localizations.notifyChannel
+            : localizations.notifyStream,
+      Wildcard.everyone => isDmNarrow
+        ? localizations.notifyRecipients
+        : isChannelWildcardAvailable
+            ? localizations.notifyChannel
+            : localizations.notifyStream,
+      Wildcard.channel => localizations.notifyChannel,
+      Wildcard.stream => isChannelWildcardAvailable
+        ? localizations.notifyChannel
+        : localizations.notifyStream,
+      Wildcard.topic => localizations.notifyTopic,
+    };
+    return Text.rich(TextSpan(text: '${wildcard.name} ', children: [
+      TextSpan(text: description, style: TextStyle(fontSize: 12,
+        color: Colors.black.withValues(alpha: 0.8)))]));
   }
 }
 
