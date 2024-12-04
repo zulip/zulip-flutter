@@ -70,6 +70,7 @@ extension TextEditingControllerChecks on Subject<TextEditingController> {
 }
 
 extension TextFieldChecks on Subject<TextField> {
+  Subject<bool> get autofocus => has((x) => x.autofocus, 'autofocus');
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
   Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
   Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');

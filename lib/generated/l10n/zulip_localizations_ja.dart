@@ -261,6 +261,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get dialogContinue => 'Continue';
 
   @override
+  String get dialogClose => 'Close';
+
+  @override
   String get errorDialogContinue => 'OK';
 
   @override
@@ -484,4 +487,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
+
+  @override
+  String get emojiReactionsMore => 'more';
+
+  @override
+  String get emojiPickerSearchEmoji => 'Search emoji';
 }

@@ -18,6 +18,7 @@ import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
 import 'emoji.dart';
+import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
@@ -247,30 +248,56 @@ class ReactionButtons extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(color: designVariables.contextMenuItemBg.withFadedAlpha(0.12)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.unmodifiable(popularEmojis.map((emoji) {
-          final selfVoted = hasSelfVote(emoji);
-          return IconButton(
-            onPressed: () => _onPressed(emoji, selfVoted, zulipLocalizations),
-            isSelected: selfVoted,
-            style: IconButton.styleFrom(
-              padding: EdgeInsets.zero,
-              splashFactory: NoSplash.splashFactory,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.5)),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
-            ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-              states.any((e) => e == WidgetState.pressed || e == WidgetState.selected)
-                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-                : Colors.transparent)),
-            icon: UnicodeEmojiWidget(
-              emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
-              notoColorEmojiTextSize: 20.1,
-              size: 24));
-        })))
+      child: Row(children: [
+        Flexible(child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.unmodifiable(popularEmojis.map((emoji) {
+              final selfVoted = hasSelfVote(emoji);
+              return IconButton(
+                onPressed: () => _onPressed(emoji, selfVoted, zulipLocalizations),
+                isSelected: selfVoted,
+                style: IconButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  splashFactory: NoSplash.splashFactory,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.5)),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+                  states.any((e) => e == WidgetState.pressed || e == WidgetState.selected)
+                    ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                    : Colors.transparent)),
+                icon: UnicodeEmojiWidget(
+                  emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
+                  notoColorEmojiTextSize: 20.1,
+                  size: 24));
+            }))))),
+        TextButton(
+          onPressed: () {
+            showEmojiPickerSheet(pageContext: pageContext, message: message);
+          },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+            splashFactory: NoSplash.splashFactory,
+            foregroundColor: designVariables.contextMenuItemText,
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+          ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+            states.contains(WidgetState.pressed)
+              ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+              : Colors.transparent)),
+          child: Row(children: [
+            Text(zulipLocalizations.emojiReactionsMore,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 14)
+                .merge(weightVariableTextStyle(context, wght: 600))),
+            Icon(ZulipIcons.chevron_right,
+              color: designVariables.contextMenuItemText,
+              size: 24),
+          ])),
+      ]),
     );
   }
 }
