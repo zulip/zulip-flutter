@@ -514,6 +514,8 @@ class _TopicItem extends StatelessWidget {
     final subscription = store.subscriptions[streamId]!;
 
     final designVariables = DesignVariables.of(context);
+    final visibilityIcon = iconDataForTopicVisibilityPolicy(
+      store.topicVisibilityPolicy(streamId, topic));
 
     return Material(
       color: designVariables.background, // TODO(design) check if this is the right variable
@@ -540,6 +542,8 @@ class _TopicItem extends StatelessWidget {
                 topic))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+            // TODO(design) copies the "@" marker color; is there a better color?
+            if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(
                 backgroundColor: colorSwatchFor(context, subscription),
