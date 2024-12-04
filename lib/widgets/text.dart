@@ -153,11 +153,20 @@ const kDefaultFontFamily = 'Source Sans 3';
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
 List<String> get defaultFontFamilyFallback => [
-  // iOS doesn't support any of the formats this font is available in.
-  // If we use it on iOS, we'll get blank spaces where we could have had Apple-
-  // style emojis.
-  if (defaultTargetPlatform == TargetPlatform.android) 'Noto Color Emoji',
+  if (_useNotoEmoji) 'Noto Color Emoji',
 ];
+
+/// Whether to use the Noto Color Emoji font for showing emoji.
+bool get _useNotoEmoji => switch (defaultTargetPlatform) {
+  // iOS doesn't support any of the formats Noto Color Emoji is available in.
+  // If we use it on iOS, we'll get blank spaces where we could have had
+  // Apple-style emojis.  We presume the same is true of macOS.
+  TargetPlatform.iOS || TargetPlatform.macOS => false,
+  // The font certainly works on Android.
+  // We presume it works on the other platforms.
+  TargetPlatform.android || TargetPlatform.linux
+    || TargetPlatform.fuchsia || TargetPlatform.windows => true,
+};
 
 /// A mergeable [TextStyle] with 'Source Code Pro' and platform-aware fallbacks.
 ///
