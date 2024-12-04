@@ -478,4 +478,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get errorNotificationOpenAccountMissing => 'The account associated with this notification no longer exists.';
+
+  @override
+  String get errorReactionAddingFailedTitle => 'Adding reaction failed';
+
+  @override
+  String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
 }

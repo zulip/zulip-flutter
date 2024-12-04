@@ -603,5 +603,13 @@
   "errorNotificationOpenAccountMissing": "The account associated with this notification no longer exists.",
   "@errorNotificationOpenAccountMissing": {
     "description": "Error message when the account associated with the notification is not found"
+  },
+  "errorReactionAddingFailedTitle": "Adding reaction failed",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorReactionRemovingFailedTitle": "Removing reaction failed",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
   }
 }
