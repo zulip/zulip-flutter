@@ -305,6 +305,56 @@ void main() {
       });
     });
 
+    group('topic visibility', () {
+      final channel = eg.stream();
+      const topic = 'topic';
+      final message = eg.streamMessage(stream: channel, topic: topic);
+
+      testWidgets('followed', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
+          unreadMessages: [message]);
+        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await tester.pump();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.follow)).isTrue();
+      });
+
+      testWidgets('followed and mentioned', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
+          unreadMessages: [eg.streamMessage(stream: channel, topic: topic,
+            flags: [MessageFlag.mentioned])]);
+        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await tester.pump();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.follow)).isTrue();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.at_sign)).isTrue();
+      });
+
+
+      testWidgets('unmuted', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, isMuted: true)],
+          unreadMessages: [message]);
+        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
+        await tester.pump();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.unmute)).isTrue();
+      });
+    });
+
     group('collapsing', () {
       Icon findHeaderCollapseIcon(WidgetTester tester, Widget headerRow) {
         return tester.widget(
