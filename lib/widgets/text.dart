@@ -21,7 +21,7 @@ import 'package:flutter/material.dart';
 /// For example, the base style for message content;
 /// see [ContentTheme.textStylePlainParagraph].
 ///
-/// Applies [kDefaultFontFamily] and [kDefaultFontFamilyFallback],
+/// Applies [kDefaultFontFamily] and [defaultFontFamilyFallback],
 /// being faithful to the Material-default font weights
 /// by running them through [weightVariableTextStyle].
 /// (That is needed because [kDefaultFontFamily] is a variable-weight font).
