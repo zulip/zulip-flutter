@@ -50,8 +50,8 @@ class UnicodeEmojiWidget extends StatelessWidget {
 
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
-        // We expect the font "Apple Color Emoji" to be used. There are some
-        // surprises in how Flutter ends up rendering emojis in this font:
+        // We use the font "Apple Color Emoji". There are some surprises in how
+        // Flutter ends up rendering emojis in this font:
         // - With a font size of 17px, the emoji visually seems to be about 17px
         //   square. (Unlike on Android, with Noto Color Emoji, where a 14.5px font
         //   size gives an emoji that looks 17px square.) See:
@@ -71,7 +71,9 @@ class UnicodeEmojiWidget extends StatelessWidget {
           SizedBox(height: boxSize, width: boxSize),
           PositionedDirectional(start: 0, child: Text(
             textScaler: textScaler,
-            style: TextStyle(fontSize: size),
+            style: TextStyle(
+              fontFamily: 'Apple Color Emoji',
+              fontSize: size),
             strutStyle: StrutStyle(fontSize: size, forceStrutHeight: true),
             emojiDisplay.emojiUnicode)),
         ]);

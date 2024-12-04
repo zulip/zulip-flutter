@@ -18,6 +18,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
+import 'content_test.dart';
 import 'test_app.dart';
 import 'text_test.dart';
 
@@ -258,6 +259,23 @@ void main() {
     check(backgroundColor('tada')).isNotNull()
       .isSameColorAs(EmojiReactionTheme.dark().bgUnselected);
   });
+
+  testWidgets('use emoji font', (tester) async {
+    await prepare();
+    await store.addUser(eg.selfUser);
+    await setupChipsInBox(tester, reactions: [
+      Reaction.fromJson({
+        'user_id': eg.selfUser.userId,
+        'emoji_name': 'heart', 'emoji_code': '2764', 'reaction_type': 'unicode_emoji'}),
+    ]);
+
+    check(mergedStyleOf(tester, '\u{2764}')).isNotNull()
+      .fontFamily.equals(switch (defaultTargetPlatform) {
+        TargetPlatform.android => 'Noto Color Emoji',
+        TargetPlatform.iOS => 'Apple Color Emoji',
+        _ => throw StateError('unexpected platform in test'),
+      });
+  }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
   // TODO more tests:
   // - Tapping a chip does the right thing
