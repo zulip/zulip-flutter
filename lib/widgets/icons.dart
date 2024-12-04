@@ -139,3 +139,21 @@ IconData iconDataForStream(ZulipStream stream) {
     ZulipStream() => ZulipIcons.hash_sign,
   };
 }
+
+IconData? iconDataForTopicVisibilityPolicy(UserTopicVisibilityPolicy policy) {
+  switch (policy) {
+    case UserTopicVisibilityPolicy.muted:
+      return ZulipIcons.mute;
+    case UserTopicVisibilityPolicy.unmuted:
+      return ZulipIcons.unmute;
+    case UserTopicVisibilityPolicy.followed:
+      return ZulipIcons.follow;
+    case UserTopicVisibilityPolicy.none:
+      return null;
+    case UserTopicVisibilityPolicy.unknown:
+      // This case is unreachable (or should be) because we keep `unknown` out
+      // of our data structures. We plan to remove the `unknown` case in #1074.
+      assert(false);
+      return null;
+  }
+}

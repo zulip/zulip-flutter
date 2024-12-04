@@ -152,6 +152,22 @@ void main() {
         .page.isA<MessageListPage>().initNarrow
           .equals(ChannelNarrow(channel.streamId));
     });
+
+    testWidgets('show topic visibility policy for topic narrows', (tester) async {
+      final channel = eg.stream();
+      const topic = 'topic';
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow(channel.streamId, topic),
+        streams: [channel], subscriptions: [eg.subscription(channel)],
+        messageCount: 1);
+      await store.handleEvent(eg.userTopicEvent(
+        channel.streamId, topic, UserTopicVisibilityPolicy.muted));
+      await tester.pump();
+
+      check(find.descendant(
+        of: find.byType(MessageListAppBarTitle),
+        matching: find.byIcon(ZulipIcons.mute))).findsOne();
+    });
   });
 
   group('presents message content appropriately', () {
