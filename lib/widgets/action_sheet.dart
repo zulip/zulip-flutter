@@ -222,11 +222,19 @@ class ReactionButtons extends StatelessWidget {
         : zulipLocalizations.errorReactionAddingFailedTitle);
   }
 
+  void _onMorePressed() {
+    // Dismiss current action sheet before opening emoji picker sheet.
+    Navigator.of(pageContext).pop();
+
+    showEmojiPickerSheet(pageContext: pageContext, message: message);
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(EmojiStore.popularEmojiCandidates.every(
       (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
 
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(pageContext);
     final designVariables = DesignVariables.of(context);
 
@@ -240,32 +248,57 @@ class ReactionButtons extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(color: designVariables.contextMenuCancelBg),
-      child: Row(
-        spacing: 1,
-        children: List.unmodifiable(EmojiStore.popularEmojiCandidates.mapIndexed((index, emoji) {
-          final isSelfVoted = hasSelfVote(emoji);
-          return Flexible(child: InkWell(
-            onTap: () => _onReactionPressed(emoji: emoji, isSelfVoted: isSelfVoted),
-            splashFactory: NoSplash.splashFactory,
-            borderRadius: index == 0
-              ? const BorderRadius.only(topLeft: Radius.circular(7))
-              : null,
-            overlayColor: WidgetStateColor.resolveWith((states) =>
-              states.any((e) => e == WidgetState.pressed)
-                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-                : Colors.transparent),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-              alignment: Alignment.center,
-              color: isSelfVoted
-                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+      child: Row(children: [
+        Flexible(child: Row(
+          spacing: 1,
+          children: List.unmodifiable(EmojiStore.popularEmojiCandidates.mapIndexed((index, emoji) {
+            final isSelfVoted = hasSelfVote(emoji);
+            return Flexible(child: InkWell(
+              onTap: () => _onReactionPressed(emoji: emoji, isSelfVoted: isSelfVoted),
+              splashFactory: NoSplash.splashFactory,
+              borderRadius: index == 0
+                ? const BorderRadius.only(topLeft: Radius.circular(7))
                 : null,
-              child: UnicodeEmojiWidget(
-                emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
-                notoColorEmojiTextSize: 20.1,
-                size: 24))));
-        }))));
+              overlayColor: WidgetStateColor.resolveWith((states) =>
+                states.any((e) => e == WidgetState.pressed)
+                  ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                  : Colors.transparent),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                alignment: Alignment.center,
+                color: isSelfVoted
+                  ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                  : null,
+                child: UnicodeEmojiWidget(
+                  emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
+                  notoColorEmojiTextSize: 20.1,
+                  size: 24))));
+          })))),
+        InkWell(
+          onTap: _onMorePressed,
+          splashFactory: NoSplash.splashFactory,
+          borderRadius: const BorderRadius.only(topRight: Radius.circular(7)),
+          overlayColor: WidgetStateColor.resolveWith((states) =>
+            states.any((e) => e == WidgetState.pressed)
+              ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+              : Colors.transparent),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 4, 12),
+            child: Row(children: [
+              Text(zulipLocalizations.emojiReactionsMore,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  color: designVariables.contextMenuItemText,
+                  fontSize: 14,
+                ).merge(weightVariableTextStyle(context, wght: 600))),
+              Icon(ZulipIcons.chevron_right,
+                color: designVariables.contextMenuItemText,
+                size: 24),
+            ]),
+          )),
+      ]),
+    );
   }
 }
 
