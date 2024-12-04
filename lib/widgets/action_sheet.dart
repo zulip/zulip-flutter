@@ -126,6 +126,7 @@ class ActionSheetCancelButton extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     return TextButton(
       style: TextButton.styleFrom(
+        minimumSize: const Size.fromHeight(44),
         padding: const EdgeInsets.all(10),
         foregroundColor: designVariables.contextMenuCancelText,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
@@ -139,8 +140,7 @@ class ActionSheetCancelButton extends StatelessWidget {
       },
       child: Text(ZulipLocalizations.of(context).dialogCancel,
         style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600))),
-    );
+          .merge(weightVariableTextStyle(context, wght: 600))));
   }
 }
 
