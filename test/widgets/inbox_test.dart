@@ -182,6 +182,17 @@ void main() {
     ));
   }
 
+  bool hasIcon(WidgetTester tester, {
+    required Widget? parent,
+    required IconData icon,
+  }) {
+    check(parent).isNotNull();
+    return tester.widgetList(find.descendant(
+      of: find.byWidget(parent!),
+      matching: find.byIcon(icon),
+    )).isNotEmpty;
+  }
+
   group('InboxPage', () {
     testWidgets('page builds; empty', (tester) async {
       await setupPage(tester, unreadMessages: []);
@@ -246,13 +257,8 @@ void main() {
       final subscription = eg.subscription(stream);
       const topic = 'lunch';
 
-      bool hasAtSign(WidgetTester tester, Widget? parent) {
-        check(parent).isNotNull();
-        return tester.widgetList(find.descendant(
-          of: find.byWidget(parent!),
-          matching: find.byIcon(ZulipIcons.at_sign),
-        )).isNotEmpty;
-      }
+      bool hasAtSign(WidgetTester tester, Widget? parent) =>
+        hasIcon(tester, parent: parent, icon: ZulipIcons.at_sign);
 
       testWidgets('topic with a mention', (tester) async {
         await setupPage(tester,
