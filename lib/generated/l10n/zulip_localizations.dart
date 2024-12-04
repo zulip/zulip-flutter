@@ -984,6 +984,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'The account associated with this notification no longer exists.'**
   String get errorNotificationOpenAccountMissing;
+
+  /// Error title when adding a message reaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Adding reaction failed'**
+  String get errorReactionAddingFailedTitle;
+
+  /// Error title when removing a message reaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Removing reaction failed'**
+  String get errorReactionRemovingFailedTitle;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

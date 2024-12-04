@@ -522,4 +522,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get errorNotificationOpenAccountMissing => 'Konto związane z tym powiadomieniem już nie istnieje.';
+
+  @override
+  String get errorReactionAddingFailedTitle => 'Adding reaction failed';
+
+  @override
+  String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
 }
