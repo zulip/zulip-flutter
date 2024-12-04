@@ -153,19 +153,24 @@ const kDefaultFontFamily = 'Source Sans 3';
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
 List<String> get defaultFontFamilyFallback => [
-  if (_useNotoEmoji) 'Noto Color Emoji',
+  _useAppleEmoji ? 'Apple Color Emoji' : 'Noto Color Emoji',
 ];
 
-/// Whether to use the Noto Color Emoji font for showing emoji.
-bool get _useNotoEmoji => switch (defaultTargetPlatform) {
+/// Whether to use the Apple Color Emoji font for showing emoji.
+///
+/// When false, we use Noto Color Emoji instead.
+bool get _useAppleEmoji => switch (defaultTargetPlatform) {
   // iOS doesn't support any of the formats Noto Color Emoji is available in.
   // If we use it on iOS, we'll get blank spaces where we could have had
   // Apple-style emojis.  We presume the same is true of macOS.
-  TargetPlatform.iOS || TargetPlatform.macOS => false,
-  // The font certainly works on Android.
+  // Conversely, both platforms provide Apple Color Emoji.  So we use that.
+  TargetPlatform.iOS || TargetPlatform.macOS => true,
+
+  // The Noto Color Emoji font works fine on Android.
   // We presume it works on the other platforms.
+  // Conversely Apple Color Emoji isn't an option on any of these.
   TargetPlatform.android || TargetPlatform.linux
-    || TargetPlatform.fuchsia || TargetPlatform.windows => true,
+    || TargetPlatform.fuchsia || TargetPlatform.windows => false,
 };
 
 /// A mergeable [TextStyle] with 'Source Code Pro' and platform-aware fallbacks.
