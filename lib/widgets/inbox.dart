@@ -291,7 +291,7 @@ abstract class _HeaderItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               title))),
           const SizedBox(width: 12),
-          if (hasMention) const _AtMentionMarker(),
+          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: UnreadCountBadge(
               backgroundColor: unreadCountBadgeBackgroundColor(context),
@@ -414,7 +414,7 @@ class _DmItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 title))),
             const SizedBox(width: 12),
-            if (hasMention) const  _AtMentionMarker(),
+            if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(backgroundColor: null,
                 count: count)),
@@ -539,7 +539,7 @@ class _TopicItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 topic))),
             const SizedBox(width: 12),
-            if (hasMention) const _AtMentionMarker(),
+            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(
                 backgroundColor: colorSwatchFor(context, subscription),
@@ -548,8 +548,10 @@ class _TopicItem extends StatelessWidget {
   }
 }
 
-class _AtMentionMarker extends StatelessWidget {
-  const _AtMentionMarker();
+class _IconMarker extends StatelessWidget {
+  const _IconMarker({required this.icon});
+
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -558,6 +560,6 @@ class _AtMentionMarker extends StatelessWidget {
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: 4),
-      child: Icon(ZulipIcons.at_sign, size: 14, color: designVariables.atMentionMarker));
+      child: Icon(icon, size: 14, color: designVariables.atMentionMarker));
   }
 }
