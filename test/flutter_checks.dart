@@ -158,3 +158,7 @@ extension TableRowChecks on Subject<TableRow> {
 extension TableChecks on Subject<Table> {
   Subject<List<TableRow>> get children => has((x) => x.children, 'children');
 }
+
+extension IconButtonChecks on Subject<IconButton> {
+  Subject<bool?> get isSelected => has((x) => x.isSelected, 'isSelected');
+}

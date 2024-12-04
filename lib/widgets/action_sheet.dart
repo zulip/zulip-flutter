@@ -9,6 +9,7 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
@@ -16,6 +17,7 @@ import 'clipboard.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
+import 'emoji.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
@@ -41,16 +43,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
-  final hasThumbsUpReactionVote = message.reactions
-    ?.aggregated.any((reactionWithVotes) =>
-      reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-      && reactionWithVotes.emojiCode == '1f44d'
-      && reactionWithVotes.userIds.contains(store.selfUserId))
-    ?? false;
-
   final optionButtons = [
-    if (!hasThumbsUpReactionVote)
-      AddThumbsUpButton(message: message, pageContext: context),
+    ReactionButtons(message: message, pageContext: context, popularEmojis: zulipPopularEmojis),
     StarButton(message: message, pageContext: context),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: context),
@@ -183,27 +177,39 @@ class MessageActionSheetCancelButton extends StatelessWidget {
   }
 }
 
-// This button is very temporary, to complete #125 before we have a way to
-// choose an arbitrary reaction (#388). So, skipping i18n.
-class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
-  AddThumbsUpButton({super.key, required super.message, required super.pageContext});
+class ReactionButtons extends StatelessWidget {
+  const ReactionButtons({
+    super.key,
+    required this.message,
+    required this.pageContext,
+    required this.popularEmojis,
+  });
 
-  @override IconData get icon => ZulipIcons.smile;
+  final Message message;
 
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return 'React with 👍'; // TODO(i18n) skip translation for now
-  }
+  /// A context within the [MessageListPage] this action sheet was
+  /// triggered from.
+  final BuildContext pageContext;
 
-  @override void onPressed() async {
+  /// List of popular emoji reaction buttons to display.
+  /// Each emoji must be a unicode emoji.
+  final List<EmojiCandidate> popularEmojis;
+
+  void _onPressed(
+    EmojiCandidate emoji,
+    bool selfVoted,
+    ZulipLocalizations zulipLocalizations,
+  ) async {
     String? errorMessage;
     try {
-      await addReaction(PerAccountStoreWidget.of(pageContext).connection,
+      await (selfVoted ? removeReaction : addReaction).call(
+        PerAccountStoreWidget.of(pageContext).connection,
         messageId: message.id,
-        reactionType: ReactionType.unicodeEmoji,
-        emojiCode: '1f44d',
-        emojiName: '+1',
+        reactionType: emoji.emojiType,
+        emojiCode: emoji.emojiCode,
+        emojiName: emoji.emojiName,
       );
+      if (pageContext.mounted) Navigator.pop(pageContext);
     } catch (e) {
       if (!pageContext.mounted) return;
 
@@ -216,8 +222,56 @@ class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
       }
 
       showErrorDialog(context: pageContext,
-        title: 'Adding reaction failed', message: errorMessage);
+        title: selfVoted
+          ? zulipLocalizations.errorReactionRemovingFailedTitle
+          : zulipLocalizations.errorReactionAddingFailedTitle,
+        message: errorMessage);
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(popularEmojis.every(
+      (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(pageContext);
+    final designVariables = DesignVariables.of(context);
+
+    bool hasSelfVote(EmojiCandidate emoji) {
+      return message.reactions?.aggregated.any((reactionWithVotes) {
+        return reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+          && reactionWithVotes.emojiCode == emoji.emojiCode
+          && reactionWithVotes.userIds.contains(store.selfUserId);
+      }) ?? false;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(color: designVariables.contextMenuItemBg.withFadedAlpha(0.12)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.unmodifiable(popularEmojis.map((emoji) {
+          final selfVoted = hasSelfVote(emoji);
+          return IconButton(
+            onPressed: () => _onPressed(emoji, selfVoted, zulipLocalizations),
+            isSelected: selfVoted,
+            style: IconButton.styleFrom(
+              padding: EdgeInsets.zero,
+              splashFactory: NoSplash.splashFactory,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.5)),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+              states.any((e) => e == WidgetState.pressed || e == WidgetState.selected)
+                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                : Colors.transparent)),
+            icon: UnicodeEmojiWidget(
+              emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
+              notoColorEmojiTextSize: 20.1,
+              size: 24));
+        })))
+    );
   }
 }
 

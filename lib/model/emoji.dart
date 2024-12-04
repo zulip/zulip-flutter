@@ -88,6 +88,60 @@ final class EmojiCandidate {
   }) : _aliases = aliases;
 }
 
+// Zulip's hand selected "popular" emojis, currently used as list of
+// quick emoji reactions available in the message context menu.
+// See: https://github.com/zulip/zulip/blob/3bad36ef8cf07cd57d0b257a739bae635a8527ac/web/shared/src/typeahead.ts#L22-L29
+const zulipPopularEmojis = [
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f44d',
+    emojiName: '+1',
+    aliases: ['thumbs_up', 'like'],
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: '+1',
+      emojiUnicode: '\u{1f44d}')), // '👍'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f389',
+    emojiName: 'tada',
+    aliases: null,
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'tada',
+      emojiUnicode: '\u{1f389}')), // '🎉'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f642',
+    emojiName: 'smile',
+    aliases: null,
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'smile',
+      emojiUnicode: '\u{1f642}')), // '🙂'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '2764',
+    emojiName: 'heart',
+    aliases: ['love', 'love_you'],
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'heart',
+      emojiUnicode: '\u{2764}')), // '❤'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f6e0',
+    emojiName: 'working_on_it',
+    aliases: ['hammer_and_wrench', 'tools'],
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'working_on_it',
+      emojiUnicode: '\u{1f6e0}')), // '🛠'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f419',
+    emojiName: 'octopus',
+    aliases: null,
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'octopus',
+      emojiUnicode: '\u{1f419}')), // '🐙'
+];
+
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
   /// The realm's custom emoji (for [ReactionType.realmEmoji],
