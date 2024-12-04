@@ -9,6 +9,7 @@ import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
@@ -118,22 +119,26 @@ void main() {
           });
       }
 
+      Future<void> login(WidgetTester tester, Account account) async {
+        await tester.enterText(findUsernameInput, account.email);
+        await tester.enterText(findPasswordInput, 'p455w0rd');
+        testBinding.globalStore.useCachedApiConnections = true;
+        connection.prepare(json: FetchApiKeyResult(
+          apiKey: account.apiKey,
+          email: account.email,
+          userId: account.userId,
+        ).toJson());
+        await tester.tap(findSubmitButton);
+        checkFetchApiKey(username: account.email, password: 'p455w0rd');
+        await tester.idle();
+      }
+
       testWidgets('basic happy case', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
         check(testBinding.globalStore.accounts).isEmpty();
 
-        await tester.enterText(findUsernameInput, eg.selfAccount.email);
-        await tester.enterText(findPasswordInput, 'p455w0rd');
-        testBinding.globalStore.useCachedApiConnections = true;
-        connection.prepare(json: FetchApiKeyResult(
-          apiKey: eg.selfAccount.apiKey,
-          email: eg.selfAccount.email,
-          userId: eg.selfAccount.userId,
-        ).toJson());
-        await tester.tap(findSubmitButton);
-        checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
-        await tester.idle();
+        await login(tester, eg.selfAccount);
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
             id: testBinding.globalStore.accounts.single.id));
