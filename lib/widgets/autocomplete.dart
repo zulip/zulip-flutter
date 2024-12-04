@@ -260,6 +260,7 @@ class _EmojiAutocompleteItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final candidate = option.candidate;
 
+    // TODO deduplicate this logic with [EmojiPickerListEntry]
     final emojiDisplay = candidate.emojiDisplay.resolve(store.userSettings);
     final Widget? glyph = switch (emojiDisplay) {
       ImageEmojiDisplay() =>

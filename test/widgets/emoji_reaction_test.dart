@@ -8,17 +8,28 @@ import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/model/emoji.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
+import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/message_list.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/emoji_test.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_test.dart';
+import 'dialog_checks.dart';
 import 'test_app.dart';
 import 'text_test.dart';
 
@@ -26,6 +37,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   late PerAccountStore store;
+  late FakeApiConnection connection;
 
   Future<void> prepare() async {
     addTearDown(testBinding.reset);
@@ -284,4 +296,184 @@ void main() {
   // - When a user isn't found, says "(unknown user)"
   // - More about layout? (not just that it's error-free)
   // - Non-animated image emoji is selected when intended
+
+  group('EmojiPicker', () {
+    final popularCandidates = EmojiStore.popularEmojiCandidates;
+
+    Future<void> setupEmojiPicker(WidgetTester tester, {
+      required StreamMessage message,
+      required Narrow narrow,
+    }) async {
+      addTearDown(testBinding.reset);
+      assert(narrow.containsMessage(message));
+
+      final httpClient = FakeImageHttpClient();
+      debugNetworkImageHttpClientProvider = () => httpClient;
+      httpClient.request.response
+        ..statusCode = HttpStatus.ok
+        ..content = kSolidBlueAvatar;
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await store.addUsers([
+        eg.selfUser,
+        eg.user(userId: message.senderId),
+      ]);
+      final stream = eg.stream(streamId: message.streamId);
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+
+      connection = store.connection as FakeApiConnection;
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: MessageListPage(initNarrow: narrow)));
+
+      // global store, per-account store, and message list get loaded
+      await tester.pumpAndSettle();
+      // request the message action sheet
+      await tester.longPress(find.byType(MessageContent));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+
+      store.setServerEmojiData(ServerEmojiData(codeToNames: {
+        '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
+      }));
+      await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
+      }));
+
+      // request the emoji picker sheet
+      await tester.tap(find.byIcon(ZulipIcons.chevron_right));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byType(EmojiPicker));
+    }
+
+    final searchFieldFinder = find.widgetWithText(TextField, 'Search emoji');
+
+    Condition<Object?> conditionEmojiListEntry({
+      required ReactionType emojiType,
+      required String emojiCode,
+      required String emojiName,
+    }) {
+      return (Subject<Object?> it) => it.isA<EmojiPickerListEntry>()
+        ..emoji.which((it) => it
+          ..emojiType.equals(emojiType)
+          ..emojiCode.equals(emojiCode)
+          ..emojiName.equals(emojiName));
+    }
+
+    List<Condition<Object?>> arePopularEntries = popularCandidates.map((c) =>
+      conditionEmojiListEntry(
+        emojiType: c.emojiType,
+        emojiCode: c.emojiCode,
+        emojiName: c.emojiName)).toList();
+
+    testWidgets('show, search', (tester) async {
+      final message = eg.streamMessage();
+      await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
+        ...arePopularEntries,
+        conditionEmojiListEntry(
+          emojiType: ReactionType.realmEmoji,
+          emojiCode: '1',
+          emojiName: 'buzzing'),
+        conditionEmojiListEntry(
+          emojiType: ReactionType.zulipExtraEmoji,
+          emojiCode: 'zulip',
+          emojiName: 'zulip'),
+        conditionEmojiListEntry(
+          emojiType: ReactionType.unicodeEmoji,
+          emojiCode: '1f4a4',
+          emojiName: 'zzz'),
+      ]);
+
+      await tester.enterText(searchFieldFinder, 'z');
+      await tester.pump();
+
+      check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
+        conditionEmojiListEntry(
+          emojiType: ReactionType.zulipExtraEmoji,
+          emojiCode: 'zulip',
+          emojiName: 'zulip'),
+        conditionEmojiListEntry(
+          emojiType: ReactionType.unicodeEmoji,
+          emojiCode: '1f4a4',
+          emojiName: 'zzz'),
+        conditionEmojiListEntry(
+          emojiType: ReactionType.realmEmoji,
+          emojiCode: '1',
+          emojiName: 'buzzing'),
+      ]);
+
+      await tester.enterText(searchFieldFinder, 'zz');
+      await tester.pump();
+
+      check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
+        conditionEmojiListEntry(
+          emojiType: ReactionType.unicodeEmoji,
+          emojiCode: '1f4a4',
+          emojiName: 'zzz'),
+        conditionEmojiListEntry(
+          emojiType: ReactionType.realmEmoji,
+          emojiCode: '1',
+          emojiName: 'buzzing'),
+      ]);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('adding success', (tester) async {
+      final message = eg.streamMessage();
+      await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      connection.prepare(json: {});
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': 'unicode_emoji',
+            'emoji_code': '1f4a4',
+            'emoji_name': 'zzz',
+          });
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('request has an error', (tester) async {
+      final message = eg.streamMessage();
+      await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      connection.prepare(
+        delay: const Duration(seconds: 2),
+        httpStatus: 400, json: {
+          'code': 'BAD_REQUEST',
+          'msg': 'Invalid message(s)',
+          'result': 'error',
+        });
+
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.pump(); // register tap
+      await tester.pump(const Duration(seconds: 1)); // emoji picker animates away
+      await tester.pump(const Duration(seconds: 1)); // error arrives; error dialog shows
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Adding reaction failed',
+        expectedMessage: 'Invalid message(s)')));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+}
+
+extension EmojiPickerListItemChecks on Subject<EmojiPickerListEntry> {
+  Subject<EmojiCandidate> get emoji => has((x) => x.emoji, 'emoji');
 }

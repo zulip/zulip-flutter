@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../generated/l10n/zulip_localizations.dart';
+import '../model/autocomplete.dart';
 import '../model/emoji.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'emoji.dart';
+import 'inset_shadow.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
@@ -399,5 +403,219 @@ Future<void> doAddOrRemoveReaction({
       title: errorDialogTitle,
       message: errorMessage);
     return;
+  }
+}
+
+/// Opens a browsable and searchable emoji picker bottom sheet.
+void showEmojiPickerSheet({
+  required BuildContext pageContext,
+  required Message message,
+}) {
+  final store = PerAccountStoreWidget.of(pageContext);
+  showModalBottomSheet<void>(
+    context: pageContext,
+    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+    // on my iPhone 13 Pro but is marked as "much slower":
+    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return SafeArea(
+        child: Padding(
+          // By default, when software keyboard is opened, the ListView
+          // expands behind the software keyboard — resulting in some
+          // list entries being covered by the keyboard. Add explicit
+          // bottom padding the size of the keyboard, which fixes this.
+          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+          // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
+          child: PerAccountStoreWidget(
+            accountId: store.accountId,
+            child: EmojiPicker(pageContext: pageContext, message: message))));
+    });
+}
+
+@visibleForTesting
+class EmojiPicker extends StatefulWidget {
+  const EmojiPicker({
+    super.key,
+    required this.pageContext,
+    required this.message,
+  });
+
+  final BuildContext pageContext;
+  final Message message;
+
+  @override
+  State<EmojiPicker> createState() => _EmojiPickerState();
+}
+
+class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStateMixin<EmojiPicker> {
+  late TextEditingController _controller;
+
+  EmojiAutocompleteView? _viewModel;
+  List<EmojiAutocompleteResult> _resultsToDisplay = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController()
+      ..addListener(_handleControllerUpdate);
+  }
+
+  @override
+  void onNewStore() {
+    final store = PerAccountStoreWidget.of(context);
+    final query = EmojiAutocompleteQuery(_controller.text);
+    if (_viewModel != null) {
+      assert(_viewModel!.query == query);
+      _viewModel!.dispose();
+    }
+    _viewModel = EmojiAutocompleteView.init(store: store, query: query)
+      ..addListener(_handleViewModelUpdate);
+  }
+
+  void _handleControllerUpdate() {
+    _viewModel!.query = EmojiAutocompleteQuery(_controller.text);
+  }
+
+  void _handleViewModelUpdate() {
+    setState(() {
+      _resultsToDisplay = List.unmodifiable(_viewModel!.results);
+    });
+  }
+
+  @override
+  void dispose() {
+    _viewModel?.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    return Column(children: [
+      Padding(padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+        child: Row(children: [
+          // TODO(design): Make sure if we need a button to clear the textfield.
+          Flexible(child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: TextField(
+              controller: _controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: zulipLocalizations.emojiPickerSearchEmoji,
+                contentPadding: const EdgeInsetsDirectional.only(start: 10, top: 6),
+                filled: true,
+                fillColor: designVariables.bgSearchInput,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none),
+                hintStyle: TextStyle(color: designVariables.textMessage)),
+              style: const TextStyle(fontSize: 19, height: 26 / 19)))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              splashFactory: NoSplash.splashFactory,
+              foregroundColor: designVariables.contextMenuItemText,
+            ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.pressed)
+                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                : Colors.transparent)),
+            child: Text(zulipLocalizations.dialogClose,
+              style: const TextStyle(fontSize: 20, height: 30 / 20))),
+        ])),
+      Expanded(child: InsetShadowBox(
+        top: 8, bottom: 8,
+        color: designVariables.bgContextMenu,
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: _resultsToDisplay.length,
+          itemBuilder: (context, i) => EmojiPickerListEntry(
+            pageContext: widget.pageContext,
+            emoji: _resultsToDisplay[i].candidate,
+            message: widget.message)))),
+    ]);
+  }
+}
+
+@visibleForTesting
+class EmojiPickerListEntry extends StatelessWidget {
+  const EmojiPickerListEntry({
+    super.key,
+    required this.pageContext,
+    required this.emoji,
+    required this.message,
+  });
+
+  final BuildContext pageContext;
+  final EmojiCandidate emoji;
+  final Message message;
+
+  static const _emojiSize = 24.0;
+  static const _notoColorEmojiTextSize = 20.1;
+
+  void _onPressed() {
+    // Dismiss the enclosing action sheet immediately,
+    // for swift UI feedback that the user's selection was received.
+    Navigator.pop(pageContext);
+
+    doAddOrRemoveReaction(
+      context: pageContext,
+      doRemoveReaction: false,
+      messageId: message.id,
+      emoji: emoji,
+      errorDialogTitle:
+        ZulipLocalizations.of(pageContext).errorReactionAddingFailedTitle);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    // TODO deduplicate this logic with [_EmojiAutocompleteItem]
+    final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
+    final Widget? glyph = switch (emojiDisplay) {
+      ImageEmojiDisplay() =>
+        ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
+      UnicodeEmojiDisplay() =>
+        UnicodeEmojiWidget(
+          size: _emojiSize, notoColorEmojiTextSize: _notoColorEmojiTextSize,
+          emojiDisplay: emojiDisplay),
+      TextEmojiDisplay() => null, // The text is already shown separately.
+    };
+
+    final label = emoji.aliases.isEmpty
+      ? emoji.emojiName
+      : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
+
+    return InkWell(
+      onTap: _onPressed,
+      splashFactory: NoSplash.splashFactory,
+      overlayColor: WidgetStateColor.resolveWith((states) =>
+        states.any((e) => e == WidgetState.pressed)
+          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+          : Colors.transparent),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(spacing: 4, children: [
+          if (glyph != null)
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: glyph),
+          Flexible(child: Text(label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 17,
+              height: 18 / 17,
+              color: designVariables.textMessage)))
+        ]),
+      ));
   }
 }
