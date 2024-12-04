@@ -1020,6 +1020,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
     //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final topic = message.topic;
 
@@ -1081,11 +1082,21 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 
     final topicWidget = Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),
-      child: Text(topic,
-        // TODO: Give a way to see the whole topic (maybe a
-        //   long-press interaction?)
-        overflow: TextOverflow.ellipsis,
-        style: recipientHeaderTextStyle(context)));
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(topic,
+              // TODO: Give a way to see the whole topic (maybe a
+              //   long-press interaction?)
+              overflow: TextOverflow.ellipsis,
+              style: recipientHeaderTextStyle(context))),
+          const SizedBox(width: 4),
+          // TODO(design) copies the recipient header in web; is there a better color?
+          Icon(size: 14, color: designVariables.colorMessageHeaderIconInteractive,
+            // A null [Icon.icon] makes a blank space.
+            iconDataForTopicVisibilityPolicy(
+              store.topicVisibilityPolicy(message.streamId, topic))),
+        ]));
 
     return GestureDetector(
       onTap: () => Navigator.push(context,

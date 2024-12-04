@@ -803,6 +803,30 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
+      testWidgets('show topic visibility icon when followed', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await store.handleEvent(eg.userTopicEvent(
+          stream.streamId, message.topic, UserTopicVisibilityPolicy.followed));
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(MessageList),
+          matching: find.byIcon(ZulipIcons.follow))).findsOne();
+      });
+
+      testWidgets('show topic visibility icon when unmuted', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
+        await store.handleEvent(eg.userTopicEvent(
+          stream.streamId, message.topic, UserTopicVisibilityPolicy.unmuted));
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(MessageList),
+          matching: find.byIcon(ZulipIcons.unmute))).findsOne();
+      });
+
       testWidgets('color of recipient header background', (tester) async {
         final subscription = eg.subscription(stream, color: Colors.red.argbInt);
         final swatch = ChannelColorSwatch.light(subscription.color);
