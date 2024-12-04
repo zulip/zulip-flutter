@@ -336,9 +336,24 @@ class MessageListAppBarTitle extends StatelessWidget {
     required ZulipStream? stream,
     required String topic,
   }) {
-    return Text(topic, style: const TextStyle(
-      fontSize: 13,
-    ).merge(weightVariableTextStyle(context)));
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+    final icon = stream == null ? null
+      : iconDataForTopicVisibilityPolicy(
+          store.topicVisibilityPolicy(stream.streamId, topic));
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: Text(topic, style: const TextStyle(
+          fontSize: 13,
+        ).merge(weightVariableTextStyle(context)))),
+        if (icon != null)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4),
+            child: Icon(icon,
+              // TODO(design) copies the recipient header in web; is there a better color?
+              color: designVariables.colorMessageHeaderIconInteractive, size: 14)),
+      ]);
   }
 
   // TODO(upstream): provide an API for this
