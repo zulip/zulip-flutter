@@ -664,6 +664,11 @@ enum MessageFlag {
 //   Using as a Map key is almost certainly a bug because it won't case-fold;
 //   see for example #739, #980, #1205.
 extension type const TopicName(String _value) {
+  /// The canonical form of the resolved-topic prefix.
+  // This is RESOLVED_TOPIC_PREFIX in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+  static const resolvedTopicPrefix = '✔ ';
+
   /// The string this topic is identified by in the Zulip API.
   ///
   /// This should be used in constructing HTTP requests to the server,
@@ -844,11 +849,6 @@ enum MessageEditState {
   edited,
   moved;
 
-  // Adapted from the shared code:
-  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
-  // The canonical resolved-topic prefix.
-  static const String _resolvedTopicPrefix = '✔ ';
-
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.
   ///
@@ -856,13 +856,13 @@ enum MessageEditState {
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
   static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
-    if (topic.apiName.startsWith(_resolvedTopicPrefix)
-        && topic.apiName.substring(_resolvedTopicPrefix.length) == prevTopic.apiName) {
+    if (topic.apiName.startsWith(TopicName.resolvedTopicPrefix)
+        && topic.apiName.substring(TopicName.resolvedTopicPrefix.length) == prevTopic.apiName) {
       return true;
     }
 
-    if (prevTopic.apiName.startsWith(_resolvedTopicPrefix)
-        && prevTopic.apiName.substring(_resolvedTopicPrefix.length) == topic.apiName) {
+    if (prevTopic.apiName.startsWith(TopicName.resolvedTopicPrefix)
+        && prevTopic.apiName.substring(TopicName.resolvedTopicPrefix.length) == topic.apiName) {
       return true;
     }
 
