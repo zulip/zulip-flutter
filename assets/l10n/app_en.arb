@@ -88,6 +88,42 @@
   "@actionSheetOptionUnfollowTopic":  {
     "description": "Label for unfollowing a topic on action sheet."
   },
+  "actionSheetOptionResolveTopic": "Mark as resolved",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Mark as unresolved",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "resolveTopicInterruptedTitle": "Problem marking topic as resolved",
+  "@resolveTopicInterruptedTitle": {
+    "description": "Error title when trying to 'Mark as resolved' and the app decides not to continue."
+  },
+  "unresolveTopicInterruptedTitle": "Problem marking topic as unresolved",
+  "@unresolveTopicInterruptedTitle": {
+    "description": "Error title when trying to 'Mark as unresolved' and the app decides not to continue."
+  },
+  "topicAlreadyResolvedMessage": "This topic is already marked as resolved.",
+  "@topicAlreadyResolvedMessage": {
+    "description": "Error message when trying to 'Mark as resolved' a topic that was already marked by someone else."
+  },
+  "topicAlreadyUnresolvedMessage": "This topic is already marked as unresolved.",
+  "@topicAlreadyUnresolvedMessage": {
+    "description": "Error message when trying to 'Mark as unresolved' a topic that was already marked by someone else."
+  },
+  "topicRenamedMessage": "This topic has been renamed.",
+  "@topicRenamedMessage": {
+    "description": "Error message when trying to 'Mark as resolved' or 'Mark as unresolved' a topic that was renamed by someone else."
+  },
+  "errorResolveTopicFailedTitle": "Failed to mark topic as resolved",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Failed to mark topic as unresolved",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."
