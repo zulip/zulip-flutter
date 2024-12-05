@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../route/messages.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
@@ -806,11 +807,6 @@ enum MessageEditState {
   edited,
   moved;
 
-  // Adapted from the shared code:
-  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
-  // The canonical resolved-topic prefix.
-  static const String _resolvedTopicPrefix = '✔ ';
-
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.
   ///
@@ -818,13 +814,13 @@ enum MessageEditState {
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
   static bool topicMoveWasResolveOrUnresolve(String topic, String prevTopic) {
-    if (topic.startsWith(_resolvedTopicPrefix)
-        && topic.substring(_resolvedTopicPrefix.length) == prevTopic) {
+    if (topic.startsWith(kResolvedTopicPrefix)
+        && topic.substring(kResolvedTopicPrefix.length) == prevTopic) {
       return true;
     }
 
-    if (prevTopic.startsWith(_resolvedTopicPrefix)
-        && prevTopic.substring(_resolvedTopicPrefix.length) == topic) {
+    if (prevTopic.startsWith(kResolvedTopicPrefix)
+        && prevTopic.substring(kResolvedTopicPrefix.length) == topic) {
       return true;
     }
 

@@ -158,6 +158,11 @@ class GetMessagesResult {
 // https://zulip.com/api/send-message#parameter-topic
 const int kMaxTopicLength = 60;
 
+/// The canonical resolved-topic prefix.
+// Adapted from the shared code:
+//   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+const String kResolvedTopicPrefix = '✔ ';
+
 // https://zulip.com/api/send-message#parameter-content
 const int kMaxMessageLengthCodePoints = 10000;
 
