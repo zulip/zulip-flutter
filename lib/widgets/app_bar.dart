@@ -8,6 +8,7 @@ import 'store.dart';
 class ZulipAppBar extends AppBar {
   ZulipAppBar({
     super.key,
+    super.titleSpacing,
     required super.title,
     super.backgroundColor,
     super.shape,
