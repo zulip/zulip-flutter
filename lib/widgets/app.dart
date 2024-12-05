@@ -279,6 +279,7 @@ class ChooseAccountPage extends StatelessWidget {
     final globalStore = GlobalStoreWidget.of(context);
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 16,
         title: Text(zulipLocalizations.chooseAccountPageTitle),
         actions: const [ChooseAccountPageOverflowButton()]),
       body: SafeArea(
