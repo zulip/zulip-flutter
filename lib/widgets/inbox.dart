@@ -132,7 +132,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <(TopicName, int, bool, int)>[];
+      final topicItems = <_StreamSectionTopicData>[];
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
@@ -140,15 +140,20 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
         if (hasMention) streamHasMention = true;
-        topicItems.add((topic, countInTopic, hasMention, messageIds.last));
+        topicItems.add(_StreamSectionTopicData(
+          topic: topic,
+          count: countInTopic,
+          hasMention: hasMention,
+          lastUnreadId: messageIds.last,
+        ));
         countInStream += countInTopic;
       }
       if (countInStream == 0) {
         continue;
       }
       topicItems.sort((a, b) {
-        final (_, _, _, aLastUnreadId) = a;
-        final (_, _, _, bLastUnreadId) = b;
+        final aLastUnreadId = a.lastUnreadId;
+        final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
@@ -192,9 +197,23 @@ class _StreamSectionData extends _InboxSectionData {
   final int streamId;
   final int count;
   final bool hasMention;
-  final List<(TopicName, int, bool, int)> items;
+  final List<_StreamSectionTopicData> items;
 
   const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
+}
+
+class _StreamSectionTopicData {
+  final TopicName topic;
+  final int count;
+  final bool hasMention;
+  final int lastUnreadId;
+
+  const _StreamSectionTopicData({
+    required this.topic,
+    required this.count,
+    required this.hasMention,
+    required this.lastUnreadId,
+  });
 }
 
 abstract class _HeaderItem extends StatelessWidget {
@@ -466,7 +485,7 @@ class _StreamSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          final (topic, count, hasMention, _) = item;
+          final _StreamSectionTopicData(:topic, :count, :hasMention) = item;
           return _TopicItem(
             streamId: data.streamId,
             topic: topic,
