@@ -177,7 +177,8 @@ abstract class MessageListPageState {
   Narrow get narrow;
 
   /// The controller for this [MessageListPage]'s compose box,
-  /// if this [MessageListPage] offers a compose box.
+  /// if this [MessageListPage] offers a compose box and it has mounted,
+  /// else null.
   ComposeBoxController? get composeBoxController;
 }
 
