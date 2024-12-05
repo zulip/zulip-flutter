@@ -92,6 +92,22 @@
   "@actionSheetOptionUnfollowTopic":  {
     "description": "Label for unfollowing a topic on action sheet."
   },
+  "actionSheetOptionResolveTopic": "Mark as resolved",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Mark as unresolved",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Failed to mark topic as resolved",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Failed to mark topic as unresolved",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."

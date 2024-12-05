@@ -166,9 +166,13 @@ class ActionSheetCancelButton extends StatelessWidget {
 /// Show a sheet of actions you can take on a topic.
 ///
 /// Needs a [PageRoot] ancestor.
+///
+/// The API request for resolving/unresolving a topic needs a message ID.
+/// If [someMessageIdInTopic] is null, the button for that will be absent.
 void showTopicActionSheet(BuildContext context, {
   required int channelId,
   required TopicName topic,
+  required int? someMessageIdInTopic,
 }) {
   final pageContext = PageRoot.contextOf(context);
 
@@ -244,6 +248,12 @@ void showTopicActionSheet(BuildContext context, {
       narrow: TopicNarrow(channelId, topic),
       pageContext: pageContext);
   }));
+
+  if (someMessageIdInTopic != null) {
+    optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
+      topic: topic,
+      someMessageIdInTopic: someMessageIdInTopic));
+  }
 
   if (optionButtons.isEmpty) {
     // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
@@ -373,6 +383,80 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
       final zulipLocalizations = ZulipLocalizations.of(pageContext);
       showErrorDialog(context: pageContext,
         title: _errorTitle(zulipLocalizations), message: errorMessage);
+    }
+  }
+}
+
+class ResolveUnresolveButton extends ActionSheetMenuItemButton {
+  ResolveUnresolveButton({
+    super.key,
+    required this.topic,
+    required this.someMessageIdInTopic,
+    required super.pageContext,
+  }) : _actionIsResolve = !topic.isResolved;
+
+  /// The topic that the action sheet was opened for.
+  ///
+  /// There might not currently be any messages with this topic;
+  /// see dartdoc of [ActionSheetMenuItemButton].
+  final TopicName topic;
+
+  /// The message ID that was passed when opening the action sheet.
+  ///
+  /// The message with this ID might currently not exist,
+  /// or might exist with a different topic;
+  /// see dartdoc of [ActionSheetMenuItemButton].
+  final int someMessageIdInTopic;
+
+  final bool _actionIsResolve;
+
+  @override
+  IconData get icon => _actionIsResolve ? ZulipIcons.check : ZulipIcons.check_remove;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return _actionIsResolve
+      ? zulipLocalizations.actionSheetOptionResolveTopic
+      : zulipLocalizations.actionSheetOptionUnresolveTopic;
+  }
+
+  @override void onPressed() async {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    final store = PerAccountStoreWidget.of(pageContext);
+
+    // We *could* check here if the topic has changed since the action sheet was
+    // opened (see dartdoc of [ActionSheetMenuItemButton]) and abort if so.
+    // We simplify by not doing so.
+    // There's already an inherent race that that check wouldn't help with:
+    // when you tap the button, an intervening topic change may already have
+    // happened, just not reached us in an event yet.
+    // Discussion, including about what web does:
+    //   https://github.com/zulip/zulip-flutter/pull/1301#discussion_r1936181560
+
+    try {
+      await updateMessage(store.connection,
+        messageId: someMessageIdInTopic,
+        topic: _actionIsResolve ? topic.resolve() : topic.unresolve(),
+        propagateMode: PropagateMode.changeAll,
+        sendNotificationToOldThread: false,
+        sendNotificationToNewThread: true,
+      );
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = _actionIsResolve
+        ? zulipLocalizations.errorResolveTopicFailedTitle
+        : zulipLocalizations.errorUnresolveTopicFailedTitle;
+      showErrorDialog(context: pageContext, title: title, message: errorMessage);
     }
   }
 }
