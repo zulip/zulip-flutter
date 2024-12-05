@@ -243,6 +243,30 @@ abstract class ZulipLocalizations {
   /// **'Unfollow topic'**
   String get actionSheetOptionUnfollowTopic;
 
+  /// Label for the 'Mark as resolved' button on the topic action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as resolved'**
+  String get actionSheetOptionResolveTopic;
+
+  /// Label for the 'Mark as unresolved' button on the topic action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as unresolved'**
+  String get actionSheetOptionUnresolveTopic;
+
+  /// Error title when marking a topic as resolved failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark topic as resolved'**
+  String get errorResolveTopicFailedTitle;
+
+  /// Error title when marking a topic as unresolved failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark topic as unresolved'**
+  String get errorUnresolveTopicFailedTitle;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:
