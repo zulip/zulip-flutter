@@ -54,6 +54,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
+      textStyleEmoji: TextStyle(
+        fontFamily: emojiFontFamily, fontFamilyFallback: const []),
       codeBlockTextStyles: CodeBlockTextStyles.light(context),
       textStyleError: const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
         .merge(weightVariableTextStyle(context, wght: 700)),
@@ -85,6 +87,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
+      textStyleEmoji: TextStyle(
+        fontFamily: emojiFontFamily, fontFamilyFallback: const []),
       codeBlockTextStyles: CodeBlockTextStyles.dark(context),
       textStyleError: const TextStyle(fontSize: kBaseFontSize, color: Colors.red)
         .merge(weightVariableTextStyle(context, wght: 700)),
@@ -113,6 +117,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorTableHeaderBackground,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
+    required this.textStyleEmoji,
     required this.codeBlockTextStyles,
     required this.textStyleError,
     required this.textStyleErrorCode,
@@ -151,6 +156,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   /// This is the complete style for plain paragraphs. Plain-paragraph content
   /// should not need styles from other sources, such as Material defaults.
   final TextStyle textStylePlainParagraph;
+
+  /// The [TextStyle] to use for Unicode emoji.
+  final TextStyle textStyleEmoji;
 
   final CodeBlockTextStyles codeBlockTextStyles;
   final TextStyle textStyleError;
@@ -201,6 +209,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorTableHeaderBackground,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
+    TextStyle? textStyleEmoji,
     CodeBlockTextStyles? codeBlockTextStyles,
     TextStyle? textStyleError,
     TextStyle? textStyleErrorCode,
@@ -222,6 +231,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableHeaderBackground: colorTableHeaderBackground ?? this.colorTableHeaderBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
+      textStyleEmoji: textStyleEmoji ?? this.textStyleEmoji,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
       textStyleError: textStyleError ?? this.textStyleError,
       textStyleErrorCode: textStyleErrorCode ?? this.textStyleErrorCode,
@@ -250,6 +260,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableHeaderBackground: Color.lerp(colorTableHeaderBackground, other.colorTableHeaderBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
+      textStyleEmoji: TextStyle.lerp(textStyleEmoji, other.textStyleEmoji, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
       textStyleError: TextStyle.lerp(textStyleError, other.textStyleError, t)!,
       textStyleErrorCode: TextStyle.lerp(textStyleErrorCode, other.textStyleErrorCode, t)!,
@@ -1031,7 +1042,9 @@ class _InlineContentBuilder {
           child: UserMention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
-        return TextSpan(text: node.emojiUnicode, recognizer: _recognizer);
+        return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
+          style: widget.style
+            .merge(ContentTheme.of(_context!).textStyleEmoji));
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

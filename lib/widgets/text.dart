@@ -153,8 +153,12 @@ const kDefaultFontFamily = 'Source Sans 3';
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
 List<String> get defaultFontFamilyFallback => [
-  _useAppleEmoji ? 'Apple Color Emoji' : 'Noto Color Emoji',
+  emojiFontFamily,
 ];
+
+String get emojiFontFamily {
+  return _useAppleEmoji ? 'Apple Color Emoji' : 'Noto Color Emoji';
+}
 
 /// Whether to use the Apple Color Emoji font for showing emoji.
 ///

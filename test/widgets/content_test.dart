@@ -877,6 +877,19 @@ void main() {
     testContentSmoke(ContentExample.emojiUnicode);
     testContentSmoke(ContentExample.emojiUnicodeMultiCodepoint);
     testContentSmoke(ContentExample.emojiUnicodeLiteral);
+
+    testWidgets('use emoji font', (tester) async {
+      // Compare [ContentExample.emojiUnicode].
+      const emojiHeartHtml =
+        '<p><span aria-label="heart" class="emoji emoji-2764" role="img" title="heart">:heart:</span></p>';
+      await prepareContent(tester, plainContent(emojiHeartHtml));
+      check(mergedStyleOf(tester, '\u{2764}')).isNotNull()
+        .fontFamily.equals(switch (defaultTargetPlatform) {
+          TargetPlatform.android => 'Noto Color Emoji',
+          TargetPlatform.iOS => 'Apple Color Emoji',
+          _ => throw StateError('unexpected platform in test'),
+        });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('inline math', () {
