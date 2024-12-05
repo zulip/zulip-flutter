@@ -34,12 +34,13 @@ class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> implem
 /// A mixin for providing a given account's per-account store on a page route.
 mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
   int get accountId;
+  Widget? get loadingPlaceholderPage;
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     return PerAccountStoreWidget(
       accountId: accountId,
-      placeholder: const LoadingPlaceholderPage(),
+      placeholder: loadingPlaceholderPage ?? const LoadingPlaceholderPage(),
       routeToRemoveOnLogout: this,
       child: super.buildPage(context, animation, secondaryAnimation));
   }
@@ -67,6 +68,7 @@ class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> w
   MaterialAccountPageRoute({
     int? accountId,
     BuildContext? context,
+    this.loadingPlaceholderPage,
     required super.builder,
     super.settings,
     super.maintainState,
@@ -78,6 +80,9 @@ class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> w
 
   @override
   final int accountId;
+
+  @override
+  final Widget? loadingPlaceholderPage;
 }
 
 /// A [MaterialPageRoute] that provides a per-account store for a given account
@@ -105,6 +110,7 @@ class MaterialAccountWidgetRoute<T extends Object?> extends MaterialAccountPageR
   MaterialAccountWidgetRoute({
     super.accountId,
     super.context,
+    super.loadingPlaceholderPage,
     required this.page,
     super.settings,
     super.maintainState,
@@ -134,6 +140,7 @@ class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T> wit
   AccountPageRouteBuilder({
     int? accountId,
     BuildContext? context,
+    this.loadingPlaceholderPage,
     super.settings,
     required super.pageBuilder,
     super.transitionsBuilder,
@@ -152,6 +159,9 @@ class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T> wit
 
   @override
   final int accountId;
+
+  @override
+  Widget? loadingPlaceholderPage;
 }
 
 class LoadingPlaceholderPage extends StatelessWidget {
