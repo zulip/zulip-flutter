@@ -695,6 +695,12 @@ extension type const TopicName(String _value) {
   /// The key to use for "same topic as" comparisons.
   String canonicalize() => apiName.toLowerCase();
 
+  /// Whether the topic starts with [resolvedTopicPrefixRegexp].
+  bool get isResolved => resolvedTopicPrefixRegexp.hasMatch(_value);
+
+  /// This [TopicName] plus the [resolvedTopicPrefix] prefix.
+  TopicName resolve() => TopicName(resolvedTopicPrefix + _value);
+
   /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
   TopicName unresolve() =>
     TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
