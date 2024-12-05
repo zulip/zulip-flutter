@@ -55,7 +55,7 @@ void main() {
     }
   }
 
-  group('parseInternalLink', () {
+  group('parseInternalLink is-internal', () {
     final streams = [
       eg.stream(streamId: 1, name: 'check'),
     ];
@@ -398,7 +398,7 @@ void main() {
     });
   });
 
-  group('parseInternalLink', () {
+  group('parseInternalLink again', () { // TODO perhaps unify with tests above
     group('topic link parsing', () {
       final stream = eg.stream(name: "general");
 
