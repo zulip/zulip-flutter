@@ -36,6 +36,67 @@ class _LightboxHeroTag {
   @override
   int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
 }
+class LightboxHero extends StatefulWidget {
+  final String src;
+  final String? thumbnailUrl;
+  final double originalWidth;
+  final double originalHeight;
+
+  LightboxHero({
+    required this.src,
+    this.thumbnailUrl,
+    required this.originalWidth,
+    required this.originalHeight,
+  });
+
+  @override
+  _LightboxHeroState createState() => _LightboxHeroState();
+}
+
+class _LightboxHeroState extends State<LightboxHero> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Action for tapping on the image
+      },
+      child: Container(
+        width: widget.originalWidth,
+        height: widget.originalHeight,
+        child: widget.thumbnailUrl != null
+            ? RealmContentNetworkImage(widget.thumbnailUrl!)
+            : Image.network(widget.src),
+      ),
+    );
+  }
+}
+
+class RealmContentNetworkImage extends StatelessWidget {
+  final String imageUrl;
+
+  RealmContentNetworkImage(this.imageUrl);
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(imageUrl);
+  }
+}
+
+class _CopyLinkButton extends StatelessWidget {
+  final String url;
+  _CopyLinkButton({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        // Copy the URL logic here
+      },
+      child: Text("Copy Link"),
+    );
+  }
+}
+
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
 class LightboxHero extends StatelessWidget {
