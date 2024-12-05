@@ -96,8 +96,6 @@ void main() {
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(LoginPage.buildRoute(serverSettings: serverSettings)));
       await tester.pumpAndSettle();
-      takeStartingRoutes();
-      check(pushedRoutes).isEmpty();
     }
 
     final findUsernameInput = find.byWidgetPredicate((widget) =>
@@ -136,6 +134,8 @@ void main() {
       testWidgets('basic happy case', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
 
         await login(tester, eg.selfAccount);
@@ -147,6 +147,8 @@ void main() {
       testWidgets('trims whitespace on username', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
 
         await tester.enterText(findUsernameInput, '  ${eg.selfAccount.email}  ');
@@ -168,6 +170,8 @@ void main() {
       testWidgets('account already exists', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
@@ -207,6 +211,8 @@ void main() {
           externalAuthenticationMethods: [method]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
 
         const otp = '186f6d085a5621ebaf1ccfc05033e8acba57dae03f061705ac1e58c402c30a31';
