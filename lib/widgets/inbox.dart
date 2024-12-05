@@ -485,33 +485,22 @@ class _StreamSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          final _StreamSectionTopicData(:topic, :count, :hasMention) = item;
-          return _TopicItem(
-            streamId: data.streamId,
-            topic: topic,
-            count: count,
-            hasMention: hasMention,
-          );
+          return _TopicItem(streamId: data.streamId, data: item);
         }),
       ]));
   }
 }
 
 class _TopicItem extends StatelessWidget {
-  const _TopicItem({
-    required this.streamId,
-    required this.topic,
-    required this.count,
-    required this.hasMention,
-  });
+  const _TopicItem({required this.streamId, required this.data});
 
   final int streamId;
-  final TopicName topic;
-  final int count;
-  final bool hasMention;
+  final _StreamSectionTopicData data;
 
   @override
   Widget build(BuildContext context) {
+    final _StreamSectionTopicData(:topic, :count, :hasMention) = data;
+
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[streamId]!;
 
