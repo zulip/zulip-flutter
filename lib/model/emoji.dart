@@ -14,7 +14,7 @@ sealed class EmojiDisplay {
   /// The emoji's name, as in [Reaction.emojiName].
   final String emojiName;
 
-  EmojiDisplay({required this.emojiName});
+  const EmojiDisplay({required this.emojiName});
 
   EmojiDisplay resolve(UserSettings? userSettings) { // TODO(server-5)
     if (this is TextEmojiDisplay) return this;
@@ -30,7 +30,7 @@ class UnicodeEmojiDisplay extends EmojiDisplay {
   /// The actual Unicode text representing this emoji; for example, "🙂".
   final String emojiUnicode;
 
-  UnicodeEmojiDisplay({required super.emojiName, required this.emojiUnicode});
+  const UnicodeEmojiDisplay({required super.emojiName, required this.emojiUnicode});
 }
 
 /// An emoji to display as an image.
@@ -42,7 +42,7 @@ class ImageEmojiDisplay extends EmojiDisplay {
   /// compare [RealmEmojiItem.stillUrl].
   final Uri? resolvedStillUrl;
 
-  ImageEmojiDisplay({
+  const ImageEmojiDisplay({
     required super.emojiName,
     required this.resolvedUrl,
     required this.resolvedStillUrl,
@@ -54,7 +54,7 @@ class ImageEmojiDisplay extends EmojiDisplay {
 /// We do this based on a user preference,
 /// and as a fallback when the Unicode or image approaches fail.
 class TextEmojiDisplay extends EmojiDisplay {
-  TextEmojiDisplay({required super.emojiName});
+  const TextEmojiDisplay({required super.emojiName});
 }
 
 /// An emoji that might be offered in an emoji picker UI.
@@ -79,7 +79,7 @@ final class EmojiCandidate {
 
   final EmojiDisplay emojiDisplay;
 
-  EmojiCandidate({
+  const EmojiCandidate({
     required this.emojiType,
     required this.emojiCode,
     required this.emojiName,
