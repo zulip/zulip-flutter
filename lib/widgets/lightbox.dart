@@ -36,6 +36,67 @@ class _LightboxHeroTag {
   @override
   int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
 }
+class LightboxHero extends StatefulWidget {
+  final String src;
+  final String? thumbnailUrl;
+  final double originalWidth;
+  final double originalHeight;
+
+  LightboxHero({
+    required this.src,
+    this.thumbnailUrl,
+    required this.originalWidth,
+    required this.originalHeight,
+  });
+
+  @override
+  _LightboxHeroState createState() => _LightboxHeroState();
+}
+
+class _LightboxHeroState extends State<LightboxHero> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Action for tapping on the image
+      },
+      child: Container(
+        width: widget.originalWidth,
+        height: widget.originalHeight,
+        child: widget.thumbnailUrl != null
+            ? RealmContentNetworkImage(widget.thumbnailUrl!)
+            : Image.network(widget.src),
+      ),
+    );
+  }
+}
+
+class RealmContentNetworkImage extends StatelessWidget {
+  final String imageUrl;
+
+  RealmContentNetworkImage(this.imageUrl);
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(imageUrl);
+  }
+}
+
+class _CopyLinkButton extends StatelessWidget {
+  final String url;
+  _CopyLinkButton({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        // Copy the URL logic here
+      },
+      child: Text("Copy Link"),
+    );
+  }
+}
+
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
 class LightboxHero extends StatelessWidget {
@@ -51,24 +112,38 @@ class LightboxHero extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src),
-      flightShuttleBuilder: (
-        BuildContext flightContext,
-        Animation<double> animation,
-        HeroFlightDirection flightDirection,
-        BuildContext fromHeroContext,
-        BuildContext toHeroContext,
-      ) {
-        final accountId = PerAccountStoreWidget.accountIdOf(fromHeroContext);
+Widget build(BuildContext context) {
+  return Hero(
+    // Modify the tag to include the message list identifier
+    tag: _LightboxHeroTag(
+      messageId: message.id,
+      src: src,
+      listId: _getMessageListId(context),  // New listId parameter
+    ),
+    flightShuttleBuilder: (
+      BuildContext flightContext,
+      Animation<double> animation,
+      HeroFlightDirection flightDirection,
+      BuildContext fromHeroContext,
+      BuildContext toHeroContext,
+    ) {
+      final accountId = PerAccountStoreWidget.accountIdOf(fromHeroContext);
 
-        // For a RealmContentNetworkImage shown during flight.
-        return PerAccountStoreWidget(accountId: accountId, child: child);
-      },
-      child: child);
-  }
+      // For a RealmContentNetworkImage shown during flight.
+      return PerAccountStoreWidget(accountId: accountId, child: child);
+    },
+    child: child,
+  );
 }
+
+// Helper function to identify the current message list context
+String _getMessageListId(BuildContext context) {
+  // You can modify this based on how you identify message lists in your app
+  // For example, you could use a specific widget key or a context-based approach
+  return context.toString(); // Just an example, replace with your actual logic
+}
+
+
 
 class _CopyLinkButton extends StatelessWidget {
   const _CopyLinkButton({required this.url});
