@@ -14,7 +14,7 @@ sealed class EmojiDisplay {
   /// The emoji's name, as in [Reaction.emojiName].
   final String emojiName;
 
-  EmojiDisplay({required this.emojiName});
+  const EmojiDisplay({required this.emojiName});
 
   EmojiDisplay resolve(UserSettings? userSettings) { // TODO(server-5)
     if (this is TextEmojiDisplay) return this;
@@ -30,7 +30,7 @@ class UnicodeEmojiDisplay extends EmojiDisplay {
   /// The actual Unicode text representing this emoji; for example, "🙂".
   final String emojiUnicode;
 
-  UnicodeEmojiDisplay({required super.emojiName, required this.emojiUnicode});
+  const UnicodeEmojiDisplay({required super.emojiName, required this.emojiUnicode});
 }
 
 /// An emoji to display as an image.
@@ -42,7 +42,7 @@ class ImageEmojiDisplay extends EmojiDisplay {
   /// compare [RealmEmojiItem.stillUrl].
   final Uri? resolvedStillUrl;
 
-  ImageEmojiDisplay({
+  const ImageEmojiDisplay({
     required super.emojiName,
     required this.resolvedUrl,
     required this.resolvedStillUrl,
@@ -54,7 +54,7 @@ class ImageEmojiDisplay extends EmojiDisplay {
 /// We do this based on a user preference,
 /// and as a fallback when the Unicode or image approaches fail.
 class TextEmojiDisplay extends EmojiDisplay {
-  TextEmojiDisplay({required super.emojiName});
+  const TextEmojiDisplay({required super.emojiName});
 }
 
 /// An emoji that might be offered in an emoji picker UI.
@@ -79,7 +79,7 @@ final class EmojiCandidate {
 
   final EmojiDisplay emojiDisplay;
 
-  EmojiCandidate({
+  const EmojiCandidate({
     required this.emojiType,
     required this.emojiCode,
     required this.emojiName,
@@ -87,6 +87,60 @@ final class EmojiCandidate {
     required this.emojiDisplay,
   }) : _aliases = aliases;
 }
+
+// Zulip's hand selected "popular" emojis, currently used as list of
+// quick emoji reactions available in the message context menu.
+// See: https://github.com/zulip/zulip/blob/3bad36ef8cf07cd57d0b257a739bae635a8527ac/web/shared/src/typeahead.ts#L22-L29
+const zulipPopularEmojis = [
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f44d',
+    emojiName: '+1',
+    aliases: ['thumbs_up', 'like'],
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: '+1',
+      emojiUnicode: '\u{1f44d}')), // '👍'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f389',
+    emojiName: 'tada',
+    aliases: null,
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'tada',
+      emojiUnicode: '\u{1f389}')), // '🎉'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f642',
+    emojiName: 'smile',
+    aliases: null,
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'smile',
+      emojiUnicode: '\u{1f642}')), // '🙂'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '2764',
+    emojiName: 'heart',
+    aliases: ['love', 'love_you'],
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'heart',
+      emojiUnicode: '\u{2764}')), // '❤'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f6e0',
+    emojiName: 'working_on_it',
+    aliases: ['hammer_and_wrench', 'tools'],
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'working_on_it',
+      emojiUnicode: '\u{1f6e0}')), // '🛠'
+  EmojiCandidate(
+    emojiType: ReactionType.unicodeEmoji,
+    emojiCode: '1f419',
+    emojiName: 'octopus',
+    aliases: null,
+    emojiDisplay: UnicodeEmojiDisplay(
+      emojiName: 'octopus',
+      emojiUnicode: '\u{1f419}')), // '🐙'
+];
 
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {

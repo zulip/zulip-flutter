@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../generated/l10n/zulip_localizations.dart';
+import '../model/autocomplete.dart';
 import '../model/emoji.dart';
 import 'color.dart';
+import 'dialog.dart';
 import 'emoji.dart';
+import 'inset_shadow.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
@@ -358,5 +364,227 @@ class _TextEmoji extends StatelessWidget {
       ).merge(weightVariableTextStyle(context,
           wght: selected ? 600 : null)),
       text);
+  }
+}
+
+
+void showEmojiPickerSheet({required BuildContext pageContext, required Message message}) {
+  final store = PerAccountStoreWidget.of(pageContext);
+
+  showModalBottomSheet<void>(
+    context: pageContext,
+    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+    // on my iPhone 13 Pro but is marked as "much slower":
+    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return SafeArea(
+        // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
+        child: PerAccountStoreWidget(
+          accountId: store.accountId,
+          child: Padding(
+            // By default, when software keyboard is opened, the ListView
+            // expands behind the software keyboard — resulting in some
+            // list entries being covered by the keyboard. Add explicit
+            // bottom padding the size of the keyboard, which fixes this.
+            padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+            child: EmojiPicker(pageContext: pageContext, message: message))));
+    });
+}
+
+class EmojiPicker extends StatefulWidget {
+  const EmojiPicker({
+    super.key,
+    required this.pageContext,
+    required this.message,
+  });
+
+  final BuildContext pageContext;
+  final Message message;
+
+  @override
+  State<EmojiPicker> createState() => _EmojiPickerState();
+}
+
+class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStateMixin<EmojiPicker> {
+  late TextEditingController _controller;
+
+  EmojiAutocompleteView? _viewModel;
+  List<EmojiAutocompleteResult> _resultsToDisplay = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void onNewStore() {
+    final store = PerAccountStoreWidget.of(context);
+
+    if (_viewModel != null) {
+      _controller.removeListener(_handleViewModelUpdate);
+      _viewModel!.dispose();
+      _resultsToDisplay = const [];
+    }
+    _viewModel = EmojiAutocompleteView.init(store: store, query: EmojiAutocompleteQuery(''))
+      ..addListener(_handleViewModelUpdate);
+    _controller.addListener(_handleControllerUpdate);
+  }
+
+  void _handleViewModelUpdate() {
+    if (!mounted) return;
+    setState(() {
+      _resultsToDisplay = List.unmodifiable(_viewModel!.results);
+    });
+  }
+
+  void _handleControllerUpdate() {
+    _viewModel!.query = EmojiAutocompleteQuery(_controller.text);
+  }
+
+  @override
+  void dispose() {
+    _viewModel?.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+      Padding(padding: const EdgeInsets.only(left: 8, top: 8),
+        child: Row(children: [
+          Flexible(child: TextField(
+            controller: _controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: zulipLocalizations.emojiPickerSearchEmoji,
+              contentPadding: const EdgeInsets.only(left: 10, top: 6),
+              filled: true,
+              fillColor: designVariables.bgSearchInput,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none)),
+            style: const TextStyle(fontSize: 19, height: 26 / 19)
+              .merge(weightVariableTextStyle(context, wght: 400)))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              splashFactory: NoSplash.splashFactory,
+              foregroundColor: designVariables.contextMenuItemText,
+            ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.pressed)
+                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                : Colors.transparent)),
+            child: Text(zulipLocalizations.dialogClose,
+              style: const TextStyle(fontSize: 20, height: 30 / 20)
+                .merge(weightVariableTextStyle(context, wght: 400)))),
+        ])),
+      Expanded(child: InsetShadowBox(
+        top: 8, bottom: 8,
+        color: designVariables.bgContextMenu,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: _resultsToDisplay.length,
+          itemBuilder: (context, i) => EmojiPickerListEntry(
+            pageContext: widget.pageContext,
+            emoji: _resultsToDisplay[i].candidate,
+            message: widget.message)))),
+    ]);
+  }
+}
+
+@visibleForTesting
+class EmojiPickerListEntry extends StatelessWidget {
+  const EmojiPickerListEntry({
+    super.key,
+    required this.pageContext,
+    required this.emoji,
+    required this.message,
+  });
+
+  final BuildContext pageContext;
+  final EmojiCandidate emoji;
+  final Message message;
+
+  static const _emojiSize = 24.0;
+  static const _notoColorEmojiTextSize = 20.1;
+
+  void _onPressed(ZulipLocalizations zulipLocalizations) async {
+    String? errorMessage;
+    try {
+      await addReaction(
+        PerAccountStoreWidget.of(pageContext).connection,
+        messageId: message.id,
+        reactionType: emoji.emojiType,
+        emojiCode: emoji.emojiCode,
+        emojiName: emoji.emojiName,
+      );
+      if (pageContext.mounted) Navigator.pop(pageContext); // Emoji picker
+      if (pageContext.mounted) Navigator.pop(pageContext); // Context menu
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      showErrorDialog(context: pageContext,
+        title: zulipLocalizations.errorReactionAddingFailedTitle,
+        message: errorMessage);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
+    final Widget? glyph = switch (emojiDisplay) {
+      ImageEmojiDisplay() =>
+        ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
+      UnicodeEmojiDisplay() =>
+        UnicodeEmojiWidget(
+          size: _emojiSize, notoColorEmojiTextSize: _notoColorEmojiTextSize,
+          emojiDisplay: emojiDisplay),
+      TextEmojiDisplay() => null, // The text is already shown separately.
+    };
+
+    final label = emoji.aliases.isEmpty
+      ? emoji.emojiName
+      : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
+
+    return TextButton(
+      onPressed: () => _onPressed(zulipLocalizations),
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        alignment: Alignment.centerLeft,
+        shape: const RoundedRectangleBorder(),
+        splashFactory: NoSplash.splashFactory),
+      child: Row(children: [
+        if (glyph != null)
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: glyph),
+        Flexible(child: Text(label,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 17, height: 18 / 17)
+            .merge(weightVariableTextStyle(context, wght: 400))))
+      ]));
   }
 }

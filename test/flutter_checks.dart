@@ -70,6 +70,7 @@ extension TextEditingControllerChecks on Subject<TextEditingController> {
 }
 
 extension TextFieldChecks on Subject<TextField> {
+  Subject<bool> get autofocus => has((x) => x.autofocus, 'autofocus');
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
   Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
   Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
@@ -157,4 +158,8 @@ extension TableRowChecks on Subject<TableRow> {
 
 extension TableChecks on Subject<Table> {
   Subject<List<TableRow>> get children => has((x) => x.children, 'children');
+}
+
+extension IconButtonChecks on Subject<IconButton> {
+  Subject<bool?> get isSelected => has((x) => x.isSelected, 'isSelected');
 }
