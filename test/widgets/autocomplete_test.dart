@@ -33,7 +33,9 @@ import 'test_app.dart';
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  Narrow? narrow,
 }) async {
+  assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
   TypingNotifier.debugEnable = false;
   addTearDown(TypingNotifier.debugReset);
 
@@ -44,8 +46,20 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   await store.addUsers(users);
   final connection = store.connection as FakeApiConnection;
 
+  narrow ??= DmNarrow(
+    allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
+    selfUserId: eg.selfUser.userId);
   // prepare message list data
-  final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+  final Message message;
+  switch(narrow) {
+    case DmNarrow():
+      message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+    case ChannelNarrow(:final streamId) || TopicNarrow(:final streamId):
+      final stream = eg.stream(streamId: streamId);
+      message = eg.streamMessage(stream: stream);
+      await store.addStream(stream);
+    default: throw AssertionError(); // never happens because of the assert above
+  }
   connection.prepare(json: GetMessagesResult(
     anchor: message.id,
     foundNewest: true,
@@ -58,17 +72,42 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   prepareBoringImageHttpClient();
 
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-    child: MessageListPage(initNarrow: DmNarrow(
-      allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
-      selfUserId: eg.selfUser.userId))));
+    child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
 
-  // (hint text of compose input in a 1:1 DM)
-  final finder = find.widgetWithText(TextField, 'Message @${eg.otherUser.fullName}');
+  final finder = find.widgetWithText(TextField,
+    _composeInputHintTextFor(narrow, store: store));
   check(finder.evaluate()).isNotEmpty();
   return finder;
+}
+
+String _composeInputHintTextFor(Narrow narrow, {required PerAccountStore store}) {
+  assert(narrow is ChannelNarrow || narrow is SendableNarrow);
+  final localizations = GlobalLocalizations.zulipLocalizations;
+  switch (narrow) {
+    case ChannelNarrow(:final streamId):
+      final streamName = store.streams[streamId]?.name
+        ?? localizations.composeBoxUnknownChannelName;
+      return localizations.composeBoxChannelContentHint(streamName, kNoTopicTopic);
+    case TopicNarrow(:final streamId, :final topic):
+      final streamName = store.streams[streamId]?.name
+        ?? localizations.composeBoxUnknownChannelName;
+      return localizations.composeBoxChannelContentHint(streamName, topic);
+    case DmNarrow(otherRecipientIds: []):
+      return localizations.composeBoxSelfDmContentHint;
+    case DmNarrow(otherRecipientIds: [final otherUserId]):
+      final fullName = store.users[otherUserId]?.fullName;
+      if (fullName == null) return localizations.composeBoxGenericContentHint;
+      return localizations.composeBoxDmContentHint(fullName);
+    case DmNarrow():
+      return localizations.composeBoxGroupDmContentHint;
+    case CombinedFeedNarrow():
+    case MentionsNarrow():
+    case StarredMessagesNarrow():
+      throw AssertionError(); // never happens because of the assert above
+  }
 }
 
 /// Simulates loading a [MessageListPage] with a stream narrow
