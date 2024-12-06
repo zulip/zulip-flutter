@@ -182,6 +182,17 @@ void main() {
     ));
   }
 
+  bool hasIcon(WidgetTester tester, {
+    required Widget? parent,
+    required IconData icon,
+  }) {
+    check(parent).isNotNull();
+    return tester.widgetList(find.descendant(
+      of: find.byWidget(parent!),
+      matching: find.byIcon(icon),
+    )).isNotEmpty;
+  }
+
   group('InboxPage', () {
     testWidgets('page builds; empty', (tester) async {
       await setupPage(tester, unreadMessages: []);
@@ -246,13 +257,8 @@ void main() {
       final subscription = eg.subscription(stream);
       const topic = 'lunch';
 
-      bool hasAtSign(WidgetTester tester, Widget? parent) {
-        check(parent).isNotNull();
-        return tester.widgetList(find.descendant(
-          of: find.byWidget(parent!),
-          matching: find.byIcon(ZulipIcons.at_sign),
-        )).isNotEmpty;
-      }
+      bool hasAtSign(WidgetTester tester, Widget? parent) =>
+        hasIcon(tester, parent: parent, icon: ZulipIcons.at_sign);
 
       testWidgets('topic with a mention', (tester) async {
         await setupPage(tester,
@@ -296,6 +302,56 @@ void main() {
 
         check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isFalse();
         check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
+      });
+    });
+
+    group('topic visibility', () {
+      final channel = eg.stream();
+      const topic = 'topic';
+      final message = eg.streamMessage(stream: channel, topic: topic);
+
+      testWidgets('followed', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
+          unreadMessages: [message]);
+        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await tester.pump();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.follow)).isTrue();
+      });
+
+      testWidgets('followed and mentioned', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
+          unreadMessages: [eg.streamMessage(stream: channel, topic: topic,
+            flags: [MessageFlag.mentioned])]);
+        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await tester.pump();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.follow)).isTrue();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.at_sign)).isTrue();
+      });
+
+
+      testWidgets('unmuted', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, isMuted: true)],
+          unreadMessages: [message]);
+        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
+        await tester.pump();
+        check(hasIcon(tester,
+          parent: findRowByLabel(tester, topic),
+          icon: ZulipIcons.unmute)).isTrue();
       });
     });
 
