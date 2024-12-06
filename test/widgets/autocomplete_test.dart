@@ -13,6 +13,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -34,7 +35,9 @@ import 'test_app.dart';
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  Narrow? narrow,
 }) async {
+  assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
   TypingNotifier.debugEnable = false;
   addTearDown(TypingNotifier.debugReset);
 
@@ -45,8 +48,24 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   await store.addUsers(users);
   final connection = store.connection as FakeApiConnection;
 
+  narrow ??= DmNarrow(
+    allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
+    selfUserId: eg.selfUser.userId);
   // prepare message list data
-  final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+  final Message message;
+  switch(narrow) {
+    case DmNarrow():
+      message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+    case ChannelNarrow(:final streamId):
+      final stream = eg.stream(streamId: streamId);
+      message = eg.streamMessage(stream: stream);
+      await store.addStream(stream);
+    case TopicNarrow(:final streamId, :final topic):
+      final stream = eg.stream(streamId: streamId);
+      message = eg.streamMessage(stream: stream, topic: topic.apiName);
+      await store.addStream(stream);
+    default: throw StateError('unexpected narrow type');
+  }
   connection.prepare(json: GetMessagesResult(
     anchor: message.id,
     foundNewest: true,
@@ -59,15 +78,13 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   prepareBoringImageHttpClient();
 
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-    child: MessageListPage(initNarrow: DmNarrow(
-      allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
-      selfUserId: eg.selfUser.userId))));
+    child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
 
-  // (hint text of compose input in a 1:1 DM)
-  final finder = find.widgetWithText(TextField, 'Message @${eg.otherUser.fullName}');
+  final finder = find.byWidgetPredicate((widget) => widget is TextField
+    && widget.controller is ComposeContentController);
   check(finder.evaluate()).isNotEmpty();
   return finder;
 }
