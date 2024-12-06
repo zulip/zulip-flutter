@@ -859,6 +859,30 @@ abstract class ZulipLocalizations {
   /// **'Several people are typing…'**
   String get manyPeopleTyping;
 
+  /// Description for "@all", "@everyone", "@channel", and "@stream" wildcard mentions in a channel or topic narrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify channel'**
+  String get notifyChannel;
+
+  /// Description for "@all", "@everyone", and "@stream" wildcard mentions in a stream or topic narrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify stream'**
+  String get notifyStream;
+
+  /// Description for "@all" and "@everyone" wildcard mentions in a DM narrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify recipients'**
+  String get notifyRecipients;
+
+  /// Description for "@topic" wildcard mention in a channel or topic narrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify topic'**
+  String get notifyTopic;
+
   /// Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
   ///
   /// In en, this message translates to:

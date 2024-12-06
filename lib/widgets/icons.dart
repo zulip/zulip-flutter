@@ -30,11 +30,11 @@ abstract final class ZulipIcons {
   /// The Zulip custom icon "arrow_right".
   static const IconData arrow_right = IconData(0xf102, fontFamily: "Zulip Icons");
 
-  /// The Zulip custom icon "at_sign".
-  static const IconData at_sign = IconData(0xf103, fontFamily: "Zulip Icons");
-
   /// The Zulip custom icon "attach_file".
-  static const IconData attach_file = IconData(0xf104, fontFamily: "Zulip Icons");
+  static const IconData attach_file = IconData(0xf103, fontFamily: "Zulip Icons");
+
+  /// The Zulip custom icon "at_sign".
+  static const IconData at_sign = IconData(0xf104, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "bot".
   static const IconData bot = IconData(0xf105, fontFamily: "Zulip Icons");
@@ -111,14 +111,17 @@ abstract final class ZulipIcons {
   /// The Zulip custom icon "star_filled".
   static const IconData star_filled = IconData(0xf11d, fontFamily: "Zulip Icons");
 
+  /// The Zulip custom icon "three_person".
+  static const IconData three_person = IconData(0xf11e, fontFamily: "Zulip Icons");
+
   /// The Zulip custom icon "topic".
-  static const IconData topic = IconData(0xf11e, fontFamily: "Zulip Icons");
+  static const IconData topic = IconData(0xf11f, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "unmute".
-  static const IconData unmute = IconData(0xf11f, fontFamily: "Zulip Icons");
+  static const IconData unmute = IconData(0xf120, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "user".
-  static const IconData user = IconData(0xf120, fontFamily: "Zulip Icons");
+  static const IconData user = IconData(0xf121, fontFamily: "Zulip Icons");
 
   // END GENERATED ICON DATA
 }
