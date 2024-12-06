@@ -67,6 +67,8 @@ TextStyle? mergeSpanStylesOuterToInner(
 
 /// The "merged style" ([mergeSpanStylesOuterToInner]) of a text span
 /// whose whole text matches the given pattern, under the given root span.
+///
+/// See also [mergedStyleOf], which can be more convenient.
 TextStyle? mergedStyleOfSubstring(InlineSpan rootSpan, Pattern spanPattern) {
   return mergeSpanStylesOuterToInner(rootSpan,
     (span) {
@@ -79,6 +81,23 @@ TextStyle? mergedStyleOfSubstring(InlineSpan rootSpan, Pattern spanPattern) {
           .any((match) => match.start == 0 && match.end == text.length),
       };
     });
+}
+
+/// The "merged style" ([mergeSpanStylesOuterToInner]) of a text span
+/// whose whole text matches the given pattern, somewhere in the tree.
+///
+/// This finds the relevant [Text] widget by a search for [spanPattern].
+/// If [findAncestor] is non-null, the search will only consider descendants
+/// of widgets matching [findAncestor].
+TextStyle? mergedStyleOf(WidgetTester tester, Pattern spanPattern, {
+  Finder? findAncestor,
+}) {
+  var findTextWidget = find.textContaining(spanPattern);
+  if (findAncestor != null) {
+    findTextWidget = find.descendant(of: findAncestor, matching: findTextWidget);
+  }
+  final rootSpan = tester.renderObject<RenderParagraph>(findTextWidget).text;
+  return mergedStyleOfSubstring(rootSpan, spanPattern);
 }
 
 /// A callback that finds some target subspan within the given span,
@@ -486,18 +505,12 @@ void main() {
     testFontWeight('syntax highlighting: non-bold span',
       expectedWght: 400,
       content: plainContent(ContentExample.codeBlockHighlightedShort.html),
-      styleFinder: (tester) {
-        final root = tester.renderObject<RenderParagraph>(find.textContaining('class')).text;
-        return mergedStyleOfSubstring(root, 'class')!;
-      });
+      styleFinder: (tester) => mergedStyleOf(tester, 'class')!);
 
     testFontWeight('syntax highlighting: bold span',
       expectedWght: 700,
       content: plainContent(ContentExample.codeBlockHighlightedShort.html),
-      styleFinder: (tester) {
-        final root = tester.renderObject<RenderParagraph>(find.textContaining('A')).text;
-        return mergedStyleOfSubstring(root, 'A')!;
-      });
+      styleFinder: (tester) => mergedStyleOf(tester, 'A')!);
   });
 
   testContentSmoke(ContentExample.mathBlock);
@@ -550,8 +563,7 @@ void main() {
     testContentSmoke(ContentExample.strong);
 
     TextStyle findWordBold(WidgetTester tester) {
-      final root = tester.renderObject<RenderParagraph>(find.textContaining('bold')).text;
-      return mergedStyleOfSubstring(root, 'bold')!;
+      return mergedStyleOf(tester, 'bold')!;
     }
 
     testFontWeight('in plain paragraph',
@@ -906,11 +918,8 @@ void main() {
           find.descendant(of: find.byType(GlobalTime),
             matching: find.byIcon(ZulipIcons.clock)));
 
-        final textSpan = tester.renderObject<RenderParagraph>(
-          find.descendant(of: find.byType(GlobalTime),
-            matching: find.textContaining(renderedTextRegexp)
-        )).text;
-        final textColor = mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.color;
+        final textColor = mergedStyleOf(tester,
+          findAncestor: find.byType(GlobalTime), renderedTextRegexp)!.color;
         check(textColor).isNotNull();
 
         check(icon).color.isNotNull().isSameColorAs(textColor!);
@@ -939,11 +948,8 @@ void main() {
 
       testWidgets('text is scaled', (tester) async {
         await doCheck(tester, (widget) {
-          final textSpan = tester.renderObject<RenderParagraph>(
-            find.descendant(of: find.byWidget(widget),
-              matching: find.textContaining(renderedTextRegexp)
-          )).text;
-          return mergedStyleOfSubstring(textSpan, renderedTextRegexp)!.fontSize!;
+          return mergedStyleOf(tester, findAncestor: find.byWidget(widget),
+              renderedTextRegexp)!.fontSize!;
         });
       });
 
@@ -1096,10 +1102,7 @@ void main() {
       // | 1 | 2 | 3 | 4 |
       content: plainContent(ContentExample.tableWithSingleRow.html),
       expectedWght: 700,
-      styleFinder: (tester) {
-        final root = tester.renderObject<RenderParagraph>(find.textContaining('a')).text;
-        return mergedStyleOfSubstring(root, 'a')!;
-      });
+      styleFinder: (tester) => mergedStyleOf(tester, 'a')!);
 
     testWidgets('header row background color', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.tableWithSingleRow.html));
