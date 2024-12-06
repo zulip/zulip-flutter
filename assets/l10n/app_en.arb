@@ -1,7 +1,7 @@
 {
   "aboutPageTitle": "About Zulip",
   "@aboutPageTitle": {
-    "description": "Title for About Zulip page"
+    "description": "Title for About Zulip page."
   },
   "aboutPageAppVersion": "App version",
   "@aboutPageAppVersion": {
@@ -17,7 +17,7 @@
   },
   "chooseAccountPageTitle": "Choose account",
   "@chooseAccountPageTitle": {
-    "description": "Title for ChooseAccountPage"
+    "description": "Title for the page to choose between Zulip accounts."
   },
   "chooseAccountPageLogOutButton": "Log out",
   "@chooseAccountPageLogOutButton": {
@@ -348,7 +348,7 @@
   },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
-    "description": "Page title for login page."
+    "description": "Title for login page."
   },
   "loginFormSubmitLabel": "Log in",
   "@loginFormSubmitLabel": {
@@ -367,7 +367,7 @@
   },
   "loginAddAnAccountPageTitle": "Add an account",
   "@loginAddAnAccountPageTitle": {
-    "description": "Page title for screen to add a Zulip account."
+    "description": "Title for page to add a Zulip account."
   },
   "loginServerUrlInputLabel": "Your Zulip server URL",
   "@loginServerUrlInputLabel": {
@@ -531,19 +531,19 @@
   },
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
-    "description": "Title for the page of recent DM conversations"
+    "description": "Title for the page with a list of DM conversations."
   },
   "combinedFeedPageTitle": "Combined feed",
   "@combinedFeedPageTitle": {
-    "description": "Title for the page of combined feed."
+    "description": "Page title for the 'Combined feed' message view."
   },
   "mentionsPageTitle": "Mentions",
   "@mentionsPageTitle": {
-    "description": "Title for the page of @-mentions."
+    "description": "Page title for the 'Mentions' message view."
   },
   "starredMessagesPageTitle": "Starred messages",
   "@starredMessagesPageTitle": {
-    "description": "Title for the page of starred messages."
+    "description": "Page title for the 'Starred messages' message view."
   },
   "channelFeedButtonTooltip": "Channel feed",
   "@channelFeedButtonTooltip": {
