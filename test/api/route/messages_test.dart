@@ -297,6 +297,42 @@ void main() {
     });
   });
 
+  group('resolve/unresolve with kResolvedTopicPrefix', () {
+    group('stripResolvePrefixIfPresent', () {
+      void doTest(String description, String input, String expected) {
+        test(description, () {
+          check(stripResolvePrefixIfPresent(input)).equals(expected);
+        });
+      }
+      doTest('not present', 'topic', 'topic');
+      doTest('present once', '✔ topic', 'topic');
+      doTest('present twice', '✔ ✔ topic', '✔ topic');
+      doTest('present in middle', 'some ✔ topic', 'some ✔ topic');
+    });
+
+    group('topicsMatchModuloResolvePrefix', () {
+      void doTest(String description, String topicA, String topicB, bool expected) {
+        test(description, () {
+          check(topicsMatchModuloResolvePrefix(topicA, topicB)).equals(expected);
+        });
+      }
+      doTest('same-named, both unresolved', 'topic', 'topic', true);
+      doTest('same-named, topicA resolved', '✔ topic', 'topic', true);
+      doTest('same-named, topicB resolved', 'topic', '✔ topic', true);
+      doTest('same-named, both resolved', '✔ topic', '✔ topic', true);
+
+      doTest('different-named, both unresolved', 'this', 'other', false);
+      doTest('different-named, topicA resolved', '✔ this', 'other', false);
+      doTest('different-named, topicB resolved', 'this', '✔ other', false);
+      doTest('different-named, both resolved', '✔ this', '✔ other', false);
+
+      doTest('different-named because one duplicates prefix',
+             '✔ topic', '✔ ✔ topic', false);
+      doTest("different-named but one's name is a prefix of the other",
+             'topic', 'topic zulip', false);
+    });
+  });
+
   group('sendMessage', () {
     const streamId = 123;
     const content = 'hello';

@@ -813,19 +813,8 @@ enum MessageEditState {
   /// The Zulip "resolved topics" feature is implemented by renaming the topic;
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
-  static bool topicMoveWasResolveOrUnresolve(String topic, String prevTopic) {
-    if (topic.startsWith(kResolvedTopicPrefix)
-        && topic.substring(kResolvedTopicPrefix.length) == prevTopic) {
-      return true;
-    }
-
-    if (prevTopic.startsWith(kResolvedTopicPrefix)
-        && prevTopic.substring(kResolvedTopicPrefix.length) == topic) {
-      return true;
-    }
-
-    return false;
-  }
+  static bool topicMoveWasResolveOrUnresolve(String topic, String prevTopic) =>
+    topic != prevTopic && topicsMatchModuloResolvePrefix(topic, prevTopic);
 
   static MessageEditState _readFromMessage(Map<dynamic, dynamic> json, String key) {
     // Adapted from `analyze_edit_history` in the web app:

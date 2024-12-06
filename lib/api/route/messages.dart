@@ -163,6 +163,14 @@ const int kMaxTopicLength = 60;
 //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
 const String kResolvedTopicPrefix = '✔ ';
 
+String stripResolvePrefixIfPresent(String topic) =>
+  topic.startsWith(kResolvedTopicPrefix)
+    ? topic.substring(kResolvedTopicPrefix.length)
+    : topic;
+
+bool topicsMatchModuloResolvePrefix(String topicA, String topicB) =>
+  stripResolvePrefixIfPresent(topicA) == stripResolvePrefixIfPresent(topicB);
+
 // https://zulip.com/api/send-message#parameter-content
 const int kMaxMessageLengthCodePoints = 10000;
 
