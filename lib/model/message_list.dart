@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
+import '../api/backoff.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -89,8 +92,31 @@ mixin _MessageSequence {
   bool _haveOldest = false;
 
   /// Whether we are currently fetching the next batch of older messages.
+  ///
+  /// When this is true, [fetchOlder] is a no-op.
+  /// That method is called frequently by Flutter's scrolling logic,
+  /// and this field helps us avoid spamming the same request just to get
+  /// the same response each time.
+  ///
+  /// See also [fetchOlderCoolingDown].
   bool get fetchingOlder => _fetchingOlder;
   bool _fetchingOlder = false;
+
+  /// Whether [fetchOlder] had a request error recently.
+  ///
+  /// When this is true, [fetchOlder] is a no-op.
+  /// That method is called frequently by Flutter's scrolling logic,
+  /// and this field mitigates spamming the same request and getting
+  /// the same error each time.
+  ///
+  /// "Recently" is decided by a [BackoffMachine] that resets
+  /// when a [fetchOlder] request succeeds.
+  ///
+  /// See also [fetchingOlder].
+  bool get fetchOlderCoolingDown => _fetchOlderCoolingDown;
+  bool _fetchOlderCoolingDown = false;
+
+  BackoffMachine? _fetchOlderCooldownBackoffMachine;
 
   /// The parsed message contents, as a list parallel to [messages].
   ///
@@ -107,7 +133,7 @@ mixin _MessageSequence {
   /// before, between, or after the messages.
   ///
   /// This information is completely derived from [messages] and
-  /// the flags [haveOldest] and [fetchingOlder].
+  /// the flags [haveOldest], [fetchingOlder] and [fetchOlderCoolingDown].
   /// It exists as an optimization, to memoize that computation.
   final QueueList<MessageListItem> items = QueueList();
 
@@ -241,6 +267,8 @@ mixin _MessageSequence {
     _fetched = false;
     _haveOldest = false;
     _fetchingOlder = false;
+    _fetchOlderCoolingDown = false;
+    _fetchOlderCooldownBackoffMachine = null;
     contents.clear();
     items.clear();
   }
@@ -288,11 +316,14 @@ mixin _MessageSequence {
 
   /// Update [items] to include markers at start and end as appropriate.
   void _updateEndMarkers() {
+    assert(fetched);
     assert(!(haveOldest && fetchingOlder));
-    final startMarker = switch ((fetchingOlder, haveOldest)) {
-      (true, _) => const MessageListLoadingItem(MessageListDirection.older),
-      (_, true) => const MessageListHistoryStartItem(),
-      (_,    _) => null,
+    assert(!(fetchingOlder && fetchOlderCoolingDown));
+    final startMarker = switch ((fetchingOlder, haveOldest, fetchOlderCoolingDown)) {
+      (true, _, _) => const MessageListLoadingItem(MessageListDirection.older),
+      (_, true, _) => const MessageListHistoryStartItem(),
+      (_, _, true) => const MessageListLoadingItem(MessageListDirection.older),
+      (_, _,    _) => null,
     };
     final hasStartMarker = switch (items.firstOrNull) {
       MessageListLoadingItem()      => true,
@@ -469,7 +500,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchInitial() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
-    assert(!fetched && !haveOldest && !fetchingOlder);
+    assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown);
     assert(messages.isEmpty && contents.isEmpty);
     // TODO schedule all this in another isolate
     final generation = this.generation;
@@ -497,20 +528,28 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchOlder() async {
     if (haveOldest) return;
     if (fetchingOlder) return;
+    if (fetchOlderCoolingDown) return;
     assert(fetched);
     assert(messages.isNotEmpty);
     _fetchingOlder = true;
     _updateEndMarkers();
     notifyListeners();
     final generation = this.generation;
+    bool hasFetchError = false;
     try {
-      final result = await getMessages(store.connection,
-        narrow: narrow.apiEncode(),
-        anchor: NumericAnchor(messages[0].id),
-        includeAnchor: false,
-        numBefore: kMessageListFetchBatchSize,
-        numAfter: 0,
-      );
+      final GetMessagesResult result;
+      try {
+        result = await getMessages(store.connection,
+          narrow: narrow.apiEncode(),
+          anchor: NumericAnchor(messages[0].id),
+          includeAnchor: false,
+          numBefore: kMessageListFetchBatchSize,
+          numAfter: 0,
+        );
+      } catch (e) {
+        hasFetchError = true;
+        rethrow;
+      }
       if (this.generation > generation) return;
 
       if (result.messages.isNotEmpty
@@ -528,12 +567,29 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
       _insertAllMessages(0, fetchedMessages);
       _haveOldest = result.foundOldest;
+      _fetchOlderCooldownBackoffMachine = null;
     } finally {
-      if (this.generation == generation) {
-        _fetchingOlder = false;
-        _updateEndMarkers();
-        notifyListeners();
+      if (this.generation != generation) {
+        // We need the finally block always clean up regardless of errors
+        // occured in the try block, and returning early here is necessary
+        // if such cleanup must be skipped, as the fetch is considered stale.
+        // ignore: control_flow_in_finally
+        return;
       }
+      _fetchingOlder = false;
+      if (hasFetchError) {
+        assert(!fetchOlderCoolingDown);
+        _fetchOlderCoolingDown = true;
+        unawaited((_fetchOlderCooldownBackoffMachine ??= BackoffMachine())
+          .wait().then((_) {
+            if (this.generation != generation) return;
+            _fetchOlderCoolingDown = false;
+            _updateEndMarkers();
+            notifyListeners();
+          }));
+      }
+      _updateEndMarkers();
+      notifyListeners();
     }
   }
 
