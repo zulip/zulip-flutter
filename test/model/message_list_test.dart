@@ -1803,6 +1803,26 @@ void main() {
         }
       }
     });
+
+    group('topics compared case-insensitively', () {
+      void doTest(String description, String topicA, String topicB, bool expected) {
+        test(description, () {
+          final stream = eg.stream();
+          final messageA = eg.streamMessage(stream: stream, topic: topicA);
+          final messageB = eg.streamMessage(stream: stream, topic: topicB);
+          check(haveSameRecipient(messageA, messageB)).equals(expected);
+        });
+      }
+
+      doTest('same case, all lower',               'abc',  'abc',  true);
+      doTest('same case, all upper',               'ABC',  'ABC',  true);
+      doTest('same case, mixed',                   'AbC',  'AbC',  true);
+      doTest('same non-cased chars',               '嗎',    '嗎',    true);
+      doTest('different case',                     'aBc',  'ABC',  true);
+      doTest('different case, same diacritics',    'AbÇ',  'aBç',  true);
+      doTest('same letters, different diacritics', 'ma',   'mǎ',   false);
+      doTest('having different CJK characters',    '嗎', '馬', false);
+    });
   });
 
   test('messagesSameDay', () {
