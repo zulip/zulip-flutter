@@ -65,16 +65,17 @@ TextStyle? mergeSpanStylesOuterToInner(
   });
 }
 
-/// The "merged style" ([mergeSpanStylesOuterToInner]) of a nested span.
-TextStyle? mergedStyleOfSubstring(InlineSpan rootSpan, Pattern substringPattern) {
+/// The "merged style" ([mergeSpanStylesOuterToInner]) of a text span
+/// whose whole text matches the given pattern, under the given root span.
+TextStyle? mergedStyleOfSubstring(InlineSpan rootSpan, Pattern spanPattern) {
   return mergeSpanStylesOuterToInner(rootSpan,
     (span) {
       if (span is! TextSpan) return false;
       final text = span.text;
       if (text == null) return false;
-      return switch (substringPattern) {
-        String() => text == substringPattern,
-        _ => substringPattern.allMatches(text)
+      return switch (spanPattern) {
+        String() => text == spanPattern,
+        _ => spanPattern.allMatches(text)
           .any((match) => match.start == 0 && match.end == text.length),
       };
     });
