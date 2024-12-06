@@ -683,11 +683,8 @@ void main() {
     }
 
     TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
-      final fullNameSpan = tester.renderObject<RenderParagraph>(
-        find.descendant(
-          of: find.byWidget(widget), matching: find.text(mentionText))
-      ).text;
-      return mergedStyleOfSubstring(fullNameSpan, mentionText)!;
+      return mergedStyleOf(tester,
+        findAncestor: find.byWidget(widget), mentionText)!;
     }
 
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
