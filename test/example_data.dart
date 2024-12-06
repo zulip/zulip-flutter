@@ -106,9 +106,8 @@ int _lastEmailSuffix = 1000;
 /// other data in the test, or if the IDs need to increase in a different order
 /// from the calls to [user].
 ///
-/// If `deliveryEmail` is not given, it will be generated from a
-/// random sequence of distinct strings.
-/// If `email` is not given, it will be set to `deliveryEmail`.
+/// If `email` is not given, it defaults to `deliveryEmail` if given,
+/// or else to a value resembling the Zulip server's generated fake emails.
 User user({
   int? userId,
   String? deliveryEmail,
@@ -121,12 +120,12 @@ User user({
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
-  var effectiveDeliveryEmail = deliveryEmail ?? _nextEmail();
   _checkPositive(userId, 'user ID');
+  final effectiveUserId = userId ?? _nextUserId();
   return User(
-    userId: userId ?? _nextUserId(),
-    deliveryEmail: effectiveDeliveryEmail,
-    email: email ?? effectiveDeliveryEmail,
+    userId: effectiveUserId,
+    deliveryEmail: deliveryEmail,
+    email: email ?? deliveryEmail ?? 'user$effectiveUserId@${realmUrl.host}',
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: dateJoined ?? '2024-02-24T11:18+00:00',
     isActive: isActive ?? true,
@@ -154,10 +153,14 @@ Account account({
   String? ackedPushToken,
 }) {
   _checkPositive(id, 'account ID');
+  // When `user.deliveryEmail` is null, using `user.email`
+  // wouldn't be realistic: it's going to be a fake email address
+  // generated to serve as a "Zulip API email".
+  final email = user.deliveryEmail ?? _nextEmail();
   return Account(
     id: id ?? 1000, // TODO generate example IDs
     realmUrl: realmUrl ?? _realmUrl,
-    email: user.email,
+    email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
@@ -167,23 +170,23 @@ Account account({
   );
 }
 
-final User selfUser = user(fullName: 'Self User', email: 'self@example');
+final User selfUser = user(fullName: 'Self User');
 final Account selfAccount = account(
   id: 1001,
   user: selfUser,
   apiKey: 'dQcEJWTq3LczosDkJnRTwf31zniGvMrO', // A Zulip API key is 32 digits of base64.
 );
 
-final User otherUser = user(fullName: 'Other User', email: 'other@example');
+final User otherUser = user(fullName: 'Other User');
 final Account otherAccount = account(
   id: 1002,
   user: otherUser,
   apiKey: '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY', // A Zulip API key is 32 digits of base64.
 );
 
-final User thirdUser = user(fullName: 'Third User', email: 'third@example');
+final User thirdUser = user(fullName: 'Third User');
 
-final User fourthUser  = user(fullName: 'Fourth User', email: 'fourth@example');
+final User fourthUser  = user(fullName: 'Fourth User');
 
 ////////////////////////////////////////////////////////////////
 // Streams and subscriptions.
