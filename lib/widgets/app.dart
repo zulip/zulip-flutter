@@ -229,6 +229,7 @@ class ChooseAccountPage extends StatelessWidget {
     required Widget title,
     Widget? subtitle,
   }) {
+    final colorScheme = ColorScheme.of(context);
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final materialLocalizations = MaterialLocalizations.of(context);
@@ -237,6 +238,8 @@ class ChooseAccountPage extends StatelessWidget {
       child: ListTile(
         title: title,
         subtitle: subtitle,
+        tileColor: colorScheme.secondaryContainer,
+        textColor: colorScheme.onSecondaryContainer,
         trailing: MenuAnchor(
           menuChildren: [
             MenuItemButton(
@@ -274,36 +277,40 @@ class ChooseAccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 16,
-        title: Text(zulipLocalizations.chooseAccountPageTitle),
-        actions: const [ChooseAccountPageOverflowButton()]),
-      body: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Flexible(child: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 8),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  for (final (:accountId, :account) in globalStore.accountEntries)
-                    _buildAccountItem(context,
-                      accountId: accountId,
-                      title: Text(account.realmUrl.toString()),
-                      subtitle: Text(account.email)),
-                ]))),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => Navigator.push(context,
-                  AddAccountPage.buildRoute()),
-                child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
-            ]))),
-      ));
+    return MenuButtonTheme(
+      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
+        backgroundColor: colorScheme.secondaryContainer,
+        foregroundColor: colorScheme.onSecondaryContainer)),
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 16,
+          title: Text(zulipLocalizations.chooseAccountPageTitle),
+          actions: const [ChooseAccountPageOverflowButton()]),
+        body: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Flexible(child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    for (final (:accountId, :account) in globalStore.accountEntries)
+                      _buildAccountItem(context,
+                        accountId: accountId,
+                        title: Text(account.realmUrl.toString()),
+                        subtitle: Text(account.email)),
+                  ]))),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(context,
+                    AddAccountPage.buildRoute()),
+                  child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
+              ]))))));
   }
 }
 
