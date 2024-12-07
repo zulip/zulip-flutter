@@ -379,7 +379,15 @@ enum EmojiMatchQuality {
   /// The query matches a prefix of the emoji name, but not the whole name.
   prefix,
 
-  /// The query matches somewhere in the emoji name, but not at the start.
+  /// The query matches starting at the start of a word in the emoji name,
+  /// but not the start of the whole name.
+  ///
+  /// For example a name "ab_cd_ef" would match queries "c" or "cd_e"
+  /// at this level, but not a query "b_cd_ef".
+  wordAligned,
+
+  /// The query matches somewhere in the emoji name,
+  /// but not at the start of any word.
   other;
 
   /// The best possible quality of match.
@@ -490,25 +498,17 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     // See also commentary in [_rankResult].
 
     // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
-    if (emojiName == _adjusted)          return EmojiMatchQuality.exact;
-    if (emojiName.startsWith(_adjusted)) return EmojiMatchQuality.prefix;
-    if (_nameMatches(emojiName))         return EmojiMatchQuality.other;
-    return null;
-  }
-
-  bool _nameMatches(String emojiName) {
+    if (emojiName == _adjusted)           return EmojiMatchQuality.exact;
+    if (emojiName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
+    if (emojiName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
     if (!_adjusted.contains(_separator)) {
       // If the query is a single token (doesn't contain a separator),
-      // the match can be anywhere in the string.
-      return emojiName.contains(_adjusted);
+      // allow a match anywhere in the string, too.
+      if (emojiName.contains(_adjusted))  return EmojiMatchQuality.other;
+    } else {
+      // Otherwise, require at least a word-aligned match.
     }
-
-    // If there is a separator in the query, then we
-    // require the match to start at the start of a token.
-    // (E.g. for 'ab_cd_ef', query could be 'ab_c' or 'cd_ef',
-    // but not 'b_cd_ef'.)
-    assert(!emojiName.startsWith(_adjusted)); // checked before calling this method
-    return emojiName.contains(_sepAdjusted);
+    return null;
   }
 
   /// A measure of the result's quality in the context of the query,
@@ -521,11 +521,9 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     // Compare sort_emojis in Zulip web:
     //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L322-L382
     //
-    // Behavior differences we should or might copy, TODO(#1068):
-    //  * Web ranks matches starting at a word boundary ahead of
-    //    other non-prefix matches; we don't yet.
-    //  * Relatedly, web favors popular emoji only upon a word-aligned match.
+    // Behavior differences we might copy, TODO:
     //  * Web ranks each name of a Unicode emoji separately.
+    //  * Web recognizes a word-aligned match starting after [ /-] as well as [_].
     //
     // Behavior differences that web should probably fix, TODO(web):
     //  * Among popular emoji with non-exact matches,
@@ -554,15 +552,15 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
       ReactionType.unicodeEmoji => false,
     };
     return switch (matchQuality) {
-      EmojiMatchQuality.exact  => 0,
-      EmojiMatchQuality.prefix => isPopular ? 1 : isCustomEmoji ? 3 : 4,
-      // TODO word-boundary vs. not
-      EmojiMatchQuality.other  => isPopular ? 2 : isCustomEmoji ? 5 : 6,
+      EmojiMatchQuality.exact       => 0,
+      EmojiMatchQuality.prefix      => isPopular ? 1 : isCustomEmoji ? 3 : 5,
+      EmojiMatchQuality.wordAligned => isPopular ? 2 : isCustomEmoji ? 4 : 6,
+      EmojiMatchQuality.other       =>                 isCustomEmoji ? 7 : 8,
     };
   }
 
   /// The number of possible values returned by [_rankResult].
-  static const _numResultRanks = 7;
+  static const _numResultRanks = 9;
 
   @override
   String toString() {

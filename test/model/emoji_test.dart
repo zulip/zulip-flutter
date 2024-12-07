@@ -384,7 +384,7 @@ void main() {
       check(matchOfName('o', 'open_book')).prefix;
       check(matchOfName('open', 'open_book')).prefix;
       check(matchOfName('pe', 'open_book')).other;
-      check(matchOfName('boo', 'open_book')).other;
+      check(matchOfName('boo', 'open_book')).wordAligned;
       check(matchOfName('ok', 'open_book')).other;
     });
 
@@ -396,7 +396,7 @@ void main() {
       check(matchOfName('pen_', 'open_book')).none;
       check(matchOfName('n_b', 'open_book')).none;
 
-      check(matchOfName('blue_dia', 'large_blue_diamond')).other;
+      check(matchOfName('blue_dia', 'large_blue_diamond')).wordAligned;
     });
 
     test('spaces in query behave as underscores', () {
@@ -407,7 +407,7 @@ void main() {
       check(matchOfName('pen ', 'open_book')).none;
       check(matchOfName('n b', 'open_book')).none;
 
-      check(matchOfName('blue dia', 'large_blue_diamond')).other;
+      check(matchOfName('blue dia', 'large_blue_diamond')).wordAligned;
     });
 
     test('query is lower-cased', () {
@@ -426,13 +426,17 @@ void main() {
       check(matchOfNames('open b', ['x', 'open_book'])).prefix;
       check(matchOfNames('pen_', ['x', 'open_book'])).none;
 
+      check(matchOfNames('blue_dia', ['x', 'large_blue_diamond'])).wordAligned;
+
       check(matchOfNames('Smi', ['x', 'smile'])).prefix;
     });
 
     test('best match among name and aliases prevails', () {
-      check(matchOfNames('a', ['ab', 'a', 'ba', 'x'])).exact;
-      check(matchOfNames('a', ['ba', 'ab', 'x'])).prefix;
-      check(matchOfNames('a', ['ba', 'ab'])).prefix;
+      check(matchOfNames('a', ['ab', 'a', 'b_a', 'ba', 'x'])).exact;
+      check(matchOfNames('a', ['ba', 'ab', 'b_a', 'x'])).prefix;
+      check(matchOfNames('a', ['ba', 'ab', 'b_a'])).prefix;
+      check(matchOfNames('a', ['ba', 'b_a', 'x'])).wordAligned;
+      check(matchOfNames('a', ['b_a', 'ba'])).wordAligned;
       check(matchOfNames('a', ['ba', 'x'])).other;
       check(matchOfNames('a', ['x', 'y', 'z'])).none;
     });
@@ -478,7 +482,7 @@ void main() {
       check(matchOf('eqeq', realmCandidate('eqeq'))).exact;
       check(matchOf('open_', realmCandidate('open_book'))).prefix;
       check(matchOf('n_b', realmCandidate('open_book'))).none;
-      check(matchOf('blue dia', realmCandidate('large_blue_diamond'))).other;
+      check(matchOf('blue dia', realmCandidate('large_blue_diamond'))).wordAligned;
       check(matchOf('Smi', realmCandidate('smile'))).prefix;
     });
 
@@ -513,10 +517,12 @@ void main() {
 
     final octopus = unicode(['octopus'], emojiCode: '1f419');
     final workingOnIt = unicode(['working_on_it'], emojiCode: '1f6e0');
+    final love = unicode(['love'], emojiCode: '2764'); // aka :heart:
 
-    test('ranks exact before prefix before other match', () {
+    test('ranks match quality exact/prefix/word-aligned/other', () {
       checkPrecedes('o', unicode(['o']), unicode(['onion']));
-      checkPrecedes('o', unicode(['onion']), unicode(['book']));
+      checkPrecedes('o', unicode(['onion']), unicode(['squared_ok']));
+      checkPrecedes('o', unicode(['squared_ok']), unicode(['book']));
     });
 
     test('ranks popular before realm before other Unicode', () {
@@ -535,28 +541,51 @@ void main() {
       checkPrecedes('o', octopus, realmCandidate('open_book'));
     });
 
-    test('ranks popular-vs-not more significant than prefix/other', () {
-      // Popular other beats realm prefix.
+    test('ranks popular-vs-not more significant than prefix/word-aligned', () {
+      // Popular word-aligned beats realm prefix.
       checkPrecedes('o', workingOnIt, realmCandidate('open_book'));
     });
 
-    test('ranks prefix/other more significant than custom/other', () {
-      // Generic Unicode prefix beats realm other.
-      checkPrecedes('o', unicode(['ok']), realmCandidate('yo'));
+    test('ranks popular as if generic when non-word-aligned', () {
+      // Generic word-aligned beats popular other.
+      checkPrecedes('o', unicode(['squared_ok']), love);
+      // Popular other ranks below even custom other…
+      checkPrecedes('o', realmCandidate('yo'), love);
+      // … and same as generic Unicode other.
+      checkSameRank('o', love, unicode(['book']));
+
+      // And that emoji really does count as popular,
+      // beating custom emoji when both have a prefix match.
+      checkPrecedes('l', love, realmCandidate('logs'));
+    });
+
+    test('ranks custom/other more significant than prefix/word-aligned', () {
+      // Custom word-aligned beats generic prefix.
+      checkPrecedes('o', realmCandidate('laughing_blue_octopus'),
+                         unicode(['ok']));
+    });
+
+    test('ranks word-aligned/other more significant than custom/other', () {
+      // Generic Unicode word-aligned beats realm other.
+      checkPrecedes('o', unicode(['squared_ok']), realmCandidate('yo'));
     });
 
     test('full list of ranks', () {
       check([
         rankOf('o', unicode(['o'])),              // exact (generic)
         rankOf('o', octopus),                     // prefix popular
-        rankOf('o', workingOnIt),                 // other popular
+        rankOf('o', workingOnIt),                 // word-aligned popular
         rankOf('o', realmCandidate('open_book')), // prefix realm
         rankOf('z', zulipCandidate()),            //  == prefix :zulip:
+        rankOf('y', realmCandidate('thank_you')), // word-aligned realm
+            // (word-aligned :zulip: is impossible because the name is one word)
         rankOf('o', unicode(['ok'])),             // prefix generic
+        rankOf('o', unicode(['squared_ok'])),     // word-aligned generic
         rankOf('o', realmCandidate('yo')),        // other realm
         rankOf('p', zulipCandidate()),            //  == other :zulip:
         rankOf('o', unicode(['book'])),           // other generic
-      ]).deepEquals([0, 1, 2, 3, 3, 4, 5, 5, 6]);
+        rankOf('o', love),                        //  == other popular
+      ]).deepEquals([0, 1, 2, 3, 3, 4, 5, 6, 7, 7, 8, 8]);
     });
   });
 }
@@ -585,6 +614,7 @@ extension EmojiCandidateChecks on Subject<EmojiCandidate> {
 extension EmojiMatchQualityChecks on Subject<EmojiMatchQuality?> {
   void get exact => equals(EmojiMatchQuality.exact);
   void get prefix => equals(EmojiMatchQuality.prefix);
+  void get wordAligned => equals(EmojiMatchQuality.wordAligned);
   void get other => equals(EmojiMatchQuality.other);
   void get none => isNull();
 }
