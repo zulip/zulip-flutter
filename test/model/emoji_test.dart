@@ -307,9 +307,44 @@ void main() {
       check(view.results).single.which(
         isUnicodeResult(names: ['smile']));
     });
+
+    Future<Iterable<EmojiAutocompleteResult>> resultsOf(
+      String query, {
+      Map<String, String> realmEmoji = const {},
+      Map<String, List<String>>? unicodeEmoji,
+    }) async {
+      final store = prepare(realmEmoji: realmEmoji, unicodeEmoji: unicodeEmoji);
+      final view = EmojiAutocompleteView.init(store: store,
+        query: EmojiAutocompleteQuery(query));
+      bool done = false;
+      view.addListener(() { done = true; });
+      await Future(() {});
+      check(done).isTrue();
+      return view.results;
+    }
+
+    test('results end-to-end', () async {
+      final unicodeEmoji = {
+        '1f4d3': ['notebook'], '1f516': ['bookmark'], '1f4d6': ['book']};
+
+      // Empty query -> base ordering.
+      check(await resultsOf('', unicodeEmoji: unicodeEmoji)).deepEquals([
+        isUnicodeResult(names: ['notebook']),
+        isUnicodeResult(names: ['bookmark']),
+        isUnicodeResult(names: ['book']),
+        isZulipResult(),
+      ]);
+
+      // With query, exact match precedes prefix match precedes other.
+      check(await resultsOf('book', unicodeEmoji: unicodeEmoji)).deepEquals([
+        isUnicodeResult(names: ['book']),
+        isUnicodeResult(names: ['bookmark']),
+        isUnicodeResult(names: ['notebook']),
+      ]);
+    });
   });
 
-  group('EmojiAutocompleteQuery.match', () {
+  group('EmojiAutocompleteQuery', () {
     EmojiCandidate unicode(List<String> names, {String? emojiCode}) {
       emojiCode ??= '10ffff';
       return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
@@ -333,63 +368,71 @@ void main() {
     }
 
     test('one-word query matches anywhere in name', () {
-      check(matchOfName('', 'smile')).match;
-      check(matchOfName('s', 'smile')).match;
-      check(matchOfName('sm', 'smile')).match;
-      check(matchOfName('smile', 'smile')).match;
-      check(matchOfName('m', 'smile')).match;
-      check(matchOfName('mile', 'smile')).match;
-      check(matchOfName('e', 'smile')).match;
+      check(matchOfName('', 'smile')).prefix;
+      check(matchOfName('s', 'smile')).prefix;
+      check(matchOfName('sm', 'smile')).prefix;
+      check(matchOfName('smile', 'smile')).exact;
+      check(matchOfName('m', 'smile')).other;
+      check(matchOfName('mile', 'smile')).other;
+      check(matchOfName('e', 'smile')).other;
 
       check(matchOfName('smiley', 'smile')).none;
       check(matchOfName('a', 'smile')).none;
 
-      check(matchOfName('o', 'open_book')).match;
-      check(matchOfName('open', 'open_book')).match;
-      check(matchOfName('pe', 'open_book')).match;
-      check(matchOfName('boo', 'open_book')).match;
-      check(matchOfName('ok', 'open_book')).match;
+      check(matchOfName('o', 'open_book')).prefix;
+      check(matchOfName('open', 'open_book')).prefix;
+      check(matchOfName('pe', 'open_book')).other;
+      check(matchOfName('boo', 'open_book')).other;
+      check(matchOfName('ok', 'open_book')).other;
     });
 
     test('multi-word query matches from start of a word', () {
-      check(matchOfName('open_', 'open_book')).match;
-      check(matchOfName('open_b', 'open_book')).match;
-      check(matchOfName('open_book', 'open_book')).match;
+      check(matchOfName('open_', 'open_book')).prefix;
+      check(matchOfName('open_b', 'open_book')).prefix;
+      check(matchOfName('open_book', 'open_book')).exact;
 
       check(matchOfName('pen_', 'open_book')).none;
       check(matchOfName('n_b', 'open_book')).none;
 
-      check(matchOfName('blue_dia', 'large_blue_diamond')).match;
+      check(matchOfName('blue_dia', 'large_blue_diamond')).other;
     });
 
     test('spaces in query behave as underscores', () {
-      check(matchOfName('open ', 'open_book')).match;
-      check(matchOfName('open b', 'open_book')).match;
-      check(matchOfName('open book', 'open_book')).match;
+      check(matchOfName('open ', 'open_book')).prefix;
+      check(matchOfName('open b', 'open_book')).prefix;
+      check(matchOfName('open book', 'open_book')).exact;
 
       check(matchOfName('pen ', 'open_book')).none;
       check(matchOfName('n b', 'open_book')).none;
 
-      check(matchOfName('blue dia', 'large_blue_diamond')).match;
+      check(matchOfName('blue dia', 'large_blue_diamond')).other;
     });
 
     test('query is lower-cased', () {
-      check(matchOfName('Smi', 'smile')).match;
+      check(matchOfName('Smi', 'smile')).prefix;
     });
 
     test('query matches aliases same way as primary name', () {
-      check(matchOfNames('a', ['a', 'b'])).match;
-      check(matchOfNames('b', ['a', 'b'])).match;
+      check(matchOfNames('a', ['a', 'b'])).exact;
+      check(matchOfNames('b', ['a', 'b'])).exact;
       check(matchOfNames('c', ['a', 'b'])).none;
 
-      check(matchOfNames('pe', ['x', 'open_book'])).match;
-      check(matchOfNames('ok', ['x', 'open_book'])).match;
+      check(matchOfNames('pe', ['x', 'open_book'])).other;
+      check(matchOfNames('ok', ['x', 'open_book'])).other;
 
-      check(matchOfNames('open_', ['x', 'open_book'])).match;
-      check(matchOfNames('open b', ['x', 'open_book'])).match;
+      check(matchOfNames('open_', ['x', 'open_book'])).prefix;
+      check(matchOfNames('open b', ['x', 'open_book'])).prefix;
       check(matchOfNames('pen_', ['x', 'open_book'])).none;
 
-      check(matchOfNames('Smi', ['x', 'smile'])).match;
+      check(matchOfNames('Smi', ['x', 'smile'])).prefix;
+    });
+
+    test('best match among name and aliases prevails', () {
+      check(matchOfNames('a', ['ab', 'a', 'ba', 'x'])).exact;
+      check(matchOfNames('a', ['ba', 'ab', 'x'])).prefix;
+      check(matchOfNames('a', ['ba', 'ab'])).prefix;
+      check(matchOfNames('a', ['ba', 'x'])).other;
+      check(matchOfNames('a', ['x', 'y', 'z'])).none;
     });
 
     test('query matches literal Unicode value', () {
@@ -403,13 +446,13 @@ void main() {
       check(matchOfLiteral('1f642', aka: '1f642', '1f642')).none;
 
       // Matching the Unicode value the code describes does count…
-      check(matchOfLiteral('🙂', aka: '\u{1f642}', '1f642')).match;
+      check(matchOfLiteral('🙂', aka: '\u{1f642}', '1f642')).exact;
       // … and failing to match it doesn't make a match.
       check(matchOfLiteral('🙁', aka: '\u{1f641}', '1f642')).none;
 
       // Multi-code-point emoji work fine.
       check(matchOfLiteral('🏳‍🌈', aka: '\u{1f3f3}\u{200d}\u{1f308}',
-        '1f3f3-200d-1f308')).match;
+        '1f3f3-200d-1f308')).exact;
       // Only exact matches count; no partial matches.
       check(matchOfLiteral('🏳', aka: '\u{1f3f3}',
         '1f3f3-200d-1f308')).none;
@@ -430,11 +473,11 @@ void main() {
             resolvedStillUrl: eg.realmUrl.resolve('/emoji/1-still.png')));
       }
 
-      check(matchOf('eqeq', realmCandidate('eqeq'))).match;
-      check(matchOf('open_', realmCandidate('open_book'))).match;
+      check(matchOf('eqeq', realmCandidate('eqeq'))).exact;
+      check(matchOf('open_', realmCandidate('open_book'))).prefix;
       check(matchOf('n_b', realmCandidate('open_book'))).none;
-      check(matchOf('blue dia', realmCandidate('large_blue_diamond'))).match;
-      check(matchOf('Smi', realmCandidate('smile'))).match;
+      check(matchOf('blue dia', realmCandidate('large_blue_diamond'))).other;
+      check(matchOf('Smi', realmCandidate('smile'))).prefix;
     });
 
     test('can match Zulip extra emoji', () {
@@ -446,10 +489,31 @@ void main() {
           emojiType: ReactionType.zulipExtraEmoji,
           emojiCode: 'zulip', emojiName: 'zulip'));
 
-      check(matchOf('z', zulipCandidate)).match;
-      check(matchOf('Zulip', zulipCandidate)).match;
-      check(matchOf('p', zulipCandidate)).match;
+      check(matchOf('z', zulipCandidate)).prefix;
+      check(matchOf('Zulip', zulipCandidate)).exact;
+      check(matchOf('p', zulipCandidate)).other;
       check(matchOf('x', zulipCandidate)).none;
+    });
+
+    int? rankOf(String query, EmojiCandidate candidate) {
+      return EmojiAutocompleteQuery(query).testCandidate(candidate)?.rank;
+    }
+
+    void checkPrecedes(String query, EmojiCandidate a, EmojiCandidate b) {
+      check(rankOf(query, a)!).isLessThan(rankOf(query, b)!);
+    }
+
+    test('ranks exact before prefix before other match', () {
+      checkPrecedes('o', unicode(['o']), unicode(['onion']));
+      checkPrecedes('o', unicode(['onion']), unicode(['book']));
+    });
+
+    test('full list of ranks', () {
+      check([
+        rankOf('o', unicode(['o'])),              // exact
+        rankOf('o', unicode(['onion'])),          // prefix
+        rankOf('o', unicode(['book'])),           // other
+      ]).deepEquals([0, 1, 2]);
     });
   });
 }
@@ -476,7 +540,9 @@ extension EmojiCandidateChecks on Subject<EmojiCandidate> {
 }
 
 extension EmojiMatchQualityChecks on Subject<EmojiMatchQuality?> {
-  void get match => equals(EmojiMatchQuality.match);
+  void get exact => equals(EmojiMatchQuality.exact);
+  void get prefix => equals(EmojiMatchQuality.prefix);
+  void get other => equals(EmojiMatchQuality.other);
   void get none => isNull();
 }
 

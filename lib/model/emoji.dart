@@ -223,6 +223,9 @@ class EmojiStoreImpl with EmojiStore {
   }
 
   List<EmojiCandidate> _generateAllCandidates() {
+    // See also [EmojiAutocompleteQuery._rankResult];
+    // that ranking takes precedence over the order of this list.
+    //
     // Compare `emoji_picker.rebuild_catalog` in Zulip web;
     // `composebox_typeahead.update_emoji_data` which receives its output;
     // and `emoji.update_emojis` which builds part of its input.
@@ -321,20 +324,30 @@ class EmojiStoreImpl with EmojiStore {
 }
 
 /// The quality of an emoji's match to an autocomplete query.
-///
-/// (Rather vacuous for the moment; this structure will
-/// gain more substance in an upcoming commit.)
 enum EmojiMatchQuality {
-  match;
+  /// The query matches the whole emoji name (or the literal emoji itself).
+  exact,
+
+  /// The query matches a prefix of the emoji name, but not the whole name.
+  prefix,
+
+  /// The query matches somewhere in the emoji name, but not at the start.
+  other;
 
   /// The best possible quality of match.
-  static const best = match;
+  static const best = exact;
 
   /// The better of the two given qualities of match,
   /// where null represents no match at all.
   static EmojiMatchQuality? bestOf(EmojiMatchQuality? a, EmojiMatchQuality? b) {
     if (b == null) return a;
-    return b;
+    if (a == null) return b;
+    return compare(a, b) <= 0 ? a : b;
+  }
+
+  /// Comparator that puts better matches first.
+  static int compare(EmojiMatchQuality a, EmojiMatchQuality b) {
+    return Enum.compareByIndex(a, b);
   }
 }
 
@@ -404,11 +417,11 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .
   @visibleForTesting
   EmojiMatchQuality? match(EmojiCandidate candidate) {
-    if (_adjusted == '') return EmojiMatchQuality.match;
+    if (_adjusted == '') return EmojiMatchQuality.prefix;
 
     if (candidate.emojiDisplay case UnicodeEmojiDisplay(:var emojiUnicode)) {
       if (_adjusted == emojiUnicode) {
-        return EmojiMatchQuality.match;
+        return EmojiMatchQuality.exact;
       }
     }
 
@@ -421,13 +434,20 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   EmojiMatchQuality? _matchName(String emojiName) {
-    return _nameMatches(emojiName) ? EmojiMatchQuality.match : null;
+    // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts
+    // for a Boolean version of this logic (match vs. no match),
+    // and triage_raw in the same file web:shared/src/typeahead.ts
+    // for the finer distinctions.
+    // See also commentary in [_rankResult].
+
+    // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
+    if (emojiName == _adjusted)          return EmojiMatchQuality.exact;
+    if (emojiName.startsWith(_adjusted)) return EmojiMatchQuality.prefix;
+    if (_nameMatches(emojiName))         return EmojiMatchQuality.other;
+    return null;
   }
 
-  // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts .
   bool _nameMatches(String emojiName) {
-    // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
-
     if (!_adjusted.contains(_separator)) {
       // If the query is a single token (doesn't contain a separator),
       // the match can be anywhere in the string.
@@ -438,21 +458,46 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     // require the match to start at the start of a token.
     // (E.g. for 'ab_cd_ef', query could be 'ab_c' or 'cd_ef',
     // but not 'b_cd_ef'.)
-    return emojiName.startsWith(_adjusted)
-      || emojiName.contains(_sepAdjusted);
+    assert(!emojiName.startsWith(_adjusted)); // checked before calling this method
+    return emojiName.contains(_sepAdjusted);
   }
 
   /// A measure of the result's quality in the context of the query,
   /// ranked from 0 (best) to one less than [_numResultRanks].
   static int _rankResult(EmojiMatchQuality matchQuality) {
-    // TODO(#1068): rank emoji results (popular, realm, other; exact match, prefix, other)
+    // See also [EmojiStoreImpl._generateAllCandidates];
+    // emoji which this function ranks equally
+    // will appear in the order they were put in by that method.
+    //
+    // Compare sort_emojis in Zulip web:
+    //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L322-L382
+    //
+    // Behavior differences we should or might copy, TODO(#1068):
+    //  * Web ranks popular emoji > custom emoji > others; we don't yet.
+    //  * Web ranks matches starting at a word boundary ahead of
+    //    other non-prefix matches; we don't yet.
+    //  * Web ranks each name of a Unicode emoji separately.
+    //
+    // Behavior differences that web should probably fix, TODO(web):
+    //  * Web starts with only case-sensitive exact matches ("perfect matches"),
+    //    and puts case-insensitive exact matches just ahead of prefix matches;
+    //    it also distinguishes prefix matches by case-sensitive vs. not.
+    //    We use case-insensitive matches throughout;
+    //    case seems unhelpful for emoji search.
+    //  * Web suppresses Unicode emoji names shadowed by a realm emoji
+    //    only if the latter is also a match for the query.  That mostly works,
+    //    because emoji with the same name will mostly both match or both not;
+    //    but it breaks if the Unicode emoji was a literal match.
+
     return switch (matchQuality) {
-      EmojiMatchQuality.match => 0,
+      EmojiMatchQuality.exact  => 0,
+      EmojiMatchQuality.prefix => 1,
+      EmojiMatchQuality.other  => 2,
     };
   }
 
   /// The number of possible values returned by [_rankResult].
-  static const _numResultRanks = 1;
+  static const _numResultRanks = 3;
 
   @override
   String toString() {
