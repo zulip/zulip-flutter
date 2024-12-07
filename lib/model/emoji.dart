@@ -5,6 +5,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/realm.dart';
+import 'algorithms.dart';
 import 'autocomplete.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -319,6 +320,24 @@ class EmojiStoreImpl with EmojiStore {
   }
 }
 
+/// The quality of an emoji's match to an autocomplete query.
+///
+/// (Rather vacuous for the moment; this structure will
+/// gain more substance in an upcoming commit.)
+enum EmojiMatchQuality {
+  match;
+
+  /// The best possible quality of match.
+  static const best = match;
+
+  /// The better of the two given qualities of match,
+  /// where null represents no match at all.
+  static EmojiMatchQuality? bestOf(EmojiMatchQuality? a, EmojiMatchQuality? b) {
+    if (b == null) return a;
+    return b;
+  }
+}
+
 class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, EmojiAutocompleteResult> {
   EmojiAutocompleteView._({required super.store, required super.query});
 
@@ -333,13 +352,13 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
 
   @override
   Future<List<EmojiAutocompleteResult>?> computeResults() async {
-    // TODO(#1068): rank emoji results (popular, realm, other; exact match, prefix, other)
-    final results = <EmojiAutocompleteResult>[];
+    final unsorted = <EmojiAutocompleteResult>[];
     if (await filterCandidates(filter: _testCandidate,
-          candidates: store.allEmojiCandidates(), results: results)) {
+          candidates: store.allEmojiCandidates(), results: unsorted)) {
       return null;
     }
-    return results;
+    return bucketSort(unsorted,
+      (r) => r.rank, numBuckets: EmojiAutocompleteQuery._numResultRanks);
   }
 
   static EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
@@ -377,18 +396,32 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
 
   @visibleForTesting
   EmojiAutocompleteResult? testCandidate(EmojiCandidate candidate) {
-    return matches(candidate) ? EmojiAutocompleteResult(candidate) : null;
+    final matchQuality = match(candidate);
+    if (matchQuality == null) return null;
+    return EmojiAutocompleteResult(candidate, _rankResult(matchQuality));
   }
 
   // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .
   @visibleForTesting
-  bool matches(EmojiCandidate candidate) {
-    if (_adjusted == '') return true;
+  EmojiMatchQuality? match(EmojiCandidate candidate) {
+    if (_adjusted == '') return EmojiMatchQuality.match;
+
     if (candidate.emojiDisplay case UnicodeEmojiDisplay(:var emojiUnicode)) {
-      if (_adjusted == emojiUnicode) return true;
+      if (_adjusted == emojiUnicode) {
+        return EmojiMatchQuality.match;
+      }
     }
-    return _nameMatches(candidate.emojiName)
-      || candidate.aliases.any((alias) => _nameMatches(alias));
+
+    EmojiMatchQuality? result = _matchName(candidate.emojiName);
+    for (final alias in candidate.aliases) {
+      if (result == EmojiMatchQuality.best) return result;
+      result = EmojiMatchQuality.bestOf(result, _matchName(alias));
+    }
+    return result;
+  }
+
+  EmojiMatchQuality? _matchName(String emojiName) {
+    return _nameMatches(emojiName) ? EmojiMatchQuality.match : null;
   }
 
   // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts .
@@ -408,6 +441,18 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     return emojiName.startsWith(_adjusted)
       || emojiName.contains(_sepAdjusted);
   }
+
+  /// A measure of the result's quality in the context of the query,
+  /// ranked from 0 (best) to one less than [_numResultRanks].
+  static int _rankResult(EmojiMatchQuality matchQuality) {
+    // TODO(#1068): rank emoji results (popular, realm, other; exact match, prefix, other)
+    return switch (matchQuality) {
+      EmojiMatchQuality.match => 0,
+    };
+  }
+
+  /// The number of possible values returned by [_rankResult].
+  static const _numResultRanks = 1;
 
   @override
   String toString() {

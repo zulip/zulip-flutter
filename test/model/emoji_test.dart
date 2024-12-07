@@ -309,7 +309,7 @@ void main() {
     });
   });
 
-  group('EmojiAutocompleteQuery.matches', () {
+  group('EmojiAutocompleteQuery.match', () {
     EmojiCandidate unicode(List<String> names, {String? emojiCode}) {
       emojiCode ??= '10ffff';
       return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
@@ -320,12 +320,12 @@ void main() {
           emojiUnicode: tryParseEmojiCodeToUnicode(emojiCode)!));
     }
 
-    bool matches(String query, EmojiCandidate candidate) {
-      return EmojiAutocompleteQuery(query).matches(candidate);
+    EmojiMatchQuality? matchOf(String query, EmojiCandidate candidate) {
+      return EmojiAutocompleteQuery(query).match(candidate);
     }
 
     bool matchesNames(String query, List<String> names) {
-      return matches(query, unicode(names));
+      return matchOf(query, unicode(names)) != null;
     }
 
     bool matchesName(String query, String emojiName) {
@@ -395,7 +395,7 @@ void main() {
     test('query matches literal Unicode value', () {
       bool matchesLiteral(String query, String emojiCode, {required String aka}) {
         assert(aka == query);
-        return matches(query, unicode(['asdf'], emojiCode: emojiCode));
+        return matchOf(query, unicode(['asdf'], emojiCode: emojiCode)) != null;
       }
 
       // Matching the code, in hex, doesn't count.
@@ -429,11 +429,11 @@ void main() {
             resolvedStillUrl: eg.realmUrl.resolve('/emoji/1-still.png')));
       }
 
-      check(matches('eqeq', realmCandidate('eqeq'))).isTrue();
-      check(matches('open_', realmCandidate('open_book'))).isTrue();
-      check(matches('n_b', realmCandidate('open_book'))).isFalse();
-      check(matches('blue dia', realmCandidate('large_blue_diamond'))).isTrue();
-      check(matches('Smi', realmCandidate('smile'))).isTrue();
+      check(matchOf('eqeq', realmCandidate('eqeq'))).isNotNull();
+      check(matchOf('open_', realmCandidate('open_book'))).isNotNull();
+      check(matchOf('n_b', realmCandidate('open_book'))).isNull();
+      check(matchOf('blue dia', realmCandidate('large_blue_diamond'))).isNotNull();
+      check(matchOf('Smi', realmCandidate('smile'))).isNotNull();
     });
 
     test('can match Zulip extra emoji', () {
@@ -445,10 +445,10 @@ void main() {
           emojiType: ReactionType.zulipExtraEmoji,
           emojiCode: 'zulip', emojiName: 'zulip'));
 
-      check(matches('z', zulipCandidate)).isTrue();
-      check(matches('Zulip', zulipCandidate)).isTrue();
-      check(matches('p', zulipCandidate)).isTrue();
-      check(matches('x', zulipCandidate)).isFalse();
+      check(matchOf('z', zulipCandidate)).isNotNull();
+      check(matchOf('Zulip', zulipCandidate)).isNotNull();
+      check(matchOf('p', zulipCandidate)).isNotNull();
+      check(matchOf('x', zulipCandidate)).isNull();
     });
   });
 }

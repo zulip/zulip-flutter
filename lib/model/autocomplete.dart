@@ -758,9 +758,14 @@ sealed class ComposeAutocompleteResult extends AutocompleteResult {}
 
 /// An emoji chosen in an autocomplete interaction, via [EmojiAutocompleteView].
 class EmojiAutocompleteResult extends ComposeAutocompleteResult {
-  EmojiAutocompleteResult(this.candidate);
+  EmojiAutocompleteResult(this.candidate, this.rank);
 
   final EmojiCandidate candidate;
+
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [EmojiAutocompleteView] for ranking the results.
+  final int rank;
 
   @override
   String toString() {
