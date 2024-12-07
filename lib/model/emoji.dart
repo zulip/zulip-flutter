@@ -348,10 +348,23 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
 }
 
 class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
-  EmojiAutocompleteQuery(super.raw)
-    : _adjusted = _adjustQuery(raw);
+  factory EmojiAutocompleteQuery(String raw)
+    => EmojiAutocompleteQuery._(raw, _adjustQuery(raw));
 
+  EmojiAutocompleteQuery._(super.raw, String adjusted)
+    : _adjusted = adjusted,
+      _sepAdjusted = _separator + adjusted;
+
+  /// The query string as adjusted for comparing to emoji names,
+  /// via [_adjustQuery].
   final String _adjusted;
+
+  /// The concatenation of [_separator] with [_adjusted].
+  ///
+  /// Useful for finding word-aligned matches in an emoji name.
+  final String _sepAdjusted;
+
+  static const _separator = '_';
 
   static String _adjustQuery(String raw) {
     return raw.toLowerCase().replaceAll(' ', '_'); // TODO(#1067) remove diacritics too
@@ -375,9 +388,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts .
   bool _nameMatches(String emojiName) {
     // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
-    const String separator = '_';
 
-    if (!_adjusted.contains(separator)) {
+    if (!_adjusted.contains(_separator)) {
       // If the query is a single token (doesn't contain a separator),
       // the match can be anywhere in the string.
       return emojiName.contains(_adjusted);
@@ -388,7 +400,7 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     // (E.g. for 'ab_cd_ef', query could be 'ab_c' or 'cd_ef',
     // but not 'b_cd_ef'.)
     return emojiName.startsWith(_adjusted)
-      || emojiName.contains(separator + _adjusted);
+      || emojiName.contains(_sepAdjusted);
   }
 
   @override
