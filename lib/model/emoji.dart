@@ -244,6 +244,17 @@ class EmojiStoreImpl with EmojiStore {
     ];
   }
 
+  static final _popularEmojiCodes = (() {
+    assert(_popularCandidates.every((c) =>
+      c.emojiType == ReactionType.unicodeEmoji));
+    return Set.of(_popularCandidates.map((c) => c.emojiCode));
+  })();
+
+  static bool _isPopularEmoji(EmojiCandidate candidate) {
+    return candidate.emojiType == ReactionType.unicodeEmoji
+      && _popularEmojiCodes.contains(candidate.emojiCode);
+  }
+
   EmojiCandidate _emojiCandidateFor({
     required ReactionType emojiType,
     required String emojiCode,
@@ -448,7 +459,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   EmojiAutocompleteResult? testCandidate(EmojiCandidate candidate) {
     final matchQuality = match(candidate);
     if (matchQuality == null) return null;
-    return EmojiAutocompleteResult(candidate, _rankResult(matchQuality));
+    return EmojiAutocompleteResult(candidate,
+      _rankResult(matchQuality, candidate));
   }
 
   // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .
@@ -501,7 +513,7 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
 
   /// A measure of the result's quality in the context of the query,
   /// ranked from 0 (best) to one less than [_numResultRanks].
-  static int _rankResult(EmojiMatchQuality matchQuality) {
+  static int _rankResult(EmojiMatchQuality matchQuality, EmojiCandidate candidate) {
     // See also [EmojiStoreImpl._generateAllCandidates];
     // emoji which this function ranks equally
     // will appear in the order they were put in by that method.
@@ -510,12 +522,19 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L322-L382
     //
     // Behavior differences we should or might copy, TODO(#1068):
-    //  * Web ranks popular emoji > custom emoji > others; we don't yet.
     //  * Web ranks matches starting at a word boundary ahead of
     //    other non-prefix matches; we don't yet.
+    //  * Relatedly, web favors popular emoji only upon a word-aligned match.
     //  * Web ranks each name of a Unicode emoji separately.
     //
     // Behavior differences that web should probably fix, TODO(web):
+    //  * Among popular emoji with non-exact matches,
+    //    web doesn't prioritize prefix over word-aligned; we do.
+    //    (This affects just one case: for query "o",
+    //    we put :octopus: before :working_on_it:.)
+    //  * Web only counts an emoji as "popular" for ranking if the query
+    //    is a prefix of a single word in the name; so "thumbs_" or "working_on_i"
+    //    lose the ranking boost for :thumbs_up: and :working_on_it: respectively.
     //  * Web starts with only case-sensitive exact matches ("perfect matches"),
     //    and puts case-insensitive exact matches just ahead of prefix matches;
     //    it also distinguishes prefix matches by case-sensitive vs. not.
@@ -526,15 +545,24 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     //    because emoji with the same name will mostly both match or both not;
     //    but it breaks if the Unicode emoji was a literal match.
 
+    final isPopular = EmojiStoreImpl._isPopularEmoji(candidate);
+    final isCustomEmoji = switch (candidate.emojiType) {
+      // The web implementation calls this condition `is_realm_emoji`,
+      // but its actual semantics is it's true for the Zulip extra emoji too.
+      // See `zulip_emoji` in web:src/emoji.ts .
+      ReactionType.realmEmoji || ReactionType.zulipExtraEmoji => true,
+      ReactionType.unicodeEmoji => false,
+    };
     return switch (matchQuality) {
       EmojiMatchQuality.exact  => 0,
-      EmojiMatchQuality.prefix => 1,
-      EmojiMatchQuality.other  => 2,
+      EmojiMatchQuality.prefix => isPopular ? 1 : isCustomEmoji ? 3 : 4,
+      // TODO word-boundary vs. not
+      EmojiMatchQuality.other  => isPopular ? 2 : isCustomEmoji ? 5 : 6,
     };
   }
 
   /// The number of possible values returned by [_rankResult].
-  static const _numResultRanks = 3;
+  static const _numResultRanks = 7;
 
   @override
   String toString() {

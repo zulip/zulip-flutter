@@ -282,9 +282,9 @@ void main() {
       await Future(() {});
       check(done).isTrue();
       check(view.results).deepEquals([
-        isUnicodeResult(names: ['bookmark']),
         isRealmResult(emojiName: 'happy'),
         isZulipResult(),
+        isUnicodeResult(names: ['bookmark']),
       ]);
     });
 
@@ -324,15 +324,17 @@ void main() {
     }
 
     test('results end-to-end', () async {
+      // (See more detailed rank tests below, on EmojiAutocompleteQuery.)
+
       final unicodeEmoji = {
         '1f4d3': ['notebook'], '1f516': ['bookmark'], '1f4d6': ['book']};
 
       // Empty query -> base ordering.
       check(await resultsOf('', unicodeEmoji: unicodeEmoji)).deepEquals([
+        isZulipResult(),
         isUnicodeResult(names: ['notebook']),
         isUnicodeResult(names: ['bookmark']),
         isUnicodeResult(names: ['book']),
-        isZulipResult(),
       ]);
 
       // With query, exact match precedes prefix match precedes other.
@@ -505,17 +507,56 @@ void main() {
       check(rankOf(query, a)!).isLessThan(rankOf(query, b)!);
     }
 
+    void checkSameRank(String query, EmojiCandidate a, EmojiCandidate b) {
+      check(rankOf(query, a)!).equals(rankOf(query, b)!);
+    }
+
+    final octopus = unicode(['octopus'], emojiCode: '1f419');
+    final workingOnIt = unicode(['working_on_it'], emojiCode: '1f6e0');
+
     test('ranks exact before prefix before other match', () {
       checkPrecedes('o', unicode(['o']), unicode(['onion']));
       checkPrecedes('o', unicode(['onion']), unicode(['book']));
     });
 
+    test('ranks popular before realm before other Unicode', () {
+      checkPrecedes('o', octopus, realmCandidate('open_book'));
+      checkPrecedes('o', realmCandidate('open_book'), unicode(['ok']));
+    });
+
+    test('ranks Zulip extra emoji same as realm emoji', () {
+      checkSameRank('z', zulipCandidate(), realmCandidate('zounds'));
+    });
+
+    test('ranks exact-vs-not more significant than popular/custom/other', () {
+      // Generic Unicode exact beats popular prefix…
+      checkPrecedes('o', unicode(['o']), octopus);
+      // … which really does count as popular, beating realm prefix.
+      checkPrecedes('o', octopus, realmCandidate('open_book'));
+    });
+
+    test('ranks popular-vs-not more significant than prefix/other', () {
+      // Popular other beats realm prefix.
+      checkPrecedes('o', workingOnIt, realmCandidate('open_book'));
+    });
+
+    test('ranks prefix/other more significant than custom/other', () {
+      // Generic Unicode prefix beats realm other.
+      checkPrecedes('o', unicode(['ok']), realmCandidate('yo'));
+    });
+
     test('full list of ranks', () {
       check([
-        rankOf('o', unicode(['o'])),              // exact
-        rankOf('o', unicode(['onion'])),          // prefix
-        rankOf('o', unicode(['book'])),           // other
-      ]).deepEquals([0, 1, 2]);
+        rankOf('o', unicode(['o'])),              // exact (generic)
+        rankOf('o', octopus),                     // prefix popular
+        rankOf('o', workingOnIt),                 // other popular
+        rankOf('o', realmCandidate('open_book')), // prefix realm
+        rankOf('z', zulipCandidate()),            //  == prefix :zulip:
+        rankOf('o', unicode(['ok'])),             // prefix generic
+        rankOf('o', realmCandidate('yo')),        // other realm
+        rankOf('p', zulipCandidate()),            //  == other :zulip:
+        rankOf('o', unicode(['book'])),           // other generic
+      ]).deepEquals([0, 1, 2, 3, 3, 4, 5, 5, 6]);
     });
   });
 }
