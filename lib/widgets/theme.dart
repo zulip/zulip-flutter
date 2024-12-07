@@ -11,6 +11,17 @@ ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
   final List<ThemeExtension> themeExtensions;
   Brightness brightness = MediaQuery.platformBrightnessOf(context);
+  // This applies Material 3's color system to produce a palette of
+  // appropriately matching and contrasting colors for use in a UI.
+  // The Zulip brand color is a starting point, but doesn't end up as
+  // one that's directly used.  (After all, we didn't design it for that
+  // purpose; we designed a logo.)  See docs:
+  //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
+  // Or try this tool to see the whole palette:
+  //   https://m3.material.io/theme-builder#/custom
+  final colorScheme = ColorScheme.fromSeed(
+    brightness: brightness,
+    seedColor: kZulipBrandColor);
   switch (brightness) {
     case Brightness.light: {
       designVariables = DesignVariables.light();
@@ -38,6 +49,10 @@ ThemeData zulipThemeData(BuildContext context) {
     extensions: themeExtensions,
     iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
       foregroundColor: designVariables.icon,
+    )),
+    elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
+      backgroundColor: colorScheme.secondaryContainer,
+      foregroundColor: colorScheme.onSecondaryContainer,
     )),
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
@@ -74,18 +89,7 @@ ThemeData zulipThemeData(BuildContext context) {
         strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
       )),
     ),
-    // This applies Material 3's color system to produce a palette of
-    // appropriately matching and contrasting colors for use in a UI.
-    // The Zulip brand color is a starting point, but doesn't end up as
-    // one that's directly used.  (After all, we didn't design it for that
-    // purpose; we designed a logo.)  See docs:
-    //   https://api.flutter.dev/flutter/material/ColorScheme/ColorScheme.fromSeed.html
-    // Or try this tool to see the whole palette:
-    //   https://m3.material.io/theme-builder#/custom
-    colorScheme: ColorScheme.fromSeed(
-      brightness: brightness,
-      seedColor: kZulipBrandColor,
-    ),
+    colorScheme: colorScheme,
     scaffoldBackgroundColor: designVariables.mainBackground,
     tooltipTheme: const TooltipThemeData(preferBelow: false),
     bottomSheetTheme: BottomSheetThemeData(
