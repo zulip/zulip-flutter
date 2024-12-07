@@ -116,3 +116,67 @@ QueueList<int> setUnion(Iterable<int> xs, Iterable<int> ys) {
   }
   return result;
 }
+
+/// Sort the items by bucket, stably,
+/// and if the buckets are few then in linear time.
+///
+/// The returned list will have the same elements as [xs], ordered by bucket,
+/// and elements in each bucket will appear in the same order as in [xs].
+/// In other words, the list is the result of a stable sort of [xs] by bucket.
+/// (By contrast, Dart's [List.sort] is not guaranteed to be stable.)
+///
+/// For each element of [xs], the bucket identified by [bucketOf]
+/// must be in the range `0 <= bucket < numBuckets`.
+/// Repeated calls to [bucketOf] on the same element must return the same value.
+///
+/// If [bucketOf] returns different answers when called twice for some element,
+/// this function's behavior is undefined:
+/// it may throw, or may return an arbitrary list.
+///
+/// The cost of this function is linear in `xs.length` plus [numBuckets].
+/// In particular if [numBuckets] is a constant
+/// (or more generally is at most a constant multiple of `xs.length`),
+/// then this function sorts the items in linear time, O(n).
+/// On the other hand if there are many more buckets than elements,
+/// consider using a different sorting algorithm.
+List<T> bucketSort<T>(Iterable<T> xs, int Function(T) bucketOf, {
+  required int numBuckets,
+}) {
+  if (xs.isEmpty) return [];
+  if (numBuckets <= 0) throw StateError("bucketSort: non-positive numBuckets");
+
+  final counts = List.generate(numBuckets, (_) => 0);
+  for (final x in xs) {
+    final key = bucketOf(x);
+    _checkBucket(key, numBuckets);
+    counts[key]++;
+  }
+  // Now counts[k] is the number of values with key k.
+
+  var partialSum = 0;
+  for (var k = 0; k < numBuckets; k++) {
+    final count = counts[k];
+    counts[k] = partialSum;
+    partialSum += count;
+  }
+  assert(partialSum == xs.length);
+  // Now counts[k] is the index where the first value with key k should go.
+
+  final result = List.generate(xs.length, (_) => xs.first);
+  for (final x in xs) {
+    // Each counts[k] is the index where the next value with key k should go.
+    final key = bucketOf(x);
+    _checkBucket(key, numBuckets);
+    final index = counts[key]++;
+    if (index >= result.length) {
+      throw StateError("bucketSort: bucketOf gave varying answers on same value");
+    }
+    result[index] = x;
+  }
+  return result;
+}
+
+void _checkBucket(int key, int numBuckets) {
+  if (key < 0) throw StateError("bucketSort: negative bucket");
+  if (key >= numBuckets) throw StateError("bucketSort: bucket out of range");
+}

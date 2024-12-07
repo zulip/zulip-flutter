@@ -1,5 +1,7 @@
+import 'dart:math';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/algorithms.dart';
 
@@ -55,4 +57,95 @@ void main() {
       });
     }
   });
+
+  group('bucketSort', () {
+    /// Same spec as [bucketSort], except slow: N * B time instead of N + B.
+    List<T> simpleBucketSort<T>(Iterable<T> xs, int Function(T) bucketOf, {
+      required int numBuckets,
+    }) {
+      return Iterable.generate(numBuckets,
+        (k) => xs.where((s) => bucketOf(s) == k)).flattenedToList;
+    }
+
+    void checkBucketSort<T>(Iterable<T> xs, {
+      required int Function(T) bucketOf, required int numBuckets,
+    }) {
+      check(bucketSort(xs, bucketOf, numBuckets: numBuckets)).deepEquals(
+        simpleBucketSort<T>(xs, bucketOf, numBuckets: numBuckets));
+    }
+
+    int stringBucket(String s) => s.codeUnits.last - '0'.codeUnits.single;
+
+    test('explicit result, interleaved: 4 elements, 2 buckets', () {
+      check(bucketSort(['a1', 'd0', 'c1', 'b0'], stringBucket, numBuckets: 2))
+        .deepEquals(['d0', 'b0', 'a1', 'c1']);
+    });
+
+    List<_SortablePair> generatePairs(Iterable<int> keys) {
+      var token = 0;
+      return keys.map((k) => _SortablePair(k, "${token++}")).toList();
+    }
+
+    void checkSortPairs(int numBuckets, Iterable<int> keys) {
+      checkBucketSort(numBuckets: numBuckets, bucketOf: (p) => p.key,
+        generatePairs(keys));
+    }
+
+    test('empty list, zero buckets', () {
+      checkSortPairs(0, []);
+    });
+
+    test('empty, some buckets', () {
+      checkSortPairs(3, []);
+    });
+
+    test('interleaved: 4 elements, 2 buckets', () {
+      checkSortPairs(2, [1, 0, 1, 0]);
+    });
+
+    test('some buckets empty: 10 elements in 3 of 10 buckets', () {
+      checkSortPairs(10, [9, 9, 9, 5, 5, 5, 1, 1, 1, 1]);
+    });
+
+    test('one big bucket', () {
+      checkSortPairs(1, Iterable.generate(100, (_) => 0));
+    });
+
+    const seed = 4321;
+
+    Iterable<int> randomKeys({required int numBuckets, required int length}) {
+      final rand = Random(seed);
+      return Iterable.generate(length, (_) => rand.nextInt(numBuckets));
+    }
+
+    test('long random list, 1000 in 2 buckets', () {
+      checkSortPairs(2, randomKeys(numBuckets: 2, length: 1000));
+    });
+
+    test('long random list, 1000 in 1000 buckets', () {
+      checkSortPairs(1000, randomKeys(numBuckets: 1000, length: 1000));
+    });
+
+    test('sparse random list, 100 in 1000 buckets', () {
+      checkSortPairs(1000, randomKeys(numBuckets: 1000, length: 100));
+    });
+  });
+}
+
+class _SortablePair {
+  _SortablePair(this.key, this.tag);
+
+  final int key;
+  final String tag;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _SortablePair && key == other.key && tag == other.tag;
+  }
+
+  @override
+  int get hashCode => Object.hash(key, tag);
+
+  @override
+  String toString() => "$tag:$key";
 }
