@@ -97,7 +97,7 @@ abstract class ZulipLocalizations {
     Locale('ja')
   ];
 
-  /// Title for About Zulip page
+  /// Title for About Zulip page.
   ///
   /// In en, this message translates to:
   /// **'About Zulip'**
@@ -121,11 +121,29 @@ abstract class ZulipLocalizations {
   /// **'Tap to view'**
   String get aboutPageTapToView;
 
-  /// Title for ChooseAccountPage
+  /// Title for the page to choose between Zulip accounts.
   ///
   /// In en, this message translates to:
   /// **'Choose account'**
   String get chooseAccountPageTitle;
+
+  /// Label for main-menu button leading to the choose-account page.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch account'**
+  String get switchAccountButton;
+
+  /// Message that appears on the loading screen after waiting for some time.
+  ///
+  /// In en, this message translates to:
+  /// **'You account at {url} is taking a while to load.'**
+  String tryAnotherAccountMessage(Object url);
+
+  /// Label for loading screen button prompting user to try another account.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another account'**
+  String get tryAnotherAccountButton;
 
   /// Label for the 'Log out' button for an account on the choose-account page
   ///
@@ -553,7 +571,7 @@ abstract class ZulipLocalizations {
   /// **'Copy link'**
   String get lightboxCopyLinkTooltip;
 
-  /// Page title for login page.
+  /// Title for login page.
   ///
   /// In en, this message translates to:
   /// **'Log in'**
@@ -577,7 +595,7 @@ abstract class ZulipLocalizations {
   /// **'Sign in with {method}'**
   String signInWithFoo(String method);
 
-  /// Page title for screen to add a Zulip account.
+  /// Title for page to add a Zulip account.
   ///
   /// In en, this message translates to:
   /// **'Add an account'**
@@ -799,29 +817,47 @@ abstract class ZulipLocalizations {
   /// **'Unknown'**
   String get userRoleUnknown;
 
-  /// Title for the page of recent DM conversations
+  /// Title for the page with unreads.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get inboxPageTitle;
+
+  /// Title for the page with a list of DM conversations.
   ///
   /// In en, this message translates to:
   /// **'Direct messages'**
   String get recentDmConversationsPageTitle;
 
-  /// Title for the page of combined feed.
+  /// Page title for the 'Combined feed' message view.
   ///
   /// In en, this message translates to:
   /// **'Combined feed'**
   String get combinedFeedPageTitle;
 
-  /// Title for the page of @-mentions.
+  /// Page title for the 'Mentions' message view.
   ///
   /// In en, this message translates to:
   /// **'Mentions'**
   String get mentionsPageTitle;
 
-  /// Title for the page of starred messages.
+  /// Page title for the 'Starred messages' message view.
   ///
   /// In en, this message translates to:
   /// **'Starred messages'**
   String get starredMessagesPageTitle;
+
+  /// Title for the page with a list of subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channelsPageTitle;
+
+  /// Label for main-menu button leading to the user's own profile.
+  ///
+  /// In en, this message translates to:
+  /// **'My profile'**
+  String get mainMenuMyProfile;
 
   /// Tooltip for button to navigate to a given channel's feed
   ///

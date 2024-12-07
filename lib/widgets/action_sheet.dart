@@ -88,17 +88,13 @@ void showMessageActionSheet({required BuildContext context, required Message mes
                     borderRadius: BorderRadius.circular(7),
                     child: Column(spacing: 1,
                       children: optionButtons))))),
-              const MessageActionSheetCancelButton(),
+              const ActionSheetCancelButton(),
             ])));
     });
 }
 
-abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
-  MessageActionSheetMenuItemButton({
-    super.key,
-    required this.message,
-    required this.pageContext,
-  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+abstract class ActionSheetMenuItemButton extends StatelessWidget {
+  const ActionSheetMenuItemButton({super.key, required this.pageContext});
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
@@ -110,8 +106,6 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   ///
   /// For operations that need a [BuildContext], see [pageContext].
   void onPressed();
-
-  final Message message;
 
   /// A context within the [MessageListPage] this action sheet was
   /// triggered from.
@@ -157,14 +151,25 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   }
 }
 
-class MessageActionSheetCancelButton extends StatelessWidget {
-  const MessageActionSheetCancelButton({super.key});
+abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
+  MessageActionSheetMenuItemButton({
+    super.key,
+    required this.message,
+    required super.pageContext,
+  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+
+  final Message message;
+}
+
+class ActionSheetCancelButton extends StatelessWidget {
+  const ActionSheetCancelButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     return TextButton(
       style: TextButton.styleFrom(
+        minimumSize: const Size.fromHeight(44),
         padding: const EdgeInsets.all(10),
         foregroundColor: designVariables.contextMenuCancelText,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
@@ -178,8 +183,7 @@ class MessageActionSheetCancelButton extends StatelessWidget {
       },
       child: Text(ZulipLocalizations.of(context).dialogCancel,
         style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600))),
-    );
+          .merge(weightVariableTextStyle(context, wght: 600))));
   }
 }
 
