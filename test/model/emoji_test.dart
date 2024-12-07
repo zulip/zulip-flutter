@@ -78,6 +78,8 @@ void main() {
     });
   });
 
+  final popularCandidates = EmojiStore.popularEmojiCandidates;
+
   Condition<Object?> isUnicodeCandidate(String? emojiCode, List<String>? names) {
     return (it_) {
       final it = it_.isA<EmojiCandidate>();
@@ -108,6 +110,9 @@ void main() {
       ..aliases.isEmpty();
   }
 
+  List<Condition<Object?>> arePopularCandidates = popularCandidates.map(
+    (c) => isUnicodeCandidate(c.emojiCode, null)).toList();
+
   group('allEmojiCandidates', () {
     // TODO test emojiDisplay of candidates matches emojiDisplayFor
 
@@ -123,12 +128,47 @@ void main() {
       return store;
     }
 
+    test('popular emoji appear even when no server emoji data', () {
+      final store = prepare(unicodeEmoji: null);
+      check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
+        isZulipCandidate(),
+      ]);
+    });
+
+    test('popular emoji appear in their canonical order', () {
+      // In the server's emoji data, have the popular emoji in a permuted order,
+      // and interspersed with other emoji.
+      final store = prepare(unicodeEmoji: {
+        '1f603': ['smiley'],
+        for (final candidate in popularCandidates.skip(3))
+          candidate.emojiCode: [candidate.emojiName, ...candidate.aliases],
+        '1f34a': ['orange', 'tangerine', 'mandarin'],
+        for (final candidate in popularCandidates.take(3))
+          candidate.emojiCode: [candidate.emojiName, ...candidate.aliases],
+        '1f516': ['bookmark'],
+      });
+      // In the allEmojiCandidates result, the popular emoji come first
+      // and are in their canonical order, even though the other Unicode emoji
+      // are in the same order they were given in.
+      check(store.allEmojiCandidates()).deepEquals([
+        for (final candidate in popularCandidates)
+          isUnicodeCandidate(candidate.emojiCode,
+            [candidate.emojiName, ...candidate.aliases]),
+        isUnicodeCandidate('1f603', ['smiley']),
+        isUnicodeCandidate('1f34a', ['orange', 'tangerine', 'mandarin']),
+        isUnicodeCandidate('1f516', ['bookmark']),
+        isZulipCandidate(),
+      ]);
+    });
+
     test('realm emoji included only when active', () {
       final store = prepare(realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'abc', deactivated: true),
         '2': eg.realmEmojiItem(emojiCode: '2', emojiName: 'abcd'),
       });
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isRealmCandidate(emojiCode: '2', emojiName: 'abcd'),
         isZulipCandidate(),
       ]);
@@ -143,6 +183,7 @@ void main() {
         '5': eg.realmEmojiItem(emojiCode: '5', emojiName: 'test', deactivated: true),
       });
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isRealmCandidate(emojiCode: '4', emojiName: 'try'),
         isZulipCandidate(),
       ]);
@@ -156,6 +197,7 @@ void main() {
         '1f603': ['smiley'],
       });
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isUnicodeCandidate('1f516', ['bookmark']),
         isRealmCandidate(emojiCode: '1', emojiName: 'smiley'),
         isZulipCandidate(),
@@ -169,6 +211,7 @@ void main() {
         '1f41c': ['ant'],
       });
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isUnicodeCandidate('1f41c', ['ant']),
         isZulipCandidate(),
       ]);
@@ -181,6 +224,7 @@ void main() {
         '1f34a': ['orange', 'tangerine', 'mandarin'],
       });
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isUnicodeCandidate('1f34a', ['orange', 'mandarin']),
         isRealmCandidate(emojiCode: '1', emojiName: 'tangerine'),
         isZulipCandidate(),
@@ -194,6 +238,7 @@ void main() {
         '1f34a': ['orange', 'tangerine', 'mandarin'],
       });
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isUnicodeCandidate('1f34a', ['tangerine', 'mandarin']),
         isRealmCandidate(emojiCode: '1', emojiName: 'orange'),
         isZulipCandidate(),
@@ -203,6 +248,7 @@ void main() {
     test('updates on setServerEmojiData', () {
       final store = prepare();
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isZulipCandidate(),
       ]);
 
@@ -210,6 +256,7 @@ void main() {
         '1f516': ['bookmark'],
       }));
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isUnicodeCandidate('1f516', ['bookmark']),
         isZulipCandidate(),
       ]);
@@ -218,6 +265,7 @@ void main() {
     test('updates on RealmEmojiUpdateEvent', () {
       final store = prepare();
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isZulipCandidate(),
       ]);
 
@@ -225,6 +273,7 @@ void main() {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy'),
       }));
       check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
         isRealmCandidate(emojiCode: '1', emojiName: 'happy'),
         isZulipCandidate(),
       ]);
@@ -257,6 +306,9 @@ void main() {
         isZulipCandidate());
     }
 
+    List<Condition<Object?>> arePopularResults = popularCandidates.map(
+      (c) => isUnicodeResult(emojiCode: c.emojiCode)).toList();
+
     PerAccountStore prepare({
       Map<String, String> realmEmoji = const {},
       Map<String, List<String>>? unicodeEmoji,
@@ -282,6 +334,7 @@ void main() {
       await Future(() {});
       check(done).isTrue();
       check(view.results).deepEquals([
+        ...arePopularResults,
         isRealmResult(emojiName: 'happy'),
         isZulipResult(),
         isUnicodeResult(names: ['bookmark']),
@@ -323,6 +376,45 @@ void main() {
       return view.results;
     }
 
+    test('results preserve order of popular emoji within each rank', () async {
+      // In other words, the sorting by rank is a stable sort.
+
+      // Full results list matches allEmojiCandidates.
+      check(prepare().allEmojiCandidates())
+        .deepEquals([...arePopularCandidates, isZulipCandidate()]);
+      check(await resultsOf(''))
+        .deepEquals([...arePopularResults, isZulipResult()]);
+
+      // Same list written out explicitly, for comparison with the cases below.
+      check(await resultsOf('')).deepEquals([
+        isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
+        isUnicodeResult(names: ['tada']),
+        isUnicodeResult(names: ['smile']),
+        isUnicodeResult(names: ['heart', 'love', 'love_you']),
+        isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
+        isUnicodeResult(names: ['octopus']),
+        isZulipResult(),
+      ]);
+
+      check(await resultsOf('t')).deepEquals([
+        // prefix
+        isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
+        isUnicodeResult(names: ['tada']),
+        isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
+        // other
+        isUnicodeResult(names: ['heart', 'love', 'love_you']),
+        isUnicodeResult(names: ['octopus']),
+      ]);
+
+      check(await resultsOf('h')).deepEquals([
+        // prefix
+        isUnicodeResult(names: ['heart', 'love', 'love_you']),
+        isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
+        // other
+        isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
+      ]);
+    });
+
     test('results end-to-end', () async {
       // (See more detailed rank tests below, on EmojiAutocompleteQuery.)
 
@@ -331,6 +423,7 @@ void main() {
 
       // Empty query -> base ordering.
       check(await resultsOf('', unicodeEmoji: unicodeEmoji)).deepEquals([
+        ...arePopularResults,
         isZulipResult(),
         isUnicodeResult(names: ['notebook']),
         isUnicodeResult(names: ['bookmark']),

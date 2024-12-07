@@ -295,7 +295,7 @@ class EmojiStoreImpl with EmojiStore {
     //    but then ranks them first, after only the six "popular" emoji,
     //    once there's a non-empty query.
     //  * Web gives the six "popular" emoji a set order amongst themselves,
-    //    like we do after #1112; but in web, this order appears only in the
+    //    like we do here; but in web, this order appears only in the
     //    emoji picker on an empty query, and is otherwise lost even when the
     //    emoji are taken out of their home categories and shown instead
     //    together at the front.
@@ -307,12 +307,18 @@ class EmojiStoreImpl with EmojiStore {
 
     final results = <EmojiCandidate>[];
 
+    // Include the "popular" emoji, in their canonical order
+    // relative to each other.
+    results.addAll(_popularCandidates);
+
     final namesOverridden = {
       for (final emoji in activeRealmEmoji) emoji.name,
       'zulip',
     };
     // TODO(log) if _serverEmojiData missing
     for (final entry in (_serverEmojiData ?? {}).entries) {
+      if (_popularEmojiCodes.contains(entry.key)) continue;
+
       final allNames = entry.value;
       final String emojiName;
       final List<String>? aliases;
