@@ -320,8 +320,12 @@ void main() {
           emojiUnicode: tryParseEmojiCodeToUnicode(emojiCode)!));
     }
 
+    bool matches(String query, EmojiCandidate candidate) {
+      return EmojiAutocompleteQuery(query).matches(candidate);
+    }
+
     bool matchesNames(String query, List<String> names) {
-      return EmojiAutocompleteQuery(query).matches(unicode(names));
+      return matches(query, unicode(names));
     }
 
     bool matchesName(String query, String emojiName) {
@@ -391,8 +395,7 @@ void main() {
     test('query matches literal Unicode value', () {
       bool matchesLiteral(String query, String emojiCode, {required String aka}) {
         assert(aka == query);
-        return EmojiAutocompleteQuery(query)
-          .matches(unicode(['asdf'], emojiCode: emojiCode));
+        return matches(query, unicode(['asdf'], emojiCode: emojiCode));
       }
 
       // Matching the code, in hex, doesn't count.
@@ -426,16 +429,11 @@ void main() {
             resolvedStillUrl: eg.realmUrl.resolve('/emoji/1-still.png')));
       }
 
-      check(EmojiAutocompleteQuery('eqeq')
-        .matches(realmCandidate('eqeq'))).isTrue();
-      check(EmojiAutocompleteQuery('open_')
-        .matches(realmCandidate('open_book'))).isTrue();
-      check(EmojiAutocompleteQuery('n_b')
-        .matches(realmCandidate('open_book'))).isFalse();
-      check(EmojiAutocompleteQuery('blue dia')
-        .matches(realmCandidate('large_blue_diamond'))).isTrue();
-      check(EmojiAutocompleteQuery('Smi')
-        .matches(realmCandidate('smile'))).isTrue();
+      check(matches('eqeq', realmCandidate('eqeq'))).isTrue();
+      check(matches('open_', realmCandidate('open_book'))).isTrue();
+      check(matches('n_b', realmCandidate('open_book'))).isFalse();
+      check(matches('blue dia', realmCandidate('large_blue_diamond'))).isTrue();
+      check(matches('Smi', realmCandidate('smile'))).isTrue();
     });
 
     test('can match Zulip extra emoji', () {
@@ -447,10 +445,10 @@ void main() {
           emojiType: ReactionType.zulipExtraEmoji,
           emojiCode: 'zulip', emojiName: 'zulip'));
 
-      check(EmojiAutocompleteQuery('z').matches(zulipCandidate)).isTrue();
-      check(EmojiAutocompleteQuery('Zulip').matches(zulipCandidate)).isTrue();
-      check(EmojiAutocompleteQuery('p').matches(zulipCandidate)).isTrue();
-      check(EmojiAutocompleteQuery('x').matches(zulipCandidate)).isFalse();
+      check(matches('z', zulipCandidate)).isTrue();
+      check(matches('Zulip', zulipCandidate)).isTrue();
+      check(matches('p', zulipCandidate)).isTrue();
+      check(matches('x', zulipCandidate)).isFalse();
     });
   });
 }
