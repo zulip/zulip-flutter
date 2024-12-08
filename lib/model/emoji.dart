@@ -380,6 +380,7 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .
+  @visibleForTesting
   bool matches(EmojiCandidate candidate) {
     if (_adjusted == '') return true;
     if (candidate.emojiDisplay case UnicodeEmojiDisplay(:var emojiUnicode)) {
