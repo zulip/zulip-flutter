@@ -761,6 +761,11 @@ class EmojiAutocompleteResult extends ComposeAutocompleteResult {
   EmojiAutocompleteResult(this.candidate);
 
   final EmojiCandidate candidate;
+
+  @override
+  String toString() {
+    return 'EmojiAutocompleteResult(${candidate.description()})';
+  }
 }
 
 /// A result from an @-mention autocomplete interaction,

@@ -86,6 +86,18 @@ final class EmojiCandidate {
     required List<String>? aliases,
     required this.emojiDisplay,
   }) : _aliases = aliases;
+
+  /// Used for implementing [toString] and [EmojiAutocompleteResult.toString].
+  String description() {
+    final typeLabel = emojiType.name.replaceFirst(RegExp(r'Emoji$'), '');
+    return '$typeLabel $emojiCode $emojiName'
+      '${aliases.isNotEmpty ? ' $aliases' : ''}';
+  }
+
+  @override
+  String toString() {
+    return 'EmojiCandidate(${description()})';
+  }
 }
 
 /// The portion of [PerAccountStore] describing what emoji exist.
