@@ -152,11 +152,11 @@ void main() {
       final store = prepare(realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'smiley'),
       }, unicodeEmoji: {
-        '1f642': ['smile'],
+        '1f516': ['bookmark'],
         '1f603': ['smiley'],
       });
       check(store.allEmojiCandidates()).deepEquals([
-        isUnicodeCandidate('1f642', ['smile']),
+        isUnicodeCandidate('1f516', ['bookmark']),
         isRealmCandidate(emojiCode: '1', emojiName: 'smiley'),
         isZulipCandidate(),
       ]);
@@ -207,10 +207,10 @@ void main() {
       ]);
 
       store.setServerEmojiData(ServerEmojiData(codeToNames: {
-        '1f642': ['smile'],
+        '1f516': ['bookmark'],
       }));
       check(store.allEmojiCandidates()).deepEquals([
-        isUnicodeCandidate('1f642', ['smile']),
+        isUnicodeCandidate('1f516', ['bookmark']),
         isZulipCandidate(),
       ]);
     });
@@ -234,7 +234,7 @@ void main() {
       final store = prepare(realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy'),
       }, unicodeEmoji: {
-        '1f642': ['smile'],
+        '1f516': ['bookmark'],
       });
       final candidates = store.allEmojiCandidates();
       check(store.allEmojiCandidates()).identicalTo(candidates);
@@ -274,7 +274,7 @@ void main() {
 
     test('results can include all three emoji types', () async {
       final store = prepare(
-        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f642': ['smile']});
+        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f516': ['bookmark']});
       final view = EmojiAutocompleteView.init(store: store,
         query: EmojiAutocompleteQuery(''));
       bool done = false;
@@ -282,7 +282,7 @@ void main() {
       await Future(() {});
       check(done).isTrue();
       check(view.results).deepEquals([
-        isUnicodeResult(names: ['smile']),
+        isUnicodeResult(names: ['bookmark']),
         isRealmResult(emojiName: 'happy'),
         isZulipResult(),
       ]);
