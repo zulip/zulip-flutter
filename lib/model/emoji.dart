@@ -343,7 +343,7 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
   }
 
   static EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
-    return query._testCandidate(candidate);
+    return query.testCandidate(candidate);
   }
 }
 
@@ -375,7 +375,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     return EmojiAutocompleteView.init(store: store, query: this);
   }
 
-  EmojiAutocompleteResult? _testCandidate(EmojiCandidate candidate) {
+  @visibleForTesting
+  EmojiAutocompleteResult? testCandidate(EmojiCandidate candidate) {
     return matches(candidate) ? EmojiAutocompleteResult(candidate) : null;
   }
 
