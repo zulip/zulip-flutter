@@ -320,8 +320,12 @@ void main() {
           emojiUnicode: tryParseEmojiCodeToUnicode(emojiCode)!));
     }
 
+    bool matchesNames(String query, List<String> names) {
+      return EmojiAutocompleteQuery(query).matches(unicode(names));
+    }
+
     bool matchesName(String query, String emojiName) {
-      return EmojiAutocompleteQuery(query).matches(unicode([emojiName]));
+      return matchesNames(query, [emojiName]);
     }
 
     test('one-word query matches anywhere in name', () {
@@ -370,10 +374,6 @@ void main() {
     });
 
     test('query matches aliases same way as primary name', () {
-      bool matchesNames(String query, List<String> names) {
-        return EmojiAutocompleteQuery(query).matches(unicode(names));
-      }
-
       check(matchesNames('a', ['a', 'b'])).isTrue();
       check(matchesNames('b', ['a', 'b'])).isTrue();
       check(matchesNames('c', ['a', 'b'])).isFalse();
