@@ -33,7 +33,6 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<String> get zulipVersion => has((x) => x.zulipVersion, 'zulipVersion');
   Subject<int> get maxFileUploadSizeMib => has((x) => x.maxFileUploadSizeMib, 'maxFileUploadSizeMib');
   Subject<Map<String, RealmDefaultExternalAccount>> get realmDefaultExternalAccounts => has((x) => x.realmDefaultExternalAccounts, 'realmDefaultExternalAccounts');
-  Subject<Map<String, RealmEmojiItem>> get realmEmoji => has((x) => x.realmEmoji, 'realmEmoji');
   Subject<List<CustomProfileField>> get customProfileFields => has((x) => x.customProfileFields, 'customProfileFields');
   Subject<int> get accountId => has((x) => x.accountId, 'accountId');
   Subject<Account> get account => has((x) => x.account, 'account');
