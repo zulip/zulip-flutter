@@ -292,7 +292,7 @@ void main() {
       final store = prepare(
         realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f642': ['smile']});
       final view = EmojiAutocompleteView.init(store: store,
-        query: EmojiAutocompleteQuery('h'));
+        query: EmojiAutocompleteQuery('hap'));
       bool done = false;
       view.addListener(() { done = true; });
       await Future(() {});
@@ -301,7 +301,7 @@ void main() {
         isRealmResult(emojiName: 'happy'));
 
       done = false;
-      view.query = EmojiAutocompleteQuery('s');
+      view.query = EmojiAutocompleteQuery('sm');
       await Future(() {});
       check(done).isTrue();
       check(view.results).single.which(
