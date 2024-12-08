@@ -342,8 +342,8 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
     return results;
   }
 
-  EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
-    return query.matches(candidate) ? EmojiAutocompleteResult(candidate) : null;
+  static EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
+    return query._testCandidate(candidate);
   }
 }
 
@@ -373,6 +373,10 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   @override
   EmojiAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
     return EmojiAutocompleteView.init(store: store, query: this);
+  }
+
+  EmojiAutocompleteResult? _testCandidate(EmojiCandidate candidate) {
+    return matches(candidate) ? EmojiAutocompleteResult(candidate) : null;
   }
 
   // Compare get_emoji_matcher in Zulip web:shared/src/typeahead.ts .
