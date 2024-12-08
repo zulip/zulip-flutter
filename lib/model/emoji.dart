@@ -109,6 +109,19 @@ mixin EmojiStore {
     required String emojiName,
   });
 
+  /// Zulip's list of "popular" emoji, to be given precedence in
+  /// offering to users.
+  ///
+  /// See description in the web code:
+  ///   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L3-L21
+  // Someday this list may start varying rather than being hard-coded,
+  // and then this will become a non-static member on EmojiStore.
+  // For now, though, the fact it's constant is convenient when writing
+  // tests of the logic that uses this data; so we guarantee it in the API.
+  static Iterable<EmojiCandidate> get popularEmojiCandidates {
+    return EmojiStoreImpl._popularCandidates;
+  }
+
   Iterable<EmojiCandidate> allEmojiCandidates();
 
   // TODO cut debugServerEmojiData once we can query for lists of emoji;
@@ -207,7 +220,29 @@ class EmojiStoreImpl with EmojiStore {
   /// retrieving the data.
   Map<String, List<String>>? _serverEmojiData;
 
-  List<EmojiCandidate>? _allEmojiCandidates;
+  static final _popularCandidates = _generatePopularCandidates();
+
+  static List<EmojiCandidate> _generatePopularCandidates() {
+    EmojiCandidate candidate(String emojiCode, String emojiUnicode,
+        List<String> names) {
+      final emojiName = names.removeAt(0);
+      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+      return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
+        emojiCode: emojiCode, emojiName: emojiName, aliases: names,
+        emojiDisplay: UnicodeEmojiDisplay(
+          emojiName: emojiName, emojiUnicode: emojiUnicode));
+    }
+    return [
+      // This list should match web:
+      //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L22-L29
+      candidate('1f44d', '👍', ['+1', 'thumbs_up', 'like']),
+      candidate('1f389', '🎉', ['tada']),
+      candidate('1f642', '🙂', ['smile']),
+      candidate( '2764', '❤', ['heart', 'love', 'love_you']),
+      candidate('1f6e0', '🛠', ['working_on_it', 'hammer_and_wrench', 'tools']),
+      candidate('1f419', '🐙', ['octopus']),
+    ];
+  }
 
   EmojiCandidate _emojiCandidateFor({
     required ReactionType emojiType,
@@ -305,6 +340,8 @@ class EmojiStoreImpl with EmojiStore {
 
     return results;
   }
+
+  List<EmojiCandidate>? _allEmojiCandidates;
 
   @override
   Iterable<EmojiCandidate> allEmojiCandidates() {
