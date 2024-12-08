@@ -462,17 +462,17 @@ void main() {
         '1f3f3')).none;
     });
 
-    test('can match realm emoji', () {
-      EmojiCandidate realmCandidate(String emojiName) {
-        return EmojiCandidate(
-          emojiType: ReactionType.realmEmoji,
-          emojiCode: '1', emojiName: emojiName, aliases: null,
-          emojiDisplay: ImageEmojiDisplay(
-            emojiName: emojiName,
-            resolvedUrl: eg.realmUrl.resolve('/emoji/1.png'),
-            resolvedStillUrl: eg.realmUrl.resolve('/emoji/1-still.png')));
-      }
+    EmojiCandidate realmCandidate(String emojiName) {
+      return EmojiCandidate(
+        emojiType: ReactionType.realmEmoji,
+        emojiCode: '1', emojiName: emojiName, aliases: null,
+        emojiDisplay: ImageEmojiDisplay(
+          emojiName: emojiName,
+          resolvedUrl: eg.realmUrl.resolve('/emoji/1.png'),
+          resolvedStillUrl: eg.realmUrl.resolve('/emoji/1-still.png')));
+    }
 
+    test('can match realm emoji', () {
       check(matchOf('eqeq', realmCandidate('eqeq'))).exact;
       check(matchOf('open_', realmCandidate('open_book'))).prefix;
       check(matchOf('n_b', realmCandidate('open_book'))).none;
@@ -480,19 +480,21 @@ void main() {
       check(matchOf('Smi', realmCandidate('smile'))).prefix;
     });
 
-    test('can match Zulip extra emoji', () {
+    EmojiCandidate zulipCandidate() {
       final store = eg.store();
-      final zulipCandidate = EmojiCandidate(
+      return EmojiCandidate(
         emojiType: ReactionType.zulipExtraEmoji,
         emojiCode: 'zulip', emojiName: 'zulip', aliases: null,
         emojiDisplay: store.emojiDisplayFor(
           emojiType: ReactionType.zulipExtraEmoji,
           emojiCode: 'zulip', emojiName: 'zulip'));
+    }
 
-      check(matchOf('z', zulipCandidate)).prefix;
-      check(matchOf('Zulip', zulipCandidate)).exact;
-      check(matchOf('p', zulipCandidate)).other;
-      check(matchOf('x', zulipCandidate)).none;
+    test('can match Zulip extra emoji', () {
+      check(matchOf('z', zulipCandidate())).prefix;
+      check(matchOf('Zulip', zulipCandidate())).exact;
+      check(matchOf('p', zulipCandidate())).other;
+      check(matchOf('x', zulipCandidate())).none;
     });
 
     int? rankOf(String query, EmojiCandidate candidate) {
