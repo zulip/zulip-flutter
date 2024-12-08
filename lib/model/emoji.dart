@@ -102,10 +102,6 @@ final class EmojiCandidate {
 
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
-  /// The realm's custom emoji (for [ReactionType.realmEmoji],
-  /// indexed by [Reaction.emojiCode].
-  Map<String, RealmEmojiItem> get realmEmoji;
-
   EmojiDisplay emojiDisplayFor({
     required ReactionType emojiType,
     required String emojiCode,
@@ -135,7 +131,8 @@ class EmojiStoreImpl with EmojiStore {
   /// The same as [PerAccountStore.realmUrl].
   final Uri realmUrl;
 
-  @override
+  /// The realm's custom emoji (for [ReactionType.realmEmoji],
+  /// indexed by [Reaction.emojiCode].
   Map<String, RealmEmojiItem> realmEmoji;
 
   /// The realm-relative URL of the unique "Zulip extra emoji", :zulip:.
