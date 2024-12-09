@@ -77,7 +77,7 @@ RealmEmojiItem realmEmojiItem({
 }) {
   assert(RegExp(r'^[1-9][0-9]*$').hasMatch(emojiCode));
   return RealmEmojiItem(
-    id: emojiCode,
+    emojiCode: emojiCode,
     name: emojiName,
     sourceUrl: sourceUrl ?? '/emoji/$emojiCode.png',
     stillUrl: stillUrl,

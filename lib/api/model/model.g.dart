@@ -72,7 +72,7 @@ Map<String, dynamic> _$CustomProfileFieldExternalAccountDataToJson(
 
 RealmEmojiItem _$RealmEmojiItemFromJson(Map<String, dynamic> json) =>
     RealmEmojiItem(
-      id: json['id'] as String,
+      emojiCode: json['id'] as String,
       name: json['name'] as String,
       sourceUrl: json['source_url'] as String,
       stillUrl: json['still_url'] as String?,
@@ -82,7 +82,7 @@ RealmEmojiItem _$RealmEmojiItemFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'id': instance.emojiCode,
       'name': instance.name,
       'source_url': instance.sourceUrl,
       'still_url': instance.stillUrl,

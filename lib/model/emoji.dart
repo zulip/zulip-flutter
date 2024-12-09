@@ -131,7 +131,7 @@ class EmojiStoreImpl with EmojiStore {
   /// The same as [PerAccountStore.realmUrl].
   final Uri realmUrl;
 
-  /// The realm's custom emoji, indexed by [Reaction.emojiCode],
+  /// The realm's custom emoji, indexed by their [RealmEmojiItem.emojiCode],
   /// including deactivated emoji not available for new uses.
   ///
   /// These are the emoji that can have [ReactionType.realmEmoji].
