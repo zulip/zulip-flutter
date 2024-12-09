@@ -547,6 +547,12 @@ abstract class ZulipLocalizations {
   /// **'Continue'**
   String get dialogContinue;
 
+  /// Button label in dialogs to close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get dialogClose;
+
   /// Button label in error dialogs to acknowledge the error and close the dialog.
   ///
   /// In en, this message translates to:
@@ -930,6 +936,30 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'The account associated with this notification no longer exists.'**
   String get errorNotificationOpenAccountMissing;
+
+  /// Error title when adding a message reaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Adding reaction failed'**
+  String get errorReactionAddingFailedTitle;
+
+  /// Error title when removing a message reaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Removing reaction failed'**
+  String get errorReactionRemovingFailedTitle;
+
+  /// Label for a button opening the emoji picker.
+  ///
+  /// In en, this message translates to:
+  /// **'more'**
+  String get emojiReactionsMore;
+
+  /// Hint text for the emoji picker search text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search emoji'**
+  String get emojiPickerSearchEmoji;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

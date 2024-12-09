@@ -343,6 +343,10 @@
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
   },
+  "dialogClose": "Close",
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
   "errorDialogContinue": "OK",
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -628,5 +632,21 @@
   "errorNotificationOpenAccountMissing": "The account associated with this notification no longer exists.",
   "@errorNotificationOpenAccountMissing": {
     "description": "Error message when the account associated with the notification is not found"
+  },
+  "errorReactionAddingFailedTitle": "Adding reaction failed",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorReactionRemovingFailedTitle": "Removing reaction failed",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "emojiReactionsMore": "more",
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "emojiPickerSearchEmoji": "Search emoji",
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
   }
 }

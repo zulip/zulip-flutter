@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,7 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
@@ -16,6 +18,8 @@ import 'clipboard.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
+import 'emoji.dart';
+import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
@@ -23,44 +27,10 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
-/// Show a sheet of actions you can take on a message in the message list.
-///
-/// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
-  final store = PerAccountStoreWidget.of(context);
-
-  // The UI that's conditioned on this won't live-update during this appearance
-  // of the action sheet (we avoid calling composeBoxControllerOf in a build
-  // method; see its doc).
-  // So we rely on the fact that isComposeBoxOffered for any given message list
-  // will be constant through the page's life.
-  final messageListPage = MessageListPage.ancestorOf(context);
-  final isComposeBoxOffered = messageListPage.composeBoxController != null;
-
-  final isMessageRead = message.flags.contains(MessageFlag.read);
-  final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
-  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
-
-  final hasThumbsUpReactionVote = message.reactions
-    ?.aggregated.any((reactionWithVotes) =>
-      reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-      && reactionWithVotes.emojiCode == '1f44d'
-      && reactionWithVotes.userIds.contains(store.selfUserId))
-    ?? false;
-
-  final optionButtons = [
-    if (!hasThumbsUpReactionVote)
-      AddThumbsUpButton(message: message, pageContext: context),
-    StarButton(message: message, pageContext: context),
-    if (isComposeBoxOffered)
-      QuoteAndReplyButton(message: message, pageContext: context),
-    if (showMarkAsUnreadButton)
-      MarkAsUnreadButton(message: message, pageContext: context),
-    CopyMessageTextButton(message: message, pageContext: context),
-    CopyMessageLinkButton(message: message, pageContext: context),
-    ShareButton(message: message, pageContext: context),
-  ];
-
+void _showActionSheet(
+  BuildContext context, {
+  required List<Widget> optionButtons,
+}) {
   showModalBottomSheet<void>(
     context: context,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -140,25 +110,16 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         foregroundColor: designVariables.contextMenuItemText,
         splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuItemBg.withFadedAlpha(
-            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
+        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
+        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+      })),
       onPressed: () => _handlePressed(context),
       child: Text(label(zulipLocalizations),
         style: const TextStyle(fontSize: 20, height: 24 / 20)
           .merge(weightVariableTextStyle(context, wght: 600)),
       ));
   }
-}
-
-abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
-  MessageActionSheetMenuItemButton({
-    super.key,
-    required this.message,
-    required super.pageContext,
-  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
-
-  final Message message;
 }
 
 class ActionSheetCancelButton extends StatelessWidget {
@@ -174,10 +135,9 @@ class ActionSheetCancelButton extends StatelessWidget {
         foregroundColor: designVariables.contextMenuCancelText,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
-        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
-        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
-      })),
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+          designVariables.contextMenuCancelBg.withFadedAlpha(
+            states.contains(WidgetState.pressed) ? 0.20 : 0.15))),
       onPressed: () {
         Navigator.pop(context);
       },
@@ -187,41 +147,158 @@ class ActionSheetCancelButton extends StatelessWidget {
   }
 }
 
-// This button is very temporary, to complete #125 before we have a way to
-// choose an arbitrary reaction (#388). So, skipping i18n.
-class AddThumbsUpButton extends MessageActionSheetMenuItemButton {
-  AddThumbsUpButton({super.key, required super.message, required super.pageContext});
+/// Show a sheet of actions you can take on a message in the message list.
+///
+/// Must have a [MessageListPage] ancestor.
+void showMessageActionSheet(BuildContext context, {required Message message}) {
+  final store = PerAccountStoreWidget.of(context);
 
-  @override IconData get icon => ZulipIcons.smile;
+  // The UI that's conditioned on this won't live-update during this appearance
+  // of the action sheet (we avoid calling composeBoxControllerOf in a build
+  // method; see its doc).
+  // So we rely on the fact that isComposeBoxOffered for any given message list
+  // will be constant through the page's life.
+  final messageListPage = MessageListPage.ancestorOf(context);
+  final isComposeBoxOffered = messageListPage.composeBoxController != null;
 
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return 'React with 👍'; // TODO(i18n) skip translation for now
+  final isMessageRead = message.flags.contains(MessageFlag.read);
+  final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
+  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
+
+  final optionButtons = [
+    ReactionButtons(message: message, pageContext: context),
+    StarButton(message: message, pageContext: context),
+    if (isComposeBoxOffered)
+      QuoteAndReplyButton(message: message, pageContext: context),
+    if (showMarkAsUnreadButton)
+      MarkAsUnreadButton(message: message, pageContext: context),
+    CopyMessageTextButton(message: message, pageContext: context),
+    CopyMessageLinkButton(message: message, pageContext: context),
+    ShareButton(message: message, pageContext: context),
+  ];
+
+  _showActionSheet(context, optionButtons: optionButtons);
+}
+
+abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
+  MessageActionSheetMenuItemButton({
+    super.key,
+    required this.message,
+    required super.pageContext,
+  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+
+  final Message message;
+}
+
+class ReactionButtons extends StatelessWidget {
+  const ReactionButtons({
+    super.key,
+    required this.message,
+    required this.pageContext,
+  });
+
+  final Message message;
+
+  /// A context within the [MessageListPage] this action sheet was
+  /// triggered from.
+  final BuildContext pageContext;
+
+  void _onReactionPressed({
+    required EmojiCandidate emoji,
+    required bool isSelfVoted,
+  }) {
+    // Dismiss the enclosing action sheet immediately,
+    // for swift UI feedback that the user's selection was received.
+    Navigator.pop(pageContext);
+
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    doAddOrRemoveReaction(
+      context: pageContext,
+      doRemoveReaction: isSelfVoted,
+      messageId: message.id,
+      emoji: emoji,
+      errorDialogTitle: isSelfVoted
+        ? zulipLocalizations.errorReactionRemovingFailedTitle
+        : zulipLocalizations.errorReactionAddingFailedTitle);
   }
 
-  @override void onPressed() async {
-    String? errorMessage;
-    try {
-      await addReaction(PerAccountStoreWidget.of(pageContext).connection,
-        messageId: message.id,
-        reactionType: ReactionType.unicodeEmoji,
-        emojiCode: '1f44d',
-        emojiName: '+1',
-      );
-    } catch (e) {
-      if (!pageContext.mounted) return;
+  void _onMorePressed() {
+    // Dismiss current action sheet before opening emoji picker sheet.
+    Navigator.of(pageContext).pop();
 
-      switch (e) {
-        case ZulipApiException():
-          errorMessage = e.message;
-          // TODO(#741) specific messages for common errors, like network errors
-          //   (support with reusable code)
-        default:
-      }
+    showEmojiPickerSheet(pageContext: pageContext, message: message);
+  }
 
-      showErrorDialog(context: pageContext,
-        title: 'Adding reaction failed', message: errorMessage);
+  @override
+  Widget build(BuildContext context) {
+    assert(EmojiStore.popularEmojiCandidates.every(
+      (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(pageContext);
+    final designVariables = DesignVariables.of(context);
+
+    bool hasSelfVote(EmojiCandidate emoji) {
+      return message.reactions?.aggregated.any((reactionWithVotes) {
+        return reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+          && reactionWithVotes.emojiCode == emoji.emojiCode
+          && reactionWithVotes.userIds.contains(store.selfUserId);
+      }) ?? false;
     }
+
+    return Container(
+      decoration: BoxDecoration(color: designVariables.contextMenuCancelBg),
+      child: Row(children: [
+        Flexible(child: Row(
+          spacing: 1,
+          children: List.unmodifiable(EmojiStore.popularEmojiCandidates.mapIndexed((index, emoji) {
+            final isSelfVoted = hasSelfVote(emoji);
+            return Flexible(child: InkWell(
+              onTap: () => _onReactionPressed(emoji: emoji, isSelfVoted: isSelfVoted),
+              splashFactory: NoSplash.splashFactory,
+              borderRadius: index == 0
+                ? const BorderRadius.only(topLeft: Radius.circular(7))
+                : null,
+              overlayColor: WidgetStateColor.resolveWith((states) =>
+                states.any((e) => e == WidgetState.pressed)
+                  ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                  : Colors.transparent),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                alignment: Alignment.center,
+                color: isSelfVoted
+                  ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                  : null,
+                child: UnicodeEmojiWidget(
+                  emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
+                  notoColorEmojiTextSize: 20.1,
+                  size: 24))));
+          })))),
+        InkWell(
+          onTap: _onMorePressed,
+          splashFactory: NoSplash.splashFactory,
+          borderRadius: const BorderRadius.only(topRight: Radius.circular(7)),
+          overlayColor: WidgetStateColor.resolveWith((states) =>
+            states.any((e) => e == WidgetState.pressed)
+              ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+              : Colors.transparent),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 4, 12),
+            child: Row(children: [
+              Text(zulipLocalizations.emojiReactionsMore,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  color: designVariables.contextMenuItemText,
+                  fontSize: 14,
+                ).merge(weightVariableTextStyle(context, wght: 600))),
+              Icon(ZulipIcons.chevron_right,
+                color: designVariables.contextMenuItemText,
+                size: 24),
+            ]),
+          )),
+      ]),
+    );
   }
 }
 
