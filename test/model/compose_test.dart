@@ -314,6 +314,28 @@ hello
         '#narrow/dm/1,2-dm/near/12345',
         '#narrow/pm-with/1,2-pm/near/12345');
     });
+
+    test('normalize links to always include a "/" after hostname', () {
+      void checkGeneratedLink({required String realmUrl, required String expectedLink}) {
+        final account = eg.selfAccount.copyWith(realmUrl: Uri.parse(realmUrl));
+        final store = eg.store(account: account);
+        check(narrowLink(store, const CombinedFeedNarrow()).toString())
+          .equals(expectedLink);
+      }
+
+      checkGeneratedLink(
+        realmUrl:     'http://chat.example.com',
+        expectedLink: 'http://chat.example.com/#narrow');
+      checkGeneratedLink(
+        realmUrl:     'http://chat.example.com/',
+        expectedLink: 'http://chat.example.com/#narrow');
+      checkGeneratedLink(
+        realmUrl:     'http://chat.example.com/path',
+        expectedLink: 'http://chat.example.com/path#narrow');
+      checkGeneratedLink(
+        realmUrl:     'http://chat.example.com/path/',
+        expectedLink: 'http://chat.example.com/path/#narrow');
+    });
   });
 
   group('mention', () {
