@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/color.dart';
+import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
@@ -34,10 +35,14 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-      child: const SubscriptionListPage()));
+      child: const HomePage()));
 
     // global store, per-account store
     await tester.pumpAndSettle();
+
+    // Switch to channels tab.
+    await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+    await tester.pump();
   }
 
   bool isPinnedHeaderInTree() {
