@@ -1292,7 +1292,7 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
     super.dispose();
   }
 
-  Widget? _errorBanner(BuildContext context) {
+  Widget? _canPostInNarrowErrorBanner(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
     switch (widget.narrow) {
@@ -1323,9 +1323,9 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
   Widget build(BuildContext context) {
     final Widget? body;
 
-    final errorBanner = _errorBanner(context);
-    if (errorBanner != null) {
-      return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
+    final canPostInNarrowErrorBanner = _canPostInNarrowErrorBanner(context);
+    if (canPostInNarrowErrorBanner != null) {
+      return _ComposeBoxContainer(body: null, errorBanner: canPostInNarrowErrorBanner);
     }
 
     final narrow = widget.narrow;
