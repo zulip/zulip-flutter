@@ -115,7 +115,8 @@ class CustomProfileFieldExternalAccountData {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class RealmEmojiItem {
-  final String id;
+  @JsonKey(name: 'id')
+  final String emojiCode;
   final String name;
   final String sourceUrl;
   final String? stillUrl;
@@ -123,7 +124,7 @@ class RealmEmojiItem {
   final int? authorId;
 
   RealmEmojiItem({
-    required this.id,
+    required this.emojiCode,
     required this.name,
     required this.sourceUrl,
     required this.stillUrl,
@@ -136,7 +137,6 @@ class RealmEmojiItem {
 
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
-
 
 /// The name of a user setting that has a property in [UserSettings].
 ///
