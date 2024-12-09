@@ -135,8 +135,15 @@ class EmojiStoreImpl with EmojiStore {
   /// including deactivated emoji not available for new uses.
   ///
   /// These are the emoji that can have [ReactionType.realmEmoji].
-  // TODO(#1113) limit to active realm emoji where appropriate
+  ///
+  /// For emoji available to be newly used, see [activeRealmEmoji].
   Map<String, RealmEmojiItem> allRealmEmoji;
+
+  /// The realm's custom emoji that are available for new uses
+  /// in messages and reactions.
+  Iterable<RealmEmojiItem> get activeRealmEmoji {
+    return allRealmEmoji.values.where((emoji) => !emoji.deactivated);
+  }
 
   /// The realm-relative URL of the unique "Zulip extra emoji", :zulip:.
   static const kZulipEmojiUrl = '/static/generated/emoji/images/emoji/unicode/zulip.png';
@@ -218,7 +225,7 @@ class EmojiStoreImpl with EmojiStore {
     final results = <EmojiCandidate>[];
 
     final namesOverridden = {
-      for (final emoji in allRealmEmoji.values) emoji.name,
+      for (final emoji in activeRealmEmoji) emoji.name,
       'zulip',
     };
     // TODO(log) if _serverEmojiData missing
@@ -242,8 +249,8 @@ class EmojiStoreImpl with EmojiStore {
         aliases: aliases));
     }
 
-    for (final entry in allRealmEmoji.entries) {
-      final emojiName = entry.value.name;
+    for (final emoji in activeRealmEmoji) {
+      final emojiName = emoji.name;
       if (emojiName == 'zulip') {
         // TODO does 'zulip' really override realm emoji?
         //   (This is copied from zulip-mobile's behavior.)
@@ -251,7 +258,7 @@ class EmojiStoreImpl with EmojiStore {
       }
       results.add(_emojiCandidateFor(
         emojiType: ReactionType.realmEmoji,
-        emojiCode: entry.key, emojiName: emojiName,
+        emojiCode: emoji.emojiCode, emojiName: emojiName,
         aliases: null));
     }
 
