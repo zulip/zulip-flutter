@@ -34,7 +34,8 @@ async function main() {
   const iconFiles = fs
     .readdirSync(srcDir)
     .filter(name => name.endsWith('.svg'))
-    .map(name => path.join(srcDir, name));
+    .map(name => path.join(srcDir, name))
+    .sort(); // prevent inconsistent results across platforms
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'build-icon-font-'));
 
