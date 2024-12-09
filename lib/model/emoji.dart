@@ -125,15 +125,18 @@ mixin EmojiStore {
 class EmojiStoreImpl with EmojiStore {
   EmojiStoreImpl({
     required this.realmUrl,
-    required this.realmEmoji,
+    required this.allRealmEmoji,
   }) : _serverEmojiData = null; // TODO(#974) maybe start from a hard-coded baseline
 
   /// The same as [PerAccountStore.realmUrl].
   final Uri realmUrl;
 
-  /// The realm's custom emoji (for [ReactionType.realmEmoji],
-  /// indexed by [Reaction.emojiCode].
-  Map<String, RealmEmojiItem> realmEmoji;
+  /// The realm's custom emoji, indexed by [Reaction.emojiCode],
+  /// including deactivated emoji not available for new uses.
+  ///
+  /// These are the emoji that can have [ReactionType.realmEmoji].
+  // TODO(#1113) limit to active realm emoji where appropriate
+  Map<String, RealmEmojiItem> allRealmEmoji;
 
   /// The realm-relative URL of the unique "Zulip extra emoji", :zulip:.
   static const kZulipEmojiUrl = '/static/generated/emoji/images/emoji/unicode/zulip.png';
@@ -151,7 +154,7 @@ class EmojiStoreImpl with EmojiStore {
         return UnicodeEmojiDisplay(emojiName: emojiName, emojiUnicode: parsed);
 
       case ReactionType.realmEmoji:
-        final item = realmEmoji[emojiCode];
+        final item = allRealmEmoji[emojiCode];
         if (item == null) break;
         // TODO we don't check emojiName matches the known realm emoji; is that right?
         return _tryImageEmojiDisplay(
@@ -215,7 +218,7 @@ class EmojiStoreImpl with EmojiStore {
     final results = <EmojiCandidate>[];
 
     final namesOverridden = {
-      for (final emoji in realmEmoji.values) emoji.name,
+      for (final emoji in allRealmEmoji.values) emoji.name,
       'zulip',
     };
     // TODO(log) if _serverEmojiData missing
@@ -239,7 +242,7 @@ class EmojiStoreImpl with EmojiStore {
         aliases: aliases));
     }
 
-    for (final entry in realmEmoji.entries) {
+    for (final entry in allRealmEmoji.entries) {
       final emojiName = entry.value.name;
       if (emojiName == 'zulip') {
         // TODO does 'zulip' really override realm emoji?
@@ -272,7 +275,7 @@ class EmojiStoreImpl with EmojiStore {
   }
 
   void handleRealmEmojiUpdateEvent(RealmEmojiUpdateEvent event) {
-    realmEmoji = event.realmEmoji;
+    allRealmEmoji = event.realmEmoji;
     _allEmojiCandidates = null;
   }
 }

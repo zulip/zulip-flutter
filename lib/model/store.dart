@@ -274,7 +274,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       emoji: EmojiStoreImpl(
-        realmUrl: realmUrl, realmEmoji: initialSnapshot.realmEmoji),
+        realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
       selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
