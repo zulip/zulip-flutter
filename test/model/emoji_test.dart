@@ -123,6 +123,31 @@ void main() {
       return store;
     }
 
+    test('realm emoji included only when active', () {
+      final store = prepare(realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'abc', deactivated: true),
+        '2': eg.realmEmojiItem(emojiCode: '2', emojiName: 'abcd'),
+      });
+      check(store.allEmojiCandidates()).deepEquals([
+        isRealmCandidate(emojiCode: '2', emojiName: 'abcd'),
+        isZulipCandidate(),
+      ]);
+    });
+
+    test('realm emoji tolerate name collisions', () {
+      final store = prepare(realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'test', deactivated: true),
+        '2': eg.realmEmojiItem(emojiCode: '2', emojiName: 'try', deactivated: true),
+        '3': eg.realmEmojiItem(emojiCode: '3', emojiName: 'try', deactivated: true),
+        '4': eg.realmEmojiItem(emojiCode: '4', emojiName: 'try'),
+        '5': eg.realmEmojiItem(emojiCode: '5', emojiName: 'test', deactivated: true),
+      });
+      check(store.allEmojiCandidates()).deepEquals([
+        isRealmCandidate(emojiCode: '4', emojiName: 'try'),
+        isZulipCandidate(),
+      ]);
+    });
+
     test('realm emoji overrides Unicode emoji', () {
       final store = prepare(realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'smiley'),
@@ -133,6 +158,18 @@ void main() {
       check(store.allEmojiCandidates()).deepEquals([
         isUnicodeCandidate('1f642', ['smile']),
         isRealmCandidate(emojiCode: '1', emojiName: 'smiley'),
+        isZulipCandidate(),
+      ]);
+    });
+
+    test('deactivated realm emoji cause no override of Unicode emoji', () {
+      final store = prepare(realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'ant', deactivated: true),
+      }, unicodeEmoji: {
+        '1f41c': ['ant'],
+      });
+      check(store.allEmojiCandidates()).deepEquals([
+        isUnicodeCandidate('1f41c', ['ant']),
         isZulipCandidate(),
       ]);
     });
