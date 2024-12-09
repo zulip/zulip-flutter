@@ -434,8 +434,6 @@ describe_git_head() {
 }
 
 print_header() {
-    local flutter_executable flutter_tree
-
     echo "Test command: ${orig_cmdline}"
 
     echo "Time now: $(date --utc +'%F %T %z')"
@@ -445,9 +443,7 @@ print_header() {
     # We avoid `flutter --version` because, weirdly, when run in a
     # GitHub Actions step it takes about 30 seconds.  (The first time;
     # it's fast subsequent times.)  That's even after `flutter precache`.
-    flutter_executable=$(readlink -f "$(type -p flutter)")
-    flutter_tree=${flutter_executable%/bin/flutter}
-    describe_git_head "flutter/flutter" "${flutter_tree}"/.git
+    describe_git_head "flutter/flutter" "$(flutter_tree)"/.git
 
     dart --version
 }
