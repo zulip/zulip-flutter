@@ -277,40 +277,32 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
   )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 }
 
-Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) {
-  final val = <String, dynamic>{
-    'client': instance.client,
-    'content': instance.content,
-    'content_type': instance.contentType,
-    'edit_state': _$MessageEditStateEnumMap[instance.editState]!,
-    'id': instance.id,
-    'is_me_message': instance.isMeMessage,
-    'last_edit_timestamp': instance.lastEditTimestamp,
-    'reactions': Message._reactionsToJson(instance.reactions),
-    'recipient_id': instance.recipientId,
-    'sender_email': instance.senderEmail,
-    'sender_full_name': instance.senderFullName,
-    'sender_id': instance.senderId,
-    'sender_realm_str': instance.senderRealmStr,
-    'subject': instance.topic,
-    'submessages': Poll.toJson(instance.poll),
-    'timestamp': instance.timestamp,
-    'flags': instance.flags,
-    'match_content': instance.matchContent,
-    'match_subject': instance.matchTopic,
-    'type': instance.type,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('display_recipient', instance.displayRecipient);
-  val['stream_id'] = instance.streamId;
-  return val;
-}
+Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
+    <String, dynamic>{
+      'client': instance.client,
+      'content': instance.content,
+      'content_type': instance.contentType,
+      'edit_state': _$MessageEditStateEnumMap[instance.editState]!,
+      'id': instance.id,
+      'is_me_message': instance.isMeMessage,
+      'last_edit_timestamp': instance.lastEditTimestamp,
+      'reactions': Message._reactionsToJson(instance.reactions),
+      'recipient_id': instance.recipientId,
+      'sender_email': instance.senderEmail,
+      'sender_full_name': instance.senderFullName,
+      'sender_id': instance.senderId,
+      'sender_realm_str': instance.senderRealmStr,
+      'subject': instance.topic,
+      'submessages': Poll.toJson(instance.poll),
+      'timestamp': instance.timestamp,
+      'flags': instance.flags,
+      'match_content': instance.matchContent,
+      'match_subject': instance.matchTopic,
+      'type': instance.type,
+      if (instance.displayRecipient case final value?)
+        'display_recipient': value,
+      'stream_id': instance.streamId,
+    };
 
 const _$MessageEditStateEnumMap = {
   MessageEditState.none: 'none',

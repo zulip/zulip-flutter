@@ -310,6 +310,28 @@ class Account extends DataClass implements Insertable<Account> {
         ackedPushToken:
             ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
       );
+  Account copyWithCompanion(AccountsCompanion data) {
+    return Account(
+      id: data.id.present ? data.id.value : this.id,
+      realmUrl: data.realmUrl.present ? data.realmUrl.value : this.realmUrl,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      email: data.email.present ? data.email.value : this.email,
+      apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
+      zulipVersion: data.zulipVersion.present
+          ? data.zulipVersion.value
+          : this.zulipVersion,
+      zulipMergeBase: data.zulipMergeBase.present
+          ? data.zulipMergeBase.value
+          : this.zulipMergeBase,
+      zulipFeatureLevel: data.zulipFeatureLevel.present
+          ? data.zulipFeatureLevel.value
+          : this.zulipFeatureLevel,
+      ackedPushToken: data.ackedPushToken.present
+          ? data.ackedPushToken.value
+          : this.ackedPushToken,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('Account(')
@@ -481,7 +503,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
-  _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
+  $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -490,7 +512,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [accounts];
 }
 
-typedef $$AccountsTableInsertCompanionBuilder = AccountsCompanion Function({
+typedef $$AccountsTableCreateCompanionBuilder = AccountsCompanion Function({
   Value<int> id,
   required Uri realmUrl,
   required int userId,
@@ -519,8 +541,7 @@ class $$AccountsTableTableManager extends RootTableManager<
     Account,
     $$AccountsTableFilterComposer,
     $$AccountsTableOrderingComposer,
-    $$AccountsTableProcessedTableManager,
-    $$AccountsTableInsertCompanionBuilder,
+    $$AccountsTableCreateCompanionBuilder,
     $$AccountsTableUpdateCompanionBuilder> {
   $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
       : super(TableManagerState(
@@ -530,9 +551,7 @@ class $$AccountsTableTableManager extends RootTableManager<
               $$AccountsTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
               $$AccountsTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $$AccountsTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<Uri> realmUrl = const Value.absent(),
             Value<int> userId = const Value.absent(),
@@ -554,7 +573,7 @@ class $$AccountsTableTableManager extends RootTableManager<
             zulipFeatureLevel: zulipFeatureLevel,
             ackedPushToken: ackedPushToken,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required Uri realmUrl,
             required int userId,
@@ -577,18 +596,6 @@ class $$AccountsTableTableManager extends RootTableManager<
             ackedPushToken: ackedPushToken,
           ),
         ));
-}
-
-class $$AccountsTableProcessedTableManager extends ProcessedTableManager<
-    _$AppDatabase,
-    $AccountsTable,
-    Account,
-    $$AccountsTableFilterComposer,
-    $$AccountsTableOrderingComposer,
-    $$AccountsTableProcessedTableManager,
-    $$AccountsTableInsertCompanionBuilder,
-    $$AccountsTableUpdateCompanionBuilder> {
-  $$AccountsTableProcessedTableManager(super.$state);
 }
 
 class $$AccountsTableFilterComposer
@@ -691,9 +698,9 @@ class $$AccountsTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
-class _$AppDatabaseManager {
+class $AppDatabaseManager {
   final _$AppDatabase _db;
-  _$AppDatabaseManager(this._db);
+  $AppDatabaseManager(this._db);
   $$AccountsTableTableManager get accounts =>
       $$AccountsTableTableManager(_db, _db.accounts);
 }

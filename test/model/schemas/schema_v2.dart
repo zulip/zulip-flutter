@@ -205,6 +205,28 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
         ackedPushToken:
             ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
       );
+  AccountsData copyWithCompanion(AccountsCompanion data) {
+    return AccountsData(
+      id: data.id.present ? data.id.value : this.id,
+      realmUrl: data.realmUrl.present ? data.realmUrl.value : this.realmUrl,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      email: data.email.present ? data.email.value : this.email,
+      apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
+      zulipVersion: data.zulipVersion.present
+          ? data.zulipVersion.value
+          : this.zulipVersion,
+      zulipMergeBase: data.zulipMergeBase.present
+          ? data.zulipMergeBase.value
+          : this.zulipMergeBase,
+      zulipFeatureLevel: data.zulipFeatureLevel.present
+          ? data.zulipFeatureLevel.value
+          : this.zulipFeatureLevel,
+      ackedPushToken: data.ackedPushToken.present
+          ? data.ackedPushToken.value
+          : this.ackedPushToken,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('AccountsData(')
