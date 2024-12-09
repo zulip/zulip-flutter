@@ -9,6 +9,7 @@ import '../log.dart';
 import '../model/binding.dart';
 import 'display.dart';
 
+@pragma('vm:entry-point')
 class NotificationService {
   static NotificationService get instance => (_instance ??= NotificationService._());
   static NotificationService? _instance;
