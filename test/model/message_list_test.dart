@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
@@ -237,6 +238,42 @@ void main() {
       ..haveOldest.isTrue()
       ..messages.length.equals(30);
   });
+
+  test('fetchOlder nop during backoff', () => awaitFakeAsync((async) async {
+    final olderMessages = List.generate(5, (i) => eg.streamMessage());
+    final initialMessages = List.generate(5, (i) => eg.streamMessage());
+    await prepare(narrow: const CombinedFeedNarrow());
+    await prepareMessages(foundOldest: false, messages: initialMessages);
+
+    connection.prepare(httpStatus: 400, json: {
+      'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+    check(async.pendingTimers).isEmpty();
+    await check(model.fetchOlder()).throws<ZulipApiException>();
+    checkNotified(count: 2);
+    check(model).fetchOlderCoolingDown.isTrue();
+
+    // Drop irrelevant requests with without checking,
+    // as we are only interested in verifying if any request was sent.
+    connection.takeRequests();
+
+    await model.fetchOlder();
+    checkNotNotified();
+    check(model).fetchOlderCoolingDown.isTrue();
+    check(model).fetchingOlder.isFalse();
+    check(connection.lastRequest).isNull();
+
+    // The first backoff is expected to be short enough to complete.
+    async.elapse(const Duration(seconds: 1));
+    check(model).fetchOlderCoolingDown.isFalse();
+    checkNotifiedOnce();
+    check(connection.lastRequest).isNull();
+
+    connection.prepare(json: olderResult(
+      anchor: 1000, foundOldest: false, messages: olderMessages).toJson());
+    await model.fetchOlder();
+    checkNotified(count: 2);
+    check(connection.lastRequest).isNotNull();
+  }));
 
   test('fetchOlder handles servers not understanding includeAnchor', () async {
     const narrow = CombinedFeedNarrow();
@@ -978,6 +1015,45 @@ void main() {
 
         await fetchFuture;
         checkHasMessages([]);
+        checkNotNotified();
+
+        async.elapse(const Duration(seconds: 1));
+        checkHasMessages(initialMessages + movedMessages);
+        checkNotifiedOnce();
+      }));
+
+      test('fetchOlder backoff start, _reset, fetchOlder backoff ends, move fetch finishes', () => awaitFakeAsync((async) async {
+        await prepareNarrow(narrow, initialMessages);
+
+        connection.prepare(httpStatus: 400, json: {
+          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+        await check(model.fetchOlder()).throws<ZulipApiException>();
+        final backoffTimer = async.pendingTimers.single;
+        check(model).fetchOlderCoolingDown.isTrue();
+        checkHasMessages(initialMessages);
+        checkNotified(count: 2);
+
+        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+          foundOldest: false,
+          messages: initialMessages + movedMessages,
+        ).toJson());
+        check(model).fetched.isTrue();
+        await store.handleEvent(eg.updateMessageEventMoveTo(
+          origTopic: movedMessages[0].topic,
+          origStreamId: otherStream.streamId,
+          newMessages: movedMessages,
+        ));
+        // check that _reset was caleed
+        check(model).fetched.isFalse();
+        check(model).fetchOlderCoolingDown.isFalse();
+        check(async.pendingTimers).contains(backoffTimer);
+        checkHasMessages([]);
+        checkNotifiedOnce();
+
+        // The first backoff is expected to be short enough to complete.
+        async.elapse(const Duration(seconds: 1));
+        check(model).fetchOlderCoolingDown.isFalse();
+        check(async.pendingTimers).not((x) => x.contains(backoffTimer));
         checkNotNotified();
 
         async.elapse(const Duration(seconds: 1));
@@ -1793,7 +1869,7 @@ void checkInvariants(MessageListView model) {
   if (model.haveOldest) {
     check(model.items[i++]).isA<MessageListHistoryStartItem>();
   }
-  if (model.fetchingOlder) {
+  if (model.fetchingOlder || model.fetchOlderCoolingDown) {
     check(model.items[i++]).isA<MessageListLoadingItem>();
   }
   for (int j = 0; j < model.messages.length; j++) {
@@ -1849,4 +1925,5 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
   Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
+  Subject<bool> get fetchOlderCoolingDown => has((x) => x.fetchOlderCoolingDown, 'fetchOlderCoolingDown');
 }
