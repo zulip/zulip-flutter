@@ -222,6 +222,39 @@ class EmojiStoreImpl with EmojiStore {
   }
 
   List<EmojiCandidate> _generateAllCandidates() {
+    // Compare `emoji_picker.rebuild_catalog` in Zulip web;
+    // `composebox_typeahead.update_emoji_data` which receives its output;
+    // and `emoji.update_emojis` which builds part of its input.
+    //   https://github.com/zulip/zulip/blob/0f59e2e78/web/src/emoji_picker.ts#L132-L185
+    //   https://github.com/zulip/zulip/blob/0f59e2e78/web/src/composebox_typeahead.ts#L138-L163
+    //   https://github.com/zulip/zulip/blob/0f59e2e78/web/src/emoji.ts#L232-L278
+    //
+    // Behavior differences we might copy or change, TODO:
+    //  * Web has a particular ordering of Unicode emoji;
+    //    a data file groups them by category and orders within each of those,
+    //    and the code has a list of categories.
+    //    This seems useful; it'll call for expanding the server emoji data API.
+    //  * Both here and in web, the realm emoji appear in whatever order the
+    //    server returned them in; and that order appears to be random,
+    //    presumably the iteration order of some Python dict,
+    //    and to vary over time.
+    //
+    // Behavior differences that web should probably fix, TODO(web):
+    //  * Web ranks the realm's custom emoji (and the Zulip extra emoji) at the
+    //    end of the base list, as seen in the emoji picker on an empty query;
+    //    but then ranks them first, after only the six "popular" emoji,
+    //    once there's a non-empty query.
+    //  * Web gives the six "popular" emoji a set order amongst themselves,
+    //    like we do after #1112; but in web, this order appears only in the
+    //    emoji picker on an empty query, and is otherwise lost even when the
+    //    emoji are taken out of their home categories and shown instead
+    //    together at the front.
+    //
+    //    In web on an empty query, :+1: aka :like: comes first, and
+    //    :heart: aka :love: comes later (fourth); but then on the query "l",
+    //    the results begin with :love: and then :like:.  They've flipped order,
+    //    even though they're equally good prefix matches to the query.
+
     final results = <EmojiCandidate>[];
 
     final namesOverridden = {
@@ -252,8 +285,7 @@ class EmojiStoreImpl with EmojiStore {
     for (final emoji in activeRealmEmoji) {
       final emojiName = emoji.name;
       if (emojiName == 'zulip') {
-        // TODO does 'zulip' really override realm emoji?
-        //   (This is copied from zulip-mobile's behavior.)
+        // :zulip: overrides realm emoji; compare web's `emoji.update_emojis`.
         continue;
       }
       results.add(_emojiCandidateFor(
