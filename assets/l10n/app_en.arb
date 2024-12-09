@@ -72,6 +72,22 @@
   "@permissionsDeniedReadExternalStorage": {
     "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
+  "actionSheetOptionMuteTopic": "Mute topic",
+  "@actionSheetOptionMuteTopic":  {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "Unmute topic",
+  "@actionSheetOptionUnmuteTopic":  {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "actionSheetOptionFollowTopic": "Follow topic",
+  "@actionSheetOptionFollowTopic":  {
+    "description": "Label for following a topic on action sheet."
+  },
+  "actionSheetOptionUnfollowTopic": "Unfollow topic",
+  "@actionSheetOptionUnfollowTopic":  {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."
@@ -213,6 +229,22 @@
       "error": {"type": "String", "example": "Unexpected null value"},
       "event": {"type": "String", "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"}
     }
+  },
+  "errorMuteTopicFailed": "Failed to mute topic",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "errorUnmuteTopicFailed": "Failed to unmute topic",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "errorFollowTopicFailed": "Failed to follow topic",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "errorUnfollowTopicFailed": "Failed to unfollow topic",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
   },
   "errorSharingFailed": "Sharing failed",
   "@errorSharingFailed": {

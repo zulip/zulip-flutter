@@ -314,7 +314,6 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
-    required String text,
   }) {
     // A null [Icon.icon] makes a blank space.
     final icon = (stream != null) ? iconDataForStream(stream) : null;
@@ -325,9 +324,32 @@ class MessageListAppBarTitle extends StatelessWidget {
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(size: 16, icon),
-        const SizedBox(width: 4),
-        Flexible(child: Text(text)),
+        Padding(padding: const EdgeInsetsDirectional.only(end: 8.0),
+          child: Icon(size: 20, icon)),
+        Flexible(child: Text(stream?.name ?? '(unknown stream)',
+          style: const TextStyle(
+            fontSize: 20,
+          ).merge(weightVariableTextStyle(context)))),
+      ]);
+  }
+
+  Widget _buildTopicRow(BuildContext context, {
+    required ZulipStream? stream,
+    required String topic,
+  }) {
+    final store = PerAccountStoreWidget.of(context);
+    final icon = (stream == null) ? null
+      : iconDataForTopicVisibilityPolicy(
+          store.topicVisibilityPolicy(stream.streamId, topic));
+    return Row(
+      children: [
+        Flexible(child: Text(topic, style: const TextStyle(
+          fontSize: 13,
+        ).merge(weightVariableTextStyle(context)))),
+        if (icon != null)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4),
+            child: Opacity(opacity: 0.4, child: Icon(icon, size: 14))),
       ]);
   }
 
@@ -348,14 +370,23 @@ class MessageListAppBarTitle extends StatelessWidget {
       case ChannelNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(context, stream: stream, text: streamName);
+        return _buildStreamRow(context, stream: stream);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final streamName = stream?.name ?? '(unknown channel)';
-        return _buildStreamRow(context, stream: stream, text: "$streamName > $topic");
+        return SizedBox(
+          width: double.infinity,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onLongPress: () => showTopicActionSheet(context,
+              channelId: streamId, topic: topic),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStreamRow(context, stream: stream),
+                _buildTopicRow(context, stream: stream, topic: topic),
+              ])));
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
@@ -966,6 +997,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
     //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final topic = message.topic;
 
@@ -1029,6 +1061,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: TopicNarrow.ofMessage(message))),
+      onLongPress: () => showTopicActionSheet(context,
+        channelId: message.streamId, topic: topic),
       child: ColoredBox(
         color: backgroundColor,
         child: Row(
@@ -1039,11 +1073,23 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 11),
-                child: Text(topic,
-                  // TODO: Give a way to see the whole topic (maybe a
-                  //   long-press interaction?)
-                  overflow: TextOverflow.ellipsis,
-                  style: recipientHeaderTextStyle(context)))),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(topic,
+                        // TODO: Give a way to see the whole topic (maybe a
+                        //   long-press interaction?)
+                        overflow: TextOverflow.ellipsis,
+                        style: recipientHeaderTextStyle(context))),
+                    Container(
+                      width: 20,
+                      padding: const EdgeInsetsDirectional.only(start: 4),
+                      // TODO(design): Choose an color for the icon
+                      child: Icon(size: 14, color: designVariables.atMentionMarker,
+                        // A null [Icon.icon] makes a blank space.
+                        iconDataForTopicVisibilityPolicy(
+                          store.topicVisibilityPolicy(message.streamId, topic)))),
+                  ]))),
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
             RecipientHeaderDate(message: message),

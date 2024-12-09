@@ -152,6 +152,22 @@ void main() {
         .page.isA<MessageListPage>().initNarrow
           .equals(ChannelNarrow(channel.streamId));
     });
+
+    testWidgets('show topic visibility policy for topic narrows', (tester) async {
+      final channel = eg.stream();
+      const topic = 'topic';
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow(channel.streamId, topic),
+        streams: [channel], subscriptions: [eg.subscription(channel)],
+        messageCount: 1);
+      await store.handleEvent(eg.userTopicEvent(
+        channel.streamId, topic, UserTopicVisibilityPolicy.muted));
+      await tester.pump();
+
+      check(find.descendant(
+        of: find.byType(MessageListAppBarTitle),
+        matching: find.byIcon(ZulipIcons.mute))).findsOne();
+    });
   });
 
   group('presents message content appropriately', () {
@@ -725,7 +741,7 @@ void main() {
       ).length.equals(1);
       check(find.descendant(
         of: find.byType(MessageListAppBarTitle),
-        matching: find.text('${channel.name} > new topic')).evaluate()
+        matching: find.text('new topic')).evaluate()
       ).length.equals(1);
     });
   });
@@ -785,6 +801,30 @@ void main() {
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(0);
         check(findInMessageList('topic name')).length.equals(1);
+      });
+
+      testWidgets('show topic visibility icon when followed', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await store.handleEvent(eg.userTopicEvent(
+          stream.streamId, message.topic, UserTopicVisibilityPolicy.followed));
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(MessageList),
+          matching: find.byIcon(ZulipIcons.follow))).findsOne();
+      });
+
+      testWidgets('show topic visibility icon when unmuted', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
+        await store.handleEvent(eg.userTopicEvent(
+          stream.streamId, message.topic, UserTopicVisibilityPolicy.unmuted));
+        await tester.pump();
+        check(find.descendant(
+          of: find.byType(MessageList),
+          matching: find.byIcon(ZulipIcons.unmute))).findsOne();
       });
 
       testWidgets('color of recipient header background', (tester) async {

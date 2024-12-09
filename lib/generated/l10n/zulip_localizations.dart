@@ -205,6 +205,30 @@ abstract class ZulipLocalizations {
   /// **'To upload files, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedReadExternalStorage;
 
+  /// Label for muting a topic on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute topic'**
+  String get actionSheetOptionMuteTopic;
+
+  /// Label for unmuting a topic on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute topic'**
+  String get actionSheetOptionUnmuteTopic;
+
+  /// Label for following a topic on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow topic'**
+  String get actionSheetOptionFollowTopic;
+
+  /// Label for unfollowing a topic on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollow topic'**
+  String get actionSheetOptionUnfollowTopic;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:
@@ -372,6 +396,30 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Error handling a Zulip event from {serverUrl}; will retry.\n\nError: {error}\n\nEvent: {event}'**
   String errorHandlingEventDetails(String serverUrl, String error, String event);
+
+  /// Error message when muting a topic failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mute topic'**
+  String get errorMuteTopicFailed;
+
+  /// Error message when unmuting a topic failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unmute topic'**
+  String get errorUnmuteTopicFailed;
+
+  /// Error message when following a topic failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to follow topic'**
+  String get errorFollowTopicFailed;
+
+  /// Error message when unfollowing a topic failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unfollow topic'**
+  String get errorUnfollowTopicFailed;
 
   /// Error message when sharing a message failed.
   ///
