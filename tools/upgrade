@@ -146,8 +146,6 @@ deps: Update CocoaPods pods (tools/upgrade pod)
 }
 
 upgrade_flutter_local() {
-    local flutter_version_output versions flutter_version dart_sdk_version
-
     check_no_uncommitted_or_untracked
 
     # No check_pub_get_clean.  This operates on a `flutter` you've
@@ -158,6 +156,10 @@ upgrade_flutter_local() {
 
     # TODO upgrade Flutter to latest, rather than what's lying around
 
+    local flutter_commit
+    flutter_commit=$(git --git-dir="$(flutter_tree)"/.git rev-parse HEAD)
+
+    local flutter_version_output versions flutter_version dart_sdk_version
     flutter_version_output=$(run_visibly flutter --version)
     # shellcheck disable=SC2207 # output has controlled whitespace
     versions=( $(echo -n "${flutter_version_output}" | perl -0ne '
@@ -178,7 +180,7 @@ upgrade_flutter_local() {
 
     yaml_fragment="\
   sdk: '>=${dart_sdk_version} <4.0.0'
-  flutter: '>=${flutter_version}'
+  flutter: '>=${flutter_version}'  # ${flutter_commit}
 " \
       perl -i -0pe 's/^  sdk: .*\n  flutter: .*\n/$ENV{yaml_fragment}/m' \
         pubspec.yaml
