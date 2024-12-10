@@ -455,7 +455,7 @@ Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
       'edit_timestamp': instance.editTimestamp,
       'stream_id': instance.origStreamId,
       'new_stream_id': instance.newStreamId,
-      'propagate_mode': _$PropagateModeEnumMap[instance.propagateMode],
+      'propagate_mode': instance.propagateMode,
       'orig_subject': instance.origTopic,
       'subject': instance.newTopic,
       'orig_content': instance.origContent,

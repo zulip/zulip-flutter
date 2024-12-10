@@ -766,14 +766,6 @@ class UpdateMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$UpdateMessageEventToJson(this);
 }
 
-/// As in [UpdateMessageEvent.propagateMode].
-@JsonEnum(fieldRename: FieldRename.snake)
-enum PropagateMode {
-  changeOne,
-  changeLater,
-  changeAll;
-}
-
 /// A Zulip event of type `delete_message`: https://zulip.com/api/get-events#delete_message
 @JsonSerializable(fieldRename: FieldRename.snake)
 class DeleteMessageEvent extends Event {

@@ -939,3 +939,13 @@ enum MessageEditState {
     return MessageEditState.none;
   }
 }
+
+/// As in [updateMessage] or [UpdateMessageEvent.propagateMode].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum PropagateMode {
+  changeOne,
+  changeLater,
+  changeAll;
+
+  String toJson() => _$PropagateModeEnumMap[this]!;
+}
