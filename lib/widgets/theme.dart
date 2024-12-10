@@ -134,6 +134,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xfff0f0f0),
       textInput: const Color(0xff000000),
       title: const Color(0xff1a1a1a),
+      bgSearchInput: const Color(0xffe3e3e3),
+      textMessage: const Color(0xff262626),
       channelColorSwatches: ChannelColorSwatches.light,
       atMentionMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
       contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
@@ -175,6 +177,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: const Color(0xff1d1d1d),
       textInput: const Color(0xffffffff).withValues(alpha: 0.9),
       title: const Color(0xffffffff),
+      bgSearchInput: const Color(0xff313131),
+      textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
       channelColorSwatches: ChannelColorSwatches.dark,
       contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
       contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
@@ -223,6 +227,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.mainBackground,
     required this.textInput,
     required this.title,
+    required this.bgSearchInput,
+    required this.textMessage,
     required this.channelColorSwatches,
     required this.atMentionMarker,
     required this.contextMenuCancelBg,
@@ -272,6 +278,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color mainBackground;
   final Color textInput;
   final Color title;
+  final Color bgSearchInput;
+  final Color textMessage;
 
   // Not exactly from the Figma design, but from Vlad anyway.
   final ChannelColorSwatches channelColorSwatches;
@@ -316,6 +324,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? mainBackground,
     Color? textInput,
     Color? title,
+    Color? bgSearchInput,
+    Color? textMessage,
     ChannelColorSwatches? channelColorSwatches,
     Color? atMentionMarker,
     Color? contextMenuCancelBg,
@@ -355,6 +365,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: mainBackground ?? this.mainBackground,
       textInput: textInput ?? this.textInput,
       title: title ?? this.title,
+      bgSearchInput: bgSearchInput ?? this.bgSearchInput,
+      textMessage: textMessage ?? this.textMessage,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       atMentionMarker: atMentionMarker ?? this.atMentionMarker,
       contextMenuCancelBg: contextMenuCancelBg ?? this.contextMenuCancelBg,
@@ -401,6 +413,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
+      bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
+      textMessage: Color.lerp(textMessage, other.textMessage, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       atMentionMarker: Color.lerp(atMentionMarker, other.atMentionMarker, t)!,
       contextMenuCancelBg: Color.lerp(contextMenuCancelBg, other.contextMenuCancelBg, t)!,

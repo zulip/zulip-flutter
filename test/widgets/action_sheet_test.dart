@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
@@ -9,15 +10,20 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/compose.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/internal_link.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/action_sheet.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
+import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
@@ -26,9 +32,11 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/emoji_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
+import '../test_images.dart';
 import '../test_share_plus.dart';
 import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
@@ -99,46 +107,244 @@ void main() {
     connection.prepare(httpStatus: 400, json: fakeResponseJson);
   }
 
-  group('AddThumbsUpButton', () {
-    Future<void> tapButton(WidgetTester tester) async {
-      await tester.ensureVisible(find.byIcon(ZulipIcons.smile, skipOffstage: false));
-      await tester.tap(find.byIcon(ZulipIcons.smile));
-      await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
-    }
+  group('ReactionButtons', () {
+    final popularCandidates = EmojiStore.popularEmojiCandidates;
 
-    testWidgets('success', (tester) async {
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+    group('popular emoji reactions;', () {
+      testWidgets('ensure all are shown', (tester) async {
+        final message = eg.streamMessage();
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-      connection.prepare(json: {});
-      await tapButton(tester);
-      await tester.pump(Duration.zero);
+        // Ensure all popular emoji buttons are shown.
+        final emojis = tester.widgetList<UnicodeEmojiWidget>(find.descendant(
+          of: find.descendant(
+            of: find.byType(ReactionButtons),
+            matching: find.byType(InkWell)),
+          matching: find.byType(UnicodeEmojiWidget)));
+        check(emojis).deepEquals(popularCandidates.map<Condition<Object?>>((emoji) {
+          final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
+          return (it) => it.isA<UnicodeEmojiWidget>()
+            ..emojiDisplay.which((it) => it
+              ..emojiName.equals(emojiDisplay.emojiName)
+              ..emojiUnicode.equals(emojiDisplay.emojiUnicode));
+        }));
+      });
 
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
-        ..bodyFields.deepEquals({
-            'reaction_type': 'unicode_emoji',
-            'emoji_code': '1f44d',
-            'emoji_name': '+1',
+      for (final emoji in popularCandidates) {
+        final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
+
+        Future<void> tapButton(WidgetTester tester) async {
+          await tester.tap(find.descendant(
+            of: find.descendant(
+              of: find.descendant(
+                of: find.byType(ReactionButtons),
+                matching: find.byType(InkWell)),
+              matching: find.byType(UnicodeEmojiWidget)),
+            matching: find.text(emojiDisplay.emojiUnicode)));
+        }
+
+        testWidgets('${emoji.emojiName} adding success', (tester) async {
+          final message = eg.streamMessage();
+          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+          connection.prepare(json: {});
+          await tapButton(tester);
+          await tester.pump(Duration.zero);
+
+          check(connection.lastRequest).isA<http.Request>()
+            ..method.equals('POST')
+            ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+            ..bodyFields.deepEquals({
+                'reaction_type': 'unicode_emoji',
+                'emoji_code': emoji.emojiCode,
+                'emoji_name': emoji.emojiName,
+              });
+        });
+
+        testWidgets('${emoji.emojiName} removing success', (tester) async {
+          final message = eg.streamMessage(
+            reactions: [Reaction(
+              emojiName: emoji.emojiName,
+              emojiCode: emoji.emojiCode,
+              reactionType: ReactionType.unicodeEmoji,
+              userId: eg.selfAccount.userId)]
+          );
+          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+          connection.prepare(json: {});
+          await tapButton(tester);
+          await tester.pump(Duration.zero);
+
+          check(connection.lastRequest).isA<http.Request>()
+            ..method.equals('DELETE')
+            ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+            ..bodyFields.deepEquals({
+                'reaction_type': 'unicode_emoji',
+                'emoji_code': emoji.emojiCode,
+                'emoji_name': emoji.emojiName,
+              });
+        });
+
+        testWidgets('${emoji.emojiName} request has an error', (tester) async {
+          final message = eg.streamMessage();
+          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+          connection.prepare(httpStatus: 400, json: {
+            'code': 'BAD_REQUEST',
+            'msg': 'Invalid message(s)',
+            'result': 'error',
           });
+          await tapButton(tester);
+          await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+          await tester.tap(find.byWidget(checkErrorDialog(tester,
+            expectedTitle: 'Adding reaction failed',
+            expectedMessage: 'Invalid message(s)')));
+        });
+      }
     });
 
-    testWidgets('request has an error', (tester) async {
-      final message = eg.streamMessage();
-      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+    group('emoji picker;', () {
+      Future<void> setupEmojiPicker(WidgetTester tester, {
+        required Message message,
+        required Narrow narrow,
+      }) async {
+        final httpClient = FakeImageHttpClient();
+        debugNetworkImageHttpClientProvider = () => httpClient;
+        httpClient.request.response
+          ..statusCode = HttpStatus.ok
+          ..content = kSolidBlueAvatar;
 
-      connection.prepare(httpStatus: 400, json: {
-        'code': 'BAD_REQUEST',
-        'msg': 'Invalid message(s)',
-        'result': 'error',
+        await setupToMessageActionSheet(tester, message: message, narrow: narrow);
+        store.setServerEmojiData(ServerEmojiData(codeToNames: {
+          '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
+        }));
+        await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
+          '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
+        }));
+
+        await tester.tap(find.ancestor(
+          of: find.byIcon(ZulipIcons.chevron_right),
+          matching: find.byType(InkWell)));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.byType(EmojiPicker));
+      }
+
+      final searchFieldFinder = find.widgetWithText(TextField, 'Search emoji');
+
+      Condition<Object?> conditionEmojiListEntry({
+        required ReactionType emojiType,
+        required String emojiCode,
+        required String emojiName,
+      }) {
+        return (Subject<Object?> it) => it.isA<EmojiPickerListEntry>()
+          ..emoji.which((it) => it
+            ..emojiType.equals(emojiType)
+            ..emojiCode.equals(emojiCode)
+            ..emojiName.equals(emojiName));
+      }
+
+      List<Condition<Object?>> arePopularCandidates = popularCandidates.map((c) =>
+        conditionEmojiListEntry(
+          emojiType: c.emojiType,
+          emojiCode: c.emojiCode,
+          emojiName: c.emojiName)).toList();
+
+      testWidgets('show, search', (tester) async {
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
+          ...arePopularCandidates,
+          conditionEmojiListEntry(
+            emojiType: ReactionType.realmEmoji,
+            emojiCode: '1',
+            emojiName: 'buzzing'),
+          conditionEmojiListEntry(
+            emojiType: ReactionType.zulipExtraEmoji,
+            emojiCode: 'zulip',
+            emojiName: 'zulip'),
+          conditionEmojiListEntry(
+            emojiType: ReactionType.unicodeEmoji,
+            emojiCode: '1f4a4',
+            emojiName: 'zzz'),
+        ]);
+
+        tester.widget(searchFieldFinder);
+        await tester.enterText(searchFieldFinder, 'z');
+        await tester.pump();
+
+        check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
+          conditionEmojiListEntry(
+            emojiType: ReactionType.zulipExtraEmoji,
+            emojiCode: 'zulip',
+            emojiName: 'zulip'),
+          conditionEmojiListEntry(
+            emojiType: ReactionType.unicodeEmoji,
+            emojiCode: '1f4a4',
+            emojiName: 'zzz'),
+          conditionEmojiListEntry(
+            emojiType: ReactionType.realmEmoji,
+            emojiCode: '1',
+            emojiName: 'buzzing'),
+        ]);
+
+        tester.widget(searchFieldFinder);
+        await tester.enterText(searchFieldFinder, 'zz');
+        await tester.pump();
+
+        check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
+          conditionEmojiListEntry(
+            emojiType: ReactionType.unicodeEmoji,
+            emojiCode: '1f4a4',
+            emojiName: 'zzz'),
+          conditionEmojiListEntry(
+            emojiType: ReactionType.realmEmoji,
+            emojiCode: '1',
+            emojiName: 'buzzing'),
+        ]);
+
+        debugNetworkImageHttpClientProvider = null;
       });
-      await tapButton(tester);
-      await tester.pump(Duration.zero); // error arrives; error dialog shows
 
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: 'Adding reaction failed',
-        expectedMessage: 'Invalid message(s)')));
+      testWidgets('adding success', (tester) async {
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        connection.prepare(json: {});
+        await tester.tap(find.text('\u{1f4a4}')); // 'zzz' emoji
+        await tester.pump(Duration.zero);
+
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+          ..bodyFields.deepEquals({
+              'reaction_type': 'unicode_emoji',
+              'emoji_code': '1f4a4',
+              'emoji_name': 'zzz',
+            });
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('request has an error', (tester) async {
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        connection.prepare(httpStatus: 400, json: {
+          'code': 'BAD_REQUEST',
+          'msg': 'Invalid message(s)',
+          'result': 'error',
+        });
+        await tester.tap(find.text('\u{1f4a4}')); // 'zzz' emoji
+        await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Adding reaction failed',
+          expectedMessage: 'Invalid message(s)')));
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 
@@ -699,4 +905,12 @@ void main() {
       checkActionSheet(tester, isShown: false);
     });
   });
+}
+
+extension UnicodeEmojiWidgetChecks on Subject<UnicodeEmojiWidget> {
+  Subject<UnicodeEmojiDisplay> get emojiDisplay => has((x) => x.emojiDisplay, 'emojiDisplay');
+}
+
+extension EmojiPickerListItemChecks on Subject<EmojiPickerListEntry> {
+  Subject<EmojiCandidate> get emoji => has((x) => x.emoji, 'emoji');
 }
