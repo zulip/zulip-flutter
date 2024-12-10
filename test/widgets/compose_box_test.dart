@@ -30,7 +30,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
-import 'dialog_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -410,7 +409,7 @@ void main() {
       await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
       await tester.pump(Duration.zero);
 
-      check(connection.lastRequest).isA<http.Request>()
+      check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
@@ -430,6 +429,106 @@ void main() {
       check(errorDialogs).isEmpty();
     });
 
+    testWidgets('disable compose box while pending; clear text when finished', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(
+          id: messageId).toJson(), delay: const Duration(seconds: 2));
+      });
+      check(controller!.enabled).isFalse();
+      check(controller!.content.text).isNotEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests()).isEmpty();
+
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
+      await tester.pump(Duration.zero);
+      check(testBinding.takePickFilesCalls()).isEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(controller!.enabled).isTrue();
+      check(controller!.content.text).isEmpty();
+    });
+
+    testWidgets('re-enable compose box even on failure; do not clear text', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: const Duration(seconds: 2));
+      });
+      check(controller!.enabled).isFalse();
+      final oldText = controller!.content.text;
+      check(oldText).isNotEmpty();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(controller!.enabled).isTrue();
+      check(controller!.content.text).equals(oldText);
+    });
+
+    testWidgets('show progress bar while pending', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (int messageId) {
+        connection.prepare(json: SendMessageResult(
+          id: messageId).toJson(), delay: const Duration(seconds: 2));
+      });
+      check(controller!.enabled).isFalse();
+      check(find.byType(LinearProgressIndicator)).findsOne();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(controller!.enabled).isTrue();
+      check(find.byType(LinearProgressIndicator)).findsNothing();
+    });
+
+    testWidgets('dismiss validation error banner by tapping the remove icon', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        return connection.prepare(httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'error'});
+      });
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.tap(find.byIcon(ZulipIcons.remove));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.remove)).findsNothing();
+    });
+
+    testWidgets('dismiss error banner after a successful request', (tester) async {
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        return connection.prepare(httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'error'});
+      });
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.enterText(contentInputFinder, 'hello world');
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      connection.prepare(
+        json: SendMessageResult(id: 123).toJson(),
+        delay: const Duration(seconds: 2));
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.remove)).findsOne();
+
+      await tester.pump(const Duration(seconds: 2));
+      check(find.byIcon(ZulipIcons.remove)).findsNothing();
+    });
+
+    testWidgets('fail after timeout', (tester) async {
+      const longDelay = Duration(hours: 1);
+      assert(longDelay > kSendMessageTimeout);
+      await setupAndTapSend(tester, prepareResponse: (_) {
+        connection.prepare(
+          httpStatus: 400,
+          json: {'result': 'error', 'code': 'BAD_REQUEST'},
+          delay: longDelay);
+      });
+
+      await tester.pump(kSendMessageTimeout);
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      check(find.text(zulipLocalizations.errorSendMessageTimeout)).findsOne();
+
+      await tester.pump(longDelay);
+    });
+
     testWidgets('ZulipApiException', (tester) async {
       await setupAndTapSend(tester, prepareResponse: (message) {
         connection.prepare(
@@ -441,11 +540,9 @@ void main() {
           });
       });
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorMessageNotSent,
-        expectedMessage: zulipLocalizations.errorServerMessage(
-          'You do not have permission to initiate direct message conversations.'),
-      )));
+      check(find.text(zulipLocalizations.errorServerMessage(
+        'You do not have permission to initiate direct message conversations.'),
+      )).findsOne();
     });
   });
 

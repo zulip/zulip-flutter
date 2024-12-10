@@ -145,6 +145,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get errorQuotationFailed => 'Quotation failed';
 
   @override
+  String get errorSendMessageTimeout => 'Your message was not sent. Check your connection.';
+
+  @override
   String errorServerMessage(String message) {
     return 'The server said:\n\n$message';
   }
