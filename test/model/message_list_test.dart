@@ -8,6 +8,7 @@ import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/algorithms.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/message_list.dart';

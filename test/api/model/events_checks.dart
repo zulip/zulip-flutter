@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/messages.dart';
 
 extension EventChecks on Subject<Event> {
   Subject<int> get id => has((e) => e.id, 'id');

@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../model/algorithms.dart';
+import '../route/messages.dart';
 import 'json.dart';
 import 'model.dart';
 import 'submessage.dart';
@@ -764,14 +765,6 @@ class UpdateMessageEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$UpdateMessageEventToJson(this);
-}
-
-/// As in [UpdateMessageEvent.propagateMode].
-@JsonEnum(fieldRename: FieldRename.snake)
-enum PropagateMode {
-  changeOne,
-  changeLater,
-  changeAll;
 }
 
 /// A Zulip event of type `delete_message`: https://zulip.com/api/get-events#delete_message
