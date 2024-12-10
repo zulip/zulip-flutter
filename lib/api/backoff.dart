@@ -36,6 +36,25 @@ class BackoffMachine {
   /// not the (random) previous wait duration itself.
   static const double base = 2;
 
+  /// In debug mode, overrides the duration of the backoff wait.
+  ///
+  /// Outside of debug mode, this is always `null` and the setter has no effect.
+  static Duration? get debugDuration {
+    Duration? result;
+    assert(() {
+      result = _debugDuration;
+      return true;
+    }());
+    return result;
+  }
+  static Duration? _debugDuration;
+  static set debugDuration(Duration? newValue) {
+    assert(() {
+      _debugDuration = newValue;
+      return true;
+    }());
+  }
+
   /// A future that resolves after an appropriate backoff time,
   /// with jitter applied to capped exponential growth.
   ///
@@ -66,8 +85,8 @@ class BackoffMachine {
   Future<void> wait() async {
     final bound = _minDuration(maxBound,
                                firstBound * pow(base, _waitsCompleted));
-    final duration = _maxDuration(const Duration(microseconds: 1),
-                                  bound * Random().nextDouble());
+    final duration = debugDuration ?? _maxDuration(const Duration(microseconds: 1),
+                                                   bound * Random().nextDouble());
     await Future<void>.delayed(duration);
     _waitsCompleted++;
   }
