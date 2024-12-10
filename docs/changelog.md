@@ -3,6 +3,35 @@
 ## Unreleased
 
 
+## 0.0.23 (2024-12-09)
+
+This is a preview beta, including some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+* New navigation structure for the app. (#1035)
+* Big emoji improvements: use any emoji for reactions;
+  better emoji search results; :heart: appears properly.
+  (#388, #1068, #1113, #1104)
+* Fixed channel-wildcard mentions for Zulip Server 10. (#1064)
+* Mute, unmute, or follow topics. (#348)
+
+
+### Highlights for developers
+
+* The Flutter commit ID is recorded in pubspec.yaml alongside the
+  Flutter version number, to help reproduce the exact build. (#1118)
+
+* Resolved in main: #1064, #1104, #1115, #1113, #1118, #1119, #1068
+
+* Resolved in the experimental branch:
+    #1035, #388, #913, #845, #945, #348
+  via PRs:
+    #1076, #1103, #995, #1059, #1050, #1041
+
+
 ## 0.0.22 (2024-11-26)
 
 ### Highlights for users
