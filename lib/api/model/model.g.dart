@@ -403,3 +403,9 @@ const _$MessageFlagEnumMap = {
   MessageFlag.historical: 'historical',
   MessageFlag.unknown: 'unknown',
 };
+
+const _$PropagateModeEnumMap = {
+  PropagateMode.changeOne: 'change_one',
+  PropagateMode.changeLater: 'change_later',
+  PropagateMode.changeAll: 'change_all',
+};

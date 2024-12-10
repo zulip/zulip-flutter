@@ -420,6 +420,67 @@ void main() {
     });
   });
 
+  group('updateMessage', () {
+    Future<UpdateMessageResult> checkUpdateMessage(
+      FakeApiConnection connection, {
+      required int messageId,
+      TopicName? topic,
+      PropagateMode? propagateMode,
+      bool? sendNotificationToOldThread,
+      bool? sendNotificationToNewThread,
+      String? content,
+      int? streamId,
+      required Map<String, String> expected,
+    }) async {
+      final result = await updateMessage(connection,
+        messageId: messageId,
+        topic: topic,
+        propagateMode: propagateMode,
+        sendNotificationToOldThread: sendNotificationToOldThread,
+        sendNotificationToNewThread: sendNotificationToNewThread,
+        content: content,
+        streamId: streamId,
+      );
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..bodyFields.deepEquals(expected);
+      return result;
+    }
+
+    test('topic/content change', () {
+      // A separate test exercises `streamId`;
+      // the API doesn't allow changing channel and content at the same time.
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          topic: eg.t('new topic'),
+          propagateMode: PropagateMode.changeAll,
+          sendNotificationToOldThread: true,
+          sendNotificationToNewThread: true,
+          content: 'asdf',
+          expected: {
+            'topic': 'new topic',
+            'propagate_mode': 'change_all',
+            'send_notification_to_old_thread': 'true',
+            'send_notification_to_new_thread': 'true',
+            'content': 'asdf',
+          });
+      });
+    });
+
+    test('channel change', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          streamId: 1,
+          expected: {'stream_id': '1'});
+      });
+    });
+  });
+
   group('uploadFile', () {
     Future<void> checkUploadFile(FakeApiConnection connection, {
       required List<List<int>> content,
