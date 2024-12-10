@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/internal_link.dart';
@@ -23,44 +24,10 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
-/// Show a sheet of actions you can take on a message in the message list.
-///
-/// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
-  final store = PerAccountStoreWidget.of(context);
-
-  // The UI that's conditioned on this won't live-update during this appearance
-  // of the action sheet (we avoid calling composeBoxControllerOf in a build
-  // method; see its doc).
-  // So we rely on the fact that isComposeBoxOffered for any given message list
-  // will be constant through the page's life.
-  final messageListPage = MessageListPage.ancestorOf(context);
-  final isComposeBoxOffered = messageListPage.composeBoxController != null;
-
-  final isMessageRead = message.flags.contains(MessageFlag.read);
-  final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
-  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
-
-  final hasThumbsUpReactionVote = message.reactions
-    ?.aggregated.any((reactionWithVotes) =>
-      reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-      && reactionWithVotes.emojiCode == '1f44d'
-      && reactionWithVotes.userIds.contains(store.selfUserId))
-    ?? false;
-
-  final optionButtons = [
-    if (!hasThumbsUpReactionVote)
-      AddThumbsUpButton(message: message, pageContext: context),
-    StarButton(message: message, pageContext: context),
-    if (isComposeBoxOffered)
-      QuoteAndReplyButton(message: message, pageContext: context),
-    if (showMarkAsUnreadButton)
-      MarkAsUnreadButton(message: message, pageContext: context),
-    CopyMessageTextButton(message: message, pageContext: context),
-    CopyMessageLinkButton(message: message, pageContext: context),
-    ShareButton(message: message, pageContext: context),
-  ];
-
+void _showActionSheet(
+  BuildContext context, {
+  required List<ActionSheetMenuItemButton> optionButtons,
+}) {
   showModalBottomSheet<void>(
     context: context,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -88,17 +55,13 @@ void showMessageActionSheet({required BuildContext context, required Message mes
                     borderRadius: BorderRadius.circular(7),
                     child: Column(spacing: 1,
                       children: optionButtons))))),
-              const MessageActionSheetCancelButton(),
+              const ActionSheetCancelButton(),
             ])));
     });
 }
 
-abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
-  MessageActionSheetMenuItemButton({
-    super.key,
-    required this.message,
-    required this.pageContext,
-  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+abstract class ActionSheetMenuItemButton extends StatelessWidget {
+  const ActionSheetMenuItemButton({super.key, required this.pageContext});
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
@@ -110,8 +73,6 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   ///
   /// For operations that need a [BuildContext], see [pageContext].
   void onPressed();
-
-  final Message message;
 
   /// A context within the [MessageListPage] this action sheet was
   /// triggered from.
@@ -157,8 +118,8 @@ abstract class MessageActionSheetMenuItemButton extends StatelessWidget {
   }
 }
 
-class MessageActionSheetCancelButton extends StatelessWidget {
-  const MessageActionSheetCancelButton({super.key});
+class ActionSheetCancelButton extends StatelessWidget {
+  const ActionSheetCancelButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -181,6 +142,276 @@ class MessageActionSheetCancelButton extends StatelessWidget {
           .merge(weightVariableTextStyle(context, wght: 600))),
     );
   }
+}
+
+/// Show a sheet of actions you can take on a topic.
+void showTopicActionSheet(BuildContext context, {
+  required int channelId,
+  required String topic,
+}) {
+  final narrow = TopicNarrow(channelId, topic);
+  UserTopicUpdateButton button({
+    UserTopicVisibilityPolicy? from,
+    required UserTopicVisibilityPolicy to,
+  }) {
+    return UserTopicUpdateButton(
+      currentVisibilityPolicy: from,
+      newVisibilityPolicy: to,
+      narrow: narrow,
+      pageContext: context);
+  }
+
+  final mute =                 button(to:   UserTopicVisibilityPolicy.muted);
+  final unmute =               button(from: UserTopicVisibilityPolicy.muted,
+                                      to:   UserTopicVisibilityPolicy.none);
+  final unmuteInMutedChannel = button(to:   UserTopicVisibilityPolicy.unmuted);
+  final follow =               button(to:   UserTopicVisibilityPolicy.followed);
+  final unfollow =             button(from: UserTopicVisibilityPolicy.followed,
+                                      to:   UserTopicVisibilityPolicy.none);
+
+  final store = PerAccountStoreWidget.of(context);
+  final channelMuted = store.subscriptions[channelId]?.isMuted;
+  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
+
+  // TODO(server-7): simplify this condition away
+  final supportsUnmutingTopics = store.connection.zulipFeatureLevel! >= 170;
+  // TODO(server-8): simplify this condition away
+  final supportsFollowingTopics = store.connection.zulipFeatureLevel! >= 219;
+
+  final optionButtons = <ActionSheetMenuItemButton>[];
+  if (channelMuted != null && !channelMuted) {
+    switch (visibilityPolicy) {
+      case UserTopicVisibilityPolicy.muted:
+        optionButtons.add(unmute);
+        if (supportsFollowingTopics) {
+          optionButtons.add(follow);
+        }
+      case UserTopicVisibilityPolicy.none:
+      case UserTopicVisibilityPolicy.unmuted:
+        optionButtons.add(mute);
+        if (supportsFollowingTopics) {
+          optionButtons.add(follow);
+        }
+      case UserTopicVisibilityPolicy.followed:
+        optionButtons.add(mute);
+        if (supportsFollowingTopics) {
+          optionButtons.add(unfollow);
+        }
+      case UserTopicVisibilityPolicy.unknown:
+        // TODO(#1074): This should be unreachable as we keep `unknown` out of
+        //   our data structures.
+        assert(false);
+    }
+  } else if (channelMuted != null && channelMuted) {
+    if (supportsUnmutingTopics) {
+      switch (visibilityPolicy) {
+        case UserTopicVisibilityPolicy.none:
+        case UserTopicVisibilityPolicy.muted:
+          optionButtons.add(unmuteInMutedChannel);
+          if (supportsFollowingTopics) {
+            optionButtons.add(follow);
+          }
+        case UserTopicVisibilityPolicy.unmuted:
+          optionButtons.add(mute);
+          if (supportsFollowingTopics) {
+            optionButtons.add(follow);
+          }
+        case UserTopicVisibilityPolicy.followed:
+          optionButtons.add(mute);
+          if (supportsFollowingTopics) {
+            optionButtons.add(unfollow);
+          }
+        case UserTopicVisibilityPolicy.unknown:
+          // TODO(#1074): This should be unreachable as we keep `unknown` out of
+          //   our data structures.
+          assert(false);
+      }
+    }
+  } else {
+    // Not subscribed to the channel; there is no user topic change to be made.
+  }
+
+  if (optionButtons.isEmpty) {
+    // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
+    //   we're presenting some UI (to people who use screen-reader software) as
+    //   though it offers a gesture interaction that it doesn't meaningfully
+    //   offer, which is confusing. The solution here is probably to remove this
+    //   is-empty case by having at least one button that's always present,
+    //   such as "copy link to topic".
+    return;
+  }
+
+  _showActionSheet(context, optionButtons: optionButtons);
+}
+
+class UserTopicUpdateButton extends ActionSheetMenuItemButton {
+  const UserTopicUpdateButton({
+    super.key,
+    this.currentVisibilityPolicy,
+    required this.newVisibilityPolicy,
+    required this.narrow,
+    required super.pageContext,
+  });
+
+  final UserTopicVisibilityPolicy? currentVisibilityPolicy;
+  final UserTopicVisibilityPolicy newVisibilityPolicy;
+  final TopicNarrow narrow;
+
+  @override IconData get icon {
+    switch (newVisibilityPolicy) {
+      case UserTopicVisibilityPolicy.none:
+        return ZulipIcons.inherit;
+      case UserTopicVisibilityPolicy.muted:
+        return ZulipIcons.mute;
+      case UserTopicVisibilityPolicy.unmuted:
+        return ZulipIcons.unmute;
+      case UserTopicVisibilityPolicy.followed:
+        return ZulipIcons.follow;
+      case UserTopicVisibilityPolicy.unknown:
+        // TODO(#1074): This should be unreachable as we keep `unknown` out of
+        //   our data structures.
+        assert(false);
+        return ZulipIcons.inherit;
+    }
+  }
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    switch ((currentVisibilityPolicy, newVisibilityPolicy)) {
+      case (UserTopicVisibilityPolicy.muted, UserTopicVisibilityPolicy.none):
+        return zulipLocalizations.actionSheetOptionUnmuteTopic;
+      case (UserTopicVisibilityPolicy.followed, UserTopicVisibilityPolicy.none):
+        return zulipLocalizations.actionSheetOptionUnfollowTopic;
+
+      case (_, UserTopicVisibilityPolicy.muted):
+        return zulipLocalizations.actionSheetOptionMuteTopic;
+      case (_, UserTopicVisibilityPolicy.unmuted):
+        return zulipLocalizations.actionSheetOptionUnmuteTopic;
+      case (_, UserTopicVisibilityPolicy.followed):
+        return zulipLocalizations.actionSheetOptionFollowTopic;
+
+      case (_, UserTopicVisibilityPolicy.none):
+        // This is unexpected because `UserTopicVisibilityPolicy.muted` and
+        // `UserTopicVisibilityPolicy.followed` (handled in separate `case`'s)
+        // are the only expected `currentVisibilityPolicy`
+        // when `newVisibilityPolicy` is `UserTopicVisibilityPolicy.none`.
+        assert(false);
+        return '';
+
+      case (_, UserTopicVisibilityPolicy.unknown):
+        // This case is unreachable (or should be) because we keep `unknown` out
+        // of our data structures. We plan to remove the `unknown` case in #1074.
+        assert(false);
+        return '';
+    }
+  }
+
+  String _errorTitle(ZulipLocalizations zulipLocalizations) {
+    switch ((currentVisibilityPolicy, newVisibilityPolicy)) {
+      case (UserTopicVisibilityPolicy.muted, UserTopicVisibilityPolicy.none):
+        return zulipLocalizations.errorUnmuteTopicFailed;
+      case (UserTopicVisibilityPolicy.followed, UserTopicVisibilityPolicy.none):
+        return zulipLocalizations.errorUnfollowTopicFailed;
+
+      case (_, UserTopicVisibilityPolicy.muted):
+        return zulipLocalizations.errorMuteTopicFailed;
+      case (_, UserTopicVisibilityPolicy.unmuted):
+        return zulipLocalizations.errorUnmuteTopicFailed;
+      case (_, UserTopicVisibilityPolicy.followed):
+        return zulipLocalizations.errorFollowTopicFailed;
+
+      case (_, UserTopicVisibilityPolicy.none):
+        // This is unexpected because `UserTopicVisibilityPolicy.muted` and
+        // `UserTopicVisibilityPolicy.followed` (handled in separate `case`'s)
+        // are the only expected `currentVisibilityPolicy`
+        // when `newVisibilityPolicy` is `UserTopicVisibilityPolicy.none`.
+        assert(false);
+        return '';
+
+      case (_, UserTopicVisibilityPolicy.unknown):
+        // This case is unreachable (or should be) because we keep `unknown` out
+        // of our data structures. We plan to remove the `unknown` case in #1074.
+        assert(false);
+        return '';
+    }
+  }
+
+  @override void onPressed() async {
+    try {
+      await updateUserTopicCompat(
+        PerAccountStoreWidget.of(pageContext).connection,
+        streamId: narrow.streamId,
+        topic: narrow.topic,
+        visibilityPolicy: newVisibilityPolicy);
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final zulipLocalizations = ZulipLocalizations.of(pageContext);
+      showErrorDialog(context: pageContext,
+        title: _errorTitle(zulipLocalizations), message: errorMessage);
+    }
+  }
+}
+
+/// Show a sheet of actions you can take on a message in the message list.
+///
+/// Must have a [MessageListPage] ancestor.
+void showMessageActionSheet(BuildContext context, {required Message message}) {
+  final store = PerAccountStoreWidget.of(context);
+
+  // The UI that's conditioned on this won't live-update during this appearance
+  // of the action sheet (we avoid calling composeBoxControllerOf in a build
+  // method; see its doc).
+  // So we rely on the fact that isComposeBoxOffered for any given message list
+  // will be constant through the page's life.
+  final messageListPage = MessageListPage.ancestorOf(context);
+  final isComposeBoxOffered = messageListPage.composeBoxController != null;
+
+  final isMessageRead = message.flags.contains(MessageFlag.read);
+  final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
+  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
+
+  final hasThumbsUpReactionVote = message.reactions
+    ?.aggregated.any((reactionWithVotes) =>
+      reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+      && reactionWithVotes.emojiCode == '1f44d'
+      && reactionWithVotes.userIds.contains(store.selfUserId))
+    ?? false;
+
+  final optionButtons = [
+    if (!hasThumbsUpReactionVote)
+      AddThumbsUpButton(message: message, pageContext: context),
+    StarButton(message: message, pageContext: context),
+    if (isComposeBoxOffered)
+      QuoteAndReplyButton(message: message, pageContext: context),
+    if (showMarkAsUnreadButton)
+      MarkAsUnreadButton(message: message, pageContext: context),
+    CopyMessageTextButton(message: message, pageContext: context),
+    CopyMessageLinkButton(message: message, pageContext: context),
+    ShareButton(message: message, pageContext: context),
+  ];
+
+  _showActionSheet(context, optionButtons: optionButtons);
+}
+
+abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
+  MessageActionSheetMenuItemButton({
+    super.key,
+    required this.message,
+    required super.pageContext,
+  }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
+
+  final Message message;
 }
 
 // This button is very temporary, to complete #125 before we have a way to
