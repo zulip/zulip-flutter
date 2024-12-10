@@ -127,6 +127,24 @@ abstract class ZulipLocalizations {
   /// **'Choose account'**
   String get chooseAccountPageTitle;
 
+  /// Label for main-menu button leading to the choose-account page.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch account'**
+  String get switchAccountButton;
+
+  /// Message that appears on the loading screen after waiting for some time.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account at {url} is taking a while to load.'**
+  String tryAnotherAccountMessage(Object url);
+
+  /// Label for loading screen button prompting user to try another account.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another account'**
+  String get tryAnotherAccountButton;
+
   /// Label for the 'Log out' button for an account on the choose-account page
   ///
   /// In en, this message translates to:
@@ -799,6 +817,12 @@ abstract class ZulipLocalizations {
   /// **'Unknown'**
   String get userRoleUnknown;
 
+  /// Title for the page with unreads.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get inboxPageTitle;
+
   /// Title for the page with a list of DM conversations.
   ///
   /// In en, this message translates to:
@@ -822,6 +846,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Starred messages'**
   String get starredMessagesPageTitle;
+
+  /// Title for the page with a list of subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channelsPageTitle;
+
+  /// Label for main-menu button leading to the user's own profile.
+  ///
+  /// In en, this message translates to:
+  /// **'My profile'**
+  String get mainMenuMyProfile;
 
   /// Tooltip for button to navigate to a given channel's feed
   ///

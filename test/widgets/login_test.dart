@@ -9,6 +9,7 @@ import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
@@ -69,6 +70,7 @@ void main() {
   group('LoginPage', () {
     late FakeApiConnection connection;
     late List<Route<dynamic>> pushedRoutes;
+    late List<Route<dynamic>> poppedRoutes;
 
     void takeStartingRoutes() {
       final expected = <Condition<Object?>>[
@@ -88,15 +90,19 @@ void main() {
         zulipFeatureLevel: serverSettings.zulipFeatureLevel);
 
       pushedRoutes = [];
-      final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      poppedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) {
+        poppedRoutes.add(prevRoute!);
+        pushedRoutes.add(route!);
+      };
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(LoginPage.buildRoute(serverSettings: serverSettings)));
       await tester.pumpAndSettle();
-      takeStartingRoutes();
-      check(pushedRoutes).isEmpty();
     }
 
     final findUsernameInput = find.byWidgetPredicate((widget) =>
@@ -118,30 +124,57 @@ void main() {
           });
       }
 
-      testWidgets('basic happy case', (tester) async {
-        final serverSettings = eg.serverSettings();
-        await prepare(tester, serverSettings);
-        check(testBinding.globalStore.accounts).isEmpty();
-
-        await tester.enterText(findUsernameInput, eg.selfAccount.email);
+      Future<void> login(WidgetTester tester, Account account) async {
+        await tester.enterText(findUsernameInput, account.email);
         await tester.enterText(findPasswordInput, 'p455w0rd');
         testBinding.globalStore.useCachedApiConnections = true;
         connection.prepare(json: FetchApiKeyResult(
-          apiKey: eg.selfAccount.apiKey,
-          email: eg.selfAccount.email,
-          userId: eg.selfAccount.userId,
+          apiKey: account.apiKey,
+          email: account.email,
+          userId: account.userId,
         ).toJson());
         await tester.tap(findSubmitButton);
-        checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
+        checkFetchApiKey(username: account.email, password: 'p455w0rd');
         await tester.idle();
+      }
+
+      testWidgets('basic happy case', (tester) async {
+        final serverSettings = eg.serverSettings();
+        await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
+        check(testBinding.globalStore.accounts).isEmpty();
+
+        await login(tester, eg.selfAccount);
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
             id: testBinding.globalStore.accounts.single.id));
       });
 
+      testWidgets('logging into a different account', (tester) async {
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        final serverSettings = eg.serverSettings();
+        await prepare(tester, serverSettings);
+        check(poppedRoutes).isEmpty();
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<WidgetRoute>().page.isA<HomePage>(),
+          (it) => it.isA<WidgetRoute>().page.isA<LoginPage>(),
+        ]);
+        pushedRoutes.clear();
+
+        await login(tester, eg.otherAccount);
+        final newAccount = testBinding.globalStore.accounts.singleWhere(
+          (account) => account != eg.selfAccount);
+        check(newAccount).equals(eg.otherAccount.copyWith(id: newAccount.id));
+        check(poppedRoutes).length.equals(2);
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      });
+
       testWidgets('trims whitespace on username', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
 
         await tester.enterText(findUsernameInput, '  ${eg.selfAccount.email}  ');
@@ -163,6 +196,8 @@ void main() {
       testWidgets('account already exists', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
@@ -183,7 +218,6 @@ void main() {
       });
 
       // TODO test validators on the TextFormField widgets
-      // TODO test navigation, i.e. the call to pushAndRemoveUntil
       // TODO test _getUserId case
       // TODO test handling failure in fetchApiKey request
       // TODO test _inProgress logic
@@ -202,6 +236,8 @@ void main() {
           externalAuthenticationMethods: [method]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
 
         const otp = '186f6d085a5621ebaf1ccfc05033e8acba57dae03f061705ac1e58c402c30a31';

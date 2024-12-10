@@ -395,10 +395,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    unawaited(Navigator.of(context).pushAndRemoveUntil(
-      HomePage.buildRoute(accountId: accountId),
-      (route) => (route is! _LoginSequenceRoute)),
-    );
+    HomePage.navigate(context, accountId: accountId);
   }
 
   Future<int> _getUserId(String email, String apiKey) async {

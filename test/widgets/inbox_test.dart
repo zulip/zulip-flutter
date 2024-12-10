@@ -6,8 +6,8 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/color.dart';
+import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 
 import '../example_data.dart' as eg;
@@ -76,7 +76,7 @@ void main() {
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
       navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
-      child: const InboxPage(),
+      child: const HomePage(),
     ));
     await tester.pump();
 
