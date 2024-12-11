@@ -1,0 +1,150 @@
+{
+  "aboutPageTitle": "О Zulip",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageAppVersion": "Версия приложения",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "Лицензии открытого исходного кода",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "aboutPageTapToView": "Нажмите для просмотра",
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "chooseAccountPageTitle": "Выберите учетную запись",
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "chooseAccountPageLogOutButton": "Выход из системы",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "logOutConfirmationDialogTitle": "Выйти из системы?",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogMessage": "Чтобы использовать эту учетную запись в будущем, вам придется заново ввести URL-адрес вашей организации и информацию о вашей учетной записи.",
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogConfirmButton": "Выйти",
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "chooseAccountButtonAddAnAccount": "Добавить учетную запись",
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "profileButtonSendDirectMessage": "Отправить личное сообщение",
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "permissionsNeededTitle": "Требуются разрешения",
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "permissionsNeededOpenSettings": "Открыть настройки",
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "permissionsDeniedCameraAccess": "Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "permissionsDeniedReadExternalStorage": "Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
+  "actionSheetOptionCopyMessageText": "Скопировать текст сообщения",
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionCopyMessageLink": "Скопировать ссылку на сообщение",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "actionSheetOptionMarkAsUnread": "Отметить как непрочитанные начиная отсюда",
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "actionSheetOptionShare": "Поделиться",
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "actionSheetOptionQuoteAndReply": "Ответить с цитированием",
+  "@actionSheetOptionQuoteAndReply": {
+    "description": "Label for Quote and reply button on action sheet."
+  },
+  "actionSheetOptionStarMessage": "Отметить сообщение",
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "Снять отметку с сообщения",
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "errorWebAuthOperationalErrorTitle": "Что-то пошло не так",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorWebAuthOperationalError": "Произошла непредвиденная ошибка.",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorAccountLoggedInTitle": "Вход в учетную запись уже выполнен",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorAccountLoggedIn": "Учетная запись {email} на {server} уже присутствует.",
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      },
+      "server": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  },
+  "errorCouldNotFetchMessageSource": "Не удалось извлечь источник сообщения",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorCopyingFailed": "Сбой копирования",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "errorFailedToUploadFileTitle": "Не удалось загрузить файл: {filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "errorStarMessageFailedTitle": "Не удалось отметить сообщение",
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "errorUnstarMessageFailedTitle": "Не удалось снять отметку с сообщения",
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "serverUrlValidationErrorUnsupportedScheme": "URL сервера должен начинаться с http:// или https://.",
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
+  "starredMessagesPageTitle": "Отмеченные сообщения",
+  "@starredMessagesPageTitle": {
+    "description": "Page title for the 'Starred messages' message view."
+  }
+}

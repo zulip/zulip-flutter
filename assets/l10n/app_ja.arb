@@ -1,15 +1,20 @@
 {
   "chooseAccountPageTitle": "アカウントを選択",
+  "@chooseAccountPageTitle": {},
   "chooseAccountButtonAddAnAccount": "新しいアカウントを追加",
+  "@chooseAccountButtonAddAnAccount": {},
   "profileButtonSendDirectMessage": "ダイレクトメッセージを送信",
-  "cameraAccessDeniedTitle": "権限が必要です",
-  "cameraAccessDeniedMessage": "画像をアップロードするには、「設定」で Zulip に追加の権限を許可してください。",
-  "cameraAccessDeniedButtonText": "設定を開く",
-  "subscribedToNChannels": "{num, plural, other{{num}つのチャンネルをフォローしています}}",
+  "@profileButtonSendDirectMessage": {},
   "userRoleOwner": "オーナー",
+  "@userRoleOwner": {},
   "userRoleAdministrator": "管理者",
+  "@userRoleAdministrator": {},
   "userRoleModerator": "モデレータ",
+  "@userRoleModerator": {},
   "userRoleMember": "メンバー",
+  "@userRoleMember": {},
   "userRoleGuest": "ゲスト",
-  "userRoleUnknown": "不明"
+  "@userRoleGuest": {},
+  "userRoleUnknown": "不明",
+  "@userRoleUnknown": {}
 }
