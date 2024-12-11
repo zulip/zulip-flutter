@@ -155,47 +155,34 @@ void showTopicActionSheet(BuildContext context, {
 }) {
   final store = PerAccountStoreWidget.of(context);
   final channelMuted = store.subscriptions[channelId]?.isMuted;
-  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
 
-  final narrow = TopicNarrow(channelId, topic);
-  UserTopicUpdateButton button(UserTopicVisibilityPolicy to) {
-    return UserTopicUpdateButton(
-      currentVisibilityPolicy: visibilityPolicy,
-      newVisibilityPolicy: to,
-      narrow: narrow,
-      pageContext: context);
-  }
-
-  final mute =                 button(UserTopicVisibilityPolicy.muted);
-  final unmute =               button(UserTopicVisibilityPolicy.none);
-  final unmuteInMutedChannel = button(UserTopicVisibilityPolicy.unmuted);
-  final follow =               button(UserTopicVisibilityPolicy.followed);
-  final unfollow =             button(UserTopicVisibilityPolicy.none);
+  final optionButtons = <ActionSheetMenuItemButton>[];
 
   // TODO(server-7): simplify this condition away
   final supportsUnmutingTopics = store.connection.zulipFeatureLevel! >= 170;
   // TODO(server-8): simplify this condition away
   final supportsFollowingTopics = store.connection.zulipFeatureLevel! >= 219;
 
-  final optionButtons = <ActionSheetMenuItemButton>[];
+  final visibilityOptions = <UserTopicVisibilityPolicy>[];
+  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
   if (channelMuted != null && !channelMuted) {
     // Channel is subscribed and not muted.
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
-        optionButtons.add(unmute);
+        visibilityOptions.add(UserTopicVisibilityPolicy.none);
         if (supportsFollowingTopics) {
-          optionButtons.add(follow);
+          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
         }
       case UserTopicVisibilityPolicy.none:
       case UserTopicVisibilityPolicy.unmuted:
-        optionButtons.add(mute);
+        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
         if (supportsFollowingTopics) {
-          optionButtons.add(follow);
+          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
         }
       case UserTopicVisibilityPolicy.followed:
-        optionButtons.add(mute);
+        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
         if (supportsFollowingTopics) {
-          optionButtons.add(unfollow);
+          visibilityOptions.add(UserTopicVisibilityPolicy.none);
         }
       case UserTopicVisibilityPolicy.unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
@@ -208,19 +195,19 @@ void showTopicActionSheet(BuildContext context, {
       switch (visibilityPolicy) {
         case UserTopicVisibilityPolicy.none:
         case UserTopicVisibilityPolicy.muted:
-          optionButtons.add(unmuteInMutedChannel);
+          visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
           if (supportsFollowingTopics) {
-            optionButtons.add(follow);
+            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
           }
         case UserTopicVisibilityPolicy.unmuted:
-          optionButtons.add(mute);
+          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
           if (supportsFollowingTopics) {
-            optionButtons.add(follow);
+            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
           }
         case UserTopicVisibilityPolicy.followed:
-          optionButtons.add(mute);
+          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
           if (supportsFollowingTopics) {
-            optionButtons.add(unfollow);
+            visibilityOptions.add(UserTopicVisibilityPolicy.none);
           }
         case UserTopicVisibilityPolicy.unknown:
           // TODO(#1074): This should be unreachable as we keep `unknown` out of
@@ -231,6 +218,13 @@ void showTopicActionSheet(BuildContext context, {
   } else {
     // Not subscribed to the channel; there is no user topic change to be made.
   }
+  optionButtons.addAll(visibilityOptions.map((to) {
+    return UserTopicUpdateButton(
+      currentVisibilityPolicy: visibilityPolicy,
+      newVisibilityPolicy: to,
+      narrow: TopicNarrow(channelId, topic),
+      pageContext: context);
+  }));
 
   if (optionButtons.isEmpty) {
     // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
