@@ -269,8 +269,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     List<Widget>? actions;
     if (narrow case TopicNarrow(:final streamId)) {
-      // The helper [_getEffectiveCenterTitle] relies on the fact that we
-      // have at most one action here.
       (actions ??= []).add(IconButton(
         icon: const Icon(ZulipIcons.message_feed),
         tooltip: zulipLocalizations.channelFeedButtonTooltip,
@@ -281,7 +279,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     return Scaffold(
       appBar: ZulipAppBar(
-        title: MessageListAppBarTitle(narrow: narrow),
+        buildTitle: (willCenterTitle) =>
+          MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
         actions: actions,
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
@@ -321,9 +320,14 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 }
 
 class MessageListAppBarTitle extends StatelessWidget {
-  const MessageListAppBarTitle({super.key, required this.narrow});
+  const MessageListAppBarTitle({
+    super.key,
+    required this.narrow,
+    required this.willCenterTitle,
+  });
 
   final Narrow narrow;
+  final bool willCenterTitle;
 
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
@@ -367,29 +371,6 @@ class MessageListAppBarTitle extends StatelessWidget {
       ]);
   }
 
-  // TODO(upstream): provide an API for this
-  // Adapted from [AppBar._getEffectiveCenterTitle].
-  bool _getEffectiveCenterTitle(ThemeData theme) {
-    bool platformCenter() {
-      switch (theme.platform) {
-        case TargetPlatform.android:
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.linux:
-        case TargetPlatform.windows:
-          return false;
-        case TargetPlatform.iOS:
-        case TargetPlatform.macOS:
-        // We rely on the fact that there is at most one action
-        // on the message list app bar, so that the expression returned
-        // in the original helper, `actions == null || actions!.length < 2`,
-        // always evaluates to `true`:
-          return true;
-      }
-    }
-
-    return theme.appBarTheme.centerTitle ?? platformCenter();
-  }
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -410,10 +391,8 @@ class MessageListAppBarTitle extends StatelessWidget {
         return _buildStreamRow(context, stream: stream);
 
       case TopicNarrow(:var streamId, :var topic):
-        final theme = Theme.of(context);
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final centerTitle = _getEffectiveCenterTitle(theme);
         return SizedBox(
           width: double.infinity,
           child: GestureDetector(
@@ -421,8 +400,8 @@ class MessageListAppBarTitle extends StatelessWidget {
             onLongPress: () => showTopicActionSheet(context,
               channelId: streamId, topic: topic),
             child: Column(
-              crossAxisAlignment: centerTitle ? CrossAxisAlignment.center
-                                              : CrossAxisAlignment.start,
+              crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
+                                                  : CrossAxisAlignment.start,
               children: [
                 _buildStreamRow(context, stream: stream),
                 _buildTopicRow(context, stream: stream, topic: topic),
