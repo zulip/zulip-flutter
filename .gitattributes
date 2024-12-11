@@ -6,6 +6,11 @@
 # Generated files for localizations.
 lib/generated/l10n/*.dart -diff
 
+# Data files for translations synced from Weblate:
+assets/l10n/app_*.arb -diff
+# though not the similar file that is the source for what to translate:
+assets/l10n/app_en.arb diff
+
 # Generated files for testing migrations:
 test/model/schemas/*.dart -diff
 test/model/schemas/*.json -diff
