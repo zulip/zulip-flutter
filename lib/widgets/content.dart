@@ -18,6 +18,7 @@ import '../model/internal_link.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -371,10 +372,10 @@ class BlockContentList extends StatelessWidget {
             );
             return const SizedBox.shrink();
           }(),
+          LinkPreviewNode() => LinkPreview(node: node),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
-
       }),
     ]);
   }
@@ -843,6 +844,94 @@ class MathBlock extends StatelessWidget {
       child: Text.rich(TextSpan(
         style: ContentTheme.of(context).codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
+  }
+}
+
+class LinkPreview extends StatelessWidget {
+  const LinkPreview({super.key, required this.node});
+
+  final LinkPreviewNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedImageSrcUrl = store.tryResolveUrl(node.imageSrcUrl);
+    final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+
+    // On Web on larger width viewports, the title and description container's
+    // width is constrained using `max-width: calc(100% - 115px)`, we do not
+    // follow the same here for potential benefits listed here:
+    //   https://github.com/zulip/zulip-flutter/pull/1049#discussion_r1915740997
+    final titleAndDescription = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (node.title != null)
+          GestureDetector(
+            onTap: () => _launchUrl(context, node.hrefUrl),
+            child: Text(node.title!,
+              style: TextStyle(
+                fontSize: 1.2 * kBaseFontSize,
+                height: kTextHeightNone,
+                color: ContentTheme.of(context).colorLink))),
+        if (node.description != null)
+          Container(
+            padding: const EdgeInsets.only(top: 3),
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Text(node.description!)),
+      ]);
+
+    final clippedTitleAndDescription = Container(
+      constraints: const BoxConstraints(maxHeight: 80),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: InsetShadowBox(
+        bottom: 8,
+        // TODO(#488) use different color for non-message contexts
+        // TODO(#647) use different color for highlighted messages
+        // TODO(#681) use different color for DM messages
+        color: MessageListTheme.of(context).streamMessageBgDefault,
+        child: UnconstrainedBox(
+          alignment: AlignmentDirectional.topStart,
+          constrainedAxis: Axis.horizontal,
+          clipBehavior: Clip.hardEdge,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: titleAndDescription))));
+
+    final result = isSmallWidth
+      ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 15,
+          children: [
+            if (resolvedImageSrcUrl != null)
+              GestureDetector(
+                onTap: () => _launchUrl(context, node.hrefUrl),
+                child: RealmContentNetworkImage(
+                  resolvedImageSrcUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 100)),
+            clippedTitleAndDescription,
+          ])
+      : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (resolvedImageSrcUrl != null)
+            GestureDetector(
+              onTap: () => _launchUrl(context, node.hrefUrl),
+              child: RealmContentNetworkImage(
+                resolvedImageSrcUrl,
+                fit: BoxFit.cover,
+                width: 80,
+                height: 80)),
+          Flexible(child: clippedTitleAndDescription),
+        ]);
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: BorderDirectional(start: BorderSide(
+          // Web has the same color in light and dark mode.
+          color: Color(0xffededed), width: 3))),
+      padding: const EdgeInsets.all(5),
+      child: result);
   }
 }
 
