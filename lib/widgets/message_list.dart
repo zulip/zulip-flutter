@@ -317,7 +317,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     required String text,
   }) {
     // A null [Icon.icon] makes a blank space.
-    final icon = (stream != null) ? iconDataForStream(stream) : null;
+    final icon = stream != null ? iconDataForStream(stream) : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
@@ -1008,7 +1008,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
               child: Icon(size: 16, color: iconColor,
                 // A null [Icon.icon] makes a blank space.
-                (stream != null) ? iconDataForStream(stream) : null)),
+                stream != null ? iconDataForStream(stream) : null)),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 11),
               child: Text(streamName,
