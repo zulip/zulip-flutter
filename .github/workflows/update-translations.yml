@@ -12,7 +12,7 @@ jobs:
         # The commit message is generated in Weblate; see https://hosted.weblate.org/addon/17163/
         run: |
           git remote add weblate https://hosted.weblate.org/git/zulip/zulip-flutter/
-          git remote fetch weblate
+          git fetch weblate
           git merge --ff-only weblate/main
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
