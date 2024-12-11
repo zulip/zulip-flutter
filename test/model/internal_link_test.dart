@@ -22,7 +22,7 @@ Future<PerAccountStore> setupStore({
   List<ZulipStream>? streams,
   List<User>? users,
 }) async {
-  final account = eg.selfAccount.copyWith(realmUrl: realmUrl);
+  final account = eg.account(user: eg.selfUser, realmUrl: realmUrl);
   final store = eg.store(account: account);
   if (streams != null) {
     await store.addStreams(streams);
