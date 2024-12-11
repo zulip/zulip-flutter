@@ -246,6 +246,59 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+testWidgets('emoji options appear in the correct rendering order', (tester) async {
+  final composeInputFinder = await setupToComposeInput(tester);
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+  // Set up emoji data
+  store.setServerEmojiData(
+    ServerEmojiData(
+      codeToNames: {
+        '1f4a4': ['zzz', 'sleepy'], // Unicode emoji for "zzz"
+      },
+    ),
+  );
+  await store.handleEvent(
+    RealmEmojiUpdateEvent(
+      id: 1,
+      realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
+      },
+    ),
+  );
+
+  const zulipOptionLabel = 'zulip';
+  const zzzOptionLabel = 'zzz, sleepy';
+  const unicodeGlyph = '💤';
+  const buzzingOptionLabel = 'buzzing';
+
+  await tester.enterText(composeInputFinder, 'hi :');
+  await tester.enterText(composeInputFinder, 'hi :z');
+  await tester.pumpAndSettle();
+
+  final listViewFinder = find.byType(ListView);
+  expect(listViewFinder, findsOneWidget, reason: 'ListView should be rendered');
+
+  // Explicitly check the `reverse` property of the `ListView`
+  final listViewWidget = tester.widget<ListView>(listViewFinder);
+  expect(listViewWidget.reverse, isTrue, reason: 'ListView reverse property should be true');
+
+  final positions = [
+    find.text(zulipOptionLabel),
+    find.text(zzzOptionLabel),
+    find.text(unicodeGlyph),
+    find.text(buzzingOptionLabel),
+  ].map((finder) {
+    expect(finder, findsOneWidget, reason: 'Each emoji option should be rendered');
+    return tester.getTopLeft(finder).dy;
+  }).toList();
+
+  expect(positions[0] > positions[1], isTrue, reason: '"zzz, sleepy" should appear above "zulip" because of reverse');
+  expect(positions[1] > positions[2], isTrue, reason: '"💤" should appear above "zzz, sleepy" because of reverse');
+  expect(positions[2] > positions[3], isTrue, reason: '"buzzing" should appear above "💤" because of reverse');
+  debugNetworkImageHttpClientProvider = null;
+
+});
 
     testWidgets('text emoji means just show text', (tester) async {
       final composeInputFinder = await setupToComposeInput(tester);
