@@ -165,7 +165,9 @@ void showTopicActionSheet(BuildContext context, {
 
   final visibilityOptions = <UserTopicVisibilityPolicy>[];
   final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
-  if (subscription != null && !subscription.isMuted) {
+  if (subscription == null) {
+    // Not subscribed to the channel; there is no user topic change to be made.
+  } else if (!subscription.isMuted) {
     // Channel is subscribed and not muted.
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
@@ -189,7 +191,7 @@ void showTopicActionSheet(BuildContext context, {
         //   our data structures.
         assert(false);
     }
-  } else if (subscription != null && subscription.isMuted) {
+  } else {
     // Channel is muted.
     if (supportsUnmutingTopics) {
       switch (visibilityPolicy) {
@@ -215,8 +217,6 @@ void showTopicActionSheet(BuildContext context, {
           assert(false);
       }
     }
-  } else {
-    // Not subscribed to the channel; there is no user topic change to be made.
   }
   optionButtons.addAll(visibilityOptions.map((to) {
     return UserTopicUpdateButton(
