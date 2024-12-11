@@ -602,6 +602,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         return MessageItem(
           key: ValueKey(data.message.id),
           header: header,
+          narrow: widget.narrow,
           trailingWhitespace: i == 1 ? 8 : 11,
           item: data);
     }
@@ -892,8 +893,9 @@ class MessageItem extends StatelessWidget {
     required this.item,
     required this.header,
     this.trailingWhitespace,
+    required this.narrow
   });
-
+  final Narrow narrow;
   final MessageListMessageItem item;
   final Widget header;
   final double? trailingWhitespace;
@@ -910,7 +912,7 @@ class MessageItem extends StatelessWidget {
         child: ColoredBox(
           color: messageListTheme.streamMessageBgDefault,
           child: Column(children: [
-            MessageWithPossibleSender(item: item),
+            MessageWithPossibleSender(item: item,narrow:narrow),
             if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
           ]))));
   }
@@ -1201,9 +1203,10 @@ String formatHeaderDate(
 //   - https://github.com/zulip/zulip-mobile/issues/5511
 //   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
 class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+  const MessageWithPossibleSender({super.key, required this.item, required this.narrow});
 
   final MessageListMessageItem item;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -1288,7 +1291,7 @@ class MessageWithPossibleSender extends StatelessWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  MessageContent(message: message, content: item.content),
+                  MessageContent(message: message, content: item.content,narrow:narrow),
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!),
                   if (editStateText != null)

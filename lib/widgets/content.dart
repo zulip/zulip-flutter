@@ -15,6 +15,7 @@ import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import '../model/narrow.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -278,10 +279,11 @@ const double kBaseFontSize = 17;
 /// This does not include metadata like the sender's name and avatar, the time,
 /// or the message's status as starred or edited.
 class MessageContent extends StatelessWidget {
-  const MessageContent({super.key, required this.message, required this.content});
+  const MessageContent({super.key, required this.message, required this.content,required this.narrow});
 
   final Message message;
   final ZulipMessageContent content;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -290,7 +292,7 @@ class MessageContent extends StatelessWidget {
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
-          ZulipContent() => BlockContentList(nodes: content.nodes),
+          ZulipContent() => BlockContentList(nodes: content.nodes,narrow:narrow),
           PollContent()  => PollWidget(messageId: message.id, poll: content.poll),
         }));
   }
@@ -318,9 +320,10 @@ class InheritedMessage extends InheritedWidget {
 
 /// A list of DOM nodes to display in block layout.
 class BlockContentList extends StatelessWidget {
-  const BlockContentList({super.key, required this.nodes});
+  const BlockContentList({super.key, required this.nodes , required this.narrow});
 
   final List<BlockContentNode> nodes;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -334,18 +337,18 @@ class BlockContentList extends StatelessWidget {
           ThematicBreakNode() => const ThematicBreak(),
           ParagraphNode() => Paragraph(node: node),
           HeadingNode() => Heading(node: node),
-          QuotationNode() => Quotation(node: node),
-          ListNode() => ListNodeWidget(node: node),
-          SpoilerNode() => Spoiler(node: node),
+          QuotationNode() => Quotation(node: node,narrow:narrow),
+          ListNode() => ListNodeWidget(node: node,narrow:narrow),
+          SpoilerNode() => Spoiler(node: node,narrow:narrow),
           CodeBlockNode() => CodeBlock(node: node),
           MathBlockNode() => MathBlock(node: node),
-          ImageNodeList() => MessageImageList(node: node),
+          ImageNodeList() => MessageImageList(node: node,narrow:narrow),
           ImageNode() => (){
             assert(false,
               "[ImageNode] not allowed in [BlockContentList]. "
               "It should be wrapped in [ImageNodeList]."
             );
-            return MessageImage(node: node);
+            return MessageImage(node: node,narrow:narrow);
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
           EmbedVideoNode() => MessageEmbedVideo(node: node),
@@ -451,9 +454,10 @@ class Heading extends StatelessWidget {
 }
 
 class Quotation extends StatelessWidget {
-  const Quotation({super.key, required this.node});
+  const Quotation({super.key, required this.node, required this.narrow});
 
   final QuotationNode node;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -467,14 +471,15 @@ class Quotation extends StatelessWidget {
               width: 5,
               // Web has the same color in light and dark mode.
               color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
-        child: BlockContentList(nodes: node.nodes)));
+        child: BlockContentList(nodes: node.nodes,narrow: narrow,)));
   }
 }
 
 class ListNodeWidget extends StatelessWidget {
-  const ListNodeWidget({super.key, required this.node});
+  const ListNodeWidget({super.key, required this.node, required this.narrow});
 
   final ListNode node;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -494,7 +499,7 @@ class ListNodeWidget extends StatelessWidget {
         // TODO(#59) ordered lists starting not at 1
         case ListStyle.ordered: marker = "${index+1}. "; break;
       }
-      return ListItemWidget(marker: marker, nodes: item);
+      return ListItemWidget(marker: marker, nodes: item,narrow:narrow);
     });
     return Padding(
       padding: const EdgeInsets.only(top: 2, bottom: 5),
@@ -503,10 +508,11 @@ class ListNodeWidget extends StatelessWidget {
 }
 
 class ListItemWidget extends StatelessWidget {
-  const ListItemWidget({super.key, required this.marker, required this.nodes});
+  const ListItemWidget({super.key, required this.marker, required this.nodes, required this.narrow});
 
   final String marker;
   final List<BlockContentNode> nodes;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -519,15 +525,16 @@ class ListItemWidget extends StatelessWidget {
           width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
           child: Align(
             alignment: AlignmentDirectional.topEnd, child: Text(marker))),
-        Expanded(child: BlockContentList(nodes: nodes)),
+        Expanded(child: BlockContentList(nodes: nodes,narrow:narrow)),
       ]);
   }
 }
 
 class Spoiler extends StatefulWidget {
-  const Spoiler({super.key, required this.node});
+  const Spoiler({super.key, required this.node , required this.narrow});
 
   final SpoilerNode node;
+  final Narrow narrow;
 
   @override
   State<Spoiler> createState() => _SpoilerState();
@@ -588,7 +595,8 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
                       child: DefaultTextStyle.merge(
                         style: weightVariableTextStyle(context, wght: 700),
                         child: BlockContentList(
-                          nodes: effectiveHeader))),
+                          nodes: effectiveHeader,
+                          narrow:widget.narrow))),
                     RotationTransition(
                       turns: _animation.drive(Tween(begin: 0, end: 0.5)),
                       // Web has the same color in light and dark mode.
@@ -609,27 +617,29 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
                 axisAlignment: -1,
                 child: Padding(
                   padding: const EdgeInsets.all(5),
-                  child: BlockContentList(nodes: widget.node.content))),
+                  child: BlockContentList(nodes: widget.node.content,narrow:widget.narrow))),
             ]))));
   }
 }
 
 class MessageImageList extends StatelessWidget {
-  const MessageImageList({super.key, required this.node});
+  const MessageImageList({super.key, required this.node, required this.narrow});
 
   final ImageNodeList node;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      children: node.images.map((imageNode) => MessageImage(node: imageNode)).toList());
+      children: node.images.map((imageNode) => MessageImage(node: imageNode,narrow:narrow)).toList());
   }
 }
 
 class MessageImage extends StatelessWidget {
-  const MessageImage({super.key, required this.node});
+  const MessageImage({super.key, required this.node, required this.narrow});
 
   final ImageNode node;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -649,6 +659,7 @@ class MessageImage extends StatelessWidget {
       onTap: resolvedSrcUrl == null ? null : () { // TODO(log)
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
+          narrow:narrow,
           message: message,
           src: resolvedSrcUrl,
           thumbnailUrl: resolvedThumbnailUrl,
@@ -658,6 +669,7 @@ class MessageImage extends StatelessWidget {
       child: node.loading
         ? const CupertinoActivityIndicator()
         : resolvedSrcUrl == null ? null : LightboxHero(
+            narrow:narrow,
             message: message,
             src: resolvedSrcUrl,
             child: RealmContentNetworkImage(

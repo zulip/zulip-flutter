@@ -9,6 +9,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/narrow.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
@@ -21,15 +22,17 @@ import 'store.dart';
 //   fly to an image preview with a different URL, following a message edit
 //   while the lightbox was open.
 class _LightboxHeroTag {
-  _LightboxHeroTag({required this.messageId, required this.src});
+  _LightboxHeroTag({required this.messageId, required this.src , required this.narrow});
 
   final int messageId;
   final Uri src;
+  final Narrow narrow;
 
   @override
   bool operator ==(Object other) {
     return other is _LightboxHeroTag &&
       other.messageId == messageId &&
+      other.narrow == narrow &&
       other.src == src;
   }
 
@@ -44,16 +47,18 @@ class LightboxHero extends StatelessWidget {
     required this.message,
     required this.src,
     required this.child,
+    required this.narrow,
   });
 
   final Message message;
   final Uri src;
   final Widget child;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src),
+      tag: _LightboxHeroTag(messageId: message.id, src: src,narrow:narrow),
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
@@ -173,19 +178,25 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         elevation: appBarElevation,
 
         // TODO(#41): Show message author's avatar
-        title: RichText(
-          text: TextSpan(children: [
-            TextSpan(
-              text: '${widget.message.senderFullName}\n',
+        title: Row(
+          children: [
+            Avatar(size: 32, borderRadius: 3,userId: widget.message.senderId),
+            const SizedBox(width: 8),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  text: '${widget.message.senderFullName}\n',
 
-              // Restate default
-              style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
-            TextSpan(
-              text: timestampText,
+                  // Restate default
+                  style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
+                TextSpan(
+                  text: timestampText,
 
-              // Make smaller, like a subtitle
-              style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-          ])),
+                  // Make smaller, like a subtitle
+                  style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
+              ])),
+          ],
+        ),
         bottom: widget.buildAppBarBottom(context));
     }
 
@@ -227,6 +238,7 @@ class _ImageLightboxPage extends StatefulWidget {
     required this.thumbnailUrl,
     required this.originalWidth,
     required this.originalHeight,
+    required this.narrow,
   });
 
   final Animation<double> routeEntranceAnimation;
@@ -235,7 +247,7 @@ class _ImageLightboxPage extends StatefulWidget {
   final Uri? thumbnailUrl;
   final double? originalWidth;
   final double? originalHeight;
-
+  final Narrow narrow;
   @override
   State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
 }
@@ -314,6 +326,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
         child: InteractiveViewer(
           child: SafeArea(
             child: LightboxHero(
+              narrow:widget.narrow,
               message: widget.message,
               src: widget.src,
               child: RealmContentNetworkImage(widget.src,
@@ -599,12 +612,14 @@ Route<void> getImageLightboxRoute({
   required Uri? thumbnailUrl,
   required double? originalWidth,
   required double? originalHeight,
+  required Narrow narrow,
 }) {
   return _getLightboxRoute(
     accountId: accountId,
     context: context,
     pageBuilder: (context, animation, secondaryAnimation) {
       return _ImageLightboxPage(
+        narrow:narrow,
         routeEntranceAnimation: animation,
         message: message,
         src: src,
