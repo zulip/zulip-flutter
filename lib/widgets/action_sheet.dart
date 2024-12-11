@@ -153,29 +153,24 @@ void showTopicActionSheet(BuildContext context, {
   required int channelId,
   required String topic,
 }) {
+  final store = PerAccountStoreWidget.of(context);
+  final channelMuted = store.subscriptions[channelId]?.isMuted;
+  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
+
   final narrow = TopicNarrow(channelId, topic);
-  UserTopicUpdateButton button({
-    UserTopicVisibilityPolicy? from,
-    required UserTopicVisibilityPolicy to,
-  }) {
+  UserTopicUpdateButton button(UserTopicVisibilityPolicy to) {
     return UserTopicUpdateButton(
-      currentVisibilityPolicy: from,
+      currentVisibilityPolicy: visibilityPolicy,
       newVisibilityPolicy: to,
       narrow: narrow,
       pageContext: context);
   }
 
-  final mute =                 button(to:   UserTopicVisibilityPolicy.muted);
-  final unmute =               button(from: UserTopicVisibilityPolicy.muted,
-                                      to:   UserTopicVisibilityPolicy.none);
-  final unmuteInMutedChannel = button(to:   UserTopicVisibilityPolicy.unmuted);
-  final follow =               button(to:   UserTopicVisibilityPolicy.followed);
-  final unfollow =             button(from: UserTopicVisibilityPolicy.followed,
-                                      to:   UserTopicVisibilityPolicy.none);
-
-  final store = PerAccountStoreWidget.of(context);
-  final channelMuted = store.subscriptions[channelId]?.isMuted;
-  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
+  final mute =                 button(UserTopicVisibilityPolicy.muted);
+  final unmute =               button(UserTopicVisibilityPolicy.none);
+  final unmuteInMutedChannel = button(UserTopicVisibilityPolicy.unmuted);
+  final follow =               button(UserTopicVisibilityPolicy.followed);
+  final unfollow =             button(UserTopicVisibilityPolicy.none);
 
   // TODO(server-7): simplify this condition away
   final supportsUnmutingTopics = store.connection.zulipFeatureLevel! >= 170;
@@ -253,13 +248,13 @@ void showTopicActionSheet(BuildContext context, {
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
   const UserTopicUpdateButton({
     super.key,
-    this.currentVisibilityPolicy,
+    required this.currentVisibilityPolicy,
     required this.newVisibilityPolicy,
     required this.narrow,
     required super.pageContext,
   });
 
-  final UserTopicVisibilityPolicy? currentVisibilityPolicy;
+  final UserTopicVisibilityPolicy currentVisibilityPolicy;
   final UserTopicVisibilityPolicy newVisibilityPolicy;
   final TopicNarrow narrow;
 
