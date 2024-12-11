@@ -10,6 +10,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import 'package:video_player/video_player.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
@@ -199,7 +200,7 @@ void main() {
 
   group('_ImageLightboxPage', () {
     final src = Uri.parse('https://chat.example/lightbox-image.png');
-
+    final narrow = TopicNarrow.ofMessage(eg.streamMessage());
     Future<void> setupPage(WidgetTester tester, {
       Message? message,
       required Uri? thumbnailUrl,
@@ -220,6 +221,7 @@ void main() {
         thumbnailUrl: thumbnailUrl,
         originalHeight: null,
         originalWidth: null,
+        narrow:narrow
       )));
       await tester.pump(); // per-account store
       await tester.pump(const Duration(milliseconds: 301)); // nav transition
