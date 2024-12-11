@@ -178,25 +178,19 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         elevation: appBarElevation,
 
         // TODO(#41): Show message author's avatar
-        title: Row(
-          children: [
-            Avatar(size: 32, borderRadius: 3,userId: widget.message.senderId),
-            const SizedBox(width: 8),
-            RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  text: '${widget.message.senderFullName}\n',
+        title: RichText(
+          text: TextSpan(children: [
+            TextSpan(
+              text: '${widget.message.senderFullName}\n',
 
-                  // Restate default
-                  style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
-                TextSpan(
-                  text: timestampText,
+              // Restate default
+              style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
+            TextSpan(
+              text: timestampText,
 
-                  // Make smaller, like a subtitle
-                  style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-              ])),
-          ],
-        ),
+              // Make smaller, like a subtitle
+              style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
+          ])),
         bottom: widget.buildAppBarBottom(context));
     }
 
