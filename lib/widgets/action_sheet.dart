@@ -154,7 +154,7 @@ void showTopicActionSheet(BuildContext context, {
   required String topic,
 }) {
   final store = PerAccountStoreWidget.of(context);
-  final channelMuted = store.subscriptions[channelId]?.isMuted;
+  final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
 
@@ -165,7 +165,7 @@ void showTopicActionSheet(BuildContext context, {
 
   final visibilityOptions = <UserTopicVisibilityPolicy>[];
   final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
-  if (channelMuted != null && !channelMuted) {
+  if (subscription != null && !subscription.isMuted) {
     // Channel is subscribed and not muted.
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
@@ -189,7 +189,7 @@ void showTopicActionSheet(BuildContext context, {
         //   our data structures.
         assert(false);
     }
-  } else if (channelMuted != null && channelMuted) {
+  } else if (subscription != null && subscription.isMuted) {
     // Channel is muted.
     if (supportsUnmutingTopics) {
       switch (visibilityPolicy) {
