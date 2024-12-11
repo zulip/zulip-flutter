@@ -18,6 +18,7 @@ import '../model/internal_link.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -364,10 +365,10 @@ class BlockContentList extends StatelessWidget {
             );
             return const SizedBox.shrink();
           }(),
+          LinkPreviewNode() => MessageLinkPreview(node: node),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
-
       }),
     ]);
   }
@@ -836,6 +837,94 @@ class MathBlock extends StatelessWidget {
       child: Text.rich(TextSpan(
         style: ContentTheme.of(context).codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
+  }
+}
+
+class MessageLinkPreview extends StatelessWidget {
+  const MessageLinkPreview({super.key, required this.node});
+
+  final LinkPreviewNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final messageListTheme = MessageListTheme.of(context);
+    final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+
+    final titleAndDescription = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (node.title != null)
+          GestureDetector(
+            onTap: () => _launchUrl(context, node.hrefUrl),
+            child: Text(node.title!,
+              style: TextStyle(
+                fontSize: 1.2 * kBaseFontSize,
+                height: 1.0,
+                // Web has the same color in light and dark mode.
+                color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()))),
+        if (node.description != null)
+          Container(
+            padding: const EdgeInsets.only(top: 3),
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Text(node.description!,
+              style: const TextStyle(height: 1.4))),
+      ]);
+
+    final clippedTitleAndDescription = Container(
+      constraints: const BoxConstraints(maxHeight: 80),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: InsetShadowBox(
+        bottom: 8,
+        // TODO(#647) use different color for highlighted messages
+        // TODO(#681) use different color for DM messages
+        color: messageListTheme.streamMessageBgDefault,
+        child: UnconstrainedBox(
+          alignment: Alignment.topLeft,
+          constrainedAxis: Axis.horizontal,
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: isSmallWidth
+              ? titleAndDescription
+              : LayoutBuilder(
+                  builder: (context, constraints) => ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth - 115),
+                    child: titleAndDescription))))));
+
+    final result = isSmallWidth
+      ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 5,
+          children: [
+            GestureDetector(
+              onTap: () => _launchUrl(context, node.hrefUrl),
+              child: RealmContentNetworkImage(
+                Uri.parse(node.imageSrcUrl),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 100)),
+            clippedTitleAndDescription,
+          ])
+      : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          GestureDetector(
+            onTap: () => _launchUrl(context, node.hrefUrl),
+            child: RealmContentNetworkImage(Uri.parse(node.imageSrcUrl),
+              fit: BoxFit.cover,
+              width: 80,
+              height: 80,
+              alignment: Alignment.center)),
+          Flexible(child: clippedTitleAndDescription),
+        ]);
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(left: BorderSide(
+          // Web has the same color in light and dark mode.
+          color: Color(0xffededed), width: 3))),
+      padding: const EdgeInsets.all(5),
+      child: result);
   }
 }
 
