@@ -1079,6 +1079,14 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           ]));
     }
 
+    final topicWidget = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Text(topic,
+        // TODO: Give a way to see the whole topic (maybe a
+        //   long-press interaction?)
+        overflow: TextOverflow.ellipsis,
+        style: recipientHeaderTextStyle(context)));
+
     return GestureDetector(
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
@@ -1090,14 +1098,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           children: [
             // TODO(#282): Long stream name will break layout; find a fix.
             streamWidget,
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                child: Text(topic,
-                  // TODO: Give a way to see the whole topic (maybe a
-                  //   long-press interaction?)
-                  overflow: TextOverflow.ellipsis,
-                  style: recipientHeaderTextStyle(context)))),
+            Expanded(child: topicWidget),
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
             RecipientHeaderDate(message: message),
