@@ -891,6 +891,12 @@ abstract class ZulipLocalizations {
   /// **'Direct messages'**
   String get recentDmConversationsPageTitle;
 
+  /// Heading for direct messages section on the 'Inbox' message view.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct messages'**
+  String get recentDmConversationsSectionHeader;
+
   /// Page title for the 'Combined feed' message view.
   ///
   /// In en, this message translates to:
@@ -932,6 +938,24 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}'**
   String notifGroupDmConversationLabel(String senderFullName, int numOthers);
+
+  /// Label for the list of pinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get pinnedSubscriptionsLabel;
+
+  /// Label for the list of unpinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned'**
+  String get unpinnedSubscriptionsLabel;
+
+  /// Text to display on subscribed-channels page when there are no subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels found'**
+  String get subscriptionListNoChannels;
 
   /// Display name for the user themself, to show after replying in an Android notification
   ///
