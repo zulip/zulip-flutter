@@ -259,7 +259,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxSendTooltip => 'Отправить';
 
   @override
-  String get composeBoxUnknownChannelName => '(неизвестный канал)';
+  String get unknownChannelName => '(unknown channel)';
 
   @override
   String get composeBoxTopicHintText => 'Тема';
