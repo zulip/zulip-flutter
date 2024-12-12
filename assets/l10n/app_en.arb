@@ -586,6 +586,10 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
+  "recentDmConversationsSectionHeader": "Direct messages",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
   "combinedFeedPageTitle": "Combined feed",
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
@@ -617,6 +621,18 @@
       "senderFullName": {"type": "String", "example": "Alice"},
       "numOthers": {"type": "int", "example": "4"}
     }
+  },
+  "pinnedSubscriptionsLabel": "Pinned",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "unpinnedSubscriptionsLabel": "Unpinned",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "subscriptionListNoChannels": "No channels found",
+  "@subscriptionListNoChannels": {
+    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
   },
   "notifSelfUser": "You",
   "@notifSelfUser": {

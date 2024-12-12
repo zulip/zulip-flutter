@@ -464,6 +464,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Direct messages';
 
   @override
+  String get recentDmConversationsSectionHeader => 'Direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Combined feed';
 
   @override
@@ -491,6 +494,15 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     );
     return '$senderFullName to you and $_temp0';
   }
+
+  @override
+  String get pinnedSubscriptionsLabel => 'Pinned';
+
+  @override
+  String get unpinnedSubscriptionsLabel => 'Unpinned';
+
+  @override
+  String get subscriptionListNoChannels => 'No channels found';
 
   @override
   String get notifSelfUser => 'You';
