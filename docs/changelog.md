@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.24 (2024-12-11)
+
 This is a preview beta, including some experimental changes
 not yet merged to the main branch.
 
