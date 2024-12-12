@@ -3,6 +3,42 @@
 ## Unreleased
 
 
+## 0.0.24 (2024-12-11)
+
+This is a preview beta, including some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users (coming from legacy app)
+
+Welcome to Zulip's next-gen mobile app!  In this beta:
+
+* Much faster and smoother: try opening a busy channel and scrolling
+  back through history.
+* Fresh new design, matching this year's updates to Zulip on the
+  desktop and web.
+* Full multi-account support.
+
+Please let us know what you think — and especially any missing
+features that are critical to how you use the old Zulip mobile app.
+
+
+### Highlights for users (since last beta, v0.0.23)
+
+* All the improvements from the previous beta 0.0.23,
+  plus several small fixes to its new features.
+* Translations have begun: first out of the gate are contributors
+  translating many strings for Polish and Russian.
+
+
+### Highlights for developers
+
+* Resolved in main: #348, #1035, #388, #945, #845
+
+* Resolved in the experimental branch:
+  * #913 via PR #995
+
+
 ## 0.0.23 (2024-12-09)
 
 This is a preview beta, including some experimental changes
