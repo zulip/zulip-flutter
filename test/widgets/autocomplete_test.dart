@@ -13,6 +13,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -126,17 +127,22 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('@-mentions', () {
-    void checkUserShown(User user, PerAccountStore store, {required bool expected}) {
+
+    Finder findAvatarImage(int userId) =>
+      find.byWidgetPredicate((widget) => widget is AvatarImage && widget.userId == userId);
+
+    void checkUserShown(User user, {required bool expected, bool? deliveryEmailExpected}) {
+      deliveryEmailExpected ??= expected;
       check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
-      final avatarFinder =
-        findNetworkImage(store.tryResolveUrl(user.avatarUrl!).toString());
+      check(find.text(user.deliveryEmail?? "").evaluate().length).equals(deliveryEmailExpected ? 1 : 0);
+      final avatarFinder = findAvatarImage(user.userId);
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
 
     testWidgets('options appear, disappear, and change correctly', (tester) async {
-      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
-      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
-      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png');
+      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png',deliveryEmail: 'email1@email.com');
+      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png', deliveryEmail: 'email2@email.com');
+      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png', deliveryEmail: 'email3@email.com');
       final composeInputFinder = await setupToComposeInput(tester, users: [user1, user2, user3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
@@ -147,33 +153,54 @@ void main() {
       await tester.pumpAndSettle(); // async computation; options appear
 
       // "User Two" and "User Three" appear, but not "User One"
-      checkUserShown(user1, store, expected: false);
-      checkUserShown(user2, store, expected: true);
-      checkUserShown(user3, store, expected: true);
+      checkUserShown(user1, expected: false);
+      checkUserShown(user2, expected: true);
+      checkUserShown(user3, expected: true);
 
       // Finishing autocomplete updates compose box; causes options to disappear
       await tester.tap(find.text('User Three'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
         .contains(mention(user3, users: store.users));
-      checkUserShown(user1, store, expected: false);
-      checkUserShown(user2, store, expected: false);
-      checkUserShown(user3, store, expected: false);
+      checkUserShown(user1, expected: false);
+      checkUserShown(user2, expected: false);
+      checkUserShown(user3, expected: false);
 
       // Then a new autocomplete intent brings up options again
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(composeInputFinder, 'hello @user tw');
       await tester.enterText(composeInputFinder, 'hello @user two');
       await tester.pumpAndSettle(); // async computation; options appear
-      checkUserShown(user2, store, expected: true);
+      checkUserShown(user2, expected: true);
 
       // Removing autocomplete intent causes options to disappear
       // TODO(#226): Remove one of these edits when this bug is fixed.
       await tester.enterText(composeInputFinder, '');
       await tester.enterText(composeInputFinder, ' ');
-      checkUserShown(user1, store, expected: false);
-      checkUserShown(user2, store, expected: false);
-      checkUserShown(user3, store, expected: false);
+      checkUserShown(user1, expected: false);
+      checkUserShown(user2, expected: false);
+      checkUserShown(user3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('test delivery email visibility', (tester) async {
+      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png',);
+      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png', deliveryEmail: 'email3@email.com');
+      final composeInputFinder = await setupToComposeInput(tester, users: [user2, user3]);
+
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      // Options are filtered correctly for query
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @user ');
+      await tester.enterText(composeInputFinder, 'hello @user t');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      // "User Two"'s delivery email is not visible and "User Three"'s delivery email is visible
+      checkUserShown(user2, expected: true, deliveryEmailExpected: false);
+      checkUserShown(user3, expected: true, deliveryEmailExpected: true);
 
       debugNetworkImageHttpClientProvider = null;
     });

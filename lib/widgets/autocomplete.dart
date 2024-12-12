@@ -8,6 +8,8 @@ import '../model/autocomplete.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import 'compose_box.dart';
+import 'text.dart';
+import 'theme.dart';
 
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
@@ -210,6 +212,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
 
   @override
   Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
+    final designVariables = DesignVariables.of(context);
     final child = switch (option) {
       MentionAutocompleteResult() => _MentionAutocompleteItem(option: option),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
@@ -218,6 +221,9 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       onTap: () {
         _onTapOption(context, option);
       },
+      highlightColor: designVariables.editorButtonPressedBg,
+      splashFactory: NoSplash.splashFactory,
+      borderRadius: BorderRadius.circular(5),
       child: child);
   }
 }
@@ -229,20 +235,49 @@ class _MentionAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
     Widget avatar;
     String label;
+    String? subLabel;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        avatar = Avatar(userId: userId, size: 32, borderRadius: 3);
-        label = PerAccountStoreWidget.of(context).users[userId]!.fullName;
+        final store = PerAccountStoreWidget.of(context);
+        final user = store.users[userId]!;
+        avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
+        label = user.fullName;
+        subLabel = store.userDisplayEmail(user, store: store);
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 8, 4),
       child: Row(children: [
         avatar,
-        const SizedBox(width: 8),
-        Text(label),
+        const SizedBox(width: 6),
+        Expanded(child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              style: TextStyle(
+                fontSize: 18,
+                height: 20 / 18,
+                color: designVariables.contextMenuItemLabel,
+              )
+                .merge(weightVariableTextStyle(context, wght: 600)),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              label),
+            if (subLabel != null) Text(
+              style: TextStyle(
+                fontSize: 14,
+                height: 16 / 14,
+                color: designVariables.contextMenuItemMeta,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              subLabel),
+          ])),
       ]));
   }
 }
@@ -252,12 +287,13 @@ class _EmojiAutocompleteItem extends StatelessWidget {
 
   final EmojiAutocompleteResult option;
 
-  static const _size = 32.0;
-  static const _notoColorEmojiTextSize = 25.7;
+  static const _size = 24.0;
+  static const _notoColorEmojiTextSize = 19.3;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
     // TODO deduplicate this logic with [EmojiPickerListEntry]
@@ -276,15 +312,31 @@ class _EmojiAutocompleteItem extends StatelessWidget {
       ? candidate.emojiName
       : [candidate.emojiName, ...candidate.aliases].join(", "); // TODO(#1080)
 
+    // TODO(design): emoji autocomplete results
+    // There's no design in Figma for emoji autocomplete results.
+    // Instead we adapt the design for the emoji picker to the
+    // context of autocomplete results as exemplified by _MentionAutocompleteItem.
+    // That means: emoji size, text size, text line-height from emoji picker;
+    // text color (for contrast with background) and outer padding
+    // from _MentionAutocompleteItem; padding around emoji glyph
+    // to bring it to same size as avatar in _MentionAutocompleteItem.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 8, 4),
       child: Row(children: [
         if (glyph != null) ...[
-          glyph,
-          const SizedBox(width: 8),
+          Padding(padding: const EdgeInsets.all(6),
+            child: glyph),
+          const SizedBox(width: 6),
         ],
         Expanded(
           child: Text(
+            // The Figma design for the emoji picker actually calls for the
+            // line-height to be 24px when the label fits on one line,
+            // and 18px when it wraps.  But whether it'll wrap is something we
+            // don't know at build time, so make it always 18px.  Discussion:
+            //   https://github.com/zulip/zulip-flutter/pull/995#discussion_r1868352275
+            style: TextStyle(fontSize: 17, height: 18 / 17,
+              color: designVariables.contextMenuItemLabel),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             label)),
