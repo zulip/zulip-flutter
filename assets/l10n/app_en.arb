@@ -618,6 +618,18 @@
       "numOthers": {"type": "int", "example": "4"}
     }
   },
+  "pinnedSubscriptionsLabel": "Pinned",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "unpinnedSubscriptionsLabel": "Unpinned",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "noSubscriptions": "No channels found",
+  "@noSubscriptions": {
+    "description": "Text to display when there are no subscribed channels."
+  },
   "notifSelfUser": "You",
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"

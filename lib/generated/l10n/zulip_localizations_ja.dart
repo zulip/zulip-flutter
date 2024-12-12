@@ -493,6 +493,15 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
+  String get pinnedSubscriptionsLabel => 'Pinned';
+
+  @override
+  String get unpinnedSubscriptionsLabel => 'Unpinned';
+
+  @override
+  String get noSubscriptions => 'No channels found';
+
+  @override
   String get notifSelfUser => 'You';
 
   @override

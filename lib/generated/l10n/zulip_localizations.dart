@@ -931,6 +931,24 @@ abstract class ZulipLocalizations {
   /// **'{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}'**
   String notifGroupDmConversationLabel(String senderFullName, int numOthers);
 
+  /// Label for the list of pinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get pinnedSubscriptionsLabel;
+
+  /// Label for the list of unpinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned'**
+  String get unpinnedSubscriptionsLabel;
+
+  /// Text to display when there are no subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels found'**
+  String get noSubscriptions;
+
   /// Display name for the user themself, to show after replying in an Android notification
   ///
   /// In en, this message translates to:
