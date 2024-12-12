@@ -28,11 +28,11 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
-void _showActionSheet(
+ModalStatus _showActionSheet(
   BuildContext context, {
   required List<Widget> optionButtons,
 }) {
-  showModalBottomSheet<void>(
+  final future = showModalBottomSheet<void>(
     context: context,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
     // on my iPhone 13 Pro but is marked as "much slower":
@@ -62,6 +62,7 @@ void _showActionSheet(
               const ActionSheetCancelButton(),
             ])));
     });
+  return ModalStatus(future);
 }
 
 abstract class ActionSheetMenuItemButton extends StatelessWidget {
@@ -361,7 +362,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
+ModalStatus showMessageActionSheet({required BuildContext context, required Message message}) {
   final store = PerAccountStoreWidget.of(context);
 
   // The UI that's conditioned on this won't live-update during this appearance
@@ -388,7 +389,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     ShareButton(message: message, pageContext: context),
   ];
 
-  _showActionSheet(context, optionButtons: optionButtons);
+  return _showActionSheet(context, optionButtons: optionButtons);
 }
 
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
