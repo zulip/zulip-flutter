@@ -31,6 +31,7 @@ import 'theme.dart';
 void _showActionSheet(
   BuildContext context, {
   required List<Widget> optionButtons,
+  VoidCallback? onDismiss
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -61,7 +62,7 @@ void _showActionSheet(
                       children: optionButtons))))),
               const ActionSheetCancelButton(),
             ])));
-    });
+    }).whenComplete(onDismiss ?? () {});
 }
 
 abstract class ActionSheetMenuItemButton extends StatelessWidget {
@@ -372,7 +373,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
+void showMessageActionSheet({required BuildContext context, required Message message, VoidCallback? onDismiss}) {
   final store = PerAccountStoreWidget.of(context);
 
   // The UI that's conditioned on this won't live-update during this appearance
@@ -399,7 +400,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     ShareButton(message: message, pageContext: context),
   ];
 
-  _showActionSheet(context, optionButtons: optionButtons);
+  _showActionSheet(context, optionButtons: optionButtons, onDismiss: onDismiss);
 }
 
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
