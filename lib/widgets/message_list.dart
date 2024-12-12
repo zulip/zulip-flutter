@@ -422,7 +422,8 @@ class MessageListAppBarTitle extends StatelessWidget {
         if (otherRecipientIds.isEmpty) {
           return Text(zulipLocalizations.messageListYouWithYourselfTitle);
         } else {
-          final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)');
+          final names = otherRecipientIds.map(
+            (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
           return Text("DMs with ${names.join(", ")}"); // TODO show avatars
         }
     }
