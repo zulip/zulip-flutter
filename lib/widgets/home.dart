@@ -20,6 +20,7 @@ import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'about_zulip.dart';
 
 enum _HomePageTab {
   inbox,
@@ -259,6 +260,7 @@ void _showMainMenu(BuildContext context, {
     // TODO(#1094): Users
     const _MyProfileButton(),
     const _SwitchAccountButton(),
+    const _AboutZulipButton(),
     // TODO(#198): Set my status
     // const SizedBox(height: 8),
     // TODO(#97): Settings
@@ -548,6 +550,23 @@ class _SwitchAccountButton extends _MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+}
+
+class _AboutZulipButton extends _MenuButton {
+  const _AboutZulipButton();
+
+  @override
+  IconData get icon => Icons.info;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return 'About Zulip';
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(AboutZulipPage.buildRoute(context));
   }
 }
 
