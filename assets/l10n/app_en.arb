@@ -56,6 +56,10 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
+  "errorCouldNotShowUserProfile": "Could not show user profile.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
   "permissionsNeededTitle": "Permissions needed",
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."

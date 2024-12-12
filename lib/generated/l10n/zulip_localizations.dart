@@ -189,6 +189,12 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Message that appears on the user profile page when the profile cannot be shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not show user profile.'**
+  String get errorCouldNotShowUserProfile;
+
   /// Title for dialog asking the user to grant additional permissions.
   ///
   /// In en, this message translates to:
