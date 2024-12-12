@@ -273,6 +273,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get unknownUserName => '(unknown user)';
 
   @override
+  String get messageListYouWithYourselfTitle => 'DMs with yourself';
+
+  @override
   String messageListGroupYouAndOthers(String others) {
     return 'You and $others';
   }

@@ -344,6 +344,10 @@
   "@unknownUserName": {
     "description": "Name placeholder to use for a user when we don't know their name."
   },
+  "messageListYouWithYourselfTitle": "DMs with yourself",
+  "@messageListYouWithYourselfTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
   "messageListGroupYouAndOthers": "You and {others}",
   "@messageListGroupYouAndOthers": {
     "description": "Message list recipient header for a DM group with others.",
