@@ -325,8 +325,8 @@
   "@composeBoxSendTooltip":  {
     "description": "Tooltip for send button in compose box."
   },
-  "composeBoxUnknownChannelName": "(unknown channel)",
-  "@composeBoxUnknownChannelName": {
+  "unknownChannelName": "(unknown channel)",
+  "@unknownChannelName": {
     "description": "Replacement name for channel when it cannot be found in the store."
   },
   "composeBoxTopicHintText": "Topic",

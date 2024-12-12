@@ -335,6 +335,7 @@ class MessageListAppBarTitle extends StatelessWidget {
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
   }) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
     return Row(
@@ -346,7 +347,8 @@ class MessageListAppBarTitle extends StatelessWidget {
       children: [
         Icon(size: 16, icon),
         const SizedBox(width: 4),
-        Flexible(child: Text(stream?.name ?? '(unknown channel)')),
+        Flexible(child: Text(
+          stream?.name ?? zulipLocalizations.unknownChannelName)),
       ]);
   }
 
@@ -1031,6 +1033,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final topic = message.topic;
 
@@ -1055,7 +1058,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       final stream = store.streams[message.streamId];
       final streamName = stream?.name
         ?? message.displayRecipient
-        ?? '(unknown channel)'; // TODO(log)
+        ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,

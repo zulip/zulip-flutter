@@ -541,7 +541,7 @@ abstract class ZulipLocalizations {
   ///
   /// In en, this message translates to:
   /// **'(unknown channel)'**
-  String get composeBoxUnknownChannelName;
+  String get unknownChannelName;
 
   /// Hint text for topic input widget in compose box.
   ///

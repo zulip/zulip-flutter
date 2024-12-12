@@ -263,7 +263,7 @@ class NotificationDisplayManager {
       FcmMessageChannelRecipient(:var streamName?, :var topic) =>
         '#$streamName > ${topic.displayName}',
       FcmMessageChannelRecipient(:var topic) =>
-        '#(unknown channel) > ${topic.displayName}', // TODO get stream name from data
+        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
