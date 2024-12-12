@@ -380,6 +380,11 @@ class TestZulipBinding extends ZulipBinding {
   Future<void> toggleWakelock({required bool enable}) async {
     _wakelockEnabled = enable;
   }
+
+   @override
+  Future<String> getAppBundleId() async {
+    return 'com.zulip.flutter.test';
+  }
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
