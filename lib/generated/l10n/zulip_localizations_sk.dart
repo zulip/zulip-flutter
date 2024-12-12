@@ -273,6 +273,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get unknownUserName => '(unknown user)';
 
   @override
+  String get dmsWithYourselfPageTitle => 'DMs with yourself';
+
+  @override
   String messageListGroupYouAndOthers(String others) {
     return 'You and $others';
   }

@@ -413,7 +413,7 @@ class MessageListAppBarTitle extends StatelessWidget {
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
         if (otherRecipientIds.isEmpty) {
-          return const Text("DMs with yourself");
+          return Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
           final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)');
           return Text("DMs with ${names.join(", ")}"); // TODO show avatars

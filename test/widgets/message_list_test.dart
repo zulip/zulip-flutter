@@ -988,7 +988,7 @@ void main() {
         await store.addUser(eg.otherUser);
         await store.addUser(eg.thirdUser);
         await tester.pump();
-        tester.widget(find.text(zulipLocalizations.messageListGroupYouWithYourself));
+        tester.widget(find.text(zulipLocalizations.dmsWithYourselfPageTitle));
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
           eg.otherUser.fullName)));
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(

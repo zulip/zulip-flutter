@@ -561,6 +561,12 @@ abstract class ZulipLocalizations {
   /// **'(unknown user)'**
   String get unknownUserName;
 
+  /// Message list page title for a DM group that only includes yourself.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with yourself'**
+  String get dmsWithYourselfPageTitle;
+
   /// Message list recipient header for a DM group with others.
   ///
   /// In en, this message translates to:
