@@ -53,6 +53,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'ダイレクトメッセージを送信';
 
   @override
+  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+
+  @override
   String get permissionsNeededTitle => 'Permissions needed';
 
   @override
