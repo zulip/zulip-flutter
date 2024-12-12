@@ -541,7 +541,7 @@ abstract class ZulipLocalizations {
   ///
   /// In en, this message translates to:
   /// **'(unknown channel)'**
-  String get composeBoxUnknownChannelName;
+  String get unknownChannelName;
 
   /// Hint text for topic input widget in compose box.
   ///
@@ -938,6 +938,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Channel feed'**
   String get channelFeedButtonTooltip;
+
+  /// Label for a channel conversation notification.
+  ///
+  /// In en, this message translates to:
+  /// **'#{channel} > {topic}'**
+  String notifChannelConversationLabel(String channel, String topic);
 
   /// Label for a group DM conversation notification.
   ///

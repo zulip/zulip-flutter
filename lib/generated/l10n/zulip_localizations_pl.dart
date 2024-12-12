@@ -259,7 +259,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get composeBoxSendTooltip => 'Wyślij';
 
   @override
-  String get composeBoxUnknownChannelName => '(nieznany kanał)';
+  String get unknownChannelName => '(unknown channel)';
 
   @override
   String get composeBoxTopicHintText => 'Wątek';
@@ -486,6 +486,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get channelFeedButtonTooltip => 'Strumień kanału';
+
+  @override
+  String notifChannelConversationLabel(String channel, String topic) {
+    return '#$channel > $topic';
+  }
 
   @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
