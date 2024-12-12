@@ -147,6 +147,7 @@ class ReactionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final reactionType = reactionWithVotes.reactionType;
     final emojiCode = reactionWithVotes.emojiCode;
@@ -161,7 +162,7 @@ class ReactionChip extends StatelessWidget {
       ? userIds.map((id) {
           return id == store.selfUserId
             ? 'You'
-            : store.users[id]?.fullName ?? '(unknown user)'; // TODO(i18n)
+            : store.users[id]?.fullName ?? zulipLocalizations.unknownUserName;
         }).join(', ')
       : userIds.length.toString();
 
