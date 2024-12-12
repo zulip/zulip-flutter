@@ -197,6 +197,10 @@ abstract class ZulipBinding {
   ///   https://developer.apple.com/documentation/uikit/uiapplication/1623070-idletimerdisabled
   ///   https://github.com/fluttercommunity/wakelock_plus/blob/5ca5243e7894830ce289fc367bc5fdec27c7f0cf/wakelock_plus/ios/Classes/WakelockPlusPlugin.m
   Future<void> toggleWakelock({required bool enable});
+
+
+  // Method for wrapping the call to PackageInfo
+  Future<String> getAppBundleId();
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -467,5 +471,12 @@ class LiveZulipBinding extends ZulipBinding {
   @override
   Future<void> toggleWakelock({required bool enable}) async {
     return wakelock_plus.WakelockPlus.toggle(enable: enable);
+  }
+
+  @override
+  Future<String> getAppBundleId() async{
+
+    final packageInfo = await package_info_plus.PackageInfo.fromPlatform();
+    return packageInfo.packageName;
   }
 }
