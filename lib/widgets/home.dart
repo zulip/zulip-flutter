@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
+import 'about_zulip.dart';
 import 'action_sheet.dart';
 import 'app.dart';
 import 'app_bar.dart';
@@ -264,6 +265,7 @@ void _showMainMenu(BuildContext context, {
     // TODO(#97): Settings
     // TODO(#661): Notifications
     // const SizedBox(height: 8),
+    const _AboutZulipButton(),
     // TODO(#1095): VersionInfo
   ];
 
@@ -548,6 +550,23 @@ class _SwitchAccountButton extends _MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+}
+
+class _AboutZulipButton extends _MenuButton {
+  const _AboutZulipButton();
+
+  @override
+  IconData get icon => ZulipIcons.info;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.aboutPageTitle;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(AboutZulipPage.buildRoute(context));
   }
 }
 
