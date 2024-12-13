@@ -139,6 +139,12 @@ abstract class ZulipLocalizations {
   /// **'Switch account'**
   String get switchAccountButton;
 
+  /// Label for the 'About Zulip' option in the main menu.
+  ///
+  /// In en, this message translates to:
+  /// **'About Zulip'**
+  String get aboutZulipMenuItem;
+
   /// Message that appears on the loading screen after waiting for some time.
   ///
   /// In en, this message translates to:
