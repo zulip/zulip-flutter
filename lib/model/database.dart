@@ -1,10 +1,5 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:drift/remote.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart';
 
 part 'database.g.dart';
@@ -52,20 +47,9 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    // TODO decide if this path is the right one to use
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(path.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}
-
 @DriftDatabase(tables: [Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
-
-  AppDatabase.live() : this(_openConnection());
 
   // When updating the schema:
   //  * Make the change in the table classes, and bump schemaVersion.
