@@ -125,6 +125,19 @@ void main() {
       await store.addMessage(message);
     }
 
+    void checkButtons() {
+      final actionSheetFinder = find.byType(BottomSheet);
+      check(actionSheetFinder).findsOne();
+
+      void checkButton(String label) {
+        check(
+          find.descendant(of: actionSheetFinder, matching: find.text(label))
+        ).findsOne();
+      }
+
+      checkButton('Follow topic');
+    }
+
     testWidgets('show from inbox', (tester) async {
       await prepare();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
@@ -135,8 +148,7 @@ void main() {
       await tester.longPress(find.text(topic));
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
-      check(find.byType(BottomSheet)).findsOne();
-      check(find.text('Follow topic')).findsOne();
+      checkButtons();
     });
 
     testWidgets('show from app bar', (tester) async {
@@ -153,8 +165,7 @@ void main() {
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
-      check(find.byType(BottomSheet)).findsOne();
-      check(find.text('Follow topic')).findsOne();
+      checkButtons();
     });
 
     testWidgets('show from recipient header', (tester) async {
@@ -170,8 +181,7 @@ void main() {
         of: find.byType(RecipientHeader), matching: find.text(topic)));
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
-      check(find.byType(BottomSheet)).findsOne();
-      check(find.text('Follow topic')).findsOne();
+      checkButtons();
     });
   });
 
