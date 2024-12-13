@@ -4,6 +4,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/about_zulip.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
@@ -105,6 +106,10 @@ void main () {
     final combinedFeedMenuIconFinder = find.descendant(
       of: find.byType(BottomSheet),
       matching: find.byIcon(ZulipIcons.message_feed));
+    final aboutZulipMenuIconFinder = find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byIcon(Icons.info));
+
 
     Future<void> tapOpenMenu(WidgetTester tester) async {
       await tester.tap(find.byIcon(ZulipIcons.menu));
@@ -214,6 +219,16 @@ void main () {
       await tester.pump(const Duration(milliseconds: 250)); // wait for animation
       check(find.byType(ProfilePage)).findsOne();
       check(find.text(eg.selfUser.fullName)).findsAny();
+    });
+
+    testWidgets('_AboutZulipButton', (tester) async {
+      await prepare(tester);
+      await tapOpenMenu(tester);
+
+      await tester.tap(aboutZulipMenuIconFinder);
+      await tester.pump(Duration.zero); // tap the button
+      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      check(find.byType(AboutZulipPage)).findsOne();
     });
   });
 

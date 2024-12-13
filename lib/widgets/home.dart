@@ -561,7 +561,7 @@ class _AboutZulipButton extends _MenuButton {
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
-    return 'About Zulip';
+    return zulipLocalizations.aboutZulipMenuItem;
   }
 
   @override
