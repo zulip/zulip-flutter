@@ -149,7 +149,8 @@ void main() {
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.byType(ZulipAppBar));
+      final topicRow = find.descendant(of: find.byType(ZulipAppBar), matching: find.text(topic));
+      await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
       check(find.byType(BottomSheet)).findsOne();
