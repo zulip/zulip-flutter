@@ -275,6 +275,29 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('share button shows correct icon and downloads image', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage();
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      // Verify share icon exists
+      final shareIcon = find.descendant(
+          of: find.byType(BottomAppBar),
+          matching: find.byIcon(Icons.share),
+          skipOffstage: false);
+      check(tester.widget<Icon>(shareIcon).icon).equals(Icons.share);
+
+      // Verify tooltip
+      final button = tester.widget<IconButton>(find.ancestor(
+          of: shareIcon,
+          matching: find.byType(IconButton)));
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      check(button.tooltip).equals(zulipLocalizations.lightboxShareImageTooltip);
+      check(button.tooltip).equals(zulipLocalizations.lightboxShareImageTooltip);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     // TODO test _CopyLinkButton
     // TODO test thumbnail gets shown, then gets replaced when main image loads
     // TODO test image is scaled down to fit, but not up
