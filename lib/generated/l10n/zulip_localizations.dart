@@ -633,6 +633,30 @@ abstract class ZulipLocalizations {
   /// **'Copy link'**
   String get lightboxCopyLinkTooltip;
 
+  /// Tooltip in lightbox for the download image action.
+  ///
+  /// In en, this message translates to:
+  /// **'Download image'**
+  String get lightboxDownloadImageTooltip;
+
+  /// Message shown when the image downloads successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Image downloaded successfully!'**
+  String get lightboxDownloadImageSuccess;
+
+  /// Message shown when the image download fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download the image.'**
+  String get lightboxDownloadImageFailed;
+
+  /// Message shown when an unexpected error occurs during image download.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while downloading the image.'**
+  String get lightboxDownloadImageError;
+
   /// Title for login page.
   ///
   /// In en, this message translates to:
