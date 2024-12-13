@@ -214,6 +214,18 @@ class Unreads extends ChangeNotifier {
     }
   }
 
+  /// The unread state for [messageId], or null if unknown.
+  ///
+  /// May be unknown only if [oldUnreadsMissing].
+  ///
+  /// This is inefficient; it iterates through [dms] and [channels].
+  // TODO implement efficiently
+  bool? isUnread(int messageId) {
+    final isPresent = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
+    if (oldUnreadsMissing && !isPresent) return null;
+    return isPresent;
+  }
+
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
     if (message.flags.contains(MessageFlag.read)) {
@@ -327,10 +339,7 @@ class Unreads extends ChangeNotifier {
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             mentions.addAll(
-              event.messages.where(
-                (messageId) => _slowIsPresentInStreams(messageId) || _slowIsPresentInDms(messageId),
-              ),
-            );
+              event.messages.where((messageId) => isUnread(messageId) == true));
 
           case UpdateMessageFlagsRemoveEvent():
             mentions.removeAll(event.messages);
