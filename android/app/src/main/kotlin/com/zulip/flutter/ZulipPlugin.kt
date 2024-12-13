@@ -6,6 +6,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -280,17 +281,48 @@ private class AndroidNotificationHost(val context: Context)
     }
 }
 
+// Function to trigger scanFile which refreshes the media library so that the file is visible in the gallery or other media apps.
+private class MediaScannerHost(private val context: Context) : MediaScannerHostApi {
+    override fun scanFile(filePath: String, callback: (Result<String>) -> Unit) {
+        try {
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(filePath),
+                null
+            ) { path, uri ->
+                if (uri != null) {
+                    callback(Result.success("Successfully scanned file: $path"))
+                } else {
+                    callback(Result.failure(NotificationsError(
+                        code = "SCAN_FAILED",
+                        message = "Failed to scan file: $path"
+                    )))
+                }
+            }
+        } catch (e: Exception) {
+            callback(Result.failure(NotificationsError(
+                code = "SCAN_ERROR",
+                message = e.message ?: "Unknown error occurred while scanning file"
+            )))
+        }
+    }
+}
+
 /** A Flutter plugin for the Zulip app's ad-hoc needs. */
 // @Keep is needed because this class is used only
 // from ZulipShimPlugin, via reflection.
 @Keep
-class ZulipPlugin : FlutterPlugin { // TODO ActivityAware too?
+class ZulipPlugin : FlutterPlugin {
     private var notificationHost: AndroidNotificationHost? = null
+    private var mediaScannerHost: MediaScannerHost? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Attaching to Flutter engine.")
         notificationHost = AndroidNotificationHost(binding.applicationContext)
+        mediaScannerHost = MediaScannerHost(binding.applicationContext)
+
         AndroidNotificationHostApi.setUp(binding.binaryMessenger, notificationHost)
+        MediaScannerHostApi.setUp(binding.binaryMessenger, mediaScannerHost)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -299,6 +331,9 @@ class ZulipPlugin : FlutterPlugin { // TODO ActivityAware too?
             return
         }
         AndroidNotificationHostApi.setUp(binding.binaryMessenger, null)
+        MediaScannerHostApi.setUp(binding.binaryMessenger, null)
+
         notificationHost = null
+        mediaScannerHost = null
     }
 }
