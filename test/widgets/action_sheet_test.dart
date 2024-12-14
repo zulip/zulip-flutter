@@ -119,6 +119,7 @@ void main() {
         String topic = someTopic,
         bool isChannelSubscribed = true,
         bool? isChannelMuted,
+        UserTopicVisibilityPolicy? visibilityPolicy,
         UnreadMessagesSnapshot? unreadMsgs,
         int? zulipFeatureLevel,
       }) async {
@@ -133,6 +134,9 @@ void main() {
           streams: [effectiveChannel],
           subscriptions: isChannelSubscribed
             ? [eg.subscription(effectiveChannel, isMuted: isChannelMuted ?? false)]
+            : null,
+          userTopics: visibilityPolicy != null
+            ? [eg.userTopicItem(effectiveChannel, topic, visibilityPolicy)]
             : null,
           unreadMsgs: unreadMsgs,
           zulipFeatureLevel: zulipFeatureLevel));
