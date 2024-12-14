@@ -1374,10 +1374,12 @@ class _MessageWithPossibleSenderState extends State<MessageWithPossibleSender> {
           );}
         });
       },
-      child: Container(
-        color: isMessageActionSheetOpen ? pressedTint : Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: isMessageActionSheetOpen ? pressedTint : Colors.transparent
+          ),
           child: Column(children: [
             if (senderRow != null)
               Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
@@ -1408,8 +1410,8 @@ class _MessageWithPossibleSenderState extends State<MessageWithPossibleSender> {
                     ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
                     : null),
               ]),
-          ])),
-      ));
+          ]),
+        )));
   }
 }
 
