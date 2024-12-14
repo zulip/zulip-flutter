@@ -118,16 +118,19 @@ void main() {
         ZulipStream? channel,
         String topic = someTopic,
         UnreadMessagesSnapshot? unreadMsgs,
+        int? zulipFeatureLevel,
       }) async {
         final effectiveChannel = channel ?? someChannel;
 
         addTearDown(testBinding.reset);
 
-        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+        await testBinding.globalStore.add(account, eg.initialSnapshot(
           realmUsers: [eg.selfUser, eg.otherUser],
           streams: [effectiveChannel],
           subscriptions: [eg.subscription(effectiveChannel)],
-          unreadMsgs: unreadMsgs));
+          unreadMsgs: unreadMsgs,
+          zulipFeatureLevel: zulipFeatureLevel));
         store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         connection = store.connection as FakeApiConnection;
       }
