@@ -113,37 +113,37 @@ void main() {
     final someMessage = eg.streamMessage(
       stream: someChannel, topic: someTopic, sender: eg.otherUser);
 
+    Future<void> prepare({
+      ZulipStream? channel,
+      String topic = someTopic,
+      bool isChannelSubscribed = true,
+      bool? isChannelMuted,
+      UserTopicVisibilityPolicy? visibilityPolicy,
+      UnreadMessagesSnapshot? unreadMsgs,
+      int? zulipFeatureLevel,
+    }) async {
+      final effectiveChannel = channel ?? someChannel;
+      assert(isChannelSubscribed || isChannelMuted == null);
+
+      addTearDown(testBinding.reset);
+
+      final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+      await testBinding.globalStore.add(account, eg.initialSnapshot(
+        realmUsers: [eg.selfUser, eg.otherUser],
+        streams: [effectiveChannel],
+        subscriptions: isChannelSubscribed
+          ? [eg.subscription(effectiveChannel, isMuted: isChannelMuted ?? false)]
+          : null,
+        userTopics: visibilityPolicy != null
+          ? [eg.userTopicItem(effectiveChannel, topic, visibilityPolicy)]
+          : null,
+        unreadMsgs: unreadMsgs,
+        zulipFeatureLevel: zulipFeatureLevel));
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+    }
+
     group('showTopicActionSheet', () {
-      Future<void> prepare({
-        ZulipStream? channel,
-        String topic = someTopic,
-        bool isChannelSubscribed = true,
-        bool? isChannelMuted,
-        UserTopicVisibilityPolicy? visibilityPolicy,
-        UnreadMessagesSnapshot? unreadMsgs,
-        int? zulipFeatureLevel,
-      }) async {
-        final effectiveChannel = channel ?? someChannel;
-        assert(isChannelSubscribed || isChannelMuted == null);
-
-        addTearDown(testBinding.reset);
-
-        final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
-        await testBinding.globalStore.add(account, eg.initialSnapshot(
-          realmUsers: [eg.selfUser, eg.otherUser],
-          streams: [effectiveChannel],
-          subscriptions: isChannelSubscribed
-            ? [eg.subscription(effectiveChannel, isMuted: isChannelMuted ?? false)]
-            : null,
-          userTopics: visibilityPolicy != null
-            ? [eg.userTopicItem(effectiveChannel, topic, visibilityPolicy)]
-            : null,
-          unreadMsgs: unreadMsgs,
-          zulipFeatureLevel: zulipFeatureLevel));
-        store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-        connection = store.connection as FakeApiConnection;
-      }
-
       void checkButtons() {
         final actionSheetFinder = find.byType(BottomSheet);
         check(actionSheetFinder).findsOne();
@@ -233,24 +233,20 @@ void main() {
 
         channel = eg.stream();
         topic = 'isChannelMuted: $isChannelMuted, policy: $visibilityPolicy';
-
-        final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
-        final subscriptions = isChannelMuted == null ? <Subscription>[]
-          : [eg.subscription(channel, isMuted: isChannelMuted)];
-        await testBinding.globalStore.add(account, eg.initialSnapshot(
-          realmUsers: [eg.selfUser, eg.otherUser],
-          streams: [channel],
-          subscriptions: subscriptions,
-          userTopics: [eg.userTopicItem(channel, topic, visibilityPolicy)],
-          zulipFeatureLevel: zulipFeatureLevel));
-        store = await testBinding.globalStore.perAccount(account.id);
-        connection = store.connection as FakeApiConnection;
+        await prepare(
+          channel: channel,
+          topic: topic,
+          isChannelSubscribed: isChannelMuted != null, // shorthand; see dartdoc
+          isChannelMuted: isChannelMuted,
+          visibilityPolicy: visibilityPolicy,
+          zulipFeatureLevel: zulipFeatureLevel,
+        );
 
         final message = eg.streamMessage(
           stream: channel, topic: topic, sender: eg.otherUser);
         connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: [message]).toJson());
-        await tester.pumpWidget(TestZulipApp(accountId: account.id,
+        await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: MessageListPage(
             initNarrow: eg.topicNarrow(channel.streamId, topic))));
         await tester.pumpAndSettle();
