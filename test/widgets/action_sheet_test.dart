@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
@@ -143,6 +144,32 @@ void main() {
       connection = store.connection as FakeApiConnection;
     }
 
+    Future<void> showFromInbox(WidgetTester tester, {
+      String topic = someTopic,
+    }) async {
+      final channelIdsWithUnreads = store.unreads.streams.keys;
+      final hasTopicWithUnreads = channelIdsWithUnreads.any((streamId) =>
+        store.unreads.countInTopicNarrow(streamId, TopicName(topic)) > 0);
+      if (!hasTopicWithUnreads) {
+        throw FlutterError.fromParts([
+          ErrorSummary('showFromInbox called without an unread message'),
+          ErrorHint(
+            'Before calling showFromInbox, ensure that [Unreads] '
+            'has an unread message in the relevant topic. ',
+          ),
+        ]);
+      }
+
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const HomePage()));
+      await tester.pump();
+      check(find.byType(InboxPageBody)).findsOne();
+
+      await tester.longPress(find.text(topic));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
     group('showTopicActionSheet', () {
       void checkButtons() {
         final actionSheetFinder = find.byType(BottomSheet);
@@ -164,14 +191,7 @@ void main() {
             topic: someTopic,
             unreadMessageIds: [someMessage.id],
           )]));
-        await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-          child: const HomePage()));
-        await tester.pump();
-        check(find.byType(InboxPageBody)).findsOne();
-
-        await tester.longPress(find.text(someTopic));
-        // sheet appears onscreen; default duration of bottom-sheet enter animation
-        await tester.pump(const Duration(milliseconds: 250));
+        await showFromInbox(tester);
         checkButtons();
       });
 
