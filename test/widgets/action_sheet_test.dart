@@ -238,7 +238,7 @@ void main() {
         final subscriptions = isChannelMuted == null ? <Subscription>[]
           : [eg.subscription(channel, isMuted: isChannelMuted)];
         await testBinding.globalStore.add(account, eg.initialSnapshot(
-          realmUsers: [eg.selfUser],
+          realmUsers: [eg.selfUser, eg.otherUser],
           streams: [channel],
           subscriptions: subscriptions,
           userTopics: [eg.userTopicItem(channel, topic, visibilityPolicy)],
@@ -246,9 +246,10 @@ void main() {
         store = await testBinding.globalStore.perAccount(account.id);
         connection = store.connection as FakeApiConnection;
 
+        final message = eg.streamMessage(
+          stream: channel, topic: topic, sender: eg.otherUser);
         connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [
-            eg.streamMessage(stream: channel, topic: topic)]).toJson());
+          foundOldest: true, messages: [message]).toJson());
         await tester.pumpWidget(TestZulipApp(accountId: account.id,
           child: MessageListPage(
             initNarrow: eg.topicNarrow(channel.streamId, topic))));
