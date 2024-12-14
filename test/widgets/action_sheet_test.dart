@@ -117,10 +117,13 @@ void main() {
       Future<void> prepare({
         ZulipStream? channel,
         String topic = someTopic,
+        bool isChannelSubscribed = true,
+        bool? isChannelMuted,
         UnreadMessagesSnapshot? unreadMsgs,
         int? zulipFeatureLevel,
       }) async {
         final effectiveChannel = channel ?? someChannel;
+        assert(isChannelSubscribed || isChannelMuted == null);
 
         addTearDown(testBinding.reset);
 
@@ -128,7 +131,9 @@ void main() {
         await testBinding.globalStore.add(account, eg.initialSnapshot(
           realmUsers: [eg.selfUser, eg.otherUser],
           streams: [effectiveChannel],
-          subscriptions: [eg.subscription(effectiveChannel)],
+          subscriptions: isChannelSubscribed
+            ? [eg.subscription(effectiveChannel, isMuted: isChannelMuted ?? false)]
+            : null,
           unreadMsgs: unreadMsgs,
           zulipFeatureLevel: zulipFeatureLevel));
         store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
