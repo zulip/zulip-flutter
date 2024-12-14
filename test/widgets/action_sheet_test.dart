@@ -170,6 +170,31 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
 
+    Future<void> showFromAppBar(WidgetTester tester, {
+      ZulipStream? channel,
+      String topic = someTopic,
+      StreamMessage? message,
+    }) async {
+      final effectiveChannel = channel ?? someChannel;
+      final effectiveMessage = message ?? someMessage;
+      assert(effectiveMessage.topic.apiName == topic);
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [effectiveMessage]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: MessageListPage(
+          initNarrow: eg.topicNarrow(effectiveChannel.streamId, topic))));
+      // global store, per-account store, and message list get loaded
+      await tester.pumpAndSettle();
+
+      final topicRow = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text(topic));
+      await tester.longPress(topicRow);
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
     group('showTopicActionSheet', () {
       void checkButtons() {
         final actionSheetFinder = find.byType(BottomSheet);
@@ -197,20 +222,7 @@ void main() {
 
       testWidgets('show from app bar', (tester) async {
         await prepare();
-        connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [someMessage]).toJson());
-        await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-          child: MessageListPage(
-            initNarrow: eg.topicNarrow(someChannel.streamId, someTopic))));
-        // global store, per-account store, and message list get loaded
-        await tester.pumpAndSettle();
-
-        final topicRow = find.descendant(
-          of: find.byType(ZulipAppBar),
-          matching: find.text(someTopic));
-        await tester.longPress(topicRow);
-        // sheet appears onscreen; default duration of bottom-sheet enter animation
-        await tester.pump(const Duration(milliseconds: 250));
+        await showFromAppBar(tester);
         checkButtons();
       });
 
