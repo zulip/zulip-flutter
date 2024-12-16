@@ -3,6 +3,9 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude:
+    # Generated code from drift can contain unused local variables.
+    - lib/model/database.g.dart
   language:
     strict-inference: true
     strict-raw-types: true

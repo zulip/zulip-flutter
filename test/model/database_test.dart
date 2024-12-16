@@ -89,6 +89,25 @@ void main() {
       await check(database.createAccount(accountDataWithSameEmail))
         .throws<AccountAlreadyExistsException>();
     });
+
+    test('initialize GlobalSettings with defaults', () async {
+      check(await database.ensureGlobalSettings())
+        .themeSetting.equals(ThemeSetting.unset);
+    });
+
+    test('ensure single GlobalSettings row', () async {
+      check(await database.select(database.globalSettings).getSingleOrNull())
+        .isNull();
+
+      final globalSettings = await database.ensureGlobalSettings();
+      check(await database.select(database.globalSettings).getSingle())
+        .equals(globalSettings);
+
+      // Subsequent calls to `ensureGlobalSettings` do not insert new rows.
+      check(await database.ensureGlobalSettings()).equals(globalSettings);
+      check(await database.select(database.globalSettings).getSingle())
+        .equals(globalSettings);
+    });
   });
 
   group('migrations', () {
@@ -139,6 +158,13 @@ void main() {
       });
       await after.close();
     });
+
+    test('upgrade to v3', () async {
+      final connection = await verifier.startAt(2);
+      final db = AppDatabase(connection);
+      await verifier.migrateAndValidate(db, 3);
+      await db.close();
+    });
   });
 }
 
@@ -157,4 +183,8 @@ extension UpdateCompanionExtension<T> on UpdateCompanion<T> {
         kv.key: (kv.value as Variable).value
     };
   }
+}
+
+extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
+  Subject<ThemeSetting> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
 }
