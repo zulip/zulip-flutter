@@ -3,6 +3,7 @@ import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import 'schema_versions.g.dart';
+import 'settings.dart';
 
 part 'database.g.dart';
 
@@ -43,13 +44,24 @@ class Accounts extends Table {
   ];
 }
 
+/// The table of the user's chosen settings independent of account, on this
+/// client.
+///
+/// These apply across all the user's accounts on this client (i.e. on this
+/// install of the app on this device).
+@DataClassName('GlobalSettingsData')
+class GlobalSettings extends Table {
+  Column<String> get themeSetting => textEnum<ThemeSetting>()
+    .withDefault(const Variable('unset'))();
+}
+
 class UriConverter extends TypeConverter<Uri, String> {
   const UriConverter();
   @override String toSql(Uri value) => value.toString();
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [Accounts])
+@DriftDatabase(tables: [Accounts, GlobalSettings])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -61,7 +73,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 2; // See note.
+  int get schemaVersion => 3; // See note.
 
   @override
   MigrationStrategy get migration {
@@ -89,6 +101,9 @@ class AppDatabase extends _$AppDatabase {
             from1To2: (m, schema) async {
               await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
             },
+            from2To3: (m, schema) async {
+              await m.createTable(schema.globalSettings);
+            },
           ));
       });
   }
@@ -107,6 +122,17 @@ class AppDatabase extends _$AppDatabase {
       }
       rethrow;
     }
+  }
+
+  Future<GlobalSettingsData> ensureGlobalSettings() async {
+    final settings = await select(globalSettings).getSingleOrNull();
+    // TODO(db): Enforce the singleton constraint more robustly.
+    if (settings != null) {
+      return settings;
+    }
+
+    await into(globalSettings).insert(GlobalSettingsCompanion.insert());
+    return select(globalSettings).getSingle();
   }
 }
 
