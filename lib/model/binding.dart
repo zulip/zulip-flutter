@@ -76,7 +76,7 @@ abstract class ZulipBinding {
   }
 
   /// Get the app's singleton [GlobalStore],
-  /// calling [loadGlobalStore] if not already loaded.
+  /// loading it asynchronously if not already loaded.
   ///
   /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
   /// Use this method only in contexts like notifications where
@@ -312,7 +312,7 @@ class PackageInfo {
 
 /// A concrete binding for use in the live application.
 ///
-/// The global store returned by [loadGlobalStore], and consequently by
+/// The global store returned by [getGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [LiveGlobalStore].
 /// It therefore uses a live server and live, persistent local database.
 ///

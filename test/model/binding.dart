@@ -30,7 +30,7 @@ TestZulipBinding get testBinding => TestZulipBinding.instance;
 /// and [TestGlobalStore.add] to set up test data there.  Such test functions
 /// must also call [reset] to clean up the global store.
 ///
-/// The global store returned by [loadGlobalStore], and consequently by
+/// The global store returned by [getGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [TestGlobalStore].
 class TestZulipBinding extends ZulipBinding {
   /// Initialize the binding if necessary, and ensure it is a [TestZulipBinding].
