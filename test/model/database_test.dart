@@ -4,10 +4,12 @@ import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 
 import 'schemas/schema.dart';
 import 'schemas/schema_v1.dart' as v1;
 import 'schemas/schema_v2.dart' as v2;
+import 'store_checks.dart';
 
 void main() {
   group('non-migration tests', () {
@@ -88,6 +90,25 @@ void main() {
       await database.createAccount(accountData);
       await check(database.createAccount(accountDataWithSameEmail))
         .throws<AccountAlreadyExistsException>();
+    });
+
+    test('initialize GlobalSettings with defaults', () async {
+      check(await database.ensureGlobalSettings())
+        .themeSetting.equals(ThemeSetting.unset);
+    });
+
+    test('ensure single GlobalSettings row', () async {
+      check(await database.select(database.globalSettings).getSingleOrNull())
+        .isNull();
+
+      final globalSettings = await database.ensureGlobalSettings();
+      check(await database.select(database.globalSettings).getSingle())
+        .equals(globalSettings);
+
+      // Subsequent calls to `ensureGlobalSettings` do not insert new rows.
+      check(await database.ensureGlobalSettings()).equals(globalSettings);
+      check(await database.select(database.globalSettings).getSingle())
+        .equals(globalSettings);
     });
   });
 
