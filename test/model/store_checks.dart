@@ -3,7 +3,9 @@ import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/recent_dm_conversations.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
 
@@ -24,6 +26,10 @@ extension GlobalStoreChecks on Subject<GlobalStore> {
   Subject<Iterable<int>> get accountIds => has((x) => x.accountIds, 'accountIds');
   Subject<Iterable<({ int accountId, Account account })>> get accountEntries => has((x) => x.accountEntries, 'accountEntries');
   Subject<Account?> getAccount(int id) => has((x) => x.getAccount(id), 'getAccount($id)');
+}
+
+extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
+  Subject<ThemeSetting?> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
 }
 
 extension PerAccountStoreChecks on Subject<PerAccountStore> {
