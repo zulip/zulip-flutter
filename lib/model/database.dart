@@ -5,6 +5,7 @@ import 'package:sqlite3/common.dart';
 
 import '../log.dart';
 import 'schema_versions.g.dart';
+import 'settings.dart';
 
 part 'database.g.dart';
 
@@ -45,6 +46,17 @@ class Accounts extends Table {
   ];
 }
 
+/// The table of the user's chosen settings independent of account, on this
+/// client.
+///
+/// These apply across all the user's accounts on this client (i.e. on this
+/// install of the app on this device).
+@DataClassName('GlobalSettingsData')
+class GlobalSettings extends Table {
+  Column<String> get themeSetting => textEnum<ThemeSetting>()
+    .nullable()();
+}
+
 class UriConverter extends TypeConverter<Uri, String> {
   const UriConverter();
   @override String toSql(Uri value) => value.toString();
@@ -59,12 +71,14 @@ VersionedSchema _getSchema({
   switch (schemaVersion) {
     case 2:
       return Schema2(database: database);
+    case 3:
+      return Schema3(database: database);
     default:
       throw Exception('unknown schema version: $schemaVersion');
   }
 }
 
-@DriftDatabase(tables: [Accounts])
+@DriftDatabase(tables: [GlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -79,7 +93,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 2; // See note.
+  int get schemaVersion => 3; // See note.
 
   Future<void> _dropAndCreateAll(Migrator m, {
     required int schemaVersion,
@@ -128,6 +142,9 @@ class AppDatabase extends _$AppDatabase {
             from1To2: (m, schema) async {
               await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
             },
+            from2To3: (m, schema) async {
+              await m.createTable(schema.globalSettings);
+            },
           ));
       });
   }
@@ -146,6 +163,25 @@ class AppDatabase extends _$AppDatabase {
       }
       rethrow;
     }
+  }
+
+  Future<GlobalSettingsData> ensureGlobalSettings() async {
+    final settings = await select(globalSettings).get();
+    // TODO(db): Enforce the singleton constraint more robustly.
+    if (settings.isNotEmpty) {
+      if (settings.length > 1) {
+        assert(debugLog('Expected one globalSettings, got multiple: $settings'));
+      }
+      return settings.first;
+    }
+
+    final rowsAffected = await into(globalSettings).insert(GlobalSettingsCompanion.insert());
+    assert(rowsAffected == 1);
+    final result = await select(globalSettings).get();
+    if (result.length > 1) {
+      assert(debugLog('Expected one globalSettings, got multiple: $result'));
+    }
+    return result.first;
   }
 }
 
