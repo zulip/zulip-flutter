@@ -1285,7 +1285,6 @@ class MessageWithPossibleSender extends StatefulWidget {
 
 class _MessageWithPossibleSenderState extends State<MessageWithPossibleSender> {
   bool isMessageActionSheetOpen = false;
-  Color pressedTint = const Color.fromRGBO(0, 0, 0, 0.2);
 
   @override
   Widget build(BuildContext context) {
@@ -1378,7 +1377,7 @@ class _MessageWithPossibleSenderState extends State<MessageWithPossibleSender> {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: isMessageActionSheetOpen ? pressedTint : Colors.transparent
+            color: isMessageActionSheetOpen ? designVariables.pressedTint : Colors.transparent
           ),
           child: Column(children: [
             if (senderRow != null)
