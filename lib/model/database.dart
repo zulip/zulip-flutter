@@ -53,8 +53,9 @@ class AppDatabase extends _$AppDatabase {
 
   // When updating the schema:
   //  * Make the change in the table classes, and bump schemaVersion.
-  //  * Export the new schema and generate test migrations:
-  //    $ tools/check --fix drift
+  //  * Export the new schema and generate test migrations with drift,
+  //    and generate database code with build_runner:
+  //    $ tools/check --fix drift build_runner
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
