@@ -11,4 +11,3 @@ enum ThemeSetting {
   /// Corresponds to [Brightness.dark].
   dark,
 }
-
