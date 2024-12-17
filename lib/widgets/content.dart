@@ -14,6 +14,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
+import '../model/database.dart';
 import '../model/internal_link.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -1342,17 +1343,20 @@ void _launchUrl(BuildContext context, String urlString) async {
     return;
   }
 
+  final globalSettings = GlobalStoreWidget.of(context).globalSettings;
   bool launched = false;
   String? errorMessage;
   try {
     launched = await ZulipBinding.instance.launchUrl(url,
-      mode: switch (defaultTargetPlatform) {
+      mode: switch ((globalSettings.browserPreference, defaultTargetPlatform)) {
+        (BrowserPreference.embedded, _) => UrlLaunchMode.inAppBrowserView,
+        (BrowserPreference.external, _) => UrlLaunchMode.externalApplication,
         // On iOS we prefer LaunchMode.externalApplication because (for
         // HTTP URLs) LaunchMode.platformDefault uses SFSafariViewController,
         // which gives an awkward UX as described here:
         //  https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser/near/1169118
-        TargetPlatform.iOS => UrlLaunchMode.externalApplication,
-        _ => UrlLaunchMode.platformDefault,
+        (BrowserPreference.unset, TargetPlatform.iOS) => UrlLaunchMode.externalApplication,
+        (BrowserPreference.unset, _) => UrlLaunchMode.platformDefault,
       });
   } on PlatformException catch (e) {
     errorMessage = e.message;

@@ -8,6 +8,7 @@ import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
@@ -805,8 +806,16 @@ ChannelUpdateEvent channelUpdateEvent(
 // The entire per-account or global state.
 //
 
-TestGlobalStore globalStore({List<Account> accounts = const []}) {
-  return TestGlobalStore(accounts: accounts);
+const globalSettings = GlobalSettingsData(
+  themeSetting: ThemeSetting.unset,
+  browserPreference: BrowserPreference.unset,
+);
+
+TestGlobalStore globalStore({
+  List<Account> accounts = const [],
+  GlobalSettingsData globalSettings = globalSettings,
+}) {
+  return TestGlobalStore(accounts: accounts, globalSettings: globalSettings);
 }
 
 InitialSnapshot initialSnapshot({
