@@ -60,6 +60,25 @@ enum ThemeSetting {
   dark,
 }
 
+/// What browser the user has set to use for opening links in messages.
+///
+/// See https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser
+/// for the reasoning behind these options.
+///
+/// Renaming existing enum values will invalidate the database.
+/// Write a migration if such a change is necessary.
+enum BrowserPreference {
+  /// Use [UrlLaunchMode.externalApplication] on iOS,
+  /// [UrlLaunchMode.platformDefault] on Android.
+  unset,
+
+  /// Use the in-app browser.
+  embedded,
+
+  /// Use the user's default browser app.
+  external,
+}
+
 /// The table of the user's chosen settings independent of account, on this
 /// client.
 ///
@@ -68,6 +87,9 @@ enum ThemeSetting {
 @DataClassName('GlobalSettingsData')
 class GlobalSettings extends Table {
   Column<String> get themeSetting => textEnum<ThemeSetting>()
+    .withDefault(const Variable('unset'))();
+
+  Column<String> get browserPreference => textEnum<BrowserPreference>()
     .withDefault(const Variable('unset'))();
 }
 
@@ -89,7 +111,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 3; // See note.
+  int get schemaVersion => 4; // See note.
 
   @override
   MigrationStrategy get migration {
@@ -119,6 +141,10 @@ class AppDatabase extends _$AppDatabase {
             },
             from2To3: (m, schema) async {
               await m.createTable(schema.globalSettings);
+            },
+            from3To4: (m, schema) async {
+              await m.addColumn(
+                schema.globalSettings, schema.globalSettings.browserPreference);
             },
           ));
       });

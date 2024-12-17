@@ -518,8 +518,19 @@ class $GlobalSettingsTable extends GlobalSettings
               defaultValue: const Variable('unset'))
           .withConverter<ThemeSetting>(
               $GlobalSettingsTable.$converterthemeSetting);
+  static const VerificationMeta _browserPreferenceMeta =
+      const VerificationMeta('browserPreference');
   @override
-  List<GeneratedColumn> get $columns => [themeSetting];
+  late final GeneratedColumnWithTypeConverter<BrowserPreference, String>
+      browserPreference = GeneratedColumn<String>(
+              'browser_preference', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Variable('unset'))
+          .withConverter<BrowserPreference>(
+              $GlobalSettingsTable.$converterbrowserPreference);
+  @override
+  List<GeneratedColumn> get $columns => [themeSetting, browserPreference];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -531,6 +542,7 @@ class $GlobalSettingsTable extends GlobalSettings
     final context = VerificationContext();
     final data = instance.toColumns(true);
     context.handle(_themeSettingMeta, const VerificationResult.success());
+    context.handle(_browserPreferenceMeta, const VerificationResult.success());
     return context;
   }
 
@@ -543,6 +555,9 @@ class $GlobalSettingsTable extends GlobalSettings
       themeSetting: $GlobalSettingsTable.$converterthemeSetting.fromSql(
           attachedDatabase.typeMapping.read(
               DriftSqlType.string, data['${effectivePrefix}theme_setting'])!),
+      browserPreference: $GlobalSettingsTable.$converterbrowserPreference
+          .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
+              data['${effectivePrefix}browser_preference'])!),
     );
   }
 
@@ -554,12 +569,17 @@ class $GlobalSettingsTable extends GlobalSettings
   static JsonTypeConverter2<ThemeSetting, String, String>
       $converterthemeSetting =
       const EnumNameConverter<ThemeSetting>(ThemeSetting.values);
+  static JsonTypeConverter2<BrowserPreference, String, String>
+      $converterbrowserPreference =
+      const EnumNameConverter<BrowserPreference>(BrowserPreference.values);
 }
 
 class GlobalSettingsData extends DataClass
     implements Insertable<GlobalSettingsData> {
   final ThemeSetting themeSetting;
-  const GlobalSettingsData({required this.themeSetting});
+  final BrowserPreference browserPreference;
+  const GlobalSettingsData(
+      {required this.themeSetting, required this.browserPreference});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -567,12 +587,18 @@ class GlobalSettingsData extends DataClass
       map['theme_setting'] = Variable<String>(
           $GlobalSettingsTable.$converterthemeSetting.toSql(themeSetting));
     }
+    {
+      map['browser_preference'] = Variable<String>($GlobalSettingsTable
+          .$converterbrowserPreference
+          .toSql(browserPreference));
+    }
     return map;
   }
 
   GlobalSettingsCompanion toCompanion(bool nullToAbsent) {
     return GlobalSettingsCompanion(
       themeSetting: Value(themeSetting),
+      browserPreference: Value(browserPreference),
     );
   }
 
@@ -582,6 +608,8 @@ class GlobalSettingsData extends DataClass
     return GlobalSettingsData(
       themeSetting: $GlobalSettingsTable.$converterthemeSetting
           .fromJson(serializer.fromJson<String>(json['themeSetting'])),
+      browserPreference: $GlobalSettingsTable.$converterbrowserPreference
+          .fromJson(serializer.fromJson<String>(json['browserPreference'])),
     );
   }
   @override
@@ -590,62 +618,81 @@ class GlobalSettingsData extends DataClass
     return <String, dynamic>{
       'themeSetting': serializer.toJson<String>(
           $GlobalSettingsTable.$converterthemeSetting.toJson(themeSetting)),
+      'browserPreference': serializer.toJson<String>($GlobalSettingsTable
+          .$converterbrowserPreference
+          .toJson(browserPreference)),
     };
   }
 
-  GlobalSettingsData copyWith({ThemeSetting? themeSetting}) =>
+  GlobalSettingsData copyWith(
+          {ThemeSetting? themeSetting, BrowserPreference? browserPreference}) =>
       GlobalSettingsData(
         themeSetting: themeSetting ?? this.themeSetting,
+        browserPreference: browserPreference ?? this.browserPreference,
       );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
       themeSetting: data.themeSetting.present
           ? data.themeSetting.value
           : this.themeSetting,
+      browserPreference: data.browserPreference.present
+          ? data.browserPreference.value
+          : this.browserPreference,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('GlobalSettingsData(')
-          ..write('themeSetting: $themeSetting')
+          ..write('themeSetting: $themeSetting, ')
+          ..write('browserPreference: $browserPreference')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => themeSetting.hashCode;
+  int get hashCode => Object.hash(themeSetting, browserPreference);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is GlobalSettingsData && other.themeSetting == this.themeSetting);
+      (other is GlobalSettingsData &&
+          other.themeSetting == this.themeSetting &&
+          other.browserPreference == this.browserPreference);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<ThemeSetting> themeSetting;
+  final Value<BrowserPreference> browserPreference;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
+    this.browserPreference = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
     this.themeSetting = const Value.absent(),
+    this.browserPreference = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
     Expression<String>? themeSetting,
+    Expression<String>? browserPreference,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (themeSetting != null) 'theme_setting': themeSetting,
+      if (browserPreference != null) 'browser_preference': browserPreference,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   GlobalSettingsCompanion copyWith(
-      {Value<ThemeSetting>? themeSetting, Value<int>? rowid}) {
+      {Value<ThemeSetting>? themeSetting,
+      Value<BrowserPreference>? browserPreference,
+      Value<int>? rowid}) {
     return GlobalSettingsCompanion(
       themeSetting: themeSetting ?? this.themeSetting,
+      browserPreference: browserPreference ?? this.browserPreference,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -658,6 +705,11 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
           .$converterthemeSetting
           .toSql(themeSetting.value));
     }
+    if (browserPreference.present) {
+      map['browser_preference'] = Variable<String>($GlobalSettingsTable
+          .$converterbrowserPreference
+          .toSql(browserPreference.value));
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -668,6 +720,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   String toString() {
     return (StringBuffer('GlobalSettingsCompanion(')
           ..write('themeSetting: $themeSetting, ')
+          ..write('browserPreference: $browserPreference, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -876,11 +929,13 @@ class $$AccountsTableOrderingComposer
 typedef $$GlobalSettingsTableCreateCompanionBuilder = GlobalSettingsCompanion
     Function({
   Value<ThemeSetting> themeSetting,
+  Value<BrowserPreference> browserPreference,
   Value<int> rowid,
 });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder = GlobalSettingsCompanion
     Function({
   Value<ThemeSetting> themeSetting,
+  Value<BrowserPreference> browserPreference,
   Value<int> rowid,
 });
 
@@ -903,18 +958,22 @@ class $$GlobalSettingsTableTableManager extends RootTableManager<
               $$GlobalSettingsTableOrderingComposer(ComposerState(db, table)),
           updateCompanionCallback: ({
             Value<ThemeSetting> themeSetting = const Value.absent(),
+            Value<BrowserPreference> browserPreference = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               GlobalSettingsCompanion(
             themeSetting: themeSetting,
+            browserPreference: browserPreference,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             Value<ThemeSetting> themeSetting = const Value.absent(),
+            Value<BrowserPreference> browserPreference = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               GlobalSettingsCompanion.insert(
             themeSetting: themeSetting,
+            browserPreference: browserPreference,
             rowid: rowid,
           ),
         ));
@@ -929,6 +988,13 @@ class $$GlobalSettingsTableFilterComposer
           builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
               column,
               joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<BrowserPreference, BrowserPreference, String>
+      get browserPreference => $state.composableBuilder(
+          column: $state.table.browserPreference,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -936,6 +1002,11 @@ class $$GlobalSettingsTableOrderingComposer
   $$GlobalSettingsTableOrderingComposer(super.$state);
   ColumnOrderings<String> get themeSetting => $state.composableBuilder(
       column: $state.table.themeSetting,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get browserPreference => $state.composableBuilder(
+      column: $state.table.browserPreference,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
