@@ -14,6 +14,8 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -28,6 +30,31 @@ import 'test_store.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
+
+  group('GlobalStore.updateGlobalSettings', () {
+    test('smoke', () async {
+      final globalStore = eg.globalStore();
+      check(globalStore).globalSettings.themeSetting.equals(null);
+
+      final result = await globalStore.updateGlobalSettings(
+        GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+      check(globalStore).globalSettings.themeSetting.equals(ThemeSetting.dark);
+      check(result).equals(globalStore.globalSettings);
+    });
+
+    test('should notify listeners', () async {
+      int notifyCount = 0;
+      final globalStore = eg.globalStore();
+      globalStore.addListener(() => notifyCount++);
+      check(notifyCount).equals(0);
+
+      await globalStore.updateGlobalSettings(
+        GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.light)));
+      check(notifyCount).equals(1);
+    });
+
+    // TODO integration tests with sqlite
+  });
 
   final account1 = eg.selfAccount.copyWith(id: 1);
   final account2 = eg.otherAccount.copyWith(id: 2);
@@ -1125,7 +1152,9 @@ void main() {
 }
 
 class LoadingTestGlobalStore extends TestGlobalStore {
-  LoadingTestGlobalStore({required super.accounts});
+  LoadingTestGlobalStore({
+    required super.accounts,
+  }) : super(globalSettings: eg.globalSettings());
 
   Map<int, List<Completer<PerAccountStore>>> completers = {};
 

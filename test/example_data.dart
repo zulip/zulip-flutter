@@ -885,9 +885,16 @@ GlobalSettingsData globalSettings({
     themeSetting: themeSetting,
   );
 }
+const _globalSettings = globalSettings;
 
-TestGlobalStore globalStore({List<Account> accounts = const []}) {
-  return TestGlobalStore(accounts: accounts);
+TestGlobalStore globalStore({
+  GlobalSettingsData? globalSettings,
+  List<Account> accounts = const [],
+}) {
+  return TestGlobalStore(
+    globalSettings: globalSettings ?? _globalSettings(),
+    accounts: accounts,
+  );
 }
 const _globalStore = globalStore;
 

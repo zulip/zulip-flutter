@@ -53,8 +53,31 @@ export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsExce
 ///  * [LiveGlobalStore], the implementation of this class that
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
-  GlobalStore({required Iterable<Account> accounts})
-    : _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+  GlobalStore({
+    required GlobalSettingsData globalSettings,
+    required Iterable<Account> accounts,
+  })
+    : _globalSettings = globalSettings,
+      _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+
+  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  GlobalSettingsData get globalSettings => _globalSettings;
+  GlobalSettingsData _globalSettings;
+
+  /// Update the global settings in the store, returning the new version.
+  ///
+  /// The global settings must already exist in the store.
+  Future<GlobalSettingsData> updateGlobalSettings(GlobalSettingsCompanion data) async {
+    await doUpdateGlobalSettings(data);
+    _globalSettings = _globalSettings.copyWithCompanion(data);
+    notifyListeners();
+    return _globalSettings;
+  }
+
+  /// Update the global settings in the underlying data store.
+  ///
+  /// This should only be called from [updateGlobalSettings].
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data);
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
@@ -814,6 +837,7 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
     required AppDatabase db,
+    required super.globalSettings,
     required super.accounts,
   }) : _db = db;
 
@@ -830,8 +854,11 @@ class LiveGlobalStore extends GlobalStore {
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final globalSettings = await db.ensureGlobalSettings();
     final accounts = await db.select(db.accounts).get();
-    return LiveGlobalStore._(db: db, accounts: accounts);
+    return LiveGlobalStore._(db: db,
+      globalSettings: globalSettings,
+      accounts: accounts);
   }
 
   /// The file path to use for the app database.
@@ -854,6 +881,12 @@ class LiveGlobalStore extends GlobalStore {
   }
 
   final AppDatabase _db;
+
+  @override
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    final rowsAffected = await _db.update(_db.globalSettings).write(data);
+    assert(rowsAffected == 1);
+  }
 
   @override
   Future<PerAccountStore> doLoadPerAccount(int accountId) async {
