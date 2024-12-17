@@ -18,6 +18,9 @@ part 'database.g.dart';
 class GlobalSettings extends Table {
   Column<String> get themeSetting => textEnum<ThemeSetting>()
     .nullable()();
+
+  Column<String> get browserPreference => textEnum<BrowserPreference>()
+    .nullable()();
 }
 
 /// The table of [Account] records in the app's database.
@@ -73,6 +76,8 @@ VersionedSchema _getSchema({
       return Schema2(database: database);
     case 3:
       return Schema3(database: database);
+    case 4:
+      return Schema4(database: database);
     default:
       throw Exception('unknown schema version: $schemaVersion');
   }
@@ -93,7 +98,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 3; // See note.
+  int get schemaVersion => 4; // See note.
 
   Future<void> _dropAndCreateAll(Migrator m, {
     required int schemaVersion,
@@ -144,6 +149,10 @@ class AppDatabase extends _$AppDatabase {
             },
             from2To3: (m, schema) async {
               await m.createTable(schema.globalSettings);
+            },
+            from3To4: (m, schema) async {
+              await m.addColumn(
+                schema.globalSettings, schema.globalSettings.browserPreference);
             },
           ));
       });

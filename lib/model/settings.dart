@@ -24,3 +24,15 @@ enum ThemeSetting {
     };
   }
 }
+
+/// What browser the user has set to use for opening links in messages.
+///
+/// Renaming existing enum values will invalidate the database.
+/// Write a migration if such a change is necessary.
+enum BrowserPreference {
+  /// Use the in-app browser for HTTP links.
+  inApp,
+
+  /// Use the user's default browser app.
+  external,
+}
