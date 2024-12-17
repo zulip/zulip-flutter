@@ -880,9 +880,11 @@ ChannelUpdateEvent channelUpdateEvent(
 
 GlobalSettingsData globalSettings({
   ThemeSetting themeSetting = ThemeSetting.unset,
+  BrowserPreference? browserPreference,
 }) {
   return GlobalSettingsData(
     themeSetting: themeSetting,
+    browserPreference: browserPreference,
   );
 }
 const _globalSettings = globalSettings;
