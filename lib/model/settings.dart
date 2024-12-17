@@ -30,3 +30,17 @@ enum ThemeSetting {
   }
 }
 
+/// What browser the user has set to use for opening links in messages.
+///
+/// See https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser
+/// for the reasoning behind these options.
+///
+/// Renaming existing enum values will invalidate the database.
+/// Write a migration if such a change is necessary.
+enum BrowserPreference {
+  /// Use the in-app browser.
+  embedded,
+
+  /// Use the user's default browser app.
+  external,
+}
