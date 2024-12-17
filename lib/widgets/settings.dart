@@ -23,6 +23,16 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(title: Text(zulipLocalizations.settingsPageTitle)),
       body: Column(children: [
         _Select(initialValue: globalStore.globalSettings.themeSetting),
+        const Divider(),
+        SwitchListTile(
+          title: Text(zulipLocalizations.settingsUseExternal),
+          value: globalStore.globalSettings.effectiveBrowserPreference == BrowserPreference.external,
+          onChanged: (useExternal) {
+            globalStore.updateGlobalSettings(GlobalSettingsCompanion(
+              browserPreference: Value(
+                useExternal ? BrowserPreference.external
+                            : BrowserPreference.embedded)));
+          }),
       ]));
   }
 }
