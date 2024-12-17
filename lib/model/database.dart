@@ -53,6 +53,9 @@ class Accounts extends Table {
 class GlobalSettings extends Table {
   Column<String> get themeSetting => textEnum<ThemeSetting>()
     .withDefault(const Variable('unset'))();
+
+  Column<String> get browserPreference => textEnum<BrowserPreference>()
+    .nullable()();
 }
 
 class UriConverter extends TypeConverter<Uri, String> {
@@ -73,7 +76,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 3; // See note.
+  int get schemaVersion => 4; // See note.
 
   Future<void> _resetDatabase(Migrator m) async {
     // This should only ever happen in dev.  As a dev convenience,
@@ -116,6 +119,10 @@ class AppDatabase extends _$AppDatabase {
             },
             from2To3: (m, schema) async {
               await m.createTable(schema.globalSettings);
+            },
+            from3To4: (m, schema) async {
+              await m.addColumn(
+                schema.globalSettings, schema.globalSettings.browserPreference);
             },
           ));
       });

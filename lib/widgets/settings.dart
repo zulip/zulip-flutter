@@ -32,11 +32,19 @@ class SettingsPage extends StatelessWidget {
           child: SafeArea(
             minimum: const EdgeInsets.only(bottom: 8),
             child: Column(children: [
+              SwitchListTile(
+                title: Text(zulipLocalizations.settingsUseExternal),
+                value: globalStore.globalSettings.effectiveBrowserPreference == BrowserPreference.external,
+                onChanged: (useExternal) {
+                  globalStore.updateGlobalSettings(GlobalSettingsCompanion(
+                    browserPreference: Value(
+                      useExternal ? BrowserPreference.external
+                                  : BrowserPreference.embedded)));
+                }),
               Theme(
                 data: themeData.copyWith(splashColor: Colors.transparent),
                 child: _ThemeSetting(initialValue: globalStore.globalSettings.themeSetting)),
-            ]),
-          ))));
+            ])))));
   }
 }
 

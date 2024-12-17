@@ -23,6 +23,10 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "settingsUseExternal": "Use external browser",
+  "@settingsUseExternal": {
+    "description": "Whether to open links with external browser or not"
+  },
   "switchAccountButton": "Switch account",
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."

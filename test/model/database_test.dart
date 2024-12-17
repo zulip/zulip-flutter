@@ -9,6 +9,8 @@ import 'package:zulip/model/settings.dart';
 import 'schemas/schema.dart';
 import 'schemas/schema_v1.dart' as v1;
 import 'schemas/schema_v2.dart' as v2;
+import 'schemas/schema_v3.dart' as v3;
+import 'schemas/schema_v4.dart' as v4;
 
 void main() {
   group('non-migration tests', () {
@@ -182,6 +184,32 @@ void main() {
       final db = AppDatabase(connection);
       await verifier.migrateAndValidate(db, 3);
       await db.close();
+    });
+
+    test('upgrade to v4, empty', () async {
+      final connection = await verifier.startAt(3);
+      final db = AppDatabase(connection);
+      await verifier.migrateAndValidate(db, 4);
+      await db.close();
+    });
+
+    test('upgrade to v4, with data', () async {
+      final schema = await verifier.schemaAt(3);
+      final before = v3.DatabaseAtV3(schema.newConnection());
+      await before.into(before.globalSettings).insert(
+        v3.GlobalSettingsCompanion.insert(
+          themeSetting: Value(ThemeSetting.light.name)));
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 4);
+      await db.close();
+
+      final after = v4.DatabaseAtV4(schema.newConnection());
+      final globalSettings = await after.select(after.globalSettings).getSingle();
+      check(globalSettings.themeSetting).equals(ThemeSetting.light.name);
+      check(globalSettings.browserPreference).isNull();
+      await after.close();
     });
   });
 }
