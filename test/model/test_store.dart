@@ -1,6 +1,7 @@
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/store.dart';
 
@@ -22,7 +23,15 @@ import '../example_data.dart' as eg;
 ///
 /// See also [TestZulipBinding.globalStore], which provides one of these.
 class TestGlobalStore extends GlobalStore {
-  TestGlobalStore({required super.accounts});
+  TestGlobalStore({required super.globalSettings, required super.accounts})
+    : _globalSettings = globalSettings;
+
+  GlobalSettingsData? _globalSettings;
+
+  @override
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    _globalSettings = _globalSettings!.copyWithCompanion(data);
+  }
 
   final Map<
     ({Uri realmUrl, int? zulipFeatureLevel, String? email, String? apiKey}),

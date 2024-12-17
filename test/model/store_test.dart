@@ -1153,7 +1153,9 @@ void main() {
 }
 
 class LoadingTestGlobalStore extends TestGlobalStore {
-  LoadingTestGlobalStore({required super.accounts});
+  LoadingTestGlobalStore({
+    required super.accounts,
+  }) : super(globalSettings: eg.globalSettings());
 
   Map<int, List<Completer<PerAccountStore>>> completers = {};
 
