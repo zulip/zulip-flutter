@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:drift/remote.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart';
+
+import 'schema_versions.dart';
 
 part 'database.g.dart';
 
@@ -39,8 +36,6 @@ class Accounts extends Table {
 
   Column<String> get ackedPushToken => text().nullable()();
 
-  // If adding a column, be sure to add it to copyWithCompanion too.
-
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
@@ -48,20 +43,54 @@ class Accounts extends Table {
   ];
 }
 
-extension AccountExtension on Account {
-  Account copyWithCompanion(AccountsCompanion data) { // TODO(drift): generate this
-    return Account(
-      id: data.id.present ? data.id.value : id,
-      realmUrl: data.realmUrl.present ? data.realmUrl.value : realmUrl,
-      userId: data.userId.present ? data.userId.value : userId,
-      email: data.email.present ? data.email.value : email,
-      apiKey: data.apiKey.present ? data.apiKey.value : apiKey,
-      zulipVersion: data.zulipVersion.present ? data.zulipVersion.value : zulipVersion,
-      zulipMergeBase: data.zulipMergeBase.present ? data.zulipMergeBase.value : zulipMergeBase,
-      zulipFeatureLevel: data.zulipFeatureLevel.present ? data.zulipFeatureLevel.value : zulipFeatureLevel,
-      ackedPushToken: data.ackedPushToken.present ? data.ackedPushToken.value : ackedPushToken,
-    );
-  }
+/// The visual theme of the app.
+///
+/// See [zulipThemeData] for how themes are determined.
+///
+/// Renaming existing enum values will invalidate the database.
+/// Write a migration if such a change is necessary.
+enum ThemeSetting {
+  /// Corresponds to the default platform setting.
+  unset,
+
+  /// Corresponds to [Brightness.light].
+  light,
+
+  /// Corresponds to [Brightness.dark].
+  dark,
+}
+
+/// What browser the user has set to use for opening links in messages.
+///
+/// See https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser
+/// for the reasoning behind these options.
+///
+/// Renaming existing enum values will invalidate the database.
+/// Write a migration if such a change is necessary.
+enum BrowserPreference {
+  /// Use [UrlLaunchMode.externalApplication] on iOS,
+  /// [UrlLaunchMode.platformDefault] on Android.
+  unset,
+
+  /// Use the in-app browser.
+  embedded,
+
+  /// Use the user's default browser app.
+  external,
+}
+
+/// The table of the user's chosen settings independent of account, on this
+/// client.
+///
+/// These apply across all the user's accounts on this client (i.e. on this
+/// install of the app on this device).
+@DataClassName('GlobalSettingsData')
+class GlobalSettings extends Table {
+  Column<String> get themeSetting => textEnum<ThemeSetting>()
+    .withDefault(const Variable('unset'))();
+
+  Column<String> get browserPreference => textEnum<BrowserPreference>()
+    .withDefault(const Variable('unset'))();
 }
 
 class UriConverter extends TypeConverter<Uri, String> {
@@ -70,29 +99,19 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    // TODO decide if this path is the right one to use
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(path.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}
-
-@DriftDatabase(tables: [Accounts])
+@DriftDatabase(tables: [Accounts, GlobalSettings])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
-  AppDatabase.live() : this(_openConnection());
-
   // When updating the schema:
   //  * Make the change in the table classes, and bump schemaVersion.
-  //  * Export the new schema and generate test migrations:
-  //    $ tools/check --fix drift
+  //  * Export the new schema and generate test migrations with drift,
+  //    and generate database code with build_runner:
+  //    $ tools/check --fix drift build_runner
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 2; // See note.
+  int get schemaVersion => 4; // See note.
 
   @override
   MigrationStrategy get migration {
@@ -115,12 +134,20 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
 
-        if (from < 2 && 2 <= to) {
-          await m.addColumn(accounts, accounts.ackedPushToken);
-        }
-        // New migrations go here.
-      }
-    );
+        await m.runMigrationSteps(from: from, to: to,
+          steps: migrationSteps(
+            from1To2: (m, schema) async {
+              await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+            },
+            from2To3: (m, schema) async {
+              await m.createTable(schema.globalSettings);
+            },
+            from3To4: (m, schema) async {
+              await m.addColumn(
+                schema.globalSettings, schema.globalSettings.browserPreference);
+            },
+          ));
+      });
   }
 
   Future<int> createAccount(AccountsCompanion values) async {
@@ -137,6 +164,17 @@ class AppDatabase extends _$AppDatabase {
       }
       rethrow;
     }
+  }
+
+  Future<GlobalSettingsData> ensureGlobalSettings() async {
+    final settings = await select(globalSettings).getSingleOrNull();
+    // TODO(db): Enforce the singleton constraint more robustly.
+    if (settings != null) {
+      return settings;
+    }
+
+    await into(globalSettings).insert(GlobalSettingsCompanion.insert());
+    return select(globalSettings).getSingle();
   }
 }
 
