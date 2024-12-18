@@ -11,6 +11,8 @@ assets/l10n/app_*.arb -diff
 # though not the similar file that is the source for what to translate:
 assets/l10n/app_en.arb diff
 
+# Generated files for running migrations:
+lib/model/schema_versions.dart -diff
 # Generated files for testing migrations:
 test/model/schemas/*.dart -diff
 test/model/schemas/*.json -diff
