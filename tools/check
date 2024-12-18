@@ -378,13 +378,15 @@ run_l10n() {
 
 run_drift() {
     local schema_dir=test/model/schemas/
+    local migration_helper_path=lib/model/schema_versions.g.dart
+    local outputs=( "${schema_dir}" "${migration_helper_path}" )
 
     # Omitted from this check:
     #   pubspec.{yaml,lock} tools/check
-    files_check lib/model/database{,.g}.dart "${schema_dir}" \
+    files_check lib/model/database{,.g}.dart "${outputs[@]}" \
     || return 0
 
-    check_no_uncommitted_or_untracked "${schema_dir}" \
+    check_no_uncommitted_or_untracked "${outputs[@]}" \
     || return
 
     dart run drift_dev schema dump \
@@ -393,8 +395,11 @@ run_drift() {
     dart run drift_dev schema generate --data-classes --companions \
         "${schema_dir}" "${schema_dir}" \
     || return
+    dart run drift_dev schema steps \
+        "${schema_dir}" "${migration_helper_path}" \
+    || return
 
-    check_no_changes "schema updates" "${schema_dir}"
+    check_no_changes "schema or migration-helper updates" "${outputs[@]}"
 }
 
 filter_flutter_pub_run_output() {
