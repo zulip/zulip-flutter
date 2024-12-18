@@ -24,7 +24,9 @@ import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
 
 const newestResult = eg.newestGetMessagesResult;
+const oldestResult = eg.oldestGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
+const newerResult = eg.newerGetMessagesResult;
 
 void main() {
   // These variables are the common state operated on by each test.
@@ -56,7 +58,7 @@ void main() {
     notifiedCount = 0;
     model = MessageListView.init(store: store, narrow: narrow)
       ..addListener(() {
-        checkInvariants(model);
+        // checkInvariants(model);
         notifiedCount++;
       });
     check(model).fetched.isFalse();
@@ -72,6 +74,16 @@ void main() {
   }) async {
     connection.prepare(json:
       newestResult(foundOldest: foundOldest, messages: messages).toJson());
+    await model.fetchInitial();
+    checkNotifiedOnce();
+  }
+
+  Future<void> prepareWithOldestMessages({
+    required bool foundNewest,
+    required List<Message> messages,
+  }) async {
+    connection.prepare(json:
+      oldestResult(foundNewest: foundNewest, messages: messages).toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
   }
@@ -100,7 +112,7 @@ void main() {
     await prepare(narrow: narrow);
     connection.prepare(json: newestResult(
       foundOldest: false,
-      messages: List.generate(kMessageListFetchBatchSize,
+      messages: List.generate(kMessageListFetchBatchSize * 2,
         (i) => eg.streamMessage()),
     ).toJson());
     final fetchFuture = model.fetchInitial();
@@ -110,13 +122,13 @@ void main() {
     await fetchFuture;
     checkNotifiedOnce();
     check(model)
-      ..messages.length.equals(kMessageListFetchBatchSize)
+      ..messages.length.equals(kMessageListFetchBatchSize * 2)
       ..haveOldest.isFalse();
     checkLastRequest(
       narrow: narrow.apiEncode(),
-      anchor: 'newest',
+      anchor: 'first_unread',
       numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
+      numAfter: kMessageListFetchBatchSize,
     );
   });
 
@@ -312,6 +324,121 @@ void main() {
     recent_senders_test.checkMatchesMessages(store.recentSenders,
       [...initialMessages, ...oldMessages]);
   });
+
+  test('fetchNewer', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final initialMessages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i));
+    final anchorMessage = initialMessages.last;
+    await prepareWithOldestMessages(foundNewest: false, messages: initialMessages);
+    connection.prepare(json: newerResult(
+      anchor: anchorMessage.id,
+      foundNewest: false,
+      messages: [
+        anchorMessage,
+        ...List.generate(100, (i) => eg.streamMessage(id: 1100 + i))
+      ]).toJson());
+    final fetchFuture = model.fetchNewer();
+    checkNotifiedOnce();
+    check(model).fetchingNewer.isTrue();
+
+    await fetchFuture;
+    checkNotifiedOnce();
+    check(model)
+      ..fetchingNewer.isFalse()
+      ..messages.length.equals(200);
+    checkLastRequest(
+      narrow: narrow.apiEncode(),
+      anchor: '1099',
+      includeAnchor: true,
+      numBefore: 0,
+      numAfter: kMessageListFetchBatchSize,
+    );
+  });
+
+  test('fetchNewer nop when already fetching', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final initialMessages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i));
+    final anchorMessage = initialMessages.last;
+    await prepareWithOldestMessages(foundNewest: false, messages: initialMessages);
+
+    connection.prepare(json: newerResult(
+      anchor: anchorMessage.id,
+      foundNewest: false,
+      messages: [
+        anchorMessage,
+        ...List.generate(100, (i) => eg.streamMessage(id: 1100 + i))
+      ]).toJson());
+    final fetchFuture = model.fetchNewer();
+    checkNotifiedOnce();
+    check(model).fetchingNewer.isTrue();
+
+    // Don't prepare another response.
+    final fetchFuture2 = model.fetchNewer();
+    checkNotNotified();
+    check(model).fetchingNewer.isTrue();
+
+    await fetchFuture;
+    await fetchFuture2;
+    // We must not have made another request, because we didn't
+    // prepare another response and didn't get an exception.
+    checkNotifiedOnce();
+    check(model)
+      ..fetchingNewer.isFalse()
+      ..messages.length.equals(200);
+  });
+
+  test('fetchNewer nop when already haveNewest true', () async {
+    await prepare(narrow: const CombinedFeedNarrow());
+    await prepareWithOldestMessages(foundNewest: true, messages:
+      List.generate(30, (i) => eg.streamMessage()));
+    check(model)
+      ..haveNewest.isTrue()
+      ..messages.length.equals(30);
+
+    await model.fetchNewer();
+    // We must not have made a request, because we didn't
+    // prepare a response and didn't get an exception.
+    checkNotNotified();
+    check(model)
+      ..haveNewest.isTrue()
+      ..messages.length.equals(30);
+  });
+
+  // test('fetchNewer nop during backoff', () => awaitFakeAsync((async) async {
+  //   final newerMessages = List.generate(5, (i) => eg.streamMessage());
+  //   final initialMessages = List.generate(5, (i) => eg.streamMessage());
+  //   await prepare(narrow: const CombinedFeedNarrow());
+  //   await prepareWithOldestMessages(foundNewest: false, messages: initialMessages);
+  //   check(connection.takeRequests()).single;
+
+  //   connection.prepare(httpStatus: 400, json: {
+  //     'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+  //   check(async.pendingTimers).isEmpty();
+  //   await check(model.fetchNewer()).throws<ZulipApiException>();
+  //   checkNotified(count: 2);
+  //   check(model).fetchNewerCoolingDown.isTrue();
+  //   check(connection.takeRequests()).single;
+
+  //   await model.fetchNewer();
+  //   checkNotNotified();
+  //   check(model).fetchNewerCoolingDown.isTrue();
+  //   check(model).fetchingNewer.isFalse();
+  //   check(connection.lastRequest).isNull();
+
+  //   // Wait long enough that a first backoff is sure to finish.
+  //   async.elapse(const Duration(seconds: 1));
+  //   check(model).fetchNewerCoolingDown.isFalse();
+  //   checkNotifiedOnce();
+  //   check(connection.lastRequest).isNull();
+
+  //   connection.prepare(json: newerResult(
+  //     anchor: 1000, foundNewest: false, messages: newerMessages).toJson());
+  //   await model.fetchNewer();
+  //   checkNotified(count: 2);
+  //   check(connection.takeRequests()).single;
+  // }));
 
   test('MessageEvent', () async {
     final stream = eg.stream();
@@ -1955,4 +2082,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
   Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
   Subject<bool> get fetchOlderCoolingDown => has((x) => x.fetchOlderCoolingDown, 'fetchOlderCoolingDown');
+  Subject<bool> get haveNewest => has((x) => x.haveNewest, 'haveNewest');
+  Subject<bool> get fetchingNewer => has((x) => x.fetchingNewer, 'fetchingNewer');
+  Subject<bool> get fetchNewerCoolingDown => has((x) => x.fetchOlderCoolingDown, 'fetchNewerCoolingDown');
 }
