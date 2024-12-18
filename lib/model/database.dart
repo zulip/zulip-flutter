@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
+import 'schema_versions.g.dart';
+
 part 'database.g.dart';
 
 /// The table of [Account] records in the app's database.
@@ -82,12 +84,13 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
 
-        if (from < 2 && 2 <= to) {
-          await m.addColumn(accounts, accounts.ackedPushToken);
-        }
-        // New migrations go here.
-      }
-    );
+        await m.runMigrationSteps(from: from, to: to,
+          steps: migrationSteps(
+            from1To2: (m, schema) async {
+              await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+            },
+          ));
+      });
   }
 
   Future<int> createAccount(AccountsCompanion values) async {
