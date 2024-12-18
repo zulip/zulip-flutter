@@ -537,4 +537,34 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get permissionDeniedTitle => 'Permission Denied';
+
+  @override
+  String get storagePermissionPermanentlyDenied => 'Storage permission is permanently denied. Please enable it in system settings.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get storagePermissionRequired => 'Storage permission is required to download images';
+
+  @override
+  String get imageDownloadFailed => 'Server error while downloading image';
+
+  @override
+  String get imageDownloadSuccess => 'Image downloaded successfully';
+
+  @override
+  String get imageDownloadError => 'Failed to download image';
+
+  @override
+  String get downloadImageTooltip => 'Download image';
+
+  @override
+  String get downloadTimeout => 'Download timed out. Please try again.';
 }
