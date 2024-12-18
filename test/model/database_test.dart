@@ -98,6 +98,13 @@ void main() {
       verifier = SchemaVerifier(GeneratedHelper());
     });
 
+    test('downgrading', () async {
+      final connection = await verifier.startAt(2);
+      final db = AppDatabase(connection);
+      await verifier.migrateAndValidate(db, 1);
+      await db.close();
+    }, skip: true); // TODO(#1172): unskip this
+
     test('upgrade to v2, empty', () async {
       final connection = await verifier.startAt(1);
       final db = AppDatabase(connection);
