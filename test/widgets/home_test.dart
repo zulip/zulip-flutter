@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
+import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/subscription_list.dart';
@@ -19,6 +21,8 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_navigation.dart';
+import 'message_list_checks.dart';
 import 'page_checks.dart';
 import 'test_app.dart';
 
@@ -26,15 +30,20 @@ void main () {
   TestZulipBinding.ensureInitialized();
 
   late PerAccountStore store;
+  late FakeApiConnection connection;
 
-  Future<void> prepare(WidgetTester tester) async {
+  Future<void> prepare(WidgetTester tester, {
+    NavigatorObserver? navigatorObserver,
+  }) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    connection = store.connection as FakeApiConnection;
     await store.addUser(eg.selfUser);
 
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
+      navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
       child: const HomePage()));
     await tester.pump();
   }
@@ -87,6 +96,23 @@ void main () {
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
+    });
+
+    testWidgets('combined feed', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      await prepare(tester, navigatorObserver: testNavObserver);
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+      await tester.tap(find.byIcon(ZulipIcons.message_feed));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(const CombinedFeedNarrow());
     });
   });
 
