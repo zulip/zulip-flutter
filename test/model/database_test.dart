@@ -137,6 +137,7 @@ void main() {
         ...accountV1.toJson(),
         'ackedPushToken': null,
       });
+      await after.close();
     });
   });
 }
