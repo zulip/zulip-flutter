@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../api/exception.dart';
 import '../model/binding.dart';
 import '../model/store.dart';
 import 'page.dart';
@@ -245,11 +246,23 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
           // [didChangeDependencies] will run again, this time in the
           // `store != null` case above.
           await globalStore.perAccount(widget.accountId);
-        } on AccountNotFoundException {
-          // The account was logged out while its store was loading.
-          // This widget will be showing [placeholder] perpetually,
-          // but that's OK as long as other code will be removing it from the UI
-          // (usually by using [routeToRemoveOnLogout]).
+        } catch (e) {
+          switch (e) {
+            case AccountNotFoundException():
+              // The account was logged out while its store was loading.
+              // This widget will be showing [placeholder] perpetually,
+              // but that's OK as long as other code will be removing it from the UI
+              // (usually by using [routeToRemoveOnLogout]).
+              return;
+            case ZulipApiException(code: 'INVALID_API_KEY'):
+              // The API key is invalid and the store can never be loaded
+              // unless the user retries manually.
+              // TODO(#737): Reset the navigator stack and bring the user back
+              //   to the choose-account page.
+              return;
+            default:
+              rethrow;
+          }
         }
       }();
     }

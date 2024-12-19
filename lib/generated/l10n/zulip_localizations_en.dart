@@ -159,7 +159,7 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   }
 
   @override
-  String get errorLoginCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Could not connect';
 
   @override
   String get errorMessageDoesNotSeemToExist => 'That message does not seem to exist.';
@@ -356,6 +356,11 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
+
+  @override
+  String errorInvalidApiKeyMessage(String url) {
+    return 'Your account at $url cannot be authenticated. Please logout and try again.';
+  }
 
   @override
   String get errorInvalidResponse => 'The server sent an invalid response';
