@@ -19,6 +19,10 @@
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."
   },
+  "settingsPageTitle": "Settings",
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
   "switchAccountButton": "Switch account",
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
