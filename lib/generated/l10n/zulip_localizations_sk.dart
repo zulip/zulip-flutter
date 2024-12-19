@@ -24,6 +24,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Zvoliť účet';
 
   @override
+  String get settingsPageTitle => 'Settings';
+
+  @override
   String get switchAccountButton => 'Zmeniť účet';
 
   @override
@@ -612,6 +615,18 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String pollVoterNames(String voterNames) {
     return '($voterNames)';
   }
+
+  @override
+  String get themeSettingTitle => 'THEME';
+
+  @override
+  String get themeSettingDark => 'Dark';
+
+  @override
+  String get themeSettingLight => 'Light';
+
+  @override
+  String get themeSettingSystem => 'System';
 
   @override
   String get pollWidgetQuestionMissing => 'Bez otázky.';

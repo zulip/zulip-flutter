@@ -26,6 +26,7 @@ extension GlobalStoreChecks on Subject<GlobalStore> {
   Subject<Iterable<int>> get accountIds => has((x) => x.accountIds, 'accountIds');
   Subject<Iterable<({ int accountId, Account account })>> get accountEntries => has((x) => x.accountEntries, 'accountEntries');
   Subject<Account?> getAccount(int id) => has((x) => x.getAccount(id), 'getAccount($id)');
+  Subject<GlobalSettingsData> get globalSettings => has((x) => x.globalSettings, 'globalSettings');
 }
 
 extension PerAccountStoreChecks on Subject<PerAccountStore> {
