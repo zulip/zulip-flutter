@@ -24,6 +24,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Zvoliť účet';
 
   @override
+  String get settingsPageTitle => 'Settings';
+
+  @override
   String get switchAccountButton => 'Zmeniť účet';
 
   @override

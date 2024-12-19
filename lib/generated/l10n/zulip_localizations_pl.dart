@@ -24,6 +24,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Wybierz konto';
 
   @override
+  String get settingsPageTitle => 'Settings';
+
+  @override
   String get switchAccountButton => 'Przełącz konto';
 
   @override
