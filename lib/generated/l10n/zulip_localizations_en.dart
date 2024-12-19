@@ -358,6 +358,11 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
 
   @override
+  String errorInvalidApiKeyMessage(String url) {
+    return 'Your account at $url cannot be authenticated. Please try again or use another account.';
+  }
+
+  @override
   String get errorInvalidResponse => 'The server sent an invalid response';
 
   @override

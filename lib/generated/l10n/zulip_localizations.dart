@@ -721,6 +721,12 @@ abstract class ZulipLocalizations {
   /// **'Topics are required in this organization.'**
   String get topicValidationErrorMandatoryButEmpty;
 
+  /// Error message in the dialog for invalid API key.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account at {url} cannot be authenticated. Please try again or use another account.'**
+  String errorInvalidApiKeyMessage(String url);
+
   /// Error message when an API call returned an invalid response.
   ///
   /// In en, this message translates to:

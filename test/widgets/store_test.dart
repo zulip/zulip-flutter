@@ -1,13 +1,19 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
 import '../model/store_checks.dart';
+import '../model/test_store.dart';
+import 'dialog_checks.dart';
 
 /// A widget whose state uses [PerAccountStoreAwareStateMixin].
 class MyWidgetWithMixin extends StatefulWidget {
@@ -111,6 +117,45 @@ void main() {
     check(tester.takeException())
       .has((x) => x.toString(), 'toString') // TODO(checks): what's a good convention for this?
       .contains('consider MaterialAccountWidgetRoute');
+  });
+
+  testWidgets('PerAccountStoreWidget reset to choose-account page'
+              ' when logging out on invalid API key', (tester) async {
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    addTearDown(testBinding.reset);
+
+    const loadPerAccountDuration = Duration(seconds: 30);
+    assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
+    testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+    testBinding.globalStore.loadPerAccountException = ZulipApiException(
+      routeName: '/register', code: 'INVALID_API_KEY', httpStatus: 400,
+      data: {}, message: '');
+    await tester.pumpWidget(const ZulipApp());
+    await tester.pump(); // start to load account
+    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(ChooseAccountPage)).findsNothing();
+    check(find.byType(BackButton)).findsNothing();
+
+    await tester.pump(kTryAnotherAccountWaitPeriod);
+    await tester.tap(find.text('Try another account'));
+    await tester.pump(); // tap the button
+    await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(ChooseAccountPage)).findsOne();
+    check(find.byType(BackButton)).findsOne();
+
+    await tester.pump(loadPerAccountDuration);
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(ChooseAccountPage)).findsOne();
+    // Choose-account page's route should be at the root level.
+    check(find.byType(BackButton)).findsNothing();
+    checkErrorDialog(tester,
+      expectedTitle: 'Could not connect',
+      expectedMessage:
+        'Your account at https://chat.example/ cannot be authenticated.'
+        ' Please try again or use another account.');
   });
 
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {

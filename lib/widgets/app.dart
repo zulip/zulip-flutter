@@ -233,6 +233,14 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 class ChooseAccountPage extends StatelessWidget {
   const ChooseAccountPage({super.key});
 
+  /// Navigate to [ChooseAccountPage], ensuring that its route is at the root level.
+  static void navigate(BuildContext context) {
+    final navigator = Navigator.of(context);
+    navigator.popUntil((route) => route.isFirst);
+    unawaited(navigator.pushReplacement(
+      MaterialWidgetRoute(page: const ChooseAccountPage())));
+  }
+
   Widget _buildAccountItem(
     BuildContext context, {
     required int accountId,
