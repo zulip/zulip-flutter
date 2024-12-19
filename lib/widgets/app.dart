@@ -189,6 +189,11 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
       child: Builder(builder: (context) {
+        final effectiveNavigatorObservers = [
+          _EmptyStackNavigatorObserver(),
+          if (widget.navigatorObservers != null)
+            ...widget.navigatorObservers!,
+        ];
         final globalStore = GlobalStoreWidget.of(context);
         // TODO(#524) choose initial account as last one used
         final initialAccountId = globalStore.accounts.firstOrNull?.id;
@@ -199,7 +204,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           theme: themeData,
 
           navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: widget.navigatorObservers ?? const [],
+          navigatorObservers: effectiveNavigatorObservers,
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
               SchedulerBinding.instance.addPostFrameCallback(
@@ -227,6 +232,36 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             ];
           });
         }));
+  }
+}
+
+class _EmptyStackNavigatorObserver extends NavigatorObserver {
+  void _pushIfEmpty() async {
+    final navigator = await ZulipApp.navigator;
+    bool isEmptyStack = true;
+    // TODO: find a better way to inspect the navigator stack
+    navigator.popUntil((route) {
+      isEmptyStack = false;
+      return true; // never actually pops
+    });
+    if (isEmptyStack) {
+      unawaited(navigator.push(
+        MaterialWidgetRoute(page: const ChooseAccountPage())));
+    }
+  }
+
+  @override
+  void didRemove(Route<void> route, Route<void>? previousRoute) async {
+    if (previousRoute == null) {
+      _pushIfEmpty();
+    }
+  }
+
+  @override
+  void didPop(Route<void> route, Route<void>? previousRoute) async {
+    if (previousRoute == null) {
+      _pushIfEmpty();
+    }
   }
 }
 
