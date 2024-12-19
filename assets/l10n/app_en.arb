@@ -680,5 +680,45 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "permissionDeniedTitle": "Permission Denied",
+  "@permissionDeniedTitle": {
+    "description": "Title for permission denied dialog"
+  },
+  "storagePermissionPermanentlyDenied": "Storage permission is permanently denied. Please enable it in system settings.",
+  "@storagePermissionPermanentlyDenied": {
+    "description": "Message when storage permission is permanently denied."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Text for cancelling the permanent permission denied dialog"
+  },
+  "openSettings": "Open Settings",
+  "@openSettings": {
+    "description": "Message for opening settings through permission denied dialog"
+  },
+  "storagePermissionRequired": "Storage permission is required to download images",
+  "@storagePermissionRequired": {
+    "description": "Message when storage permission is needed"
+  },
+  "imageDownloadFailed": "Server error while downloading image",
+  "@imageDownloadFailed": {
+    "description": "Message when image download fails due to server error"
+  },
+  "imageDownloadSuccess": "Image downloaded successfully",
+  "@imageDownloadSuccess": {
+    "description": "Message shown when image download is successful"
+  },
+  "imageDownloadError": "Failed to download image",
+  "@imageDownloadError": {
+    "description": "Error message when image download fails"
+  },
+  "downloadImageTooltip": "Download image",
+  "@downloadImageTooltip": {
+    "description": "Tooltip for download image button in lightbox"
+  },
+  "downloadTimeout": "Download timed out. Please try again.",
+  "@downloadTimeout": {
+    "description": "Message shown when the image download exceeds the timeout limit"
   }
 }
