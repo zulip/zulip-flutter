@@ -509,6 +509,18 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get manyPeopleTyping => 'Several people are typing…';
 
   @override
+  String get notifyChannel => 'Notify channel';
+
+  @override
+  String get notifyStream => 'Notify stream';
+
+  @override
+  String get notifyRecipients => 'Notify recipients';
+
+  @override
+  String get notifyTopic => 'Notify topic';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override

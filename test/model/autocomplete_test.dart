@@ -438,7 +438,7 @@ void main() {
     });
   });
 
-  group('MentionAutocompleteView sorting users results', () {
+  group('MentionAutocompleteView sorting user mention results', () {
     late PerAccountStore store;
 
     Future<void> prepare({
@@ -773,8 +773,79 @@ void main() {
       });
     });
 
+    group('wildcardMentionResults', () {
+      Iterable<Wildcard> getWildcardsFor(String rawQuery, {
+        required Narrow narrow,
+        int? zulipFeatureLevel,
+      }) {
+        final store = eg.store(
+          account: eg.account(user: eg.selfUser, zulipFeatureLevel: zulipFeatureLevel),
+          initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
+        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
+          query: MentionAutocompleteQuery(rawQuery));
+        final results = view.wildcardMentionResults.map((e) => e.wildcard);
+        view.dispose();
+        return results;
+      }
+
+      const channelNarrow = ChannelNarrow(1);
+      const topicNarrow = TopicNarrow(1, 'topic');
+      final dmNarrow = DmNarrow.withUser(10, selfUserId: 5);
+
+      final testCases = [
+        ('',          channelNarrow, [Wildcard.all, Wildcard.topic]),
+        ('',          topicNarrow,   [Wildcard.all, Wildcard.topic]),
+        ('',          dmNarrow,      [Wildcard.all]),
+
+        ('c',         channelNarrow, [Wildcard.channel, Wildcard.topic]),
+        ('ch',        topicNarrow,   [Wildcard.channel]),
+        ('str',       channelNarrow, [Wildcard.stream]),
+        ('e',         topicNarrow,   [Wildcard.everyone]),
+        ('everyone',  channelNarrow, [Wildcard.everyone]),
+        ('t',         topicNarrow,   [Wildcard.stream, Wildcard.topic]),
+        ('topic',     channelNarrow, [Wildcard.topic]),
+        ('topic etc', topicNarrow,   <Wildcard>[]),
+
+        ('a',         dmNarrow,      [Wildcard.all]),
+        ('every',     dmNarrow,      [Wildcard.everyone]),
+        ('channel',   dmNarrow,      <Wildcard>[]),
+        ('stream',    dmNarrow,      <Wildcard>[]),
+        ('topic',     dmNarrow,      <Wildcard>[]),
+      ];
+
+      for (final (String query, Narrow narrow, List<Wildcard> wildcards) in testCases) {
+        test('for "$query" query in ${narrow.runtimeType} narrow wildcards are $wildcards', () async {
+          check(getWildcardsFor(query, narrow: narrow)).deepEquals(wildcards);
+        });
+      }
+
+      test('${Wildcard.channel} is available FL-247 onwards', () {
+        check(getWildcardsFor('channel',
+            narrow: channelNarrow, zulipFeatureLevel: 247))
+          .deepEquals([Wildcard.channel]);
+      });
+
+      test('${Wildcard.channel} is not available before FL-247', () {
+        check(getWildcardsFor('channel',
+            narrow: channelNarrow, zulipFeatureLevel: 246))
+          .deepEquals([]);
+      });
+
+      test('${Wildcard.topic} is available FL-224 onwards', () {
+        check(getWildcardsFor('topic',
+            narrow: channelNarrow, zulipFeatureLevel: 224))
+          .deepEquals([Wildcard.topic]);
+      });
+
+      test('${Wildcard.topic} is not available before FL-224', () {
+        check(getWildcardsFor('topic',
+            narrow: channelNarrow, zulipFeatureLevel: 223))
+          .deepEquals([]);
+      });
+    });
+
     test('final results end-to-end', () async {
-      Future<Iterable<int>> getResults(
+      Future<Iterable<MentionAutocompleteResult>> getResults(
           Narrow narrow, MentionAutocompleteQuery query) async {
         bool done = false;
         final view = MentionAutocompleteView.init(store: store, narrow: narrow,
@@ -782,11 +853,16 @@ void main() {
         view.addListener(() { done = true; });
         await Future(() {});
         check(done).isTrue();
-        final results = view.results
-          .map((e) => (e as UserMentionAutocompleteResult).userId);
+        final results = view.results;
         view.dispose();
         return results;
       }
+
+      Iterable<int> getUsersFromResults(Iterable<MentionAutocompleteResult> results)
+        => results.map((e) => (e as UserMentionAutocompleteResult).userId);
+
+      Iterable<Wildcard> getWildcardsFromResults(Iterable<MentionAutocompleteResult> results)
+        => results.map((e) => (e as WildcardMentionAutocompleteResult).wildcard);
 
       final stream = eg.stream();
       const topic = 'topic';
@@ -811,20 +887,27 @@ void main() {
         RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
       ]);
 
-      // Check the ranking of the full list of users.
+      // Check the ranking of the full list of user mentions.
       // The order should be:
-      // 1. Users most recent in the current topic/stream.
-      // 2. Users most recent in the DM conversations.
-      // 3. Human vs. Bot users (human users come first).
-      // 4. Alphabetical order by name.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
+      // 1. Channel and/or topic wildcards.
+      // 2. Users most recent in the current topic/stream.
+      // 3. Users most recent in the DM conversations.
+      // 4. Human vs. Bot users (human users come first).
+      // 5. Users by name alphabetical order.
+      final results1 = await getResults(topicNarrow, MentionAutocompleteQuery(''));
+      check(getWildcardsFromResults(results1.take(2)))
+        .deepEquals([Wildcard.all, Wildcard.topic]);
+      check(getUsersFromResults(results1.skip(2)))
         .deepEquals([1, 5, 4, 2, 7, 3, 6]);
 
       // Check the ranking applies also to results filtered by a query.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
-        .deepEquals([2, 3]);
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('f')))
-        .deepEquals([5, 4]);
+      final results2 = await getResults(topicNarrow, MentionAutocompleteQuery('t'));
+      check(getWildcardsFromResults(results2.take(2)))
+        .deepEquals([Wildcard.stream, Wildcard.topic]);
+      check(getUsersFromResults(results2.skip(2))).deepEquals([2, 3]);
+      final results3 = await getResults(topicNarrow, MentionAutocompleteQuery('f'));
+      check(getWildcardsFromResults(results3.take(0))).deepEquals([]);
+      check(getUsersFromResults(results3.skip(0))).deepEquals([5, 4]);
     });
   });
 
