@@ -912,7 +912,16 @@ class UpdateMachine {
         // at 1 kiB (at least on Android), and stack can be longer than that.
         assert(debugLog('Stack:\n$s'));
         assert(debugLog('Backing off, then will retry…'));
-        // TODO tell user if initial-fetch errors persist, or look non-transient
+        // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
+        switch (e) {
+          case ZulipApiException(code: 'INVALID_API_KEY'):
+            final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+            reportErrorToUserModally(
+              zulipLocalizations.errorInvalidApiKeyTitle,
+              details: zulipLocalizations.errorInvalidApiKeyMessage(
+                connection.realmUrl.toString()));
+            rethrow;
+        }
         await (backoffMachine ??= BackoffMachine()).wait();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
       }

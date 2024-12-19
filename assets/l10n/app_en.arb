@@ -458,6 +458,17 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
+  "errorInvalidApiKeyTitle": "Invalid API key",
+  "@errorInvalidApiKeyTitle": {
+    "description": "Title of the error dialog for invalid API key."
+  },
+  "errorInvalidApiKeyMessage": "Your account at {url} cannot be authenticated. Please logout and try again.",
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://chat.example.com/"}
+    }
+  },
   "errorInvalidResponse": "The server sent an invalid response",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
