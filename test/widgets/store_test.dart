@@ -95,6 +95,24 @@ void main() {
     tester.widget(find.text('found store, account: ${eg.selfAccount.id}'));
   });
 
+  testWidgets('PerAccountStoreWidget.of detailed error', (tester) async {
+    addTearDown(testBinding.reset);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: GlobalStoreWidget(
+          // no PerAccountStoreWidget
+          child: Builder(
+            builder: (context) {
+              final store = PerAccountStoreWidget.of(context);
+              return Text('found store, account: ${store.accountId}');
+            }))));
+    await tester.pump();
+    check(tester.takeException())
+      .has((x) => x.toString(), 'toString') // TODO(checks): what's a good convention for this?
+      .contains('consider MaterialAccountWidgetRoute');
+  });
+
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     addTearDown(testBinding.reset);
