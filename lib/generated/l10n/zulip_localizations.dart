@@ -187,6 +187,12 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Message that appears on the user profile page when the profile cannot be shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not show user profile.'**
+  String get errorShowUserProfile;
+
   /// Title for dialog asking the user to grant additional permissions.
   ///
   /// In en, this message translates to:
@@ -533,7 +539,7 @@ abstract class ZulipLocalizations {
   ///
   /// In en, this message translates to:
   /// **'(unknown channel)'**
-  String get composeBoxUnknownChannelName;
+  String get unknownChannelName;
 
   /// Hint text for topic input widget in compose box.
   ///
@@ -552,6 +558,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'(unknown user)'**
   String get unknownUserName;
+
+  /// Message list page title for a DM group that only includes yourself.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with yourself'**
+  String get messageListYouWithYourselfTitle;
 
   /// Message list recipient header for a DM group with others.
   ///
@@ -925,11 +937,35 @@ abstract class ZulipLocalizations {
   /// **'Channel feed'**
   String get channelFeedButtonTooltip;
 
+  /// Label for a channel conversation notification.
+  ///
+  /// In en, this message translates to:
+  /// **'#{channel} > {topic}'**
+  String notifChannelConversationLabel(String channel, String topic);
+
   /// Label for a group DM conversation notification.
   ///
   /// In en, this message translates to:
   /// **'{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}'**
   String notifGroupDmConversationLabel(String senderFullName, int numOthers);
+
+  /// Label for the list of pinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get pinnedSubscriptionsLabel;
+
+  /// Label for the list of unpinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned'**
+  String get unpinnedSubscriptionsLabel;
+
+  /// Text to display when there are no subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels found'**
+  String get noSubscriptions;
 
   /// Display name for the user themself, to show after replying in an Android notification
   ///
