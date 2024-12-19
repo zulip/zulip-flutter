@@ -164,7 +164,7 @@ class PerAccountStoreWidget extends StatefulWidget {
   ///  * [InheritedNotifier], which provides the "dependency" mechanism.
   static PerAccountStore of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
-    assert(widget != null, 'No PerAccountStoreWidget ancestor');
+    assert(_debugCheckFound(context, widget));
     return widget!.store;
   }
 
@@ -183,10 +183,27 @@ class PerAccountStoreWidget extends StatefulWidget {
   /// Like [of], the cost of this method is O(1) with a small constant factor.
   static int accountIdOf(BuildContext context) {
     final element = context.getElementForInheritedWidgetOfExactType<_PerAccountStoreInheritedWidget>();
-    assert(element != null, 'No PerAccountStoreWidget ancestor');
+    assert(_debugCheckFound(context, element));
     final widget = element!.findAncestorWidgetOfExactType<PerAccountStoreWidget>();
     assert(widget != null);
     return widget!.accountId;
+  }
+
+  static bool _debugCheckFound(BuildContext context, Object? ancestor) {
+    // Compare [debugCheckHasMediaQuery], and its caller [MediaQuery.of].
+    assert(() {
+      if (ancestor != null) return true;
+      throw FlutterError.fromParts([
+        ErrorSummary('No PerAccountStoreWidget ancestor found.'),
+        ErrorDescription('${context.widget.runtimeType} widgets require a PerAccountStoreWidget ancestor.'),
+        context.describeWidget('The specific widget that could not find a PerAccountStoreWidget ancestor was'),
+        context.describeOwnershipChain('The ownership chain for the affected widget is'),
+        ErrorHint('For a new page in the app, consider MaterialAccountWidgetRoute '
+          'or AccountPageRouteBuilder.'),
+        ErrorHint('In tests, consider TestZulipApp with its accountId field.'),
+      ]);
+    }());
+    return true;
   }
 
   /// Whether there is a relevant account specified for this widget.
