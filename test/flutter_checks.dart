@@ -172,6 +172,10 @@ extension InputDecorationChecks on Subject<InputDecoration> {
   Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
 }
 
+extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
+  Subject<bool> get checked => has((x) => x.checked, 'checked');
+}
+
 extension ThemeDataChecks on Subject<ThemeData> {
   Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
 }

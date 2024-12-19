@@ -24,6 +24,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'アカウントを選択';
 
   @override
+  String get settingsPageTitle => 'Settings';
+
+  @override
   String get switchAccountButton => 'Switch account';
 
   @override
@@ -618,6 +621,18 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String pollVoterNames(String voterNames) {
     return '($voterNames)';
   }
+
+  @override
+  String get themeSettingTitle => 'THEME';
+
+  @override
+  String get themeSettingDark => 'Dark';
+
+  @override
+  String get themeSettingLight => 'Light';
+
+  @override
+  String get themeSettingSystem => 'System';
 
   @override
   String get pollWidgetQuestionMissing => 'No question.';

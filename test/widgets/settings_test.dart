@@ -1,0 +1,86 @@
+import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/model/settings.dart';
+import 'package:zulip/widgets/settings.dart';
+
+import '../flutter_checks.dart';
+import '../model/binding.dart';
+import '../model/store_checks.dart';
+import '../example_data.dart' as eg;
+import 'test_app.dart';
+
+void main() {
+  TestZulipBinding.ensureInitialized();
+
+  Future<void> prepare(WidgetTester tester) async {
+    addTearDown(testBinding.reset);
+
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await tester.pumpWidget(TestZulipApp(
+      accountId: eg.selfAccount.id,
+      child: SettingsPage()));
+    await tester.pump();
+    await tester.pump();
+  }
+
+  group('ThemeSetting', () {
+    Finder findRadioListTileWithTitle(String title) => find.ancestor(
+      of: find.text(title),
+      matching: find.byType(RadioListTile<ThemeSetting?>));
+
+    void checkThemeSetting(WidgetTester tester, {
+      required ThemeSetting? expectedThemeSetting,
+    }) {
+      final expectedCheckedTitle = switch (expectedThemeSetting) {
+        null => 'System',
+        ThemeSetting.light => 'Light',
+        ThemeSetting.dark => 'Dark',
+      };
+      for (final title in ['System', 'Light', 'Dark']) {
+        check(tester.widget<RadioListTile<ThemeSetting?>>(
+          findRadioListTileWithTitle(title)))
+            .checked.equals(title == expectedCheckedTitle);
+      }
+      check(testBinding.globalStore)
+        .globalSettings.themeSetting.equals(expectedThemeSetting);
+    }
+
+    testWidgets('smoke', (tester) async {
+      debugBrightnessOverride = Brightness.light;
+
+      await testBinding.globalStore.updateGlobalSettings(
+        eg.globalSettings(themeSetting: ThemeSetting.light).toCompanion(false));
+      await prepare(tester);
+      final element = tester.element(find.byType(SettingsPage));
+      check(Theme.of(element)).brightness.equals(Brightness.light);
+      checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.light);
+
+      await tester.tap(findRadioListTileWithTitle('Dark'));
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 250)); // wait for transition
+      check(Theme.of(element)).brightness.equals(Brightness.dark);
+      checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.dark);
+
+      await tester.tap(findRadioListTileWithTitle('System'));
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 250)); // wait for transition
+      check(Theme.of(element)).brightness.equals(Brightness.light);
+      checkThemeSetting(tester, expectedThemeSetting: null);
+
+      debugBrightnessOverride = null;
+    });
+
+    testWidgets('follow system setting when themeSetting is null', (tester) async {
+      debugBrightnessOverride = Brightness.dark;
+
+      await prepare(tester);
+      final element = tester.element(find.byType(SettingsPage));
+      check(Theme.of(element)).brightness.equals(Brightness.dark);
+      checkThemeSetting(tester, expectedThemeSetting: null);
+
+      debugBrightnessOverride = null;
+    });
+  });
+}
