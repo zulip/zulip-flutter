@@ -121,6 +121,29 @@ void main() {
     check(completers(1)).length.equals(1);
   });
 
+  test('GlobalStore.perAccount loading fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+    final future = globalStore.perAccount(eg.selfAccount.id);
+
+    globalStore.completers[eg.selfAccount.id]!
+      .single.completeError(eg.apiExceptionUnauthorized());
+    await check(future).throws<AccountNotFoundException>();
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+    final future = globalStore.perAccount(eg.selfAccount.id);
+
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    globalStore.completers[eg.selfAccount.id]!
+      .single.completeError(eg.apiExceptionUnauthorized());
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+  }));
+
   // TODO test insertAccount
 
   group('GlobalStore.updateAccount', () {
@@ -997,7 +1020,7 @@ void main() {
     }
 
     void checkReloadFailure({
-      required Future<void> Function() completeLoading,
+      required FutureOr<void> Function() completeLoading,
     }) {
       awaitFakeAsync((async) async {
         await prepareReload(async);
@@ -1026,6 +1049,14 @@ void main() {
 
     test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
       checkReloadFailure(completeLoading: logOutAndCompleteWithNewStore);
+    }));
+
+    void completeWithApiExceptionUnauthorized() {
+      completers().single.completeError(eg.apiExceptionUnauthorized());
+    }
+
+    test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
+      checkReloadFailure(completeLoading: completeWithApiExceptionUnauthorized);
     }));
   });
 

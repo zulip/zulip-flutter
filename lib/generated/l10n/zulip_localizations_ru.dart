@@ -405,6 +405,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Темы обязательны в этой организации.';
 
   @override
+  String errorInvalidApiKeyMessage(String url) {
+    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+  }
+
+  @override
   String get errorInvalidResponse => 'Получен недопустимый ответ сервера';
 
   @override

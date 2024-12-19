@@ -61,15 +61,18 @@ void main() {
   group('_PreventEmptyStack', () {
     late List<Route<void>> pushedRoutes;
     late List<Route<void>> removedRoutes;
+    late List<Route<void>> poppedRoutes;
 
     Future<void> prepare(WidgetTester tester) async {
       addTearDown(testBinding.reset);
 
       pushedRoutes = [];
       removedRoutes = [];
+      poppedRoutes = [];
       final testNavObserver = TestNavigatorObserver();
       testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
       testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
 
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump(); // start to load account
@@ -91,6 +94,85 @@ void main() {
       // The choose-account page should appear.
       check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
       check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+    });
+
+    testWidgets('push route when popping last route on stack', (tester) async {
+      // Set up the loading of per-account data to fail.
+      await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.loadPerAccountDuration = Duration.zero;
+      testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
+      await prepare(tester);
+      // The navigator stack should contain only a home page route.
+
+      // Await the failed load, causing the home page to be removed
+      // and an error dialog pushed in its place.
+      await tester.pump(Duration.zero);
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+      check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes).single.isA<DialogRoute<void>>();
+      pushedRoutes.clear();
+
+      // Dismiss the error dialog, causing it to be popped from the stack.
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage:
+          'Your account at ${eg.selfAccount.realmUrl} could not be authenticated.'
+          ' Please try logging in again or use another account.')));
+      // The choose-account page should appear, because the error dialog
+      // was the only route remaining.
+      check(poppedRoutes).single.isA<DialogRoute<void>>();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+    });
+
+    testWidgets('do not push route to non-empty navigator stack', (tester) async {
+      // Set up the loading of per-account data to fail, but only after a
+      // long enough time for the "Try another account" button to appear.
+      const loadPerAccountDuration = Duration(seconds: 30);
+      assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
+      await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+      testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
+      await prepare(tester);
+      // The navigator stack should contain only a home page route.
+
+      // Await the "Try another account" button, and tap it.
+      await tester.pump(kTryAnotherAccountWaitPeriod);
+      await tester.tap(find.text('Try another account'));
+      await tester.pump();
+      // The navigator stack should contain the home page route
+      // and a choose-account page route.
+      check(removedRoutes).isEmpty();
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+      pushedRoutes.clear();
+
+      // Now await the failed load, causing the home page to be removed
+      // and an error dialog pushed, while the choose-account page remains.
+      await tester.pump(loadPerAccountDuration);
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+      check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes).single.isA<DialogRoute<void>>();
+      pushedRoutes.clear();
+      // The navigator stack should now contain the choose-account page route
+      // and the dialog route.
+
+      // Dismiss the error dialog, causing it to be popped from the stack.
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage:
+          'Your account at ${eg.selfAccount.realmUrl} could not be authenticated.'
+          ' Please try logging in again or use another account.')));
+      // No routes should be pushed after dismissing the error dialog,
+      // because there was already another route remaining on the stack
+      // (namely the choose-account page route).
+      check(poppedRoutes).single.isA<DialogRoute<void>>();
+      check(pushedRoutes).isEmpty();
     });
   });
 
