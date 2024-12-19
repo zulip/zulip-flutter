@@ -7,13 +7,14 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
-import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -120,6 +121,39 @@ void main() {
     check(await globalStore.perAccount(1)).identicalTo(store1);
     check(completers(1)).length.equals(1);
   });
+
+  test('GlobalStore.perAccount loading fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    addTearDown(testBinding.reset);
+
+    await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+    testBinding.globalStore.loadPerAccountException = ZulipApiException(
+      routeName: '/register', code: 'UNAUTHORIZED', httpStatus: 401,
+      data: {}, message: '');
+    await check(testBinding.globalStore.perAccount(eg.selfAccount.id))
+      .throws<AccountNotFoundException>();
+
+    check(testBinding.globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    addTearDown(testBinding.reset);
+
+    await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+
+    testBinding.globalStore.loadPerAccountDuration = Duration(seconds: 2);
+    testBinding.globalStore.loadPerAccountException = ZulipApiException(
+      routeName: '/register', code: 'UNAUTHORIZED', httpStatus: 401,
+      data: {}, message: '');
+    final future = testBinding.globalStore.perAccount(eg.selfAccount.id);
+    check(testBinding.globalStore.takeDoRemoveAccountCalls()).isEmpty();
+
+    await logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+    check(testBinding.globalStore.takeDoRemoveAccountCalls()).single;
+
+    await check(future).throws<AccountNotFoundException>();
+    check(testBinding.globalStore.takeDoRemoveAccountCalls()).isEmpty();
+  }));
 
   // TODO test insertAccount
 
@@ -975,7 +1009,7 @@ void main() {
     group('errors while reloading', () {
       void checkReloadFailure({
         required void Function() prepareError,
-        required Future<void> Function(FakeAsync async) callbackWhileReloading,
+        required FutureOr<void> Function(FakeAsync async) callbackWhileReloading,
       }) {
         awaitFakeAsync((async) async {
           await preparePoll();
@@ -1005,10 +1039,22 @@ void main() {
         await future;
       }
 
+      void prepareLoadPerAccountZulipApiExceptionUnauthorized(FakeAsync async) {
+        globalStore.loadPerAccountException = ZulipApiException(
+          routeName: '/register', code: 'UNAUTHORIZED', httpStatus: 401,
+          data: {}, message: '');
+      }
+
       test('user logged out', () => awaitFakeAsync((async) async {
         checkReloadFailure(
           prepareError: prepareExpiredEventQueue,
           callbackWhileReloading: doLogOutAccount);
+      }));
+
+      test('got status 401 ZulipApiException', () => awaitFakeAsync((async) async {
+        checkReloadFailure(
+          prepareError: prepareUnexpectedLoopError,
+          callbackWhileReloading: prepareLoadPerAccountZulipApiExceptionUnauthorized);
       }));
     });
   });
