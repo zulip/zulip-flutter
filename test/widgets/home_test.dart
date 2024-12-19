@@ -31,11 +31,7 @@ void main () {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-    await store.addUsers([eg.selfUser, eg.otherUser]);
-    final stream = eg.stream();
-    await store.addStream(stream);
-    await store.addSubscription(eg.subscription(stream));
+    await store.addUser(eg.selfUser);
 
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
@@ -46,6 +42,7 @@ void main () {
   group('bottom nav navigation', () {
     testWidgets('preserve states when switching between views', (tester) async {
       await prepare(tester);
+      await store.addUser(eg.otherUser);
       await store.handleEvent(MessageEvent(
         id: 0, message: eg.dmMessage(from: eg.otherUser, to: [eg.selfUser])));
       await tester.pump();
