@@ -28,6 +28,23 @@ sealed class ApiRequestException implements Exception {
   String toString() => message;
 }
 
+/// A network-level error that prevented even getting an HTTP response.
+class NetworkException extends ApiRequestException {
+  /// The exception describing the underlying error.
+  ///
+  /// This can be any exception value that [http.Client.send] throws.
+  /// Ideally that would always be an [http.ClientException],
+  /// but empirically it can be [TlsException] and possibly others.
+  final Object cause;
+
+  NetworkException({required super.routeName, required super.message, required this.cause});
+
+  @override
+  String toString() {
+    return 'NetworkException: $message ($cause)';
+  }
+}
+
 /// An error returned through the Zulip server API.
 ///
 /// See API docs: https://zulip.com/api/rest-error-handling
@@ -66,23 +83,6 @@ class ZulipApiException extends ApiRequestException {
     sb.write(" $routeName");
     sb.write(": $message");
     return sb.toString();
-  }
-}
-
-/// A network-level error that prevented even getting an HTTP response.
-class NetworkException extends ApiRequestException {
-  /// The exception describing the underlying error.
-  ///
-  /// This can be any exception value that [http.Client.send] throws.
-  /// Ideally that would always be an [http.ClientException],
-  /// but empirically it can be [TlsException] and possibly others.
-  final Object cause;
-
-  NetworkException({required super.routeName, required super.message, required this.cause});
-
-  @override
-  String toString() {
-    return 'NetworkException: $message ($cause)';
   }
 }
 
