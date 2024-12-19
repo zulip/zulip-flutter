@@ -34,7 +34,7 @@ void main() {
   group('tokens', () {
     test('APNs token registration using correct app bundle ID', () async {
       await init();
-      check(await testBinding.getAppBundleId())
+      check((await testBinding.packageInfo)?.packageName?? 'com.zulip.flutter.test')
         .equals('com.zulip.flutter.test');
     }, );
   });

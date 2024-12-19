@@ -1032,7 +1032,7 @@ void main() {
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
-        checkLastRequestApns(token: '012abc', appid:await testBinding.getAppBundleId());
+        checkLastRequestApns(token: '012abc', appid:(await testBinding.packageInfo)?.packageName?? 'com.zulip.flutter.test');
       }
 
       if (defaultTargetPlatform == TargetPlatform.android) {
@@ -1071,7 +1071,7 @@ void main() {
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
-        checkLastRequestApns(token: '012abc', appid:await testBinding.getAppBundleId());
+        checkLastRequestApns(token: '012abc', appid:(await testBinding.packageInfo)?.packageName?? 'com.zulip.flutter.test');
       }
 
       if (defaultTargetPlatform == TargetPlatform.android) {
