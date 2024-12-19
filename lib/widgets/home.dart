@@ -17,6 +17,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'recent_dm_conversations.dart';
+import 'settings.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
@@ -280,7 +281,7 @@ void _showMainMenu(BuildContext context, {
     const _SwitchAccountButton(),
     // TODO(#198): Set my status
     // const SizedBox(height: 8),
-    // TODO(#97): Settings
+    const _SettingsButton(),
     // TODO(#661): Notifications
     // const SizedBox(height: 8),
     const _AboutZulipButton(),
@@ -564,6 +565,23 @@ class _SwitchAccountButton extends _MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+}
+
+class _SettingsButton extends _MenuButton {
+  const _SettingsButton();
+
+  @override
+  IconData get icon => ZulipIcons.settings;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.settingsPageTitle;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(SettingsPage.buildRoute(context: context));
   }
 }
 
