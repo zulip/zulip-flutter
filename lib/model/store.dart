@@ -1128,8 +1128,7 @@ class UpdateMachine {
       case Server5xxException():
         shouldReportToUser = true;
 
-      case ServerException(httpStatus: 429):
-      case ZulipApiException(httpStatus: 429):
+      case HttpException(httpStatus: 429):
       case ZulipApiException(code: 'RATE_LIMIT_HIT'):
         // TODO(#946) handle rate-limit errors more generally, in ApiConnection
         shouldReportToUser = true;
