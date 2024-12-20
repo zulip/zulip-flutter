@@ -101,10 +101,15 @@ class _HomePageState extends State<HomePage> {
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
       button(_HomePageTab.inbox,          ZulipIcons.inbox),
+      _NavigationBarButton(         icon: ZulipIcons.message_feed,
+        selected: false,
+        onPressed: () => Navigator.push(context,
+          MessageListPage.buildRoute(context: context,
+            narrow: const CombinedFeedNarrow()))),
       button(_HomePageTab.channels,       ZulipIcons.hash_italic),
       // TODO(#1094): Users
       button(_HomePageTab.directMessages, ZulipIcons.user),
-      _NavigationBarButton(        icon: ZulipIcons.menu,
+      _NavigationBarButton(         icon: ZulipIcons.menu,
         selected: false,
         onPressed: () => _showMainMenu(context, tabNotifier: _tab)),
     ];
