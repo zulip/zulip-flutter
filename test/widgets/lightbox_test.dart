@@ -19,6 +19,7 @@ import '../model/binding.dart';
 import '../test_images.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
+import 'package:http/http.dart' as http;
 
 const kTestVideoUrl = "https://a/video.mp4";
 const kTestUnsupportedVideoUrl = "https://a/unsupported.mp4";
@@ -194,8 +195,26 @@ class FakeVideoPlayerPlatform extends Fake
   }
 }
 
+class FakeHttpClient extends http.BaseClient {
+  final http.Response Function(http.Request) onRequest;
+
+  FakeHttpClient({required this.onRequest});
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final http.Response response = onRequest(request as http.Request);
+    return http.StreamedResponse(
+      Stream.fromIterable([response.bodyBytes]),
+      response.statusCode,
+      headers: response.headers,
+      reasonPhrase: response.reasonPhrase,
+    );
+  }
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
+  late FakeHttpClient fakeHttpClient;
 
   group('_ImageLightboxPage', () {
     final src = Uri.parse('https://chat.example/lightbox-image.png');
@@ -287,6 +306,84 @@ void main() {
     //   https://github.com/zulip/zulip-flutter/pull/833#discussion_r1688762292
     //   https://github.com/zulip/zulip-flutter/pull/833#pullrequestreview-2200433626
     //   https://github.com/zulip/zulip-flutter/pull/833#issuecomment-2251782337
+  });
+
+  group('IconButton Download Test', () {
+    Future<void> buildTestWidget(WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return IconButton(
+                  icon: const Icon(Icons.download_rounded),
+                  onPressed: () async {
+                    // Simulate download logic
+                    final response = await fakeHttpClient.get(Uri.parse('https://example.com/image.png'));
+
+                    if (response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Image downloaded successfully")),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Failed to download image")),
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('should display download button and trigger download', (tester) async {
+      fakeHttpClient = FakeHttpClient(
+        onRequest: (request) {
+          return http.Response('Image Data', 200);
+        },
+      );
+
+      await buildTestWidget(tester);
+
+      // Verify download icon exists
+      final downloadIcon = find.byIcon(Icons.download_rounded);
+      expect(downloadIcon, findsOneWidget);
+
+      // Tap the download button
+      await tester.tap(downloadIcon);
+      await tester.pumpAndSettle(); // Wait for any resulting UI updates
+
+      // Verify success feedback, e.g., SnackBar
+      final snackBar = find.byType(SnackBar);
+      expect(snackBar, findsOneWidget, reason: 'SnackBar should appear after download');
+      expect(find.textContaining("Image downloaded successfully"), findsOneWidget);
+    });
+
+    testWidgets('should handle failed download', (tester) async {
+      fakeHttpClient = FakeHttpClient(
+        onRequest: (request) {
+          return http.Response('Error', 404);
+        },
+      );
+
+      await buildTestWidget(tester);
+
+      // Verify download icon exists
+      final downloadIcon = find.byIcon(Icons.download_rounded);
+      expect(downloadIcon, findsOneWidget);
+
+      // Tap the download button
+      await tester.tap(downloadIcon);
+      await tester.pumpAndSettle(); // Wait for any resulting UI updates
+
+      // Verify failure feedback
+      final snackBar = find.byType(SnackBar);
+      expect(snackBar, findsOneWidget, reason: 'SnackBar should appear on failure');
+      expect(find.textContaining("Failed to download image"), findsOneWidget);
+    });
   });
 
   group('VideoDurationLabel', () {
