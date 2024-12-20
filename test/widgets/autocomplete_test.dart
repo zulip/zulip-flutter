@@ -177,6 +177,71 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    testWidgets('user options appear in the correct rendering order and do not scroll down', (tester) async {
+      final List<User> users = [
+        eg.user(userId: 1, fullName: 'Aaditya', avatarUrl: 'user1.png'),
+        eg.user(userId: 2, fullName: 'Alya', avatarUrl: 'user2.png'),
+        eg.user(userId: 3, fullName: 'Aman', avatarUrl: 'user3.png'),
+        eg.user(userId: 4, fullName: 'Anders', avatarUrl: 'user4.png'),
+        eg.user(userId: 5, fullName: 'Anthony', avatarUrl: 'user5.png'),
+        eg.user(userId: 6, fullName: 'Apoorva', avatarUrl: 'user6.png'),
+        eg.user(userId: 7, fullName: 'Asif', avatarUrl: 'user7.png'),
+        eg.user(userId: 8, fullName: 'Asim', avatarUrl: 'user8.png')];
+
+      final composeInputFinder = await setupToComposeInput(tester, users: users);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @');
+      await tester.enterText(composeInputFinder, 'hello @A');
+      await tester.pump();
+      // Only first seven users render initially, 8th user has to be accessed by scrolling up
+      final List<double> positions = [];
+      for (int i = 0 ;i < 7 ;i++) {
+        final user = users[i];
+        checkUserShown(user, store, expected: true);
+        positions.add(tester.getTopLeft(find.text(user.fullName)).dy);
+      }
+      for (int i = 7; i < users.length;i++) {
+        final user = users[i];
+        checkUserShown(user, store, expected: false);
+      }
+
+      final listViewFinder = find.byType(ListView);
+      await tester.drag(listViewFinder, const Offset(0, -50));
+      await tester.pump();
+
+      final firstMentionPositionAfterDragDown = tester.getTopLeft(find.text(users.first.fullName)).dy;
+      check(
+        because:'ListView options should not scroll down because they are already at the bottom',
+        positions[0]
+      ).equals(firstMentionPositionAfterDragDown);
+
+      for (int i = 0 ;i < 6;i++) {
+         check(
+          because: """${users[i + 1]} should appear above
+          ${users[i]} because of reverse order""",
+          positions[i]).isGreaterThan(positions[i+1]);
+      }
+
+      await tester.drag(listViewFinder, const Offset(0, 200)); // Should be capped at prev position
+      await tester.pump();
+
+      checkUserShown(users.last, store, expected: true);
+      checkUserShown(users.first, store, expected: false);
+
+      // 8th user should be above 7th user
+      check(because: "8th user should be above 7th user",
+      tester.getTopLeft(
+        find.text(users.last.fullName)).dy
+      ).isLessThan(
+        tester.getTopLeft(
+        find.text(users[users.length - 2].fullName)
+      ).dy);
+      debugNetworkImageHttpClientProvider = null;
+    });
   });
 
   group('emoji', () {
@@ -246,6 +311,96 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+ testWidgets('emoji options appear in the correct rendering order and do not scroll down', (tester) async {
+    final composeInputFinder = await setupToComposeInput(tester);
+    final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+    store.setServerEmojiData(
+      ServerEmojiData(
+        codeToNames: {
+          '1f4a4': ['zzz', 'sleepy'], // Unicode emoji for "zzz"
+          '1f52a': ['biohazard'],
+          '1f92a': ['zany_face'],
+          '1f993': ['zebra'],
+          '0030-fe0f-20e3': ['zero'],
+          '1f9d0': ['zombie'],
+          }));
+
+    await store.handleEvent(
+      RealmEmojiUpdateEvent(
+        id: 1,
+        realmEmoji: {
+          '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing')}));
+
+    const zulipOptionLabel = 'zulip';
+    const zanyFaceOptionLabel = 'zany_face';
+    const zebraOptionLabel = 'zebra';
+    const zzzOptionLabel = 'zzz, sleepy';
+    const unicodeGlyph = '💤';
+    const zombieOptionLabel = 'zombie';
+    const zeroOptionLabel = 'zero';
+    const buzzingOptionLabel = 'buzzing';
+    const biohazardOptionLabel = 'biohazard';
+
+    // Adjust the order so the best match appears last
+    final emojiSequence = [
+      zulipOptionLabel,
+      zzzOptionLabel,
+      unicodeGlyph,
+      zanyFaceOptionLabel,
+      zebraOptionLabel,
+      zeroOptionLabel,
+      zombieOptionLabel,
+      buzzingOptionLabel,
+      // biohazardOptionLabel, this won't be rendered in the list initally since it is the 7th option.
+    ];
+
+    // Enter a query; options appear, of all three emoji types.
+    // TODO(#226): Remove this extra edit when this bug is fixed.
+    await tester.enterText(composeInputFinder, 'hi :');
+    await tester.enterText(composeInputFinder, 'hi :z');
+    await tester.pump();
+
+    final positions = emojiSequence.map((icon) {
+      final finder = find.text(icon);
+      check(because:"Each emoji option should be rendered", finder).findsOne();
+      return tester.getTopLeft(finder).dy;
+    }).toList();
+
+    for (int i = 0; i < positions.length - 1; i++) {
+      check(because: "${emojiSequence[i + 1]} should appear above ${emojiSequence[i]} because of reverse order",
+      positions[i]).isGreaterThan(positions[i + 1]);
+    }
+
+    final listViewFinder = find.byType(ListView);
+
+    await tester.drag(listViewFinder, const Offset(0, -50));
+    await tester.pump();
+    final firstEmojiPositionAfterScrollDown = tester.getTopLeft(find.text(emojiSequence[0])).dy;
+    check(
+      because:"ListView options should not scroll down further than initial position",
+      positions[0]
+    ).equals(firstEmojiPositionAfterScrollDown);
+
+    final biohazardFinder = find.text(biohazardOptionLabel);
+    check(
+      because: "The biohazard emoji should not be visible before scrolling up"
+      ,biohazardFinder
+    ).findsNothing();
+
+    // Scroll up
+    await tester.drag(listViewFinder, const Offset(0, 50));
+    await tester.pump();
+
+    check(because:"The biohazard emoji should be visible after scrolling up",biohazardFinder).findsOne();
+
+    final firstEmojiPositionAfterScrollUp = tester.getTopLeft(find.text(emojiSequence[0])).dy;
+    check(because: "Scrolling up should reveal other emoji matches",firstEmojiPositionAfterScrollUp).isGreaterOrEqual(positions[0]);
+
+    debugNetworkImageHttpClientProvider = null;
+
+  });
 
     testWidgets('text emoji means just show text', (tester) async {
       final composeInputFinder = await setupToComposeInput(tester);
