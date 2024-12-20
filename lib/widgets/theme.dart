@@ -165,6 +165,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
       unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
+      pressedTint: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor()
     );
 
   DesignVariables.dark() :
@@ -223,6 +224,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
       unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+      pressedTint: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor()
     );
 
   DesignVariables._({
@@ -271,7 +273,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.star,
     required this.subscriptionListHeaderLine,
     required this.subscriptionListHeaderText,
-    required this.unreadCountBadgeTextForChannel,
+    required this.unreadCountBadgeTextForChannel, 
+    required this.pressedTint,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -334,6 +337,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color subscriptionListHeaderLine;
   final Color subscriptionListHeaderText;
   final Color unreadCountBadgeTextForChannel;
+  final Color pressedTint;
 
   @override
   DesignVariables copyWith({
@@ -383,6 +387,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? subscriptionListHeaderLine,
     Color? subscriptionListHeaderText,
     Color? unreadCountBadgeTextForChannel,
+    Color? pressedTint
   }) {
     return DesignVariables._(
       background: background ?? this.background,
@@ -431,6 +436,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
       subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
       unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
+      pressedTint: pressedTint ?? this.pressedTint
     );
   }
 
@@ -486,6 +492,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
       subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
       unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
+      pressedTint: Color.lerp(pressedTint, other.pressedTint, t)!
     );
   }
 }
