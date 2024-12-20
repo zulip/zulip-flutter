@@ -225,8 +225,7 @@ void main() {
       await tester.enterText(composeInputFinder, 'hi :z');
       await tester.pump();
       // Add an extra pump to account for any potential frame delays introduced
-      // by the post frame callback in the _RawAutocompleteOptions
-      // implementation.
+      // by the post frame callback in RawAutocomplete's implementation.
       await tester.pump();
       checkEmojiShown(expected: true, zzzOption);
       checkEmojiShown(expected: true, buzzingOption);
