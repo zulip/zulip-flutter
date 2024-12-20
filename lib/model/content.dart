@@ -581,6 +581,57 @@ class TableCellNode extends BlockInlineContainerNode {
   }
 }
 
+// Ref:
+//  https://ogp.me/
+//  https://oembed.com/
+class LinkPreviewNode extends BlockContentNode {
+  const LinkPreviewNode({
+    super.debugHtmlNode,
+    required this.hrefUrl,
+    required this.imageSrcUrl,
+    required this.title,
+    required this.description,
+  });
+
+  /// The URL from which this preview data was retrieved.
+  final String hrefUrl;
+
+  /// The image URL representing the webpage, content value
+  /// of `og:image` HTML meta property.
+  final String imageSrcUrl;
+
+  /// Represents the webpage title, derived from either
+  /// the content of the `og:title` HTML meta property or
+  /// the <title> HTML element.
+  final String? title;
+
+  /// Description about the webpage, content value of
+  /// `og:description` HTML meta property.
+  final String? description;
+
+  @override
+  bool operator ==(Object other) {
+    return other is LinkPreviewNode
+      && other.hrefUrl == hrefUrl
+      && other.imageSrcUrl == imageSrcUrl
+      && other.title == title
+      && other.description == description;
+  }
+
+  @override
+  int get hashCode =>
+    Object.hash('LinkPreviewNode', hrefUrl, imageSrcUrl, title, description);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('hrefUrl', hrefUrl));
+    properties.add(StringProperty('imageSrcUrl', imageSrcUrl));
+    properties.add(StringProperty('title', title));
+    properties.add(StringProperty('description', description));
+  }
+}
+
 /// A content node that expects an inline layout context from its parent.
 ///
 /// When rendered into a Flutter widget tree, an inline content node
@@ -1451,6 +1502,81 @@ class _ZulipContentParser {
     return tableNode ?? UnimplementedBlockContentNode(htmlNode: tableElement);
   }
 
+  static final _linkPreviewImageSrcRegexp = RegExp(r'background-image: url\("(.+)"\)');
+
+  BlockContentNode parseLinkPreviewNode(dom.Element divElement) {
+    assert(_debugParserContext == _ParserContext.block);
+    assert(divElement.localName == 'div'
+      && divElement.className == 'message_embed');
+
+    final result = () {
+      if (divElement.nodes.length != 2) return null;
+
+      final first = divElement.nodes.first;
+      if (first is! dom.Element) return null;
+      if (first.localName != 'a') return null;
+      if (first.className != 'message_embed_image') return null;
+      if (first.nodes.isNotEmpty) return null;
+
+      final imageHref = first.attributes['href'];
+      if (imageHref == null) return null;
+
+      final styleAttr = first.attributes['style'];
+      if (styleAttr == null) return null;
+      final match = _linkPreviewImageSrcRegexp.firstMatch(styleAttr);
+      if (match == null) return null;
+      final imageSrcUrl = match.group(1);
+      if (imageSrcUrl == null) return null;
+
+      final second = divElement.nodes.last;
+      if (second is! dom.Element) return null;
+      if (second.localName != 'div') return null;
+      if (second.className != 'data-container') return null;
+      if (second.nodes.isEmpty) return null;
+      if (second.nodes.length > 2) return null;
+
+      String? title, description;
+      for (final node in second.nodes) {
+        if (node is! dom.Element) return null;
+        if (node.localName != 'div') return null;
+
+        switch (node.className) {
+          case 'message_embed_title':
+            if (node.nodes.length != 1) return null;
+            final child = node.nodes.single;
+            if (child is! dom.Element) return null;
+            if (child.localName != 'a') return null;
+            if (child.className.isNotEmpty) return null;
+            if (child.nodes.length != 1) return null;
+
+            final titleHref = child.attributes['href'];
+            // Make sure both image hyperlink and title hyperlink are same.
+            if (imageHref != titleHref) return null;
+            final grandchild = child.nodes.single;
+            if (grandchild is! dom.Text) return null;
+            title = grandchild.text;
+
+          case 'message_embed_description':
+            if (node.nodes.length != 1) return null;
+            final child = node.nodes.single;
+            if (child is! dom.Text) return null;
+            description = child.text;
+
+          default:
+            return null;
+        }
+      }
+
+      return LinkPreviewNode(
+        hrefUrl: imageHref,
+        imageSrcUrl: imageSrcUrl,
+        title: title,
+        description: description);
+    }();
+
+    return result ?? UnimplementedBlockContentNode(htmlNode: divElement);
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     assert(_debugParserContext == _ParserContext.block);
     final debugHtmlNode = kDebugMode ? node : null;
@@ -1546,6 +1672,10 @@ class _ZulipContentParser {
             return parseEmbedVideoNode(element);
         }
       }
+    }
+
+    if (localName == 'div' && className == 'message_embed') {
+      return parseLinkPreviewNode(element);
     }
 
     // TODO more types of node
