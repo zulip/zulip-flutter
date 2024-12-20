@@ -641,6 +641,22 @@
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
   },
+  "notifyChannel": "Notify channel",
+  "@notifyChannel": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard mentions in a channel or topic narrow."
+  },
+  "notifyStream": "Notify stream",
+  "@notifyStream": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard mentions in a stream or topic narrow."
+  },
+  "notifyRecipients": "Notify recipients",
+  "@notifyRecipients": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard mentions in a DM narrow."
+  },
+  "notifyTopic": "Notify topic",
+  "@notifyTopic": {
+    "description": "Description for \"@topic\" wildcard mention in a channel or topic narrow."
+  },
   "messageIsEditedLabel": "EDITED",
   "@messageIsEditedLabel": {
     "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
