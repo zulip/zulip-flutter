@@ -477,6 +477,25 @@ GetMessagesResult newestGetMessagesResult({
   );
 }
 
+/// A GetMessagesResult the server might return on an `anchor=oldest` request.
+GetMessagesResult oldestGetMessagesResult({
+  required bool foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    // These anchor, foundAnchor, and foundOldest values are what the server
+    // appears to always return when the request had `anchor=oldest`.
+    anchor: 0,
+    foundAnchor: false,
+    foundOldest: true,
+
+    foundNewest: foundNewest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
 /// A GetMessagesResult the server might return when we request older messages.
 GetMessagesResult olderGetMessagesResult({
   required int anchor,
@@ -490,6 +509,24 @@ GetMessagesResult olderGetMessagesResult({
     foundAnchor: foundAnchor,
     foundNewest: false, // empirically always this, even when anchor happens to be latest
     foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
+/// A GetMessagesResult the server might return when we request newer messages.
+GetMessagesResult newerGetMessagesResult({
+  required int anchor,
+  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  required bool foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundNewest: foundNewest,
+    foundOldest: false, // empirically always this, even when anchor happens to be oldest
     historyLimited: historyLimited,
     messages: messages,
   );
