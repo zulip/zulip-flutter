@@ -240,6 +240,49 @@ void main() {
     });
   });
 
+  group('isUnread', () {
+    final unreadDmMessage = eg.dmMessage(
+      from: eg.otherUser, to: [eg.selfUser], flags: []);
+    final readDmMessage = eg.dmMessage(
+      from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]);
+    final unreadChannelMessage = eg.streamMessage(flags: []);
+    final readChannelMessage = eg.streamMessage(flags: [MessageFlag.read]);
+
+    final allMessages = [
+      unreadDmMessage, unreadChannelMessage,
+      readDmMessage,   readChannelMessage,
+    ];
+
+    void doTestCommon(String description, int messageId, bool expected) {
+      test(description, () {
+        prepare();
+        model.oldUnreadsMissing = false;
+        fillWithMessages(allMessages);
+        check(model.isUnread(messageId)).equals(expected);
+      });
+    }
+
+    void doTestOldUnreadsMissing(String description, int messageId, bool? expected) {
+      assert(expected == true || expected == null);
+      test('oldUnreadsMissing; $description', () {
+        prepare();
+        model.oldUnreadsMissing = true;
+        fillWithMessages(allMessages);
+        check(model.isUnread(messageId)).equals(expected);
+      });
+    }
+
+    doTestCommon('unread DM message',      unreadDmMessage.id,      true);
+    doTestCommon('read DM message',        readDmMessage.id,        false);
+    doTestCommon('unread channel message', unreadChannelMessage.id, true);
+    doTestCommon('read channel message',   readChannelMessage.id,   false);
+
+    doTestOldUnreadsMissing('unread DM message',      unreadDmMessage.id,      true);
+    doTestOldUnreadsMissing('read DM message',        readDmMessage.id,        null);
+    doTestOldUnreadsMissing('unread channel message', unreadChannelMessage.id, true);
+    doTestOldUnreadsMissing('read channel message',   readChannelMessage.id,   null);
+  });
+
   group('handleMessageEvent', () {
     for (final (isUnread, isStream, isDirectMentioned, isWildcardMentioned) in [
       (true,  true,  true,  true ),
