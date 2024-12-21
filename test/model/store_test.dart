@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
@@ -498,6 +499,36 @@ void main() {
       // checkLastRequest(); TODO UpdateMachine.debugPauseLoop was too late; see comment above
       check(updateMachine.store.users.values).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
+    }));
+
+    String? lastReportedError;
+    String? takeLastReportedError() {
+      final result = lastReportedError;
+      lastReportedError = null;
+      return result;
+    }
+
+    Future<void> logReportedError(String message, {String? details}) async {
+      lastReportedError = '$message\n$details';
+    }
+
+    test('does not retry registerQueue on invalid API key', () => awaitFakeAsync((async) async {
+      reportErrorToUserModally = logReportedError;
+      addTearDown(() => reportErrorToUserModally = defaultReportErrorToUserBriefly);
+      await prepareStore();
+
+      // Try to load, but the API key is told to be invalid.
+      globalStore.useCachedApiConnections = true;
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'INVALID_API_KEY',
+        'msg': 'Invalid API key',
+      });
+      await check(UpdateMachine.load(globalStore, eg.selfAccount.id))
+        .throws<ZulipApiException>();
+
+      check(takeLastReportedError()).isNotNull().equals(
+        'Could not connect\n'
+        'Your account at https://chat.example/ cannot be authenticated. Please logout and try again.');
     }));
 
     // TODO test UpdateMachine.load starts polling loop
