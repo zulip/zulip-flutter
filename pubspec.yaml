@@ -39,6 +39,7 @@ dependencies:
   collection: ^1.17.2
   convert: ^3.1.1
   crypto: ^3.0.3
+  cupertino_icons: ^1.0.8
   device_info_plus: ^10.0.1
   drift: ^2.5.0
   file_picker: ^8.0.0+1
