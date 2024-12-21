@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
@@ -581,7 +582,13 @@ void main() {
       });
 
       // TODO test what happens when capturing/uploading fails
-    });
+    },
+    // This test fails on Windows because [XFile.name] splits on
+    // [Platform.pathSeparator], corresponding to the actual host platform
+    // the test is running on, instead of the path separator for the
+    // target platform the test is simulating.
+    // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+    skip: Platform.isWindows);
   });
 
   group('error banner', () {
