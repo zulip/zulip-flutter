@@ -896,11 +896,14 @@ class RecipientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTopicNarrow = narrow is TopicNarrow;
+    final isDmNarrow = narrow is DmNarrow;
     final message = this.message;
     return switch (message) {
       StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: _containsDifferentChannels(narrow)),
-      DmMessage() => DmRecipientHeader(message: message),
+        showStream: _containsDifferentChannels(narrow),
+        isTopicNarrow: isTopicNarrow),
+      DmMessage() => DmRecipientHeader(message: message, isDmNarrow: isDmNarrow),
     };
   }
 }
@@ -1015,10 +1018,12 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     super.key,
     required this.message,
     required this.showStream,
+    required this.isTopicNarrow,
   });
 
   final StreamMessage message;
   final bool showStream;
+  final bool isTopicNarrow;
 
   @override
   Widget build(BuildContext context) {
@@ -1105,9 +1110,9 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         ]));
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
+      onTap: () => !isTopicNarrow? Navigator.push(context,
         MessageListPage.buildRoute(context: context,
-          narrow: TopicNarrow.ofMessage(message))),
+          narrow: TopicNarrow.ofMessage(message))): null,
       onLongPress: () => showTopicActionSheet(context,
         channelId: message.streamId, topic: topic),
       child: ColoredBox(
@@ -1126,9 +1131,10 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 }
 
 class DmRecipientHeader extends StatelessWidget {
-  const DmRecipientHeader({super.key, required this.message});
+  const DmRecipientHeader({super.key, required this.message, required this.isDmNarrow});
 
   final DmMessage message;
+  final bool isDmNarrow;
 
   @override
   Widget build(BuildContext context) {
@@ -1149,9 +1155,9 @@ class DmRecipientHeader extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
+      onTap: () => !isDmNarrow? Navigator.push(context,
         MessageListPage.buildRoute(context: context,
-          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))): null,
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
