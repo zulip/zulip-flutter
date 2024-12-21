@@ -922,6 +922,37 @@ void main() {
         await tester.pump();
         tester.widget(find.text('new stream name'));
       });
+
+      testWidgets('does not navigate on tapping topic in TopicNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+        final channel = eg.stream(name: 'stream name');
+        final msg = eg.streamMessage(stream: channel, topic: 'topic name');
+
+        await setupMessageListPage(
+          tester,
+          narrow: TopicNarrow(channel.streamId, 'topic name'),
+          navObservers: [navObserver],
+          streams: [channel],
+          messages: [msg],
+        );
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        final topicFinder = find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name'),
+        );
+
+        expect(topicFinder.evaluate().length, equals(1));
+        await tester.tap(topicFinder);
+        await tester.pumpAndSettle();
+
+        expect(pushedRoutes.length, equals(0));
+      });
     });
 
     group('DmRecipientHeader', () {
@@ -986,6 +1017,34 @@ void main() {
       // For this test, just accept outputs corresponding to any possible timezone.
       tester.widget(find.textContaining(RegExp("Dec 1[89], 2022")));
       tester.widget(find.textContaining(RegExp("Aug 2[23], 2022")));
+    });
+
+    testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+
+      await setupMessageListPage(
+        tester,
+        narrow: DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId),
+        navObservers: [navObserver],
+        messages: [dmMessage],
+      );
+
+      assert(pushedRoutes.length == 1);
+
+      pushedRoutes.clear();
+
+      final recipientHeaderFinder = find.byType(DmRecipientHeader);
+
+      expect(recipientHeaderFinder.evaluate().length, equals(1));
+
+      await tester.tap(recipientHeaderFinder);
+      await tester.pumpAndSettle();
+
+      expect(pushedRoutes.length, equals(0));
     });
   });
 
