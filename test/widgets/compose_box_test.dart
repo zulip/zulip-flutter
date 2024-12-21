@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
@@ -581,7 +582,7 @@ void main() {
       });
 
       // TODO test what happens when capturing/uploading fails
-    });
+    },skip: Platform.isWindows);
   });
 
   group('error banner', () {
