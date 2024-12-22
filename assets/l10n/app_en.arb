@@ -680,5 +680,29 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "aFewSecondsAgo": "A few seconds ago",
+  "@aFewSecondsAgo": {
+    "description": "Message displayed when the difference between the current time and the given time is less than 60 seconds."
+  },
+  "oneMinuteAgo": "1 minute ago",
+  "@oneMinuteAgo": {
+    "description": "Message displayed when the difference between the current time and the given time is exactly 1 minute."
+  },
+  "minutesAgo": "{minutes} minutes ago",
+  "@minutesAgo": {
+    "description": "Message displayed when the difference between the current time and the given time is in minutes. The placeholder {minutes} will be replaced with the actual number of minutes."
+  },
+  "todayAt": "Today at {time}",
+  "@todayAt": {
+    "description": "Message displayed when the given time is from today. The placeholder {time} will be replaced with the formatted time."
+  },
+  "yesterdayAt": "Yesterday at {time}",
+  "@yesterdayAt": {
+    "description": "Message displayed when the given time is from yesterday. The placeholder {time} will be replaced with the formatted time."
+  },
+  "dateAtTime": "{date} at {time}",
+  "@dateAtTime": {
+    "description": "Message displayed when the given time is older than yesterday. The placeholder {date} will be replaced with the formatted date and {time} with the formatted time."
   }
 }
