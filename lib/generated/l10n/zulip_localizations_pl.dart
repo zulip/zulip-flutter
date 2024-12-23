@@ -89,6 +89,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Udostępnij';
 
   @override
+  String get actionSheetOptionViewReactions => 'View Reactions';
+
+  @override
   String get actionSheetOptionQuoteAndReply => 'Odpowiedz cytując';
 
   @override

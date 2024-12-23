@@ -6,10 +6,13 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/autocomplete.dart';
 import '../model/emoji.dart';
+import '../model/store.dart';
 import 'color.dart';
+import 'content.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'profile.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -127,10 +130,21 @@ class ReactionChipsList extends StatelessWidget {
     final showNames = displayEmojiReactionUsers && reactions.total <= 3;
 
     return Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
-      children: reactions.aggregated.map((reactionVotes) => ReactionChip(
+      children: reactions.aggregated.map((reactionVotes) {
+        final index = reactions.aggregated.indexOf(reactionVotes);
+        return ReactionChip(
         showName: showNames,
-        messageId: messageId, reactionWithVotes: reactionVotes),
-      ).toList());
+        messageId: messageId,
+        reactionWithVotes: reactionVotes,
+        onLongPress:(context){
+          showReactionListSheet(
+            context,
+            reactionList: reactions.aggregated,
+            initialTabIndex: index,
+            );
+        }
+      );
+    }).toList());
   }
 }
 
@@ -138,12 +152,14 @@ class ReactionChip extends StatelessWidget {
   final bool showName;
   final int messageId;
   final ReactionWithVotes reactionWithVotes;
+  final void Function(BuildContext context)? onLongPress;
 
   const ReactionChip({
     super.key,
     required this.showName,
     required this.messageId,
     required this.reactionWithVotes,
+    this.onLongPress,
   });
 
   @override
@@ -206,6 +222,11 @@ class ReactionChip extends StatelessWidget {
           customBorder: shape,
           splashColor: splashColor,
           highlightColor: highlightColor,
+          onLongPress: (){
+             if (onLongPress != null) {
+                onLongPress!(context);
+              }
+          },
           onTap: () {
             (selfVoted ? removeReaction : addReaction).call(store.connection,
               messageId: messageId,
@@ -266,6 +287,203 @@ class ReactionChip extends StatelessWidget {
   }
 }
 
+void showReactionListSheet(
+  BuildContext context, {
+  required List<ReactionWithVotes>? reactionList,
+  int initialTabIndex = 0,
+}) {
+  final store = PerAccountStoreWidget.of(context);
+
+  if (reactionList == null || reactionList.isEmpty) return;
+
+  showModalBottomSheet<void>(
+    context: context,
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (BuildContext modalContext) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: InsetShadowBox(
+                    top: 8,
+                    bottom: 8,
+                    color: DesignVariables.of(context).bgContextMenu,
+                    child: PerAccountStoreWidget(
+                      accountId: store.accountId,
+                      child: ReactionListContent(
+                        store: store,
+                        reactionList: reactionList,
+                        initialTabIndex: initialTabIndex
+                      ),
+                    ),
+                  ),
+                ),
+                const ReactionSheetCloseButton(),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+class ReactionListContent extends StatelessWidget {
+  final PerAccountStore store;
+  final List<ReactionWithVotes> reactionList;
+  final int initialTabIndex;
+
+  const ReactionListContent({
+    super.key,
+    required this.store,
+    required this.reactionList,
+    this.initialTabIndex = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final tabs = reactionList.map((reaction) {
+      final emojiDisplay = store.emojiDisplayFor(
+        emojiType: reaction.reactionType,
+        emojiCode: reaction.emojiCode,
+        emojiName: reaction.emojiName,
+      ).resolve(store.userSettings);
+
+      final emoji = switch (emojiDisplay) {
+        UnicodeEmojiDisplay() => _UnicodeEmoji(emojiDisplay: emojiDisplay),
+        ImageEmojiDisplay() => _ImageEmoji(
+          emojiDisplay: emojiDisplay,
+          emojiName: reaction.emojiName,
+          selected: reaction.userIds.contains(store.selfUserId),
+        ),
+        TextEmojiDisplay() => _TextEmoji(
+          emojiDisplay: emojiDisplay,
+          selected: reaction.userIds.contains(store.selfUserId),
+        ),
+      };
+
+      return Tab(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            emoji,
+            const SizedBox(height: 4),
+            Text(
+              '${reaction.userIds.length}',
+              style: const TextStyle()
+                .merge(weightVariableTextStyle(context, wght: 600)),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+
+    final tabViews = reactionList.map((reaction) {
+      return ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: reaction.userIds.length,
+        itemBuilder: (context, index) {
+          final userId = reaction.userIds.elementAt(index);
+          return ListTile(
+              leading: Avatar(userId: userId, size: 32.0, borderRadius: 3),
+              title: Text(
+                userId == store.selfUserId
+                    ? 'You'
+                    : store.users[userId]?.fullName ?? '(unknown user)',
+                style: TextStyle(
+                  color: designVariables.foreground.withFadedAlpha(0.80),
+                  fontSize: 17,
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  ProfilePage.buildRoute(context: context, userId: userId),
+                );
+              },
+            );
+        },
+      );
+    }).toList();
+
+    return DefaultTabController(
+      length: tabs.length,
+      initialIndex: initialTabIndex,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              dividerColor: Colors.transparent,
+              indicator: BoxDecoration(
+                color: designVariables.background,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: designVariables.foreground.withFadedAlpha(0.2),
+                  width:1
+                )
+              ),
+              splashFactory: NoSplash.splashFactory,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: designVariables.foreground,
+              unselectedLabelColor: designVariables.foreground,
+              labelStyle: const TextStyle(fontSize: 14)
+                  .merge(weightVariableTextStyle(context, wght: 400)),
+              unselectedLabelStyle: const TextStyle(fontSize: 14)
+                  .merge(weightVariableTextStyle(context, wght: 400)),
+              tabs: tabs,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: TabBarView(children: tabViews),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class ReactionSheetCloseButton extends StatelessWidget {
+  const ReactionSheetCloseButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return TextButton(
+      style: TextButton.styleFrom(
+        minimumSize: const Size.fromHeight(44),
+        padding: const EdgeInsets.all(10),
+        foregroundColor: designVariables.contextMenuCancelText,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
+        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
+        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+      })),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: Text(ZulipLocalizations.of(context).dialogClose,
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600))));
+  }
+}
 /// The size of a square emoji (Unicode or image).
 ///
 /// Should be scaled by [_emojiTextScalerClamped].
