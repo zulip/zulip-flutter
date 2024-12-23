@@ -89,6 +89,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Zdielať';
 
   @override
+  String get actionSheetOptionViewReactions => 'See who reacted';
+
+  @override
   String get actionSheetOptionQuoteAndReply => 'Citovať a odpovedať';
 
   @override
@@ -96,6 +99,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnstarMessage => 'Odhviezdičkovať správu';
+
+  @override
+  String get reactionSheetEmptyReactions => 'No reactions yet';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Niečo sa pokazilo';

@@ -104,6 +104,10 @@
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
   },
+  "actionSheetOptionViewReactions": "See who reacted",
+  "@actionSheetOptionViewReactions": {
+    "description": "Label for View Reactions button on action sheet."
+  },
   "actionSheetOptionQuoteAndReply": "Quote and reply",
   "@actionSheetOptionQuoteAndReply":  {
     "description": "Label for Quote and reply button on action sheet."
@@ -115,6 +119,10 @@
   "actionSheetOptionUnstarMessage": "Unstar message",
   "@actionSheetOptionUnstarMessage":  {
     "description": "Label for unstar button on action sheet."
+  },
+  "reactionSheetEmptyReactions": "No reactions yet",
+  "@reactionSheetEmptyReactions": {
+    "description": "Text to display when the reactions sheet is open, but there are no reactions to show."
   },
   "errorWebAuthOperationalErrorTitle": "Something went wrong",
   "@errorWebAuthOperationalErrorTitle": {

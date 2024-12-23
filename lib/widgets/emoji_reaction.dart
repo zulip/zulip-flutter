@@ -6,10 +6,15 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/autocomplete.dart';
 import '../model/emoji.dart';
+import '../model/message_list.dart';
+import '../model/store.dart';
 import 'color.dart';
+import 'content.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'message_list.dart';
+import 'profile.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -125,10 +130,14 @@ class ReactionChipsList extends StatelessWidget {
     final showNames = displayEmojiReactionUsers && reactions.total <= 3;
 
     return Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
-      children: reactions.aggregated.map((reactionVotes) => ReactionChip(
-        showName: showNames,
-        messageId: messageId, reactionWithVotes: reactionVotes),
-      ).toList());
+      children: reactions.aggregated.map((reactionVotes) {
+          return ReactionChip(
+            showName: showNames,
+            messageId: messageId,
+            reactionWithVotes: reactionVotes,
+          );
+      }).toList()
+    );
   }
 }
 
@@ -204,6 +213,14 @@ class ReactionChip extends StatelessWidget {
           customBorder: shape,
           splashColor: splashColor,
           highlightColor: highlightColor,
+          onLongPress: (){
+            showReactionListSheet(
+              context,
+              messageId: messageId,
+              messageListView: MessageListPage.ancestorOf(context).model,
+              initialTab: reactionWithVotes,
+            );
+          },
           onTap: () {
             (selfVoted ? removeReaction : addReaction).call(store.connection,
               messageId: messageId,
@@ -264,6 +281,269 @@ class ReactionChip extends StatelessWidget {
   }
 }
 
+void showReactionListSheet(
+  BuildContext context, {
+  required int messageId,
+  required MessageListView? messageListView,
+  ReactionWithVotes? initialTab,
+}) {
+  final store = PerAccountStoreWidget.of(context);
+
+  showModalBottomSheet<void>(
+    context: context,
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (BuildContext modalContext) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: InsetShadowBox(
+                    top: 8,
+                    bottom: 8,
+                    color: DesignVariables.of(context).bgContextMenu,
+                    child: PerAccountStoreWidget(
+                      accountId: store.accountId,
+                      child: ReactionListContent(
+                        store: store,
+                        messageId: messageId,
+                        initialTab: initialTab,
+                        messageListView: messageListView,
+                      ),
+                    ),
+                  ),
+                ),
+                const ReactionSheetCloseButton(),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class ReactionListContent extends StatefulWidget {
+  final PerAccountStore store;
+  final int messageId;
+  final ReactionWithVotes? initialTab;
+  final MessageListView? messageListView;
+
+  const ReactionListContent({
+    super.key,
+    required this.store,
+    required this.messageListView,
+    required this.messageId,
+    this.initialTab,
+  });
+
+  @override
+  State<ReactionListContent> createState() => _ReactionListContentState();
+}
+class _ReactionListContentState extends State<ReactionListContent> {
+  late MessageListView? model;
+  List<ReactionWithVotes> reactionList = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initModel();
+  }
+
+  void _initModel() {
+    model = widget.messageListView;
+    model!.addListener(_onMessageListChanged);
+    _updateReactionList();
+  }
+
+  void _onMessageListChanged() {
+    _updateReactionList();
+  }
+
+  void _updateReactionList() {
+    setState(() {
+      reactionList = widget.store.messages[widget.messageId]?.reactions?.aggregated
+            .where((reaction) => reaction.userIds.isNotEmpty)
+            .toList() ??
+        [];
+      isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    if (model != null) {
+      model!.removeListener(_onMessageListChanged);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (reactionList.isEmpty) {
+      return Center(
+        child: Text(
+          zulipLocalizations.reactionSheetEmptyReactions,
+          style: TextStyle(
+            color: designVariables.foreground.withFadedAlpha(0.6),
+            fontSize: 16,
+          ).merge(weightVariableTextStyle(context, wght: 500)),
+        ),
+      );
+    }
+
+    final tabs = reactionList.map((reaction) {
+      final emojiDisplay = widget.store.emojiDisplayFor(
+        emojiType: reaction.reactionType,
+        emojiCode: reaction.emojiCode,
+        emojiName: reaction.emojiName,
+      ).resolve(widget.store.userSettings);
+
+      final emoji = switch (emojiDisplay) {
+        UnicodeEmojiDisplay() => _UnicodeEmoji(emojiDisplay: emojiDisplay),
+        ImageEmojiDisplay() => _ImageEmoji(
+          emojiDisplay: emojiDisplay,
+          emojiName: reaction.emojiName,
+          selected: reaction.userIds.contains(widget.store.selfUserId),
+        ),
+        TextEmojiDisplay() => _TextEmoji(
+          emojiDisplay: emojiDisplay,
+          selected: reaction.userIds.contains(widget.store.selfUserId),
+        ),
+      };
+
+      return Tab(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            emoji,
+            const SizedBox(height: 4),
+            Text(
+              '${reaction.userIds.length}',
+              style: const TextStyle()
+                  .merge(weightVariableTextStyle(context, wght: 600)),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+
+    final tabViews = reactionList.map((reaction) {
+      return ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: reaction.userIds.length,
+        itemBuilder: (context, index) {
+          final userId = reaction.userIds.elementAt(index);
+          return ListTile(
+            leading: Avatar(userId: userId, size: 32.0, borderRadius: 3),
+            title: Text(
+              userId == widget.store.selfUserId
+                  ? 'You'
+                  : widget.store.users[userId]?.fullName ?? zulipLocalizations.unknownUserName,
+              style: TextStyle(
+                color: designVariables.foreground.withFadedAlpha(0.80),
+                fontSize: 17,
+              ).merge(weightVariableTextStyle(context, wght: 500)),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                ProfilePage.buildRoute(context: context, userId: userId),
+              );
+            },
+          );
+        },
+      );
+    }).toList();
+
+    return DefaultTabController(
+      length: tabs.length,
+      initialIndex: widget.initialTab != null
+        ? reactionList.indexOf(widget.initialTab as ReactionWithVotes)
+        : 0,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              dividerColor: Colors.transparent,
+              indicator: BoxDecoration(
+                color: designVariables.background,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: designVariables.foreground.withFadedAlpha(0.2),
+                  width: 1,
+                ),
+              ),
+              splashFactory: NoSplash.splashFactory,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: designVariables.foreground,
+              unselectedLabelColor: designVariables.foreground,
+              labelStyle: const TextStyle(fontSize: 14)
+                  .merge(weightVariableTextStyle(context, wght: 400)),
+              unselectedLabelStyle: const TextStyle(fontSize: 14)
+                  .merge(weightVariableTextStyle(context, wght: 400)),
+              tabs: tabs,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: TabBarView(children: tabViews),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class ReactionSheetCloseButton extends StatelessWidget {
+  const ReactionSheetCloseButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return TextButton(
+      style: TextButton.styleFrom(
+        minimumSize: const Size.fromHeight(44),
+        padding: const EdgeInsets.all(10),
+        foregroundColor: designVariables.contextMenuCancelText,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.fromMap({
+        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
+        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+      })),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: Text(ZulipLocalizations.of(context).dialogClose,
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600))));
+  }
+}
 /// The size of a square emoji (Unicode or image).
 ///
 /// Should be scaled by [_emojiTextScalerClamped].
