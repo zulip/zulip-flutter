@@ -762,6 +762,14 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
+  "errorContentNotInsertedTitle": "Content not inserted",
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "errorContentToInsertIsEmpty": "The file to be inserted is empty or cannot be accessed.",
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
+  },
   "errorServerVersionUnsupportedMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.",
   "@errorServerVersionUnsupportedMessage": {
     "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
