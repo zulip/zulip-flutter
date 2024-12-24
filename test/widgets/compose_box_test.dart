@@ -474,7 +474,7 @@ void main() {
       // (When we check that the send button looks disabled, it should be because
       // the file is uploading, not a pre-existing reason.)
       await enterTopic(tester, narrow: narrow, topic: 'some topic');
-      controller!.content.value = const TextEditingValue(text: 'see image: ');
+      await tester.enterText(contentInputFinder, 'see image: ');
       await tester.pump();
     }
 
