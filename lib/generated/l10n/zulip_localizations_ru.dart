@@ -639,6 +639,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Темы обязательны в этой организации.';
 
   @override
+  String get errorContentNotInsertedTitle => 'Content not inserted';
+
+  @override
+  String get errorContentToInsertIsEmpty =>
+      'The file to be inserted is empty or cannot be accessed.';
+
+  @override
   String errorServerVersionUnsupportedMessage(
     String url,
     String zulipVersion,
