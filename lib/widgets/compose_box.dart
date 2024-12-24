@@ -4,6 +4,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
+import 'package:path/path.dart' as path;
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -465,6 +466,39 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
     }
   }
 
+  void _handleContentInserted(KeyboardInsertedContent content) async {
+    if (content.data == null || content.data!.isEmpty) {
+      // As of writing, the engine implementation never leaves `content.data` as
+      // `null`, but ideally it should be when the data cannot be read for
+      // errors.
+      //
+      // When `content.data` is empty, the data is not literally empty — this
+      // can also happen when the data can't be read from the input stream
+      // provided by the Android SDK because of an IO exception.
+      //
+      // See Flutter engine implementation that prepares this data:
+      //   https://github.com/flutter/flutter/blob/0ffc4ce00/engine/src/flutter/shell/platform/android/io/flutter/plugin/editing/InputConnectionAdaptor.java#L497-L548
+      // TODO(upstream): improve the API for this
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorContentNotInsertedTitle,
+        message: zulipLocalizations.errorContentToInsertIsEmpty);
+      return;
+    }
+
+    final file = _File(
+      content: Stream.fromIterable([content.data!]),
+      length: content.data!.length,
+      filename: path.basename(content.uri),
+      mimeType: content.mimeType);
+
+    await _uploadFiles(
+      context: context,
+      contentController: widget.controller.content,
+      contentFocusNode: widget.controller.contentFocusNode,
+      files: [file]);
+  }
+
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -508,6 +542,8 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
             child: TextField(
               controller: widget.controller.content,
               focusNode: widget.controller.contentFocusNode,
+              contentInsertionConfiguration: ContentInsertionConfiguration(
+                onContentInserted: _handleContentInserted),
               // Let the content show through the `contentPadding` so that
               // our [InsetShadowBox] can fade it smoothly there.
               clipBehavior: Clip.none,

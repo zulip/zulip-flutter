@@ -405,6 +405,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
 
   @override
+  String get errorContentNotInsertedTitle => 'Content not inserted';
+
+  @override
+  String get errorContentToInsertIsEmpty => 'The file to be inserted is empty or cannot be accessed.';
+
+  @override
   String errorInvalidApiKeyMessage(String url) {
     return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
   }

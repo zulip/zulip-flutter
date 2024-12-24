@@ -801,6 +801,18 @@ abstract class ZulipLocalizations {
   /// **'Topics are required in this organization.'**
   String get topicValidationErrorMandatoryButEmpty;
 
+  /// Title for error dialog when an attempt to insert rich content failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Content not inserted'**
+  String get errorContentNotInsertedTitle;
+
+  /// Error message when the rich content to be inserted is empty or cannot be accessed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file to be inserted is empty or cannot be accessed.'**
+  String get errorContentToInsertIsEmpty;
+
   /// Error message in the dialog for invalid API key.
   ///
   /// In en, this message translates to:
