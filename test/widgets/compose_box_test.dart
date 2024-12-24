@@ -1045,20 +1045,24 @@ void main() {
         .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
     }
 
+    Future<void> prepare(WidgetTester tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+
+      // (When we check that the send button looks disabled, it should be because
+      // the file is uploading, not a pre-existing reason.)
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      controller!.content.value = const TextEditingValue(text: 'see image: ');
+      await tester.pump();
+    }
+
     group('attach from media library', () {
       testWidgets('success', (tester) async {
-        TypingNotifier.debugEnable = false;
-        addTearDown(TypingNotifier.debugReset);
-
-        final channel = eg.stream();
-        final narrow = ChannelNarrow(channel.streamId);
-        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-
-        // (When we check that the send button looks disabled, it should be because
-        // the file is uploading, not a pre-existing reason.)
-        await enterTopic(tester, narrow: narrow, topic: 'some topic');
-        controller!.content.value = const TextEditingValue(text: 'see image: ');
-        await tester.pump();
+        await prepare(tester);
         checkAppearsLoading(tester, false);
 
         testBinding.pickFilesResult = FilePickerResult([PlatformFile(
@@ -1106,18 +1110,7 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
-        TypingNotifier.debugEnable = false;
-        addTearDown(TypingNotifier.debugReset);
-
-        final channel = eg.stream();
-        final narrow = ChannelNarrow(channel.streamId);
-        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-
-        // (When we check that the send button looks disabled, it should be because
-        // the file is uploading, not a pre-existing reason.)
-        await enterTopic(tester, narrow: narrow, topic: 'some topic');
-        controller!.content.value = const TextEditingValue(text: 'see image: ');
-        await tester.pump();
+        await prepare(tester);
         checkAppearsLoading(tester, false);
 
         testBinding.pickImageResult = XFile.fromData(
