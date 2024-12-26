@@ -198,6 +198,89 @@ class FakeVideoPlayerPlatform extends Fake
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group('_LightboxHeroTag', () {
+    final narrow = TopicNarrow.ofMessage(eg.streamMessage());
+    final src = Uri.parse('https://chat.example/lightbox-image.png');
+      test('should return true when tag is exactly equal', () {
+      final tag1 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'Sample Topic',
+        narrow: narrow,
+      );
+      final tag2 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'Sample Topic',
+        narrow: narrow,
+      );
+
+      check(tag1 == tag2).isTrue();
+      check(tag1.hashCode).equals(tag2.hashCode);
+    });
+
+    test('should return false for tags with different messageId', () {
+      final tag1 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'Sample Topic',
+        narrow: narrow,
+      );
+      final tag2 = LightboxHeroTag(
+        messageId: 456,
+        src: src,
+        topic: 'Sample Topic',
+        narrow: narrow,
+      );
+
+      check(tag1 == tag2).isFalse();
+    });
+
+    test('should return false for tags with different topic', () {
+      final tag1 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'testing',
+        narrow: narrow,
+      );
+      final tag2 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'Testing',
+        narrow: narrow,
+      );
+
+      check(tag1 == tag2).isFalse();
+    });
+
+    test('should return false for tags with different narrow', () {
+      final tag1 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'Sample Topic',
+        narrow: narrow,
+      );
+      final tag2 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'sample topic',
+        narrow:  TopicNarrow(eg.stream().streamId, 'sample topic'),
+      );
+
+      check(tag1 == tag2).isFalse();
+    });
+    test('should return false for tags with different types', () {
+      final tag1 = LightboxHeroTag(
+        messageId: 123,
+        src: src,
+        topic: 'Sample Topic',
+        narrow: narrow,
+      );
+
+      check(tag1 == 'not a LightboxHeroTag').isFalse();
+    });
+  });
+
   group('_ImageLightboxPage', () {
     final src = Uri.parse('https://chat.example/lightbox-image.png');
     final narrow = TopicNarrow.ofMessage(eg.streamMessage());

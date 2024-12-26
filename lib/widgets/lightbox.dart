@@ -21,8 +21,8 @@ import 'store.dart';
 //   message. Maybe keep `src`, so that on exit the lightbox image doesn't
 //   fly to an image preview with a different URL, following a message edit
 //   while the lightbox was open.
-class _LightboxHeroTag {
-  _LightboxHeroTag({required this.messageId, required this.src, required this.topic, required this.narrow});
+class LightboxHeroTag {
+  LightboxHeroTag({required this.messageId, required this.src, required this.topic, required this.narrow});
 
   final int messageId;
   final Uri src;
@@ -31,7 +31,7 @@ class _LightboxHeroTag {
 
   @override
   bool operator ==(Object other) {
-    return other is _LightboxHeroTag &&
+    return other is LightboxHeroTag &&
       other.messageId == messageId &&
       other.topic == topic &&
       other.narrow == narrow &&
@@ -39,7 +39,7 @@ class _LightboxHeroTag {
   }
 
   @override
-  int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
+  int get hashCode => Object.hash('LightboxHeroTag', messageId, src);
 }
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
@@ -60,7 +60,7 @@ class LightboxHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src, topic: message.topic, narrow: narrow),
+      tag: LightboxHeroTag(messageId: message.id, src: src, topic: message.topic, narrow: narrow),
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
