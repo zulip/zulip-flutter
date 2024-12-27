@@ -31,9 +31,9 @@ dependencies:
   # We only do this for packages with a history of major-version bumps
   # that caused more churn than real incompatibilities.
   intl: any  # pinned by flutter_localizations; churn history:
-             # https://github.com/dart-lang/i18n/issues/458#issuecomment-1513231235
-             # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
-             # https://github.com/flutter/flutter/issues/117163
+    # https://github.com/dart-lang/i18n/issues/458#issuecomment-1513231235
+    # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
+  # https://github.com/flutter/flutter/issues/117163
 
   app_settings: ^5.0.0
   collection: ^1.17.2
