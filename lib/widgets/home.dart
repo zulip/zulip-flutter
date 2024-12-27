@@ -181,6 +181,7 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final realmUrl = GlobalStoreWidget.of(context)
+      // TODO(#1219) `!` is incorrect
       .getAccount(widget.accountId)!.realmUrl;
 
     return Scaffold(
