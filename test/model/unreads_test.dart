@@ -68,7 +68,7 @@ void main() {
       switch (message) {
         case StreamMessage():
           final perTopic = expectedStreams[message.streamId] ??= {};
-          final messageIds = perTopic[message.topic] ??= QueueList();
+          final messageIds = perTopic[message.topic.toLowerCase()] ??= QueueList();
           messageIds.add(message.id);
         case DmMessage():
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
@@ -289,6 +289,7 @@ void main() {
         final stream2 = eg.stream(streamId: 2);
         for (final (oldStream, newStream, oldTopic, newTopic) in [
           (stream1, stream1, 'a', 'a'),
+          (stream1, stream1, 'a', 'A'),
           (stream1, stream1, 'a', 'b'),
           (stream1, stream2, 'a', 'a'),
           (stream1, stream2, 'a', 'b'),

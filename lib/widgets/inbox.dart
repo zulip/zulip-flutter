@@ -136,11 +136,11 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
-        if (!store.isTopicVisible(streamId, topic)) continue;
+        if (!store.isTopicVisible(streamId, unreadsModel != null? unreadsModel!.topicMapper[topic]! : topic)) continue;
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
         if (hasMention) streamHasMention = true;
-        topicItems.add((topic, countInTopic, hasMention, messageIds.last));
+        topicItems.add((unreadsModel!.topicMapper[topic]!, countInTopic, hasMention, messageIds.last));
         countInStream += countInTopic;
       }
       if (countInStream == 0) {

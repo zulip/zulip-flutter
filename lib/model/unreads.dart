@@ -41,13 +41,15 @@ class Unreads extends ChangeNotifier {
     required ChannelStore channelStore,
   }) {
     final streams = <int, Map<String, QueueList<int>>>{};
+    final topicMapper = <String, String>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
     for (final unreadChannelSnapshot in initial.channels) {
       final streamId = unreadChannelSnapshot.streamId;
       final topic = unreadChannelSnapshot.topic;
-      (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
+      topicMapper[topic.toLowerCase()] = topic;
+      (streams[streamId] ??= {})[topic.toLowerCase()] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
     }
 
     for (final unreadDmSnapshot in initial.dms) {
@@ -64,6 +66,7 @@ class Unreads extends ChangeNotifier {
     return Unreads._(
       channelStore: channelStore,
       streams: streams,
+      topicMapper: topicMapper,
       dms: dms,
       mentions: mentions,
       oldUnreadsMissing: initial.oldUnreadsMissing,
@@ -74,6 +77,7 @@ class Unreads extends ChangeNotifier {
   Unreads._({
     required this.channelStore,
     required this.streams,
+    required this.topicMapper,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
@@ -87,6 +91,9 @@ class Unreads extends ChangeNotifier {
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
   final Map<int, Map<String, QueueList<int>>> streams;
+
+  // Maps lowercase topic names for lookup to one of the variants of the topic (case preserving).
+  final Map<String, String> topicMapper;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -368,7 +375,7 @@ class Unreads extends ChangeNotifier {
               switch (detail.type) {
                 case MessageType.stream:
                   final topics = (newlyUnreadInStreams[detail.streamId!] ??= {});
-                  final messageIds = (topics[detail.topic!] ??= QueueList());
+                  final messageIds = (topics[detail.topic!.toLowerCase()] ??= QueueList());
                   messageIds.add(messageId);
                 case MessageType.direct:
                   final narrow = DmNarrow.ofUpdateMessageFlagsMessageDetail(selfUserId: selfUserId,
@@ -437,7 +444,8 @@ class Unreads extends ChangeNotifier {
   }
 
   void _addLastInStreamTopic(int messageId, int streamId, String topic) {
-    ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    topicMapper[topic.toLowerCase()] = topic;
+    ((streams[streamId] ??= {})[topic.toLowerCase()] ??= QueueList()).addLast(messageId);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
