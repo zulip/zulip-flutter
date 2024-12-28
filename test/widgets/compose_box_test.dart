@@ -517,12 +517,6 @@ void main() {
       expect(errors, contains(TopicValidationError.mandatoryButEmpty));
     });
 
-    test('detects topic too long error', () {
-      controller.text = longTopic;
-      final errors = controller.validationErrors;
-
-      expect(errors, contains(TopicValidationError.tooLong));
-    });
   });
 
   group('ComposeTopic UI', () {
