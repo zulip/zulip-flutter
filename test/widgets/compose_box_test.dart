@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -41,7 +42,8 @@ void main() {
   late ComposeBoxController? controller;
 
   final contentInputFinder = find.byWidgetPredicate(
-    (widget) => widget is TextField && widget.controller is ComposeContentController);
+          (widget) =>
+      widget is TextField && widget.controller is ComposeContentController);
 
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
@@ -52,13 +54,13 @@ void main() {
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
-        'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
+      'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
     }
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
     final selfAccount = eg.account(user: selfUser);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
-      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+        realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
@@ -67,16 +69,18 @@ void main() {
     connection = store.connection as FakeApiConnection;
 
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
-      child: Column(
-        // This positions the compose box at the bottom of the screen,
-        // simulating the layout of the message list page.
-        children: [
-          const Expanded(child: SizedBox.expand()),
-          ComposeBox(narrow: narrow),
-        ])));
+        child: Column(
+          // This positions the compose box at the bottom of the screen,
+          // simulating the layout of the message list page.
+            children: [
+              const Expanded(child: SizedBox.expand()),
+              ComposeBox(narrow: narrow),
+            ])));
     await tester.pumpAndSettle();
 
-    controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
+    controller = tester
+        .state<ComposeBoxState>(find.byType(ComposeBox))
+        .controller;
   }
 
   Future<void> enterTopic(WidgetTester tester, {
@@ -84,10 +88,12 @@ void main() {
     required String topic,
   }) async {
     final topicInputFinder = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.controller is ComposeTopicController);
+            (widget) =>
+        widget is TextField && widget.controller is ComposeTopicController);
 
     connection.prepare(body:
-      jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+    jsonEncode(
+        GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')
@@ -116,14 +122,16 @@ void main() {
         if (insertionPoint == null) {
           throw Exception('Test error: expected ^ in input');
         }
-        return TextEditingValue(text: textBuffer.toString(), selection: TextSelection.collapsed(offset: insertionPoint));
+        return TextEditingValue(text: textBuffer.toString(),
+            selection: TextSelection.collapsed(offset: insertionPoint));
       }
 
       /// Test the given `insertPadded` call, in a convenient format.
       ///
       /// In valueBefore, represent the insertion point as "^".
       /// In expectedValue, represent the collapsed selection as "^".
-      void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
+      void testInsertPadded(String description, String valueBefore,
+          String textToInsert, String expectedValue) {
         test(description, () {
           final controller = ComposeContentController();
           controller.value = parseMarkedText(valueBefore);
@@ -137,61 +145,65 @@ void main() {
       //   expanded, or null (what they call !TextSelection.isValid).
 
       testInsertPadded('empty; insert one line',
-        '^', 'a\n',    'a\n\n^');
+          '^', 'a\n', 'a\n\n^');
       testInsertPadded('empty; insert two lines',
-        '^', 'a\nb\n', 'a\nb\n\n^');
+          '^', 'a\nb\n', 'a\nb\n\n^');
 
       group('insert at end', () {
         testInsertPadded('one empty line; insert one line',
-          '\n^',     'a\n',    '\na\n\n^');
+            '\n^', 'a\n', '\na\n\n^');
         testInsertPadded('two empty lines; insert one line',
-          '\n\n^',   'a\n',    '\n\na\n\n^');
+            '\n\n^', 'a\n', '\n\na\n\n^');
         testInsertPadded('one line, incomplete; insert one line',
-          'a^',      'b\n',    'a\n\nb\n\n^');
+            'a^', 'b\n', 'a\n\nb\n\n^');
         testInsertPadded('one line, complete; insert one line',
-          'a\n^',    'b\n',    'a\n\nb\n\n^');
+            'a\n^', 'b\n', 'a\n\nb\n\n^');
         testInsertPadded('multiple lines, last is incomplete; insert one line',
-          'a\nb^',   'c\n',    'a\nb\n\nc\n\n^');
+            'a\nb^', 'c\n', 'a\nb\n\nc\n\n^');
         testInsertPadded('multiple lines, last is complete; insert one line',
-          'a\nb\n^', 'c\n',    'a\nb\n\nc\n\n^');
+            'a\nb\n^', 'c\n', 'a\nb\n\nc\n\n^');
         testInsertPadded('multiple lines, last is complete; insert two lines',
-          'a\nb\n^', 'c\nd\n', 'a\nb\n\nc\nd\n\n^');
+            'a\nb\n^', 'c\nd\n', 'a\nb\n\nc\nd\n\n^');
       });
 
       group('insert at start', () {
         testInsertPadded('one empty line; insert one line',
-          '^\n',     'a\n',    'a\n\n^');
+            '^\n', 'a\n', 'a\n\n^');
         testInsertPadded('two empty lines; insert one line',
-          '^\n\n',   'a\n',    'a\n\n^\n');
+            '^\n\n', 'a\n', 'a\n\n^\n');
         testInsertPadded('one line, incomplete; insert one line',
-          '^a',      'b\n',    'b\n\n^a');
+            '^a', 'b\n', 'b\n\n^a');
         testInsertPadded('one line, complete; insert one line',
-          '^a\n',    'b\n',    'b\n\n^a\n');
+            '^a\n', 'b\n', 'b\n\n^a\n');
         testInsertPadded('multiple lines, last is incomplete; insert one line',
-          '^a\nb',   'c\n',    'c\n\n^a\nb');
+            '^a\nb', 'c\n', 'c\n\n^a\nb');
         testInsertPadded('multiple lines, last is complete; insert one line',
-          '^a\nb\n', 'c\n',    'c\n\n^a\nb\n');
+            '^a\nb\n', 'c\n', 'c\n\n^a\nb\n');
         testInsertPadded('multiple lines, last is complete; insert two lines',
-          '^a\nb\n', 'c\nd\n', 'c\nd\n\n^a\nb\n');
+            '^a\nb\n', 'c\nd\n', 'c\nd\n\n^a\nb\n');
       });
 
       group('insert in middle', () {
         testInsertPadded('middle of line',
-          'a^a\n',       'b\n', 'a\n\nb\n\n^a\n');
+            'a^a\n', 'b\n', 'a\n\nb\n\n^a\n');
         testInsertPadded('start of non-empty line, after empty line',
-          'b\n\n^a\n',   'c\n', 'b\n\nc\n\n^a\n');
+            'b\n\n^a\n', 'c\n', 'b\n\nc\n\n^a\n');
         testInsertPadded('end of non-empty line, before non-empty line',
-          'a^\nb\n',     'c\n', 'a\n\nc\n\n^b\n');
+            'a^\nb\n', 'c\n', 'a\n\nc\n\n^b\n');
         testInsertPadded('start of non-empty line, after non-empty line',
-          'a\n^b\n',     'c\n', 'a\n\nc\n\n^b\n');
-        testInsertPadded('text start; one empty line; insertion point; one empty line',
-          '\n^\n',       'a\n', '\na\n\n^');
-        testInsertPadded('text start; one empty line; insertion point; two empty lines',
-          '\n^\n\n',     'a\n', '\na\n\n^\n');
-        testInsertPadded('text start; two empty lines; insertion point; one empty line',
-          '\n\n^\n',     'a\n', '\n\na\n\n^');
-        testInsertPadded('text start; two empty lines; insertion point; two empty lines',
-          '\n\n^\n\n',   'a\n', '\n\na\n\n^\n');
+            'a\n^b\n', 'c\n', 'a\n\nc\n\n^b\n');
+        testInsertPadded(
+            'text start; one empty line; insertion point; one empty line',
+            '\n^\n', 'a\n', '\na\n\n^');
+        testInsertPadded(
+            'text start; one empty line; insertion point; two empty lines',
+            '\n^\n\n', 'a\n', '\na\n\n^\n');
+        testInsertPadded(
+            'text start; two empty lines; insertion point; one empty line',
+            '\n\n^\n', 'a\n', '\n\na\n\n^');
+        testInsertPadded(
+            'text start; two empty lines; insertion point; two empty lines',
+            '\n\n^\n\n', 'a\n', '\n\na\n\n^\n');
       });
     });
   });
@@ -201,35 +213,43 @@ void main() {
       required bool expectTopicTextField,
     }) {
       if (expectTopicTextField) {
-        final topicController = (controller as StreamComposeBoxController).topic;
-        final topicTextField = tester.widgetList<TextField>(find.byWidgetPredicate(
-          (widget) => widget is TextField && widget.controller == topicController
-        )).singleOrNull;
-        check(topicTextField).isNotNull()
-          .textCapitalization.equals(TextCapitalization.none);
+        final topicController = (controller as StreamComposeBoxController)
+            .topic;
+        final topicTextField = tester
+            .widgetList<TextField>(find.byWidgetPredicate(
+                (widget) =>
+            widget is TextField && widget.controller == topicController
+        ))
+            .singleOrNull;
+        check(topicTextField)
+            .isNotNull()
+            .textCapitalization
+            .equals(TextCapitalization.none);
       } else {
         check(controller).isA<FixedDestinationComposeBoxController>();
-        check(find.byType(TextField)).findsOne(); // just content input, no topic
+        check(find.byType(TextField))
+            .findsOne(); // just content input, no topic
       }
 
       final contentTextField = tester.widget<TextField>(find.byWidgetPredicate(
-        (widget) => widget is TextField
-          && widget.controller == controller!.content));
+              (widget) =>
+          widget is TextField
+              && widget.controller == controller!.content));
       check(contentTextField)
-        .textCapitalization.equals(TextCapitalization.sentences);
+          .textCapitalization.equals(TextCapitalization.sentences);
     }
 
     testWidgets('_StreamComposeBox', (tester) async {
       final channel = eg.stream();
       await prepareComposeBox(tester,
-        narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
       checkComposeBoxTextFields(tester, expectTopicTextField: true);
     });
 
     testWidgets('_FixedDestinationComposeBox', (tester) async {
       final channel = eg.stream();
       await prepareComposeBox(tester,
-        narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
+          narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
       checkComposeBoxTextFields(tester, expectTopicTextField: false);
     });
   });
@@ -239,9 +259,10 @@ void main() {
     final narrow = TopicNarrow(channel.streamId, 'some topic');
 
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
-      checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
+        checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
 
-    Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
+    Future<void> checkStartTyping(WidgetTester tester,
+        SendableNarrow narrow) async {
       connection.prepare(json: {});
       await tester.enterText(contentInputFinder, 'hello world');
       checkTypingRequest(TypingOp.start, narrow);
@@ -259,7 +280,7 @@ void main() {
 
     testWidgets('smoke DmNarrow', (tester) async {
       final narrow = DmNarrow.withUsers(
-        [eg.otherUser.userId], selfUserId: eg.selfUser.userId);
+          [eg.otherUser.userId], selfUserId: eg.selfUser.userId);
       await prepareComposeBox(tester, narrow: narrow);
 
       await checkStartTyping(tester, narrow);
@@ -282,7 +303,8 @@ void main() {
       checkTypingRequest(TypingOp.stop, destinationNarrow);
     });
 
-    testWidgets('clearing text sends a "typing stopped" notice', (tester) async {
+    testWidgets(
+        'clearing text sends a "typing stopped" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -292,7 +314,8 @@ void main() {
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
-    testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
+    testWidgets(
+        'hitting send button sends a "typing stopped" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -321,11 +344,12 @@ void main() {
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(MaterialAccountWidgetRoute(
-        accountId: selfAccount.id, page: ComposeBox(narrow: narrow))));
+          accountId: selfAccount.id, page: ComposeBox(narrow: narrow))));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('navigating away sends a "typing stopped" notice', (tester) async {
+    testWidgets(
+        'navigating away sends a "typing stopped" notice', (tester) async {
       await prepareComposeBoxWithNavigation(tester);
 
       await checkStartTyping(tester, narrow);
@@ -336,7 +360,9 @@ void main() {
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
-    testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
+    testWidgets(
+        'for content input, unfocusing sends a "typing stopped" notice', (
+        tester) async {
       final narrow = ChannelNarrow(channel.streamId);
       final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
@@ -350,7 +376,8 @@ void main() {
       checkTypingRequest(TypingOp.stop, destinationNarrow);
     });
 
-    testWidgets('selection change sends a "typing started" notice', (tester) async {
+    testWidgets(
+        'selection change sends a "typing started" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -361,7 +388,7 @@ void main() {
 
       connection.prepare(json: {});
       controller!.content.selection =
-        const TextSelection(baseOffset: 0, extentOffset: 2);
+      const TextSelection(baseOffset: 0, extentOffset: 2);
       checkTypingRequest(TypingOp.start, narrow);
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
@@ -370,7 +397,8 @@ void main() {
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
-    testWidgets('unfocusing app sends a "typing stopped" notice', (tester) async {
+    testWidgets(
+        'unfocusing app sends a "typing stopped" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -382,12 +410,12 @@ void main() {
       // On iOS and Android, a transition to [hidden] is synthesized before
       // transitioning into [paused].
       WidgetsBinding.instance.handleAppLifecycleStateChanged(
-        AppLifecycleState.hidden);
+          AppLifecycleState.hidden);
       await tester.pump(Duration.zero);
       checkTypingRequest(TypingOp.stop, narrow);
 
       WidgetsBinding.instance.handleAppLifecycleStateChanged(
-        AppLifecycleState.paused);
+          AppLifecycleState.paused);
       await tester.pump(Duration.zero);
       check(connection.lastRequest).isNull();
     });
@@ -401,25 +429,27 @@ void main() {
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
-        streams: [eg.stream(streamId: 123)]);
+      await prepareComposeBox(
+          tester, narrow: const TopicNarrow(123, 'some topic'),
+          streams: [eg.stream(streamId: 123)]);
 
       await tester.enterText(contentInputFinder, 'hello world');
 
       prepareResponse(456);
-      await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
+      await tester.tap(
+          find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-            'type': 'stream',
-            'to': '123',
-            'topic': 'some topic',
-            'content': 'hello world',
-            'read_by_sender': 'true',
-          });
+          'type': 'stream',
+          'to': '123',
+          'topic': 'some topic',
+          'content': 'hello world',
+          'read_by_sender': 'true',
+        });
     }
 
     testWidgets('success', (tester) async {
@@ -433,20 +463,151 @@ void main() {
     testWidgets('ZulipApiException', (tester) async {
       await setupAndTapSend(tester, prepareResponse: (message) {
         connection.prepare(
-          httpStatus: 400,
-          json: {
-            'result': 'error',
-            'code': 'BAD_REQUEST',
-            'msg': 'You do not have permission to initiate direct message conversations.',
-          });
+            httpStatus: 400,
+            json: {
+              'result': 'error',
+              'code': 'BAD_REQUEST',
+              'msg': 'You do not have permission to initiate direct message conversations.',
+            });
       });
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorMessageNotSent,
         expectedMessage: zulipLocalizations.errorServerMessage(
-          'You do not have permission to initiate direct message conversations.'),
+            'You do not have permission to initiate direct message conversations.'),
       )));
     });
+  });
+
+  group('ComposeTopicController', () {
+    const kMaxTopicLength = 60; // Example max length
+    const longTopic = "This is a sample string that is exactly sixty characters long. This is a very long topic that exceeds the maximum allowed length. ";
+    const trimmedLongTopic = "This is a sample string that is exactly sixty characters lon"; // Truncated
+
+    late ComposeTopicController controller;
+
+    setUp(() {
+      controller = ComposeTopicController();
+    });
+
+    tearDown(() {
+      controller.dispose();
+    });
+
+    test('enforces character limit when text exceeds kMaxTopicLength', () {
+      controller.text = longTopic;
+
+      // Verify truncation logic
+      expect(controller.text, trimmedLongTopic);
+      expect(ComposeTopicController.characterCount.value, kMaxTopicLength);
+    });
+
+    test('updates character count correctly', () {
+      controller.text = trimmedLongTopic;
+
+      // Verify character count matches the topic length
+      expect(
+          ComposeTopicController.characterCount.value, trimmedLongTopic.length);
+    });
+
+    test('detects mandatory topic violation', () {
+      controller.text = ""; // Empty text
+      final errors = controller.validationErrors;
+
+      expect(errors, contains(TopicValidationError.mandatoryButEmpty));
+    });
+
+    test('detects topic too long error', () {
+      controller.text = longTopic;
+      final errors = controller.validationErrors;
+
+      expect(errors, contains(TopicValidationError.tooLong));
+    });
+  });
+
+  group('ComposeTopic UI', () {
+    testWidgets('displays correct character count while typing', (
+        WidgetTester tester) async {
+      const kMaxTopicLength = 60;
+      final controller = ComposeTopicController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: ComposeTopicController.characterCount,
+                  builder: (context, count, child) {
+                    return Text('$count / $kMaxTopicLength');
+                  },
+                ),
+                TextField(
+                  controller: controller,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(kMaxTopicLength),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final textFieldFinder = find.byType(TextField);
+      final characterCountFinder = find.text('60 / $kMaxTopicLength');
+
+      // Initial state
+      expect(characterCountFinder, findsOneWidget);
+
+      // Enter valid text
+      await tester.enterText(textFieldFinder, 'Test topic');
+      await tester.pump();
+
+      // Updated state
+      expect(find.text('10 / $kMaxTopicLength'), findsOneWidget);
+    });
+
+    testWidgets(
+        'displays truncated text and updated count when exceeding max length',
+            (WidgetTester tester) async {
+          const kMaxTopicLength = 60;
+          final controller = ComposeTopicController();
+          const longTopic = "This is a sample string that is exactly sixty characters long. This is a very long topic that exceeds the maximum allowed length. ";
+          const trimmedLongTopic = "This is a sample string that is exactly sixty characters lon"; //Truncated
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    ValueListenableBuilder<int>(
+                      valueListenable: ComposeTopicController.characterCount,
+                      builder: (context, count, child) {
+                        return Text('$count / $kMaxTopicLength');
+                      },
+                    ),
+                    TextField(
+                      controller: controller,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(kMaxTopicLength),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+          final textFieldFinder = find.byType(TextField);
+
+          // Enter long text
+          await tester.enterText(textFieldFinder, longTopic);
+          await tester.pump();
+
+          expect(controller.text, trimmedLongTopic);
+          expect(
+              find.text('$kMaxTopicLength / $kMaxTopicLength'), findsOneWidget);
+        });
   });
 
   group('uploads', () {
