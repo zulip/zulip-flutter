@@ -42,10 +42,10 @@ PODS:
   - Firebase/Messaging (11.4.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 11.4.0)
-  - firebase_core (3.8.1):
+  - firebase_core (3.9.0):
     - Firebase/CoreOnly (= 11.4.0)
     - Flutter
-  - firebase_messaging (15.0.4):
+  - firebase_messaging (15.1.6):
     - Firebase/Messaging (= 11.4.0)
     - firebase_core
     - Flutter
@@ -131,7 +131,7 @@ PODS:
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
     - FlutterMacOS
-    - sqlite3 (~> 3.47.1)
+    - sqlite3 (~> 3.47.2)
     - sqlite3/dbstatvtab
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
@@ -218,8 +218,8 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: 09aa5ec1ab24135ccd7a1621c46c84134bfd6655
   Firebase: cf1b19f21410b029b6786a54e9764a0cacad3c99
-  firebase_core: 418aed674e9a0b8b6088aec16cde82a811f6261f
-  firebase_messaging: fec1aa4d5819e0f653fb5bb0de8b29c07f4f9513
+  firebase_core: b62a5080210edad3f2934314a8b2c6f5124e8e10
+  firebase_messaging: 98619a0572d82cfb3668e78859ba9f1110e268c9
   FirebaseCore: e0510f1523bc0eb21653cac00792e1e2bd6f1771
   FirebaseCoreInternal: d98ab91e2d80a56d7b246856a8885443b302c0c2
   FirebaseInstallations: 6ef4a1c7eb2a61ee1f74727d7f6ce2e72acf1414
@@ -236,11 +236,11 @@ SPEC CHECKSUMS:
   SDWebImage: 73c6079366fea25fa4bb9640d5fb58f0893facd8
   share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   sqlite3: 7559e33dae4c78538df563795af3a86fc887ee71
-  sqlite3_flutter_libs: 1b4e98da20ebd4e9b1240269b78cdcf492dbe9f3
+  sqlite3_flutter_libs: 58ae36c0dd086395d066b4fe4de9cdca83e717b3
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
   video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
-  wakelock_plus: 78ec7c5b202cab7761af8e2b2b3d0671be6c4ae1
+  wakelock_plus: 373cfe59b235a6dd5837d0fb88791d2f13a90d56
 
 PODFILE CHECKSUM: 7ed5116924b3be7e8fb75f7aada61e057028f5c7
 

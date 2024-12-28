@@ -280,7 +280,7 @@ class EmojiStoreImpl with EmojiStore {
     //   https://github.com/zulip/zulip/blob/0f59e2e78/web/src/emoji.ts#L232-L278
     //
     // Behavior differences we might copy or change, TODO:
-    //  * Web has a particular ordering of Unicode emoji;
+    //  * TODO(#1201) Web has a particular ordering of Unicode emoji;
     //    a data file groups them by category and orders within each of those,
     //    and the code has a list of categories.
     //    This seems useful; it'll call for expanding the server emoji data API.

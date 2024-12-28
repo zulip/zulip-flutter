@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
+import 'about_zulip.dart';
 import 'action_sheet.dart';
 import 'app.dart';
 import 'app_bar.dart';
@@ -198,8 +199,9 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final realmUrl =
-        GlobalStoreWidget.of(context).getAccount(widget.accountId)!.realmUrl;
+    final realmUrl = GlobalStoreWidget.of(context)
+      // TODO(#1219) `!` is incorrect
+      .getAccount(widget.accountId)!.realmUrl;
 
     return Scaffold(
       appBar: AppBar(),
@@ -307,6 +309,7 @@ void _showMainMenu(
     // TODO(#97): Settings
     // TODO(#661): Notifications
     // const SizedBox(height: 8),
+    const _AboutZulipButton(),
     // TODO(#1095): VersionInfo
   ];
 
@@ -651,6 +654,23 @@ class _CombinedProfileButton extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _AboutZulipButton extends _MenuButton {
+  const _AboutZulipButton();
+
+  @override
+  IconData get icon => ZulipIcons.info;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.aboutPageTitle;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(AboutZulipPage.buildRoute(context));
   }
 }
 
