@@ -4,7 +4,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
-
+import 'package:intl/intl.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -85,8 +85,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     return [
       if (mandatory && textNormalized == kNoTopicTopic)
         TopicValidationError.mandatoryButEmpty,
-      if (textNormalized.length > kMaxTopicLength)
-        TopicValidationError.tooLong,
+      if (textNormalized.length > kMaxTopicLength) TopicValidationError.tooLong,
     ];
   }
 }
@@ -111,7 +110,8 @@ enum ContentValidationError {
   }
 }
 
-class ComposeContentController extends ComposeController<ContentValidationError> {
+class ComposeContentController
+    extends ComposeController<ContentValidationError> {
   ComposeContentController() {
     _update();
   }
@@ -136,10 +136,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final TextRange selection = value.selection;
     final String text = value.text;
     return selection.isValid
-      ? (selection.isCollapsed
-        ? selection
-        : TextRange.collapsed(selection.end))
-      : TextRange.collapsed(text.length);
+        ? (selection.isCollapsed
+            ? selection
+            : TextRange.collapsed(selection.end))
+        : TextRange.collapsed(text.length);
   }
 
   /// Inserts [newText] in [text], setting off with an empty line before and after.
@@ -156,7 +156,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final i = insertionIndex();
     final textBefore = text.substring(0, i.start);
     final String paddingBefore;
-    if (textBefore.isEmpty || textBefore == '\n' || textBefore.endsWith('\n\n')) {
+    if (textBefore.isEmpty ||
+        textBefore == '\n' ||
+        textBefore.endsWith('\n\n')) {
       paddingBefore = ''; // At start of input, or just after an empty line.
     } else if (textBefore.endsWith('\n')) {
       paddingBefore = '\n'; // After a complete but non-empty line.
@@ -165,7 +167,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     }
     if (text.substring(i.start).startsWith('\n')) {
       final partial = value.replaced(i, paddingBefore + newText);
-      value = partial.copyWith(selection: TextSelection.collapsed(offset: partial.selection.start + 1));
+      value = partial.copyWith(
+        selection: TextSelection.collapsed(offset: partial.selection.start + 1),
+      );
     } else {
       value = value.replaced(i, '$paddingBefore$newText\n');
     }
@@ -175,7 +179,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerQuoteAndReplyEnd on
   /// success or failure
-  int registerQuoteAndReplyStart(PerAccountStore store, {required Message message}) {
+  int registerQuoteAndReplyStart(
+    PerAccountStore store, {
+    required Message message,
+  }) {
     final tag = _nextQuoteAndReplyTag;
     _nextQuoteAndReplyTag += 1;
     final placeholder = quoteAndReplyPlaceholder(store, message: message);
@@ -189,22 +196,26 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// To indicate success, pass [rawContent].
   /// If that is null, failure is assumed.
-  void registerQuoteAndReplyEnd(PerAccountStore store, int tag, {
+  void registerQuoteAndReplyEnd(
+    PerAccountStore store,
+    int tag, {
     required Message message,
     String? rawContent,
   }) {
     final val = _quoteAndReplies[tag];
     assert(val != null, 'registerQuoteAndReplyEnd called twice for same tag');
     final int startIndex = text.indexOf(val!.placeholder);
-    final replacementText = rawContent == null
-      ? ''
-      : quoteAndReply(store, message: message, rawContent: rawContent);
+    final replacementText =
+        rawContent == null
+            ? ''
+            : quoteAndReply(store, message: message, rawContent: rawContent);
     if (startIndex >= 0) {
       value = value.replaced(
         TextRange(start: startIndex, end: startIndex + val.placeholder.length),
         replacementText,
       );
-    } else if (replacementText != '') { // insertPadded requires non-empty string
+    } else if (replacementText != '') {
+      // insertPadded requires non-empty string
       insertPadded(replacementText);
     }
     _quoteAndReplies.remove(tag);
@@ -215,7 +226,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerUploadEnd on the
   /// upload's success or failure.
-  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations) {
+  int registerUploadStart(
+    String filename,
+    ZulipLocalizations zulipLocalizations,
+  ) {
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
@@ -235,13 +249,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     assert(val != null, 'registerUploadEnd called twice for same tag');
     final (:filename, :placeholder) = val!;
     final int startIndex = text.indexOf(placeholder);
-    final replacementRange = startIndex >= 0
-      ? TextRange(start: startIndex, end: startIndex + placeholder.length)
-      : insertionIndex();
+    final replacementRange =
+        startIndex >= 0
+            ? TextRange(start: startIndex, end: startIndex + placeholder.length)
+            : insertionIndex();
 
     value = value.replaced(
       replacementRange,
-      url == null ? '' : inlineLink(filename, url));
+      url == null ? '' : inlineLink(filename, url),
+    );
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
@@ -254,8 +270,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   @override
   List<ContentValidationError> _computeValidationErrors() {
     return [
-      if (textNormalized.isEmpty)
-        ContentValidationError.empty,
+      if (textNormalized.isEmpty) ContentValidationError.empty,
 
       // normalized.length is the number of UTF-16 code units, while the server
       // API expresses the max in Unicode code points. So this comparison will
@@ -266,8 +281,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       if (_quoteAndReplies.isNotEmpty)
         ContentValidationError.quoteAndReplyInProgress,
 
-      if (_uploads.isNotEmpty)
-        ContentValidationError.uploadInProgress,
+      if (_uploads.isNotEmpty) ContentValidationError.uploadInProgress,
     ];
   }
 }
@@ -289,7 +303,8 @@ class _ContentInput extends StatefulWidget {
   State<_ContentInput> createState() => _ContentInputState();
 }
 
-class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
+class _ContentInputState extends State<_ContentInput>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -320,8 +335,8 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   void _contentChanged() {
     final store = PerAccountStoreWidget.of(context);
     (widget.controller.content.text.isEmpty)
-      ? store.typingNotifier.stoppedComposing()
-      : store.typingNotifier.keystroke(widget.destination);
+        ? store.typingNotifier.stoppedComposing()
+        : store.typingNotifier.keystroke(widget.destination);
   }
 
   void _focusChanged() {
@@ -354,18 +369,20 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
         final store = PerAccountStoreWidget.of(context);
         store.typingNotifier.stoppedComposing();
       case AppLifecycleState.inactive:
-        // > At least one view of the application is visible, but none have
-        // > input focus. The application is otherwise running normally.
-        // For example, we expect this state when the user is selecting a file
-        // to upload.
+      // > At least one view of the application is visible, but none have
+      // > input focus. The application is otherwise running normally.
+      // For example, we expect this state when the user is selecting a file
+      // to upload.
       case AppLifecycleState.resumed:
     }
   }
 
   static double maxHeight(BuildContext context) {
-    final clampingTextScaler = MediaQuery.textScalerOf(context)
-      .clamp(maxScaleFactor: 1.5);
-    final scaledLineHeight = clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
+    final clampingTextScaler = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: 1.5);
+    final scaledLineHeight =
+        clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
 
     // Reserve space to fully show the first 7th lines and just partially
     // clip the 8th line, where the height matches the spec at
@@ -395,44 +412,56 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
       narrow: widget.narrow,
       controller: widget.controller.content,
       focusNode: widget.controller.contentFocusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: _verticalPadding, bottom: _verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: TextField(
-              controller: widget.controller.content,
-              focusNode: widget.controller.contentFocusNode,
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeightRatio,
-                color: designVariables.textInput),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 2,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: widget.hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+      fieldViewBuilder:
+          (context) => ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight(context)),
+            // This [ClipRect] replaces the [TextField] clipping we disable below.
+            child: ClipRect(
+              child: InsetShadowBox(
+                top: _verticalPadding,
+                bottom: _verticalPadding,
+                color: designVariables.composeBoxBg,
+                child: TextField(
+                  controller: widget.controller.content,
+                  focusNode: widget.controller.contentFocusNode,
+                  // Let the content show through the `contentPadding` so that
+                  // our [InsetShadowBox] can fade it smoothly there.
+                  clipBehavior: Clip.none,
+                  style: TextStyle(
+                    fontSize: _fontSize,
+                    height: _lineHeightRatio,
+                    color: designVariables.textInput,
+                  ),
+                  // From the spec at
+                  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+                  // > Compose box has the height to fit 2 lines. This is [done] to
+                  // > have a bigger hit area for the user to start the input. […]
+                  minLines: 2,
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    // This padding ensures that the user can always scroll long
+                    // content entirely out of the top or bottom shadow if desired.
+                    // With this and the `minLines: 2` above, an empty content input
+                    // gets 60px vertical distance (with no text-size scaling)
+                    // between the top of the top shadow and the bottom of the
+                    // bottom shadow. That's a bit more than the 54px given in the
+                    // Figma, and we can revisit if needed, but it's tricky to get
+                    // that 54px distance while also making the scrolling work like
+                    // this and offering two lines of touchable area.
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: _verticalPadding,
+                    ),
+                    hintText: widget.hintText,
+                    hintStyle: TextStyle(
+                      color: designVariables.textInput.withFadedAlpha(0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+    );
   }
 }
 
@@ -482,13 +511,18 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final streamName = store.streams[widget.narrow.streamId]?.name
-      ?? zulipLocalizations.composeBoxUnknownChannelName;
+    final streamName =
+        store.streams[widget.narrow.streamId]?.name ??
+        zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(
+        streamName,
+        _topicTextNormalized,
+      ),
+    );
   }
 }
 
@@ -513,20 +547,31 @@ class _TopicInput extends StatelessWidget {
       controller: controller.topic,
       focusNode: controller.topicFocusNode,
       contentFocusNode: controller.contentFocusNode,
-      fieldViewBuilder: (context) => Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 9),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1,
-          color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
-          textInputAction: TextInputAction.next,
-          style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+      fieldViewBuilder:
+          (context) => Container(
+            padding: const EdgeInsets.only(top: 10, bottom: 9),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  width: 1,
+                  color: designVariables.foreground.withFadedAlpha(0.2),
+                ),
+              ),
+            ),
+            child: TextField(
+              controller: controller.topic,
+              focusNode: controller.topicFocusNode,
+              textInputAction: TextInputAction.next,
+              style: topicTextStyle,
+              decoration: InputDecoration(
+                hintText: zulipLocalizations.composeBoxTopicHintText,
+                hintStyle: topicTextStyle.copyWith(
+                  color: designVariables.textInput.withFadedAlpha(0.5),
+                ),
+              ),
+            ),
+          ),
+    );
   }
 }
 
@@ -544,9 +589,13 @@ class _FixedDestinationContentInput extends StatelessWidget {
     switch (narrow) {
       case TopicNarrow(:final streamId, :final topic):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[streamId]?.name
-          ?? zulipLocalizations.composeBoxUnknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(streamName, topic);
+        final streamName =
+            store.streams[streamId]?.name ??
+            zulipLocalizations.composeBoxUnknownChannelName;
+        return zulipLocalizations.composeBoxChannelContentHint(
+          streamName,
+          topic,
+        );
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
@@ -554,7 +603,9 @@ class _FixedDestinationContentInput extends StatelessWidget {
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
         final fullName = store.users[otherUserId]?.fullName;
-        if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
+        if (fullName == null) {
+          return zulipLocalizations.composeBoxGenericContentHint;
+        }
         return zulipLocalizations.composeBoxDmContentHint(fullName);
 
       case DmNarrow(): // A group DM thread.
@@ -568,7 +619,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
       narrow: narrow,
       destination: narrow,
       controller: controller,
-      hintText: _hintText(context));
+      hintText: _hintText(context),
+    );
   }
 }
 
@@ -612,21 +664,28 @@ Future<void> _uploadFiles({
 
   if (tooLargeFiles.isNotEmpty) {
     final listMessage = tooLargeFiles
-      .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
-      .join('\n');
+        .map(
+          (file) =>
+              '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB',
+        )
+        .join('\n');
     showErrorDialog(
       context: context,
       title: zulipLocalizations.errorFilesTooLargeTitle(tooLargeFiles.length),
       message: zulipLocalizations.errorFilesTooLarge(
         tooLargeFiles.length,
         store.maxFileUploadSizeMib,
-        listMessage));
+        listMessage,
+      ),
+    );
   }
 
   final List<(int, _File)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
-    final tag = contentController.registerUploadStart(file.filename,
-      zulipLocalizations);
+    final tag = contentController.registerUploadStart(
+      file.filename,
+      zulipLocalizations,
+    );
     uploadsInProgress.add((tag, file));
   }
   if (!contentFocusNode.hasFocus) {
@@ -637,7 +696,8 @@ Future<void> _uploadFiles({
     final _File(:content, :length, :filename, :mimeType) = file;
     Uri? url;
     try {
-      final result = await uploadFile(store.connection,
+      final result = await uploadFile(
+        store.connection,
         content: content,
         length: length,
         filename: filename,
@@ -648,9 +708,11 @@ Future<void> _uploadFiles({
       if (!context.mounted) return;
       // TODO(#741): Specifically handle `413 Payload Too Large`
       // TODO(#741): On API errors, quote `msg` from server, with "The server said:"
-      showErrorDialog(context: context,
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorFailedToUploadFileTitle(filename),
-        message: e.toString());
+        message: e.toString(),
+      );
     } finally {
       contentController.registerUploadEnd(tag, url);
     }
@@ -690,7 +752,8 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       context: context,
       contentController: controller.content,
       contentFocusNode: controller.contentFocusNode,
-      files: files);
+      files: files,
+    );
   }
 
   @override
@@ -702,15 +765,23 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       child: IconButton(
         icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
         tooltip: tooltip(zulipLocalizations),
-        onPressed: () => _handlePress(context)));
+        onPressed: () => _handlePress(context),
+      ),
+    );
   }
 }
 
-Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type) async {
+Future<Iterable<_File>> _getFilePickerFiles(
+  BuildContext context,
+  FileType type,
+) async {
   FilePickerResult? result;
   try {
-    result = await ZulipBinding.instance
-      .pickFiles(allowMultiple: true, withReadStream: true, type: type);
+    result = await ZulipBinding.instance.pickFiles(
+      allowMultiple: true,
+      withReadStream: true,
+      type: type,
+    );
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -721,17 +792,21 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
       // If the user hasn't checked "Don't ask again", they can always dismiss
       // our prompt and retry, and the permissions request will reappear,
       // letting them grant permissions and complete the upload.
-      showSuggestedActionDialog(context: context,
+      showSuggestedActionDialog(
+        context: context,
         title: zulipLocalizations.permissionsNeededTitle,
         message: zulipLocalizations.permissionsDeniedReadExternalStorage,
         actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
         onActionButtonPress: () {
           AppSettings.openAppSettings();
-        });
+        },
+      );
     } else {
-      showErrorDialog(context: context,
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorDialogTitle,
-        message: e.toString());
+        message: e.toString(),
+      );
     }
     return [];
   }
@@ -740,7 +815,9 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
   }
 
   return result.files.map((f) {
-    assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
+    assert(
+      f.readStream != null,
+    ); // We passed `withReadStream: true` to pickFiles.
     final mimeType = lookupMimeType(
       // Seems like the path shouldn't be required; we still want to look for
       // matches on `headerBytes`. Thankfully we can still do that, by calling
@@ -768,7 +845,7 @@ class _AttachFileButton extends _AttachUploadsButton {
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.composeBoxAttachFilesTooltip;
+      zulipLocalizations.composeBoxAttachFilesTooltip;
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
@@ -784,12 +861,65 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   String tooltip(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.composeBoxAttachMediaTooltip;
+      zulipLocalizations.composeBoxAttachMediaTooltip;
 
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
     // TODO(#114): This doesn't give quite the right UI on Android.
     return _getFilePickerFiles(context, FileType.media);
+  }
+}
+
+class _AttachGlobalTimeButton extends _AttachUploadsButton {
+  const _AttachGlobalTimeButton({required super.controller});
+
+  @override
+  IconData get icon => ZulipIcons.clock; // Use the appropriate icon from ZulipIcons.
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+      zulipLocalizations.composeBoxAttachGlobalTimeTooltip;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    // Request a date and time from the user.
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate == null) {
+      return []; // User canceled, no action needed.
+    }
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime == null) {
+      return []; // User canceled, no action needed.
+    }
+
+    // Combine the picked date and time.
+    final DateTime fullDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    // Format the date-time for the new markup.
+    final String timeMarkup =
+        "<time:${DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(fullDateTime.toUtc())}>";
+
+    // Insert the markup string into the content controller.
+    controller.content.text += timeMarkup;
+
+    return []; // No actual files, as this feature only modifies the text content.
   }
 }
 
@@ -814,7 +944,9 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       // so just stick with images for now. We could add another button for
       // videos, but we don't want too many buttons.
       result = await ZulipBinding.instance.pickImage(
-        source: ImageSource.camera, requestFullMetadata: false);
+        source: ImageSource.camera,
+        requestFullMetadata: false,
+      );
     } catch (e) {
       if (!context.mounted) return [];
       if (e is PlatformException && e.code == 'camera_access_denied') {
@@ -822,17 +954,21 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
         // permission-request alert once, the first time the app wants to
         // use a protected resource. After that, the only way the user can
         // grant it is in Settings.
-        showSuggestedActionDialog(context: context,
+        showSuggestedActionDialog(
+          context: context,
           title: zulipLocalizations.permissionsNeededTitle,
           message: zulipLocalizations.permissionsDeniedCameraAccess,
           actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
           onActionButtonPress: () {
             AppSettings.openAppSettings();
-          });
+          },
+        );
       } else {
-        showErrorDialog(context: context,
+        showErrorDialog(
+          context: context,
           title: zulipLocalizations.errorDialogTitle,
-          message: e.toString());
+          message: e.toString(),
+        );
       }
       return [];
     }
@@ -843,25 +979,32 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
 
     List<int>? headerBytes;
     try {
-      headerBytes = await result.openRead(
-        0,
-        // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
-        // than the file's length. We can *probably* trust our `length` to be
-        // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
-        // rather sacrifice this part of the MIME lookup than throw the whole
-        // upload. So, the try/catch.
-        min(defaultMagicNumbersMaxLength, length)
-      ).expand((l) => l).toList();
+      headerBytes =
+          await result
+              .openRead(
+                0,
+                // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
+                // than the file's length. We can *probably* trust our `length` to be
+                // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
+                // rather sacrifice this part of the MIME lookup than throw the whole
+                // upload. So, the try/catch.
+                min(defaultMagicNumbersMaxLength, length),
+              )
+              .expand((l) => l)
+              .toList();
     } catch (e) {
       // TODO(log)
     }
-    return [_File(
-      content: result.openRead(),
-      length: length,
-      filename: result.name,
-      mimeType: result.mimeType
-        ?? lookupMimeType(result.path, headerBytes: headerBytes),
-    )];
+    return [
+      _File(
+        content: result.openRead(),
+        length: length,
+        filename: result.name,
+        mimeType:
+            result.mimeType ??
+            lookupMimeType(result.path, headerBytes: headerBytes),
+      ),
+    ];
   }
 }
 
@@ -936,9 +1079,10 @@ class _SendButtonState extends State<_SendButton> {
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
-        for (final error in (controller is StreamComposeBoxController
-                              ? controller.topic.validationErrors
-                              : const <TopicValidationError>[]))
+        for (final error
+            in (controller is StreamComposeBoxController
+                ? controller.topic.validationErrors
+                : const <TopicValidationError>[]))
           error.message(zulipLocalizations),
         for (final error in controller.content.validationErrors)
           error.message(zulipLocalizations),
@@ -946,7 +1090,8 @@ class _SendButtonState extends State<_SendButton> {
       showErrorDialog(
         context: context,
         title: zulipLocalizations.errorMessageNotSent,
-        message: validationErrorMessages.join('\n\n'));
+        message: validationErrorMessages.join('\n\n'),
+      );
       return;
     }
 
@@ -963,7 +1108,10 @@ class _SendButtonState extends State<_SendButton> {
       // TODO(#720) clear content input only on success response;
       //   while waiting, put input(s) and send button into a disabled
       //   "working on it" state (letting input text be selected for copying).
-      await store.sendMessage(destination: widget.getDestination(), content: content);
+      await store.sendMessage(
+        destination: widget.getDestination(),
+        content: content,
+      );
     } on ApiRequestException catch (e) {
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -971,9 +1119,11 @@ class _SendButtonState extends State<_SendButton> {
         ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
         _ => e.message,
       };
-      showErrorDialog(context: context,
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorMessageNotSent,
-        message: message);
+        message: message,
+      );
       return;
     }
   }
@@ -983,29 +1133,32 @@ class _SendButtonState extends State<_SendButton> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final iconColor = _hasValidationErrors
-      ? designVariables.icon.withFadedAlpha(0.5)
-      : designVariables.icon;
+    final iconColor =
+        _hasValidationErrors
+            ? designVariables.icon.withFadedAlpha(0.5)
+            : designVariables.icon;
 
     return SizedBox(
       width: _composeButtonSize,
       child: IconButton(
         tooltip: zulipLocalizations.composeBoxSendTooltip,
-        icon: Icon(ZulipIcons.send,
+        icon: Icon(
+          ZulipIcons.send,
           // We set [Icon.color] instead of [IconButton.color] because the
           // latter implicitly uses colors derived from it to override the
           // ambient [ButtonStyle.overlayColor], where we set the color for
           // the highlight state to match the Figma design.
-          color: iconColor),
-        onPressed: _send));
+          color: iconColor,
+        ),
+        onPressed: _send,
+      ),
+    );
   }
 }
 
 class _ComposeBoxContainer extends StatelessWidget {
-  const _ComposeBoxContainer({
-    required this.body,
-    this.errorBanner,
-  }) : assert(body != null || errorBanner != null);
+  const _ComposeBoxContainer({required this.body, this.errorBanner})
+    : assert(body != null || errorBanner != null);
 
   /// The text inputs, compose-button row, and send button.
   ///
@@ -1026,8 +1179,10 @@ class _ComposeBoxContainer extends StatelessWidget {
 
   Widget _paddedBody() {
     assert(body != null);
-    return SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
-      child: body!);
+    return SafeArea(
+      minimum: const EdgeInsets.symmetric(horizontal: 8),
+      child: body!,
+    );
   }
 
   @override
@@ -1038,25 +1193,31 @@ class _ComposeBoxContainer extends StatelessWidget {
       (Widget(), Widget()) => [
         // _paddedBody() already pads the bottom inset,
         // so make sure the error banner doesn't double-pad it.
-        MediaQuery.removePadding(context: context, removeBottom: true,
-          child: errorBanner!),
+        MediaQuery.removePadding(
+          context: context,
+          removeBottom: true,
+          child: errorBanner!,
+        ),
         _paddedBody(),
       ],
-      (Widget(),     null) => [errorBanner!],
-      (null,     Widget()) => [_paddedBody()],
-      (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
+      (Widget(), null) => [errorBanner!],
+      (null, Widget()) => [_paddedBody()],
+      (null, null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
     //   the message list itself
-    return Container(width: double.infinity,
+    return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar))),
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+      ),
       // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
-        child: Column(
-          children: children)));
+        child: Column(children: children),
+      ),
+    );
   }
 }
 
@@ -1081,7 +1242,9 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         // Both [contentPadding] and [isDense] combine to make the layout compact.
         isDense: true,
         contentPadding: EdgeInsets.zero,
-        border: InputBorder.none));
+        border: InputBorder.none,
+      ),
+    );
 
     // TODO(#417): Disable splash effects for all buttons globally.
     final iconButtonThemeData = IconButtonThemeData(
@@ -1093,35 +1256,45 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3707-41711&node-type=frame&t=sSYomsJzGCt34D8N-0
         highlightColor: designVariables.editorButtonPressedBg,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)))));
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+      ),
+    );
 
     final composeButtons = [
       _AttachFileButton(controller: controller),
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
+      _AttachGlobalTimeButton(controller: controller),
     ];
 
     final topicInput = buildTopicInput();
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Theme(
-          data: inputThemeData,
-          child: Column(children: [
-            if (topicInput != null) topicInput,
-            buildContentInput(),
-          ]))),
-      SizedBox(
-        height: _composeButtonSize,
-        child: IconButtonTheme(
-          data: iconButtonThemeData,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(children: composeButtons),
-              buildSendButton(),
-            ]))),
-    ]);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Theme(
+            data: inputThemeData,
+            child: Column(
+              children: [
+                if (topicInput != null) topicInput,
+                buildContentInput(),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          height: _composeButtonSize,
+          child: IconButtonTheme(
+            data: iconButtonThemeData,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Row(children: composeButtons), buildSendButton()],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1138,25 +1311,28 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override
   final StreamComposeBoxController controller;
 
-  @override Widget buildTopicInput() => _TopicInput(
-    streamId: narrow.streamId,
-    controller: controller,
-  );
+  @override
+  Widget buildTopicInput() =>
+      _TopicInput(streamId: narrow.streamId, controller: controller);
 
-  @override Widget buildContentInput() => _StreamContentInput(
-    narrow: narrow,
-    controller: controller,
-  );
+  @override
+  Widget buildContentInput() =>
+      _StreamContentInput(narrow: narrow, controller: controller);
 
-  @override Widget buildSendButton() => _SendButton(
+  @override
+  Widget buildSendButton() => _SendButton(
     controller: controller,
-    getDestination: () => StreamDestination(
-      narrow.streamId, controller.topic.textNormalized),
+    getDestination:
+        () =>
+            StreamDestination(narrow.streamId, controller.topic.textNormalized),
   );
 }
 
 class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
-  _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
+  _FixedDestinationComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+  });
 
   @override
   final SendableNarrow narrow;
@@ -1164,14 +1340,15 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   @override
   final FixedDestinationComposeBoxController controller;
 
-  @override Widget? buildTopicInput() => null;
+  @override
+  Widget? buildTopicInput() => null;
 
-  @override Widget buildContentInput() => _FixedDestinationContentInput(
-    narrow: narrow,
-    controller: controller,
-  );
+  @override
+  Widget buildContentInput() =>
+      _FixedDestinationContentInput(narrow: narrow, controller: controller);
 
-  @override Widget buildSendButton() => _SendButton(
+  @override
+  Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => narrow.destination,
   );
@@ -1217,23 +1394,26 @@ class _ErrorBanner extends StatelessWidget {
     ).merge(weightVariableTextStyle(context, wght: 600));
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: designVariables.bannerBgIntDanger),
+      decoration: BoxDecoration(color: designVariables.bannerBgIntDanger),
       child: SafeArea(
         minimum: const EdgeInsetsDirectional.only(start: 8)
-          // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
-          .resolve(Directionality.of(context)),
+        // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
+        .resolve(Directionality.of(context)),
         child: Row(
           children: [
             Expanded(
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(8, 9, 0, 9),
-                child: Text(style: labelTextStyle,
-                  label))),
+                child: Text(style: labelTextStyle, label),
+              ),
+            ),
             const SizedBox(width: 8),
             // TODO(#720) "x" button goes here.
             //   24px square with 8px touchable padding in all directions?
-          ])));
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -1267,7 +1447,8 @@ abstract class ComposeBoxState extends State<ComposeBox> {
 }
 
 class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
-  @override ComposeBoxController get controller => _controller;
+  @override
+  ComposeBoxController get controller => _controller;
   late final ComposeBoxController _controller;
 
   @override
@@ -1299,17 +1480,27 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
-        if (channel == null || !store.hasPostingPermission(inChannel: channel,
-            user: selfUser, byDate: DateTime.now())) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
+        if (channel == null ||
+            !store.hasPostingPermission(
+              inChannel: channel,
+              user: selfUser,
+              byDate: DateTime.now(),
+            )) {
+          return _ErrorBanner(
+            label:
+                ZulipLocalizations.of(
+                  context,
+                ).errorBannerCannotPostInChannelLabel,
+          );
         }
       case DmNarrow(:final otherRecipientIds):
-        final hasDeactivatedUser = otherRecipientIds.any((id) =>
-          !(store.users[id]?.isActive ?? true));
+        final hasDeactivatedUser = otherRecipientIds.any(
+          (id) => !(store.users[id]?.isActive ?? true),
+        );
         if (hasDeactivatedUser) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
+          return _ErrorBanner(
+            label: ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel,
+          );
         }
       case CombinedFeedNarrow():
       case MentionsNarrow():
@@ -1330,14 +1521,19 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
 
     final narrow = widget.narrow;
     switch (_controller) {
-      case StreamComposeBoxController(): {
-        narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
-      }
-      case FixedDestinationComposeBoxController(): {
-        narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
-      }
+      case StreamComposeBoxController():
+        {
+          narrow as ChannelNarrow;
+          body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
+        }
+      case FixedDestinationComposeBoxController():
+        {
+          narrow as SendableNarrow;
+          body = _FixedDestinationComposeBoxBody(
+            controller: _controller,
+            narrow: narrow,
+          );
+        }
     }
 
     // TODO(#720) dismissable message-send error, maybe something like:
