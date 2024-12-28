@@ -870,59 +870,6 @@ class _AttachMediaButton extends _AttachUploadsButton {
   }
 }
 
-class _AttachGlobalTimeButton extends _AttachUploadsButton {
-  const _AttachGlobalTimeButton({required super.controller});
-
-  @override
-  IconData get icon => ZulipIcons.clock; // Use the appropriate icon from ZulipIcons.
-
-  @override
-  String tooltip(ZulipLocalizations zulipLocalizations) =>
-      zulipLocalizations.composeBoxAttachGlobalTimeTooltip;
-
-  @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
-    // Request a date and time from the user.
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (pickedDate == null) {
-      return []; // User canceled, no action needed.
-    }
-
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime == null) {
-      return []; // User canceled, no action needed.
-    }
-
-    // Combine the picked date and time.
-    final DateTime fullDateTime = DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
-
-    // Format the date-time for the new markup.
-    final String timeMarkup =
-        "<time:${DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(fullDateTime.toUtc())}>";
-
-    // Insert the markup string into the content controller.
-    controller.content.text += timeMarkup;
-
-    return []; // No actual files, as this feature only modifies the text content.
-  }
-}
-
 class _AttachFromCameraButton extends _AttachUploadsButton {
   const _AttachFromCameraButton({required super.controller});
 
@@ -1005,6 +952,57 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
             lookupMimeType(result.path, headerBytes: headerBytes),
       ),
     ];
+  }
+}
+
+class _AttachGlobalTimeButton extends _AttachUploadsButton {
+  const _AttachGlobalTimeButton({required super.controller});
+
+  @override
+  IconData get icon => ZulipIcons.clock; // Use the appropriate icon from ZulipIcons.
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+      zulipLocalizations.composeBoxAttachGlobalTimeTooltip;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    // Request a date and time from the user.
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate == null) {
+      return []; // User canceled, no action needed.
+    }
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime == null) {
+      return [];
+    }
+
+    // Combine the picked date and time.
+    final DateTime fullDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    // Format the date-time for the new markup.
+    final String timeMarkup =
+        "<time:${DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(fullDateTime.toUtc())}>"; // Insert the markup string into the content controller.
+    controller.content.text += timeMarkup;
+
+    return [];
   }
 }
 
