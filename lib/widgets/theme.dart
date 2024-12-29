@@ -132,6 +132,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnLabelAttLowIntDanger: const Color(0xffc0070a),
       btnLabelAttMediumIntDanger: const Color(0xffac0508),
       composeBoxBg: const Color(0xffffffff),
+      composeBoxBorderBar: Colors.black.withValues(alpha: 0.2),
+      composeBoxShadow: const Color(0xff242424),
       contextMenuCancelText: const Color(0xff222222),
       contextMenuItemBg: const Color(0xff6159e1),
       contextMenuItemText: const Color(0xff381da7),
@@ -182,6 +184,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnLabelAttLowIntDanger: const Color(0xffff8b7c),
       btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
       composeBoxBg: const Color(0xff0f0f0f),
+      composeBoxBorderBar: Colors.white.withValues(alpha: 0.1),
+      composeBoxShadow: const Color(0xff242424),
       contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
       contextMenuItemBg: const Color(0xff7977fe),
       contextMenuItemText: const Color(0xff9398fd),
@@ -239,6 +243,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.btnLabelAttLowIntDanger,
     required this.btnLabelAttMediumIntDanger,
     required this.composeBoxBg,
+    required this.composeBoxBorderBar,
+    required this.composeBoxShadow,
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
     required this.contextMenuItemText,
@@ -297,6 +303,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color btnLabelAttLowIntDanger;
   final Color btnLabelAttMediumIntDanger;
   final Color composeBoxBg;
+  final Color composeBoxBorderBar;
+  final Color composeBoxShadow;
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
   final Color contextMenuItemText;
@@ -350,6 +358,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? btnLabelAttLowIntDanger,
     Color? btnLabelAttMediumIntDanger,
     Color? composeBoxBg,
+    Color? composeBoxBorderBar,
+    Color? composeBoxShadow,
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
     Color? contextMenuItemText,
@@ -398,6 +408,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnLabelAttLowIntDanger: btnLabelAttLowIntDanger ?? this.btnLabelAttLowIntDanger,
       btnLabelAttMediumIntDanger: btnLabelAttMediumIntDanger ?? this.btnLabelAttMediumIntDanger,
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
+      composeBoxBorderBar: composeBoxBorderBar ?? this.composeBoxBorderBar,
+      composeBoxShadow: composeBoxShadow ?? this.composeBoxShadow,
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemBg,
@@ -453,6 +465,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnLabelAttLowIntDanger: Color.lerp(btnLabelAttLowIntDanger, other.btnLabelAttLowIntDanger, t)!,
       btnLabelAttMediumIntDanger: Color.lerp(btnLabelAttMediumIntDanger, other.btnLabelAttMediumIntDanger, t)!,
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
+      composeBoxBorderBar: Color.lerp(composeBoxBorderBar, other.composeBoxBorderBar, t)!,
+      composeBoxShadow: Color.lerp(composeBoxShadow, other.composeBoxShadow, t)!,
       contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
       contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
       contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemBg, t)!,
