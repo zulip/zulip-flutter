@@ -264,6 +264,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       // normalized.length is the number of UTF-16 code units, while the server
       // API expresses the max in Unicode code points. So this comparison will
       // be conservative and may cut the user off shorter than necessary.
+      // TODO(#1238) stop cutting off shorter than necessary
       if (textNormalized.length > kMaxMessageLengthCodePoints)
         ContentValidationError.tooLong,
 
