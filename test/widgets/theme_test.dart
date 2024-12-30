@@ -74,26 +74,26 @@ void main() {
   group('DesignVariables', () {
     group('lerp', () {
       testWidgets('light -> light', (tester) async {
-        final a = DesignVariables.light();
-        final b = DesignVariables.light();
+        final a = DesignVariables.light;
+        final b = DesignVariables.light;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
 
       testWidgets('light -> dark', (tester) async {
-        final a = DesignVariables.light();
-        final b = DesignVariables.dark();
+        final a = DesignVariables.light;
+        final b = DesignVariables.dark;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
 
       testWidgets('dark -> light', (tester) async {
-        final a = DesignVariables.dark();
-        final b = DesignVariables.light();
+        final a = DesignVariables.dark;
+        final b = DesignVariables.light;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
 
       testWidgets('dark -> dark', (tester) async {
-        final a = DesignVariables.dark();
-        final b = DesignVariables.dark();
+        final a = DesignVariables.dark;
+        final b = DesignVariables.dark;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
     });
