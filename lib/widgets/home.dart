@@ -151,6 +151,11 @@ const kTryAnotherAccountWaitPeriod = Duration(seconds: 5);
 class _LoadingPlaceholderPage extends StatefulWidget {
   const _LoadingPlaceholderPage({required this.accountId});
 
+  /// The relevant account for this page.
+  ///
+  /// The account is not guaranteed to exist in the global store. This can
+  /// happen briefly when the account is removed from the database for logout,
+  /// but before [PerAccountStoreWidget.routeToRemoveOnLogout] is processed.
   final int accountId;
 
   @override
@@ -180,35 +185,37 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final realmUrl = GlobalStoreWidget.of(context)
-      // TODO(#1219) `!` is incorrect
-      .getAccount(widget.accountId)!.realmUrl;
+    final account = GlobalStoreWidget.of(context).getAccount(widget.accountId);
 
     return Scaffold(
       appBar: AppBar(),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            Visibility(
-              visible: showTryAnotherAccount,
-              maintainSize: true,
-              maintainAnimation: true,
-              maintainState: true,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    Text(zulipLocalizations.tryAnotherAccountMessage(realmUrl.toString())),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () => Navigator.push(context,
-                        MaterialWidgetRoute(page: const ChooseAccountPage())),
-                      child: Text(zulipLocalizations.tryAnotherAccountButton)),
-                  ]))),
-          ])));
+      body: (account == null)
+        // We should only reach this state very briefly.
+        // See [_LoadingPlaceholderPage.accountId].
+        ? const SizedBox.shrink()
+
+        : Center(child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              Visibility(
+                visible: showTryAnotherAccount,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      Text(zulipLocalizations.tryAnotherAccountMessage(account.realmUrl.toString())),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () => Navigator.push(context,
+                          MaterialWidgetRoute(page: const ChooseAccountPage())),
+                        child: Text(zulipLocalizations.tryAnotherAccountButton)),
+                    ]))),
+            ])));
   }
 }
 
