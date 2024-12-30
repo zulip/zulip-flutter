@@ -14,11 +14,11 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
 import '../widgets/dialog.dart';
 import '../widgets/message_list.dart';
-import '../widgets/page.dart';
 import '../widgets/store.dart';
 import '../widgets/theme.dart';
 
@@ -452,15 +452,38 @@ class NotificationDisplayManager {
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
+  /// Provides the route and the account ID by parsing the notification URL.
+  ///
+  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
+  /// while creating the notification.
+  ///
+  /// Returns null if the associated account is not found in the global
+  /// store.
+  static ({Route<void> route, int accountId})? routeForNotification({
+    required GlobalStore globalStore,
+    required Uri url,
+  }) {
+    assert(debugLog('got notif: url: $url'));
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final payload = NotificationOpenPayload.parseUrl(url);
+
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl == payload.realmUrl && account.userId == payload.userId);
+    if (account == null) return null;
+
+    final route = MessageListPage.buildRoute(
+      accountId: account.id,
+      // TODO(#82): Open at specific message, not just conversation
+      narrow: payload.narrow);
+    return (route: route, accountId: account.id);
+  }
+
   /// Navigates to the [MessageListPage] of the specific conversation
   /// given the `zulip://notification/…` Android intent data URL,
   /// generated with [NotificationOpenPayload.buildUrl] while creating
   /// the notification.
   static Future<void> navigateForNotification(Uri url) async {
     assert(debugLog('opened notif: url: $url'));
-
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
 
     NavigatorState navigator = await ZulipApp.navigator;
     final context = navigator.context;
@@ -469,9 +492,10 @@ class NotificationDisplayManager {
 
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalStore = GlobalStoreWidget.of(context);
-    final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == payload.realmUrl && account.userId == payload.userId);
-    if (account == null) { // TODO(log)
+
+    final notificationResult =
+      routeForNotification(globalStore: globalStore, url: url);
+    if (notificationResult == null) { // TODO(log)
       showErrorDialog(context: context,
         title: zulipLocalizations.errorNotificationOpenTitle,
         message: zulipLocalizations.errorNotificationOpenAccountMissing);
@@ -479,9 +503,7 @@ class NotificationDisplayManager {
     }
 
     // TODO(nav): Better interact with existing nav stack on notif open
-    unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
-      // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: payload.narrow))));
+    unawaited(navigator.push(notificationResult.route));
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {

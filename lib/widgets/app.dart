@@ -155,7 +155,38 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   InitialRouteListFactory _handleGenerateInitialRoutes(BuildContext context) {
     final globalStore = GlobalStoreWidget.of(context);
 
-    return (_) {
+    void showNotificationErrorDialog() async {
+      final navigator = await ZulipApp.navigator;
+      final navigatorContext = navigator.context;
+      assert(navigatorContext.mounted);
+      // TODO(linter): this is impossible as there's no actual async gap, but
+      //   the use_build_context_synchronously lint doesn't see that.
+      if (!navigatorContext.mounted) return;
+
+      final zulipLocalizations = ZulipLocalizations.of(navigatorContext);
+      showErrorDialog(context: navigatorContext,
+        title: zulipLocalizations.errorNotificationOpenTitle,
+        message: zulipLocalizations.errorNotificationOpenAccountMissing);
+    }
+
+    return (String initialRoute) {
+      final initialRouteUrl = Uri.parse(initialRoute);
+      if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+        final notificationResult = NotificationDisplayManager.routeForNotification(
+          globalStore: globalStore,
+          url: initialRouteUrl);
+
+        if (notificationResult != null) {
+          return [
+            HomePage.buildRoute(accountId: notificationResult.accountId),
+            notificationResult.route,
+          ];
+        } else {
+          showNotificationErrorDialog();
+          // Fallthrough to show default route below.
+        }
+      }
+
       // TODO(#524) choose initial account as last one used
       final initialAccountId = globalStore.accounts.firstOrNull?.id;
       return [
@@ -167,18 +198,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     };
   }
 
-  Future<void> _handleInitialRoute() async {
-    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _handleInitialRoute();
   }
 
   @override
