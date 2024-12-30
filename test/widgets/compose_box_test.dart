@@ -256,19 +256,16 @@ void main() {
         await checkErrorResponse(tester);
       });
 
-      // TODO(#1238) unskip
-      // testWidgets('max-length content not rejected', (tester) async {
-      //   await prepareWithContent(tester,
-      //     makeStringWithCodePoints(kMaxMessageLengthCodePoints));
-      //   await tapSendButton(tester);
-      //   checkNoErrorDialog(tester);
-      // });
-
-      // TODO(#1238) replace with above commented-out test
-      testWidgets('some content not rejected', (tester) async {
-        await prepareWithContent(tester, 'a' * kMaxMessageLengthCodePoints);
+      testWidgets('max-length content not rejected', (tester) async {
+        await prepareWithContent(tester,
+          makeStringWithCodePoints(kMaxMessageLengthCodePoints));
         await tapSendButton(tester);
         checkNoErrorDialog(tester);
+      });
+
+      testWidgets('code points not counted unnecessarily', (tester) async {
+        await prepareWithContent(tester, 'a' * kMaxMessageLengthCodePoints);
+        check(controller!.content.debugLengthUnicodeCodePointsIfLong).isNull();
       });
     });
 
@@ -296,19 +293,17 @@ void main() {
         await checkErrorResponse(tester);
       });
 
-      // TODO(#1238) unskip
-      // testWidgets('max-length topic not rejected', (tester) async {
-      //   await prepareWithTopic(tester,
-      //     makeStringWithCodePoints(kMaxTopicLengthCodePoints));
-      //   await tapSendButton(tester);
-      //   checkNoErrorDialog(tester);
-      // });
-
-      // TODO(#1238) replace with above commented-out test
-      testWidgets('some topic not rejected', (tester) async {
-        await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
+      testWidgets('max-length topic not rejected', (tester) async {
+        await prepareWithTopic(tester,
+          makeStringWithCodePoints(kMaxTopicLengthCodePoints));
         await tapSendButton(tester);
         checkNoErrorDialog(tester);
+      });
+
+      testWidgets('code points not counted unnecessarily', (tester) async {
+        await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
+        check((controller as StreamComposeBoxController)
+          .topic.debugLengthUnicodeCodePointsIfLong).isNull();
       });
     });
   });
