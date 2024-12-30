@@ -95,6 +95,23 @@ void main() {
       ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
   }
 
+  /// Set the content input's text to [content], using [WidgetTester.enterText].
+  Future<void> enterContent(WidgetTester tester, {
+    required ChannelNarrow narrow,
+    required String content,
+  }) async {
+    final contentInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+    await tester.enterText(contentInputFinder, content);
+  }
+
+  Future<void> tapSendButton(WidgetTester tester) async {
+    connection.prepare(json: SendMessageResult(id: 123).toJson());
+    await tester.tap(find.byIcon(ZulipIcons.send));
+    await tester.pump(Duration.zero);
+  }
+
   group('ComposeContentController', () {
     group('insertPadded', () {
       // Like `parseMarkedText` in test/model/autocomplete_test.dart,
@@ -194,6 +211,95 @@ void main() {
         testInsertPadded('text start; two empty lines; insertion point; two empty lines',
           '\n\n^\n\n',   'a\n', '\n\na\n\n^\n');
       });
+    });
+  });
+
+  group('length validation', () {
+    final channel = eg.stream();
+
+    /// String where the number of Unicode code points is [n]
+    /// and the number of UTF-16 code units is higher.
+    String makeStringWithCodePoints(int n) {
+      assert(n >= 5);
+      const graphemeCluster = '👨‍👩‍👦';
+      assert(graphemeCluster.runes.length == 5);
+      assert(graphemeCluster.length == 8);
+      assert(graphemeCluster.characters.length == 1);
+
+      final result =
+        graphemeCluster * (n ~/ 5)
+        + 'a' * (n % 5);
+      assert(result.runes.length == n);
+
+      return result;
+    }
+
+    group('content', () {
+      void doTest(String description, {required String content, required bool expectError}) {
+        testWidgets(description, (tester) async {
+          TypingNotifier.debugEnable = false;
+          addTearDown(TypingNotifier.debugReset);
+
+          final narrow = ChannelNarrow(channel.streamId);
+          await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+          await enterTopic(tester, narrow: narrow, topic: 'some topic');
+          await enterContent(tester, narrow: narrow, content: content);
+
+          await tapSendButton(tester);
+          if (expectError) {
+            await tester.tap(find.byWidget(checkErrorDialog(tester,
+              expectedTitle: 'Message not sent',
+              expectedMessage: 'Message length shouldn\'t be greater than 10000 characters.')));
+          } else {
+            checkNoErrorDialog(tester);
+          }
+        });
+      }
+
+      doTest('too-long content is rejected',
+        content: makeStringWithCodePoints(kMaxMessageLengthCodePoints + 1), expectError: true);
+
+      // TODO(#1238) unskip
+      // doTest('max-length content not rejected',
+      //   content: makeStringWithCodePoints(kMaxMessageLengthCodePoints), expectError: false);
+
+      // TODO(#1238) replace with above commented-out test
+      doTest('some content not rejected',
+        content: 'a' * kMaxMessageLengthCodePoints, expectError: false);
+    });
+
+    group('topic', () {
+      void doTest(String description, {required String topic, required bool expectError}) {
+        testWidgets(description, (tester) async {
+          TypingNotifier.debugEnable = false;
+          addTearDown(TypingNotifier.debugReset);
+
+          final narrow = ChannelNarrow(channel.streamId);
+          await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+          await enterTopic(tester, narrow: narrow, topic: topic);
+          await enterContent(tester, narrow: narrow, content: 'some content');
+
+          await tapSendButton(tester);
+          if (expectError) {
+            await tester.tap(find.byWidget(checkErrorDialog(tester,
+              expectedTitle: 'Message not sent',
+              expectedMessage: 'Topic length shouldn\'t be greater than 60 characters.')));
+          } else {
+            checkNoErrorDialog(tester);
+          }
+        });
+      }
+
+      doTest('too-long topic is rejected',
+        topic: makeStringWithCodePoints(kMaxTopicLengthCodePoints + 1), expectError: true);
+
+      // TODO(#1238) unskip
+      // doTest('max-length topic not rejected',
+      //   topic: makeStringWithCodePoints(kMaxTopicLengthCodePoints), expectError: false);
+
+      // TODO(#1238) replace with above commented-out test
+      doTest('some topic not rejected',
+        topic: 'a' * kMaxTopicLengthCodePoints, expectError: false);
     });
   });
 
