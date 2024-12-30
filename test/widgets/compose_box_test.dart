@@ -426,8 +426,7 @@ void main() {
       await setupAndTapSend(tester, prepareResponse: (int messageId) {
         connection.prepare(json: SendMessageResult(id: messageId).toJson());
       });
-      final errorDialogs = tester.widgetList(find.byType(AlertDialog));
-      check(errorDialogs).isEmpty();
+      checkNoErrorDialog(tester);
     });
 
     testWidgets('ZulipApiException', (tester) async {
@@ -496,8 +495,7 @@ void main() {
         check(call.allowMultiple).equals(true);
         check(call.type).equals(FileType.media);
 
-        final errorDialogs = tester.widgetList(find.byType(AlertDialog));
-        check(errorDialogs).isEmpty();
+        checkNoErrorDialog(tester);
 
         check(controller!.content.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
@@ -556,8 +554,7 @@ void main() {
         check(call.source).equals(ImageSource.camera);
         check(call.requestFullMetadata).equals(false);
 
-        final errorDialogs = tester.widgetList(find.byType(AlertDialog));
-        check(errorDialogs).isEmpty();
+        checkNoErrorDialog(tester);
 
         check(controller!.content.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
