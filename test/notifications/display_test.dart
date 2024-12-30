@@ -960,11 +960,12 @@ void main() {
   group('NotificationDisplayManager open', () {
     late List<Route<void>> pushedRoutes;
 
-    void takeStartingRoutes({bool withAccount = true}) {
+    void takeStartingRoutes({Account? account, bool withAccount = true}) {
+      account ??= eg.selfAccount;
       final expected = <Condition<Object?>>[
         if (withAccount)
           (it) => it.isA<MaterialAccountWidgetRoute>()
-            ..accountId.equals(eg.selfAccount.id)
+            ..accountId.equals(account!.id)
             ..page.isA<HomePage>()
         else
           (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
@@ -1129,6 +1130,36 @@ void main() {
       await tester.pump();
       takeStartingRoutes();
       matchesNavigation(check(pushedRoutes).single, account, message);
+    });
+
+    testWidgets('uses associated account as initial account; if initial route', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final accountA = eg.selfAccount;
+      final accountB = eg.otherAccount;
+      final message = eg.streamMessage();
+      final data = messageFcmMessage(message, account: accountB);
+      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+
+      final intentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+          FcmMessageChannelRecipient(:var streamId, :var topic) =>
+            TopicNarrow(streamId, topic),
+          FcmMessageDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        }).buildUrl();
+      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
+      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+
+      await prepare(tester, early: true);
+      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+
+      await tester.pump();
+      takeStartingRoutes(account: accountB);
+      matchesNavigation(check(pushedRoutes).single, accountB, message);
     });
   });
 

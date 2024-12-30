@@ -143,7 +143,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _handleInitialRoute();
   }
 
   @override
@@ -157,8 +156,25 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     // we use the Navigator which should be available when this callback is
     // called and it's context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
-    final globalStore = GlobalStoreWidget.of(context);
 
+    final initialRouteUrl = Uri.tryParse(initialRoute);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      final route = NotificationDisplayManager.routeForNotification(
+        context: context,
+        url: initialRouteUrl);
+
+      if (route != null) {
+        return [
+          HomePage.buildRoute(accountId: route.accountId),
+          route,
+        ];
+      } else {
+        // The account didn't match any existing accounts,
+        // fall through to show the default route below.
+      }
+    }
+
+    final globalStore = GlobalStoreWidget.of(context);
     // TODO(#524) choose initial account as last one used
     final initialAccountId = globalStore.accounts.firstOrNull?.id;
     return [
@@ -167,13 +183,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
       else
         HomePage.buildRoute(accountId: initialAccountId),
     ];
-  }
-
-  Future<void> _handleInitialRoute() async {
-    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
-    }
   }
 
   @override
