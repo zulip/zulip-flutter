@@ -26,7 +26,7 @@ ThemeData zulipThemeData(BuildContext context) {
 
   switch (brightness) {
     case Brightness.light: {
-      designVariables = DesignVariables.light();
+      designVariables = DesignVariables.light;
       themeExtensions = [
         ContentTheme.light(context),
         designVariables,
@@ -35,7 +35,7 @@ ThemeData zulipThemeData(BuildContext context) {
       ];
     }
     case Brightness.dark: {
-      designVariables = DesignVariables.dark();
+      designVariables = DesignVariables.dark;
       themeExtensions = [
         ContentTheme.dark(context),
         designVariables,
@@ -117,113 +117,111 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 /// or
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
-  DesignVariables.light() :
-    this._(
-      background: const Color(0xffffffff),
-      bannerBgIntDanger: const Color(0xfff2e4e4),
-      bgBotBar: const Color(0xfff6f6f6),
-      bgContextMenu: const Color(0xfff2f2f2),
-      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
-      bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
-      bgMenuButtonSelected: Colors.white,
-      bgTopBar: const Color(0xfff5f5f5),
-      borderBar: Colors.black.withValues(alpha: 0.2),
-      borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
-      btnLabelAttLowIntDanger: const Color(0xffc0070a),
-      btnLabelAttMediumIntDanger: const Color(0xffac0508),
-      composeBoxBg: const Color(0xffffffff),
-      contextMenuCancelText: const Color(0xff222222),
-      contextMenuItemBg: const Color(0xff6159e1),
-      contextMenuItemText: const Color(0xff381da7),
-      editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
-      foreground: const Color(0xff000000),
-      icon: const Color(0xff6159e1),
-      iconSelected: const Color(0xff222222),
-      labelCounterUnread: const Color(0xff222222),
-      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
-      labelMenuButton: const Color(0xff222222),
-      mainBackground: const Color(0xfff0f0f0),
-      textInput: const Color(0xff000000),
-      title: const Color(0xff1a1a1a),
-      bgSearchInput: const Color(0xffe3e3e3),
-      textMessage: const Color(0xff262626),
-      channelColorSwatches: ChannelColorSwatches.light,
-      colorMessageHeaderIconInteractive: Colors.black.withValues(alpha: 0.2),
-      contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
-      contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
-      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
-      groupDmConversationIconBg: const Color(0x33808080),
-      inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
-      loginOrDivider: const Color(0xffdedede),
-      loginOrDividerText: const Color(0xff575757),
-      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
-      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
-      navigationButtonBg: Colors.black.withValues(alpha: 0.05),
-      sectionCollapseIcon: const Color(0x7f1e2e48),
-      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
-      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-      unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
-    );
+  static final light = DesignVariables._(
+    background: const Color(0xffffffff),
+    bannerBgIntDanger: const Color(0xfff2e4e4),
+    bgBotBar: const Color(0xfff6f6f6),
+    bgContextMenu: const Color(0xfff2f2f2),
+    bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
+    bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
+    bgMenuButtonSelected: Colors.white,
+    bgTopBar: const Color(0xfff5f5f5),
+    borderBar: Colors.black.withValues(alpha: 0.2),
+    borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
+    btnLabelAttLowIntDanger: const Color(0xffc0070a),
+    btnLabelAttMediumIntDanger: const Color(0xffac0508),
+    composeBoxBg: const Color(0xffffffff),
+    contextMenuCancelText: const Color(0xff222222),
+    contextMenuItemBg: const Color(0xff6159e1),
+    contextMenuItemText: const Color(0xff381da7),
+    editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
+    foreground: const Color(0xff000000),
+    icon: const Color(0xff6159e1),
+    iconSelected: const Color(0xff222222),
+    labelCounterUnread: const Color(0xff222222),
+    labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
+    labelMenuButton: const Color(0xff222222),
+    mainBackground: const Color(0xfff0f0f0),
+    textInput: const Color(0xff000000),
+    title: const Color(0xff1a1a1a),
+    bgSearchInput: const Color(0xffe3e3e3),
+    textMessage: const Color(0xff262626),
+    channelColorSwatches: ChannelColorSwatches.light,
+    colorMessageHeaderIconInteractive: Colors.black.withValues(alpha: 0.2),
+    contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
+    contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
+    dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+    groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
+    groupDmConversationIconBg: const Color(0x33808080),
+    inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
+    loginOrDivider: const Color(0xffdedede),
+    loginOrDividerText: const Color(0xff575757),
+    modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
+    mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
+    navigationButtonBg: Colors.black.withValues(alpha: 0.05),
+    sectionCollapseIcon: const Color(0x7f1e2e48),
+    star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+    subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
+    subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
+    unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
+  );
 
-  DesignVariables.dark() :
-    this._(
-      background: const Color(0xff000000),
-      bannerBgIntDanger: const Color(0xff461616),
-      bgBotBar: const Color(0xff222222),
-      bgContextMenu: const Color(0xff262626),
-      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
-      bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
-      bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
-      bgTopBar: const Color(0xff242424),
-      borderBar: Colors.black.withValues(alpha: 0.5),
-      borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
-      btnLabelAttLowIntDanger: const Color(0xffff8b7c),
-      btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
-      composeBoxBg: const Color(0xff0f0f0f),
-      contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
-      contextMenuItemBg: const Color(0xff7977fe),
-      contextMenuItemText: const Color(0xff9398fd),
-      editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
-      foreground: const Color(0xffffffff),
-      icon: const Color(0xff7977fe),
-      iconSelected: Colors.white.withValues(alpha: 0.8),
-      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
-      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
-      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
-      mainBackground: const Color(0xff1d1d1d),
-      textInput: const Color(0xffffffff).withValues(alpha: 0.9),
-      title: const Color(0xffffffff),
-      bgSearchInput: const Color(0xff313131),
-      textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
-      channelColorSwatches: ChannelColorSwatches.dark,
-      contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
-      contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      colorMessageHeaderIconInteractive: Colors.white.withValues(alpha: 0.2),
-      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      groupDmConversationIconBg: const Color(0x33cccccc),
-      inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
-      loginOrDivider: const Color(0xff424242),
-      loginOrDividerText: const Color(0xffa8a8a8),
-      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
-      navigationButtonBg: Colors.white.withValues(alpha: 0.05),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      sectionCollapseIcon: const Color(0x7fb6c8e2),
-      // TODO(design-dark) unchanged in dark theme?
-      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
-      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
-      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
-    );
+  static final dark = DesignVariables._(
+    background: const Color(0xff000000),
+    bannerBgIntDanger: const Color(0xff461616),
+    bgBotBar: const Color(0xff222222),
+    bgContextMenu: const Color(0xff262626),
+    bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
+    bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
+    bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
+    bgTopBar: const Color(0xff242424),
+    borderBar: Colors.black.withValues(alpha: 0.5),
+    borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
+    btnLabelAttLowIntDanger: const Color(0xffff8b7c),
+    btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
+    composeBoxBg: const Color(0xff0f0f0f),
+    contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
+    contextMenuItemBg: const Color(0xff7977fe),
+    contextMenuItemText: const Color(0xff9398fd),
+    editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
+    foreground: const Color(0xffffffff),
+    icon: const Color(0xff7977fe),
+    iconSelected: Colors.white.withValues(alpha: 0.8),
+    labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
+    labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
+    labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
+    mainBackground: const Color(0xff1d1d1d),
+    textInput: const Color(0xffffffff).withValues(alpha: 0.9),
+    title: const Color(0xffffffff),
+    bgSearchInput: const Color(0xff313131),
+    textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
+    channelColorSwatches: ChannelColorSwatches.dark,
+    contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
+    contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    colorMessageHeaderIconInteractive: Colors.white.withValues(alpha: 0.2),
+    dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    groupDmConversationIconBg: const Color(0x33cccccc),
+    inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
+    loginOrDivider: const Color(0xff424242),
+    loginOrDividerText: const Color(0xffa8a8a8),
+    modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
+    navigationButtonBg: Colors.white.withValues(alpha: 0.05),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    sectionCollapseIcon: const Color(0x7fb6c8e2),
+    // TODO(design-dark) unchanged in dark theme?
+    star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
+    unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+  );
 
   DesignVariables._({
     required this.background,

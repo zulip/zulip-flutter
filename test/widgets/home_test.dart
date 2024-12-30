@@ -118,7 +118,7 @@ void main () {
   });
 
   group('menu', () {
-    final designVariables = DesignVariables.light();
+    final designVariables = DesignVariables.light;
 
     final inboxMenuIconFinder = find.descendant(
       of: find.byType(BottomSheet),
