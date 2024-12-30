@@ -80,6 +80,7 @@ void main() {
     controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
 
+  /// Set the topic input's text to [topic], using [WidgetTester.enterText].
   Future<void> enterTopic(WidgetTester tester, {
     required ChannelNarrow narrow,
     required String topic,
