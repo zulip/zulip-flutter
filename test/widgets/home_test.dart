@@ -6,6 +6,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/about_zulip.dart';
+import 'package:zulip/widgets/actions.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
@@ -21,6 +22,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'message_list_checks.dart';
@@ -441,5 +443,40 @@ void main () {
       // No additional wait for loadPerAccount.
       checkOnHomePage(tester, expectedAccount: eg.selfAccount);
     });
+  });
+
+  testWidgets('logging out while still loading', (tester) async {
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
+    addTearDown(testBinding.reset);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await tester.pumpWidget(const ZulipApp());
+    await tester.pump(); // wait for the loading page
+    checkOnLoadingPage();
+
+    final element = tester.element(find.byType(MaterialApp));
+    final future = logOutAccount(element, eg.selfAccount.id);
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    await future;
+    // No error expected from briefly not having
+    // access to the account being logged out.
+    check(testBinding.globalStore).accountIds.isEmpty();
+  });
+
+  testWidgets('logging out after fully loaded', (tester) async {
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
+    addTearDown(testBinding.reset);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await tester.pumpWidget(const ZulipApp());
+    await tester.pump(); // wait for the loading page
+    await tester.pump(); // wait for store
+    checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+
+    final element = tester.element(find.byType(HomePage));
+    final future = logOutAccount(element, eg.selfAccount.id);
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    await future;
+    // No error expected from briefly not having
+    // access to the account being logged out.
+    check(testBinding.globalStore).accountIds.isEmpty();
   });
 }
