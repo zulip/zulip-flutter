@@ -104,6 +104,12 @@ void main() {
     await tester.enterText(contentInputFinder, content);
   }
 
+  Future<void> tapSendButton(WidgetTester tester) async {
+    connection.prepare(json: SendMessageResult(id: 123).toJson());
+    await tester.tap(find.byIcon(ZulipIcons.send));
+    await tester.pump(Duration.zero);
+  }
+
   group('ComposeContentController', () {
     group('insertPadded', () {
       // Like `parseMarkedText` in test/model/autocomplete_test.dart,
@@ -202,6 +208,107 @@ void main() {
           '\n\n^\n',     'a\n', '\n\na\n\n^');
         testInsertPadded('text start; two empty lines; insertion point; two empty lines',
           '\n\n^\n\n',   'a\n', '\n\na\n\n^\n');
+      });
+    });
+  });
+
+  group('length validation', () {
+    final channel = eg.stream();
+
+    /// String where there are [n] Unicode code points,
+    /// >[n] UTF-16 code units, and <[n] "characters" a.k.a. grapheme clusters.
+    String makeStringWithCodePoints(int n) {
+      assert(n >= 5);
+      const graphemeCluster = '👨‍👩‍👦';
+      assert(graphemeCluster.runes.length == 5);
+      assert(graphemeCluster.length == 8);
+      assert(graphemeCluster.characters.length == 1);
+
+      final result =
+        graphemeCluster * (n ~/ 5)
+        + 'a' * (n % 5);
+      assert(result.runes.length == n);
+
+      return result;
+    }
+
+    group('content', () {
+      Future<void> prepareWithContent(WidgetTester tester, String content) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await enterTopic(tester, narrow: narrow, topic: 'some topic');
+        await enterContent(tester, content);
+      }
+
+      Future<void> checkErrorResponse(WidgetTester tester) async {
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Message not sent',
+          expectedMessage: 'Message length shouldn\'t be greater than 10000 characters.')));
+      }
+
+      testWidgets('too-long content is rejected', (tester) async {
+        await prepareWithContent(tester,
+          makeStringWithCodePoints(kMaxMessageLengthCodePoints + 1));
+        await tapSendButton(tester);
+        await checkErrorResponse(tester);
+      });
+
+      // TODO(#1238) unskip
+      // testWidgets('max-length content not rejected', (tester) async {
+      //   await prepareWithContent(tester,
+      //     makeStringWithCodePoints(kMaxMessageLengthCodePoints));
+      //   await tapSendButton(tester);
+      //   checkNoErrorDialog(tester);
+      // });
+
+      // TODO(#1238) replace with above commented-out test
+      testWidgets('some content not rejected', (tester) async {
+        await prepareWithContent(tester, 'a' * kMaxMessageLengthCodePoints);
+        await tapSendButton(tester);
+        checkNoErrorDialog(tester);
+      });
+    });
+
+    group('topic', () {
+      Future<void> prepareWithTopic(WidgetTester tester, String topic) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await enterTopic(tester, narrow: narrow, topic: topic);
+        await enterContent(tester, 'some content');
+      }
+
+      Future<void> checkErrorResponse(WidgetTester tester) async {
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Message not sent',
+          expectedMessage: 'Topic length shouldn\'t be greater than 60 characters.')));
+      }
+
+      testWidgets('too-long topic is rejected', (tester) async {
+        await prepareWithTopic(tester,
+          makeStringWithCodePoints(kMaxTopicLengthCodePoints + 1));
+        await tapSendButton(tester);
+        await checkErrorResponse(tester);
+      });
+
+      // TODO(#1238) unskip
+      // testWidgets('max-length topic not rejected', (tester) async {
+      //   await prepareWithTopic(tester,
+      //     makeStringWithCodePoints(kMaxTopicLengthCodePoints));
+      //   await tapSendButton(tester);
+      //   checkNoErrorDialog(tester);
+      // });
+
+      // TODO(#1238) replace with above commented-out test
+      testWidgets('some topic not rejected', (tester) async {
+        await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
+        await tapSendButton(tester);
+        checkNoErrorDialog(tester);
       });
     });
   });
