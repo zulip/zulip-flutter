@@ -259,13 +259,20 @@ void main() {
       doTest('too-long content is rejected',
         content: makeStringWithCodePoints(kMaxMessageLengthCodePoints + 1), expectError: true);
 
-      // TODO(#1238) unskip
-      // doTest('max-length content not rejected',
-      //   content: makeStringWithCodePoints(kMaxMessageLengthCodePoints), expectError: false);
+      doTest('max-length content not rejected',
+        content: makeStringWithCodePoints(kMaxMessageLengthCodePoints), expectError: false);
 
-      // TODO(#1238) replace with above commented-out test
-      doTest('some content not rejected',
-        content: 'a' * kMaxMessageLengthCodePoints, expectError: false);
+      testWidgets('code points not counted unnecessarily', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await enterTopic(tester, narrow: narrow, topic: 'some topic');
+        await enterContent(tester, narrow: narrow, content: 'a' * kMaxMessageLengthCodePoints);
+
+        check(controller!.content.lengthUnicodeCodePointsIfLong).isNull();
+      });
     });
 
     group('topic', () {
@@ -293,13 +300,20 @@ void main() {
       doTest('too-long topic is rejected',
         topic: makeStringWithCodePoints(kMaxTopicLengthCodePoints + 1), expectError: true);
 
-      // TODO(#1238) unskip
-      // doTest('max-length topic not rejected',
-      //   topic: makeStringWithCodePoints(kMaxTopicLengthCodePoints), expectError: false);
+      doTest('max-length topic not rejected',
+        topic: makeStringWithCodePoints(kMaxTopicLengthCodePoints), expectError: false);
 
-      // TODO(#1238) replace with above commented-out test
-      doTest('some topic not rejected',
-        topic: 'a' * kMaxTopicLengthCodePoints, expectError: false);
+      testWidgets('code points not counted unnecessarily', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await enterTopic(tester, narrow: narrow, topic: 'a' * kMaxTopicLengthCodePoints);
+        await enterContent(tester, narrow: narrow, content: 'some content');
+
+        check((controller as StreamComposeBoxController).topic.lengthUnicodeCodePointsIfLong).isNull();
+      });
     });
   });
 
