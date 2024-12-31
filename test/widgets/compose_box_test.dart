@@ -42,8 +42,7 @@ void main() {
   late ComposeBoxController? controller;
 
   final contentInputFinder = find.byWidgetPredicate(
-          (widget) =>
-      widget is TextField && widget.controller is ComposeContentController);
+          (widget) => widget is TextField && widget.controller is ComposeContentController);
 
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
@@ -78,9 +77,7 @@ void main() {
             ])));
     await tester.pumpAndSettle();
 
-    controller = tester
-        .state<ComposeBoxState>(find.byType(ComposeBox))
-        .controller;
+    controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
 
   Future<void> enterTopic(WidgetTester tester, {
@@ -88,12 +85,10 @@ void main() {
     required String topic,
   }) async {
     final topicInputFinder = find.byWidgetPredicate(
-            (widget) =>
-        widget is TextField && widget.controller is ComposeTopicController);
+            (widget) => widget is TextField && widget.controller is ComposeTopicController);
 
     connection.prepare(body:
-    jsonEncode(
-        GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+    jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')
@@ -122,16 +117,14 @@ void main() {
         if (insertionPoint == null) {
           throw Exception('Test error: expected ^ in input');
         }
-        return TextEditingValue(text: textBuffer.toString(),
-            selection: TextSelection.collapsed(offset: insertionPoint));
+        return TextEditingValue(text: textBuffer.toString(), selection: TextSelection.collapsed(offset: insertionPoint));
       }
 
       /// Test the given `insertPadded` call, in a convenient format.
       ///
       /// In valueBefore, represent the insertion point as "^".
       /// In expectedValue, represent the collapsed selection as "^".
-      void testInsertPadded(String description, String valueBefore,
-          String textToInsert, String expectedValue) {
+      void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
         test(description, () {
           final controller = ComposeContentController();
           controller.value = parseMarkedText(valueBefore);
@@ -145,65 +138,61 @@ void main() {
       //   expanded, or null (what they call !TextSelection.isValid).
 
       testInsertPadded('empty; insert one line',
-          '^', 'a\n', 'a\n\n^');
+          '^', 'a\n',    'a\n\n^');
       testInsertPadded('empty; insert two lines',
           '^', 'a\nb\n', 'a\nb\n\n^');
 
       group('insert at end', () {
         testInsertPadded('one empty line; insert one line',
-            '\n^', 'a\n', '\na\n\n^');
+            '\n^',     'a\n',    '\na\n\n^');
         testInsertPadded('two empty lines; insert one line',
-            '\n\n^', 'a\n', '\n\na\n\n^');
+            '\n\n^',   'a\n',    '\n\na\n\n^');
         testInsertPadded('one line, incomplete; insert one line',
-            'a^', 'b\n', 'a\n\nb\n\n^');
+            'a^',      'b\n',    'a\n\nb\n\n^');
         testInsertPadded('one line, complete; insert one line',
-            'a\n^', 'b\n', 'a\n\nb\n\n^');
+            'a\n^',    'b\n',    'a\n\nb\n\n^');
         testInsertPadded('multiple lines, last is incomplete; insert one line',
-            'a\nb^', 'c\n', 'a\nb\n\nc\n\n^');
+            'a\nb^',   'c\n',    'a\nb\n\nc\n\n^');
         testInsertPadded('multiple lines, last is complete; insert one line',
-            'a\nb\n^', 'c\n', 'a\nb\n\nc\n\n^');
+            'a\nb\n^', 'c\n',    'a\nb\n\nc\n\n^');
         testInsertPadded('multiple lines, last is complete; insert two lines',
             'a\nb\n^', 'c\nd\n', 'a\nb\n\nc\nd\n\n^');
       });
 
       group('insert at start', () {
         testInsertPadded('one empty line; insert one line',
-            '^\n', 'a\n', 'a\n\n^');
+            '^\n',     'a\n',    'a\n\n^');
         testInsertPadded('two empty lines; insert one line',
-            '^\n\n', 'a\n', 'a\n\n^\n');
+            '^\n\n',   'a\n',    'a\n\n^\n');
         testInsertPadded('one line, incomplete; insert one line',
-            '^a', 'b\n', 'b\n\n^a');
+            '^a',      'b\n',    'b\n\n^a');
         testInsertPadded('one line, complete; insert one line',
-            '^a\n', 'b\n', 'b\n\n^a\n');
+            '^a\n',    'b\n',    'b\n\n^a\n');
         testInsertPadded('multiple lines, last is incomplete; insert one line',
-            '^a\nb', 'c\n', 'c\n\n^a\nb');
+            '^a\nb',   'c\n',    'c\n\n^a\nb');
         testInsertPadded('multiple lines, last is complete; insert one line',
-            '^a\nb\n', 'c\n', 'c\n\n^a\nb\n');
+            '^a\nb\n', 'c\n',    'c\n\n^a\nb\n');
         testInsertPadded('multiple lines, last is complete; insert two lines',
             '^a\nb\n', 'c\nd\n', 'c\nd\n\n^a\nb\n');
       });
 
       group('insert in middle', () {
         testInsertPadded('middle of line',
-            'a^a\n', 'b\n', 'a\n\nb\n\n^a\n');
+            'a^a\n',       'b\n', 'a\n\nb\n\n^a\n');
         testInsertPadded('start of non-empty line, after empty line',
-            'b\n\n^a\n', 'c\n', 'b\n\nc\n\n^a\n');
+            'b\n\n^a\n',   'c\n', 'b\n\nc\n\n^a\n');
         testInsertPadded('end of non-empty line, before non-empty line',
-            'a^\nb\n', 'c\n', 'a\n\nc\n\n^b\n');
+            'a^\nb\n',     'c\n', 'a\n\nc\n\n^b\n');
         testInsertPadded('start of non-empty line, after non-empty line',
-            'a\n^b\n', 'c\n', 'a\n\nc\n\n^b\n');
-        testInsertPadded(
-            'text start; one empty line; insertion point; one empty line',
-            '\n^\n', 'a\n', '\na\n\n^');
-        testInsertPadded(
-            'text start; one empty line; insertion point; two empty lines',
-            '\n^\n\n', 'a\n', '\na\n\n^\n');
-        testInsertPadded(
-            'text start; two empty lines; insertion point; one empty line',
-            '\n\n^\n', 'a\n', '\n\na\n\n^');
-        testInsertPadded(
-            'text start; two empty lines; insertion point; two empty lines',
-            '\n\n^\n\n', 'a\n', '\n\na\n\n^\n');
+            'a\n^b\n',     'c\n', 'a\n\nc\n\n^b\n');
+        testInsertPadded('text start; one empty line; insertion point; one empty line',
+            '\n^\n',       'a\n', '\na\n\n^');
+        testInsertPadded('text start; one empty line; insertion point; two empty lines',
+            '\n^\n\n',     'a\n', '\na\n\n^\n');
+        testInsertPadded('text start; two empty lines; insertion point; one empty line',
+            '\n\n^\n',     'a\n', '\n\na\n\n^');
+        testInsertPadded('text start; two empty lines; insertion point; two empty lines',
+            '\n\n^\n\n',   'a\n', '\n\na\n\n^\n');
       });
     });
   });
@@ -213,27 +202,19 @@ void main() {
       required bool expectTopicTextField,
     }) {
       if (expectTopicTextField) {
-        final topicController = (controller as StreamComposeBoxController)
-            .topic;
-        final topicTextField = tester
-            .widgetList<TextField>(find.byWidgetPredicate(
-                (widget) =>
-            widget is TextField && widget.controller == topicController
-        ))
-            .singleOrNull;
-        check(topicTextField)
-            .isNotNull()
-            .textCapitalization
-            .equals(TextCapitalization.none);
+        final topicController = (controller as StreamComposeBoxController).topic;
+        final topicTextField = tester.widgetList<TextField>(find.byWidgetPredicate(
+                (widget) => widget is TextField && widget.controller == topicController
+        )).singleOrNull;
+        check(topicTextField).isNotNull()
+            .textCapitalization.equals(TextCapitalization.none);
       } else {
         check(controller).isA<FixedDestinationComposeBoxController>();
-        check(find.byType(TextField))
-            .findsOne(); // just content input, no topic
+        check(find.byType(TextField)).findsOne(); // just content input, no topic
       }
 
       final contentTextField = tester.widget<TextField>(find.byWidgetPredicate(
-              (widget) =>
-          widget is TextField
+              (widget) => widget is TextField
               && widget.controller == controller!.content));
       check(contentTextField)
           .textCapitalization.equals(TextCapitalization.sentences);
@@ -261,8 +242,7 @@ void main() {
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
         checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
 
-    Future<void> checkStartTyping(WidgetTester tester,
-        SendableNarrow narrow) async {
+    Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
       connection.prepare(json: {});
       await tester.enterText(contentInputFinder, 'hello world');
       checkTypingRequest(TypingOp.start, narrow);
@@ -303,8 +283,7 @@ void main() {
       checkTypingRequest(TypingOp.stop, destinationNarrow);
     });
 
-    testWidgets(
-        'clearing text sends a "typing stopped" notice', (tester) async {
+    testWidgets('clearing text sends a "typing stopped" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -314,8 +293,7 @@ void main() {
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
-    testWidgets(
-        'hitting send button sends a "typing stopped" notice', (tester) async {
+    testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -348,8 +326,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets(
-        'navigating away sends a "typing stopped" notice', (tester) async {
+    testWidgets('navigating away sends a "typing stopped" notice', (tester) async {
       await prepareComposeBoxWithNavigation(tester);
 
       await checkStartTyping(tester, narrow);
@@ -360,9 +337,7 @@ void main() {
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
-    testWidgets(
-        'for content input, unfocusing sends a "typing stopped" notice', (
-        tester) async {
+    testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
       final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
@@ -376,8 +351,7 @@ void main() {
       checkTypingRequest(TypingOp.stop, destinationNarrow);
     });
 
-    testWidgets(
-        'selection change sends a "typing started" notice', (tester) async {
+    testWidgets('selection change sends a "typing started" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -397,8 +371,7 @@ void main() {
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
-    testWidgets(
-        'unfocusing app sends a "typing stopped" notice', (tester) async {
+    testWidgets('unfocusing app sends a "typing stopped" notice', (tester) async {
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -429,15 +402,13 @@ void main() {
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(
-          tester, narrow: const TopicNarrow(123, 'some topic'),
+      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
           streams: [eg.stream(streamId: 123)]);
 
       await tester.enterText(contentInputFinder, 'hello world');
 
       prepareResponse(456);
-      await tester.tap(
-          find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
+      await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
@@ -607,15 +578,15 @@ void main() {
   group('uploads', () {
     void checkAppearsLoading(WidgetTester tester, bool expected) {
       final sendButtonElement = tester.element(find.ancestor(
-        of: find.byIcon(ZulipIcons.send),
-        matching: find.byType(IconButton)));
+          of: find.byIcon(ZulipIcons.send),
+          matching: find.byType(IconButton)));
       final sendButtonWidget = sendButtonElement.widget as IconButton;
       final designVariables = DesignVariables.of(sendButtonElement);
       final expectedIconColor = expected
-        ? designVariables.icon.withFadedAlpha(0.5)
-        : designVariables.icon;
+          ? designVariables.icon.withFadedAlpha(0.5)
+          : designVariables.icon;
       check(sendButtonWidget.icon)
-        .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
+          .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
     }
 
     group('attach from media library', () {
@@ -643,7 +614,7 @@ void main() {
           size: 12345,
         )]);
         connection.prepare(delay: const Duration(seconds: 1), json:
-          UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+        UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.image));
         await tester.pump();
@@ -655,7 +626,7 @@ void main() {
         check(errorDialogs).isEmpty();
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+            .equals('see image: [Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -665,13 +636,13 @@ void main() {
             ..filename.equals('image.jpg')
             ..contentType.asString.equals('image/jpeg')
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
-              .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+                .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
           );
         checkAppearsLoading(tester, true);
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -703,7 +674,7 @@ void main() {
           path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
         );
         connection.prepare(delay: const Duration(seconds: 1), json:
-          UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+        UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.camera));
         await tester.pump();
@@ -715,7 +686,7 @@ void main() {
         check(errorDialogs).isEmpty();
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+            .equals('see image: [Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -725,13 +696,13 @@ void main() {
             ..filename.equals('image.jpg')
             ..contentType.asString.equals('image/jpeg')
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
-              .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+                .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
           );
         checkAppearsLoading(tester, true);
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -743,12 +714,12 @@ void main() {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
     Finder inputFieldFinder() => find.descendant(
-      of: find.byType(ComposeBox),
-      matching: find.byType(TextField));
+        of: find.byType(ComposeBox),
+        matching: find.byType(TextField));
 
     Finder attachButtonFinder(IconData icon) => find.descendant(
-      of: find.byType(ComposeBox),
-      matching: find.widgetWithIcon(IconButton, icon));
+        of: find.byType(ComposeBox),
+        matching: find.widgetWithIcon(IconButton, icon));
 
     void checkComposeBoxParts({required bool areShown}) {
       final inputFieldCount = inputFieldFinder().evaluate().length;
@@ -769,26 +740,26 @@ void main() {
 
     group('in DMs with deactivated users', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
-        bannerLabel: zulipLocalizations.errorBannerDeactivatedDmLabel);
+          bannerLabel: zulipLocalizations.errorBannerDeactivatedDmLabel);
 
       Future<void> changeUserStatus(WidgetTester tester,
           {required User user, required bool isActive}) async {
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: user.userId, isActive: isActive));
+            userId: user.userId, isActive: isActive));
         await tester.pump();
       }
 
       DmNarrow dmNarrowWith(User otherUser) => DmNarrow.withUser(otherUser.userId,
-        selfUserId: eg.selfUser.userId);
+          selfUserId: eg.selfUser.userId);
 
       DmNarrow groupDmNarrowWith(List<User> otherUsers) => DmNarrow.withOtherUsers(
-        otherUsers.map((u) => u.userId), selfUserId: eg.selfUser.userId);
+          otherUsers.map((u) => u.userId), selfUserId: eg.selfUser.userId);
 
       group('1:1 DMs', () {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+              users: [deactivatedUser]);
           checkComposeBox(isShown: false);
         });
 
@@ -796,7 +767,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUser = eg.user(isActive: true);
           await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
-            users: [activeUser]);
+              users: [activeUser]);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUser, isActive: false);
@@ -807,7 +778,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+              users: [deactivatedUser]);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUser, isActive: true);
@@ -819,7 +790,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+              users: deactivatedUsers);
           checkComposeBox(isShown: false);
         });
 
@@ -827,7 +798,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
-            users: activeUsers);
+              users: activeUsers);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUsers[0], isActive: false);
@@ -838,7 +809,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+              users: deactivatedUsers);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);
@@ -852,7 +823,7 @@ void main() {
 
     group('in channel/topic narrow according to channel post policy', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
-        bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+          bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
 
       final narrowTestCases = [
         ('channel', const ChannelNarrow(1)),
@@ -862,19 +833,19 @@ void main() {
       for (final (String narrowType, Narrow narrow) in narrowTestCases) {
         testWidgets('compose box is shown in $narrowType narrow', (tester) async {
           await prepareComposeBox(tester,
-            narrow: narrow,
-            selfUser: eg.user(role: UserRole.administrator),
-            streams: [eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.moderators)]);
+              narrow: narrow,
+              selfUser: eg.user(role: UserRole.administrator),
+              streams: [eg.stream(streamId: 1,
+                  channelPostPolicy: ChannelPostPolicy.moderators)]);
           checkComposeBox(isShown: true);
         });
 
         testWidgets('error banner is shown in $narrowType narrow', (tester) async {
           await prepareComposeBox(tester,
-            narrow: narrow,
-            selfUser: eg.user(role: UserRole.moderator),
-            streams: [eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.administrators)]);
+              narrow: narrow,
+              selfUser: eg.user(role: UserRole.moderator),
+              streams: [eg.stream(streamId: 1,
+                  channelPostPolicy: ChannelPostPolicy.administrators)]);
           checkComposeBox(isShown: false);
         });
       }
@@ -882,14 +853,14 @@ void main() {
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);
         await prepareComposeBox(tester,
-          narrow: const ChannelNarrow(1),
-          selfUser: selfUser,
-          streams: [eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators)]);
+            narrow: const ChannelNarrow(1),
+            selfUser: selfUser,
+            streams: [eg.stream(streamId: 1,
+                channelPostPolicy: ChannelPostPolicy.administrators)]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: selfUser.userId, role: UserRole.moderator));
+            userId: selfUser.userId, role: UserRole.moderator));
         await tester.pump();
         checkComposeBox(isShown: false);
       });
@@ -897,14 +868,14 @@ void main() {
       testWidgets('user gains privilege -> banner is replaced with the compose box', (tester) async {
         final selfUser = eg.user(role: UserRole.guest);
         await prepareComposeBox(tester,
-          narrow: const ChannelNarrow(1),
-          selfUser: selfUser,
-          streams: [eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators)]);
+            narrow: const ChannelNarrow(1),
+            selfUser: selfUser,
+            streams: [eg.stream(streamId: 1,
+                channelPostPolicy: ChannelPostPolicy.moderators)]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: selfUser.userId, role: UserRole.administrator));
+            userId: selfUser.userId, role: UserRole.administrator));
         await tester.pump();
         checkComposeBox(isShown: true);
       });
@@ -912,17 +883,17 @@ void main() {
       testWidgets('channel policy becomes stricter -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.guest);
         final channel = eg.stream(streamId: 1,
-          channelPostPolicy: ChannelPostPolicy.any);
+            channelPostPolicy: ChannelPostPolicy.any);
 
         await prepareComposeBox(tester,
-          narrow: const ChannelNarrow(1),
-          selfUser: selfUser,
-          streams: [channel]);
+            narrow: const ChannelNarrow(1),
+            selfUser: selfUser,
+            streams: [channel]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
-          property: ChannelPropertyName.channelPostPolicy,
-          value: ChannelPostPolicy.fullMembers));
+            property: ChannelPropertyName.channelPostPolicy,
+            value: ChannelPostPolicy.fullMembers));
         await tester.pump();
         checkComposeBox(isShown: false);
       });
@@ -930,17 +901,17 @@ void main() {
       testWidgets('channel policy becomes less strict -> banner is replaced with the compose box', (tester) async {
         final selfUser = eg.user(role: UserRole.moderator);
         final channel = eg.stream(streamId: 1,
-          channelPostPolicy: ChannelPostPolicy.administrators);
+            channelPostPolicy: ChannelPostPolicy.administrators);
 
         await prepareComposeBox(tester,
-          narrow: const ChannelNarrow(1),
-          selfUser: selfUser,
-          streams: [channel]);
+            narrow: const ChannelNarrow(1),
+            selfUser: selfUser,
+            streams: [channel]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
-          property: ChannelPropertyName.channelPostPolicy,
-          value: ChannelPostPolicy.moderators));
+            property: ChannelPropertyName.channelPostPolicy,
+            value: ChannelPostPolicy.moderators));
         await tester.pump();
         checkComposeBox(isShown: true);
       });
@@ -982,7 +953,7 @@ void main() {
       await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
 
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170, maxVisibleLines: 8);
+          maxHeight: verticalPadding + 170, maxVisibleLines: 8);
     });
 
     testWidgets('lower text scale factor', (tester) async {
@@ -990,7 +961,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170 * 0.8, maxVisibleLines: 8);
+          maxHeight: verticalPadding + 170 * 0.8, maxVisibleLines: 8);
     });
 
     testWidgets('higher text scale factor', (tester) async {
@@ -998,7 +969,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 8);
+          maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 8);
     });
 
     testWidgets('higher text scale factor exceeding threshold', (tester) async {
@@ -1006,7 +977,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 6);
+          maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 6);
     });
   });
 }
