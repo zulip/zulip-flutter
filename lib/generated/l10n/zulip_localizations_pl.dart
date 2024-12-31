@@ -53,6 +53,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Wyślij wiadomość bezpośrednią';
 
   @override
+  String get errorShowUserProfile => 'Could not show user profile.';
+
+  @override
   String get permissionsNeededTitle => 'Wymagane uprawnienia';
 
   @override
@@ -256,7 +259,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get composeBoxSendTooltip => 'Wyślij';
 
   @override
-  String get composeBoxUnknownChannelName => '(nieznany kanał)';
+  String get unknownChannelName => '(unknown channel)';
 
   @override
   String get composeBoxTopicHintText => 'Wątek';
@@ -268,6 +271,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get unknownUserName => '(nieznany użytkownik)';
+
+  @override
+  String get messageListYouWithYourselfTitle => 'DMs with yourself';
 
   @override
   String messageListGroupYouAndOthers(String others) {
@@ -482,6 +488,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get channelFeedButtonTooltip => 'Strumień kanału';
 
   @override
+  String notifChannelConversationLabel(String channel, String topic) {
+    return '#$channel > $topic';
+  }
+
+  @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
@@ -491,6 +502,15 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
     );
     return '$senderFullName do ciebie i $_temp0';
   }
+
+  @override
+  String get pinnedSubscriptionsLabel => 'Pinned';
+
+  @override
+  String get unpinnedSubscriptionsLabel => 'Unpinned';
+
+  @override
+  String get noSubscriptions => 'No channels found';
 
   @override
   String get notifSelfUser => 'Ty';

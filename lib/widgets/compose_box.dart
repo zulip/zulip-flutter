@@ -483,7 +483,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
-      ?? zulipLocalizations.composeBoxUnknownChannelName;
+      ?? zulipLocalizations.unknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
@@ -545,7 +545,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
       case TopicNarrow(:final streamId, :final topic):
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
-          ?? zulipLocalizations.composeBoxUnknownChannelName;
+          ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(streamName, topic);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
