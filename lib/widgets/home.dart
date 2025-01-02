@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
     final designVariables = DesignVariables.of(context);
     return Scaffold(
       appBar: ZulipAppBar(titleSpacing: 16,
-        title: Text(_currentTabTitle)),
+        buildTitle: (_) => Text(_currentTabTitle)),
       body: Stack(
         children: [
           for (final (tab, body) in pageBodies)

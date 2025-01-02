@@ -103,7 +103,7 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(user.fullName)),
+      appBar: ZulipAppBar(buildTitle: (_) => Text(user.fullName)),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -122,7 +122,7 @@ class _ProfileErrorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ZulipAppBar(title: const Text('Error')),
+      appBar: ZulipAppBar(buildTitle: (_) => const Text('Error')),
       body: const SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
