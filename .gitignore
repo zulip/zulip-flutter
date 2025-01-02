@@ -53,3 +53,6 @@ app.*.map.json
 
 # Old scaffolding hack
 lib/credential_fixture.dart
+
+#as it regenerate not necessary to add
+lib/generated/l10n/
