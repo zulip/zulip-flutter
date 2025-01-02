@@ -1112,11 +1112,12 @@ void main() {
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var streamId, :var topic) =>
-          TopicNarrow(streamId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+          FcmMessageChannelRecipient(:var streamId, :var topic) =>
+            TopicNarrow(streamId, topic),
+          FcmMessageDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        }).buildUrl();
+      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
       // Now start the app.
