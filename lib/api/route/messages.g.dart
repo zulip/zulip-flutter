@@ -50,6 +50,13 @@ Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
       'id': instance.id,
     };
 
+UpdateMessageResult _$UpdateMessageResultFromJson(Map<String, dynamic> json) =>
+    UpdateMessageResult();
+
+Map<String, dynamic> _$UpdateMessageResultToJson(
+        UpdateMessageResult instance) =>
+    <String, dynamic>{};
+
 UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
     UploadFileResult(
       uri: json['uri'] as String,
@@ -100,6 +107,12 @@ const _$AnchorCodeEnumMap = {
   AnchorCode.newest: 'newest',
   AnchorCode.oldest: 'oldest',
   AnchorCode.firstUnread: 'first_unread',
+};
+
+const _$PropagateModeEnumMap = {
+  PropagateMode.changeOne: 'change_one',
+  PropagateMode.changeLater: 'change_later',
+  PropagateMode.changeAll: 'change_all',
 };
 
 const _$UpdateMessageFlagsOpEnumMap = {

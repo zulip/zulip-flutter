@@ -158,6 +158,19 @@ class GetMessagesResult {
 // https://zulip.com/api/send-message#parameter-topic
 const int kMaxTopicLength = 60;
 
+/// The canonical resolved-topic prefix.
+// Adapted from the shared code:
+//   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+const String kResolvedTopicPrefix = '✔ ';
+
+String stripResolvePrefixIfPresent(String topic) =>
+  topic.startsWith(kResolvedTopicPrefix)
+    ? topic.substring(kResolvedTopicPrefix.length)
+    : topic;
+
+bool topicsMatchModuloResolvePrefix(String topicA, String topicB) =>
+  stripResolvePrefixIfPresent(topicA) == stripResolvePrefixIfPresent(topicB);
+
 // https://zulip.com/api/send-message#parameter-content
 const int kMaxMessageLengthCodePoints = 10000;
 
@@ -256,6 +269,49 @@ class SendMessageResult {
     _$SendMessageResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$SendMessageResultToJson(this);
+}
+
+/// https://zulip.com/api/update-message
+Future<UpdateMessageResult> updateMessage(
+  ApiConnection connection, {
+  required int messageId,
+  String? topic,
+  PropagateMode? propagateMode,
+  bool? sendNotificationToOldThread,
+  bool? sendNotificationToNewThread,
+  String? content,
+  int? streamId,
+}) {
+  return connection.patch('updateMessage', UpdateMessageResult.fromJson, 'messages/$messageId', {
+    if (topic != null) 'topic': RawParameter(topic),
+    if (propagateMode != null) 'propagate_mode': RawParameter(propagateMode.toJson()),
+    if (sendNotificationToOldThread != null) 'send_notification_to_old_thread': sendNotificationToOldThread,
+    if (sendNotificationToNewThread != null) 'send_notification_to_new_thread': sendNotificationToNewThread,
+    if (content != null) 'content': RawParameter(content),
+    if (streamId != null) 'stream_id': streamId,
+  });
+}
+
+/// As in [updateMessage] or [UpdateMessageEvent.propagateMode].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum PropagateMode {
+  changeOne,
+  changeLater,
+  changeAll;
+
+  String toJson() =>_$PropagateModeEnumMap[this]!;
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageResult {
+  // final List<DetachedUpload> detachedUploads; // TODO handle
+
+  UpdateMessageResult();
+
+  factory UpdateMessageResult.fromJson(Map<String, dynamic> json) =>
+    _$UpdateMessageResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateMessageResultToJson(this);
 }
 
 /// https://zulip.com/api/upload-file

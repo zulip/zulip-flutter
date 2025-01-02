@@ -297,6 +297,42 @@ void main() {
     });
   });
 
+  group('resolve/unresolve with kResolvedTopicPrefix', () {
+    group('stripResolvePrefixIfPresent', () {
+      void doTest(String description, String input, String expected) {
+        test(description, () {
+          check(stripResolvePrefixIfPresent(input)).equals(expected);
+        });
+      }
+      doTest('not present', 'topic', 'topic');
+      doTest('present once', '✔ topic', 'topic');
+      doTest('present twice', '✔ ✔ topic', '✔ topic');
+      doTest('present in middle', 'some ✔ topic', 'some ✔ topic');
+    });
+
+    group('topicsMatchModuloResolvePrefix', () {
+      void doTest(String description, String topicA, String topicB, bool expected) {
+        test(description, () {
+          check(topicsMatchModuloResolvePrefix(topicA, topicB)).equals(expected);
+        });
+      }
+      doTest('same-named, both unresolved', 'topic', 'topic', true);
+      doTest('same-named, topicA resolved', '✔ topic', 'topic', true);
+      doTest('same-named, topicB resolved', 'topic', '✔ topic', true);
+      doTest('same-named, both resolved', '✔ topic', '✔ topic', true);
+
+      doTest('different-named, both unresolved', 'this', 'other', false);
+      doTest('different-named, topicA resolved', '✔ this', 'other', false);
+      doTest('different-named, topicB resolved', 'this', '✔ other', false);
+      doTest('different-named, both resolved', '✔ this', '✔ other', false);
+
+      doTest('different-named because one duplicates prefix',
+             '✔ topic', '✔ ✔ topic', false);
+      doTest("different-named but one's name is a prefix of the other",
+             'topic', 'topic zulip', false);
+    });
+  });
+
   group('sendMessage', () {
     const streamId = 123;
     const content = 'hello';
@@ -416,6 +452,67 @@ void main() {
             'read_by_sender': 'true',
           },
           expectedUserAgent: 'ZulipMobile/flutter');
+      });
+    });
+  });
+
+  group('updateMessage', () {
+    Future<UpdateMessageResult> checkUpdateMessage(
+      FakeApiConnection connection, {
+      required int messageId,
+      String? topic,
+      PropagateMode? propagateMode,
+      bool? sendNotificationToOldThread,
+      bool? sendNotificationToNewThread,
+      String? content,
+      int? streamId,
+      required Map<String, String> expected,
+    }) async {
+      final result = await updateMessage(connection,
+        messageId: messageId,
+        topic: topic,
+        propagateMode: propagateMode,
+        sendNotificationToOldThread: sendNotificationToOldThread,
+        sendNotificationToNewThread: sendNotificationToNewThread,
+        content: content,
+        streamId: streamId,
+      );
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..bodyFields.deepEquals(expected);
+      return result;
+    }
+
+    test('topic/content change', () {
+      // A separate test exercises `streamId`;
+      // the API doesn't allow changing channel and content at the same time.
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          topic: 'new topic',
+          propagateMode: PropagateMode.changeAll,
+          sendNotificationToOldThread: true,
+          sendNotificationToNewThread: true,
+          content: 'asdf',
+          expected: {
+            'topic': 'new topic',
+            'propagate_mode': 'change_all',
+            'send_notification_to_old_thread': 'true',
+            'send_notification_to_new_thread': 'true',
+            'content': 'asdf',
+          });
+      });
+    });
+
+    test('channel change', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          streamId: 1,
+          expected: {'stream_id': '1'});
       });
     });
   });

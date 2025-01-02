@@ -177,8 +177,14 @@ abstract class MessageListPageState {
   Narrow get narrow;
 
   /// The controller for this [MessageListPage]'s compose box,
-  /// if this [MessageListPage] offers a compose box.
+  /// if this [MessageListPage] offers a compose box and it has mounted,
+  /// else null.
   ComposeBoxController? get composeBoxController;
+
+  /// The active [MessageListView].
+  ///
+  /// This is null if [MessageList] has not mounted yet.
+  MessageListView? get model;
 }
 
 class MessageListPage extends StatefulWidget {
@@ -214,8 +220,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
   @override
   ComposeBoxController? get composeBoxController => _composeBoxKey.currentState?.controller;
-
   final GlobalKey<ComposeBoxState> _composeBoxKey = GlobalKey();
+
+  @override
+  MessageListView? get model => _messageListKey.currentState?.model;
+  final GlobalKey<_MessageListState> _messageListKey = GlobalKey();
 
   @override
   void initState() {
@@ -302,7 +311,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               removeBottom: ComposeBox.hasComposeBox(narrow),
 
               child: Expanded(
-                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
+                child: MessageList(
+                  key: _messageListKey,
+                  narrow: narrow,
+                  onNarrowChanged: _narrowChanged,
+                ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
