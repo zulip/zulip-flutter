@@ -361,5 +361,24 @@ void main() {
       await tester.pumpAndSettle();
       check(findSnackBarByText('unrelated').evaluate()).single;
     });
+
+    testWidgets('reportErrorToUserModally', (tester) async {
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(const ZulipApp());
+      const message = 'test error message';
+      const details = 'details';
+
+      // Prior to app startup, reportErrorToUserModally only logs.
+      reportErrorToUserModally(message, details: details);
+      check(ZulipApp.ready).value.isFalse();
+      await tester.pump();
+      checkNoErrorDialog(tester);
+
+      check(ZulipApp.ready).value.isTrue();
+      // After app startup, reportErrorToUserModally displays an [AlertDialog].
+      reportErrorToUserModally(message, details: details);
+      await tester.pump();
+      checkErrorDialog(tester, expectedTitle: message, expectedMessage: details);
+    });
   });
 }
