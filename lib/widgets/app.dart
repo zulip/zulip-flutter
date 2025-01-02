@@ -152,6 +152,23 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
+    // The `_ZulipAppState.context` lacks the required ancestors. Instead
+    // we use the Navigator which should be available when this callback is
+    // called and it's context should have the required ancestors.
+    final context = ZulipApp.navigatorKey.currentContext!;
+    final globalStore = GlobalStoreWidget.of(context);
+
+    // TODO(#524) choose initial account as last one used
+    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    return [
+      if (initialAccountId == null)
+        MaterialWidgetRoute(page: const ChooseAccountPage())
+      else
+        HomePage.buildRoute(accountId: initialAccountId),
+    ];
+  }
+
   Future<void> _handleInitialRoute() async {
     final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
     if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
@@ -176,47 +193,35 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
-      child: Builder(builder: (context) {
-        final globalStore = GlobalStoreWidget.of(context);
-        return MaterialApp(
-          onGenerateTitle: (BuildContext context) {
-            return ZulipLocalizations.of(context).zulipAppTitle;
-          },
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          theme: themeData,
+      child: MaterialApp(
+        onGenerateTitle: (BuildContext context) {
+          return ZulipLocalizations.of(context).zulipAppTitle;
+        },
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
+        theme: themeData,
 
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: widget.navigatorObservers ?? const [],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
-          },
+        navigatorKey: ZulipApp.navigatorKey,
+        navigatorObservers: widget.navigatorObservers ?? const [],
+        builder: (BuildContext context, Widget? child) {
+          if (!ZulipApp.ready.value) {
+            SchedulerBinding.instance.addPostFrameCallback(
+              (_) => widget._declareReady());
+          }
+          GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+          return child!;
+        },
 
-          // We use onGenerateInitialRoutes for the real work of specifying the
-          // initial nav state.  To do that we need [MaterialApp] to decide to
-          // build a [Navigator]... which means specifying either `home`, `routes`,
-          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-          // It never actually gets called, though: `onGenerateInitialRoutes`
-          // handles startup, and then we always push whole routes with methods
-          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-          onGenerateRoute: (_) => null,
+        // We use onGenerateInitialRoutes for the real work of specifying the
+        // initial nav state.  To do that we need [MaterialApp] to decide to
+        // build a [Navigator]... which means specifying either `home`, `routes`,
+        // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+        // It never actually gets called, though: `onGenerateInitialRoutes`
+        // handles startup, and then we always push whole routes with methods
+        // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+        onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: (_) {
-            // TODO(#524) choose initial account as last one used
-            final initialAccountId = globalStore.accounts.firstOrNull?.id;
-            return [
-              if (initialAccountId == null)
-                MaterialWidgetRoute(page: const ChooseAccountPage())
-              else
-                HomePage.buildRoute(accountId: initialAccountId),
-            ];
-          });
-        }));
+        onGenerateInitialRoutes: _handleGenerateInitialRoutes));
   }
 }
 
