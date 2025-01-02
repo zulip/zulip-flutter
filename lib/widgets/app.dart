@@ -152,6 +152,21 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     return super.didPushRouteInformation(routeInformation);
   }
 
+  InitialRouteListFactory _handleGenerateInitialRoutes(BuildContext context) {
+    final globalStore = GlobalStoreWidget.of(context);
+
+    return (_) {
+      // TODO(#524) choose initial account as last one used
+      final initialAccountId = globalStore.accounts.firstOrNull?.id;
+      return [
+        if (initialAccountId == null)
+          MaterialWidgetRoute(page: const ChooseAccountPage())
+        else
+          HomePage.buildRoute(accountId: initialAccountId),
+      ];
+    };
+  }
+
   Future<void> _handleInitialRoute() async {
     final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
     if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
@@ -177,7 +192,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
       child: Builder(builder: (context) {
-        final globalStore = GlobalStoreWidget.of(context);
         return MaterialApp(
           title: 'Zulip',
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
@@ -204,16 +218,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           // like [Navigator.push], never mere names as with [Navigator.pushNamed].
           onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: (_) {
-            // TODO(#524) choose initial account as last one used
-            final initialAccountId = globalStore.accounts.firstOrNull?.id;
-            return [
-              if (initialAccountId == null)
-                MaterialWidgetRoute(page: const ChooseAccountPage())
-              else
-                HomePage.buildRoute(accountId: initialAccountId),
-            ];
-          });
+          onGenerateInitialRoutes: _handleGenerateInitialRoutes(context));
         }));
   }
 }
