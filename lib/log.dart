@@ -31,7 +31,10 @@ bool debugLog(String message) {
   return true;
 }
 
-typedef ReportErrorCallback = void Function(String? message, {String? details});
+// This should only be used for error reporting functions that allow the error
+// to be cancelled programmatically.  The implementation is expected to handle
+// `null` for the `message` parameter and promptly dismiss the reported errors.
+typedef ReportErrorCancellablyCallback = void Function(String? message, {String? details});
 
 /// Show the user an error message, without requiring them to interact with it.
 ///
@@ -48,7 +51,7 @@ typedef ReportErrorCallback = void Function(String? message, {String? details});
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.
-ReportErrorCallback reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
+ReportErrorCancellablyCallback reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
 
 void defaultReportErrorToUserBriefly(String? message, {String? details}) {
   // Error dismissing is a no-op to the default handler.
