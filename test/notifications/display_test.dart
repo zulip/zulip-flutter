@@ -1103,6 +1103,7 @@ void main() {
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
+      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
       // for determining the intial route.
       final account = eg.selfAccount;
@@ -1112,11 +1113,11 @@ void main() {
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var streamId, :var topic) =>
-          TopicNarrow(streamId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+          FcmMessageChannelRecipient(:var streamId, :var topic) =>
+            TopicNarrow(streamId, topic),
+          FcmMessageDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        }).buildUrl();
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
       // Now start the app.
