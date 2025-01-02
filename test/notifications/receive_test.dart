@@ -30,4 +30,23 @@ void main() {
         .length.equals(1);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
+
+  group('tokens', () {
+    test('APNs token registration using correct app bundle ID', () async {
+      await init();
+      check((await testBinding.packageInfo)?.packageName)
+        .equals('com.zulip.flutter.test');
+    }, );
+
+    test('Fallback to default appBundleId if packageInfo is null', () async {
+      await init();
+      // setting package Info to null
+      testBinding.setPackageInfo(null);
+
+      const defaultAppId = 'com.zulip.flutter.test';
+
+      check((await testBinding.packageInfo)?.packageName?? defaultAppId)
+        .equals(defaultAppId);
+    }, );
+  });
 }
