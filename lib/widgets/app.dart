@@ -85,6 +85,7 @@ class ZulipApp extends StatefulWidget {
   static void debugReset() {
     _snackBarCount = 0;
     reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
+    reportErrorToUserModally = defaultReportErrorToUserModally;
     _ready.dispose();
     _ready = ValueNotifier(false);
   }
@@ -128,10 +129,21 @@ class ZulipApp extends StatefulWidget {
     newSnackBar.closed.whenComplete(() => _snackBarCount--);
   }
 
+  /// The callback we normally use as [reportErrorToUserModally].
+  static void _reportErrorToUserModally(String title, {String? message}) {
+    assert(_ready.value);
+
+    showErrorDialog(
+      context: navigatorKey.currentContext!,
+      title: title,
+      message: message);
+  }
+
   void _declareReady() {
     assert(navigatorKey.currentContext != null);
     _ready.value = true;
     reportErrorToUserBriefly = _reportErrorToUserBriefly;
+    reportErrorToUserModally = _reportErrorToUserModally;
   }
 
   @override
