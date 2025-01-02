@@ -190,7 +190,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
         // TODO(#105) give more helpful feedback; see `fetchServerSettings`
         //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
-          title: zulipLocalizations.errorLoginCouldNotConnectTitle,
+          title: zulipLocalizations.errorCouldNotConnectTitle,
           message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
         return;
       }

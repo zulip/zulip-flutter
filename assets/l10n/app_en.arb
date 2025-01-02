@@ -214,8 +214,8 @@
       "url": {"type": "String", "example": "http://example.com/"}
     }
   },
-  "errorLoginCouldNotConnectTitle": "Could not connect",
-  "@errorLoginCouldNotConnectTitle": {
+  "errorCouldNotConnectTitle": "Could not connect",
+  "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
   "errorMessageDoesNotSeemToExist": "That message does not seem to exist.",
