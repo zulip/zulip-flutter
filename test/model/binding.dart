@@ -228,7 +228,7 @@ class TestZulipBinding extends ZulipBinding {
   BaseDeviceInfo? get syncDeviceInfo => deviceInfoResult;
 
   /// The value that `ZulipBinding.instance.packageInfo` should return.
-  PackageInfo packageInfoResult = _defaultPackageInfo;
+  PackageInfo? packageInfoResult = _defaultPackageInfo;
   static const _defaultPackageInfo = PackageInfo(version: '0.0.1', buildNumber: '1', packageName: 'com.zulip.flutter.test');
 
   void _resetPackageInfo() {
@@ -240,6 +240,10 @@ class TestZulipBinding extends ZulipBinding {
 
   @override
   PackageInfo? get syncPackageInfo => packageInfoResult;
+
+  void setPackageInfo(PackageInfo? packageInfo){
+    packageInfoResult= packageInfo;
+  }
 
   void _resetFirebase() {
     _firebaseInitialized = false;
@@ -380,7 +384,6 @@ class TestZulipBinding extends ZulipBinding {
   Future<void> toggleWakelock({required bool enable}) async {
     _wakelockEnabled = enable;
   }
-
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
