@@ -56,13 +56,13 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.dark() :
     this._(
       dateSeparator: Colors.white,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
+      dateSeparatorText: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
+      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 0, 0, 0.14).toColor(),
+      messageTimestamp: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
+      recipientHeaderText: const HSLColor.fromAHSL(0.9, 0, 0, 1).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-      senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
-      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+      senderName: const HSLColor.fromAHSL(0.9, 0, 0, 1).toColor(),
+      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.11).toColor(),
       streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
       // 0.75 opacity from here:
