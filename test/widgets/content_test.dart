@@ -119,15 +119,17 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Widget plainContent(String html) {
+    final narrow = TopicNarrow.ofMessage(eg.streamMessage());
     return Builder(builder: (context) =>
       DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
-        child: BlockContentList(nodes: parseContent(html).nodes)));
+        child: BlockContentList(nodes: parseContent(html).nodes, narrow: narrow,)));
   }
 
   Widget messageContent(String html) {
+    final narrow = TopicNarrow.ofMessage(eg.streamMessage());
     return MessageContent(message: eg.streamMessage(content: html),
-       content: parseContent(html));
+       content: parseContent(html),narrow: narrow,);
   }
 
   // TODO(#488) For content that we need to show outside a per-message context

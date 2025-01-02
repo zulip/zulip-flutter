@@ -9,6 +9,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/narrow.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
@@ -20,21 +21,25 @@ import 'store.dart';
 //   message. Maybe keep `src`, so that on exit the lightbox image doesn't
 //   fly to an image preview with a different URL, following a message edit
 //   while the lightbox was open.
-class _LightboxHeroTag {
-  _LightboxHeroTag({required this.messageId, required this.src});
+class LightboxHeroTag {
+  LightboxHeroTag({required this.messageId, required this.src, required this.topic, required this.narrow});
 
   final int messageId;
   final Uri src;
+  final String topic;
+  final Narrow narrow;
 
   @override
   bool operator ==(Object other) {
-    return other is _LightboxHeroTag &&
+    return other is LightboxHeroTag &&
       other.messageId == messageId &&
+      other.topic == topic &&
+      other.narrow == narrow &&
       other.src == src;
   }
 
   @override
-  int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
+  int get hashCode => Object.hash('LightboxHeroTag', messageId, src);
 }
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
@@ -44,16 +49,18 @@ class LightboxHero extends StatelessWidget {
     required this.message,
     required this.src,
     required this.child,
+    required this.narrow,
   });
 
   final Message message;
   final Uri src;
   final Widget child;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src),
+      tag: LightboxHeroTag(messageId: message.id, src: src, topic: message.topic, narrow: narrow),
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
@@ -227,6 +234,7 @@ class _ImageLightboxPage extends StatefulWidget {
     required this.thumbnailUrl,
     required this.originalWidth,
     required this.originalHeight,
+    required this.narrow,
   });
 
   final Animation<double> routeEntranceAnimation;
@@ -235,6 +243,7 @@ class _ImageLightboxPage extends StatefulWidget {
   final Uri? thumbnailUrl;
   final double? originalWidth;
   final double? originalHeight;
+  final Narrow narrow;
 
   @override
   State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
@@ -314,6 +323,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
         child: InteractiveViewer(
           child: SafeArea(
             child: LightboxHero(
+              narrow: widget.narrow,
               message: widget.message,
               src: widget.src,
               child: RealmContentNetworkImage(widget.src,
@@ -599,12 +609,14 @@ Route<void> getImageLightboxRoute({
   required Uri? thumbnailUrl,
   required double? originalWidth,
   required double? originalHeight,
+  required Narrow narrow
 }) {
   return _getLightboxRoute(
     accountId: accountId,
     context: context,
     pageBuilder: (context, animation, secondaryAnimation) {
       return _ImageLightboxPage(
+        narrow: narrow,
         routeEntranceAnimation: animation,
         message: message,
         src: src,
