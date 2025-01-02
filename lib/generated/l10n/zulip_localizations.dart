@@ -397,7 +397,7 @@ abstract class ZulipLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Could not connect'**
-  String get errorLoginCouldNotConnectTitle;
+  String get errorCouldNotConnectTitle;
 
   /// Error message when loading a message that does not exist.
   ///

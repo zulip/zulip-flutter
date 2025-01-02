@@ -179,7 +179,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String get errorLoginCouldNotConnectTitle => 'Nepodarilo sa pripojiť';
+  String get errorCouldNotConnectTitle => 'Could not connect';
 
   @override
   String get errorMessageDoesNotSeemToExist => 'Správa zrejme neexistuje.';
