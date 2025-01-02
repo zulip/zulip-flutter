@@ -259,6 +259,12 @@ abstract class ZulipLocalizations {
   /// **'Share'**
   String get actionSheetOptionShare;
 
+  /// Label for View Reactions button on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'View Reactions'**
+  String get actionSheetOptionViewReactions;
+
   /// Label for Quote and reply button on action sheet.
   ///
   /// In en, this message translates to:
