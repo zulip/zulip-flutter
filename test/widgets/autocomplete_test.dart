@@ -177,6 +177,36 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    testWidgets('options are shown in reversed order', (tester) async {
+      final users = List.generate(8, (i) => eg.user(fullName: 'A$i', avatarUrl: 'user$i.png'));
+      final composeInputFinder = await setupToComposeInput(tester, users: users);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @');
+      await tester.enterText(composeInputFinder, 'hello @A');
+      await tester.pump();
+
+      final initialPosition = tester.getTopLeft(find.text(users.first.fullName)).dy;
+      // Initially, all but the last autocomplete options are visible.
+      checkUserShown(users.last, store, expected: false);
+      users.take(7).forEach((user) => checkUserShown(user, store, expected: true));
+
+      // Can't scroll down because the options grow from the bottom.
+      await tester.drag(find.byType(ListView), const Offset(0, -50));
+      await tester.pump();
+      check(tester.getTopLeft(find.text(users.first.fullName)).dy)
+        .equals(initialPosition);
+
+      // The last autocomplete option becomes visible after scrolling up.
+      await tester.drag(find.byType(ListView), const Offset(0, 200));
+      await tester.pump();
+      users.skip(1).forEach((user) => checkUserShown(user, store, expected: true));
+      checkUserShown(users.first, store, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
   });
 
   group('emoji', () {
@@ -246,6 +276,68 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+ testWidgets('emoji options appear in the correct rendering order and do not scroll down', (tester) async {
+    final composeInputFinder = await setupToComposeInput(tester);
+    final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+    store.setServerEmojiData(
+      ServerEmojiData(
+        codeToNames: {
+          '1f4a4': ['zzz'],
+          '1f52a': ['biohazard'],
+          '1f92a': ['zany_face'],
+          '1f993': ['zebra'],
+          '0030-fe0f-20e3': ['zero'],
+          '1f9d0': ['zombie'],
+          }));
+
+    await store.handleEvent(
+      RealmEmojiUpdateEvent(
+        id: 1,
+        realmEmoji: {
+          '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing')}));
+
+    final emojiSequence = ['zulip','zzz','💤','zany_face','zebra','zero','zombie','buzzing','biohazard'];
+
+    // Enter a query; options appear, of all three emoji types.
+    // TODO(#226): Remove this extra edit when this bug is fixed.
+    await tester.enterText(composeInputFinder, 'hi :');
+    await tester.enterText(composeInputFinder, 'hi :z');
+    await tester.pump();
+
+    final positions = emojiSequence.take(8).map((icon) {
+      final finder = find.text(icon);
+      check(because:"Each emoji option should be rendered", finder).findsOne();
+      return tester.getTopLeft(finder).dy;
+    }).toList();
+
+    await tester.drag(find.byType(ListView), const Offset(0, -50));
+    await tester.pump();
+    final firstEmojiPositionAfterScrollDown = tester.getTopLeft(find.text(emojiSequence[0])).dy;
+    check(
+      because:"ListView options should not scroll down further than initial position",
+      positions.first
+    ).equals(firstEmojiPositionAfterScrollDown);
+
+    check(
+      because: "The last emoji should not be visible before scrolling up"
+      ,find.text(emojiSequence.last)
+    ).findsNothing();
+
+    // Scroll up
+    await tester.drag(find.byType(ListView), const Offset(0, 50));
+    await tester.pump();
+
+    check(because:"The last emoji should be visible after scrolling up",
+    find.text(emojiSequence.last)).findsOne();
+
+    final firstEmojiPositionAfterScrollUp = tester.getTopLeft(find.text(emojiSequence[0])).dy;
+    check(because: "Scrolling up should reveal other emoji matches",firstEmojiPositionAfterScrollUp)
+    .isGreaterOrEqual(positions.first);
+
+    debugNetworkImageHttpClientProvider = null;
+  });
 
     testWidgets('text emoji means just show text', (tester) async {
       final composeInputFinder = await setupToComposeInput(tester);
