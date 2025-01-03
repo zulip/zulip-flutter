@@ -1070,6 +1070,7 @@ void main() {
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
+      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
       // for determining the intial route.
       final account = eg.selfAccount;
@@ -1079,11 +1080,11 @@ void main() {
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var streamId, :var topic) =>
-          TopicNarrow(streamId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+          FcmMessageChannelRecipient(:var streamId, :var topic) =>
+            TopicNarrow(streamId, topic),
+          FcmMessageDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        }).buildUrl();
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
       // Now start the app.
@@ -1095,6 +1096,45 @@ void main() {
       await tester.pump();
       takeStartingRoutes();
       matchesNavigation(check(pushedRoutes).single, account, message);
+    });
+
+    testWidgets('uses associated account as initial account; if initial route', (tester) async {
+      addTearDown(testBinding.reset);
+      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
+
+      final accountA = eg.selfAccount;
+      final accountB = eg.otherAccount;
+      final message = eg.streamMessage();
+      final data = messageFcmMessage(message, account: accountB);
+      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+
+      final intentDataUrl = NotificationOpenPayload(
+        realmUrl: data.realmUrl,
+        userId: data.userId,
+        narrow: switch (data.recipient) {
+          FcmMessageChannelRecipient(:var streamId, :var topic) =>
+            TopicNarrow(streamId, topic),
+          FcmMessageDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        }).buildUrl();
+      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+
+      await prepare(tester, early: true);
+      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+
+      await tester.pump();
+      check(pushedRoutes).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(accountB.id)
+          ..page.isA<HomePage>(),
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(accountB.id)
+          ..page.isA<MessageListPage>()
+            .initNarrow.equals(SendableNarrow.ofMessage(message,
+              selfUserId: accountB.userId))
+      ]);
+      pushedRoutes.clear();
     });
   });
 
