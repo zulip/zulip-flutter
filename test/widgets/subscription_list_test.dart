@@ -150,6 +150,32 @@ void main() {
       ]);
       check(listedStreamIds(tester)).deepEquals([2, 1, 3, 4, 6, 5]);
     });
+
+    testWidgets('channels with emoji in name are listed above non-emoji names', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: '😊 Happy Stream')),
+        eg.subscription(eg.stream(streamId: 2, name: 'Alpha Stream')),
+        eg.subscription(eg.stream(streamId: 3, name: '🚀 Rocket Stream')),
+        eg.subscription(eg.stream(streamId: 4, name: 'Beta Stream')),
+      ]);
+
+      check(listedStreamIds(tester)).deepEquals([1, 3, 2, 4]);
+    });
+
+    testWidgets('channels with emoji in name, pinned, unpinned, muted, and unmuted are sorted correctly', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: '😊 Happy Stream'), pinToTop: true, isMuted: false),
+        eg.subscription(eg.stream(streamId: 2, name: '🚀 Rocket Stream'), pinToTop: true, isMuted: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'Alpha Stream'), pinToTop: true, isMuted: false),
+        eg.subscription(eg.stream(streamId: 4, name: 'Beta Stream'), pinToTop: true, isMuted: true),
+        eg.subscription(eg.stream(streamId: 5, name: '🌟 Star Stream'), pinToTop: false, isMuted: false),
+        eg.subscription(eg.stream(streamId: 6, name: '🔥 Fire Stream'), pinToTop: false, isMuted: true),
+        eg.subscription(eg.stream(streamId: 7, name: 'Gamma Stream'), pinToTop: false, isMuted: false),
+        eg.subscription(eg.stream(streamId: 8, name: 'Delta Stream'), pinToTop: false, isMuted: true),
+      ]);
+
+      check(listedStreamIds(tester)).deepEquals([1,3,2,4,5,7,6,8]);
+    });
   });
 
   testWidgets('unread badge shows with unreads', (tester) async {

@@ -45,9 +45,33 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     list.sort((a, b) {
       if (a.isMuted && !b.isMuted) return 1;
       if (!a.isMuted && b.isMuted) return -1;
+      
+      final isEmojiA = _startsWithEmoji(a.name);
+      final isEmojiB = _startsWithEmoji(b.name);
+      if (isEmojiA != isEmojiB) {
+        return isEmojiA ? -1 : 1;
+      }
+
       // TODO(i18n): add locale-aware sorting
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
+  }
+
+  bool _startsWithEmoji(String name) {
+    final firstChar = name.characters.first;
+    final int firstCharCode = firstChar.runes.first;
+
+    return (firstCharCode >= 0x1F600 && firstCharCode <= 0x1F64F) || // Emoticons
+        (firstCharCode >= 0x1F300 && firstCharCode <= 0x1F5FF) || // Misc Symbols and Pictographs
+        (firstCharCode >= 0x1F680 && firstCharCode <= 0x1F6FF) || // Transport and Map
+        (firstCharCode >= 0x1F700 && firstCharCode <= 0x1F77F) || // Alchemical Symbols
+        (firstCharCode >= 0x2600 && firstCharCode <= 0x26FF) || // Misc Symbols
+        (firstCharCode >= 0x2700 && firstCharCode <= 0x27BF) || // Dingbats
+        (firstCharCode >= 0xFE00 && firstCharCode <= 0xFE0F) || // Variation Selectors
+        (firstCharCode >= 0x1F900 && firstCharCode <= 0x1F9FF) || // Supplemental Symbols and Pictographs
+        (firstCharCode >= 0x1FA70 && firstCharCode <= 0x1FAFF) || // Symbols and Pictographs Extended-A
+        (firstCharCode >= 0x1F1E6 && firstCharCode <= 0x1F1FF) || // Flags
+        (firstCharCode >= 0x1F000 && firstCharCode <= 0x1FFFF); // Supplementary Multilingual Plane
   }
 
   @override
