@@ -98,11 +98,30 @@ void main() {
       verifier = SchemaVerifier(GeneratedHelper());
     });
 
-    test('upgrade to v2, empty', () async {
-      final connection = await verifier.startAt(1);
-      final db = AppDatabase(connection);
-      await verifier.migrateAndValidate(db, 2);
-      await db.close();
+    group('migrate without data', () {
+      const versions = GeneratedHelper.versions;
+      final latestVersion = versions.last;
+
+      int fromVersion = versions.first;
+      for (final toVersion in versions.skip(1)) {
+        test('from v$fromVersion to v$toVersion', () async {
+          final connection = await verifier.startAt(fromVersion);
+          final db = AppDatabase(connection);
+          await verifier.migrateAndValidate(db, toVersion);
+          await db.close();
+        });
+        fromVersion = toVersion;
+      }
+
+      for (final fromVersion in versions) {
+        if (fromVersion == latestVersion) break;
+        test('from v$fromVersion to latest (v$latestVersion)', () async {
+          final connection = await verifier.startAt(fromVersion);
+          final db = AppDatabase(connection);
+          await verifier.migrateAndValidate(db, latestVersion);
+          await db.close();
+        });
+      }
     });
 
     test('upgrade to v2, with data', () async {
