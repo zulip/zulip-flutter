@@ -214,6 +214,18 @@ class Unreads extends ChangeNotifier {
     }
   }
 
+  /// The unread state for [messageId], or null if unknown.
+  ///
+  /// May be unknown only if [oldUnreadsMissing].
+  ///
+  /// This is inefficient; it iterates through [dms] and [channels].
+  // TODO implement efficiently
+  bool? isUnread(int messageId) {
+    final isPresent = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
+    if (oldUnreadsMissing && !isPresent) return null;
+    return isPresent;
+  }
+
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
     if (message.flags.contains(MessageFlag.read)) {
@@ -253,14 +265,18 @@ class Unreads extends ChangeNotifier {
     //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/1639957
     final bool isRead = event.flags.contains(MessageFlag.read);
     assert(() {
-      if (!oldUnreadsMissing && !event.messageIds.every((messageId) {
-        final isUnreadLocally = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
-        return isUnreadLocally == !isRead;
-      })) {
+      final isUnreadLocally = isUnread(messageId);
+      final isUnreadInEvent = !isRead;
+
+      // Unread state unknown because of [oldUnreadsMissing].
+      // We were going to check something but can't; shrug.
+      if (isUnreadLocally == null) return true;
+
+      if (isUnreadLocally != isUnreadInEvent) {
         // If this happens, then either:
-        // - the server and client have been out of sync about a message's
+        // - the server and client have been out of sync about the message's
         //   unread state since before this event, or
-        // - this event was unexpectedly used to announce a change in a
+        // - this event was unexpectedly used to announce a change in the
         //   message's 'read' flag.
         debugLog('Unreads warning: got surprising UpdateMessageEvent');
       }
@@ -328,10 +344,7 @@ class Unreads extends ChangeNotifier {
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             mentions.addAll(
-              event.messages.where(
-                (messageId) => _slowIsPresentInStreams(messageId) || _slowIsPresentInDms(messageId),
-              ),
-            );
+              event.messages.where((messageId) => isUnread(messageId) == true));
 
           case UpdateMessageFlagsRemoveEvent():
             mentions.removeAll(event.messages);
