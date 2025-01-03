@@ -65,6 +65,26 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 2; // See note.
 
+  Future<void> _resetDatabase(Migrator m) async {
+    // This should only ever happen in dev.  As a dev convenience,
+    // drop everything from the database and start over.
+    await m.database.transaction(() async {
+      final query = m.database.customSelect(
+        "SELECT name FROM sqlite_master WHERE type='table'");
+      for (final row in await query.get()) {
+        final data = row.data;
+        final tableName = data['name'] as String;
+        // Skip sqlite-internal tables, https://www.sqlite.org/fileformat2.html#intschema
+        // https://github.com/simolus3/drift/blob/0901c984a987e54ba0b67e227adbfdcf3c08eeb4/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
+        if (tableName.startsWith('sqlite_')) continue;
+        // SQL injection could be a concern, but the database would've been
+        // compromised if the table name is corrupted.
+        await m.database.customStatement('DROP TABLE $tableName');
+      }
+      await m.createAll();
+    });
+  }
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -74,14 +94,7 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from > to) {
           // TODO(log): log schema downgrade as an error
-          // This should only ever happen in dev.  As a dev convenience,
-          // drop everything from the database and start over.
-          for (final entity in allSchemaEntities) {
-            // This will miss any entire tables (or indexes, etc.) that
-            // don't exist at this version.  For a dev-only feature, that's OK.
-            await m.drop(entity);
-          }
-          await m.createAll();
+          await _resetDatabase(m);
           return;
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
