@@ -1,8 +1,12 @@
 import 'package:checks/checks.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
 
@@ -96,6 +100,27 @@ void main() {
         final b = DesignVariables.dark();
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
+    });
+
+    testWidgets('follow globalSettings.themeSetting if not unset', (tester) async {
+      addTearDown(testBinding.reset);
+
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(const TestZulipApp());
+      await tester.pump();
+
+      final element = tester.element(find.byType(Placeholder));
+      check(zulipThemeData(element).brightness).equals(Brightness.light);
+
+      await GlobalStoreWidget.of(element).updateGlobalSettings(
+        const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+      check(zulipThemeData(element).brightness).equals(Brightness.dark);
+
+      await GlobalStoreWidget.of(element).updateGlobalSettings(
+        const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.unset)));
+      check(zulipThemeData(element).brightness).equals(Brightness.light);
     });
   });
 

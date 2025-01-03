@@ -51,8 +51,31 @@ export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsExce
 ///  * [LiveGlobalStore], the implementation of this class that
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
-  GlobalStore({required Iterable<Account> accounts})
-    : _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+  GlobalStore({
+    required GlobalSettingsData globalSettings,
+    required Iterable<Account> accounts,
+  })
+    : _globalSettings = globalSettings,
+      _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+
+  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  GlobalSettingsData get globalSettings => _globalSettings;
+  GlobalSettingsData _globalSettings;
+
+  /// Update the global settings in the store, return the new version.
+  ///
+  /// The global settings must already exist in the store.
+  Future<GlobalSettingsData> updateGlobalSettings(GlobalSettingsCompanion data) async {
+    await doUpdateGlobalSettings(data);
+    _globalSettings = _globalSettings.copyWithCompanion(data);
+    notifyListeners();
+    return _globalSettings;
+  }
+
+  /// Update the global settings in the underlying data store.
+  ///
+  /// This should only be called from [updateGlobalSettings].
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data);
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
@@ -756,6 +779,7 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
     required AppDatabase db,
+    required super.globalSettings,
     required super.accounts,
   }) : _db = db;
 
@@ -772,30 +796,42 @@ class LiveGlobalStore extends GlobalStore {
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final globalSettings = await db.ensureGlobalSettings();
     final accounts = await db.select(db.accounts).get();
-    return LiveGlobalStore._(db: db, accounts: accounts);
+    return LiveGlobalStore._(db: db,
+      globalSettings: globalSettings,
+      accounts: accounts);
   }
 
   /// The file path to use for the app database.
   static Future<File> _dbFile() async {
-    // What directory should we use?
-    //   path_provider's getApplicationSupportDirectory:
-    //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
-    //       -> empirically /data/data/com.zulip.flutter/files/
-    //     on iOS, -> "Library/Application Support" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsapplicationsupportdirectory
-    //     on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
-    //     All seem reasonable.
-    //   path_provider's getApplicationDocumentsDirectory:
-    //     on Android, -> Flutter's PathUtils.getDataDirectory -> https://developer.android.com/reference/android/content/Context#getDir(java.lang.String,%20int)
-    //       with https://developer.android.com/reference/android/content/Context#MODE_PRIVATE
-    //     on iOS, "Document directory" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsdocumentdirectory
-    //     on Linux, -> `xdg-user-dir DOCUMENTS` -> e.g. ~/Documents
-    //     That Linux answer is definitely not a fit.  Harder to tell about the rest.
+    // path_provider's getApplicationSupportDirectory:
+    //   on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
+    //     -> empirically /data/data/com.zulip.flutter/files/
+    //   on iOS, -> "Library/Application Support" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsapplicationsupportdirectory
+    //   on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
+    //
+    // This is reasonable for iOS per Apple's recommendation:
+    // > Use ["Library/Application Support"] to store all app data files except
+    // > those associated with the user’s documents. For example, you might use
+    // > this directory to store app-created data files, configuration files,
+    // > templates, or other fixed or modifiable resources that are managed by
+    // > the app.
+    // See: https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW2
+    //
+    // The paths are reasonable for both Android and Linux, compared to the
+    // ones from using path_provider's getApplicationDocumentsDirectory.
     final dir = await getApplicationSupportDirectory();
     return File(p.join(dir.path, 'zulip.db'));
   }
 
   final AppDatabase _db;
+
+  @override
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    final rowsAffected = await _db.update(_db.globalSettings).write(data);
+    assert(rowsAffected == 1);
+  }
 
   @override
   Future<PerAccountStore> doLoadPerAccount(int accountId) async {

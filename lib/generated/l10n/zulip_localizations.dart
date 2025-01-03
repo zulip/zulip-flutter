@@ -133,6 +133,18 @@ abstract class ZulipLocalizations {
   /// **'Choose account'**
   String get chooseAccountPageTitle;
 
+  /// Title for the settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsPageTitle;
+
+  /// Whether to open links with external browser or not
+  ///
+  /// In en, this message translates to:
+  /// **'Use external browser'**
+  String get settingsUseExternal;
+
   /// Label for main-menu button leading to the choose-account page.
   ///
   /// In en, this message translates to:
