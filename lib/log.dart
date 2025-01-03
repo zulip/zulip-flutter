@@ -48,9 +48,9 @@ typedef ReportErrorCancellablyCallback = void Function(String? message, {String?
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.
-ReportErrorCancellablyCallback reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
+ReportErrorCancellablyCallback reportErrorToUserBriefly = reportErrorToConsole;
 
-void defaultReportErrorToUserBriefly(String? message, {String? details}) {
+void reportErrorToConsole(String? message, {String? details}) {
   // Error dismissing is a no-op to the default handler.
   if (message == null) return;
   // If this callback is still in place, then the app's widget tree
