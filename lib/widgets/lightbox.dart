@@ -3,10 +3,15 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:async';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../host/android_media_scanner.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import 'content.dart';
@@ -88,6 +93,92 @@ class _CopyLinkButton extends StatelessWidget {
       });
   }
 }
+
+class _DownloadImageButton extends StatelessWidget {
+  _DownloadImageButton({required this.url});
+
+  final scanner = AndroidMediaScanner();
+
+  final Uri url;
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return IconButton(
+      tooltip: zulipLocalizations.lightboxDownloadImageTooltip,
+      icon: const Icon(Icons.download),
+      onPressed: () async {
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
+        String message = zulipLocalizations.lightboxDownloadImageFailed;
+        try {
+          // fetching image a without to prevent errors.
+          final response = await http.get(
+            url,
+            headers: {
+                if (url.origin == store.account.realmUrl.origin) ...authHeader(
+                  email: store.account.email,
+                  apiKey: store.account.apiKey,
+                ),
+                ...userAgentHeader()
+              }
+            ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw TimeoutException("timed out");
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final directory = await getExternalStorageDirectory();
+            if (directory == null) {
+              message = zulipLocalizations.lightboxDownloadImageError;
+            } else {
+              if (Platform.isAndroid) {
+                final downloadFolder = await getDownloadDirectory();
+                final fileName = url.pathSegments.last;
+                final filePath = '$downloadFolder/$fileName';
+
+                final file = File(filePath);
+                await file.writeAsBytes(response.bodyBytes);
+
+                // Trigger Media Scanner so it reflects in the gallery.
+                await scanner.scanFile(filePath);
+
+                message = zulipLocalizations.lightboxDownloadImageSuccess;
+              } else {
+                message = zulipLocalizations.lightboxDownloadImageError;
+              }
+            }
+          } else {
+            message = zulipLocalizations.lightboxDownloadImageFailed;
+          }
+        } catch (e) {
+          if (e is TimeoutException || e is SocketException) {
+            message = zulipLocalizations.lightboxDownloadImageError;
+          } else {
+            message = zulipLocalizations.lightboxDownloadImageError;
+          }
+        }
+
+        // show snackbar notification for the status.
+        scaffoldMessenger.showSnackBar(
+          SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
+        );
+      }
+    );
+  }
+
+  // Returns the download directory for Android 10+ using scoped storage
+  Future<String> getDownloadDirectory() async {
+    if (Platform.isAndroid) {
+      final directory = await getExternalStorageDirectory();
+      final downloadFolder = '${directory?.path.split("Android")[0]}Download';
+      return downloadFolder;
+    }
+    return '';
+  }
+}
+
 
 class _LightboxPageLayout extends StatefulWidget {
   const _LightboxPageLayout({
@@ -258,8 +349,8 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
       elevation: elevation,
       child: Row(children: [
         _CopyLinkButton(url: widget.src),
+        _DownloadImageButton(url: widget.src)
         // TODO(#43): Share image
-        // TODO(#42): Download image
       ]),
     );
   }
