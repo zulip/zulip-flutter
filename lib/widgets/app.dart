@@ -84,7 +84,7 @@ class ZulipApp extends StatefulWidget {
   @visibleForTesting
   static void debugReset() {
     _snackBarCount = 0;
-    reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
+    reportErrorToUserBriefly = reportErrorToConsole;
     _ready.dispose();
     _ready = ValueNotifier(false);
   }

@@ -837,7 +837,7 @@ void main() {
 
       Future<void> prepare() async {
         reportErrorToUserBriefly = logReportedError;
-        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+        addTearDown(() => reportErrorToUserBriefly = reportErrorToConsole);
         await preparePoll(lastEventId: 1);
       }
 
