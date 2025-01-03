@@ -160,6 +160,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
       mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
       navigationButtonBg: Colors.black.withValues(alpha: 0.05),
+      newDmButtonBg: const Color(0xff4F42C9),
       sectionCollapseIcon: const Color(0x7f1e2e48),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
@@ -214,6 +215,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
       navigationButtonBg: Colors.white.withValues(alpha: 0.05),
+      newDmButtonBg: const Color(0xff4F42C9),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       sectionCollapseIcon: const Color(0x7fb6c8e2),
       // TODO(design-dark) unchanged in dark theme?
@@ -267,6 +269,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.modalBarrierColor,
     required this.mutedUnreadBadge,
     required this.navigationButtonBg,
+    required this.newDmButtonBg,
     required this.sectionCollapseIcon,
     required this.star,
     required this.subscriptionListHeaderLine,
@@ -329,6 +332,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color modalBarrierColor;
   final Color mutedUnreadBadge;
   final Color navigationButtonBg;
+  final Color newDmButtonBg;
   final Color sectionCollapseIcon;
   final Color star;
   final Color subscriptionListHeaderLine;
@@ -378,6 +382,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? modalBarrierColor,
     Color? mutedUnreadBadge,
     Color? navigationButtonBg,
+    Color? newDmButtonBg,
     Color? sectionCollapseIcon,
     Color? star,
     Color? subscriptionListHeaderLine,
@@ -426,6 +431,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
       mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
       navigationButtonBg: navigationButtonBg ?? this.navigationButtonBg,
+      newDmButtonBg: newDmButtonBg ?? this.newDmButtonBg,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
@@ -481,6 +487,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
       mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
       navigationButtonBg: Color.lerp(navigationButtonBg, other.navigationButtonBg, t)!,
+      newDmButtonBg: Color.lerp(newDmButtonBg, other.newDmButtonBg, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
