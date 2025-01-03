@@ -680,5 +680,9 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "composeBoxAttachGlobalTimeTooltip": "Attach a global time",
+  "@composeBoxAttachGlobalTimeTooltip": {
+  "description": "Tooltip for the button to attach a global time to the compose box."
   }
 }

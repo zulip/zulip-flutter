@@ -4,7 +4,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
-
+import 'package:intl/intl.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -865,6 +865,65 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+class _AttachGlobalTimeButton extends _AttachUploadsButton {
+  const _AttachGlobalTimeButton({required super.controller});
+
+  @override
+  IconData get icon => ZulipIcons.clock; 
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+      zulipLocalizations.composeBoxAttachGlobalTimeTooltip;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    // Store the context's mounted status before async operations
+    final BuildContext currentContext = context;
+
+    // Request a date and time from the user.
+    final DateTime? pickedDate = await showDatePicker(
+      context: currentContext,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    // Check if the widget is still mounted before continuing
+    if (!currentContext.mounted) return [];
+
+    if (pickedDate == null) {
+      return []; // User canceled, no action needed.
+    }
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: currentContext,
+      initialTime: TimeOfDay.now(),
+    );
+
+    // Check mounted status again after second async operation
+    if (!currentContext.mounted) return [];
+
+    if (pickedTime == null) {
+      return []; // User canceled, no action needed.
+    }
+
+    final DateTime fullDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    final String timeMarkup =
+        "<time:${DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(fullDateTime.toUtc())}>";
+
+    controller.content.text += timeMarkup;
+
+    return [];
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1099,6 +1158,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller),
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
+      _AttachGlobalTimeButton(controller: controller)
     ];
 
     final topicInput = buildTopicInput();

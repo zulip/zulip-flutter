@@ -537,4 +537,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get composeBoxAttachGlobalTimeTooltip => 'Attach a global time';
 }
