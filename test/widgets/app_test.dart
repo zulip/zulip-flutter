@@ -280,14 +280,14 @@ void main() {
       check(ZulipApp.ready).value.isFalse();
       await tester.pump();
       check(findSnackBarByText(message).evaluate()).isEmpty();
-      check(find.byType(AlertDialog).evaluate()).isEmpty();
+      checkNoErrorDialog(tester);
 
       check(ZulipApp.ready).value.isTrue();
       // After app startup, reportErrorToUserBriefly displays a SnackBar.
       reportErrorToUserBriefly(message, details: details);
       await tester.pumpAndSettle();
       check(findSnackBarByText(message).evaluate()).single;
-      check(find.byType(AlertDialog).evaluate()).isEmpty();
+      checkNoErrorDialog(tester);
 
       // Open the error details dialog.
       await tester.tap(find.text('Details'));
@@ -360,6 +360,25 @@ void main() {
       reportErrorToUserBriefly(null);
       await tester.pumpAndSettle();
       check(findSnackBarByText('unrelated').evaluate()).single;
+    });
+
+    testWidgets('reportErrorToUserModally', (tester) async {
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(const ZulipApp());
+      const message = 'test error message';
+      const details = 'details';
+
+      // Prior to app startup, reportErrorToUserModally only logs.
+      reportErrorToUserModally(message, details: details);
+      check(ZulipApp.ready).value.isFalse();
+      await tester.pump();
+      checkNoErrorDialog(tester);
+
+      check(ZulipApp.ready).value.isTrue();
+      // After app startup, reportErrorToUserModally displays an [AlertDialog].
+      reportErrorToUserModally(message, details: details);
+      await tester.pump();
+      checkErrorDialog(tester, expectedTitle: message, expectedMessage: details);
     });
   });
 }

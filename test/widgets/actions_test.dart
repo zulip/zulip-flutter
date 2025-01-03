@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
@@ -18,7 +17,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/actions.dart';
 import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/inbox.dart';
+import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../api/fake_api.dart';
@@ -27,9 +26,11 @@ import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/unreads_checks.dart';
+import '../notifications/display_test.dart';
 import '../stdlib_checks.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
+import 'page_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -168,57 +169,46 @@ void main() {
 
       addTearDown(testBinding.reset);
 
-      final account1 = eg.account(id: 1, user: eg.user());
-      final account2 = eg.account(id: 2, user: eg.user());
+      final account1 = eg.account(user: eg.user());
+      final account2 = eg.account(user: eg.user());
       await testBinding.globalStore.add(account1, eg.initialSnapshot());
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await testBinding.globalStore.insertAccount(account2.toCompanion(false));
 
-      final testNavObserver = TestNavigatorObserver();
+      final pushedRoutes = <Route<void>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump();
-      final navigator = await ZulipApp.navigator;
-      navigator.popUntil((_) => false); // clear starting routes
-      await tester.pumpAndSettle();
-
-      final pushedRoutes = <Route<dynamic>>[];
-      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      // TODO(#737): switch to a realistic setup:
-      //   https://github.com/zulip/zulip-flutter/pull/1076#discussion_r1874124363
-      final account1Route = MaterialAccountWidgetRoute(
-        accountId: account1.id, page: const InboxPageBody());
-      final account2Route = MaterialAccountWidgetRoute(
-        accountId: account2.id, page: const InboxPageBody());
-      unawaited(navigator.push(account1Route));
-      unawaited(navigator.push(account2Route));
-      await tester.pumpAndSettle();
-      check(pushedRoutes).deepEquals([account1Route, account2Route]);
 
       await makeUnreadTopicInInbox(account1.id, 'topic in account1');
-      final findAccount1PageContent = find.text('topic in account1', skipOffstage: false);
+      final account1PageContentFinder = find.text('topic in account1', skipOffstage: false);
 
-      await makeUnreadTopicInInbox(account2.id, 'topic in account2');
-      final findAccount2PageContent = find.text('topic in account2', skipOffstage: false);
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      pushedRoutes.clear();
+      check(account1PageContentFinder).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsNothing();
 
-      final findLoadingPage = find.byType(LoadingPlaceholderPage, skipOffstage: false);
-
-      check(findAccount1PageContent).findsOne();
-      check(findLoadingPage).findsNothing();
-
-      final removedRoutes = <Route<dynamic>>[];
-      testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
-
-      final context = tester.element(find.byType(MaterialApp));
-      final future = logOutAccount(context, account1.id);
-      await tester.pump(TestGlobalStore.removeAccountDuration);
-      await future;
-      check(removedRoutes).single.identicalTo(account1Route);
-      check(findAccount1PageContent).findsNothing();
-      check(findLoadingPage).findsOne();
-
+      testBinding.globalStore.loadPerAccountDuration = const Duration(seconds: 1);
+      testBinding.globalStore.loadPerAccountException = ZulipApiException(
+        routeName: '/register', code: 'INVALID_API_KEY', httpStatus: 400,
+        data: {}, message: '');
+      await openNotification(tester, account2, eg.streamMessage());
       await tester.pump();
-      check(findAccount1PageContent).findsNothing();
-      check(findLoadingPage).findsNothing();
-      check(findAccount2PageContent).findsOne();
+      check(pushedRoutes).single
+        .isA<MaterialAccountWidgetRoute>().accountId.equals(account2.id);
+      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      check(account1PageContentFinder).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsOne();
+
+      final removedRoutes = <Route<void>>[];
+      testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      check(removedRoutes).single
+        .isA<MaterialAccountWidgetRoute>().accountId.equals(account2.id);
+      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      check(account1PageContentFinder).findsOne();
+      check(find.byType(CircularProgressIndicator)).findsNothing();
     });
   });
 

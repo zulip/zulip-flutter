@@ -31,7 +31,8 @@ bool debugLog(String message) {
   return true;
 }
 
-typedef ReportErrorCallback = void Function(String? message, {String? details});
+typedef ReportErrorCancellablyCallback = void Function(String? message, {String? details});
+typedef ReportErrorCallback = void Function(String message, {String? details});
 
 /// Show the user an error message, without requiring them to interact with it.
 ///
@@ -48,9 +49,20 @@ typedef ReportErrorCallback = void Function(String? message, {String? details});
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.
-ReportErrorCallback reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
+ReportErrorCancellablyCallback reportErrorToUserBriefly = reportErrorToConsole;
 
-void defaultReportErrorToUserBriefly(String? message, {String? details}) {
+/// Show the user a dismissable error message in a modal popup.
+///
+/// Typically this shows a [AlertDialog] containing the message.
+/// If called before the app's widget tree is ready (see [ZulipApp.ready]),
+/// then we give up on showing the message to the user,
+/// and just log the message to the console.
+// This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
+// from importing widget code, because the file is a dependency for the rest of
+// the app.
+ReportErrorCallback reportErrorToUserModally = reportErrorToConsole;
+
+void reportErrorToConsole(String? message, {String? details}) {
   // Error dismissing is a no-op to the default handler.
   if (message == null) return;
   // If this callback is still in place, then the app's widget tree

@@ -142,6 +142,10 @@ User user({
   );
 }
 
+/// A fresh user ID, from a random but always strictly increasing sequence.
+int _nextAccountId() => (_lastAccountId += 1 + Random().nextInt(100));
+int _lastAccountId = 1000;
+
 Account account({
   int? id,
   Uri? realmUrl,
@@ -158,7 +162,7 @@ Account account({
   // generated to serve as a "Zulip API email".
   final email = user.deliveryEmail ?? _nextEmail();
   return Account(
-    id: id ?? 1000, // TODO generate example IDs
+    id: id ?? _nextAccountId(),
     realmUrl: realmUrl ?? _realmUrl,
     email: email,
     apiKey: apiKey ?? 'aeouasdf',

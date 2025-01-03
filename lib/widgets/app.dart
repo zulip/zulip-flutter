@@ -84,7 +84,8 @@ class ZulipApp extends StatefulWidget {
   @visibleForTesting
   static void debugReset() {
     _snackBarCount = 0;
-    reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
+    reportErrorToUserBriefly = reportErrorToConsole;
+    reportErrorToUserModally = reportErrorToConsole;
     _ready.dispose();
     _ready = ValueNotifier(false);
   }
@@ -128,10 +129,21 @@ class ZulipApp extends StatefulWidget {
     newSnackBar.closed.whenComplete(() => _snackBarCount--);
   }
 
+  /// The callback we normally use as [reportErrorToUserModally].
+  static void _reportErrorToUserModally(String message, {String? details}) {
+    assert(_ready.value);
+
+    showErrorDialog(
+      context: navigatorKey.currentContext!,
+      title: message,
+      message: details);
+  }
+
   void _declareReady() {
     assert(navigatorKey.currentContext != null);
     _ready.value = true;
     reportErrorToUserBriefly = _reportErrorToUserBriefly;
+    reportErrorToUserModally = _reportErrorToUserModally;
   }
 
   @override
@@ -220,6 +232,14 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
 class ChooseAccountPage extends StatelessWidget {
   const ChooseAccountPage({super.key});
+
+  /// Navigate to [ChooseAccountPage], ensuring that its route is at the root level.
+  static void navigate(BuildContext context) {
+    final navigator = Navigator.of(context);
+    navigator.popUntil((route) => route.isFirst);
+    unawaited(navigator.pushReplacement(
+      MaterialWidgetRoute(page: const ChooseAccountPage())));
+  }
 
   Widget _buildAccountItem(
     BuildContext context, {

@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../api/exception.dart';
+import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/binding.dart';
 import '../model/store.dart';
+import 'actions.dart';
+import 'app.dart';
 import 'page.dart';
 
 /// Provides access to the app's data.
@@ -228,7 +235,16 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
       _setStore(null);
       if (widget.routeToRemoveOnLogout != null) {
         SchedulerBinding.instance.addPostFrameCallback(
-          (_) => Navigator.of(context).removeRoute(widget.routeToRemoveOnLogout!));
+          (_) {
+            final navigator = Navigator.of(context);
+            navigator.removeRoute(widget.routeToRemoveOnLogout!);
+            if (!navigator.canPop()) {
+              // This ensures that the navigator stack is non-empty after the
+              // removal of the route.
+              unawaited(navigator.push(
+                MaterialWidgetRoute(page: const ChooseAccountPage())));
+            }
+          });
       }
       return;
     }
@@ -245,11 +261,28 @@ class _PerAccountStoreWidgetState extends State<PerAccountStoreWidget> {
           // [didChangeDependencies] will run again, this time in the
           // `store != null` case above.
           await globalStore.perAccount(widget.accountId);
-        } on AccountNotFoundException {
-          // The account was logged out while its store was loading.
-          // This widget will be showing [placeholder] perpetually,
-          // but that's OK as long as other code will be removing it from the UI
-          // (usually by using [routeToRemoveOnLogout]).
+        } catch (e) {
+          switch (e) {
+            case AccountNotFoundException():
+              // The account was logged out while its store was loading.
+              // This widget will be showing [placeholder] perpetually,
+              // but that's OK as long as other code will be removing it from the UI
+              // (usually by using [routeToRemoveOnLogout]).
+              return;
+            case ZulipApiException(code: 'INVALID_API_KEY'):
+              // The API key is invalid and the store can never be loaded
+              // unless the user retries manually.
+              if (!mounted) return;
+              final zulipLocalizations = ZulipLocalizations.of(context);
+              reportErrorToUserModally(
+                zulipLocalizations.errorCouldNotConnectTitle,
+                details: zulipLocalizations.errorInvalidApiKeyMessage(
+                  globalStore.getAccount(widget.accountId)!.realmUrl.toString()));
+              unawaited(logOutAccount(context, widget.accountId));
+              return;
+            default:
+              rethrow;
+          }
         }
       }();
     }
