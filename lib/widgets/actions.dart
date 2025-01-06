@@ -20,9 +20,7 @@ import '../notifications/receive.dart';
 import 'dialog.dart';
 import 'store.dart';
 
-Future<void> logOutAccount(BuildContext context, int accountId) async {
-  final globalStore = GlobalStoreWidget.of(context);
-
+Future<void> logOutAccount(GlobalStore globalStore, int accountId) async {
   final account = globalStore.getAccount(accountId);
   if (account == null) return; // TODO(log)
 

@@ -261,7 +261,7 @@ class ChooseAccountPage extends StatelessWidget {
                   actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
                   onActionButtonPress: () {
                     // TODO error handling if db write fails?
-                    logOutAccount(context, accountId);
+                    logOutAccount(GlobalStoreWidget.of(context), accountId);
                   });
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),

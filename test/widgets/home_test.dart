@@ -15,6 +15,7 @@ import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
+import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/theme.dart';
 
@@ -454,7 +455,7 @@ void main () {
     checkOnLoadingPage();
 
     final element = tester.element(find.byType(MaterialApp));
-    final future = logOutAccount(element, eg.selfAccount.id);
+    final future = logOutAccount(GlobalStoreWidget.of(element), eg.selfAccount.id);
     await tester.pump(TestGlobalStore.removeAccountDuration);
     await future;
     // No error expected from briefly not having
@@ -472,7 +473,7 @@ void main () {
     checkOnHomePage(tester, expectedAccount: eg.selfAccount);
 
     final element = tester.element(find.byType(HomePage));
-    final future = logOutAccount(element, eg.selfAccount.id);
+    final future = logOutAccount(GlobalStoreWidget.of(element), eg.selfAccount.id);
     await tester.pump(TestGlobalStore.removeAccountDuration);
     await future;
     // No error expected from briefly not having

@@ -20,6 +20,7 @@ import 'package:zulip/widgets/actions.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -109,7 +110,7 @@ void main() {
       final newConnection = separateConnection()
         ..prepare(delay: unregisterDelay, json: {'msg': '', 'result': 'success'});
 
-      final future = logOutAccount(context, eg.selfAccount.id);
+      final future = logOutAccount(GlobalStoreWidget.of(context), eg.selfAccount.id);
       // Unregister-token request and account removal dispatched together
       checkSingleUnregisterRequest(newConnection);
       check(testBinding.globalStore.takeDoRemoveAccountCalls())
@@ -141,7 +142,7 @@ void main() {
       final newConnection = separateConnection()
         ..prepare(delay: unregisterDelay, exception: exception);
 
-      final future = logOutAccount(context, eg.selfAccount.id);
+      final future = logOutAccount(GlobalStoreWidget.of(context), eg.selfAccount.id);
       // Unregister-token request and account removal dispatched together
       checkSingleUnregisterRequest(newConnection);
       check(testBinding.globalStore.takeDoRemoveAccountCalls())
@@ -211,7 +212,7 @@ void main() {
       testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
 
       final context = tester.element(find.byType(MaterialApp));
-      final future = logOutAccount(context, account1.id);
+      final future = logOutAccount(GlobalStoreWidget.of(context), account1.id);
       await tester.pump(TestGlobalStore.removeAccountDuration);
       await future;
       check(removedRoutes).single.identicalTo(account1Route);
