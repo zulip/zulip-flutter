@@ -109,7 +109,7 @@ void main() {
       final newConnection = separateConnection()
         ..prepare(delay: unregisterDelay, json: {'msg': '', 'result': 'success'});
 
-      final future = logOutAccount(context, eg.selfAccount.id);
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
       // Unregister-token request and account removal dispatched together
       checkSingleUnregisterRequest(newConnection);
       check(testBinding.globalStore.takeDoRemoveAccountCalls())
@@ -141,7 +141,7 @@ void main() {
       final newConnection = separateConnection()
         ..prepare(delay: unregisterDelay, exception: exception);
 
-      final future = logOutAccount(context, eg.selfAccount.id);
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
       // Unregister-token request and account removal dispatched together
       checkSingleUnregisterRequest(newConnection);
       check(testBinding.globalStore.takeDoRemoveAccountCalls())
@@ -210,8 +210,7 @@ void main() {
       final removedRoutes = <Route<dynamic>>[];
       testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
 
-      final context = tester.element(find.byType(MaterialApp));
-      final future = logOutAccount(context, account1.id);
+      final future = logOutAccount(testBinding.globalStore, account1.id);
       await tester.pump(TestGlobalStore.removeAccountDuration);
       await future;
       check(removedRoutes).single.identicalTo(account1Route);

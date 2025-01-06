@@ -453,8 +453,7 @@ void main () {
     await tester.pump(); // wait for the loading page
     checkOnLoadingPage();
 
-    final element = tester.element(find.byType(MaterialApp));
-    final future = logOutAccount(element, eg.selfAccount.id);
+    final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
     await tester.pump(TestGlobalStore.removeAccountDuration);
     await future;
     // No error expected from briefly not having
@@ -471,8 +470,7 @@ void main () {
     await tester.pump(); // wait for store
     checkOnHomePage(tester, expectedAccount: eg.selfAccount);
 
-    final element = tester.element(find.byType(HomePage));
-    final future = logOutAccount(element, eg.selfAccount.id);
+    final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
     await tester.pump(TestGlobalStore.removeAccountDuration);
     await future;
     // No error expected from briefly not having
