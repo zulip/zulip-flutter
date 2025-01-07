@@ -78,7 +78,7 @@ make_one_ios_app_icon() {
     local output_basename=Icon-"${size_pt}x${size_pt}@${scale}x".png
     local output="${iconset}"/"${output_basename}"
     if [ ! -f "${output}" ]; then
-        inkscape "${src_icon_square_beta}" -w "${size_px}" --export-png="${output}"
+        inkscape "${src_icon_square_beta}" -w "${size_px}" -o "${output}"
     fi
 
     printf >>"${contents}" \
@@ -139,7 +139,7 @@ make_ios() {
 
 make_webp() {
     local input="$1" size="$2" output="$3"
-    inkscape "${input}" -w "${size}" --export-png="${tmpdir}"/tmp.png
+    inkscape "${input}" -w "${size}" -o "${tmpdir}"/tmp.png
     # `cwebp -z 9` means lossless, and max/slowest compression
     cwebp -z 9 "${tmpdir}"/tmp.png -o "${output}"
 }
