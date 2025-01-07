@@ -56,14 +56,14 @@ src_icon_circle="${zulip_root}"/static/images/logo/zulip-icon-circle.svg
 
 # White Z in gradient-colored circle with BETA banner.
 # Contains a link to the equivalent of ${src_icon_circle}.
-src_icon_circle_beta="${root_dir}"/tools/zulip-icon-circle-beta.svg
+src_icon_circle_beta="${root_dir}"/assets/app-icons/zulip-icon-circle-beta.svg
 
 # White Z in gradient-colored square, full-bleed.
 # src_icon_square="${zulip_root}"/static/images/logo/zulip-icon-square.svg
 
 # White Z in gradient-colored square, full-bleed, with BETA banner.
 # Contains a link to the equivalent of ${src_icon_square}.
-src_icon_square_beta="${root_dir}"/tools/zulip-icon-square-beta.svg
+src_icon_square_beta="${root_dir}"/assets/app-icons/zulip-icon-square-beta.svg
 
 
 [ -r "${src_icon_circle}" ] \
