@@ -28,6 +28,14 @@ import UserNotifications
     )
   }
 
+  // Allow only `zulip://login` external urls.
+  override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+     if url.scheme == "zulip" && url.host == "login" {
+       return super.application(application, open: url, options: options)
+     }
+     return false
+   }
+
   // Handle notification tap while the app is running.
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
