@@ -426,7 +426,9 @@ class MessageListAppBarTitle extends StatelessWidget {
         } else {
           final names = otherRecipientIds.map(
             (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
-          return Text("DMs with ${names.join(", ")}"); // TODO show avatars
+          // TODO show avatars
+          return Text(
+            zulipLocalizations.messageListDMsWithOthers(names.join(', ')));
         }
     }
   }
@@ -567,6 +569,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   Widget _buildListView(BuildContext context) {
     final length = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     Widget sliver = SliverStickyHeaderList(
       headerPlacement: HeaderPlacement.scrollingStart,
@@ -603,7 +606,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
 
           final data = model!.items[length - 1 - (i - 3)];
-          return _buildItem(data, i);
+          return _buildItem(zulipLocalizations, data, i);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
@@ -639,13 +642,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ]);
   }
 
-  Widget _buildItem(MessageListItem data, int i) {
+  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data, int i) {
     switch (data) {
       case MessageListHistoryStartItem():
-        return const Center(
+        return Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Text("No earlier messages."))); // TODO use an icon
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(zulipLocalizations.noEarlierMessages))); // TODO use an icon
       case MessageListLoadingItem():
         return const Center(
           child: Padding(
@@ -689,6 +692,7 @@ class ScrollToBottomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return ValueListenableBuilder<bool>(
       valueListenable: visibleValue,
       builder: (BuildContext context, bool value, Widget? child) {
@@ -696,7 +700,7 @@ class ScrollToBottomButton extends StatelessWidget {
       },
       // TODO: fix hardcoded values for size and style here
       child: IconButton(
-        tooltip: "Scroll to bottom",
+        tooltip: zulipLocalizations.scrollToBottomTooltip,
         icon: const Icon(Icons.expand_circle_down_rounded),
         iconSize: 40,
         // Web has the same color in light and dark mode.
