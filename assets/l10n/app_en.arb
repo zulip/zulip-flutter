@@ -403,6 +403,14 @@
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
   },
+  "lightboxVideoCurrentPosition": "Current position",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDuration": "Video duration",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
     "description": "Title for login page."

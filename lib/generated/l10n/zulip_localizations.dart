@@ -645,6 +645,18 @@ abstract class ZulipLocalizations {
   /// **'Copy link'**
   String get lightboxCopyLinkTooltip;
 
+  /// The current playback position of the video playing in the lightbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Current position'**
+  String get lightboxVideoCurrentPosition;
+
+  /// The total duration of the video playing in the lightbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Video duration'**
+  String get lightboxVideoDuration;
+
   /// Title for login page.
   ///
   /// In en, this message translates to:
