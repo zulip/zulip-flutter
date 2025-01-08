@@ -274,7 +274,7 @@ void main() {
 
   group('TopicAutocomplete', () {
     void checkTopicShown(GetStreamTopicsEntry topic, PerAccountStore store, {required bool expected}) {
-      check(find.text(topic.name).evaluate().length).equals(expected ? 1 : 0);
+      check(find.text(topic.name.displayName).evaluate().length).equals(expected ? 1 : 0);
     }
 
     testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
@@ -299,7 +299,7 @@ void main() {
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
-        .equals(topic3.name);
+        .equals(topic3.name.displayName);
       checkTopicShown(topic1, store, expected: false);
       checkTopicShown(topic2, store, expected: false);
       checkTopicShown(topic3, store, expected: true); // shown in `_TopicInput` once

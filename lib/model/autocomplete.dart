@@ -864,7 +864,8 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
   bool testTopic(TopicName topic) {
     // TODO(#881): Sort by match relevance, like web does.
-    return topic != raw && topic.toLowerCase().contains(raw.toLowerCase());
+    return topic.displayName != raw
+      && topic.displayName.toLowerCase().contains(raw.toLowerCase());
   }
 
   @override

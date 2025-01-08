@@ -334,6 +334,6 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Text(option.topic)));
+        child: Text(option.topic.displayName)));
   }
 }

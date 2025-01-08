@@ -91,7 +91,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic);
+    value = TextEditingValue(text: newTopic.displayName);
   }
 }
 
@@ -550,7 +550,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.composeBoxUnknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(streamName, topic);
+        return zulipLocalizations.composeBoxChannelContentHint(
+          streamName, topic.displayName);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
