@@ -281,6 +281,11 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String dmsWithOthersPageTitle(String others) {
+    return 'DMs with $others';
+  }
+
+  @override
   String get messageListGroupYouWithYourself => 'You with yourself';
 
   @override
@@ -588,4 +593,10 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get noEarlierMessages => 'No earlier messages';
+
+  @override
+  String get scrollToBottomTooltip => 'Scroll to bottom';
 }
