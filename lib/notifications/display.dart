@@ -573,7 +573,7 @@ class NotificationOpenPayload {
           TopicNarrow(streamId: var channelId, :var topic) => {
             'narrow_type': 'topic',
             'channel_id': channelId.toString(),
-            'topic': topic,
+            'topic': topic.apiName,
           },
           DmNarrow(:var allRecipientIds) => {
             'narrow_type': 'dm',
