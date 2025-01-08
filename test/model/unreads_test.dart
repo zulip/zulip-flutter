@@ -114,10 +114,10 @@ void main() {
       prepare(initial: UnreadMessagesSnapshot(
         count: 0,
         channels: [
-          UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
-          UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
-          UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
-          UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
+          eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+          eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
         ],
         dms: [
           UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [9, 10]),
