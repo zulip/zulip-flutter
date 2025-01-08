@@ -659,7 +659,7 @@ void main() {
           eg.user(fullName: 'b', isBot: true),
         ];
         final stream = eg.stream();
-        final narrow = TopicNarrow(stream.streamId, 'this');
+        final narrow = eg.topicNarrow(stream.streamId, 'this');
         await prepare(users: users, messages: [
           eg.streamMessage(sender: users[1], stream: stream, topic: 'this'),
           eg.streamMessage(sender: users[0], stream: stream, topic: 'this'),
@@ -790,7 +790,7 @@ void main() {
 
       final stream = eg.stream();
       const topic = 'topic';
-      final topicNarrow = TopicNarrow(stream.streamId, topic);
+      final topicNarrow = eg.topicNarrow(stream.streamId, topic);
 
       final users = [
         eg.user(userId: 1, fullName: 'User One'),
