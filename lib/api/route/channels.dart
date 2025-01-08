@@ -28,7 +28,7 @@ class GetStreamTopicsResult {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetStreamTopicsEntry {
   final int maxId;
-  final String name;
+  final TopicName name;
 
   GetStreamTopicsEntry({
     required this.maxId,
