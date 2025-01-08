@@ -231,7 +231,7 @@ class StreamDestination extends MessageDestination {
   const StreamDestination(this.streamId, this.topic);
 
   final int streamId;
-  final String topic;
+  final TopicName topic;
 }
 
 /// A DM conversation, for specifying to [sendMessage].
@@ -449,7 +449,7 @@ Future<void> markStreamAsRead(ApiConnection connection, {
 // TODO(server-6): Remove as deprecated by updateMessageFlagsForNarrow
 Future<void> markTopicAsRead(ApiConnection connection, {
   required int streamId,
-  required String topicName,
+  required TopicName topicName,
 }) {
   return connection.post('markTopicAsRead', (_) {}, 'mark_topic_as_read', {
     'stream_id': streamId,

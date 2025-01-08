@@ -46,7 +46,7 @@ class GetStreamTopicsEntry {
 // TODO(server-7): remove this and just use updateUserTopic
 Future<void> updateUserTopicCompat(ApiConnection connection, {
   required int streamId,
-  required String topic,
+  required TopicName topic,
   required UserTopicVisibilityPolicy visibilityPolicy,
 }) {
   final useLegacyApi = connection.zulipFeatureLevel! < 170;
@@ -76,7 +76,7 @@ Future<void> updateUserTopicCompat(ApiConnection connection, {
 // TODO(server-7) remove FL 170+ mention in doc, and the related `assert`
 Future<void> updateUserTopic(ApiConnection connection, {
   required int streamId,
-  required String topic,
+  required TopicName topic,
   required UserTopicVisibilityPolicy visibilityPolicy,
 }) {
   assert(visibilityPolicy != UserTopicVisibilityPolicy.unknown);
