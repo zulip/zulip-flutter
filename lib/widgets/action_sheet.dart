@@ -645,7 +645,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
       && composeBoxController.topic.textNormalized == kNoTopicTopic
       && message is StreamMessage
     ) {
-      composeBoxController.topic.value = TextEditingValue(text: message.topic);
+      composeBoxController.topic.setTopic(message.topic);
     }
 
     // This inserts a "[Quoting…]" placeholder into the content input,
