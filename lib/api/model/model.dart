@@ -556,11 +556,11 @@ sealed class Message {
   final String senderFullName;
   final int senderId;
   final String senderRealmStr;
-  @JsonKey(name: 'subject')
-  String topic;
+
   /// Poll data if "submessages" describe a poll, `null` otherwise.
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
+
   final int timestamp;
   String get type;
 
@@ -613,7 +613,6 @@ sealed class Message {
     required this.senderFullName,
     required this.senderId,
     required this.senderRealmStr,
-    required this.topic,
     required this.timestamp,
     required this.flags,
     required this.matchContent,
@@ -667,7 +666,15 @@ class StreamMessage extends Message {
   // invalidated.
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
+
   int streamId;
+
+  // The topic/subject is documented to be present on DMs too, just empty.
+  // We ignore it on DMs; if a future server introduces distinct topics in DMs,
+  // that will need new UI that we'll design then as part of that feature,
+  // and ignoring the topics seems as good a fallback behavior as any.
+  @JsonKey(name: 'subject')
+  String topic;
 
   StreamMessage({
     required super.client,
@@ -683,13 +690,13 @@ class StreamMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
     required this.displayRecipient,
     required this.streamId,
+    required this.topic,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -786,7 +793,6 @@ class DmMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
