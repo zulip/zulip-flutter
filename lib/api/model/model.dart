@@ -835,13 +835,13 @@ enum MessageEditState {
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
   static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
-    if (topic.startsWith(_resolvedTopicPrefix)
-        && topic.substring(_resolvedTopicPrefix.length) == prevTopic) {
+    if (topic.apiName.startsWith(_resolvedTopicPrefix)
+        && topic.apiName.substring(_resolvedTopicPrefix.length) == prevTopic.apiName) {
       return true;
     }
 
-    if (prevTopic.startsWith(_resolvedTopicPrefix)
-        && prevTopic.substring(_resolvedTopicPrefix.length) == topic) {
+    if (prevTopic.apiName.startsWith(_resolvedTopicPrefix)
+        && prevTopic.apiName.substring(_resolvedTopicPrefix.length) == topic.apiName) {
       return true;
     }
 
