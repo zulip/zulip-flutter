@@ -231,7 +231,7 @@ class UserSettings {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UserTopicItem {
   final int streamId;
-  final String topicName;
+  final TopicName topicName;
   final int lastUpdated;
   @JsonKey(unknownEnumValue: UserTopicVisibilityPolicy.unknown)
   final UserTopicVisibilityPolicy visibilityPolicy;
@@ -310,7 +310,7 @@ class UnreadDmSnapshot {
 /// An item in [UnreadMessagesSnapshot.channels].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnreadChannelSnapshot {
-  final String topic;
+  final TopicName topic;
   final int streamId;
   final List<int> unreadMessageIds;
 
