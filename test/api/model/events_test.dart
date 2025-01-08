@@ -116,8 +116,8 @@ void main() {
         'orig_subject': 'foo',
         'subject': 'bar',
       }) as UpdateMessageEvent)
-        ..origTopic.equals('foo')
-        ..newTopic.equals('bar');
+        ..origTopic.equals(const TopicName('foo'))
+        ..newTopic.equals(const TopicName('bar'));
     });
   });
 

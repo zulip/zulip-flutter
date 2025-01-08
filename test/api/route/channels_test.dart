@@ -12,7 +12,7 @@ void main() {
     return FakeApiConnection.with_((connection) async {
       connection.prepare(json: {});
       await updateUserTopic(connection,
-        streamId: 1, topic: 'topic',
+        streamId: 1, topic: const TopicName('topic'),
         visibilityPolicy: UserTopicVisibilityPolicy.followed);
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
@@ -28,7 +28,7 @@ void main() {
   test('updateUserTopic only accepts valid visibility policy', () {
     return FakeApiConnection.with_((connection) async {
       check(() => updateUserTopic(connection,
-        streamId: 1, topic: 'topic',
+        streamId: 1, topic: const TopicName('topic'),
         visibilityPolicy: UserTopicVisibilityPolicy.unknown),
       ).throws<AssertionError>();
     });
@@ -38,7 +38,7 @@ void main() {
     return FakeApiConnection.with_((connection) async {
       connection.prepare(json: {});
       await updateUserTopicCompat(connection,
-        streamId: 1, topic: 'topic',
+        streamId: 1, topic: const TopicName('topic'),
         visibilityPolicy: UserTopicVisibilityPolicy.followed);
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
@@ -55,7 +55,7 @@ void main() {
     test('updateUserTopic throws AssertionError when FL < 170', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 169, (connection) async {
         check(() => updateUserTopic(connection,
-          streamId: 1, topic: 'topic',
+          streamId: 1, topic: const TopicName('topic'),
           visibilityPolicy: UserTopicVisibilityPolicy.muted),
         ).throws<AssertionError>();
       });
@@ -64,7 +64,7 @@ void main() {
     test('updateUserTopicCompat throws UnsupportedError on unsupported policy', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 169, (connection) async {
         check(() => updateUserTopicCompat(connection,
-          streamId: 1, topic: 'topic',
+          streamId: 1, topic: const TopicName('topic'),
           visibilityPolicy: UserTopicVisibilityPolicy.followed),
         ).throws<UnsupportedError>();
       });
@@ -74,7 +74,7 @@ void main() {
       return FakeApiConnection.with_(zulipFeatureLevel: 169, (connection) async {
         connection.prepare(json: {});
         await updateUserTopicCompat(connection,
-          streamId: 1, topic: 'topic',
+          streamId: 1, topic: const TopicName('topic'),
           visibilityPolicy: UserTopicVisibilityPolicy.none);
         check(connection.takeRequests()).single.isA<http.Request>()
           ..method.equals('PATCH')
@@ -91,7 +91,7 @@ void main() {
       return FakeApiConnection.with_(zulipFeatureLevel: 169, (connection) async {
         connection.prepare(json: {});
         await updateUserTopicCompat(connection,
-          streamId: 1, topic: 'topic',
+          streamId: 1, topic: const TopicName('topic'),
           visibilityPolicy: UserTopicVisibilityPolicy.muted);
         check(connection.takeRequests()).single.isA<http.Request>()
           ..method.equals('PATCH')
