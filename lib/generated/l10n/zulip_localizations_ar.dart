@@ -192,6 +192,14 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotOpenLinkTitle => 'Unable to open link';
+
+  @override
+  String errorCouldNotOpenLink(String url) {
+    return 'Link could not be opened: $url';
+  }
+
+  @override
   String get errorMuteTopicFailed => 'Failed to mute topic';
 
   @override
