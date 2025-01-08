@@ -241,7 +241,8 @@ const _stream = stream;
 
 GetStreamTopicsEntry getStreamTopicsEntry({int? maxId, String? name}) {
   maxId ??= 123;
-  return GetStreamTopicsEntry(maxId: maxId, name: name ?? 'Test Topic #$maxId');
+  return GetStreamTopicsEntry(maxId: maxId,
+    name: TopicName(name ?? 'Test Topic #$maxId'));
 }
 
 /// Construct an example subscription from a stream.
@@ -296,7 +297,7 @@ UserTopicItem userTopicItem(
     ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
   return UserTopicItem(
     streamId: stream.streamId,
-    topicName: topic,
+    topicName: TopicName(topic),
     lastUpdated: 1234567890,
     visibilityPolicy: policy,
   );
@@ -534,7 +535,7 @@ UnreadChannelSnapshot unreadChannelMsgs({
   required List<int> unreadMessageIds,
 }) {
   return UnreadChannelSnapshot(
-    topic: topic,
+    topic: TopicName(topic),
     streamId: streamId,
     unreadMessageIds: unreadMessageIds,
   );
@@ -568,7 +569,7 @@ UserTopicEvent userTopicEvent(
   return UserTopicEvent(
     id: 1,
     streamId: streamId,
-    topicName: topic,
+    topicName: TopicName(topic),
     lastUpdated: 1234567890,
     visibilityPolicy: visibilityPolicy,
   );

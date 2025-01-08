@@ -481,10 +481,11 @@ void main() {
       }
 
       int compareAB({required String? topic}) {
+        final realTopic = topic == null ? null : TopicName(topic);
         final resultAB = MentionAutocompleteView.compareByRecency(userA, userB,
-          streamId: stream.streamId, topic: topic, store: store);
+          streamId: stream.streamId, topic: realTopic, store: store);
         final resultBA = MentionAutocompleteView.compareByRecency(userB, userA,
-          streamId: stream.streamId, topic: topic, store: store);
+          streamId: stream.streamId, topic: realTopic, store: store);
         switch (resultAB) {
           case <0: check(resultBA).isGreaterThan(0);
           case >0: check(resultBA).isLessThan(0);
