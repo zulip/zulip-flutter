@@ -138,7 +138,7 @@ void main() {
       final navObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       final channel = eg.stream();
-      await setupMessageListPage(tester, narrow: TopicNarrow(channel.streamId, 'hi'),
+      await setupMessageListPage(tester, narrow: eg.topicNarrow(channel.streamId, 'hi'),
         navObservers: [navObserver],
         streams: [channel], messageCount: 1);
 
@@ -157,7 +157,7 @@ void main() {
       final channel = eg.stream();
       const topic = 'topic';
       await setupMessageListPage(tester,
-        narrow: TopicNarrow(channel.streamId, topic),
+        narrow: eg.topicNarrow(channel.streamId, topic),
         streams: [channel], subscriptions: [eg.subscription(channel)],
         messageCount: 1);
       await store.handleEvent(eg.userTopicEvent(
@@ -661,7 +661,7 @@ void main() {
     const topic = 'foo';
     final channel = eg.stream();
     final otherChannel = eg.stream();
-    final narrow = TopicNarrow(channel.streamId, topic);
+    final narrow = eg.topicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {
       connection.prepare(json: eg.newestGetMessagesResult(

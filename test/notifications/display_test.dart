@@ -1116,7 +1116,7 @@ void main() {
       payload = NotificationOpenPayload(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
-        narrow: const TopicNarrow(1, 'topic A'),
+        narrow: eg.topicNarrow(1, 'topic A'),
       );
       url = payload.buildUrl();
       check(NotificationOpenPayload.parseUrl(url))
@@ -1146,7 +1146,7 @@ void main() {
       final url = NotificationOpenPayload(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
-        narrow: const TopicNarrow(1, 'topic A'),
+        narrow: eg.topicNarrow(1, 'topic A'),
       ).buildUrl();
       check(url)
         ..scheme.equals('zulip')

@@ -184,7 +184,7 @@ void main() {
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
       ]));
-      checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+      checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
