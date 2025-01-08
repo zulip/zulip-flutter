@@ -633,6 +633,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    final message = this.message;
 
     var composeBoxController = findMessageListPage().composeBoxController;
     // The compose box doesn't null out its controller; it's either always null
