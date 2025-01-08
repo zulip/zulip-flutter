@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 
 import '../stdlib_checks.dart';
@@ -81,7 +82,7 @@ void main() {
         ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..streamId.equals(42)
           ..streamName.equals(streamJson['stream']!)
-          ..topic.equals(streamJson['topic']!))
+          ..topic.jsonEquals(streamJson['topic']!))
         ..content.equals(streamJson['content']!)
         ..time.equals(1546300800);
 
@@ -279,7 +280,7 @@ extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
 extension FcmMessageChannelRecipientChecks on Subject<FcmMessageChannelRecipient> {
   Subject<int> get streamId => has((x) => x.streamId, 'streamId');
   Subject<String?> get streamName => has((x) => x.streamName, 'streamName');
-  Subject<String> get topic => has((x) => x.topic, 'topic');
+  Subject<TopicName> get topic => has((x) => x.topic, 'topic');
 }
 
 extension FcmMessageDmRecipientChecks on Subject<FcmMessageDmRecipient> {
