@@ -440,7 +440,7 @@ void main() {
     });
 
     test('in TopicNarrow, stay visible', () async {
-      await prepare(narrow: TopicNarrow(stream.streamId, topic));
+      await prepare(narrow: eg.topicNarrow(stream.streamId, topic));
       await prepareMutes();
       await prepareMessages(foundOldest: true, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
@@ -832,7 +832,7 @@ void main() {
     });
 
     group('in topic narrow', () {
-      final narrow = TopicNarrow(stream.streamId, 'topic');
+      final narrow = eg.topicNarrow(stream.streamId, 'topic');
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final otherTopicMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'other topic'));
@@ -937,21 +937,21 @@ void main() {
         handleMoveEvent(PropagateMode.changeOne);
         checkNotNotified();
         checkHasMessages(initialMessages);
-        check(model).narrow.equals(TopicNarrow(stream.streamId, 'topic'));
+        check(model).narrow.equals(eg.topicNarrow(stream.streamId, 'topic'));
       });
 
       test('follow to the new narrow when propagateMode = changeLater', () {
         handleMoveEvent(PropagateMode.changeLater);
         checkNotifiedOnce();
         checkHasMessages(movedMessages);
-        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+        check(model).narrow.equals(eg.topicNarrow(otherStream.streamId, 'new'));
       });
 
       test('follow to the new narrow when propagateMode = changeAll', () {
         handleMoveEvent(PropagateMode.changeAll);
         checkNotifiedOnce();
         checkHasMessages(movedMessages);
-        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+        check(model).narrow.equals(eg.topicNarrow(otherStream.streamId, 'new'));
       });
 
       test('handle move event before initial fetch', () => awaitFakeAsync((async) async {
@@ -973,7 +973,7 @@ void main() {
           newMessages: [followedMessage],
           propagateMode: PropagateMode.changeAll,
         ));
-        check(model).narrow.equals(TopicNarrow(stream.streamId, 'new'));
+        check(model).narrow.equals(eg.topicNarrow(stream.streamId, 'new'));
 
         async.elapse(const Duration(seconds: 2));
         checkHasMessages([followedMessage]);
@@ -1255,7 +1255,7 @@ void main() {
 
       int notifiedCount2 = 0;
       final model2 = MessageListView.init(store: store,
-          narrow: TopicNarrow(stream.streamId, 'hello'))
+          narrow: eg.topicNarrow(stream.streamId, 'hello'))
         ..addListener(() => notifiedCount2++);
 
       for (final m in [model1, model2]) {
@@ -1481,7 +1481,7 @@ void main() {
 
     test('in TopicNarrow', () async {
       final stream = eg.stream();
-      await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
+      await prepare(narrow: eg.topicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
       await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
