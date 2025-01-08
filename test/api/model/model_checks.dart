@@ -48,7 +48,7 @@ extension MessageChecks on Subject<Message> {
 
 extension StreamMessageChecks on Subject<StreamMessage> {
   Subject<String?> get displayRecipient => has((e) => e.displayRecipient, 'displayRecipient');
-  Subject<String> get topic => has((e) => e.topic, 'topic');
+  Subject<TopicName> get topic => has((e) => e.topic, 'topic');
 }
 
 extension ReactionsChecks on Subject<Reactions> {

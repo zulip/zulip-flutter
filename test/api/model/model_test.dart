@@ -90,7 +90,7 @@ void main() {
       check(Message.fromJson(baseStreamJson()
         ..['subject'] = 'hello'
       )).isA<StreamMessage>()
-        .topic.equals('hello');
+        .topic.equals(const TopicName('hello'));
     });
 
     test('match_subject -> matchTopic', () {
