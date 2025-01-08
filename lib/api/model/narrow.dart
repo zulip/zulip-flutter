@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'model.dart';
+
 part 'narrow.g.dart';
 
 typedef ApiNarrow = List<ApiNarrowElement>;
@@ -54,12 +56,12 @@ class ApiNarrowStream extends ApiNarrowElement {
 class ApiNarrowTopic extends ApiNarrowElement {
   @override String get operator => 'topic';
 
-  @override final String operand;
+  @override final TopicName operand;
 
   ApiNarrowTopic(this.operand, {super.negated});
 
   factory ApiNarrowTopic.fromJson(Map<String, dynamic> json) => ApiNarrowTopic(
-    json['operand'] as String,
+    TopicName.fromJson(json['operand'] as String),
     negated: json['negated'] as bool? ?? false,
   );
 }
