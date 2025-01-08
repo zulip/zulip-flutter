@@ -334,7 +334,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   Widget _buildTopicRow(BuildContext context, {
     required ZulipStream? stream,
-    required String topic,
+    required TopicName topic,
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);

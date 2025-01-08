@@ -99,7 +99,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   }
 
   final int streamId;
-  final String topic;
+  final TopicName topic;
 
   @override
   bool containsMessage(Message message) {

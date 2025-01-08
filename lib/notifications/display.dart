@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
 
+import '../api/model/model.dart';
 import '../api/notifications.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
@@ -538,8 +539,8 @@ class NotificationOpenPayload {
         case 'topic':
           final channelIdStr = url.queryParameters['channel_id']!;
           final channelId = int.parse(channelIdStr, radix: 10);
-          final topic = url.queryParameters['topic']!;
-          narrow = TopicNarrow(channelId, topic);
+          final topicStr = url.queryParameters['topic']!;
+          narrow = TopicNarrow(channelId, TopicName(topicStr));
         case 'dm':
           final allRecipientIdsStr = url.queryParameters['all_recipient_ids']!;
           final allRecipientIds = allRecipientIdsStr.split(',')

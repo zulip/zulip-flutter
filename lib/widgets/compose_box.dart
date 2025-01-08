@@ -90,7 +90,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     ];
   }
 
-  void setTopic(String newTopic) {
+  void setTopic(TopicName newTopic) {
     value = TextEditingValue(text: newTopic);
   }
 }
@@ -490,7 +490,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
+      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
   }
@@ -1155,7 +1155,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
-      narrow.streamId, controller.topic.textNormalized),
+      narrow.streamId, TopicName(controller.topic.textNormalized)),
   );
 }
 

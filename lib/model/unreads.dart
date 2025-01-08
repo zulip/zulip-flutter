@@ -40,7 +40,7 @@ class Unreads extends ChangeNotifier {
     required int selfUserId,
     required ChannelStore channelStore,
   }) {
-    final streams = <int, Map<String, QueueList<int>>>{};
+    final streams = <int, Map<TopicName, QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
@@ -86,7 +86,7 @@ class Unreads extends ChangeNotifier {
   // int count;
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
-  final Map<int, Map<String, QueueList<int>>> streams;
+  final Map<int, Map<TopicName, QueueList<int>>> streams;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -185,7 +185,7 @@ class Unreads extends ChangeNotifier {
     return c;
   }
 
-  int countInTopicNarrow(int streamId, String topic) {
+  int countInTopicNarrow(int streamId, TopicName topic) {
     final topics = streams[streamId];
     return topics?[topic]?.length ?? 0;
   }
@@ -365,7 +365,7 @@ class Unreads extends ChangeNotifier {
               _slowRemoveAllInDms(messageIdsSet);
             }
           case UpdateMessageFlagsRemoveEvent():
-            final newlyUnreadInStreams = <int, Map<String, QueueList<int>>>{};
+            final newlyUnreadInStreams = <int, Map<TopicName, QueueList<int>>>{};
             final newlyUnreadInDms = <DmNarrow, QueueList<int>>{};
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
@@ -449,12 +449,12 @@ class Unreads extends ChangeNotifier {
     );
   }
 
-  void _addLastInStreamTopic(int messageId, int streamId, String topic) {
+  void _addLastInStreamTopic(int messageId, int streamId, TopicName topic) {
     ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
-  void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, String topic) {
+  void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, TopicName topic) {
     final topics = streams[streamId] ??= {};
     topics.update(topic,
       ifAbsent: () => messageIds,
@@ -469,7 +469,7 @@ class Unreads extends ChangeNotifier {
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
     final newlyEmptyStreams = <int>[];
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
-      final newlyEmptyTopics = <String>[];
+      final newlyEmptyTopics = <TopicName>[];
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         messageIds.removeWhere((id) => idsToRemove.contains(id));
         if (messageIds.isEmpty) {
@@ -488,7 +488,7 @@ class Unreads extends ChangeNotifier {
     }
   }
 
-  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
+  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
     final topics = streams[streamId];
     if (topics == null) return;
     final messageIds = topics[topic];

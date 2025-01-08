@@ -7,7 +7,7 @@ import '../example_data.dart' as eg;
 /// [messages] should be sorted by [id] ascending.
 void checkMatchesMessages(RecentSenders model, List<Message> messages) {
   final Map<int, Map<int, Set<int>>> messagesByUserInStream = {};
-  final Map<int, Map<String, Map<int, Set<int>>>> messagesByUserInTopic = {};
+  final Map<int, Map<TopicName, Map<int, Set<int>>>> messagesByUserInTopic = {};
   for (final message in messages) {
     if (message is! StreamMessage) {
       throw UnsupportedError('Message of type ${message.runtimeType} is not expected.');
