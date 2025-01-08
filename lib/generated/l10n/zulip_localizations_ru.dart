@@ -317,6 +317,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get lightboxCopyLinkTooltip => 'Скопировать ссылку';
 
   @override
+  String get lightboxVideoCurrentPositionLabel => 'Current position';
+
+  @override
+  String get lightboxVideoDurationLabel => 'Video duration';
+
+  @override
   String get loginPageTitle => 'Вход в систему';
 
   @override

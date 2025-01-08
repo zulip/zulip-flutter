@@ -317,6 +317,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get lightboxCopyLinkTooltip => 'Skopírovať odkaz';
 
   @override
+  String get lightboxVideoCurrentPositionLabel => 'Current position';
+
+  @override
+  String get lightboxVideoDurationLabel => 'Video duration';
+
+  @override
   String get loginPageTitle => 'Prihlásiť sa';
 
   @override
