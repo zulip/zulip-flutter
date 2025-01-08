@@ -656,8 +656,14 @@ enum MessageFlag {
 }
 
 /// The name of a Zulip topic.
-// TODO(#1250): Migrate all implicit uses as String; remove "implements String".
-extension type const TopicName(String _value) implements String {
+// TODO(dart): Can we forbid calling Object members on this extension type?
+//   (The lack of "implements Object" ought to do that, but doesn't.)
+//   In particular an interpolation "foo > $topic" is a bug we'd like to catch.
+// TODO(dart): Can we forbid using this extension type as a key in a Map?
+//   (The lack of "implements Object" arguably should do that, but doesn't.)
+//   Using as a Map key is almost certainly a bug because it won't case-fold;
+//   see for example #739, #980, #1205.
+extension type const TopicName(String _value) {
   /// The string this topic is identified by in the Zulip API.
   ///
   /// This should be used in constructing HTTP requests to the server,
