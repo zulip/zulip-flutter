@@ -58,7 +58,7 @@ void main() {
     assert(Set.of(messages.map((m) => m.id)).length == messages.length,
       'checkMatchesMessages: duplicate messages in test input');
 
-    final Map<int, Map<String, QueueList<int>>> expectedStreams = {};
+    final Map<int, Map<TopicName, QueueList<int>>> expectedStreams = {};
     final Map<DmNarrow, QueueList<int>> expectedDms = {};
     final Set<int> expectedMentions = {};
     for (final message in messages) {

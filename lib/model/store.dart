@@ -466,10 +466,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   @override
   Map<int, Subscription> get subscriptions => _channels.subscriptions;
   @override
-  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     _channels.topicVisibilityPolicy(streamId, topic);
   @override
-  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
+  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
     _channels.debugTopicVisibility;
 
   final ChannelStoreImpl _channels;

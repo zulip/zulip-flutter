@@ -151,7 +151,7 @@ class ActionSheetCancelButton extends StatelessWidget {
 /// Show a sheet of actions you can take on a topic.
 void showTopicActionSheet(BuildContext context, {
   required int channelId,
-  required String topic,
+  required TopicName topic,
 }) {
   final store = PerAccountStoreWidget.of(context);
   final subscription = store.subscriptions[channelId];
