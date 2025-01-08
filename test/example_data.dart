@@ -626,8 +626,8 @@ UpdateMessageEvent _updateMessageMoveEvent(
   List<int> messageIds, {
   required int origStreamId,
   int? newStreamId,
-  required String origTopic,
-  String? newTopic,
+  required TopicName origTopic,
+  TopicName? newTopic,
   String? origContent,
   String? newContent,
   required List<MessageFlag> flags,
@@ -663,12 +663,15 @@ UpdateMessageEvent _updateMessageMoveEvent(
 UpdateMessageEvent updateMessageEventMoveFrom({
   required List<StreamMessage> origMessages,
   int? newStreamId,
-  String? newTopic,
+  TopicName? newTopic,
+  String? newTopicStr,
   String? newContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   _checkPositive(newStreamId, 'stream ID');
   assert(origMessages.isNotEmpty);
+  assert(newTopic == null || newTopicStr == null);
+  newTopic ??= newTopicStr == null ? null : TopicName(newTopicStr);
   final origMessage = origMessages.first;
   // Only present on content change.
   final origContent = (newContent != null) ? origMessage.content : null;
@@ -688,12 +691,15 @@ UpdateMessageEvent updateMessageEventMoveFrom({
 UpdateMessageEvent updateMessageEventMoveTo({
   required List<StreamMessage> newMessages,
   int? origStreamId,
-  String? origTopic,
+  TopicName? origTopic,
+  String? origTopicStr,
   String? origContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   assert(newMessages.isNotEmpty);
+  assert(origTopic == null || origTopicStr == null);
+  origTopic ??= origTopicStr == null ? null : TopicName(origTopicStr);
   final newMessage = newMessages.first;
   // Only present on topic move.
   final newTopic = (origTopic != null) ? newMessage.topic : null;

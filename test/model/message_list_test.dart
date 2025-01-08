@@ -720,7 +720,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
         ));
         checkHasMessages(initialMessages + movedMessages);
         checkNotified(count: 2);
@@ -738,7 +738,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
         ));
         checkHasMessages(initialMessages + movedMessages);
         checkNotified(count: 2);
@@ -752,7 +752,7 @@ void main() {
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
-          origTopic: 'orig topic',
+          origTopicStr: 'orig topic',
           origStreamId: otherStream.streamId,
           newMessages: movedMessages,
         ));
@@ -770,7 +770,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
           newStreamId: otherStream.streamId,
         ));
         checkHasMessages(initialMessages);
@@ -793,7 +793,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: otherChannelMovedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
         ));
         checkHasMessages(initialMessages);
         checkNotNotified();
@@ -807,7 +807,7 @@ void main() {
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
           newStreamId: otherStream.streamId,
           propagateMode: propagateMode,
         ));
@@ -855,7 +855,7 @@ void main() {
             ).toJson());
             await store.handleEvent(eg.updateMessageEventMoveTo(
               origStreamId: origStreamId,
-              origTopic: origTopic,
+              origTopicStr: origTopic,
               newMessages: movedMessages,
             ));
             check(model).fetched.isFalse();
@@ -883,7 +883,7 @@ void main() {
             await store.handleEvent(eg.updateMessageEventMoveFrom(
               origMessages: movedMessages,
               newStreamId: newStreamId,
-              newTopic: newTopic,
+              newTopicStr: newTopic,
             ));
             checkHasMessages(initialMessages);
             checkNotifiedOnce();
@@ -896,7 +896,7 @@ void main() {
           await prepareNarrow(narrow, initialMessages);
 
           await store.handleEvent(eg.updateMessageEventMoveTo(
-            origTopic: 'other',
+            origTopicStr: 'other',
             newMessages: otherTopicMovedMessages,
           ));
           check(model).fetched.isTrue();
@@ -925,7 +925,7 @@ void main() {
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
           newStreamId: otherStream.streamId,
           propagateMode: propagateMode,
         ));
@@ -969,7 +969,7 @@ void main() {
         check(model).fetched.isFalse();
         checkHasMessages([]);
         await store.handleEvent(eg.updateMessageEventMoveTo(
-          origTopic: 'topic',
+          origTopicStr: 'topic',
           newMessages: [followedMessage],
           propagateMode: PropagateMode.changeAll,
         ));
