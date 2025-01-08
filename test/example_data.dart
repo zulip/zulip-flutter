@@ -519,6 +519,18 @@ Submessage submessage({
 // Aggregate data structures.
 //
 
+UnreadChannelSnapshot unreadChannelMsgs({
+  required String topic,
+  required int streamId,
+  required List<int> unreadMessageIds,
+}) {
+  return UnreadChannelSnapshot(
+    topic: topic,
+    streamId: streamId,
+    unreadMessageIds: unreadMessageIds,
+  );
+}
+
 UnreadMessagesSnapshot unreadMsgs({
   int? count,
   List<UnreadDmSnapshot>? dms,
