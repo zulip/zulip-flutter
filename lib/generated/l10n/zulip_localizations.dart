@@ -1005,6 +1005,12 @@ abstract class ZulipLocalizations {
   /// **'You'**
   String get notifSelfUser;
 
+  /// Display name for the user themself, to show on an emoji reaction added by the user.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get reactedEmojiSelfUser;
+
   /// Text to display when there is one user typing.
   ///
   /// In en, this message translates to:

@@ -672,6 +672,10 @@
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
   },
+  "reactedEmojiSelfUser": "You",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
   "onePersonTyping": "{typist} is typing…",
   "@onePersonTyping": {
     "description": "Text to display when there is one user typing.",
