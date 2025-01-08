@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -178,7 +179,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (topicElement != null) return null;
         final String? topic = decodeHashComponent(operand);
         if (topic == null) return null;
-        topicElement = ApiNarrowTopic(topic, negated: negated);
+        topicElement = ApiNarrowTopic(TopicName(topic), negated: negated);
 
       case _NarrowOperator.dm:
       case _NarrowOperator.pmWith:
@@ -223,7 +224,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   } else if (streamElement != null) {
     final streamId = streamElement.operand;
     if (topicElement != null) {
-      return TopicNarrow(streamId, topicElement.operand);
+      return TopicNarrow(streamId, TopicName.fromJson(topicElement.operand));
     } else {
       return ChannelNarrow(streamId);
     }

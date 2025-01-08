@@ -686,8 +686,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   void messagesMoved({
     required int origStreamId,
     required int newStreamId,
-    required String origTopic,
-    required String newTopic,
+    required TopicName origTopic,
+    required TopicName newTopic,
     required List<int> messageIds,
     required PropagateMode propagateMode,
   }) {
