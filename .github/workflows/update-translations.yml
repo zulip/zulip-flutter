@@ -3,6 +3,7 @@ permissions:
   contents: write
   pull-requests: write
 on:
+  pull_request:
   schedule:
     - cron: "0 10 * * 1"
   workflow_dispatch:
@@ -12,13 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Fetch and merge from Weblate
         # The commit message is generated in Weblate; see https://hosted.weblate.org/addon/17163/
         run: |
+          git checkout -b main
+          git log --oneline --graph --all -n5
           git remote add weblate https://hosted.weblate.org/git/zulip/zulip-flutter/
           git fetch weblate
-          git merge --ff-only weblate/main
+          GIT_COMMITTER_NAME="Hosted Weblate" GIT_COMMITTER_EMAIL="hosted@weblate.org" \
+            git cherry-pick weblate/main ^HEAD
 
       - name: Clone Flutter SDK
         # TODO(#1204) reinstate shallow clone with --depth=1000 and its corresponding comment here
@@ -47,3 +53,4 @@ jobs:
           branch: update-translations/weblate
           delete-branch: true
           title: Update translations from Weblate
+          base: ${{ github.head_ref }}
