@@ -411,6 +411,18 @@ abstract class ZulipLocalizations {
   /// **'Error handling a Zulip event from {serverUrl}; will retry.\n\nError: {error}\n\nEvent: {event}'**
   String errorHandlingEventDetails(String serverUrl, String error, String event);
 
+  /// Error title when opening a link failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open link'**
+  String get errorCouldNotOpenLinkTitle;
+
+  /// Error message when opening a link failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Link could not be opened: {url}'**
+  String errorCouldNotOpenLink(String url);
+
   /// Error message when muting a topic failed.
   ///
   /// In en, this message translates to:
