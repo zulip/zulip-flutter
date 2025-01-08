@@ -224,7 +224,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   } else if (streamElement != null) {
     final streamId = streamElement.operand;
     if (topicElement != null) {
-      return TopicNarrow(streamId, TopicName.fromJson(topicElement.operand));
+      return TopicNarrow(streamId, topicElement.operand);
     } else {
       return ChannelNarrow(streamId);
     }
