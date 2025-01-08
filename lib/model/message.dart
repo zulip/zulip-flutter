@@ -221,7 +221,7 @@ class MessageStoreImpl with MessageStore {
       }
 
       if (newTopic != null) {
-        message.topic = TopicName(newTopic);
+        message.topic = newTopic;
       }
 
       if (!wasResolveOrUnresolve
