@@ -274,7 +274,7 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
       final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
+      await enterTopic(tester, narrow: narrow, topic: 'test topic');
 
       await checkStartTyping(tester, destinationNarrow);
 
@@ -341,7 +341,7 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
       final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
+      await enterTopic(tester, narrow: narrow, topic: 'test topic');
 
       await checkStartTyping(tester, destinationNarrow);
 
