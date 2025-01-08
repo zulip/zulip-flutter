@@ -17,6 +17,7 @@ import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
+import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
@@ -308,6 +309,37 @@ void main() {
       await tester.enterText(topicInputFinder, 'Topic T');
       await tester.pumpAndSettle();
       checkTopicShown(topic2, store, expected: true);
+    });
+
+    testWidgets('text selection is reset on choosing an option', (tester) async {
+      // TODO test also that composing region gets reset.
+      //   (Just adding it to the updateEditingValue call below doesn't seem
+      //   to suffice to set it up; the controller value after the pump still
+      //   has empty composing region, so there's nothing to check after tap.)
+
+      final topic = eg.getStreamTopicsEntry(name: 'some topic');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+      final controller = tester.widget<TextField>(topicInputFinder).controller!;
+
+      await tester.enterText(topicInputFinder, 'so');
+      await tester.enterText(topicInputFinder, 'some');
+      tester.testTextInput.updateEditingValue(const TextEditingValue(
+        text: 'some',
+        selection: TextSelection(baseOffset: 1, extentOffset: 3)));
+      await tester.pump();
+      check(controller.value)
+        ..text.equals('some')
+        ..selection.equals(
+            const TextSelection(baseOffset: 1, extentOffset: 3));
+
+      await tester.tap(find.text('some topic'));
+      await tester.pump();
+      check(controller.value)
+        ..text.equals('some topic')
+        ..selection.equals(
+            const TextSelection.collapsed(offset: 'some topic'.length));
+
+      await tester.pump(Duration.zero);
     });
   });
 }

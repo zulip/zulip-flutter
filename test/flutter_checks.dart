@@ -66,6 +66,12 @@ extension TextChecks on Subject<Text> {
   Subject<TextStyle?> get style => has((t) => t.style, 'style');
 }
 
+extension TextEditingValueChecks on Subject<TextEditingValue> {
+  Subject<String> get text => has((x) => x.text, 'text');
+  Subject<TextSelection> get selection => has((x) => x.selection, 'selection');
+  Subject<TextRange> get composing => has((x) => x.composing, 'composing');
+}
+
 extension TextEditingControllerChecks on Subject<TextEditingController> {
   Subject<String?> get text => has((t) => t.text, 'text');
 }
