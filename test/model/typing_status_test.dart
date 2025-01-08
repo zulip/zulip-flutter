@@ -35,7 +35,7 @@ void checkSetTypingStatusRequests(
           'type': 'channel',
           'op': op.toJson(),
           'stream_id': narrow.streamId.toString(),
-          'topic': narrow.topic}),
+          'topic': narrow.topic.apiName}),
         DmNarrow() => conditionTypingRequest({
           'type': 'direct',
           'op': op.toJson(),

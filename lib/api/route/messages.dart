@@ -186,7 +186,7 @@ Future<SendMessageResult> sendMessage(
       StreamDestination() => {
         'type': RawParameter('stream'),
         'to': destination.streamId,
-        'topic': RawParameter(destination.topic),
+        'topic': RawParameter(destination.topic.apiName),
       },
       DmDestination() => {
         'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
@@ -453,6 +453,6 @@ Future<void> markTopicAsRead(ApiConnection connection, {
 }) {
   return connection.post('markTopicAsRead', (_) {}, 'mark_topic_as_read', {
     'stream_id': streamId,
-    'topic_name': RawParameter(topicName),
+    'topic_name': RawParameter(topicName.apiName),
   });
 }

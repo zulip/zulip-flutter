@@ -46,6 +46,10 @@ extension MessageChecks on Subject<Message> {
   Subject<String?> get matchTopic => has((e) => e.matchTopic, 'matchTopic');
 }
 
+extension TopicNameChecks on Subject<TopicName> {
+  Subject<String> get apiName => has((x) => x.apiName, 'apiName');
+}
+
 extension StreamMessageChecks on Subject<StreamMessage> {
   Subject<String?> get displayRecipient => has((e) => e.displayRecipient, 'displayRecipient');
   Subject<TopicName> get topic => has((e) => e.topic, 'topic');
