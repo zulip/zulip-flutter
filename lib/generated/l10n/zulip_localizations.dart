@@ -573,6 +573,12 @@ abstract class ZulipLocalizations {
   /// **'You and {others}'**
   String messageListGroupYouAndOthers(String others);
 
+  /// Message list page title for a DM group with others.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with {others}'**
+  String dmsWithOthersPageTitle(String others);
+
   /// Message list recipient header for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:
@@ -1118,6 +1124,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Text to show at the start of a message list if there are no earlier messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier messages'**
+  String get noEarlierMessages;
+
+  /// Tooltip for button to scroll to bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to bottom'**
+  String get scrollToBottomTooltip;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

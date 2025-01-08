@@ -355,6 +355,13 @@
       "others": {"type": "String", "example": "Alice, Bob"}
     }
   },
+  "dmsWithOthersPageTitle": "DMs with {others}",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {"type": "String", "example": "Alice, Bob"}
+    }
+  },
   "messageListGroupYouWithYourself": "You with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
@@ -748,5 +755,13 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "noEarlierMessages": "No earlier messages",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "scrollToBottomTooltip": "Scroll to bottom",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
   }
 }
