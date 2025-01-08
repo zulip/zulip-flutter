@@ -77,7 +77,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
         fragment.write('$streamId-$slugifiedName');
       case ApiNarrowTopic():
-        fragment.write(_encodeHashComponent(element.operand));
+        fragment.write(_encodeHashComponent(element.operand.apiName));
       case ApiNarrowDmModern():
         final suffix = element.operand.length >= 3 ? 'group' : 'dm';
         fragment.write('${element.operand.join(',')}-$suffix');
