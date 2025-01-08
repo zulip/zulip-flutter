@@ -59,7 +59,7 @@ Future<void> updateUserTopicCompat(ApiConnection connection, {
     // https://zulip.com/api/mute-topic
     return connection.patch('muteTopic', (_) {}, 'users/me/subscriptions/muted_topics', {
       'stream_id': streamId,
-      'topic': RawParameter(topic),
+      'topic': RawParameter(topic.apiName),
       'op': RawParameter(op),
     });
   } else {
@@ -83,7 +83,7 @@ Future<void> updateUserTopic(ApiConnection connection, {
   assert(connection.zulipFeatureLevel! >= 170);
   return connection.post('updateUserTopic', (_) {}, 'user_topics', {
     'stream_id': streamId,
-    'topic': RawParameter(topic),
+    'topic': RawParameter(topic.apiName),
     'visibility_policy': visibilityPolicy,
   });
 }

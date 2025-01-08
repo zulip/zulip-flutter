@@ -658,9 +658,12 @@ enum MessageFlag {
 /// The name of a Zulip topic.
 // TODO(#1250): Migrate all implicit uses as String; remove "implements String".
 extension type const TopicName(String _value) implements String {
+  /// The string this topic is identified by in the Zulip API.
+  String get apiName => _value;
+
   TopicName.fromJson(this._value);
 
-  String toJson() => _value;
+  String toJson() => apiName;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
