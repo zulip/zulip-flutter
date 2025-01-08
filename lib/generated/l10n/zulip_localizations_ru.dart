@@ -533,6 +533,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get notifSelfUser => 'Вы';
 
   @override
+  String get reactedEmojiSelfUser => 'You';
+
+  @override
   String onePersonTyping(String typist) {
     return '$typist набирает сообщение…';
   }

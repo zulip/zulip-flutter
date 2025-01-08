@@ -533,6 +533,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get notifSelfUser => 'Ty';
 
   @override
+  String get reactedEmojiSelfUser => 'You';
+
+  @override
   String onePersonTyping(String typist) {
     return '$typist píše…';
   }

@@ -161,7 +161,7 @@ class ReactionChip extends StatelessWidget {
       //   // 'Chris、Greg、Alya、Shu'
       ? userIds.map((id) {
           return id == store.selfUserId
-            ? 'You'
+            ? zulipLocalizations.reactedEmojiSelfUser
             : store.users[id]?.fullName ?? zulipLocalizations.unknownUserName;
         }).join(', ')
       : userIds.length.toString();
