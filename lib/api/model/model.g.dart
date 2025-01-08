@@ -273,7 +273,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
     matchTopic: json['match_subject'] as String?,
     displayRecipient: json['display_recipient'] as String?,
     streamId: (json['stream_id'] as num).toInt(),
-    topic: json['subject'] as String,
+    topic: TopicName.fromJson(json['subject'] as String),
   )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 }
 

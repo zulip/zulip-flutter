@@ -655,6 +655,14 @@ enum MessageFlag {
   String toJson() => _$MessageFlagEnumMap[this]!;
 }
 
+/// The name of a Zulip topic.
+// TODO(#1250): Migrate all implicit uses as String; remove "implements String".
+extension type const TopicName(String _value) implements String {
+  TopicName.fromJson(this._value);
+
+  String toJson() => _value;
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake)
 class StreamMessage extends Message {
   @override
@@ -674,7 +682,7 @@ class StreamMessage extends Message {
   // that will need new UI that we'll design then as part of that feature,
   // and ignoring the topics seems as good a fallback behavior as any.
   @JsonKey(name: 'subject')
-  String topic;
+  TopicName topic;
 
   StreamMessage({
     required super.client,
