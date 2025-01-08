@@ -661,6 +661,9 @@ extension type const TopicName(String _value) implements String {
   /// The string this topic is identified by in the Zulip API.
   String get apiName => _value;
 
+  /// The key to use for "same topic as" comparisons.
+  String canonicalize() => apiName.toLowerCase();
+
   TopicName.fromJson(this._value);
 
   String toJson() => apiName;
