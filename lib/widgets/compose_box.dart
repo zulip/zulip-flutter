@@ -89,6 +89,10 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
         TopicValidationError.tooLong,
     ];
   }
+
+  void setTopic(String newTopic) {
+    value = TextEditingValue(text: newTopic);
+  }
 }
 
 enum ContentValidationError {

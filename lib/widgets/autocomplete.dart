@@ -322,7 +322,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
     final intent = autocompleteIntent();
     if (intent == null) return;
     assert(intent.syntaxStart == 0);
-    controller.value = TextEditingValue(text: option.topic);
+    controller.setTopic(option.topic);
     contentFocusNode.requestFocus();
   }
 
