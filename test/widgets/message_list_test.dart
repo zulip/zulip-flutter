@@ -749,7 +749,8 @@ void main() {
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
       final stream = eg.stream(name: 'stream name');
-      final message = eg.streamMessage(stream: stream, topic: 'topic name');
+      const topic = 'topic name';
+      final message = eg.streamMessage(stream: stream, topic: topic);
 
       FinderResult<Element> findInMessageList(String text) {
         // Stream name shows up in [AppBar] so need to avoid matching that
@@ -808,7 +809,7 @@ void main() {
           narrow: const CombinedFeedNarrow(),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, message.topic, UserTopicVisibilityPolicy.followed));
+          stream.streamId, topic, UserTopicVisibilityPolicy.followed));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -820,7 +821,7 @@ void main() {
           narrow: TopicNarrow.ofMessage(message),
           messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, message.topic, UserTopicVisibilityPolicy.unmuted));
+          stream.streamId, topic, UserTopicVisibilityPolicy.unmuted));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
