@@ -671,7 +671,7 @@ void main() {
     void handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) {
       store.handleEvent(eg.updateMessageEventMoveFrom(
         origMessages: messages,
-        newTopic: newTopic,
+        newTopicStr: newTopic,
         newStreamId: newChannelId,
         propagateMode: PropagateMode.changeAll));
     }
@@ -1134,7 +1134,7 @@ void main() {
       checkMarkersCount(edited: 1, moved: 0);
 
       await store.handleEvent(eg.updateMessageEventMoveFrom(
-        origMessages: [message, message2], newTopic: 'new'));
+        origMessages: [message, message2], newTopicStr: 'new'));
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 1);
 

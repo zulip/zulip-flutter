@@ -320,7 +320,7 @@ void main() {
         final originalDisplayRecipient = origMessages[0].displayRecipient!;
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  'new topic'));
+          newTopicStr: 'new topic'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
@@ -332,7 +332,7 @@ void main() {
         await prepareOrigMessages(origTopic: 'new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  '✔ new topic'));
+          newTopicStr: '✔ new topic'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
@@ -341,7 +341,7 @@ void main() {
         await prepareOrigMessages(origTopic: '✔ new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  'new topic'));
+          newTopicStr: 'new topic'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
@@ -350,7 +350,7 @@ void main() {
         await prepareOrigMessages(origTopic: 'new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  '✔ new topic 2'));
+          newTopicStr: '✔ new topic 2'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
@@ -359,7 +359,7 @@ void main() {
         await prepareOrigMessages(origTopic: '✔ new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  'new topic 2'));
+          newTopicStr: 'new topic 2'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });

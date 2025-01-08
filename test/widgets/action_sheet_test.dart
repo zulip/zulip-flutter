@@ -809,7 +809,7 @@ void main() {
         connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: [message]).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
-          newStreamId: newStream.streamId, newTopic: newTopic,
+          newStreamId: newStream.streamId, newTopicStr: newTopic,
           propagateMode: PropagateMode.changeAll,
           origMessages: [message]));
 
