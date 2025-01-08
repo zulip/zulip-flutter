@@ -659,7 +659,19 @@ enum MessageFlag {
 // TODO(#1250): Migrate all implicit uses as String; remove "implements String".
 extension type const TopicName(String _value) implements String {
   /// The string this topic is identified by in the Zulip API.
+  ///
+  /// This should be used in constructing HTTP requests to the server,
+  /// but rarely for other purposes.  See [displayName] and [canonicalize].
   String get apiName => _value;
+
+  /// The string this topic is displayed as to the user in our UI.
+  ///
+  /// At the moment this always equals [apiName].
+  /// In the future this will become null for the "general chat" topic (#1250),
+  /// so that UI code can identify when it needs to represent the topic
+  /// specially in the way prescribed for "general chat".
+  // TODO(#1250) carry out that plan
+  String get displayName => _value;
 
   /// The key to use for "same topic as" comparisons.
   String canonicalize() => apiName.toLowerCase();
