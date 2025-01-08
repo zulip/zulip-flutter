@@ -900,7 +900,7 @@ void main() {
 
   group('TopicAutocompleteQuery.testTopic', () {
     void doCheck(String rawQuery, String topic, bool expected) {
-      final result = TopicAutocompleteQuery(rawQuery).testTopic(topic);
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic));
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 

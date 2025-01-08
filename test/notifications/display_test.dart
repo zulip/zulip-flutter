@@ -1194,7 +1194,7 @@ void main() {
         ..userId.equals(1001)
         ..narrow.which((it) => it.isA<TopicNarrow>()
           ..streamId.equals(1)
-          ..topic.equals('topic A'));
+          ..topic.equals(eg.t('topic A')));
     });
 
     test('parse: fails when missing any expected query parameters', () {
