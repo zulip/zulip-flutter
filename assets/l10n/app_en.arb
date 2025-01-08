@@ -234,6 +234,17 @@
       "event": {"type": "String", "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"}
     }
   },
+  "errorOpenLinkDialogTitle": "Unable to open link",
+  "@errorOpenLinkDialogTitle": {
+    "description": "Title for an error dialog when opening a link failed."
+  },
+  "errorOpenLinkDialogMessage": "Link could not be opened: {url}",
+  "@errorOpenLinkDialogMessage": {
+    "description": "Message for an error dialog when opening a link failed.",
+    "placeholders": {
+      "url": {"type":  "String", "example":  "https://chat.example.com"}
+    }
+  },
   "errorMuteTopicFailed": "Failed to mute topic",
   "@errorMuteTopicFailed": {
     "description": "Error message when muting a topic failed."
