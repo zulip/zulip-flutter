@@ -871,8 +871,10 @@ enum MessageEditState {
       }
 
       // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
-      final prevTopic = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
-      final topic = entry['topic'] as String?;
+      final prevTopicStr = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
+      final prevTopic = prevTopicStr == null ? null : TopicName.fromJson(prevTopicStr);
+      final topicStr = entry['topic'] as String?;
+      final topic = topicStr == null ? null : TopicName.fromJson(topicStr);
       if (prevTopic != null) {
         // TODO(server-5) pre-5.0 servers do not have the 'topic' field
         if (topic == null) {
