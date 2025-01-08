@@ -283,6 +283,11 @@ Subscription subscription(
   );
 }
 
+/// The [TopicName] constructor, but shorter.
+///
+/// Useful in test code that mentions a lot of topics in a compact format.
+TopicName t(String apiName) => TopicName(apiName);
+
 UserTopicItem userTopicItem(
     ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
   return UserTopicItem(

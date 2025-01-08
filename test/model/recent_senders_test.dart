@@ -199,15 +199,15 @@ void main() {
     model.handleMessages(messages);
 
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
-      topic: 'a', senderId: 10)).equals(300);
+      topic: eg.t('a'), senderId: 10)).equals(300);
     // No message of user 20 in topic "a".
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
-      topic: 'a', senderId: 20)).equals(null);
+      topic: eg.t('a'), senderId: 20)).equals(null);
     // No message in topic "b" at all.
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
-      topic: 'b', senderId: 10)).equals(null);
+      topic: eg.t('b'), senderId: 10)).equals(null);
     // No message in stream 2 at all.
     check(model.latestMessageIdOfSenderInTopic(streamId: 2,
-      topic: 'a', senderId: 10)).equals(null);
+      topic: eg.t('a'), senderId: 10)).equals(null);
   });
 }

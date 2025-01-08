@@ -204,7 +204,7 @@ void main() {
       prepare();
       fillWithMessages(List.generate(7, (i) => eg.streamMessage(
         stream: stream, topic: 'a', flags: [])));
-      check(model.countInTopicNarrow(stream.streamId, 'a')).equals(7);
+      check(model.countInTopicNarrow(stream.streamId, eg.t('a'))).equals(7);
     });
 
     test('countInDmNarrow', () {
@@ -538,7 +538,7 @@ void main() {
         messageIds: [11, 12],
         messageType: MessageType.stream,
         streamId: stream1.streamId,
-        topic: 'a',
+        topic: eg.t('a'),
       ));
       checkNotifiedOnce();
       checkMatchesMessages(expectedRemainingMessages..removeAll([message11, message12]));
@@ -547,7 +547,7 @@ void main() {
         messageIds: [13, 14],
         messageType: MessageType.stream,
         streamId: stream2.streamId,
-        topic: 'b',
+        topic: eg.t('b'),
       ));
       checkNotifiedOnce();
       checkMatchesMessages(expectedRemainingMessages..removeAll([message13, message14]));
@@ -1029,7 +1029,7 @@ void main() {
                 type: MessageType.stream,
                 mentioned: false,
                 streamId: stream.streamId,
-                topic: topic,
+                topic: eg.t(topic),
                 userIds: null,
               ),
               // message 2 and 3 have their details missing

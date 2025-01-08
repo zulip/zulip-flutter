@@ -174,7 +174,7 @@ void main() {
       subscriptions: [eg.subscription(stream, isMuted: true)],
         userTopics: [UserTopicItem(
           streamId: stream.streamId,
-          topicName: 'b',
+          topicName: eg.t('b'),
           lastUpdated: 1234567890,
           visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
         )],
