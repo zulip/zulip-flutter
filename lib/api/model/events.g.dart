@@ -389,7 +389,7 @@ UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
     UserTopicEvent(
       id: (json['id'] as num).toInt(),
       streamId: (json['stream_id'] as num).toInt(),
-      topicName: json['topic_name'] as String,
+      topicName: TopicName.fromJson(json['topic_name'] as String),
       lastUpdated: (json['last_updated'] as num).toInt(),
       visibilityPolicy: $enumDecode(
           _$UserTopicVisibilityPolicyEnumMap, json['visibility_policy']),
@@ -430,8 +430,12 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
       newStreamId: (json['new_stream_id'] as num?)?.toInt(),
       propagateMode:
           $enumDecodeNullable(_$PropagateModeEnumMap, json['propagate_mode']),
-      origTopic: json['orig_subject'] as String?,
-      newTopic: json['subject'] as String?,
+      origTopic: json['orig_subject'] == null
+          ? null
+          : TopicName.fromJson(json['orig_subject'] as String),
+      newTopic: json['subject'] == null
+          ? null
+          : TopicName.fromJson(json['subject'] as String),
       origContent: json['orig_content'] as String?,
       origRenderedContent: json['orig_rendered_content'] as String?,
       content: json['content'] as String?,
@@ -487,7 +491,9 @@ DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
       messageType:
           const MessageTypeConverter().fromJson(json['message_type'] as String),
       streamId: (json['stream_id'] as num?)?.toInt(),
-      topic: json['topic'] as String?,
+      topic: json['topic'] == null
+          ? null
+          : TopicName.fromJson(json['topic'] as String),
     );
 
 Map<String, dynamic> _$DeleteMessageEventToJson(DeleteMessageEvent instance) =>
@@ -561,7 +567,9 @@ UpdateMessageFlagsMessageDetail _$UpdateMessageFlagsMessageDetailFromJson(
           ?.map((e) => (e as num).toInt())
           .toList(),
       streamId: (json['stream_id'] as num?)?.toInt(),
-      topic: json['topic'] as String?,
+      topic: json['topic'] == null
+          ? null
+          : TopicName.fromJson(json['topic'] as String),
     );
 
 Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
@@ -609,7 +617,9 @@ TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
       senderId: (TypingEvent._readSenderId(json, 'sender_id') as num).toInt(),
       recipientIds: TypingEvent._recipientIdsFromJson(json['recipients']),
       streamId: (json['stream_id'] as num?)?.toInt(),
-      topic: json['topic'] as String?,
+      topic: json['topic'] == null
+          ? null
+          : TopicName.fromJson(json['topic'] as String),
     );
 
 Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>

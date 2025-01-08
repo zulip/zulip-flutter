@@ -777,7 +777,7 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
       return TypingEvent(id: 0, op: op, senderId: senderId,
         messageType: MessageType.stream,
         streamId: narrow.streamId,
-        topic: narrow.topic,
+        topic: TopicName(narrow.topic),
         recipientIds: null);
     case DmNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
