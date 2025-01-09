@@ -118,6 +118,17 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
   int _nextQuoteAndReplyTag = 0;
   int _nextUploadTag = 0;
+  num _maxMessageLimit = 0;
+
+   num get maxMessageLimit => _maxMessageLimit;
+
+  // Setter for maxMessageLimit
+  set maxMessageLimit(num value) {
+    if (value < 0) {
+      throw ArgumentError("maxMessageLimit cannot be negative.");
+    }
+    _maxMessageLimit = value;
+  }
 
   final Map<int, ({int messageId, String placeholder})> _quoteAndReplies = {};
   final Map<int, ({String filename, String placeholder})> _uploads = {};
@@ -260,7 +271,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       // normalized.length is the number of UTF-16 code units, while the server
       // API expresses the max in Unicode code points. So this comparison will
       // be conservative and may cut the user off shorter than necessary.
-      if (textNormalized.length > kMaxMessageLengthCodePoints)
+      if (textNormalized.length > _maxMessageLimit)
         ContentValidationError.tooLong,
 
       if (_quoteAndReplies.isNotEmpty)
@@ -1322,7 +1333,8 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
   @override
   Widget build(BuildContext context) {
     final Widget? body;
-
+    final perAccountStore = PerAccountStoreWidget.of(context);
+    _controller.content.maxMessageLimit = perAccountStore.maxMessageLength;
     final errorBanner = _errorBanner(context);
     if (errorBanner != null) {
       return _ComposeBoxContainer(body: null, errorBanner: errorBanner);

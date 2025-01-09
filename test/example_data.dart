@@ -831,6 +831,7 @@ InitialSnapshot initialSnapshot({
   int? realmWaitingPeriodThreshold,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
+  int? maxMessageLength,
   Uri? serverEmojiDataUrl,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
@@ -865,6 +866,7 @@ InitialSnapshot initialSnapshot({
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
+    maxMessageLength: maxMessageLength ?? 10000,
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
     realmUsers: realmUsers ?? [],
