@@ -108,7 +108,7 @@ class NotificationChannelManager {
     // and check against our list of sounds we have.
     final soundsToAdd = NotificationSound.values.toList();
 
-    final List<StoredNotificationSound?> storedSounds;
+    final List<StoredNotificationSound> storedSounds;
     try {
       storedSounds = await _androidHost.listStoredSoundsInNotificationsDirectory();
     } catch (e, st) {
@@ -116,11 +116,9 @@ class NotificationChannelManager {
       return defaultSoundUrl;
     }
     for (final storedSound in storedSounds) {
-      assert(storedSound != null); // TODO(#942)
-
       // If the file is one we put there, and has the name we give to our
       // default sound, then use it as the default sound.
-      if (storedSound!.fileName == kDefaultNotificationSound.fileDisplayName
+      if (storedSound.fileName == kDefaultNotificationSound.fileDisplayName
           && storedSound.isOwned) {
         defaultSoundUrl = storedSound.contentUrl;
       }
@@ -188,8 +186,7 @@ class NotificationChannelManager {
     var found = false;
     final channels = await _androidHost.getNotificationChannels();
     for (final channel in channels) {
-      assert(channel != null); // TODO(#942)
-      if (channel!.id == kChannelId) {
+      if (channel.id == kChannelId) {
         found = true;
       } else {
         await _androidHost.deleteNotificationChannel(channel.id);
@@ -378,8 +375,6 @@ class NotificationDisplayManager {
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredExtras: [kExtraLastZulipMessageId]);
     for (final statusBarNotification in activeNotifications) {
-      if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
-
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
       // [AndroidNotificationHostApi.notify] (and so to `NotificationManager#notify`
