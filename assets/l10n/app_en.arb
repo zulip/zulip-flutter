@@ -653,6 +653,22 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "themeSettingLabel": "THEME",
+  "@themeSettingLabel": {
+    "description": "Label for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingDarkLabel": "Dark",
+  "@themeSettingDarkLabel": {
+    "description": "Label for dark theme setting."
+  },
+  "themeSettingLightLabel": "Light",
+  "@themeSettingLightLabel": {
+    "description": "Label for light theme setting."
+  },
+  "themeSettingSystemLabel": "System",
+  "@themeSettingSystemLabel": {
+    "description": "Label for following system theme setting."
+  },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"

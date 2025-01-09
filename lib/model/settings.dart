@@ -1,3 +1,5 @@
+import '../generated/l10n/zulip_localizations.dart';
+
 /// The visual theme of the app.
 ///
 /// See [zulipThemeData] for how themes are determined.
@@ -12,6 +14,13 @@ enum ThemeSetting {
   light,
 
   /// Corresponds to [Brightness.dark].
-  dark,
-}
+  dark;
 
+  String displayName(ZulipLocalizations zulipLocalizations) {
+    return switch (this) {
+      ThemeSetting.unset => zulipLocalizations.themeSettingSystemLabel,
+      ThemeSetting.light => zulipLocalizations.themeSettingLightLabel,
+      ThemeSetting.dark => zulipLocalizations.themeSettingDarkLabel,
+    };
+  }
+}

@@ -518,6 +518,18 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get messageIsMovedLabel => 'PRESUNUTÉ';
 
   @override
+  String get themeSettingLabel => 'THEME';
+
+  @override
+  String get themeSettingDarkLabel => 'Dark';
+
+  @override
+  String get themeSettingLightLabel => 'Light';
+
+  @override
+  String get themeSettingSystemLabel => 'System';
+
+  @override
   String get pollWidgetQuestionMissing => 'Bez otázky.';
 
   @override
