@@ -134,6 +134,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
               constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
               child: ListView.builder(
                 padding: EdgeInsets.zero,
+                reverse: true,
                 shrinkWrap: true,
                 itemCount: _resultsToDisplay.length,
                 itemBuilder: _buildItem))));
