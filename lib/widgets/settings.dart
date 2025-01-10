@@ -32,15 +32,31 @@ class SettingsPage extends StatelessWidget {
           child: SafeArea(
             minimum: const EdgeInsets.only(bottom: 8),
             child: Column(children: [
-              SwitchListTile(
-                title: Text(zulipLocalizations.settingsUseExternal),
-                value: globalStore.globalSettings.effectiveBrowserPreference == BrowserPreference.external,
-                onChanged: (useExternal) {
-                  globalStore.updateGlobalSettings(GlobalSettingsCompanion(
-                    browserPreference: Value(
-                      useExternal ? BrowserPreference.external
-                                  : BrowserPreference.embedded)));
-                }),
+              ListTileTheme(
+                data: const ListTileThemeData(
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  dense: true,
+                  minVerticalPadding: 0,
+                  minTileHeight: 38,
+
+                  horizontalTitleGap: 0,
+                  minLeadingWidth: 38,
+                ),
+                child: SwitchListTile(
+                  title: Text(zulipLocalizations.settingsUseExternal,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      height: 26 / 17,
+                    ),
+                  ),
+                  value: globalStore.globalSettings.effectiveBrowserPreference == BrowserPreference.external,
+                  onChanged: (useExternal) {
+                    globalStore.updateGlobalSettings(GlobalSettingsCompanion(
+                      browserPreference: Value(
+                        useExternal ? BrowserPreference.external
+                                    : BrowserPreference.embedded)));
+                  }),
+              ),
               Theme(
                 data: themeData.copyWith(splashColor: Colors.transparent),
                 child: _ThemeSetting(initialValue: globalStore.globalSettings.themeSetting)),
