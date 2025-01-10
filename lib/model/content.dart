@@ -786,7 +786,7 @@ class MathInlineNode extends InlineContentNode {
 class GlobalTimeNode extends InlineContentNode {
   const GlobalTimeNode({super.debugHtmlNode, required this.datetime});
 
-  /// Always in UTC, enforced in [_ZulipContentParser.parseInlineContent].
+  /// Always in UTC, enforced in [_ZulipInlineContentParser.parseInlineContent].
   final DateTime datetime;
 
   @override
@@ -852,32 +852,19 @@ String? _parseMath(dom.Element element, {required bool block}) {
   return descendant4.text.trim();
 }
 
-/// What sort of nodes a [_ZulipContentParser] is currently expecting to find.
-enum _ParserContext {
-  /// The parser is currently looking for block nodes.
-  block,
-
-  /// The parser is currently looking for inline nodes.
-  inline,
-}
-
-/// Parser for a complete piece of Zulip HTML content, a [ZulipContent].
+/// Parser for the inline-content subtrees within Zulip content HTML.
 ///
-/// The only entry point to this class is [parse].
-class _ZulipContentParser {
-  /// The current state of what sort of nodes the parser is looking for.
-  ///
-  /// This exists for the sake of debug-mode checks,
-  /// and should be read or updated only inside an assertion.
-  _ParserContext _debugParserContext = _ParserContext.block;
-
+/// The only entry point to this class is [parseBlockInline].
+///
+/// After a call to [parseBlockInline] returns, the [_ZulipInlineContentParser]
+/// instance has been reset to its starting state, and can be re-used for
+/// parsing other subtrees.
+class _ZulipInlineContentParser {
   String? parseInlineMath(dom.Element element) {
-    assert(_debugParserContext == _ParserContext.inline);
     return _parseMath(element, block: false);
   }
 
   UserMentionNode? parseUserMention(dom.Element element) {
-    assert(_debugParserContext == _ParserContext.inline);
     assert(element.localName == 'span');
     final debugHtmlNode = kDebugMode ? element : null;
 
@@ -951,7 +938,6 @@ class _ZulipContentParser {
   static final _emojiCodeFromClassNameRegexp = RegExp(r"emoji-([^ ]+)");
 
   InlineContentNode parseInlineContent(dom.Node node) {
-    assert(_debugParserContext == _ParserContext.inline);
     final debugHtmlNode = kDebugMode ? node : null;
     InlineContentNode unimplemented() => UnimplementedInlineContentNode(htmlNode: node);
 
@@ -1041,33 +1027,38 @@ class _ZulipContentParser {
   }
 
   List<InlineContentNode> parseInlineContentList(List<dom.Node> nodes) {
-    assert(_debugParserContext == _ParserContext.inline);
     return nodes.map(parseInlineContent).toList(growable: false);
   }
 
   /// Parse the children of a [BlockInlineContainerNode], making up a
   /// complete subtree of inline content with no further inline ancestors.
   ({List<InlineContentNode> nodes, List<LinkNode>? links}) parseBlockInline(List<dom.Node> nodes) {
-    assert(_debugParserContext == _ParserContext.block);
-    assert(() {
-      _debugParserContext = _ParserContext.inline;
-      return true;
-    }());
     final resultNodes = parseInlineContentList(nodes);
-    assert(() {
-      _debugParserContext = _ParserContext.block;
-      return true;
-    }());
     return (nodes: resultNodes, links: _takeLinkNodes());
+  }
+}
+
+/// Parser for a complete piece of Zulip HTML content, a [ZulipContent].
+///
+/// The only entry point to this class is [parse].
+class _ZulipContentParser {
+  /// The single inline-content parser used and re-used throughout parsing of
+  /// a complete piece of Zulip HTML content.
+  ///
+  /// Because block content can never appear nested inside inline content,
+  /// there's never a need for more than one of these at a time,
+  /// so we can allocate just one up front.
+  final inlineParser = _ZulipInlineContentParser();
+
+  ({List<InlineContentNode> nodes, List<LinkNode>? links}) parseBlockInline(List<dom.Node> nodes) {
+    return inlineParser.parseBlockInline(nodes);
   }
 
   String? parseMathBlock(dom.Element element) {
-    assert(_debugParserContext == _ParserContext.block);
     return _parseMath(element, block: true);
   }
 
   BlockContentNode parseListNode(dom.Element element) {
-    assert(_debugParserContext == _ParserContext.block);
     ListStyle? listStyle;
     switch (element.localName) {
       case 'ol': listStyle = ListStyle.ordered; break;
@@ -1090,7 +1081,6 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseSpoilerNode(dom.Element divElement) {
-    assert(_debugParserContext == _ParserContext.block);
     assert(divElement.localName == 'div'
         && divElement.className == 'spoiler-block');
 
@@ -1110,7 +1100,6 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseCodeBlock(dom.Element divElement) {
-    assert(_debugParserContext == _ParserContext.block);
     final mainElement = () {
       assert(divElement.localName == 'div'
           && divElement.className == "codehilite");
@@ -1193,7 +1182,6 @@ class _ZulipContentParser {
   static final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
 
   BlockContentNode parseImageNode(dom.Element divElement) {
-    assert(_debugParserContext == _ParserContext.block);
     final elements = () {
       assert(divElement.localName == 'div'
           && divElement.className == 'message_inline_image');
@@ -1285,7 +1273,6 @@ class _ZulipContentParser {
   }();
 
   BlockContentNode parseInlineVideoNode(dom.Element divElement) {
-    assert(_debugParserContext == _ParserContext.block);
     assert(divElement.localName == 'div'
       && _videoClassNameRegexp.hasMatch(divElement.className));
 
@@ -1318,7 +1305,6 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseEmbedVideoNode(dom.Element divElement) {
-    assert(_debugParserContext == _ParserContext.block);
     assert(divElement.localName == 'div'
       && _videoClassNameRegexp.hasMatch(divElement.className));
 
@@ -1357,7 +1343,6 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseTableContent(dom.Element tableElement) {
-    assert(_debugParserContext == _ParserContext.block);
     assert(tableElement.localName == 'table'
         && tableElement.className.isEmpty);
 
@@ -1465,7 +1450,6 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseBlockContent(dom.Node node) {
-    assert(_debugParserContext == _ParserContext.block);
     final debugHtmlNode = kDebugMode ? node : null;
     if (node is! dom.Element) {
       return UnimplementedBlockContentNode(htmlNode: node);
@@ -1592,7 +1576,6 @@ class _ZulipContentParser {
   ///
   /// See [ParagraphNode].
   List<BlockContentNode> parseImplicitParagraphBlockContentList(dom.NodeList nodes) {
-    assert(_debugParserContext == _ParserContext.block);
     final List<BlockContentNode> result = [];
     final List<dom.Node> currentParagraph = [];
     List<ImageNode> imageNodes = [];
@@ -1641,7 +1624,6 @@ class _ZulipContentParser {
   static final _redundantLineBreaksRegexp = RegExp(r'^\n+$');
 
   List<BlockContentNode> parseBlockContentList(dom.NodeList nodes) {
-    assert(_debugParserContext == _ParserContext.block);
     final List<BlockContentNode> result = [];
     List<ImageNode> imageNodes = [];
     for (final node in nodes) {
