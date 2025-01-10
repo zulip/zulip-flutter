@@ -1579,8 +1579,14 @@ class _ZulipContentParser {
   /// See [ParagraphNode].
   List<BlockContentNode> parseImplicitParagraphBlockContentList(dom.NodeList nodes) {
     final List<BlockContentNode> result = [];
-    final List<dom.Node> currentParagraph = [];
+
     List<ImageNode> imageNodes = [];
+    void consumeImageNodes() {
+      result.add(ImageNodeList(imageNodes));
+      imageNodes = [];
+    }
+
+    final List<dom.Node> currentParagraph = [];
     void consumeParagraph() {
       final parsed = parseBlockInline(currentParagraph);
       result.add(ParagraphNode(
@@ -1595,8 +1601,7 @@ class _ZulipContentParser {
 
       if (_isPossibleInlineNode(node)) {
         if (imageNodes.isNotEmpty) {
-          result.add(ImageNodeList(imageNodes));
-          imageNodes = [];
+          consumeImageNodes();
           // In a context where paragraphs are implicit it should be impossible
           // to have more paragraph content after image previews.
           result.add(UnimplementedBlockContentNode(htmlNode: node));
@@ -1611,15 +1616,11 @@ class _ZulipContentParser {
         imageNodes.add(block);
         continue;
       }
-      if (imageNodes.isNotEmpty) {
-        result.add(ImageNodeList(imageNodes));
-        imageNodes = [];
-      }
+      if (imageNodes.isNotEmpty) consumeImageNodes();
       result.add(block);
     }
     if (currentParagraph.isNotEmpty) consumeParagraph();
-    if (imageNodes.isNotEmpty) result.add(ImageNodeList(imageNodes));
-
+    if (imageNodes.isNotEmpty) consumeImageNodes();
     return result;
   }
 
@@ -1627,7 +1628,13 @@ class _ZulipContentParser {
 
   List<BlockContentNode> parseBlockContentList(dom.NodeList nodes) {
     final List<BlockContentNode> result = [];
+
     List<ImageNode> imageNodes = [];
+    void consumeImageNodes() {
+      result.add(ImageNodeList(imageNodes));
+      imageNodes = [];
+    }
+
     for (final node in nodes) {
       // We get a bunch of newline Text nodes between paragraphs.
       // A browser seems to ignore these; let's do the same.
@@ -1640,13 +1647,10 @@ class _ZulipContentParser {
         imageNodes.add(block);
         continue;
       }
-      if (imageNodes.isNotEmpty) {
-        result.add(ImageNodeList(imageNodes));
-        imageNodes = [];
-      }
+      if (imageNodes.isNotEmpty) consumeImageNodes();
       result.add(block);
     }
-    if (imageNodes.isNotEmpty) result.add(ImageNodeList(imageNodes));
+    if (imageNodes.isNotEmpty) consumeImageNodes();
     return result;
   }
 
