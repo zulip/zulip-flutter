@@ -815,6 +815,9 @@ enum _ParserContext {
   inline,
 }
 
+/// Parser for a complete piece of Zulip HTML content, a [ZulipContent].
+///
+/// The only entry point to this class is [parse].
 class _ZulipContentParser {
   /// The current state of what sort of nodes the parser is looking for.
   ///
@@ -1039,6 +1042,8 @@ class _ZulipContentParser {
     return nodes.map(parseInlineContent).toList(growable: false);
   }
 
+  /// Parse the children of a [BlockInlineContainerNode], making up a
+  /// complete subtree of inline content with no further inline ancestors.
   ({List<InlineContentNode> nodes, List<LinkNode>? links}) parseBlockInline(List<dom.Node> nodes) {
     assert(_debugParserContext == _ParserContext.block);
     assert(() {
@@ -1660,6 +1665,8 @@ class _ZulipContentParser {
   }
 }
 
+/// Parse a complete piece of Zulip HTML content,
+/// such as an entire value of [Message.content].
 ZulipContent parseContent(String html) {
   return _ZulipContentParser().parse(html);
 }
