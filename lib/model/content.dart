@@ -860,8 +860,11 @@ String? _parseMath(dom.Element element, {required bool block}) {
 /// instance has been reset to its starting state, and can be re-used for
 /// parsing other subtrees.
 class _ZulipInlineContentParser {
-  String? parseInlineMath(dom.Element element) {
-    return _parseMath(element, block: false);
+  InlineContentNode? parseInlineMath(dom.Element element) {
+    final debugHtmlNode = kDebugMode ? element : null;
+    final texSource = _parseMath(element, block: false);
+    if (texSource == null) return null;
+    return MathInlineNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
   }
 
   UserMentionNode? parseUserMention(dom.Element element) {
@@ -1017,9 +1020,7 @@ class _ZulipInlineContentParser {
     }
 
     if (localName == 'span' && className == 'katex') {
-      final texSource = parseInlineMath(element);
-      if (texSource == null) return unimplemented();
-      return MathInlineNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
+      return parseInlineMath(element) ?? unimplemented();
     }
 
     // TODO more types of node
@@ -1054,8 +1055,11 @@ class _ZulipContentParser {
     return inlineParser.parseBlockInline(nodes);
   }
 
-  String? parseMathBlock(dom.Element element) {
-    return _parseMath(element, block: true);
+  BlockContentNode parseMathBlock(dom.Element element) {
+    final debugHtmlNode = kDebugMode ? element : null;
+    final texSource = _parseMath(element, block: true);
+    if (texSource == null) return UnimplementedBlockContentNode(htmlNode: element);
+    return MathBlockNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
   }
 
   BlockContentNode parseListNode(dom.Element element) {
@@ -1477,9 +1481,7 @@ class _ZulipContentParser {
             // The case with the `<br>\n` can happen when at the end of a quote;
             // it seems like a glitch in the server's Markdown processing,
             // so hopefully there just aren't any further such glitches.
-            final texSource = parseMathBlock(child);
-            if (texSource == null) return UnimplementedBlockContentNode(htmlNode: node);
-            return MathBlockNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
+            return parseMathBlock(child);
           }
         }
       }
