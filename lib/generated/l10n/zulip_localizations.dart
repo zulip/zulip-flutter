@@ -619,6 +619,12 @@ abstract class ZulipLocalizations {
   /// **'Error'**
   String get errorDialogTitle;
 
+  /// Title for sharing image error dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to share the image'**
+  String get errorShareFailed;
+
   /// Button label for snack bar button that opens a dialog with more details.
   ///
   /// In en, this message translates to:
@@ -630,6 +636,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Copy link'**
   String get lightboxCopyLinkTooltip;
+
+  /// Tooltip in lightbox for the Share Image action.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Image'**
+  String get lightboxShareImageTooltip;
 
   /// Title for login page.
   ///

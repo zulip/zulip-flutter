@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
-
+import 'package:http/http.dart' as http;
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -86,6 +87,46 @@ class _CopyLinkButton extends StatelessWidget {
           successContent: Text(zulipLocalizations.successLinkCopied),
           data: ClipboardData(text: url.toString()));
       });
+  }
+}
+
+Future<XFile> _downloadImage(Uri url, Map<String, String> headers) async {
+  final response = await http.get(url, headers: headers);
+  final bytes = response.bodyBytes;
+  return XFile.fromData(bytes,
+    name: url.pathSegments.last,
+    mimeType: response.headers['content-type']);
+}
+
+class _ShareButton extends StatelessWidget {
+  const _ShareButton({required this.url});
+
+  final Uri url;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return IconButton(
+        tooltip: zulipLocalizations.lightboxShareImageTooltip,
+        icon: const Icon(Icons.share),
+    onPressed: () async {
+    try {
+    final store = PerAccountStoreWidget.of(context);
+    final headers = {
+    if (url.origin == store.account.realmUrl.origin)
+    ...authHeader(email: store.account.email, apiKey: store.account.apiKey),
+    ...userAgentHeader()
+    };
+    final xFile = await _downloadImage(url, headers);
+    await Share.shareXFiles([xFile]);
+    } catch (error) {
+      if (!context.mounted) return;
+      showErrorDialog(
+          context: context,
+          title: zulipLocalizations.errorDialogTitle,
+          message: zulipLocalizations.errorShareFailed);
+    }
+    });
   }
 }
 
@@ -261,7 +302,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
       elevation: elevation,
       child: Row(children: [
         _CopyLinkButton(url: widget.src),
-        // TODO(#43): Share image
+        _ShareButton(url: widget.src),
         // TODO(#42): Download image
       ]),
     );

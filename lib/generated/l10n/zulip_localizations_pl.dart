@@ -305,10 +305,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get errorDialogTitle => 'Błąd';
 
   @override
+  String get errorShareFailed => 'Failed to share the image';
+
+  @override
   String get snackBarDetails => 'Szczegóły';
 
   @override
   String get lightboxCopyLinkTooltip => 'Skopiuj odnośnik';
+
+  @override
+  String get lightboxShareImageTooltip => 'Share Image';
 
   @override
   String get loginPageTitle => 'Zaloguj';
