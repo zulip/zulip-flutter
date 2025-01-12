@@ -680,5 +680,13 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "actionSheetOptionMarkTopicAsRead": "Mark Topic As Read",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "errorMarkTopicAsReadFailed": "Failed to mark the topic as read. Please try again.",
+  "@errorMarkTopicAsReadFailed": {
+    "description": "Error message displayed when marking a topic as read fails."
   }
 }
