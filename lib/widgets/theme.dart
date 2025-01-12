@@ -493,5 +493,5 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 /// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
 ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
   return DesignVariables.of(context)
-    .channelColorSwatches.forBaseColor(subscription.color);
+      .channelColorSwatches.forBaseColor(subscription.color);
 }
