@@ -4,59 +4,59 @@ import 'zulip_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for French (`fr`).
-class ZulipLocalizationsFr extends ZulipLocalizations {
-  ZulipLocalizationsFr([String locale = 'fr']) : super(locale);
+/// The translations for Slovak (`sk`).
+class ZulipLocalizationsSk extends ZulipLocalizations {
+  ZulipLocalizationsSk([String locale = 'sk']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'O Zulipe';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'Verzia apliḱácie';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'Licencia open-source';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'Klepnutím zobraziť';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'Zvoliť účet';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'Zmeniť účet';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'Načítavanie vášho konta na adrese $url chvílu trvá.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'Skúsiť iný účet';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'Odhásiť sa';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'Chcete sa odhlásiť?';
 
   @override
   String get logOutConfirmationDialogMessage => 'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
 
   @override
-  String get logOutConfirmationDialogConfirmButton => 'Log out';
+  String get logOutConfirmationDialogConfirmButton => 'Odhlásiť sa';
 
   @override
-  String get chooseAccountButtonAddAnAccount => 'Add an account';
+  String get chooseAccountButtonAddAnAccount => 'Pridať účet';
 
   @override
-  String get profileButtonSendDirectMessage => 'Send direct message';
+  String get profileButtonSendDirectMessage => 'Poslať priamu správu';
 
   @override
   String get permissionsNeededTitle => 'Permissions needed';
 
   @override
-  String get permissionsNeededOpenSettings => 'Open settings';
+  String get permissionsNeededOpenSettings => 'Otvoriť nastavenia';
 
   @override
   String get permissionsDeniedCameraAccess => 'To upload an image, please grant Zulip additional permissions in Settings.';
@@ -65,46 +65,46 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'Stlmiť tému';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'Zrušiť ztlmenia témy';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'Sledovať tému';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'Prestať sledovať tému';
 
   @override
-  String get actionSheetOptionCopyMessageText => 'Copy message text';
+  String get actionSheetOptionCopyMessageText => 'Skopírovať text správy';
 
   @override
-  String get actionSheetOptionCopyMessageLink => 'Copy link to message';
+  String get actionSheetOptionCopyMessageLink => 'Skopírovať odkaz do správy';
 
   @override
-  String get actionSheetOptionMarkAsUnread => 'Mark as unread from here';
+  String get actionSheetOptionMarkAsUnread => 'Označiť ako neprečítané od tejto správy';
 
   @override
-  String get actionSheetOptionShare => 'Share';
+  String get actionSheetOptionShare => 'Zdielať';
 
   @override
-  String get actionSheetOptionQuoteAndReply => 'Quote and reply';
+  String get actionSheetOptionQuoteAndReply => 'Citovať a odpovedať';
 
   @override
-  String get actionSheetOptionStarMessage => 'Star message';
+  String get actionSheetOptionStarMessage => 'Ohviezdičkovať správu';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Unstar message';
+  String get actionSheetOptionUnstarMessage => 'Odhviezdičkovať správu';
 
   @override
-  String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
+  String get errorWebAuthOperationalErrorTitle => 'Niečo sa pokazilo';
 
   @override
-  String get errorWebAuthOperationalError => 'An unexpected error occurred.';
+  String get errorWebAuthOperationalError => 'Nastala neočakávaná chyba.';
 
   @override
-  String get errorAccountLoggedInTitle => 'Account already logged in';
+  String get errorAccountLoggedInTitle => 'Účet je už prihlásený';
 
   @override
   String errorAccountLoggedIn(String email, String server) {
@@ -112,14 +112,14 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotFetchMessageSource => 'Could not fetch message source';
+  String get errorCouldNotFetchMessageSource => 'Nepodarilo sa nahrať zdroj správy';
 
   @override
-  String get errorCopyingFailed => 'Copying failed';
+  String get errorCopyingFailed => 'Kopírovanie zlyhalo';
 
   @override
   String errorFailedToUploadFileTitle(String filename) {
-    return 'Failed to upload file: $filename';
+    return 'Nepodarilo sa nahrať súbor: $filename';
   }
 
   @override
@@ -141,58 +141,58 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       other: 'Files',
       one: 'File',
     );
-    return '$_temp0 too large';
+    return '$_temp0 príliš veľký';
   }
 
   @override
-  String get errorLoginInvalidInputTitle => 'Invalid input';
+  String get errorLoginInvalidInputTitle => 'Nesprávny vstup';
 
   @override
-  String get errorLoginFailedTitle => 'Login failed';
+  String get errorLoginFailedTitle => 'Nepodarilo sa prihlásiť';
 
   @override
-  String get errorMessageNotSent => 'Message not sent';
+  String get errorMessageNotSent => 'Správa nebola odoslaná';
 
   @override
   String errorLoginCouldNotConnect(String url) {
-    return 'Failed to connect to server:\n$url';
+    return 'Nepodarilo sa pripojiť na server:\n$url';
   }
 
   @override
-  String get errorLoginCouldNotConnectTitle => 'Could not connect';
+  String get errorLoginCouldNotConnectTitle => 'Nepodarilo sa pripojiť';
 
   @override
-  String get errorMessageDoesNotSeemToExist => 'That message does not seem to exist.';
+  String get errorMessageDoesNotSeemToExist => 'Správa zrejme neexistuje.';
 
   @override
-  String get errorQuotationFailed => 'Quotation failed';
+  String get errorQuotationFailed => 'Nepodarila sa citácia';
 
   @override
   String errorServerMessage(String message) {
-    return 'The server said:\n\n$message';
+    return 'Odozva od servera:\n\n$message';
   }
 
   @override
-  String get errorConnectingToServerShort => 'Error connecting to Zulip. Retrying…';
+  String get errorConnectingToServerShort => 'Chyba pri pripájaní na Zulip. Skúšam znovu…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to Zulip at $serverUrl. Will retry:\n\n$error';
+    return 'Nepodarilo sa pripojiť na Zulip server $serverUrl. Skúsim znovu:\n\n$error';
   }
 
   @override
-  String get errorHandlingEventTitle => 'Error handling a Zulip event. Retrying connection…';
+  String get errorHandlingEventTitle => 'Chyba pri obsluhe Zulip udalosti. Pokúšam sa znovu…';
 
   @override
   String errorHandlingEventDetails(String serverUrl, String error, String event) {
-    return 'Error handling a Zulip event from $serverUrl; will retry.\n\nError: $error\n\nEvent: $event';
+    return 'Chyba obsluhy Zulip udalosti na serveri $serverUrl; skúsim znovu.\n\nChyba: $error\n\nUdalosť: $event';
   }
 
   @override
-  String get errorMuteTopicFailed => 'Failed to mute topic';
+  String get errorMuteTopicFailed => 'Nepodarilo sa ztíšiť tému';
 
   @override
-  String get errorUnmuteTopicFailed => 'Failed to unmute topic';
+  String get errorUnmuteTopicFailed => 'Nepodarilo sa odtíšiť tému';
 
   @override
   String get errorFollowTopicFailed => 'Failed to follow topic';
@@ -293,63 +293,63 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get dialogCancel => 'Cancel';
 
   @override
-  String get dialogContinue => 'Continue';
+  String get dialogContinue => 'Pokračovať';
 
   @override
-  String get dialogClose => 'Close';
+  String get dialogClose => 'Zavrieť';
 
   @override
   String get errorDialogContinue => 'OK';
 
   @override
-  String get errorDialogTitle => 'Error';
+  String get errorDialogTitle => 'Chyba';
 
   @override
-  String get snackBarDetails => 'Details';
+  String get snackBarDetails => 'Detail';
 
   @override
-  String get lightboxCopyLinkTooltip => 'Copy link';
+  String get lightboxCopyLinkTooltip => 'Skopírovať odkaz';
 
   @override
-  String get loginPageTitle => 'Log in';
+  String get loginPageTitle => 'Prihlásiť sa';
 
   @override
-  String get loginFormSubmitLabel => 'Log in';
+  String get loginFormSubmitLabel => 'Prihlásiť sa';
 
   @override
-  String get loginMethodDivider => 'OR';
+  String get loginMethodDivider => 'alebo';
 
   @override
   String signInWithFoo(String method) {
-    return 'Sign in with $method';
+    return 'Prihlásiť sa pomocou $method';
   }
 
   @override
-  String get loginAddAnAccountPageTitle => 'Add an account';
+  String get loginAddAnAccountPageTitle => 'Pridať účet';
 
   @override
-  String get loginServerUrlInputLabel => 'Your Zulip server URL';
+  String get loginServerUrlInputLabel => 'Adresa vášho Zulip servera';
 
   @override
-  String get loginHidePassword => 'Hide password';
+  String get loginHidePassword => 'Skryť heslo';
 
   @override
-  String get loginEmailLabel => 'Email address';
+  String get loginEmailLabel => 'Emailová adresa';
 
   @override
-  String get loginErrorMissingEmail => 'Please enter your email.';
+  String get loginErrorMissingEmail => 'Prosím, vložte váš email.';
 
   @override
-  String get loginPasswordLabel => 'Password';
+  String get loginPasswordLabel => 'Heslo';
 
   @override
-  String get loginErrorMissingPassword => 'Please enter your password.';
+  String get loginErrorMissingPassword => 'Prosím zadaj heslo.';
 
   @override
-  String get loginUsernameLabel => 'Username';
+  String get loginUsernameLabel => 'Prihlasovacie meno';
 
   @override
-  String get loginErrorMissingUsername => 'Please enter your username.';
+  String get loginErrorMissingUsername => 'Prosím zadajte prihlasovacie meno.';
 
   @override
   String get topicValidationErrorTooLong => 'Topic length shouldn\'t be greater than 60 characters.';
@@ -358,125 +358,125 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
 
   @override
-  String get errorInvalidResponse => 'The server sent an invalid response';
+  String get errorInvalidResponse => 'Server poslal nesprávnu odpoveď';
 
   @override
-  String get errorNetworkRequestFailed => 'Network request failed';
+  String get errorNetworkRequestFailed => 'Zlyhala sieťová požiadavka';
 
   @override
   String errorMalformedResponse(int httpStatus) {
-    return 'Server gave malformed response; HTTP status $httpStatus';
+    return 'Server doručil zle naformátovanú odozvu; HTTP status $httpStatus';
   }
 
   @override
   String errorMalformedResponseWithCause(int httpStatus, String details) {
-    return 'Server gave malformed response; HTTP status $httpStatus; $details';
+    return 'Server doručil zle naformátovanú odpoveď; HTTP status $httpStatus; $details';
   }
 
   @override
   String errorRequestFailed(int httpStatus) {
-    return 'Network request failed: HTTP status $httpStatus';
+    return 'Zlyhala sieťová požiadavka: HTTP status $httpStatus';
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Unable to play the video';
+  String get errorVideoPlayerFailed => 'Nepodarilo sa prehrať video';
 
   @override
-  String get serverUrlValidationErrorEmpty => 'Please enter a URL.';
+  String get serverUrlValidationErrorEmpty => 'Vložte adresu.';
 
   @override
-  String get serverUrlValidationErrorInvalidUrl => 'Please enter a valid URL.';
+  String get serverUrlValidationErrorInvalidUrl => 'Vložte správnu adresu.';
 
   @override
-  String get serverUrlValidationErrorNoUseEmail => 'Please enter the server URL, not your email.';
+  String get serverUrlValidationErrorNoUseEmail => 'Vložte adresu servera, nie email.';
 
   @override
-  String get serverUrlValidationErrorUnsupportedScheme => 'The server URL must start with http:// or https://.';
+  String get serverUrlValidationErrorUnsupportedScheme => 'Adresa servera musí začínať s http:// or https://.';
 
   @override
-  String get spoilerDefaultHeaderText => 'Spoiler';
+  String get spoilerDefaultHeaderText => 'Vyzradenie';
 
   @override
-  String get markAllAsReadLabel => 'Mark all messages as read';
+  String get markAllAsReadLabel => 'Označiť všetky správy ako prečítané';
 
   @override
   String markAsReadComplete(int num) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num správy',
+      one: '1 správu',
     );
-    return 'Marked $_temp0 as read.';
+    return 'Označiť $_temp0 ako prečítanú.';
   }
 
   @override
-  String get markAsReadInProgress => 'Marking messages as read…';
+  String get markAsReadInProgress => 'Označiť správy ako prečítané…';
 
   @override
-  String get errorMarkAsReadFailedTitle => 'Mark as read failed';
+  String get errorMarkAsReadFailedTitle => 'Neodarilo sa označiť správy ako prečítané';
 
   @override
   String markAsUnreadComplete(int num) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num správ',
+      one: '1 správy',
     );
-    return 'Marked $_temp0 as unread.';
+    return 'Označiť $_temp0 ako neprečítané.';
   }
 
   @override
-  String get markAsUnreadInProgress => 'Marking messages as unread…';
+  String get markAsUnreadInProgress => 'Označiť správy ako neprečítané…';
 
   @override
-  String get errorMarkAsUnreadFailedTitle => 'Mark as unread failed';
+  String get errorMarkAsUnreadFailedTitle => 'Zlyhalo označenie správ za prečítané';
 
   @override
-  String get today => 'Today';
+  String get today => 'Dnes';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'Včera';
 
   @override
-  String get userRoleOwner => 'Owner';
+  String get userRoleOwner => 'Majiteľ';
 
   @override
-  String get userRoleAdministrator => 'Administrator';
+  String get userRoleAdministrator => 'Administrátor';
 
   @override
-  String get userRoleModerator => 'Moderator';
+  String get userRoleModerator => 'Moderátor';
 
   @override
-  String get userRoleMember => 'Member';
+  String get userRoleMember => 'Člen';
 
   @override
-  String get userRoleGuest => 'Guest';
+  String get userRoleGuest => 'Hosť';
 
   @override
-  String get userRoleUnknown => 'Unknown';
+  String get userRoleUnknown => 'Neznáma';
 
   @override
   String get inboxPageTitle => 'Inbox';
 
   @override
-  String get recentDmConversationsPageTitle => 'Direct messages';
+  String get recentDmConversationsPageTitle => 'Priama správa';
 
   @override
-  String get combinedFeedPageTitle => 'Combined feed';
+  String get combinedFeedPageTitle => 'Zlúčený kanál';
 
   @override
-  String get mentionsPageTitle => 'Mentions';
+  String get mentionsPageTitle => 'Spomenutia';
 
   @override
-  String get starredMessagesPageTitle => 'Starred messages';
+  String get starredMessagesPageTitle => 'Označené správy';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Kanály';
 
   @override
-  String get mainMenuMyProfile => 'My profile';
+  String get mainMenuMyProfile => 'Môj profil';
 
   @override
   String get channelFeedButtonTooltip => 'Channel feed';
@@ -493,48 +493,48 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
-  String get notifSelfUser => 'You';
+  String get notifSelfUser => 'Ty';
 
   @override
   String onePersonTyping(String typist) {
-    return '$typist is typing…';
+    return '$typist píše…';
   }
 
   @override
   String twoPeopleTyping(String typist, String otherTypist) {
-    return '$typist and $otherTypist are typing…';
+    return '$typist a $otherTypist píšu…';
   }
 
   @override
-  String get manyPeopleTyping => 'Several people are typing…';
+  String get manyPeopleTyping => 'Niekoľko ludí píše…';
 
   @override
-  String get messageIsEditedLabel => 'EDITED';
+  String get messageIsEditedLabel => 'UPRAVENÉ';
 
   @override
-  String get messageIsMovedLabel => 'MOVED';
+  String get messageIsMovedLabel => 'PRESUNUTÉ';
 
   @override
-  String get pollWidgetQuestionMissing => 'No question.';
+  String get pollWidgetQuestionMissing => 'Bez otázky.';
 
   @override
   String get pollWidgetOptionsMissing => 'This poll has no options yet.';
 
   @override
-  String get errorNotificationOpenTitle => 'Failed to open notification';
+  String get errorNotificationOpenTitle => 'Nepodarilo sa otvoriť oznámenie';
 
   @override
   String get errorNotificationOpenAccountMissing => 'The account associated with this notification no longer exists.';
 
   @override
-  String get errorReactionAddingFailedTitle => 'Adding reaction failed';
+  String get errorReactionAddingFailedTitle => 'Nepodarilo sa pridať reakciu';
 
   @override
-  String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
+  String get errorReactionRemovingFailedTitle => 'Odobranie reakcie zlyhalo';
 
   @override
-  String get emojiReactionsMore => 'more';
+  String get emojiReactionsMore => 'viac';
 
   @override
-  String get emojiPickerSearchEmoji => 'Search emoji';
+  String get emojiPickerSearchEmoji => 'Hľadať emotikon';
 }
