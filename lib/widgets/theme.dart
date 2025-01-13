@@ -30,7 +30,7 @@ ThemeData zulipThemeData(BuildContext context) {
       themeExtensions = [
         ContentTheme.light(context),
         designVariables,
-        EmojiReactionTheme.light(),
+        EmojiReactionTheme.light,
         MessageListTheme.light,
       ];
     }
@@ -39,7 +39,7 @@ ThemeData zulipThemeData(BuildContext context) {
       themeExtensions = [
         ContentTheme.dark(context),
         designVariables,
-        EmojiReactionTheme.dark(),
+        EmojiReactionTheme.dark,
         MessageListTheme.dark,
       ];
     }
