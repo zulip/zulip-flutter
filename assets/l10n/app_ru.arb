@@ -139,12 +139,642 @@
   "@errorUnstarMessageFailedTitle": {
     "description": "Error title when unstarring a message failed."
   },
-  "serverUrlValidationErrorUnsupportedScheme": "URL сервера должен начинаться с http:// или https://.",
+  "serverUrlValidationErrorUnsupportedScheme": "URL-адрес сервера должен начинаться с http:// или https://.",
   "@serverUrlValidationErrorUnsupportedScheme": {
     "description": "Error message when URL has an unsupported scheme."
   },
   "starredMessagesPageTitle": "Отмеченные сообщения",
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
+  },
+  "errorLoginInvalidInputTitle": "Неверный ввод",
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "tryAnotherAccountButton": "Попробовать другую учетную запись",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "errorQuotationFailed": "Цитирование не удалось",
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "errorFilesTooLargeTitle": "Слишком большой размер {num, plural, =1{файла} other{файлов}}",
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "composeBoxSelfDmContentHint": "Сделать заметку",
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
+  "composeBoxGroupDmContentHint": "Сообщение для группы",
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
+  "contentValidationErrorEmpty": "Нечего отправлять!",
+  "@contentValidationErrorEmpty": {
+    "description": "Content validation error message when the message is empty."
+  },
+  "loginPageTitle": "Вход в систему",
+  "@loginPageTitle": {
+    "description": "Title for login page."
+  },
+  "loginFormSubmitLabel": "Войти",
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
+  },
+  "loginMethodDivider": "ИЛИ",
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "signInWithFoo": "Войти с помощью {method}",
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {
+        "type": "String",
+        "example": "Google"
+      }
+    }
+  },
+  "loginAddAnAccountPageTitle": "Добавление учетной записи",
+  "@loginAddAnAccountPageTitle": {
+    "description": "Title for page to add a Zulip account."
+  },
+  "loginServerUrlInputLabel": "URL вашего сервера Zulip",
+  "@loginServerUrlInputLabel": {
+    "description": "Input label in login page for Zulip server URL entry."
+  },
+  "loginHidePassword": "Скрыть пароль",
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "loginEmailLabel": "Адрес почты",
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to log in."
+  },
+  "loginErrorMissingEmail": "Пожалуйста, введите ваш адрес электронной почты.",
+  "@loginErrorMissingEmail": {
+    "description": "Error message when an empty email was provided."
+  },
+  "topicValidationErrorMandatoryButEmpty": "Темы обязательны в этой организации.",
+  "@topicValidationErrorMandatoryButEmpty": {
+    "description": "Topic validation error when topic is required but was empty."
+  },
+  "errorNetworkRequestFailed": "Сбой сетевого запроса",
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "errorMalformedResponseWithCause": "Сервер вернул некорректный ответ; HTTP-статус {httpStatus}; {details}",
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      },
+      "details": {
+        "type": "String",
+        "example": "type 'Null' is not a subtype of type 'String' in type cast"
+      }
+    }
+  },
+  "spoilerDefaultHeaderText": "Спойлер",
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "markAllAsReadLabel": "Отметить все сообщения как прочитанные",
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
+  },
+  "markAsReadComplete": "Отметка прочтения установлена для {num, plural, =1{1 сообщения} other{{num} шт. сообщений}}.",
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "markAsReadInProgress": "Помечаем сообщения как прочитанные…",
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "errorMarkAsReadFailedTitle": "Не удалось установить отметку прочтения",
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
+  },
+  "userRoleOwner": "Владелец",
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "userRoleAdministrator": "Администратор",
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "userRoleModerator": "Модератор",
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "errorNotificationOpenTitle": "Не удалось открыть оповещения",
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "errorNotificationOpenAccountMissing": "Учетной записи, связанной с этим оповещением, больше нет.",
+  "@errorNotificationOpenAccountMissing": {
+    "description": "Error message when the account associated with the notification is not found"
+  },
+  "switchAccountButton": "Сменить учетную запись",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "tryAnotherAccountMessage": "Ваша учетная запись на {url} загружается медленно.",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "type": "String",
+      "example": "http://chat.example.com/"
+    }
+  },
+  "actionSheetOptionMuteTopic": "Отключить тему",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "Включить тему",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "errorLoginFailedTitle": "Не удалось войти в систему",
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorLoginCouldNotConnect": "Не удалось подключиться к серверу:\n{url}",
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://example.com/"
+      }
+    }
+  },
+  "errorLoginCouldNotConnectTitle": "Не удалось подключиться",
+  "@errorLoginCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "errorMessageDoesNotSeemToExist": "Это сообщение, похоже, отсутствует.",
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "errorServerMessage": "Ответ сервера:\n\n{message}",
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorConnectingToServerShort": "Ошибка подключения к Zulip. Повторяем попытку…",
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "errorConnectingToServerDetails": "Ошибка подключения к Zulip на {serverUrl}. Повторим попытку:\n\n{error}",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "http://example.com/"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorMuteTopicFailed": "Не удалось отключить тему",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "errorUnfollowTopicFailed": "Не удалось прекратить отслеживать тему",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "composeBoxGenericContentHint": "Ввести сообщение",
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
+  "composeBoxChannelContentHint": "Сообщение для #{channel} > {topic}",
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "channel name"
+      },
+      "topic": {
+        "type": "String",
+        "example": "topic name"
+      }
+    }
+  },
+  "composeBoxSendTooltip": "Отправить",
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "composeBoxTopicHintText": "Тема",
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
+  },
+  "messageListGroupYouWithYourself": "Вы с собой",
+  "@messageListGroupYouWithYourself": {
+    "description": "Message list recipient header for a DM group that only includes yourself."
+  },
+  "contentValidationErrorTooLong": "Длина сообщения не должна превышать 10000 символов.",
+  "@contentValidationErrorTooLong": {
+    "description": "Content validation error message when the message is too long."
+  },
+  "errorDialogTitle": "Ошибка",
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
+  "serverUrlValidationErrorNoUseEmail": "Пожалуйста, введите URL-адрес сервера, а не свой email.",
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "errorVideoPlayerFailed": "Не удается воспроизвести видео",
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
+  "inboxPageTitle": "Входящие",
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "dialogClose": "Закрыть",
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "snackBarDetails": "Подробности",
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "errorMalformedResponse": "Сервер вернул некорректный ответ; HTTP-статус {httpStatus}",
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse the response.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      }
+    }
+  },
+  "today": "Сегодня",
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "userRoleUnknown": "Неизвестно",
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "combinedFeedPageTitle": "Объединенная лента",
+  "@combinedFeedPageTitle": {
+    "description": "Page title for the 'Combined feed' message view."
+  },
+  "twoPeopleTyping": "{typist} и {otherTypist} набирают сообщения…",
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "otherTypist": {
+        "type": "String",
+        "example": "Bob"
+      }
+    }
+  },
+  "manyPeopleTyping": "Несколько человек набирают сообщения…",
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
+  },
+  "messageIsEditedLabel": "ИЗМЕНЕНО",
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "errorReactionAddingFailedTitle": "Не удалось добавить реакцию",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorReactionRemovingFailedTitle": "Не удалось удалить реакцию",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "emojiReactionsMore": "еще",
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "emojiPickerSearchEmoji": "Поиск эмодзи",
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "errorMarkAsUnreadFailedTitle": "Не удалось снять отметку прочтения",
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
+  },
+  "actionSheetOptionFollowTopic": "Отслеживать тему",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "actionSheetOptionUnfollowTopic": "Не отслеживать тему",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "errorFilesTooLarge": "Размер {num, plural, =1{файла} other{{num} файлов}} превышает предел для сервера {maxFileUploadSizeMib} МиБ, загрузка невозможна:\n\n{listMessage}",
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "2"
+      },
+      "maxFileUploadSizeMib": {
+        "type": "int",
+        "example": "15"
+      },
+      "listMessage": {
+        "type": "String",
+        "example": "foo.txt\nbar.txt"
+      }
+    }
+  },
+  "errorHandlingEventDetails": "Ошибка обработки события Zulip от {serverUrl}; повторим попытку.\n\nОшибка: {error}\n\nСобытие: {event}",
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      },
+      "error": {
+        "type": "String",
+        "example": "Unexpected null value"
+      },
+      "event": {
+        "type": "String",
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"
+      }
+    }
+  },
+  "errorHandlingEventTitle": "Ошибка обработки события Zulip. Повторная попытка соединения…",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "successMessageTextCopied": "Текст сообщения скопирован",
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "errorInvalidResponse": "Получен недопустимый ответ сервера",
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
+  "successMessageLinkCopied": "Ссылка на сообщение скопирована",
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "contentValidationErrorQuoteAndReplyInProgress": "Пожалуйста, дождитесь завершения цитирования.",
+  "@contentValidationErrorQuoteAndReplyInProgress": {
+    "description": "Content validation error message when a quotation has not completed yet."
+  },
+  "unknownUserName": "(неизвестный пользователь)",
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "errorDialogContinue": "OK",
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "errorUnmuteTopicFailed": "Не удалось включить тему",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "errorFollowTopicFailed": "Не удалось начать отслеживать тему",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "composeBoxUnknownChannelName": "(неизвестный канал)",
+  "@composeBoxUnknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "dialogContinue": "Продолжить",
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "composeBoxUploadingFilename": "Загрузка {filename}…",
+  "@composeBoxUploadingFilename": {
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "messageListGroupYouAndOthers": "Вы и {others}",
+  "@messageListGroupYouAndOthers": {
+    "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "markAsUnreadComplete": "Отметка прочтения снята для {num, plural, =1{1 сообщения} other{{num} шт. сообщений}}.",
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "markAsUnreadInProgress": "Помечаем сообщения как непрочитанные…",
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "channelsPageTitle": "Каналы",
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "pollWidgetQuestionMissing": "Нет вопроса.",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "userRoleGuest": "Гость",
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "channelFeedButtonTooltip": "Лента канала",
+  "@channelFeedButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "messageIsMovedLabel": "ПЕРЕМЕЩЕНО",
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "onePersonTyping": "{typist} набирает сообщение…",
+  "@onePersonTyping": {
+    "description": "Text to display when there is one user typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "contentValidationErrorUploadInProgress": "Пожалуйста, дождитесь завершения загрузки.",
+  "@contentValidationErrorUploadInProgress": {
+    "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "dialogCancel": "Отмена",
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "lightboxCopyLinkTooltip": "Скопировать ссылку",
+  "@lightboxCopyLinkTooltip": {
+    "description": "Tooltip in lightbox for the copy link action."
+  },
+  "recentDmConversationsPageTitle": "Личные сообщения",
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page with a list of DM conversations."
+  },
+  "mainMenuMyProfile": "Мой профиль",
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "errorRequestFailed": "Сбой сетевого запроса: HTTP-статус {httpStatus}",
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  "userRoleMember": "Участник",
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "yesterday": "Вчера",
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "errorSharingFailed": "Не удалось поделиться",
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
+  "successLinkCopied": "Ссылка скопирована",
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "composeBoxAttachFilesTooltip": "Прикрепить файлы",
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
+  },
+  "errorBannerDeactivatedDmLabel": "Нельзя отправить сообщение отключенным пользователям.",
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
+  "errorBannerCannotPostInChannelLabel": "У вас нет права писать в этом канале.",
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "composeBoxAttachFromCameraTooltip": "Сделать снимок",
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "composeBoxAttachMediaTooltip": "Прикрепить изображения или видео",
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
+  "composeBoxDmContentHint": "Сообщение для @{user}",
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {
+        "type": "String",
+        "example": "channel name"
+      }
+    }
+  },
+  "loginErrorMissingUsername": "Пожалуйста, введите ваше имя пользователя.",
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
+  },
+  "loginPasswordLabel": "Пароль",
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "loginErrorMissingPassword": "Пожалуйста, введите пароль.",
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "loginUsernameLabel": "Имя пользователя",
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
+  "topicValidationErrorTooLong": "Длина темы не должна превышать 60 символов.",
+  "@topicValidationErrorTooLong": {
+    "description": "Topic validation error when topic is too long."
+  },
+  "serverUrlValidationErrorEmpty": "Пожалуйста, введите URL-адрес.",
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "serverUrlValidationErrorInvalidUrl": "Пожалуйста, введите корректный URL-адрес.",
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "mentionsPageTitle": "Упоминания",
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "notifGroupDmConversationLabel": "{senderFullName} вам и еще {numOthers, plural, =1{1 чел.} other{{numOthers} чел.}}",
+  "@notifGroupDmConversationLabel": {
+    "description": "Label for a group DM conversation notification.",
+    "placeholders": {
+      "senderFullName": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "numOthers": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "notifSelfUser": "Вы",
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "pollWidgetOptionsMissing": "В опросе пока нет вариантов ответа.",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
+  },
+  "errorMessageNotSent": "Сообщение не отправлено",
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
   }
 }

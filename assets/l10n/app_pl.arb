@@ -696,5 +696,85 @@
   "userRoleModerator": "Moderator",
   "@userRoleModerator": {
     "description": "Label for UserRole.moderator"
+  },
+  "actionSheetOptionMuteTopic": "Wycisz wątek",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "Wznów wątek",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "actionSheetOptionFollowTopic": "Śledź wątek",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "actionSheetOptionUnfollowTopic": "Nie śledź wątku",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "switchAccountButton": "Przełącz konto",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "tryAnotherAccountMessage": "Twoje konto na {url} wymaga jeszcze chwili na załadowanie.",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "type": "String",
+      "example": "http://chat.example.com/"
+    }
+  },
+  "tryAnotherAccountButton": "Sprawdź inne konto",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "errorFollowTopicFailed": "Śledzenie bez powodzenia",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "inboxPageTitle": "Odebrane",
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "channelsPageTitle": "Kanały",
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "emojiReactionsMore": "więcej",
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "emojiPickerSearchEmoji": "Szukaj emoji",
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "dialogClose": "Zamknij",
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "errorReactionRemovingFailedTitle": "Usuwanie reakcji bez powodzenia",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "errorReactionAddingFailedTitle": "Dodanie reakcji bez powodzenia",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorMuteTopicFailed": "Wyciszenie bez powodzenia",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "mainMenuMyProfile": "Mój profil",
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "errorUnfollowTopicFailed": "Nie śledź bez powodzenia",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "errorUnmuteTopicFailed": "Wznowienie bez powodzenia",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
   }
 }
