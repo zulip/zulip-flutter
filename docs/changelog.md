@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* The combined feed is now conveniently accessible from the app's main
+  navigation bar. (#1164)
+* Messages with @-topic mentions now show them properly. (#892)
+* The lightbox now shows the sender's avatar. (#41)
+* The About Zulip screen is now available from the main menu. (#1128)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Resolved in main: #892, #1177, #1164, #1177, #1128, #1189, #1116,
+  #739, #41
+
 
 ## 0.0.24 (2024-12-11)
 
