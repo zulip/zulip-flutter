@@ -399,6 +399,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     timeSensitive: AppleNotificationSetting.disabled,
     criticalAlert: AppleNotificationSetting.disabled,
     sound: AppleNotificationSetting.enabled,
+    providesAppNotificationSettings: AppleNotificationSetting.disabled,
   );
 
   List<FirebaseMessagingRequestPermissionCall> takeRequestPermissionCalls() {
@@ -417,6 +418,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     bool criticalAlert = false,
     bool provisional = false,
     bool sound = true,
+    bool providesAppNotificationSettings = false,
   }) async {
     _requestPermissionCalls.add((
       alert: alert,
@@ -426,6 +428,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
       criticalAlert: criticalAlert,
       provisional: provisional,
       sound: sound,
+      providesAppNotificationSettings: providesAppNotificationSettings,
     ));
     return requestPermissionResult;
   }
@@ -506,6 +509,7 @@ typedef FirebaseMessagingRequestPermissionCall = ({
   bool criticalAlert,
   bool provisional,
   bool sound,
+  bool providesAppNotificationSettings,
 });
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
