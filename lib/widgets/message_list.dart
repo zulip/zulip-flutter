@@ -27,56 +27,54 @@ import 'theme.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
-  MessageListTheme.light() :
-    this._(
-      dateSeparator: Colors.black,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
-      senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
-      streamMessageBgDefault: Colors.white,
-      streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
+  static final light = MessageListTheme._(
+    dateSeparator: Colors.black,
+    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+    dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
+    recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
+    senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
+    streamMessageBgDefault: Colors.white,
+    streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
-      // From the Figma mockup at:
-      //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
-      // See discussion about design at:
-      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
-      // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
-      // in both light and dark theme.)
-      unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+    // From the Figma mockup at:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
+    // See discussion about design at:
+    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+    // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
+    // in both light and dark theme.)
+    unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
+    unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
 
-      // TODO(design) this seems ad-hoc; is there a better color?
-      unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
-    );
+    // TODO(design) this seems ad-hoc; is there a better color?
+    unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
+  );
 
-  MessageListTheme.dark() :
-    this._(
-      dateSeparator: Colors.white,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
-      senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-      senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
-      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
+  static final dark = MessageListTheme._(
+    dateSeparator: Colors.white,
+    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+    dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
+    recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
+    senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
+    senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
+    streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
-      // 0.75 opacity from here:
-      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
-      // Discussion, some weeks after the discussion linked on the light variant:
-      //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
-      // where Vlad includes screenshots that look like they're from there.
-      unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
+    // 0.75 opacity from here:
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
+    // Discussion, some weeks after the discussion linked on the light variant:
+    //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+    // where Vlad includes screenshots that look like they're from there.
+    unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.transparent,
+    unreadMarkerGap: Colors.transparent,
 
-      // TODO(design) this is ad-hoc and untested; is there a better color?
-      unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
-    );
+    // TODO(design) this is ad-hoc and untested; is there a better color?
+    unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
+  );
 
   MessageListTheme._({
     required this.dateSeparator,
