@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.25 (2025-01-13)
+
 ### Highlights for users
 
 * The combined feed is now conveniently accessible from the app's main
