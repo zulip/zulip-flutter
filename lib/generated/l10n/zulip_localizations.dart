@@ -9,6 +9,7 @@ import 'zulip_localizations_ar.dart';
 import 'zulip_localizations_en.dart';
 import 'zulip_localizations_fr.dart';
 import 'zulip_localizations_ja.dart';
+import 'zulip_localizations_nb.dart';
 import 'zulip_localizations_pl.dart';
 import 'zulip_localizations_ru.dart';
 
@@ -99,6 +100,7 @@ abstract class ZulipLocalizations {
     Locale('ar'),
     Locale('fr'),
     Locale('ja'),
+    Locale('nb'),
     Locale('pl'),
     Locale('ru')
   ];
@@ -1025,7 +1027,7 @@ class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizatio
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['ar', 'en', 'fr', 'ja', 'pl', 'ru'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'en', 'fr', 'ja', 'nb', 'pl', 'ru'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_ZulipLocalizationsDelegate old) => false;
@@ -1040,6 +1042,7 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
     case 'en': return ZulipLocalizationsEn();
     case 'fr': return ZulipLocalizationsFr();
     case 'ja': return ZulipLocalizationsJa();
+    case 'nb': return ZulipLocalizationsNb();
     case 'pl': return ZulipLocalizationsPl();
     case 'ru': return ZulipLocalizationsRu();
   }
