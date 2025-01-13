@@ -207,17 +207,17 @@ void main() {
       return widget.color;
     }
 
-    check(backgroundColor()).isSameColorAs(MessageListTheme.light().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.light.streamMessageBgDefault);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
-    final expectedLerped = MessageListTheme.light().lerp(MessageListTheme.dark(), 0.4);
+    final expectedLerped = MessageListTheme.light.lerp(MessageListTheme.dark, 0.4);
     check(backgroundColor()).isSameColorAs(expectedLerped.streamMessageBgDefault);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor()).isSameColorAs(MessageListTheme.dark().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.dark.streamMessageBgDefault);
   });
 
   group('fetch older messages on scroll', () {
