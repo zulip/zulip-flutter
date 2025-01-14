@@ -5,6 +5,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:video_player/video_player.dart';
@@ -249,7 +250,90 @@ void main() {
           matching: find.textContaining(findRichText: true,
             eg.otherUser.fullName)));
       check(labelTextWidget.text.toPlainText())
-        .contains('Jul 23, 2024 23:12:24');
+        .contains('Jul 23, 2024 at 11:12 PM');
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('app bar shows localized timestamp: a few seconds ago', (tester) async {
+      prepareBoringImageHttpClient();
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final timestamp = DateTime.now().subtract(const Duration(seconds: 30)).millisecondsSinceEpoch ~/ 1000;
+      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final labelTextWidget = tester.widget<RichText>(
+        find.descendant(of: find.byType(AppBar).last,
+          matching: find.textContaining(findRichText: true,
+            eg.otherUser.fullName)));
+
+      check(labelTextWidget.text.toPlainText())
+          .contains(zulipLocalizations.aFewSecondsAgo);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('app bar shows localized timestamp: [mintues] minutes ago', (tester) async {
+      prepareBoringImageHttpClient();
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final timestamp = DateTime.now().subtract(const Duration(minutes: 5)).millisecondsSinceEpoch ~/ 1000;
+      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final labelTextWidget = tester.widget<RichText>(
+        find.descendant(of: find.byType(AppBar).last,
+          matching: find.textContaining(findRichText: true,
+            eg.otherUser.fullName)));
+
+      check(labelTextWidget.text.toPlainText())
+          .contains(zulipLocalizations.minutesAgo(5));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('app bar shows localized timestamp: yesterday at [time]', (tester) async {
+      prepareBoringImageHttpClient();
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final now = DateTime.now();
+      final yesterday = now.subtract(const Duration(days: 1));
+      final timestamp = yesterday.millisecondsSinceEpoch ~/ 1000;
+      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final yesterdayAtTime = zulipLocalizations.yesterdayAt(
+        DateFormat.jm(zulipLocalizations.localeName).format(yesterday),
+      );
+
+      final labelTextWidget = tester.widget<RichText>(
+          find.descendant(of: find.byType(AppBar).last,
+            matching: find.textContaining(findRichText: true,
+              eg.otherUser.fullName)));
+
+      check(labelTextWidget.text.toPlainText())
+          .contains(yesterdayAtTime);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('app bar shows localized timestamp: today at [time]', (tester) async {
+      prepareBoringImageHttpClient();
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final now = DateTime.now();
+      final localTimeToday = now.subtract(const Duration(hours: 1));
+      final timestamp = localTimeToday.millisecondsSinceEpoch ~/ 1000;
+      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final todayAtTime = zulipLocalizations.todayAt(
+        DateFormat.jm(zulipLocalizations.localeName).format(localTimeToday),
+      );
+
+      final labelTextWidget = tester.widget<RichText>(
+          find.descendant(of: find.byType(AppBar).last,
+            matching: find.textContaining(findRichText: true,
+              eg.otherUser.fullName)));
+
+      check(labelTextWidget.text.toPlainText()).contains(todayAtTime);
 
       debugNetworkImageHttpClientProvider = null;
     });

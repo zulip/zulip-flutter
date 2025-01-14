@@ -1016,6 +1016,42 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Message displayed when the difference between the current time and the given time is less than 60 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'A few seconds ago'**
+  String get aFewSecondsAgo;
+
+  /// Message displayed when the difference between the current time and the given time is exactly 1 minute.
+  ///
+  /// In en, this message translates to:
+  /// **'1 minute ago'**
+  String get oneMinuteAgo;
+
+  /// Message displayed when the difference between the current time and the given time is in minutes. The placeholder {minutes} will be replaced with the actual number of minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes ago'**
+  String minutesAgo(Object minutes);
+
+  /// Message displayed when the given time is from today. The placeholder {time} will be replaced with the formatted time.
+  ///
+  /// In en, this message translates to:
+  /// **'Today at {time}'**
+  String todayAt(Object time);
+
+  /// Message displayed when the given time is from yesterday. The placeholder {time} will be replaced with the formatted time.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday at {time}'**
+  String yesterdayAt(Object time);
+
+  /// Message displayed when the given time is older than yesterday. The placeholder {date} will be replaced with the formatted date and {time} with the formatted time.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} at {time}'**
+  String dateAtTime(Object date, Object time);
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

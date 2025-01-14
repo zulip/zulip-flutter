@@ -537,4 +537,30 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get aFewSecondsAgo => 'A few seconds ago';
+
+  @override
+  String get oneMinuteAgo => '1 minute ago';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '$minutes minutes ago';
+  }
+
+  @override
+  String todayAt(Object time) {
+    return 'Today at $time';
+  }
+
+  @override
+  String yesterdayAt(Object time) {
+    return 'Yesterday at $time';
+  }
+
+  @override
+  String dateAtTime(Object date, Object time) {
+    return '$date at $time';
+  }
 }
