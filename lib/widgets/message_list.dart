@@ -13,7 +13,6 @@ import '../model/store.dart';
 import '../model/typing_status.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
-import 'app_bar.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
@@ -235,7 +234,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    // ignore: unused_local_variable
     final Color? appBarBackgroundColor;
+    // ignore: unused_local_variable
     bool removeAppBarBottomBorder = false;
     switch(narrow) {
       case CombinedFeedNarrow():
@@ -273,14 +274,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     }
 
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: MessageListAppBarTitle(narrow: narrow),
-        actions: actions,
-        backgroundColor: appBarBackgroundColor,
-        shape: removeAppBarBottomBorder
-          ? const Border()
-          : null, // i.e., inherit
-      ),
+
       // TODO question for Vlad: for a stream view, should we set the Scaffold's
       //   [backgroundColor] based on stream color, as in this frame:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev

@@ -24,6 +24,7 @@ import 'theme.dart';
 
 enum _HomePageTab {
   inbox,
+  combinedFeed,
   channels,
   directMessages,
 }
@@ -75,6 +76,8 @@ class _HomePageState extends State<HomePage> {
     switch(_tab.value) {
       case _HomePageTab.inbox:
         return zulipLocalizations.inboxPageTitle;
+      case _HomePageTab.combinedFeed:
+        return zulipLocalizations.combinedFeedPageTitle;
       case _HomePageTab.channels:
         return zulipLocalizations.channelsPageTitle;
       case _HomePageTab.directMessages:
@@ -84,11 +87,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    const pageBodies = [
-      (_HomePageTab.inbox,          InboxPageBody()),
-      (_HomePageTab.channels,       SubscriptionListPageBody()),
+    final pageBodies = [
+      (_HomePageTab.inbox,          const InboxPageBody()),
+      (_HomePageTab.combinedFeed,   const MessageListPage(initNarrow: CombinedFeedNarrow())),
+      (_HomePageTab.channels,       const SubscriptionListPageBody()),
       // TODO(#1094): Users
-      (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
+      (_HomePageTab.directMessages, const RecentDmConversationsPageBody()),
     ];
 
     _NavigationBarButton button(_HomePageTab tab, IconData icon) {
@@ -102,11 +106,7 @@ class _HomePageState extends State<HomePage> {
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
       button(_HomePageTab.inbox,          ZulipIcons.inbox),
-      _NavigationBarButton(         icon: ZulipIcons.message_feed,
-        selected: false,
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: const CombinedFeedNarrow()))),
+      button(_HomePageTab.combinedFeed,   ZulipIcons.message_feed),
       button(_HomePageTab.channels,       ZulipIcons.hash_italic),
       // TODO(#1094): Users
       button(_HomePageTab.directMessages, ZulipIcons.user),
@@ -259,7 +259,7 @@ void _showMainMenu(BuildContext context, {
     // TODO: Recent conversations
     const _MentionsButton(),
     const _StarredMessagesButton(),
-    const _CombinedFeedButton(),
+    _CombinedFeedButton(tabNotifier: tabNotifier),
     // TODO: Drafts
     _ChannelsButton(tabNotifier: tabNotifier),
     _DirectMessagesButton(tabNotifier: tabNotifier),
@@ -464,8 +464,8 @@ class _StarredMessagesButton extends _MenuButton {
   }
 }
 
-class _CombinedFeedButton extends _MenuButton {
-  const _CombinedFeedButton();
+class _CombinedFeedButton extends _NavigationBarMenuButton {
+  const _CombinedFeedButton({required super.tabNotifier});
 
   @override
   IconData get icon => ZulipIcons.message_feed;
@@ -476,10 +476,7 @@ class _CombinedFeedButton extends _MenuButton {
   }
 
   @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: const CombinedFeedNarrow()));
-  }
+  _HomePageTab get navigationTarget => _HomePageTab.combinedFeed;
 }
 
 class _ChannelsButton extends _NavigationBarMenuButton {
