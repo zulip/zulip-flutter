@@ -204,7 +204,7 @@ class NotificationChannelManager {
 
     await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
-      name: 'Messages', // TODO(i18n)
+      name: 'Messages', // TODO(#1284)
       importance: NotificationImportance.high,
       lightsEnabled: true,
       soundUrl: defaultSoundUrl,
