@@ -150,7 +150,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgSearchInput: const Color(0xffe3e3e3),
     textMessage: const Color(0xff262626),
     channelColorSwatches: ChannelColorSwatches.light,
-    colorMessageHeaderIconInteractive: Colors.black.withValues(alpha: 0.2),
     contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
@@ -202,7 +201,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    colorMessageHeaderIconInteractive: Colors.white.withValues(alpha: 0.2),
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
@@ -256,7 +254,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgSearchInput,
     required this.textMessage,
     required this.channelColorSwatches,
-    required this.colorMessageHeaderIconInteractive,
     required this.contextMenuCancelBg,
     required this.contextMenuCancelPressedBg,
     required this.dmHeaderBg,
@@ -318,7 +315,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final ChannelColorSwatches channelColorSwatches;
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
-  final Color colorMessageHeaderIconInteractive;
   final Color contextMenuCancelBg; // In Figma, but unnamed.
   final Color contextMenuCancelPressedBg; // In Figma, but unnamed.
   final Color dmHeaderBg;
@@ -367,7 +363,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgSearchInput,
     Color? textMessage,
     ChannelColorSwatches? channelColorSwatches,
-    Color? colorMessageHeaderIconInteractive,
     Color? contextMenuCancelBg,
     Color? contextMenuCancelPressedBg,
     Color? dmHeaderBg,
@@ -415,7 +410,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       textMessage: textMessage ?? this.textMessage,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
-      colorMessageHeaderIconInteractive: colorMessageHeaderIconInteractive ?? this.colorMessageHeaderIconInteractive,
       contextMenuCancelBg: contextMenuCancelBg ?? this.contextMenuCancelBg,
       contextMenuCancelPressedBg: contextMenuCancelPressedBg ?? this.contextMenuCancelPressedBg,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
@@ -470,7 +464,6 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       textMessage: Color.lerp(textMessage, other.textMessage, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
-      colorMessageHeaderIconInteractive: Color.lerp(colorMessageHeaderIconInteractive, other.colorMessageHeaderIconInteractive, t)!,
       contextMenuCancelBg: Color.lerp(contextMenuCancelBg, other.contextMenuCancelBg, t)!,
       contextMenuCancelPressedBg: Color.lerp(contextMenuCancelPressedBg, other.contextMenuCancelPressedBg, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,

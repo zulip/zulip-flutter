@@ -14,6 +14,7 @@ import '../model/typing_status.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
+import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
@@ -373,8 +374,7 @@ class MessageListAppBarTitle extends StatelessWidget {
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 4),
             child: Icon(icon,
-              // TODO(design) copies the recipient header in web; is there a better color?
-              color: designVariables.colorMessageHeaderIconInteractive, size: 14)),
+              color: designVariables.title.withFadedAlpha(0.5), size: 14)),
       ]);
   }
 
@@ -1125,8 +1125,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: recipientHeaderTextStyle(context))),
           const SizedBox(width: 4),
-          // TODO(design) copies the recipient header in web; is there a better color?
-          Icon(size: 14, color: designVariables.colorMessageHeaderIconInteractive,
+          Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
               store.topicVisibilityPolicy(message.streamId, topic))),
