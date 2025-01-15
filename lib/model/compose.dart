@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'internal_link.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -136,7 +137,9 @@ String inlineLink(String visibleText, Uri? destination) {
 }
 
 /// What we show while fetching the target message's raw Markdown.
-String quoteAndReplyPlaceholder(PerAccountStore store, {
+String quoteAndReplyPlaceholder(
+  ZulipLocalizations zulipLocalizations,
+  PerAccountStore store, {
   required Message message,
 }) {
   final sender = store.users[message.senderId];
@@ -146,7 +149,7 @@ String quoteAndReplyPlaceholder(PerAccountStore store, {
     nearMessageId: message.id);
   // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
   return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(#1285)
-    '*(loading message ${message.id})*\n'; // TODO(i18n) ?
+    '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
 /// Quote-and-reply syntax.

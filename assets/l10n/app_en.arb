@@ -351,6 +351,13 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "composeBoxLoadingMessage": "(loading message {messageId})",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {"type": "int", "example": "1234"}
+    }
+  },
   "unknownUserName": "(unknown user)",
   "@unknownUserName": {
     "description": "Name placeholder to use for a user when we don't know their name."
