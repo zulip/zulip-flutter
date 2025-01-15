@@ -587,6 +587,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get messageIsMovedLabel => 'ПЕРЕМЕЩЕНО';
 
   @override
+  String pollVoterNames(String voterNames) {
+    return '($voterNames)';
+  }
+
+  @override
   String get pollWidgetQuestionMissing => 'Нет вопроса.';
 
   @override

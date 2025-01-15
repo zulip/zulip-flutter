@@ -1101,6 +1101,12 @@ abstract class ZulipLocalizations {
   /// **'MOVED'**
   String get messageIsMovedLabel;
 
+  /// The list of people who voted for a poll option, wrapped in parentheses.
+  ///
+  /// In en, this message translates to:
+  /// **'({voterNames})'**
+  String pollVoterNames(String voterNames);
+
   /// Text to display for a poll when the question is missing
   ///
   /// In en, this message translates to:

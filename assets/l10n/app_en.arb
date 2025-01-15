@@ -746,6 +746,13 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {"type":  "String", "example": "Alice, Bob, Chad"}
+    }
+  },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"
