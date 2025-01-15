@@ -506,6 +506,23 @@ class ContentExample {
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda')]);
 
+  static const mathBlocksMultipleInParagraph = ContentExample(
+    'math blocks, multiple in paragraph',
+    '```math\na\n\nb\n```',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2001490
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi></mrow>'
+          '<annotation encoding="application/x-tex">a</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>\n\n'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
+          '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
+      MathBlockNode(texSource: 'a'),
+      MathBlockNode(texSource: 'b'),
+    ]);
+
   static const mathBlockInQuote = ContentExample(
     'math block in quote',
     // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
@@ -521,6 +538,26 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
+
+  static const mathBlocksMultipleInQuote = ContentExample(
+    'math blocks, multiple in quote',
+    "````quote\n```math\na\n\nb\n```\n````",
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2029236
+    '<blockquote>\n<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi></mrow>'
+          '<annotation encoding="application/x-tex">a</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>'
+      '\n\n'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
+          '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span>'
+      '<br>\n</p>\n</blockquote>',
+    [QuotationNode([
+      MathBlockNode(texSource: 'a'),
+      MathBlockNode(texSource: 'b'),
+    ])]);
 
   static const imageSingle = ContentExample(
     'single image',
@@ -1470,7 +1507,9 @@ void main() {
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
 
   testParseExample(ContentExample.mathBlock);
+  testParseExample(ContentExample.mathBlocksMultipleInParagraph);
   testParseExample(ContentExample.mathBlockInQuote);
+  testParseExample(ContentExample.mathBlocksMultipleInQuote);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);
