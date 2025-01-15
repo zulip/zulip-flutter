@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/compose.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
@@ -288,7 +289,8 @@ hello
     await store.addStream(stream);
     await store.addUser(sender);
 
-    check(quoteAndReplyPlaceholder(store, message: message)).equals('''
+    check(quoteAndReplyPlaceholder(
+      GlobalLocalizations.zulipLocalizations, store, message: message)).equals('''
 @_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*
 ''');
 
