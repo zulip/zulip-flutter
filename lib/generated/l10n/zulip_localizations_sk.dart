@@ -562,6 +562,11 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get messageIsMovedLabel => 'PRESUNUTÉ';
 
   @override
+  String pollVoterNames(String voterNames) {
+    return '($voterNames)';
+  }
+
+  @override
   String get pollWidgetQuestionMissing => 'Bez otázky.';
 
   @override
