@@ -484,7 +484,7 @@ class ReactionButtons extends StatelessWidget {
 
     bool hasSelfVote(EmojiCandidate emoji) {
       return message.reactions?.aggregated.any((reactionWithVotes) {
-        return reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+        return reactionWithVotes.reactionType == emoji.emojiType
           && reactionWithVotes.emojiCode == emoji.emojiCode
           && reactionWithVotes.userIds.contains(store.selfUserId);
       }) ?? false;
