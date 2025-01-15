@@ -369,8 +369,7 @@ class MessageListAppBarTitle extends StatelessWidget {
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 4),
             child: Icon(icon,
-              // TODO(design) copies the recipient header in web; is there a better color?
-              color: designVariables.colorMessageHeaderIconInteractive, size: 14)),
+              color: designVariables.title, size: 14)),
       ]);
   }
 
@@ -1101,8 +1100,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: recipientHeaderTextStyle(context))),
           const SizedBox(width: 4),
-          // TODO(design) copies the recipient header in web; is there a better color?
-          Icon(size: 14, color: designVariables.colorMessageHeaderIconInteractive,
+          Icon(size: 14, color: designVariables.title,
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
               store.topicVisibilityPolicy(message.streamId, topic))),
