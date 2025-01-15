@@ -278,6 +278,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String composeBoxLoadingMessage(int messageId) {
+    return '(loading message $messageId)';
+  }
+
+  @override
   String get unknownUserName => '(nieznany użytkownik)';
 
   @override

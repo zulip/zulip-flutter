@@ -266,10 +266,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerQuoteAndReplyEnd on
   /// success or failure
-  int registerQuoteAndReplyStart(PerAccountStore store, {required Message message}) {
+  int registerQuoteAndReplyStart(
+    ZulipLocalizations zulipLocalizations,
+    PerAccountStore store, {
+      required Message message,
+    }) {
     final tag = _nextQuoteAndReplyTag;
     _nextQuoteAndReplyTag += 1;
-    final placeholder = quoteAndReplyPlaceholder(store, message: message);
+    final placeholder = quoteAndReplyPlaceholder(
+      zulipLocalizations, store, message: message);
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
     insertPadded(placeholder);

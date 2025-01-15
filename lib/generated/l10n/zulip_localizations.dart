@@ -567,6 +567,12 @@ abstract class ZulipLocalizations {
   /// **'Uploading {filename}…'**
   String composeBoxUploadingFilename(String filename);
 
+  /// Placeholder in compose box showing the quoted message is currently loading.
+  ///
+  /// In en, this message translates to:
+  /// **'(loading message {messageId})'**
+  String composeBoxLoadingMessage(int messageId);
+
   /// Name placeholder to use for a user when we don't know their name.
   ///
   /// In en, this message translates to:
