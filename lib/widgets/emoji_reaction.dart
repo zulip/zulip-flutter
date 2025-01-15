@@ -10,6 +10,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'reaction_users_sheet.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -120,6 +121,22 @@ class ReactionChipsList extends StatelessWidget {
   final int messageId;
   final Reactions reactions;
 
+  void showReactedUsers(BuildContext context, ReactionWithVotes selectedReaction) {
+    final store = PerAccountStoreWidget.of(context);
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) => PerAccountStoreWidget(
+        accountId: store.accountId,
+        child: ReactionUsersSheet(
+          reactions: reactions,
+          initialSelectedReaction: selectedReaction,
+          store: store,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -129,7 +146,9 @@ class ReactionChipsList extends StatelessWidget {
     return Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
       children: reactions.aggregated.map((reactionVotes) => ReactionChip(
         showName: showNames,
-        messageId: messageId, reactionWithVotes: reactionVotes),
+        messageId: messageId, reactionWithVotes: reactionVotes,
+        showReactedUsers: showReactedUsers,
+        ),
       ).toList());
   }
 }
@@ -138,12 +157,14 @@ class ReactionChip extends StatelessWidget {
   final bool showName;
   final int messageId;
   final ReactionWithVotes reactionWithVotes;
+  final void Function(BuildContext, ReactionWithVotes) showReactedUsers;
 
   const ReactionChip({
     super.key,
     required this.showName,
     required this.messageId,
     required this.reactionWithVotes,
+    required this.showReactedUsers,
   });
 
   @override
@@ -213,6 +234,9 @@ class ReactionChip extends StatelessWidget {
               emojiCode: emojiCode,
               emojiName: emojiName,
             );
+          },
+          onLongPress: () {
+            showReactedUsers(context, reactionWithVotes);
           },
           child: Padding(
             // 1px of this padding accounts for the border, which Flutter
