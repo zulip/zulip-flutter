@@ -592,6 +592,11 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get messageIsMovedLabel => 'MOVED';
 
   @override
+  String pollVoterNames(String voterNames) {
+    return '($voterNames)';
+  }
+
+  @override
   String get pollWidgetQuestionMissing => 'No question.';
 
   @override
