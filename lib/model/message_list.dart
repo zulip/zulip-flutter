@@ -509,6 +509,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       anchor: AnchorCode.newest,
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
+      allowEmptyTopicName:
+        // TODO(server-10): simplify this condition away
+        store.zulipFeatureLevel >= 334 ? true : null,
     );
     if (this.generation > generation) return;
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
@@ -581,6 +584,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           includeAnchor: false,
           numBefore: kMessageListFetchBatchSize,
           numAfter: 0,
+          allowEmptyTopicName:
+            // TODO(server-10): simplify this condition away
+            store.zulipFeatureLevel >= 334 ? true : null,
         );
       } catch (e) {
         hasFetchError = true;
