@@ -7,8 +7,12 @@ part 'channels.g.dart';
 /// https://zulip.com/api/get-stream-topics
 Future<GetStreamTopicsResult> getStreamTopics(ApiConnection connection, {
   required int streamId,
+  bool? allowEmptyTopicName,
 }) {
-  return connection.get('getStreamTopics', GetStreamTopicsResult.fromJson, 'users/me/$streamId/topics', {});
+  assert(allowEmptyTopicName != false, '`allowEmptyTopicName` should only be true or null');
+  return connection.get('getStreamTopics', GetStreamTopicsResult.fromJson, 'users/me/$streamId/topics', {
+    if (allowEmptyTopicName != null) 'allow_empty_topic_name': allowEmptyTopicName,
+  });
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
