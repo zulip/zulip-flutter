@@ -6,11 +6,11 @@ import 'package:flutter/scheduler.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
+import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/display.dart';
 import 'about_zulip.dart';
-import 'actions.dart';
 import 'dialog.dart';
 import 'home.dart';
 import 'login.dart';
