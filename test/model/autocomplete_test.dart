@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -19,6 +20,7 @@ import 'package:zulip/widgets/compose_box.dart';
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
+import '../stdlib_checks.dart';
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
@@ -1024,6 +1026,38 @@ void main() {
     check(done).isFalse();
     await Future(() {});
     check(done).isTrue();
+  });
+
+  test('TopicAutocompleteView allow empty topic name on modern servers', () async {
+    final account = eg.account(user: eg.selfUser, zulipFeatureLevel: 334);
+    final store = eg.store(account: account, initialSnapshot: eg.initialSnapshot(
+      zulipFeatureLevel: 334));
+    final connection = store.connection as FakeApiConnection;
+
+    connection.prepare(json: GetStreamTopicsResult(
+      topics: [eg.getStreamTopicsEntry(name: '')],
+    ).toJson());
+    TopicAutocompleteView.init(store: store, streamId: 1000,
+      query: TopicAutocompleteQuery('foo'));
+    check(connection.lastRequest).isA<http.Request>()
+      ..url.path.equals('/api/v1/users/me/1000/topics')
+      ..url.queryParameters['allow_empty_topic_name'].equals('true');
+  });
+
+  test('TopicAutocompleteView disallow empty topic name on legacy servers', () async {
+    final account = eg.account(user: eg.selfUser, zulipFeatureLevel: 333);
+    final store = eg.store(account: account, initialSnapshot: eg.initialSnapshot(
+      zulipFeatureLevel: 333));
+    final connection = store.connection as FakeApiConnection;
+
+    connection.prepare(json: GetStreamTopicsResult(
+      topics: [eg.getStreamTopicsEntry(name: 'foo')],
+    ).toJson());
+    TopicAutocompleteView.init(store: store, streamId: 1000,
+      query: TopicAutocompleteQuery('foo'));
+    check(connection.lastRequest).isA<http.Request>()
+      ..url.path.equals('/api/v1/users/me/1000/topics')
+      ..url.queryParameters.isEmpty();
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
