@@ -401,5 +401,44 @@ void main() {
 
       await tester.pump(Duration.zero);
     });
+
+    testWidgets('display general chat for empty topic', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'a');
+      await tester.enterText(topicInputFinder, '');
+      await tester.pumpAndSettle();
+
+      check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('match general chat in autocomplete', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'general ch');
+      await tester.enterText(topicInputFinder, 'general cha');
+      await tester.pumpAndSettle();
+
+      check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('autocomplete to general chat sets topic to empty string', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+      final controller = tester.widget<TextField>(topicInputFinder).controller!;
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'general ch');
+      await tester.enterText(topicInputFinder, 'general cha');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(eg.defaultRealmEmptyTopicDisplayName));
+      await tester.pump(Duration.zero);
+      check(controller.value).text.equals('');
+    }, skip: true); // null topic names soon to be enabled
   });
 }
