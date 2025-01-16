@@ -85,6 +85,8 @@ class InitialSnapshot {
 
   final Uri? serverEmojiDataUrl; // TODO(server-6)
 
+  final String? realmEmptyTopicDisplayName; // TODO(server-10)
+
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> realmUsers;
   @JsonKey(readValue: _readUsersIsActiveFallbackFalse)
@@ -138,6 +140,7 @@ class InitialSnapshot {
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
+    required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
     required this.realmNonActiveUsers,
     required this.crossRealmBots,

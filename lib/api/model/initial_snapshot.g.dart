@@ -85,6 +85,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
       json['server_emoji_data_url'] == null
           ? null
           : Uri.parse(json['server_emoji_data_url'] as String),
+  realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
               as List<dynamic>)
@@ -135,6 +136,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
+      'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
       'realm_users': instance.realmUsers,
       'realm_non_active_users': instance.realmNonActiveUsers,
       'cross_realm_bots': instance.crossRealmBots,
