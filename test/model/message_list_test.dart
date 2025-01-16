@@ -82,6 +82,7 @@ void main() {
     bool? includeAnchor,
     required int numBefore,
     required int numAfter,
+    required bool allowEmptyTopicName,
   }) {
     check(connection.lastRequest).isA<http.Request>()
       ..method.equals('GET')
@@ -92,6 +93,7 @@ void main() {
         if (includeAnchor != null) 'include_anchor': includeAnchor.toString(),
         'num_before': numBefore.toString(),
         'num_after': numAfter.toString(),
+        'allow_empty_topic_name': allowEmptyTopicName.toString(),
       });
   }
 
@@ -126,6 +128,7 @@ void main() {
           anchor: 'newest',
           numBefore: kMessageListFetchBatchSize,
           numAfter: 0,
+          allowEmptyTopicName: true,
         );
       }
 
@@ -238,6 +241,7 @@ void main() {
         includeAnchor: false,
         numBefore: kMessageListFetchBatchSize,
         numAfter: 0,
+        allowEmptyTopicName: true,
       );
     });
 

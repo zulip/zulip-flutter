@@ -331,6 +331,7 @@ void main() {
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': '0',
+            'allow_empty_topic_name': 'true',
           });
       });
 
@@ -363,6 +364,7 @@ void main() {
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': '0',
+            'allow_empty_topic_name': 'true',
           });
       });
     });

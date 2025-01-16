@@ -495,6 +495,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       anchor: AnchorCode.newest,
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
+      allowEmptyTopicName: true,
     );
     if (this.generation > generation) return;
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
@@ -567,6 +568,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           includeAnchor: false,
           numBefore: kMessageListFetchBatchSize,
           numAfter: 0,
+          allowEmptyTopicName: true,
         );
       } catch (e) {
         hasFetchError = true;

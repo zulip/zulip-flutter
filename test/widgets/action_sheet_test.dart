@@ -1155,6 +1155,18 @@ void main() {
         await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
         check(findQuoteAndReplyButton(tester)).isNull();
       });
+
+      testWidgets('handle empty topic', (tester) async {
+        final message = eg.streamMessage();
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        await tapQuoteAndReplyButton(tester);
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters['allow_empty_topic_name'].equals('true');
+        await tester.pump(Duration.zero);
+      });
     });
 
     group('MarkAsUnread', () {

@@ -16,6 +16,7 @@ part 'messages.g.dart';
 Future<Message?> getMessageCompat(ApiConnection connection, {
   required int messageId,
   bool? applyMarkdown,
+  required bool allowEmptyTopicName,
 }) async {
   final useLegacyApi = connection.zulipFeatureLevel! < 120;
   if (useLegacyApi) {
@@ -25,6 +26,7 @@ Future<Message?> getMessageCompat(ApiConnection connection, {
       numBefore: 0,
       numAfter: 0,
       applyMarkdown: applyMarkdown,
+      allowEmptyTopicName: allowEmptyTopicName,
 
       // Hard-code this param to `true`, as the new single-message API
       // effectively does:
@@ -37,6 +39,7 @@ Future<Message?> getMessageCompat(ApiConnection connection, {
       final response = await getMessage(connection,
         messageId: messageId,
         applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       return response.message;
     } on ZulipApiException catch (e) {
@@ -57,10 +60,13 @@ Future<Message?> getMessageCompat(ApiConnection connection, {
 Future<GetMessageResult> getMessage(ApiConnection connection, {
   required int messageId,
   bool? applyMarkdown,
+  required bool allowEmptyTopicName,
 }) {
+  assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
   assert(connection.zulipFeatureLevel! >= 120);
   return connection.get('getMessage', GetMessageResult.fromJson, 'messages/$messageId', {
     if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
 
@@ -89,8 +95,10 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   required int numAfter,
   bool? clientGravatar,
   bool? applyMarkdown,
+  required bool allowEmptyTopicName,
   // bool? useFirstUnreadAnchor // omitted because deprecated
 }) {
+  assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
     'anchor': RawParameter(anchor.toJson()),
@@ -99,6 +107,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
     'num_after': numAfter,
     if (clientGravatar != null) 'client_gravatar': clientGravatar,
     if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
 

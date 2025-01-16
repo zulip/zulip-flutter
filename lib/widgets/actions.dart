@@ -260,6 +260,7 @@ abstract final class ZulipAction {
       fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
         messageId: messageId,
         applyMarkdown: false,
+        allowEmptyTopicName: true,
       );
       if (fetchedMessage == null) {
         errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
