@@ -1027,8 +1027,9 @@ void main() {
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
+    final store = eg.store();
     void doCheck(String rawQuery, String topic, bool expected) {
-      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic));
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic), store);
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 

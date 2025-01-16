@@ -99,9 +99,11 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 /// Returns a [Finder] for the topic input's [TextField].
 Future<Finder> setupToTopicInput(WidgetTester tester, {
   required List<GetStreamTopicsEntry> topics,
+  String? realmEmptyTopicDisplayName,
 }) async {
   addTearDown(testBinding.reset);
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+    realmEmptyTopicDisplayName: realmEmptyTopicDisplayName));
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUser(eg.selfUser);
   final connection = store.connection as FakeApiConnection;
@@ -459,5 +461,47 @@ void main() {
 
       await tester.pump(Duration.zero);
     });
+
+    testWidgets('display realmEmptyTopicDisplayName for empty topic', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
+        realmEmptyTopicDisplayName: 'some display name');
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, ' ');
+      await tester.enterText(topicInputFinder, '');
+      await tester.pumpAndSettle();
+
+      check(find.text('some display name')).findsOne();
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('match realmEmptyTopicDisplayName in autocomplete', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
+        realmEmptyTopicDisplayName: 'general chat');
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'general ch');
+      await tester.enterText(topicInputFinder, 'general cha');
+      await tester.pumpAndSettle();
+
+      check(find.text('general chat')).findsOne();
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('autocomplete to realmEmptyTopicDisplayName sets topic to empty string', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
+        realmEmptyTopicDisplayName: 'general chat');
+      final controller = tester.widget<TextField>(topicInputFinder).controller!;
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'general ch');
+      await tester.enterText(topicInputFinder, 'general cha');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('general chat'));
+      await tester.pump(Duration.zero);
+      check(controller.value).text.equals('');
+    }, skip: true); // null topic names soon to be enabled
   });
 }
