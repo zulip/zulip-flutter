@@ -872,6 +872,14 @@ enum MessageEditState {
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
   static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
+    // Implemented to match web; see analyze_edit_history in zulip/zulip's
+    // web/src/message_list_view.ts.
+    //
+    // Also, this is a hot codepath (decoding messages, a high-volume type of
+    // data we get from the server), so we avoid calling [canonicalize] and
+    // using [TopicName.resolvedTopicPrefixRegexp], to be performance-sensitive.
+    // Discussion:
+    //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
     if (topic.apiName.startsWith(TopicName.resolvedTopicPrefix)
         && topic.apiName.substring(TopicName.resolvedTopicPrefix.length) == prevTopic.apiName) {
       return true;

@@ -325,9 +325,34 @@ void main() {
         ]);
       });
 
+      // Technically the topic *was* unresolved, so MessageEditState.none
+      // would be valid and preferable -- if it didn't need more intense
+      // computation than we're comfortable with in a hot codepath, i.e.,
+      // a regex test instead of a simple `startsWith` / `substring` check.
+      // See comment on the implementation, and discussion:
+      //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
       test('Unresolving topic with a weird prefix -> moved', () {
           checkEditState(MessageEditState.moved,
             [{'prev_topic': '✔ ✔old_topic', 'topic': 'old_topic'}]);
+      });
+
+      // Similar reasoning as in the previous test.
+      // Also, Zulip doesn't produce topics with a weird resolved-topic prefix,
+      // so this case can only be produced by unusual input in an
+      // edit/move-topic UI. A "moved" marker seems like a fine response
+      // in that circumstance.
+      test('Resolving topic with a weird prefix -> moved', () {
+          checkEditState(MessageEditState.moved,
+            [{'prev_topic': 'old_topic', 'topic': '✔ ✔old_topic'}]);
+      });
+
+      // Similar reasoning as the previous test, including that this case had to
+      // involve unusual input in an edit/move-topic UI.
+      // Here the computation burden would have come from calling
+      // [TopicName.canonicalize].
+      test('Topic was resolved but with changed case -> moved', () {
+        checkEditState(MessageEditState.moved,
+          [{'prev_topic': 'old ToPiC', 'topic': '✔ OLD tOpIc'}]);
       });
     });
   });
