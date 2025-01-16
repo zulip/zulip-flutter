@@ -272,6 +272,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
+      realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
@@ -317,6 +318,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
+    required String? realmEmptyTopicDisplayName,
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
     required this.emailAddressVisibility,
@@ -337,6 +339,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
        assert(realmUrl == connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
+       _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _channels = channels,
        _messages = messages;
@@ -384,6 +387,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
+  final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
+  String get realmEmptyTopicDisplayName {
+    assert(_realmEmptyTopicDisplayName != null); // TODO(log)
+    return _realmEmptyTopicDisplayName ?? 'general chat';
+  }
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
