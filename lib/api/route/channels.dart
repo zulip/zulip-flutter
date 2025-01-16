@@ -8,7 +8,10 @@ part 'channels.g.dart';
 Future<GetStreamTopicsResult> getStreamTopics(ApiConnection connection, {
   required int streamId,
 }) {
-  return connection.get('getStreamTopics', GetStreamTopicsResult.fromJson, 'users/me/$streamId/topics', {});
+  final supportsEmptyTopics = connection.zulipFeatureLevel! >= 334; // TODO(server-10)
+  return connection.get('getStreamTopics', GetStreamTopicsResult.fromJson, 'users/me/$streamId/topics', {
+    if (supportsEmptyTopics) 'allow_empty_topic_name': true,
+  });
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

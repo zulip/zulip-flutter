@@ -43,6 +43,7 @@ void main() {
           ..url.path.equals('/api/v1/messages/$messageId')
           ..url.queryParameters.deepEquals({
             if (applyMarkdown != null) 'apply_markdown': applyMarkdown.toString(),
+            'allow_empty_topic_name': 'true',
           });
       }
       return result;
@@ -149,7 +150,10 @@ void main() {
         await checkGetMessage(connection,
           messageId: 1,
           applyMarkdown: true,
-          expected: {'apply_markdown': 'true'});
+          expected: {
+            'apply_markdown': 'true',
+            'allow_empty_topic_name': 'true',
+          });
       });
     });
 
@@ -159,7 +163,19 @@ void main() {
         await checkGetMessage(connection,
           messageId: 1,
           applyMarkdown: false,
-          expected: {'apply_markdown': 'false'});
+          expected: {
+            'apply_markdown': 'false',
+            'allow_empty_topic_name': 'true',
+          });
+      });
+    });
+
+    test('legacy: empty topic name not supported', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 333, (connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessage(connection,
+          messageId: 1,
+          expected: {});
       });
     });
 
@@ -259,6 +275,7 @@ void main() {
             'anchor': 'newest',
             'num_before': '10',
             'num_after': '20',
+            'allow_empty_topic_name': 'true',
           });
       });
     });
@@ -290,6 +307,22 @@ void main() {
           expected: {
             'narrow': jsonEncode([]),
             'anchor': '42',
+            'num_before': '10',
+            'num_after': '20',
+            'allow_empty_topic_name': 'true',
+          });
+      });
+    });
+
+    test('legacy: empty topic name not supported', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 333, (connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessages(connection,
+          narrow: const CombinedFeedNarrow().apiEncode(),
+          anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+          expected: {
+            'narrow': jsonEncode([]),
+            'anchor': 'newest',
             'num_before': '10',
             'num_after': '20',
           });
