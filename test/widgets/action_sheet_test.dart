@@ -195,6 +195,25 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
 
+    Future<void> showFromRecipientHeader(WidgetTester tester, {
+      StreamMessage? message,
+    }) async {
+      final effectiveMessage = message ?? someMessage;
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [effectiveMessage]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
+      // global store, per-account store, and message list get loaded
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(RecipientHeader),
+        matching: find.text(effectiveMessage.topic.displayName)));
+      // sheet appears onscreen; default duration of bottom-sheet enter animation
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
     group('showTopicActionSheet', () {
       void checkButtons() {
         final actionSheetFinder = find.byType(BottomSheet);
@@ -228,17 +247,7 @@ void main() {
 
       testWidgets('show from recipient header', (tester) async {
         await prepare();
-        connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [someMessage]).toJson());
-        await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-          child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
-        // global store, per-account store, and message list get loaded
-        await tester.pumpAndSettle();
-
-        await tester.longPress(find.descendant(
-          of: find.byType(RecipientHeader), matching: find.text(someTopic)));
-        // sheet appears onscreen; default duration of bottom-sheet enter animation
-        await tester.pump(const Duration(milliseconds: 250));
+        await showFromRecipientHeader(tester);
         checkButtons();
       });
     });
