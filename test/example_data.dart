@@ -837,6 +837,8 @@ TestGlobalStore globalStore({List<Account> accounts = const []}) {
   return TestGlobalStore(accounts: accounts);
 }
 
+const String defaultRealmEmptyTopicDisplayName = 'test general chat';
+
 InitialSnapshot initialSnapshot({
   String? queueId,
   int? lastEventId,
@@ -862,6 +864,7 @@ InitialSnapshot initialSnapshot({
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   Uri? serverEmojiDataUrl,
+  String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
@@ -899,6 +902,7 @@ InitialSnapshot initialSnapshot({
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
