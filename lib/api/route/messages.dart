@@ -59,8 +59,10 @@ Future<GetMessageResult> getMessage(ApiConnection connection, {
   bool? applyMarkdown,
 }) {
   assert(connection.zulipFeatureLevel! >= 120);
+  final supportsEmptyTopics = connection.zulipFeatureLevel! >= 334; // TODO(server-10)
   return connection.get('getMessage', GetMessageResult.fromJson, 'messages/$messageId', {
     if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    if (supportsEmptyTopics) 'allow_empty_topic_name': true,
   });
 }
 
@@ -90,6 +92,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   bool? applyMarkdown,
   // bool? useFirstUnreadAnchor // omitted because deprecated
 }) {
+  final supportsEmptyTopics = connection.zulipFeatureLevel! >= 334; // TODO(server-10)
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     'narrow': resolveDmElements(narrow, connection.zulipFeatureLevel!),
     'anchor': RawParameter(anchor.toJson()),
@@ -98,6 +101,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
     'num_after': numAfter,
     if (clientGravatar != null) 'client_gravatar': clientGravatar,
     if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    if (supportsEmptyTopics) 'allow_empty_topic_name': true,
   });
 }
 
