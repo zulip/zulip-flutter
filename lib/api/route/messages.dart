@@ -16,9 +16,11 @@ part 'messages.g.dart';
 Future<Message?> getMessageCompat(ApiConnection connection, {
   required int messageId,
   bool? applyMarkdown,
+  bool? allowEmptyTopicName,
 }) async {
   final useLegacyApi = connection.zulipFeatureLevel! < 120;
   if (useLegacyApi) {
+    assert(allowEmptyTopicName == null);
     final response = await getMessages(connection,
       narrow: [ApiNarrowMessageId(messageId)],
       anchor: NumericAnchor(messageId),
@@ -37,6 +39,7 @@ Future<Message?> getMessageCompat(ApiConnection connection, {
       final response = await getMessage(connection,
         messageId: messageId,
         applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       return response.message;
     } on ZulipApiException catch (e) {
@@ -57,10 +60,13 @@ Future<Message?> getMessageCompat(ApiConnection connection, {
 Future<GetMessageResult> getMessage(ApiConnection connection, {
   required int messageId,
   bool? applyMarkdown,
+  bool? allowEmptyTopicName,
 }) {
+  assert(allowEmptyTopicName != false, '`allowEmptyTopicName` should only be true or null');
   assert(connection.zulipFeatureLevel! >= 120);
   return connection.get('getMessage', GetMessageResult.fromJson, 'messages/$messageId', {
     if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    if (allowEmptyTopicName != null) 'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
 
@@ -88,8 +94,10 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   required int numAfter,
   bool? clientGravatar,
   bool? applyMarkdown,
+  bool? allowEmptyTopicName,
   // bool? useFirstUnreadAnchor // omitted because deprecated
 }) {
+  assert(allowEmptyTopicName != false, '`allowEmptyTopicName` should only be true or null');
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
     'anchor': RawParameter(anchor.toJson()),
@@ -98,6 +106,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
     'num_after': numAfter,
     if (clientGravatar != null) 'client_gravatar': clientGravatar,
     if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    if (allowEmptyTopicName != null) 'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
 
