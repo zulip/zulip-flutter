@@ -8,6 +8,30 @@ import '../../stdlib_checks.dart';
 import '../fake_api.dart';
 
 void main() {
+  test('smoke getStreamTopics', () {
+    return FakeApiConnection.with_((connection) async {
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await getStreamTopics(connection, streamId: 1);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/users/me/1/topics')
+        ..url.queryParameters.deepEquals({
+          'allow_empty_topic_name': 'true',
+        });
+    });
+  });
+
+  test('legacy: getStreamTopics when FL < 334', () {
+    return FakeApiConnection.with_(zulipFeatureLevel: 333, (connection) async {
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await getStreamTopics(connection, streamId: 1);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/users/me/1/topics')
+        ..url.queryParameters.deepEquals({});
+    });
+  });
+
   test('smoke updateUserTopic', () {
     return FakeApiConnection.with_((connection) async {
       connection.prepare(json: {});
