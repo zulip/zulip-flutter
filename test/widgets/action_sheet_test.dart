@@ -274,17 +274,7 @@ void main() {
 
         final message = eg.streamMessage(
           stream: someChannel, topic: topic, sender: eg.otherUser);
-        connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [message]).toJson());
-        await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-          child: MessageListPage(
-            initNarrow: eg.topicNarrow(someChannel.streamId, topic))));
-        await tester.pumpAndSettle();
-
-        await tester.longPress(find.descendant(
-          of: find.byType(RecipientHeader), matching: find.text(topic)));
-        // sheet appears onscreen; default duration of bottom-sheet enter animation
-        await tester.pump(const Duration(milliseconds: 250));
+        await showFromAppBar(tester, channel: someChannel, topic: topic, message: message);
       }
 
       void checkButtons(List<Finder> expectedButtonFinders) {
