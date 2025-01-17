@@ -305,6 +305,20 @@ void main() {
       });
     });
 
+    group('general chat', () {
+      final channel = eg.stream();
+      final subscription = eg.subscription(channel);
+
+      testWidgets('show general chat', (tester) async {
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [subscription],
+          unreadMessages: [eg.streamMessage(stream: channel, topic: '')]);
+
+        check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+      }, skip: true); // null topic names soon to be enabled
+    });
+
     group('topic visibility', () {
       final channel = eg.stream();
       const topic = 'topic';
