@@ -256,7 +256,7 @@ class MessagingStyle {
 
   String? conversationTitle;
 
-  List<MessagingStyleMessage?> messages;
+  List<MessagingStyleMessage> messages;
 
   bool isGroupConversation;
 
@@ -274,7 +274,7 @@ class MessagingStyle {
     return MessagingStyle(
       user: result[0]! as Person,
       conversationTitle: result[1] as String?,
-      messages: (result[2] as List<Object?>?)!.cast<MessagingStyleMessage?>(),
+      messages: (result[2] as List<Object?>?)!.cast<MessagingStyleMessage>(),
       isGroupConversation: result[3]! as bool,
     );
   }
@@ -291,7 +291,7 @@ class Notification {
 
   String group;
 
-  Map<String?, String?> extras;
+  Map<String, String> extras;
 
   Object encode() {
     return <Object?>[
@@ -304,7 +304,7 @@ class Notification {
     result as List<Object?>;
     return Notification(
       group: result[0]! as String,
-      extras: (result[1] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      extras: (result[1] as Map<Object?, Object?>?)!.cast<String, String>(),
     );
   }
 }
@@ -645,7 +645,7 @@ class AndroidNotificationHostApi {
   /// See:
   ///   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
   ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
-  Future<void> notify({String? tag, required int id, bool? autoCancel, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String?, String?>? extras, String? groupKey, InboxStyle? inboxStyle, bool? isGroupSummary, MessagingStyle? messagingStyle, int? number, String? smallIconResourceName, }) async {
+  Future<void> notify({String? tag, required int id, bool? autoCancel, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String, String>? extras, String? groupKey, InboxStyle? inboxStyle, bool? isGroupSummary, MessagingStyle? messagingStyle, int? number, String? smallIconResourceName, }) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.notify$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
