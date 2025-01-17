@@ -262,7 +262,7 @@ data class MessagingStyleMessage (
 data class MessagingStyle (
   val user: Person,
   val conversationTitle: String? = null,
-  val messages: List<MessagingStyleMessage?>,
+  val messages: List<MessagingStyleMessage>,
   val isGroupConversation: Boolean
 )
  {
@@ -270,7 +270,7 @@ data class MessagingStyle (
     fun fromList(pigeonVar_list: List<Any?>): MessagingStyle {
       val user = pigeonVar_list[0] as Person
       val conversationTitle = pigeonVar_list[1] as String?
-      val messages = pigeonVar_list[2] as List<MessagingStyleMessage?>
+      val messages = pigeonVar_list[2] as List<MessagingStyleMessage>
       val isGroupConversation = pigeonVar_list[3] as Boolean
       return MessagingStyle(user, conversationTitle, messages, isGroupConversation)
     }
@@ -294,13 +294,13 @@ data class MessagingStyle (
  */
 data class Notification (
   val group: String,
-  val extras: Map<String?, String?>
+  val extras: Map<String, String>
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): Notification {
       val group = pigeonVar_list[0] as String
-      val extras = pigeonVar_list[1] as Map<String?, String?>
+      val extras = pigeonVar_list[1] as Map<String, String>
       return Notification(group, extras)
     }
   }
@@ -553,7 +553,7 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
    *   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
    */
-  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
+  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String, String>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
   /**
    * Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
    * combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
@@ -692,7 +692,7 @@ interface AndroidNotificationHostApi {
             val contentIntentArg = args[5] as PendingIntent?
             val contentTextArg = args[6] as String?
             val contentTitleArg = args[7] as String?
-            val extrasArg = args[8] as Map<String?, String?>?
+            val extrasArg = args[8] as Map<String, String>?
             val groupKeyArg = args[9] as String?
             val inboxStyleArg = args[10] as InboxStyle?
             val isGroupSummaryArg = args[11] as Boolean?

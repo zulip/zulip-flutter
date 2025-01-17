@@ -646,7 +646,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     PendingIntent? contentIntent,
     String? contentText,
     String? contentTitle,
-    Map<String?, String?>? extras,
+    Map<String, String>? extras,
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
@@ -686,7 +686,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
             isGroupConversation: messagingStyle.isGroupConversation,
             messages: messagingStyle.messages.map((message) =>
               MessagingStyleMessage(
-                text: message!.text,
+                text: message.text,
                 timestampMs: message.timestampMs,
                 person: Person(
                   key: message.person.key,
@@ -701,14 +701,14 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeNotificationsMessagingStyle[tag];
 
   @override
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String?> desiredExtras}) async {
+  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
     return _activeNotifications.values.map((statusNotif) {
       final notificationExtras = statusNotif.notification.extras;
-      statusNotif.notification.extras = Map.fromEntries(
-        desiredExtras
-          .map((key) => MapEntry(key, notificationExtras[key]))
-          .where((entry) => entry.value != null)
-      );
+      statusNotif.notification.extras = {
+        for (final key in desiredExtras)
+          if (notificationExtras[key] != null)
+            key: notificationExtras[key]!,
+      };
       return statusNotif;
     }).toList(growable: false);
   }
