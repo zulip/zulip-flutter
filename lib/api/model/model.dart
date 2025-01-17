@@ -669,6 +669,14 @@ extension type const TopicName(String _value) {
   //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
   static const resolvedTopicPrefix = '✔ ';
 
+  /// Pattern for an arbitrary resolved-topic prefix.
+  ///
+  /// These always begin with [resolvedTopicPrefix]
+  /// but can be weird and go on longer, like "✔ ✔✔ ".
+  // This is RESOLVED_TOPIC_PREFIX_RE in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts#L4-L12
+  static final resolvedTopicPrefixRegexp = RegExp(r'^✔ [ ✔]*');
+
   /// The string this topic is identified by in the Zulip API.
   ///
   /// This should be used in constructing HTTP requests to the server,
@@ -686,6 +694,14 @@ extension type const TopicName(String _value) {
 
   /// The key to use for "same topic as" comparisons.
   String canonicalize() => apiName.toLowerCase();
+
+  /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
+  TopicName unresolve() =>
+    TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
+
+  /// Whether [this] and [other] have the same canonical form,
+  /// using [canonicalize].
+  bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
 
   TopicName.fromJson(this._value);
 
