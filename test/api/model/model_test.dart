@@ -126,6 +126,43 @@ void main() {
     // MessageEditState group.
   });
 
+  group('TopicName', () {
+    test('unresolve', () {
+      void doCheck(TopicName input, TopicName expected) {
+        final output = input.unresolve();
+        check(output).apiName.equals(expected.apiName);
+      }
+
+      doCheck(eg.t('some topic'),       eg.t('some topic'));
+      doCheck(eg.t('Some Topic'),       eg.t('Some Topic'));
+      doCheck(eg.t('✔ some topic'),     eg.t('some topic'));
+      doCheck(eg.t('✔ Some Topic'),     eg.t('Some Topic'));
+
+      doCheck(eg.t('Some ✔ Topic'),     eg.t('Some ✔ Topic'));
+      doCheck(eg.t('✔ Some ✔ Topic'),   eg.t('Some ✔ Topic'));
+
+      doCheck(eg.t('✔ ✔✔✔ some topic'), eg.t('some topic'));
+      doCheck(eg.t('✔ ✔ ✔✔some topic'), eg.t('some topic'));
+    });
+
+    test('isSameAs', () {
+      void doCheck(TopicName topicA, TopicName topicB, bool expected) {
+        check(topicA.isSameAs(topicB)).equals(expected);
+      }
+
+      doCheck(eg.t('some topic'),   eg.t('some topic'),   true);
+      doCheck(eg.t('SOME TOPIC'),   eg.t('SOME TOPIC'),   true);
+      doCheck(eg.t('Some Topic'),   eg.t('sOME tOPIC'),   true);
+      doCheck(eg.t('✔ a'),          eg.t('✔ a'),          true);
+
+      doCheck(eg.t('✔ some topic'), eg.t('some topic'),   false);
+      doCheck(eg.t('SOME TOPIC'),   eg.t('✔ SOME TOPIC'), false);
+      doCheck(eg.t('✔ Some Topic'), eg.t('sOME tOPIC'),   false);
+
+      doCheck(eg.t('✔ a'),          eg.t('✔ b'),          false);
+    });
+  });
+
   group('DmMessage', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable(deepToJson(
       eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
