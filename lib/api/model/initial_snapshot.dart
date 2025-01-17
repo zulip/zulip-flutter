@@ -77,6 +77,7 @@ class InitialSnapshot {
   final int maxFileUploadSizeMib;
 
   final Uri? serverEmojiDataUrl; // TODO(server-6)
+  final int maxMessageLength;
 
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> realmUsers;
@@ -132,6 +133,7 @@ class InitialSnapshot {
     required this.realmUsers,
     required this.realmNonActiveUsers,
     required this.crossRealmBots,
+    required this.maxMessageLength,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>

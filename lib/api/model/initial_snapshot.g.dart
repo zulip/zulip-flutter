@@ -82,6 +82,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
               json, 'cross_realm_bots') as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
+      maxMessageLength: (json['max_message_length'] as num).toInt(),
     );
 
 Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
@@ -112,6 +113,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
+      'max_message_length': instance.maxMessageLength,
       'realm_users': instance.realmUsers,
       'realm_non_active_users': instance.realmNonActiveUsers,
       'cross_realm_bots': instance.crossRealmBots,

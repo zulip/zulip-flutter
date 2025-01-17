@@ -269,6 +269,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       connection: connection,
       realmUrl: realmUrl,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
+      maxMessageLength : initialSnapshot.maxMessageLength,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
@@ -327,7 +328,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
-    required this.recentSenders,
+    required this.recentSenders, required this.maxMessageLength,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
@@ -348,6 +349,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   UpdateMachine? get updateMachine => _updateMachine;
   UpdateMachine? _updateMachine;
+
+
   set updateMachine(UpdateMachine? value) {
     assert(_updateMachine == null);
     assert(value != null);
@@ -378,6 +381,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
+  final int maxMessageLength;
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
