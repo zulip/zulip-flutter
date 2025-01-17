@@ -1318,7 +1318,7 @@ class MessageTableCell extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  DialogStatus showError(BuildContext context, String? message) {
+  ModalStatus showError(BuildContext context, String? message) {
     return showErrorDialog(context: context,
       title: 'Unable to open link',
       message: [
