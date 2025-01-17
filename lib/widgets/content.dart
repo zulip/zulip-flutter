@@ -1424,7 +1424,7 @@ class MessageTableCell extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  DialogStatus showError(BuildContext context, String? message) {
+  ModalStatus showError(BuildContext context, String? message) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return showErrorDialog(context: context,
       title: zulipLocalizations.errorCouldNotOpenLinkTitle,
