@@ -307,6 +307,15 @@ void main() {
       });
     });
 
+    testWidgets('empty topic', (tester) async {
+      final channel = eg.stream();
+      await setupPage(tester,
+        streams: [channel],
+        subscriptions: [(eg.subscription(channel))],
+        unreadMessages: [eg.streamMessage(stream: channel, topic: '')]);
+      check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+    }, skip: true); // null topic names soon to be enabled
+
     group('topic visibility', () {
       final channel = eg.stream();
       const topic = 'topic';
