@@ -534,7 +534,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // Pad the left and right insets, for small devices in landscape.
     return SafeArea(
       // Don't let this be the place we pad the bottom inset. When there's
-      // no compose box, we want to let the message-list content pad it.
+      // no compose box, we want to let the message-list content
+      // and the scroll-to-bottom button avoid it.
       // TODO(#311) Remove as unnecessary if we do a bottom nav.
       //   The nav will pad the bottom inset, and an ancestor of this widget
       //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
