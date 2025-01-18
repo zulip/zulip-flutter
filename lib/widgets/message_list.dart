@@ -297,6 +297,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         builder: (BuildContext context) => Column(
           // Children are expected to take the full horizontal space
           // and handle the horizontal device insets.
+          // The bottom inset should be handled by the last child only.
           children: [
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
@@ -438,6 +439,8 @@ const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMes
 ///
 /// Takes the full screen width, keeping its contents
 /// out of the horizontal insets with transparent [SafeArea] padding.
+/// When there is no [ComposeBox], also takes responsibility
+/// for dealing with the bottom inset.
 class MessageList extends StatefulWidget {
   const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
 
@@ -551,7 +554,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   bottom: 0,
                   right: 0,
                   // TODO(#311) SafeArea shouldn't be needed if we have a
-                  //   bottom nav. That will pad the bottom inset.
+                  //   bottom nav; that will pad the bottom inset. Remove it,
+                  //   and the mention of bottom-inset handling in
+                  //   MessageList's dartdoc.
                   child: SafeArea(
                     child: ScrollToBottomButton(
                       scrollController: scrollController,
@@ -602,8 +607,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
-      // TODO(#311) If we have a bottom nav, it will pad the bottom
-      //   inset, and this shouldn't be necessary
+      // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
+      //   and this can be removed; also remove mention in MessageList dartdoc
       sliver = SliverSafeArea(sliver: sliver);
     }
 

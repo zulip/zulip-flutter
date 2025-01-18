@@ -1278,6 +1278,7 @@ class _ErrorBanner extends StatelessWidget {
 /// The compose box.
 ///
 /// Takes the full screen width, covering the horizontal insets with its surface.
+/// Also covers the bottom inset with its surface.
 class ComposeBox extends StatefulWidget {
   ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));
