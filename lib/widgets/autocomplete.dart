@@ -321,13 +321,8 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   void _onTapOption(BuildContext context, TopicAutocompleteResult option) {
     final intent = autocompleteIntent();
     if (intent == null) return;
-    final replacementString = option.topic;
-    controller.value = intent.textEditingValue.replaced(
-      TextRange(
-        start: intent.syntaxStart,
-        end: intent.textEditingValue.text.length),
-      replacementString,
-    );
+    assert(intent.syntaxStart == 0);
+    controller.setTopic(option.topic);
     contentFocusNode.requestFocus();
   }
 
@@ -339,6 +334,6 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Text(option.topic)));
+        child: Text(option.topic.displayName)));
   }
 }

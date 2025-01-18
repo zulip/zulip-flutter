@@ -485,7 +485,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required Narrow narrow,
   }) {
     int? streamId;
-    String? topic;
+    TopicName? topic;
     switch (narrow) {
       case ChannelNarrow():
         streamId = narrow.streamId;
@@ -506,7 +506,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   static int _compareByRelevance(User userA, User userB, {
     required int? streamId,
-    required String? topic,
+    required TopicName? topic,
     required PerAccountStore store,
   }) {
     // TODO(#234): give preference to "all", "everyone" or "stream"
@@ -543,7 +543,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   @visibleForTesting
   static int compareByRecency(User userA, User userB, {
     required int streamId,
-    required String? topic,
+    required TopicName? topic,
     required PerAccountStore store,
   }) {
     final recentSenders = store.recentSenders;
@@ -815,7 +815,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// The channel/stream the eventual message will be sent to.
   final int streamId;
 
-  Iterable<String> _topics = [];
+  Iterable<TopicName> _topics = [];
   bool _isFetching = false;
 
   /// Fetches topics of the current stream narrow, expected to fetch
@@ -843,7 +843,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     return results;
   }
 
-  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, String topic) {
+  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, TopicName topic) {
     if (query.testTopic(topic)) {
       return TopicAutocompleteResult(topic: topic);
     }
@@ -862,9 +862,10 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
 class TopicAutocompleteQuery extends AutocompleteQuery {
   TopicAutocompleteQuery(super.raw);
 
-  bool testTopic(String topic) {
+  bool testTopic(TopicName topic) {
     // TODO(#881): Sort by match relevance, like web does.
-    return topic != raw && topic.toLowerCase().contains(raw.toLowerCase());
+    return topic.displayName != raw
+      && topic.displayName.toLowerCase().contains(raw.toLowerCase());
   }
 
   @override
@@ -883,7 +884,7 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
 /// A topic chosen in an autocomplete interaction, via a [TopicAutocompleteView].
 class TopicAutocompleteResult extends AutocompleteResult {
-  final String topic;
+  final TopicName topic;
 
   TopicAutocompleteResult({required this.topic});
 }

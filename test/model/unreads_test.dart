@@ -58,7 +58,7 @@ void main() {
     assert(Set.of(messages.map((m) => m.id)).length == messages.length,
       'checkMatchesMessages: duplicate messages in test input');
 
-    final Map<int, Map<String, QueueList<int>>> expectedStreams = {};
+    final Map<int, Map<TopicName, QueueList<int>>> expectedStreams = {};
     final Map<DmNarrow, QueueList<int>> expectedDms = {};
     final Set<int> expectedMentions = {};
     for (final message in messages) {
@@ -114,10 +114,10 @@ void main() {
       prepare(initial: UnreadMessagesSnapshot(
         count: 0,
         channels: [
-          UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
-          UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
-          UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
-          UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
+          eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+          eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
         ],
         dms: [
           UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [9, 10]),
@@ -204,7 +204,7 @@ void main() {
       prepare();
       fillWithMessages(List.generate(7, (i) => eg.streamMessage(
         stream: stream, topic: 'a', flags: [])));
-      check(model.countInTopicNarrow(stream.streamId, 'a')).equals(7);
+      check(model.countInTopicNarrow(stream.streamId, eg.t('a'))).equals(7);
     });
 
     test('countInDmNarrow', () {
@@ -238,6 +238,49 @@ void main() {
       ]);
       check(model.countInStarredMessagesNarrow()).equals(0);
     });
+  });
+
+  group('isUnread', () {
+    final unreadDmMessage = eg.dmMessage(
+      from: eg.otherUser, to: [eg.selfUser], flags: []);
+    final readDmMessage = eg.dmMessage(
+      from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]);
+    final unreadChannelMessage = eg.streamMessage(flags: []);
+    final readChannelMessage = eg.streamMessage(flags: [MessageFlag.read]);
+
+    final allMessages = [
+      unreadDmMessage, unreadChannelMessage,
+      readDmMessage,   readChannelMessage,
+    ];
+
+    void doTestCommon(String description, int messageId, {required bool expected}) {
+      test(description, () {
+        prepare();
+        model.oldUnreadsMissing = false;
+        fillWithMessages(allMessages);
+        check(model.isUnread(messageId)).equals(expected);
+      });
+    }
+
+    void doTestOldUnreadsMissing(String description, int messageId, {required bool? expected}) {
+      assert(expected == true || expected == null);
+      test('oldUnreadsMissing; $description', () {
+        prepare();
+        model.oldUnreadsMissing = true;
+        fillWithMessages(allMessages);
+        check(model.isUnread(messageId)).equals(expected);
+      });
+    }
+
+    doTestCommon('unread DM message',      unreadDmMessage.id,      expected: true);
+    doTestCommon('read DM message',        readDmMessage.id,        expected: false);
+    doTestCommon('unread channel message', unreadChannelMessage.id, expected: true);
+    doTestCommon('read channel message',   readChannelMessage.id,   expected: false);
+
+    doTestOldUnreadsMissing('unread DM message',      unreadDmMessage.id,      expected: true);
+    doTestOldUnreadsMissing('read DM message',        readDmMessage.id,        expected: null);
+    doTestOldUnreadsMissing('unread channel message', unreadChannelMessage.id, expected: true);
+    doTestOldUnreadsMissing('read channel message',   readChannelMessage.id,   expected: null);
   });
 
   group('handleMessageEvent', () {
@@ -495,7 +538,7 @@ void main() {
         messageIds: [11, 12],
         messageType: MessageType.stream,
         streamId: stream1.streamId,
-        topic: 'a',
+        topic: eg.t('a'),
       ));
       checkNotifiedOnce();
       checkMatchesMessages(expectedRemainingMessages..removeAll([message11, message12]));
@@ -504,7 +547,7 @@ void main() {
         messageIds: [13, 14],
         messageType: MessageType.stream,
         streamId: stream2.streamId,
-        topic: 'b',
+        topic: eg.t('b'),
       ));
       checkNotifiedOnce();
       checkMatchesMessages(expectedRemainingMessages..removeAll([message13, message14]));
@@ -986,7 +1029,7 @@ void main() {
                 type: MessageType.stream,
                 mentioned: false,
                 streamId: stream.streamId,
-                topic: topic,
+                topic: eg.t(topic),
                 userIds: null,
               ),
               // message 2 and 3 have their details missing

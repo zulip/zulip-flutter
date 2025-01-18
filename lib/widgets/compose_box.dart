@@ -89,6 +89,10 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
         TopicValidationError.tooLong,
     ];
   }
+
+  void setTopic(TopicName newTopic) {
+    value = TextEditingValue(text: newTopic.displayName);
+  }
 }
 
 enum ContentValidationError {
@@ -486,7 +490,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
+      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
   }
@@ -546,7 +550,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.composeBoxUnknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(streamName, topic);
+        return zulipLocalizations.composeBoxChannelContentHint(
+          streamName, topic.displayName);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
@@ -1151,7 +1156,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
-      narrow.streamId, controller.topic.textNormalized),
+      narrow.streamId, TopicName(controller.topic.textNormalized)),
   );
 }
 

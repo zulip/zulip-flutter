@@ -334,7 +334,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   Widget _buildTopicRow(BuildContext context, {
     required ZulipStream? stream,
-    required String topic,
+    required TopicName topic,
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
@@ -344,7 +344,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic, style: const TextStyle(
+        Flexible(child: Text(topic.displayName, style: const TextStyle(
           fontSize: 13,
         ).merge(weightVariableTextStyle(context)))),
         if (icon != null)
@@ -1091,7 +1091,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       child: Row(
         children: [
           Flexible(
-            child: Text(topic,
+            child: Text(topic.displayName,
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,

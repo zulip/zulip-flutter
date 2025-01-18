@@ -89,7 +89,8 @@ void main() {
       check(baseStreamJson()).not((it) => it.containsKey('topic'));
       check(Message.fromJson(baseStreamJson()
         ..['subject'] = 'hello'
-      )).topic.equals('hello');
+      )).isA<StreamMessage>()
+        .topic.equals(const TopicName('hello'));
     });
 
     test('match_subject -> matchTopic', () {

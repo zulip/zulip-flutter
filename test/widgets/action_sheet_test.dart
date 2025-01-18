@@ -145,7 +145,7 @@ void main() {
         foundOldest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(
-          initNarrow: TopicNarrow(channel.streamId, topic))));
+          initNarrow: eg.topicNarrow(channel.streamId, topic))));
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
 
@@ -214,7 +214,7 @@ void main() {
           eg.streamMessage(stream: channel, topic: topic)]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: account.id,
         child: MessageListPage(
-          initNarrow: TopicNarrow(channel.streamId, topic))));
+          initNarrow: eg.topicNarrow(channel.streamId, topic))));
       await tester.pumpAndSettle();
 
       await tester.longPress(find.descendant(
@@ -809,7 +809,7 @@ void main() {
         connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: [message]).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
-          newStreamId: newStream.streamId, newTopic: newTopic,
+          newStreamId: newStream.streamId, newTopicStr: newTopic,
           propagateMode: PropagateMode.changeAll,
           origMessages: [message]));
 
@@ -823,7 +823,7 @@ void main() {
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
           ..bodyFields['narrow'].equals(
-              jsonEncode(TopicNarrow(newStream.streamId, newTopic).apiEncode()));
+              jsonEncode(eg.topicNarrow(newStream.streamId, newTopic).apiEncode()));
       });
 
       testWidgets('shows error when fails', (tester) async {

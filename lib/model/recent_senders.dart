@@ -16,7 +16,7 @@ class RecentSenders {
 
   // topicSenders[streamId][topic][senderId] = MessageIdTracker
   @visibleForTesting
-  final Map<int, Map<String, Map<int, MessageIdTracker>>> topicSenders = {};
+  final Map<int, Map<TopicName, Map<int, MessageIdTracker>>> topicSenders = {};
 
   /// The latest message the given user sent to the given stream,
   /// or null if no such message is known.
@@ -29,7 +29,7 @@ class RecentSenders {
   /// or null if no such message is known.
   int? latestMessageIdOfSenderInTopic({
     required int streamId,
-    required String topic,
+    required TopicName topic,
     required int senderId,
   }) => topicSenders[streamId]?[topic]?[senderId]?.maxId;
 
@@ -38,7 +38,7 @@ class RecentSenders {
   /// The messages must be sorted by [Message.id] ascending.
   void handleMessages(List<Message> messages) {
     final messagesByUserInStream = <(int, int), QueueList<int>>{};
-    final messagesByUserInTopic = <(int, String, int), QueueList<int>>{};
+    final messagesByUserInTopic = <(int, TopicName, int), QueueList<int>>{};
     for (final message in messages) {
       if (message is! StreamMessage) continue;
       final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;

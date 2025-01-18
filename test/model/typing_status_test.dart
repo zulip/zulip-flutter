@@ -35,7 +35,7 @@ void checkSetTypingStatusRequests(
           'type': 'channel',
           'op': op.toJson(),
           'stream_id': narrow.streamId.toString(),
-          'topic': narrow.topic}),
+          'topic': narrow.topic.apiName}),
         DmNarrow() => conditionTypingRequest({
           'type': 'direct',
           'op': op.toJson(),
@@ -94,7 +94,7 @@ void main() {
   }
 
   final stream = eg.stream();
-  final topicNarrow = TopicNarrow(stream.streamId, 'foo');
+  final topicNarrow = eg.topicNarrow(stream.streamId, 'foo');
 
   final dmNarrow = DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId);
   final groupNarrow = DmNarrow.withOtherUsers(
@@ -272,7 +272,7 @@ void main() {
       final channel = eg.stream();
       await store.addStream(channel);
       await store.addSubscription(eg.subscription(channel));
-      narrow = TopicNarrow(channel.streamId, 'topic');
+      narrow = eg.topicNarrow(channel.streamId, 'topic');
     }
 
     /// Prepares store and triggers a "typing started" notice.

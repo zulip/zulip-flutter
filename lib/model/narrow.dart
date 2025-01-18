@@ -99,7 +99,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   }
 
   final int streamId;
-  final String topic;
+  final TopicName topic;
 
   @override
   bool containsMessage(Message message) {
@@ -114,7 +114,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   StreamDestination get destination => StreamDestination(streamId, topic);
 
   @override
-  String toString() => 'TopicNarrow($streamId, $topic)';
+  String toString() => 'TopicNarrow($streamId, ${topic.displayName})';
 
   @override
   bool operator ==(Object other) {

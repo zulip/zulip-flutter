@@ -132,7 +132,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <(String, int, bool, int)>[];
+      final topicItems = <(TopicName, int, bool, int)>[];
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
@@ -192,7 +192,7 @@ class _StreamSectionData extends _InboxSectionData {
   final int streamId;
   final int count;
   final bool hasMention;
-  final List<(String, int, bool, int)> items;
+  final List<(TopicName, int, bool, int)> items;
 
   const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
 }
@@ -487,7 +487,7 @@ class _TopicItem extends StatelessWidget {
   });
 
   final int streamId;
-  final String topic;
+  final TopicName topic;
   final int count;
   final bool hasMention;
 
@@ -524,7 +524,7 @@ class _TopicItem extends StatelessWidget {
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                topic))),
+                topic.displayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             // TODO(design) copies the "@" marker color; is there a better color?

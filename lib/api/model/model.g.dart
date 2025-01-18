@@ -267,13 +267,13 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
     senderFullName: json['sender_full_name'] as String,
     senderId: (json['sender_id'] as num).toInt(),
     senderRealmStr: json['sender_realm_str'] as String,
-    topic: json['subject'] as String,
     timestamp: (json['timestamp'] as num).toInt(),
     flags: Message._flagsFromJson(json['flags']),
     matchContent: json['match_content'] as String?,
     matchTopic: json['match_subject'] as String?,
     displayRecipient: json['display_recipient'] as String?,
     streamId: (json['stream_id'] as num).toInt(),
+    topic: TopicName.fromJson(json['subject'] as String),
   )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 }
 
@@ -292,7 +292,6 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'sender_full_name': instance.senderFullName,
       'sender_id': instance.senderId,
       'sender_realm_str': instance.senderRealmStr,
-      'subject': instance.topic,
       'submessages': Poll.toJson(instance.poll),
       'timestamp': instance.timestamp,
       'flags': instance.flags,
@@ -302,6 +301,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       if (instance.displayRecipient case final value?)
         'display_recipient': value,
       'stream_id': instance.streamId,
+      'subject': instance.topic,
     };
 
 const _$MessageEditStateEnumMap = {
@@ -338,7 +338,6 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
       senderFullName: json['sender_full_name'] as String,
       senderId: (json['sender_id'] as num).toInt(),
       senderRealmStr: json['sender_realm_str'] as String,
-      topic: json['subject'] as String,
       timestamp: (json['timestamp'] as num).toInt(),
       flags: Message._flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
@@ -361,7 +360,6 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
       'sender_full_name': instance.senderFullName,
       'sender_id': instance.senderId,
       'sender_realm_str': instance.senderRealmStr,
-      'subject': instance.topic,
       'submessages': Poll.toJson(instance.poll),
       'timestamp': instance.timestamp,
       'flags': instance.flags,

@@ -184,7 +184,7 @@ void main() {
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
       ]));
-      checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+      checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
@@ -328,7 +328,7 @@ void main() {
     test('smoke', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           queueId: 'abc:123',
           localId: '456',
           readBySender: true,
@@ -347,7 +347,7 @@ void main() {
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -391,7 +391,7 @@ void main() {
     test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: null,
           expectedBodyFields: {
             'type': 'stream',
@@ -406,7 +406,7 @@ void main() {
     test('legacy: when server does not support readBySender, sends a User-Agent the server will recognize', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 235, (connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -743,7 +743,7 @@ void main() {
     }) async {
       connection.prepare(json: {});
       await markTopicAsRead(connection,
-        streamId: streamId, topicName: topicName);
+        streamId: streamId, topicName: eg.t(topicName));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/mark_topic_as_read')

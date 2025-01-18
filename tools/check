@@ -367,6 +367,9 @@ run_l10n() {
     check_no_uncommitted_or_untracked "${output_pathspec}" \
     || return
 
+    rm -f lib/generated/l10n/zulip_localizations_*.dart \
+    || return
+
     flutter gen-l10n > /dev/null \
     || return
 

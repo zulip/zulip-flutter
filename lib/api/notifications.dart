@@ -1,6 +1,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
+import 'model/model.dart';
+
 part 'notifications.g.dart';
 
 /// Parsed version of an FCM message, of any type.
@@ -187,7 +189,7 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
   @JsonKey(name: 'stream')
   final String? streamName;
 
-  final String topic;
+  final TopicName topic;
 
   FcmMessageChannelRecipient({required this.streamId, required this.streamName, required this.topic});
 

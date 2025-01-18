@@ -51,8 +51,8 @@ extension UpdateMessageEventChecks on Subject<UpdateMessageEvent> {
   Subject<int?> get origStreamId => has((e) => e.origStreamId, 'origStreamId');
   Subject<int?> get newStreamId => has((e) => e.newStreamId, 'newStreamId');
   Subject<PropagateMode?> get propagateMode => has((e) => e.propagateMode, 'propagateMode');
-  Subject<String?> get origTopic => has((e) => e.origTopic, 'origTopic');
-  Subject<String?> get newTopic => has((e) => e.newTopic, 'newTopic');
+  Subject<TopicName?> get origTopic => has((e) => e.origTopic, 'origTopic');
+  Subject<TopicName?> get newTopic => has((e) => e.newTopic, 'newTopic');
   Subject<String?> get origContent => has((e) => e.origContent, 'origContent');
   Subject<String?> get origRenderedContent => has((e) => e.origRenderedContent, 'origRenderedContent');
   Subject<String?> get content => has((e) => e.content, 'content');
@@ -77,7 +77,7 @@ extension TypingEventChecks on Subject<TypingEvent> {
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<List<int>?> get recipientIds => has((e) => e.recipientIds, 'recipientIds');
   Subject<int?> get streamId => has((e) => e.streamId, 'streamId');
-  Subject<String?> get topic => has((e) => e.topic, 'topic');
+  Subject<TopicName?> get topic => has((e) => e.topic, 'topic');
 }
 
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {

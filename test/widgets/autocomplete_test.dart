@@ -17,6 +17,7 @@ import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
+import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
@@ -224,6 +225,9 @@ void main() {
       await tester.enterText(composeInputFinder, 'hi :');
       await tester.enterText(composeInputFinder, 'hi :z');
       await tester.pump();
+      // Add an extra pump to account for any potential frame delays introduced
+      // by the post frame callback in RawAutocomplete's implementation.
+      await tester.pump();
       checkEmojiShown(expected: true, zzzOption);
       checkEmojiShown(expected: true, buzzingOption);
       checkEmojiShown(expected: true, zulipOption);
@@ -273,7 +277,7 @@ void main() {
 
   group('TopicAutocomplete', () {
     void checkTopicShown(GetStreamTopicsEntry topic, PerAccountStore store, {required bool expected}) {
-      check(find.text(topic.name).evaluate().length).equals(expected ? 1 : 0);
+      check(find.text(topic.name.displayName).evaluate().length).equals(expected ? 1 : 0);
     }
 
     testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
@@ -298,7 +302,7 @@ void main() {
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
-        .equals(topic3.name);
+        .equals(topic3.name.displayName);
       checkTopicShown(topic1, store, expected: false);
       checkTopicShown(topic2, store, expected: false);
       checkTopicShown(topic3, store, expected: true); // shown in `_TopicInput` once
@@ -308,6 +312,37 @@ void main() {
       await tester.enterText(topicInputFinder, 'Topic T');
       await tester.pumpAndSettle();
       checkTopicShown(topic2, store, expected: true);
+    });
+
+    testWidgets('text selection is reset on choosing an option', (tester) async {
+      // TODO test also that composing region gets reset.
+      //   (Just adding it to the updateEditingValue call below doesn't seem
+      //   to suffice to set it up; the controller value after the pump still
+      //   has empty composing region, so there's nothing to check after tap.)
+
+      final topic = eg.getStreamTopicsEntry(name: 'some topic');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+      final controller = tester.widget<TextField>(topicInputFinder).controller!;
+
+      await tester.enterText(topicInputFinder, 'so');
+      await tester.enterText(topicInputFinder, 'some');
+      tester.testTextInput.updateEditingValue(const TextEditingValue(
+        text: 'some',
+        selection: TextSelection(baseOffset: 1, extentOffset: 3)));
+      await tester.pump();
+      check(controller.value)
+        ..text.equals('some')
+        ..selection.equals(
+            const TextSelection(baseOffset: 1, extentOffset: 3));
+
+      await tester.tap(find.text('some topic'));
+      await tester.pump();
+      check(controller.value)
+        ..text.equals('some topic')
+        ..selection.equals(
+            const TextSelection.collapsed(offset: 'some topic'.length));
+
+      await tester.pump(Duration.zero);
     });
   });
 }

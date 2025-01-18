@@ -138,7 +138,7 @@ void main() {
       final navObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       final channel = eg.stream();
-      await setupMessageListPage(tester, narrow: TopicNarrow(channel.streamId, 'hi'),
+      await setupMessageListPage(tester, narrow: eg.topicNarrow(channel.streamId, 'hi'),
         navObservers: [navObserver],
         streams: [channel], messageCount: 1);
 
@@ -157,7 +157,7 @@ void main() {
       final channel = eg.stream();
       const topic = 'topic';
       await setupMessageListPage(tester,
-        narrow: TopicNarrow(channel.streamId, topic),
+        narrow: eg.topicNarrow(channel.streamId, topic),
         streams: [channel], subscriptions: [eg.subscription(channel)],
         messageCount: 1);
       await store.handleEvent(eg.userTopicEvent(
@@ -661,7 +661,7 @@ void main() {
     const topic = 'foo';
     final channel = eg.stream();
     final otherChannel = eg.stream();
-    final narrow = TopicNarrow(channel.streamId, topic);
+    final narrow = eg.topicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {
       connection.prepare(json: eg.newestGetMessagesResult(
@@ -671,7 +671,7 @@ void main() {
     void handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) {
       store.handleEvent(eg.updateMessageEventMoveFrom(
         origMessages: messages,
-        newTopic: newTopic,
+        newTopicStr: newTopic,
         newStreamId: newChannelId,
         propagateMode: PropagateMode.changeAll));
     }
@@ -749,7 +749,8 @@ void main() {
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
       final stream = eg.stream(name: 'stream name');
-      final message = eg.streamMessage(stream: stream, topic: 'topic name');
+      const topic = 'topic name';
+      final message = eg.streamMessage(stream: stream, topic: topic);
 
       FinderResult<Element> findInMessageList(String text) {
         // Stream name shows up in [AppBar] so need to avoid matching that
@@ -808,7 +809,7 @@ void main() {
           narrow: const CombinedFeedNarrow(),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, message.topic, UserTopicVisibilityPolicy.followed));
+          stream.streamId, topic, UserTopicVisibilityPolicy.followed));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -820,7 +821,7 @@ void main() {
           narrow: TopicNarrow.ofMessage(message),
           messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, message.topic, UserTopicVisibilityPolicy.unmuted));
+          stream.streamId, topic, UserTopicVisibilityPolicy.unmuted));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -1134,7 +1135,7 @@ void main() {
       checkMarkersCount(edited: 1, moved: 0);
 
       await store.handleEvent(eg.updateMessageEventMoveFrom(
-        origMessages: [message, message2], newTopic: 'new'));
+        origMessages: [message, message2], newTopicStr: 'new'));
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 1);
 

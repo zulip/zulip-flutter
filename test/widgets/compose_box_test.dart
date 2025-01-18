@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
@@ -229,14 +230,14 @@ void main() {
     testWidgets('_FixedDestinationComposeBox', (tester) async {
       final channel = eg.stream();
       await prepareComposeBox(tester,
-        narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
+        narrow: eg.topicNarrow(channel.streamId, 'topic'), streams: [channel]);
       checkComposeBoxTextFields(tester, expectTopicTextField: false);
     });
   });
 
   group('ComposeBox typing notices', () {
     final channel = eg.stream();
-    final narrow = TopicNarrow(channel.streamId, 'some topic');
+    final narrow = eg.topicNarrow(channel.streamId, 'some topic');
 
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
       checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
@@ -271,9 +272,9 @@ void main() {
 
     testWidgets('smoke ChannelNarrow', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
+      await enterTopic(tester, narrow: narrow, topic: 'test topic');
 
       await checkStartTyping(tester, destinationNarrow);
 
@@ -338,9 +339,9 @@ void main() {
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
+      await enterTopic(tester, narrow: narrow, topic: 'test topic');
 
       await checkStartTyping(tester, destinationNarrow);
 
@@ -401,7 +402,7 @@ void main() {
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
+      await prepareComposeBox(tester, narrow: eg.topicNarrow(123, 'some topic'),
         streams: [eg.stream(streamId: 123)]);
 
       await tester.enterText(contentInputFinder, 'hello world');
@@ -581,7 +582,13 @@ void main() {
       });
 
       // TODO test what happens when capturing/uploading fails
-    });
+    },
+    // This test fails on Windows because [XFile.name] splits on
+    // [Platform.pathSeparator], corresponding to the actual host platform
+    // the test is running on, instead of the path separator for the
+    // target platform the test is simulating.
+    // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+    skip: Platform.isWindows);
   });
 
   group('error banner', () {
@@ -701,7 +708,7 @@ void main() {
 
       final narrowTestCases = [
         ('channel', const ChannelNarrow(1)),
-        ('topic',   const TopicNarrow(1, 'topic')),
+        ('topic',   eg.topicNarrow(1, 'topic')),
       ];
 
       for (final (String narrowType, Narrow narrow) in narrowTestCases) {
@@ -795,7 +802,7 @@ void main() {
   group('ComposeBox content input scaling', () {
     const verticalPadding = 8;
     final stream = eg.stream();
-    final narrow = TopicNarrow(stream.streamId, 'foo');
+    final narrow = eg.topicNarrow(stream.streamId, 'foo');
 
     Future<void> checkContentInputMaxHeight(WidgetTester tester, {
       required double maxHeight,

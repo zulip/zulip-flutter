@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
 
+import '../api/model/model.dart';
 import '../api/notifications.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
@@ -263,9 +264,9 @@ class NotificationDisplayManager {
     // the first.
     messagingStyle.conversationTitle = switch (data.recipient) {
       FcmMessageChannelRecipient(:var streamName?, :var topic) =>
-        '#$streamName > $topic',
+        '#$streamName > ${topic.displayName}',
       FcmMessageChannelRecipient(:var topic) =>
-        '#(unknown channel) > $topic', // TODO get stream name from data
+        '#(unknown channel) > ${topic.displayName}', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
@@ -442,7 +443,7 @@ class NotificationDisplayManager {
 
   static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var streamId, :var topic) => 'stream:$streamId:$topic',
+      FcmMessageChannelRecipient(:var streamId, :var topic) => 'stream:$streamId:${topic.canonicalize()}',
       FcmMessageDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
     };
     return '$groupKey|$conversation';
@@ -538,8 +539,8 @@ class NotificationOpenPayload {
         case 'topic':
           final channelIdStr = url.queryParameters['channel_id']!;
           final channelId = int.parse(channelIdStr, radix: 10);
-          final topic = url.queryParameters['topic']!;
-          narrow = TopicNarrow(channelId, topic);
+          final topicStr = url.queryParameters['topic']!;
+          narrow = TopicNarrow(channelId, TopicName(topicStr));
         case 'dm':
           final allRecipientIdsStr = url.queryParameters['all_recipient_ids']!;
           final allRecipientIds = allRecipientIdsStr.split(',')
@@ -572,7 +573,7 @@ class NotificationOpenPayload {
           TopicNarrow(streamId: var channelId, :var topic) => {
             'narrow_type': 'topic',
             'channel_id': channelId.toString(),
-            'topic': topic,
+            'topic': topic.apiName,
           },
           DmNarrow(:var allRecipientIds) => {
             'narrow_type': 'dm',

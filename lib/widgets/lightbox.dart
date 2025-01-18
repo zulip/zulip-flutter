@@ -171,21 +171,24 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         backgroundColor: appBarBackgroundColor,
         shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
+        title: Row(children: [
+          Avatar(size: 36, borderRadius: 36 / 8, userId: widget.message.senderId),
+          const SizedBox(width: 8),
+          Expanded(
+            child: RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  text: '${widget.message.senderFullName}\n',
 
-        // TODO(#41): Show message author's avatar
-        title: RichText(
-          text: TextSpan(children: [
-            TextSpan(
-              text: '${widget.message.senderFullName}\n',
+                  // Restate default
+                  style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
+                TextSpan(
+                  text: timestampText,
 
-              // Restate default
-              style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
-            TextSpan(
-              text: timestampText,
-
-              // Make smaller, like a subtitle
-              style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-          ])),
+                  // Make smaller, like a subtitle
+                  style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
+              ]))),
+        ]),
         bottom: widget.buildAppBarBottom(context));
     }
 

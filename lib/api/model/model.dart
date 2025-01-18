@@ -556,11 +556,11 @@ sealed class Message {
   final String senderFullName;
   final int senderId;
   final String senderRealmStr;
-  @JsonKey(name: 'subject')
-  String topic;
+
   /// Poll data if "submessages" describe a poll, `null` otherwise.
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
+
   final int timestamp;
   String get type;
 
@@ -613,7 +613,6 @@ sealed class Message {
     required this.senderFullName,
     required this.senderId,
     required this.senderRealmStr,
-    required this.topic,
     required this.timestamp,
     required this.flags,
     required this.matchContent,
@@ -656,6 +655,38 @@ enum MessageFlag {
   String toJson() => _$MessageFlagEnumMap[this]!;
 }
 
+/// The name of a Zulip topic.
+// TODO(dart): Can we forbid calling Object members on this extension type?
+//   (The lack of "implements Object" ought to do that, but doesn't.)
+//   In particular an interpolation "foo > $topic" is a bug we'd like to catch.
+// TODO(dart): Can we forbid using this extension type as a key in a Map?
+//   (The lack of "implements Object" arguably should do that, but doesn't.)
+//   Using as a Map key is almost certainly a bug because it won't case-fold;
+//   see for example #739, #980, #1205.
+extension type const TopicName(String _value) {
+  /// The string this topic is identified by in the Zulip API.
+  ///
+  /// This should be used in constructing HTTP requests to the server,
+  /// but rarely for other purposes.  See [displayName] and [canonicalize].
+  String get apiName => _value;
+
+  /// The string this topic is displayed as to the user in our UI.
+  ///
+  /// At the moment this always equals [apiName].
+  /// In the future this will become null for the "general chat" topic (#1250),
+  /// so that UI code can identify when it needs to represent the topic
+  /// specially in the way prescribed for "general chat".
+  // TODO(#1250) carry out that plan
+  String get displayName => _value;
+
+  /// The key to use for "same topic as" comparisons.
+  String canonicalize() => apiName.toLowerCase();
+
+  TopicName.fromJson(this._value);
+
+  String toJson() => apiName;
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake)
 class StreamMessage extends Message {
   @override
@@ -667,7 +698,15 @@ class StreamMessage extends Message {
   // invalidated.
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
+
   int streamId;
+
+  // The topic/subject is documented to be present on DMs too, just empty.
+  // We ignore it on DMs; if a future server introduces distinct topics in DMs,
+  // that will need new UI that we'll design then as part of that feature,
+  // and ignoring the topics seems as good a fallback behavior as any.
+  @JsonKey(name: 'subject')
+  TopicName topic;
 
   StreamMessage({
     required super.client,
@@ -683,13 +722,13 @@ class StreamMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
     required this.displayRecipient,
     required this.streamId,
+    required this.topic,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -786,7 +825,6 @@ class DmMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
@@ -817,14 +855,14 @@ enum MessageEditState {
   /// The Zulip "resolved topics" feature is implemented by renaming the topic;
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
-  static bool topicMoveWasResolveOrUnresolve(String topic, String prevTopic) {
-    if (topic.startsWith(_resolvedTopicPrefix)
-        && topic.substring(_resolvedTopicPrefix.length) == prevTopic) {
+  static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
+    if (topic.apiName.startsWith(_resolvedTopicPrefix)
+        && topic.apiName.substring(_resolvedTopicPrefix.length) == prevTopic.apiName) {
       return true;
     }
 
-    if (prevTopic.startsWith(_resolvedTopicPrefix)
-        && prevTopic.substring(_resolvedTopicPrefix.length) == topic) {
+    if (prevTopic.apiName.startsWith(_resolvedTopicPrefix)
+        && prevTopic.apiName.substring(_resolvedTopicPrefix.length) == topic.apiName) {
       return true;
     }
 
@@ -857,8 +895,10 @@ enum MessageEditState {
       }
 
       // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
-      final prevTopic = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
-      final topic = entry['topic'] as String?;
+      final prevTopicStr = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
+      final prevTopic = prevTopicStr == null ? null : TopicName.fromJson(prevTopicStr);
+      final topicStr = entry['topic'] as String?;
+      final topic = topicStr == null ? null : TopicName.fromJson(topicStr);
       if (prevTopic != null) {
         // TODO(server-5) pre-5.0 servers do not have the 'topic' field
         if (topic == null) {

@@ -26,7 +26,7 @@ ThemeData zulipThemeData(BuildContext context) {
 
   switch (brightness) {
     case Brightness.light: {
-      designVariables = DesignVariables.light();
+      designVariables = DesignVariables.light;
       themeExtensions = [
         ContentTheme.light(context),
         designVariables,
@@ -35,7 +35,7 @@ ThemeData zulipThemeData(BuildContext context) {
       ];
     }
     case Brightness.dark: {
-      designVariables = DesignVariables.dark();
+      designVariables = DesignVariables.dark;
       themeExtensions = [
         ContentTheme.dark(context),
         designVariables,
@@ -117,8 +117,7 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 /// or
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
-  DesignVariables.light() :
-    this._(
+  static final light = DesignVariables._(
       background: const Color(0xffffffff),
       bannerBgIntDanger: const Color(0xfff2e4e4),
       bgBotBar: const Color(0xfff6f6f6),
@@ -168,8 +167,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     );
 
-  DesignVariables.dark() :
-    this._(
+  static final dark = DesignVariables._(
       background: const Color(0xff000000),
       bannerBgIntDanger: const Color(0xff461616),
       bgBotBar: const Color(0xff222222),
@@ -226,6 +224,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
       unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
     );
+
 
   DesignVariables._({
     required this.background,

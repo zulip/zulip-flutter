@@ -440,7 +440,7 @@ void main() {
     });
 
     test('in TopicNarrow, stay visible', () async {
-      await prepare(narrow: TopicNarrow(stream.streamId, topic));
+      await prepare(narrow: eg.topicNarrow(stream.streamId, topic));
       await prepareMutes();
       await prepareMessages(foundOldest: true, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
@@ -720,7 +720,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
         ));
         checkHasMessages(initialMessages + movedMessages);
         checkNotified(count: 2);
@@ -738,7 +738,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
         ));
         checkHasMessages(initialMessages + movedMessages);
         checkNotified(count: 2);
@@ -752,7 +752,7 @@ void main() {
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
-          origTopic: 'orig topic',
+          origTopicStr: 'orig topic',
           origStreamId: otherStream.streamId,
           newMessages: movedMessages,
         ));
@@ -770,7 +770,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
           newStreamId: otherStream.streamId,
         ));
         checkHasMessages(initialMessages);
@@ -793,7 +793,7 @@ void main() {
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: otherChannelMovedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
         ));
         checkHasMessages(initialMessages);
         checkNotNotified();
@@ -807,7 +807,7 @@ void main() {
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
           newStreamId: otherStream.streamId,
           propagateMode: propagateMode,
         ));
@@ -832,7 +832,7 @@ void main() {
     });
 
     group('in topic narrow', () {
-      final narrow = TopicNarrow(stream.streamId, 'topic');
+      final narrow = eg.topicNarrow(stream.streamId, 'topic');
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final otherTopicMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'other topic'));
@@ -855,7 +855,7 @@ void main() {
             ).toJson());
             await store.handleEvent(eg.updateMessageEventMoveTo(
               origStreamId: origStreamId,
-              origTopic: origTopic,
+              origTopicStr: origTopic,
               newMessages: movedMessages,
             ));
             check(model).fetched.isFalse();
@@ -883,7 +883,7 @@ void main() {
             await store.handleEvent(eg.updateMessageEventMoveFrom(
               origMessages: movedMessages,
               newStreamId: newStreamId,
-              newTopic: newTopic,
+              newTopicStr: newTopic,
             ));
             checkHasMessages(initialMessages);
             checkNotifiedOnce();
@@ -896,7 +896,7 @@ void main() {
           await prepareNarrow(narrow, initialMessages);
 
           await store.handleEvent(eg.updateMessageEventMoveTo(
-            origTopic: 'other',
+            origTopicStr: 'other',
             newMessages: otherTopicMovedMessages,
           ));
           check(model).fetched.isTrue();
@@ -925,7 +925,7 @@ void main() {
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: movedMessages,
-          newTopic: 'new',
+          newTopicStr: 'new',
           newStreamId: otherStream.streamId,
           propagateMode: propagateMode,
         ));
@@ -937,21 +937,21 @@ void main() {
         handleMoveEvent(PropagateMode.changeOne);
         checkNotNotified();
         checkHasMessages(initialMessages);
-        check(model).narrow.equals(TopicNarrow(stream.streamId, 'topic'));
+        check(model).narrow.equals(eg.topicNarrow(stream.streamId, 'topic'));
       });
 
       test('follow to the new narrow when propagateMode = changeLater', () {
         handleMoveEvent(PropagateMode.changeLater);
         checkNotifiedOnce();
         checkHasMessages(movedMessages);
-        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+        check(model).narrow.equals(eg.topicNarrow(otherStream.streamId, 'new'));
       });
 
       test('follow to the new narrow when propagateMode = changeAll', () {
         handleMoveEvent(PropagateMode.changeAll);
         checkNotifiedOnce();
         checkHasMessages(movedMessages);
-        check(model).narrow.equals(TopicNarrow(otherStream.streamId, 'new'));
+        check(model).narrow.equals(eg.topicNarrow(otherStream.streamId, 'new'));
       });
 
       test('handle move event before initial fetch', () => awaitFakeAsync((async) async {
@@ -969,11 +969,11 @@ void main() {
         check(model).fetched.isFalse();
         checkHasMessages([]);
         await store.handleEvent(eg.updateMessageEventMoveTo(
-          origTopic: 'topic',
+          origTopicStr: 'topic',
           newMessages: [followedMessage],
           propagateMode: PropagateMode.changeAll,
         ));
-        check(model).narrow.equals(TopicNarrow(stream.streamId, 'new'));
+        check(model).narrow.equals(eg.topicNarrow(stream.streamId, 'new'));
 
         async.elapse(const Duration(seconds: 2));
         checkHasMessages([followedMessage]);
@@ -1255,7 +1255,7 @@ void main() {
 
       int notifiedCount2 = 0;
       final model2 = MessageListView.init(store: store,
-          narrow: TopicNarrow(stream.streamId, 'hello'))
+          narrow: eg.topicNarrow(stream.streamId, 'hello'))
         ..addListener(() => notifiedCount2++);
 
       for (final m in [model1, model2]) {
@@ -1481,7 +1481,7 @@ void main() {
 
     test('in TopicNarrow', () async {
       final stream = eg.stream();
-      await prepare(narrow: TopicNarrow(stream.streamId, 'A'));
+      await prepare(narrow: eg.topicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
       await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
@@ -1802,6 +1802,26 @@ void main() {
           }
         }
       }
+    });
+
+    group('topics compared case-insensitively', () {
+      void doTest(String description, String topicA, String topicB, bool expected) {
+        test(description, () {
+          final stream = eg.stream();
+          final messageA = eg.streamMessage(stream: stream, topic: topicA);
+          final messageB = eg.streamMessage(stream: stream, topic: topicB);
+          check(haveSameRecipient(messageA, messageB)).equals(expected);
+        });
+      }
+
+      doTest('same case, all lower',               'abc',  'abc',  true);
+      doTest('same case, all upper',               'ABC',  'ABC',  true);
+      doTest('same case, mixed',                   'AbC',  'AbC',  true);
+      doTest('same non-cased chars',               '嗎',    '嗎',    true);
+      doTest('different case',                     'aBc',  'ABC',  true);
+      doTest('different case, same diacritics',    'AbÇ',  'aBç',  true);
+      doTest('same letters, different diacritics', 'ma',   'mǎ',   false);
+      doTest('having different CJK characters',    '嗎', '馬', false);
     });
   });
 

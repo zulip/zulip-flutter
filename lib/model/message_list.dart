@@ -352,7 +352,7 @@ mixin _MessageSequence {
 bool haveSameRecipient(Message prevMessage, Message message) {
   if (prevMessage is StreamMessage && message is StreamMessage) {
     if (prevMessage.streamId != message.streamId) return false;
-    if (prevMessage.topic != message.topic) return false;
+    if (prevMessage.topic.canonicalize() != message.topic.canonicalize()) return false;
   } else if (prevMessage is DmMessage && message is DmMessage) {
     if (!_equalIdSequences(prevMessage.allRecipientIds, message.allRecipientIds)) {
       return false;
@@ -686,8 +686,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   void messagesMoved({
     required int origStreamId,
     required int newStreamId,
-    required String origTopic,
-    required String newTopic,
+    required TopicName origTopic,
+    required TopicName newTopic,
     required List<int> messageIds,
     required PropagateMode propagateMode,
   }) {

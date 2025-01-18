@@ -151,7 +151,7 @@ class ActionSheetCancelButton extends StatelessWidget {
 /// Show a sheet of actions you can take on a topic.
 void showTopicActionSheet(BuildContext context, {
   required int channelId,
-  required String topic,
+  required TopicName topic,
 }) {
   final store = PerAccountStoreWidget.of(context);
   final subscription = store.subscriptions[channelId];
@@ -633,6 +633,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    final message = this.message;
 
     var composeBoxController = findMessageListPage().composeBoxController;
     // The compose box doesn't null out its controller; it's either always null
@@ -644,7 +645,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
       && composeBoxController.topic.textNormalized == kNoTopicTopic
       && message is StreamMessage
     ) {
-      composeBoxController.topic.value = TextEditingValue(text: message.topic);
+      composeBoxController.topic.setTopic(message.topic);
     }
 
     // This inserts a "[Quoting…]" placeholder into the content input,

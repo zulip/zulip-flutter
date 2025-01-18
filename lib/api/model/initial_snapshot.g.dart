@@ -188,7 +188,7 @@ const _$EmojisetEnumMap = {
 UserTopicItem _$UserTopicItemFromJson(Map<String, dynamic> json) =>
     UserTopicItem(
       streamId: (json['stream_id'] as num).toInt(),
-      topicName: json['topic_name'] as String,
+      topicName: TopicName.fromJson(json['topic_name'] as String),
       lastUpdated: (json['last_updated'] as num).toInt(),
       visibilityPolicy: $enumDecode(
           _$UserTopicVisibilityPolicyEnumMap, json['visibility_policy'],
@@ -260,7 +260,7 @@ Map<String, dynamic> _$UnreadDmSnapshotToJson(UnreadDmSnapshot instance) =>
 UnreadChannelSnapshot _$UnreadChannelSnapshotFromJson(
         Map<String, dynamic> json) =>
     UnreadChannelSnapshot(
-      topic: json['topic'] as String,
+      topic: TopicName.fromJson(json['topic'] as String),
       streamId: (json['stream_id'] as num).toInt(),
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
