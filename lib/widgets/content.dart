@@ -42,6 +42,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorPollNames: const HSLColor.fromAHSL(1, 0, 0, .45).toColor(),
@@ -75,6 +76,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorPollNames: const HSLColor.fromAHSL(1, 236, .15, .7).toColor(),
@@ -107,6 +109,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorDirectMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
+    required this.colorLink,
     required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
     required this.colorPollNames,
@@ -139,6 +142,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorDirectMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
+  final Color colorLink;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
   final Color colorPollNames;
@@ -199,6 +203,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorDirectMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
+    Color? colorLink,
     Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
     Color? colorPollNames,
@@ -221,6 +226,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
+      colorLink: colorLink ?? this.colorLink,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
       colorPollNames: colorPollNames ?? this.colorPollNames,
@@ -250,6 +256,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
+      colorLink: Color.lerp(colorLink, other.colorLink, t)!,
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorPollNames: Color.lerp(colorPollNames, other.colorPollNames, t)!,
@@ -1029,8 +1036,7 @@ class _InlineContentBuilder {
         assert(recognizer != null);
         _pushRecognizer(recognizer);
         final result = _buildNodes(node.nodes,
-          // Web has the same color in light and dark mode.
-          style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+          style: TextStyle(color: ContentTheme.of(_context!).colorLink));
         _popRecognizer();
         return result;
 
