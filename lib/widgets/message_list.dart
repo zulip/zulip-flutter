@@ -515,11 +515,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           return;
         }
 
+        // Might be used in the future
+        // ignore: unused_local_variable
         final viewportDimension = scrollController.position.viewportDimension;
         final currentScroll = scrollController.position.pixels;
 
         // If we're one viewportDimension from the bottomList, scroll to it
-        if (currentScroll + viewportDimension > 0) {
+        if (currentScroll + 300  > 0) {
 
         // Calculate initial scroll parameters
         final distanceToCenter = scrollController.position.pixels;
@@ -537,17 +539,18 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
         // Wait for the layout to settle so scrollController.position.pixels is updated properly
 
-
-        final distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
-        final durationMsToBottom = math.min(1500, (1000 * distanceToBottom / 8000).ceil());
+        var distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+        final durationMsToBottom =  math.min(200, (1000 * distanceToBottom / 8000).ceil());
         // If we go too fast, we'll overscroll.as
 
         // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
-        if (distanceToBottom > 36) {
+        while (distanceToBottom > 36) {
           await scrollController.animateTo(
             scrollController.position.maxScrollExtent,
             duration:  Duration(milliseconds: durationMsToBottom),
             curve: Curves.ease);
+          distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+          await Future<void>.delayed(const Duration(milliseconds: 50));
         }
 
         }
@@ -783,7 +786,6 @@ class ScrollToBottomButton extends StatelessWidget {
     final distanceToCenter = scrollController.position.pixels;
     final durationMsAtSpeedLimit = (1000 * distanceToCenter / 8000).ceil();
     final durationMs = math.max(300, durationMsAtSpeedLimit);
-
     // If we're not at the bottomSliver,scroll to it
     if(distanceToCenter<36){
       await scrollController.animateTo(
@@ -796,18 +798,21 @@ class ScrollToBottomButton extends StatelessWidget {
     // Wait for the layout to settle so scrollController.position.pixels is updated properly
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
-
-    final distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
-    final durationMsToBottom = math.min(1000, (1000 * distanceToBottom / 8000).ceil());
+    var distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+    final durationMsToBottom = math.min(1000, (1200 * distanceToBottom / 8000).ceil());
     // If we go too fast, we'll overscroll.
-
     // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
-    if (distanceToBottom > 36) {
+    var count = 0;
+    while (distanceToBottom > 36) {
       await scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: Duration(milliseconds: durationMsToBottom),
         curve: Curves.easeOut);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+      count++;
     }
+    print("count: $count");
   }
 
   @override
