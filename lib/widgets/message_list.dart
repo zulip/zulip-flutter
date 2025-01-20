@@ -483,8 +483,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model!.addListener(_modelChanged);
     await model!.fetchInitial();
     setState(() {
-      oldItems = model!.items.sublist(0, model!.anchorIndex!+1);
-      newItems = model!.items.sublist(model!.anchorIndex!+1, model!.items.length);
+      oldItems = model!.items.sublist(0, model!.anchorIndex+1);
+      newItems = model!.items.sublist(model!.anchorIndex+1, model!.items.length);
     });
   }
 
@@ -498,8 +498,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     final previousLength = oldItems.length + newItems.length;
 
     setState(() {
-      oldItems = model!.items.sublist(0, model!.anchorIndex!+1);
-      newItems = model!.items.sublist(model!.anchorIndex!+1, model!.items.length);
+      oldItems = model!.items.sublist(0, model!.anchorIndex+1);
+      newItems = model!.items.sublist(model!.anchorIndex+1, model!.items.length);
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
     });

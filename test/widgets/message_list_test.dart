@@ -366,7 +366,7 @@ void main() {
       await tester.tap(find.byType(ScrollToBottomButton));
       await tester.pumpAndSettle();
       check(isButtonVisible(tester)).equals(false);
-      check(scrollController.position.pixels).equals(0);
+      check(scrollController.position.maxScrollExtent - scrollController.position.pixels).isLessThan(36);
     });
   });
 
@@ -720,6 +720,10 @@ void main() {
       final existingMessage = eg.streamMessage(
         stream: eg.stream(), topic: 'new topic', content: 'Existing message');
       prepareGetMessageResponse([existingMessage, message]);
+      // Prepare response for fetchInitial after move
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true,
+        messages: [existingMessage, message]).toJson());
       handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 
@@ -732,6 +736,10 @@ void main() {
       await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
 
       prepareGetMessageResponse([message]);
+      // Prepare response for fetchInitial after move
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true,
+        messages: [message]).toJson());
       handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 

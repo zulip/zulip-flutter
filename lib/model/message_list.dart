@@ -487,7 +487,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   // Anchor message ID is used to fetch messages from a specific point in the list.
   // It is set when the user navigates to a message list page with a specific anchor message.
   int? anchorMessageId;
-  int? get anchorIndex => anchorMessageId != null ? findItemWithMessageId(anchorMessageId!) : null;
+  int get anchorIndex => anchorMessageId != null ? findItemWithMessageId(anchorMessageId!) : 0;
   factory MessageListView.init(
       {required PerAccountStore store, required Narrow narrow, int? anchorMessageId}) {
     final view = MessageListView._(store: store, narrow: narrow, anchorMessageId: anchorMessageId);
@@ -591,7 +591,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         ? kMessageListFetchBatchSize ~/2 // Fetch messages before and after anchor
         : 0,                          // Don't fetch newer messages when no anchor
     );
-    anchorMessageId ??= result.messages.last.id;
+    if(result.messages.isNotEmpty){
+      anchorMessageId ??= result.messages.last.id;
+    }
 
     if (this.generation > generation) return;
     store.reconcileMessages(result.messages);
