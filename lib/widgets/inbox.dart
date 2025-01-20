@@ -161,8 +161,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           mainAxisAlignment: MainAxisAlignment.start, // Centered vertically
           crossAxisAlignment: CrossAxisAlignment.center, // Centered horizontally
           children: [
-            SizedBox(
-              height: 5,
+           const  SizedBox(
+              height: 50,
             ),
             Icon(
               ZulipIcons.inbox_done,
@@ -171,7 +171,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
             ),
             const SizedBox(height: 20),
              Text(
-              "There are no unread messages in your inbox.",
+              "There are no unread messages in your Inbox.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color:Colors.grey[600], // Light gray for the main text
@@ -200,7 +200,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         // Handle "channels" click
-                        print("Channels clicked");
+                        // print("Channels clicked");
                       },
                   ),
                   TextSpan(
