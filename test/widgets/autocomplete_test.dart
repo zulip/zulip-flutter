@@ -341,8 +341,6 @@ void main() {
 
       await tester.tap(find.text('some topic'));
       await tester.pump();
-      await tester.pump();
-
       check(controller.value)
         ..text.equals('some topic')
         ..selection.equals(
