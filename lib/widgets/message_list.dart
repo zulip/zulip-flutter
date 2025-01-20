@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -516,36 +516,47 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         }
 
         final viewportDimension = scrollController.position.viewportDimension;
-        final maxScrollExtent = scrollController.position.maxScrollExtent;
         final currentScroll = scrollController.position.pixels;
 
-        // If we're within 300px of the bottommost viewport, auto-scroll
-        if (maxScrollExtent - currentScroll - viewportDimension < 300) {
+        // If we're one viewportDimension from the bottomList, scroll to it
+        if (currentScroll + viewportDimension > 0) {
 
-        final distance = scrollController.position.pixels;
-        final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
-        final durationMs = max(300, durationMsAtSpeedLimit);
+        // Calculate initial scroll parameters
+        final distanceToCenter = scrollController.position.pixels;
+        final durationMsAtSpeedLimit = (1000 * distanceToCenter / 8000).ceil();
+        final durationMs = math.max(300, durationMsAtSpeedLimit);
 
-        await scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: durationMs),
-            curve: Curves.ease);
+        // If we're not at the bottomSliver,scroll to it
+        if(distanceToCenter<36){
+          await scrollController.animateTo(
+          36,                     //Scroll 36 px inside bottomSliver.The sizedBox is 36px high. so theres no chance of overscrolling
+          duration: Duration(milliseconds: durationMs),
+          curve: Curves.easeIn);
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+
+        // Wait for the layout to settle so scrollController.position.pixels is updated properly
 
 
+        final distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+        final durationMsToBottom = math.min(1500, (1000 * distanceToBottom / 8000).ceil());
+        // If we go too fast, we'll overscroll.as
 
-        if (scrollController.position.pixels + 40 < scrollController.position.maxScrollExtent ) {
+        // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
+        if (distanceToBottom > 36) {
           await scrollController.animateTo(
             scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: durationMs),
-              curve: Curves.ease);
-          }
+            duration:  Duration(milliseconds: durationMsToBottom),
+            curve: Curves.ease);
+        }
+
         }
       });
     }
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
-    if (scrollMetrics.extentAfter == 0) {
+    if (scrollMetrics.extentAfter < 40) {
       _scrollToBottomVisibleValue.value = false;
     } else {
       _scrollToBottomVisibleValue.value = true;
@@ -675,10 +686,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       sliver = SliverSafeArea(sliver: sliver);
     }
 
+
+
     return CustomScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
+
       keyboardDismissBehavior: switch (Theme.of(context).platform) {
         // This seems to offer the only built-in way to close the keyboard
         // on iOS. It's not ideal; see TODO above.
@@ -734,6 +748,30 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 }
 
+
+class NoOverScrollPhysics extends ScrollPhysics {
+  const NoOverScrollPhysics({super.parent});
+
+  @override
+  NoOverScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return NoOverScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    // Prevent overscroll at the top
+    if (value < position.minScrollExtent) {
+      return position.minScrollExtent;
+    }
+    // Prevent overscroll at the bottom
+    if (value > position.maxScrollExtent) {
+      return position.maxScrollExtent;
+    }
+    return 0.0; // Allow normal scrolling within bounds
+  }
+}
+
+
 class ScrollToBottomButton extends StatelessWidget {
   const ScrollToBottomButton({super.key, required this.scrollController, required this.visibleValue});
 
@@ -742,26 +780,34 @@ class ScrollToBottomButton extends StatelessWidget {
 
   Future<void> _navigateToBottom() async {
     // Calculate initial scroll parameters
-    final distance = scrollController.position.pixels;
-    final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
-    final durationMs = max(300, durationMsAtSpeedLimit);
+    final distanceToCenter = scrollController.position.pixels;
+    final durationMsAtSpeedLimit = (1000 * distanceToCenter / 8000).ceil();
+    final durationMs = math.max(300, durationMsAtSpeedLimit);
 
-    // Do a single scroll attempt with a completion check
-    await scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
+    // If we're not at the bottomSliver,scroll to it
+    if(distanceToCenter<36){
+      await scrollController.animateTo(
+      36,                     //Scroll 36 px inside bottomSliver.The sizedBox is 36px high. so theres no chance of overscrolling
       duration: Duration(milliseconds: durationMs),
-      curve: Curves.ease);
-    var count =1;
-    // Check if we actually reached bottom, if not try again
-    // This handles cases where content was loaded during scroll
-    while (scrollController.position.pixels + 40 < scrollController.position.maxScrollExtent) {
+      curve: Curves.easeIn);
+    }
+
+
+    // Wait for the layout to settle so scrollController.position.pixels is updated properly
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+
+    final distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+    final durationMsToBottom = math.min(1000, (1000 * distanceToBottom / 8000).ceil());
+    // If we go too fast, we'll overscroll.
+
+    // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
+    if (distanceToBottom > 36) {
       await scrollController.animateTo(
         scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.ease);
-      count++;
+        duration: Duration(milliseconds: durationMsToBottom),
+        curve: Curves.easeOut);
     }
-    print("count: $count");
   }
 
   @override
@@ -1221,7 +1267,8 @@ class DmRecipientHeader extends StatelessWidget {
         .where((id) => id != store.selfUserId)
         .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
         .sorted()
-        .join(", "));
+        .join(", ")
+        );
     } else {
       // TODO pick string; web has glitchy "You and $yourname"
       title = zulipLocalizations.messageListGroupYouWithYourself;
