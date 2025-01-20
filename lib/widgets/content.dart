@@ -51,6 +51,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.80).toColor(),
       colorTableHeaderBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
@@ -84,6 +85,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.33).toColor(),
       colorTableHeaderBackground: const HSLColor.fromAHSL(0.5, 0, 0, 0).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
@@ -116,6 +118,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorTableCellBorder,
     required this.colorTableHeaderBackground,
     required this.colorThematicBreak,
+    required this.colorLink,
     required this.textStylePlainParagraph,
     required this.textStyleEmoji,
     required this.codeBlockTextStyles,
@@ -148,6 +151,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorTableCellBorder;
   final Color colorTableHeaderBackground;
   final Color colorThematicBreak;
+  final Color colorLink;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
   ///
@@ -208,6 +212,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorTableCellBorder,
     Color? colorTableHeaderBackground,
     Color? colorThematicBreak,
+    Color? colorLink,
     TextStyle? textStylePlainParagraph,
     TextStyle? textStyleEmoji,
     CodeBlockTextStyles? codeBlockTextStyles,
@@ -230,6 +235,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: colorTableCellBorder ?? this.colorTableCellBorder,
       colorTableHeaderBackground: colorTableHeaderBackground ?? this.colorTableHeaderBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
+      colorLink: colorLink ?? this.colorLink,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       textStyleEmoji: textStyleEmoji ?? this.textStyleEmoji,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
@@ -259,6 +265,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: Color.lerp(colorTableCellBorder, other.colorTableCellBorder, t)!,
       colorTableHeaderBackground: Color.lerp(colorTableHeaderBackground, other.colorTableHeaderBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
+      colorLink: Color.lerp(colorLink, other.colorLink, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       textStyleEmoji: TextStyle.lerp(textStyleEmoji, other.textStyleEmoji, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
@@ -1030,7 +1037,7 @@ class _InlineContentBuilder {
         _pushRecognizer(recognizer);
         final result = _buildNodes(node.nodes,
           // Web has the same color in light and dark mode.
-          style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+          style: TextStyle(color: ContentTheme.of(_context!).colorLink));
         _popRecognizer();
         return result;
 
