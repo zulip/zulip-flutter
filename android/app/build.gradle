@@ -45,6 +45,7 @@ android {
         versionCode localProperties.getProperty('flutter.versionCode').toInteger()
         versionName localProperties.getProperty('flutter.versionName')
     }
+    ndkVersion "26.3.11579264"
 
     signingConfigs {
         release {
@@ -93,6 +94,10 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 flutter {
     source '../..'
 }
+//android {
+//    ndkVersion = "26.3.11579264"
+//
+//}
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
