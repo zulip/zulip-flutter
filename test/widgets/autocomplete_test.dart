@@ -330,12 +330,16 @@ void main() {
         text: 'some',
         selection: TextSelection(baseOffset: 1, extentOffset: 3)));
       await tester.pump();
+      // Add an extra pump to account for any potential frame delays introduced
+      // by the post frame callback in RawAutocomplete's implementation.
+      await tester.pump();
       check(controller.value)
         ..text.equals('some')
         ..selection.equals(
             const TextSelection(baseOffset: 1, extentOffset: 3));
 
       await tester.tap(find.text('some topic'));
+      await tester.pump();
       await tester.pump();
       check(controller.value)
         ..text.equals('some topic')

@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
@@ -34,6 +35,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   Set<int> get collapsedStreamIds => _collapsedStreamIds;
   final Set<int> _collapsedStreamIds = {};
+  final sections = <_InboxSectionData>[];
   void collapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.add(streamId);
@@ -153,6 +155,70 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       });
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
+    if (sections.isEmpty) {
+    return Center(
+    child: Column(
+    mainAxisAlignment: MainAxisAlignment.start, // Centered vertically
+    crossAxisAlignment: CrossAxisAlignment.center, // Centered horizontally
+    children: [
+    const  SizedBox(
+    height: 50,
+    ),
+    Icon(
+    ZulipIcons.inbox_done,
+    color: Colors.grey[600], // Lighter gray for the icon
+    size: 80,
+    ),
+    const SizedBox(height: 20),
+    Text(
+    "There are no unread messages in your Inbox.",
+    textAlign: TextAlign.center,
+    style: TextStyle(
+    color:Colors.grey[600], // Light gray for the main text
+    fontSize: 17,
+    fontWeight: FontWeight.w500,
+    ),
+    ),
+    const SizedBox(height: 10),
+    RichText(
+    textAlign: TextAlign.center,
+    text: TextSpan(
+    text: "You might want to subscribe to more ",
+    style:  TextStyle(
+    color: Colors.grey[600], // Light gray for regular text
+    fontSize: 17,
+    ),
+    children: [
+    TextSpan(
+    text: "channels",
+    style: const TextStyle(
+    color: Color(0xFF1E88E5), // Light blue for link
+    fontSize: 17,
+    fontWeight: FontWeight.w600,
+    decoration: TextDecoration.underline,
+    ),
+    recognizer: TapGestureRecognizer()
+    ..onTap = () {
+    // Handle "channels" click
+    // print("Channels clicked");
+    },
+    ),
+    TextSpan(
+    text: ".",
+    style:  TextStyle(
+    color:Colors.grey[600] , // Light blue for link
+    fontSize: 17,
+    ),
+
+    ),
+    ],
+    ),
+    ),
+    ],
+    ),
+    );
+    }
+
 
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.

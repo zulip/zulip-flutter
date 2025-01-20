@@ -45,6 +45,7 @@ android {
         versionCode localProperties.getProperty('flutter.versionCode').toInteger()
         versionName localProperties.getProperty('flutter.versionName')
     }
+    ndkVersion "26.3.11579264"
 
     signingConfigs {
         release {
