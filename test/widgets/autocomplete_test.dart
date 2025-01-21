@@ -392,16 +392,11 @@ void main() {
   });
 
   group('TopicAutocomplete', () {
-    void checkTopicShown(String topic, PerAccountStore store, {required bool expected}) {
-      check(find.text(topic).evaluate().length).equals(expected ? 1 : 0);
-    }
-
     testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
       final topic1 = eg.getStreamTopicsEntry(maxId: 1, name: 'Topic one');
       final topic2 = eg.getStreamTopicsEntry(maxId: 2, name: 'Topic two');
       final topic3 = eg.getStreamTopicsEntry(maxId: 3, name: 'Topic three');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2, topic3]);
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
@@ -410,24 +405,24 @@ void main() {
       await tester.pumpAndSettle();
 
       // "topic three" and "topic two" appear, but not "topic one"
-      checkTopicShown('Topic one',   store, expected: false);
-      checkTopicShown('Topic two',   store, expected: true);
-      checkTopicShown('Topic three', store, expected: true);
+      check(find.text('Topic one'  )).findsNothing();
+      check(find.text('Topic two'  )).findsOne();
+      check(find.text('Topic three')).findsOne();
 
       // Finishing autocomplete updates topic box; causes options to disappear
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
         .equals(topic3.name.displayName);
-      checkTopicShown('Topic one',   store, expected: false);
-      checkTopicShown('Topic two',   store, expected: false);
-      checkTopicShown('Topic three', store, expected: true); // shown in `_TopicInput` once
+      check(find.text('Topic one'  )).findsNothing();
+      check(find.text('Topic two'  )).findsNothing();
+      check(find.text('Topic three')).findsOne(); // shown in `_TopicInput` once
 
       // Then a new autocomplete intent brings up options again
       await tester.enterText(topicInputFinder, 'Topic');
       await tester.enterText(topicInputFinder, 'Topic T');
       await tester.pumpAndSettle();
-      checkTopicShown('Topic two', store, expected: true);
+      check(find.text('Topic two')).findsOne();
     });
 
     testWidgets('text selection is reset on choosing an option', (tester) async {
