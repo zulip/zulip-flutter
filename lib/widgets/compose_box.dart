@@ -196,7 +196,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -608,7 +607,6 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // ignore: dead_null_aware_expression // null topic names soon to be enabled
         '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}'));
   }
 }
@@ -674,7 +672,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
-          // ignore: dead_null_aware_expression // null topic names soon to be enabled
           '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.

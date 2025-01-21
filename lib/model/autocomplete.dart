@@ -942,7 +942,6 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
   bool testTopic(PerAccountStore store, TopicName topic) {
     // TODO(#881): Sort by match relevance, like web does.
 
-    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
     if (topic.displayName == null) {
       return store.realmEmptyTopicDisplayName.toLowerCase()
         .contains(raw.toLowerCase());
@@ -950,7 +949,6 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
     // This checks for inequality because there is nothing to autocomplete to
     // when `raw` already matches the topic exactly.
     return topic.displayName != raw
-      // ignore: unnecessary_non_null_assertion // null topic names soon to be enabled
       && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
   }
 
