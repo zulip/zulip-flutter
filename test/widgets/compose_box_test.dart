@@ -47,6 +47,7 @@ void main() {
     List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
     bool? mandatoryTopics,
+    int? zulipFeatureLevel,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -54,8 +55,10 @@ void main() {
     }
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
-    final selfAccount = eg.account(user: selfUser);
+    zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
+    final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
     ));
 
@@ -317,11 +320,15 @@ void main() {
 
     Future<void> prepare(WidgetTester tester, {
       required Narrow narrow,
+      bool? mandatoryTopics,
+      int? zulipFeatureLevel,
     }) async {
       await prepareComposeBox(tester,
         narrow: narrow,
         otherUsers: [eg.otherUser, eg.thirdUser],
-        streams: [channel]);
+        streams: [channel],
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
     }
 
     void checkComposeBoxHintTexts(WidgetTester tester, {
@@ -341,6 +348,22 @@ void main() {
     testWidgets('to ChannelNarrow without topic', (tester) async {
       await prepare(tester, narrow: ChannelNarrow(channel.streamId));
       checkComposeBoxHintTexts(tester,
+        topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+        contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('to ChannelNarrow without topic; mandatory topics', (tester) async {
+      await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+        mandatoryTopics: true);
+      checkComposeBoxHintTexts(tester,
+        topicHintText: 'Topic',
+        contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('legacy: to ChannelNarrow without topic', (tester) async {
+      await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+        zulipFeatureLevel: 333);
+      checkComposeBoxHintTexts(tester,
         topicHintText: 'Topic',
         contentHintText: 'Message #${channel.name} > (no topic)');
     });
@@ -351,7 +374,7 @@ void main() {
       await enterTopic(tester, narrow: narrow, topic: 'new topic');
       await tester.pump();
       checkComposeBoxHintTexts(tester,
-        topicHintText: 'Topic',
+        topicHintText: eg.defaultRealmEmptyTopicDisplayName,
         contentHintText: 'Message #${channel.name} > new topic');
     });
 
@@ -361,6 +384,13 @@ void main() {
       checkComposeBoxHintTexts(tester,
         contentHintText: 'Message #${channel.name} > topic');
     });
+
+    testWidgets('to TopicNarrow with empty topic', (tester) async {
+      await prepare(tester,
+        narrow: TopicNarrow(channel.streamId, TopicName('')));
+      checkComposeBoxHintTexts(tester, contentHintText:
+        'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+    }, skip: true); // null topic names soon to be enabled
 
     testWidgets('to DmNarrow with self', (tester) async {
       await prepare(tester, narrow: DmNarrow.withUser(
