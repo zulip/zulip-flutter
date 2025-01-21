@@ -64,6 +64,8 @@ class InitialSnapshot {
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
 
+  final bool realmMandatoryTopics;
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -125,6 +127,7 @@ class InitialSnapshot {
     required this.streams,
     required this.userSettings,
     required this.userTopics,
+    required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
