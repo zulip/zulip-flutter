@@ -85,6 +85,9 @@ class TestGlobalStore extends GlobalStore {
   /// [PerAccountStore] when [perAccount] is subsequently called for this
   /// account, in particular when a [PerAccountStoreWidget] is mounted.
   Future<void> add(Account account, InitialSnapshot initialSnapshot) async {
+    assert(initialSnapshot.zulipVersion == account.zulipVersion);
+    assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
+    assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
     _initialSnapshots[account.id] = initialSnapshot;
