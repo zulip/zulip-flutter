@@ -58,6 +58,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       userTopics: (json['user_topics'] as List<dynamic>?)
           ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
       realmWaitingPeriodThreshold:
           (json['realm_waiting_period_threshold'] as num).toInt(),
       realmDefaultExternalAccounts:
@@ -108,6 +109,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'streams': instance.streams,
       'user_settings': instance.userSettings,
       'user_topics': instance.userTopics,
+      'realm_mandatory_topics': instance.realmMandatoryTopics,
       'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
