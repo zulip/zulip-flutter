@@ -326,10 +326,8 @@ class MessageListAppBarTitle extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ignore: dead_null_aware_expression // null topic names soon to be enabled
         Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
           fontSize: 13,
-          // ignore: unnecessary_null_comparison // null topic names soon to be enabled
           fontStyle: topic.displayName == null ? FontStyle.italic : null,
         ).merge(weightVariableTextStyle(context)))),
         if (icon != null)
@@ -1144,13 +1142,11 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       child: Row(
         children: [
           Flexible(
-            // ignore: dead_null_aware_expression // null topic names soon to be enabled
             child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
               style: recipientHeaderTextStyle(context,
-                // ignore: unnecessary_null_comparison // null topic names soon to be enabled
                 fontStyle: topic.displayName == null ? FontStyle.italic : null,
               ))),
           const SizedBox(width: 4),
