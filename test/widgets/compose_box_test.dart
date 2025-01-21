@@ -392,7 +392,7 @@ void main() {
         checkComposeBoxHintTexts(tester,
           topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('with empty topic, topic input has focus', (tester) async {
         final narrow = ChannelNarrow(channel.streamId);
@@ -402,7 +402,7 @@ void main() {
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('legacy: with empty topic', (tester) async {
         await prepare(tester, narrow: ChannelNarrow(channel.streamId),
@@ -433,7 +433,7 @@ void main() {
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name}');
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('legacy: with empty topic', (tester) async {
         await prepare(tester, narrow: ChannelNarrow(channel.streamId),
@@ -470,7 +470,7 @@ void main() {
         mandatoryTopics: false);
       checkComposeBoxHintTexts(tester, contentHintText:
         'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     testWidgets('to DmNarrow with self', (tester) async {
       await prepare(tester, narrow: DmNarrow.withUser(
@@ -753,6 +753,7 @@ void main() {
     Future<void> setupAndTapSend(WidgetTester tester, {
       required String topicInputText,
       required bool mandatoryTopics,
+      int? zulipFeatureLevel,
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
@@ -761,7 +762,8 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
       await prepareComposeBox(tester,
         narrow: narrow, streams: [channel],
-        mandatoryTopics: mandatoryTopics);
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
       await tester.enterText(contentInputFinder, 'test content');
@@ -776,10 +778,21 @@ void main() {
         expectedMessage: 'Topics are required in this organization.');
     }
 
-    testWidgets('empty topic -> "(no topic)"', (tester) async {
+    testWidgets('empty topic -> empty topic', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '',
         mandatoryTopics: false);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['topic'].equals('');
+    });
+
+    testWidgets('legacy: empty topic -> "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: false,
+        zulipFeatureLevel: 333);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -793,10 +806,25 @@ void main() {
       checkMessageNotSent(tester);
     });
 
+    testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: eg.defaultRealmEmptyTopicDisplayName,
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
     testWidgets('if topics are mandatory, reject "(no topic)"', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '(no topic)',
         mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('legacy: if topics are mandatory, reject "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true,
+        zulipFeatureLevel: 333);
       checkMessageNotSent(tester);
     });
   });

@@ -201,7 +201,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -622,7 +621,6 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final topic = TopicName(_topicTextNormalized);
 
     final String? topicDisplayName;
-    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
     if (topic.displayName != null) {
       topicDisplayName = topic.displayName;
     } else if (widget.controller.contentFocusNode.hasFocus) {
@@ -760,7 +758,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelTopicContentHint(
-          // ignore: dead_null_aware_expression // null topic names soon to be enabled
           '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
