@@ -129,7 +129,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -440,7 +439,6 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
       color: designVariables.textInput.withFadedAlpha(0.5));
 
     if (widget.destination.destination
-        // ignore: constant_pattern_never_matches_value_type // null topic names soon to be enabled
         case StreamDestination(topic: TopicName(displayName: null))) {
       // TODO(#1285): This applies to the entire hint text; ideally we'd only
       //   want to italize the "general chat" text, but this requires
@@ -546,7 +544,6 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // ignore: dead_null_aware_expression // null topic names soon to be enabled
         streamName, topic.displayName ?? store.realmEmptyTopicDisplayName));
   }
 }
@@ -612,7 +609,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.composeBoxUnknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
-          // ignore: dead_null_aware_expression // null topic names soon to be enabled
           streamName, topic.displayName ?? store.realmEmptyTopicDisplayName);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
