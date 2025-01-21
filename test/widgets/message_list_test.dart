@@ -808,6 +808,26 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
+      final messageEmptyTopic = eg.streamMessage(stream: stream, topic: '');
+
+      testWidgets('show general chat for empty topics with channel name', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [messageEmptyTopic], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList('stream name')).single;
+        check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
+      }, skip: true); // null topic names soon to be enabled
+
+      testWidgets('show general chat for empty topics without channel name', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(messageEmptyTopic),
+          messages: [messageEmptyTopic]);
+        await tester.pump();
+        check(findInMessageList('stream name')).isEmpty();
+        check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
+      }, skip: true); // null topic names soon to be enabled
+
       testWidgets('show topic visibility icon when followed', (tester) async {
         await setupMessageListPage(tester,
           narrow: const CombinedFeedNarrow(),
