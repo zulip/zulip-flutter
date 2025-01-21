@@ -1056,7 +1056,16 @@ class _ComposeBoxContainer extends StatelessWidget {
     //   the message list itself
     return Container(width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar))),
+        border: Border(top: BorderSide(color: designVariables.borderBar)), boxShadow: [
+        BoxShadow(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? DesignVariables.dark.bgTopBar
+              : Colors.transparent, // Adjust for light theme
+          offset: const Offset(0, -4),
+          blurRadius: 16,
+          spreadRadius: 0,
+        ),
+      ],),
       // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
