@@ -194,6 +194,16 @@ void main() {
   group('app bar', () {
     // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
 
+    testWidgets('handle empty topics', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(channel.streamId, ''),
+        streams: [channel],
+        messageCount: 1);
+      checkAppBarChannelTopic(
+        channel.name, eg.defaultRealmEmptyTopicDisplayName);
+    }, skip: true); // null topic names soon to be enabled
+
     testWidgets('has channel-feed action for topic narrows', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
@@ -933,6 +943,26 @@ void main() {
         check(findInMessageList('stream name')).length.equals(0);
         check(findInMessageList('topic name')).length.equals(1);
       });
+
+      final messageEmptyTopic = eg.streamMessage(stream: stream, topic: '');
+
+      testWidgets('show general chat for empty topics with channel name', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [messageEmptyTopic], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList('stream name')).single;
+        check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
+      }, skip: true); // null topic names soon to be enabled
+
+      testWidgets('show general chat for empty topics without channel name', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(messageEmptyTopic),
+          messages: [messageEmptyTopic]);
+        await tester.pump();
+        check(findInMessageList('stream name')).isEmpty();
+        check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
+      }, skip: true); // null topic names soon to be enabled
 
       testWidgets('show topic visibility icon when followed', (tester) async {
         await setupMessageListPage(tester,
