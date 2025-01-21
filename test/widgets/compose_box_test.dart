@@ -557,7 +557,7 @@ void main() {
           narrow: TopicNarrow(channel.streamId, TopicName('')));
         checkComposeBoxHintTexts(tester, contentHintText:
           'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
-      }, skip: true); // null topic names soon to be enabled
+      });
     });
 
     testWidgets('to DmNarrow with self', (tester) async {
