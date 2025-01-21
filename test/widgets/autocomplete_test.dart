@@ -355,7 +355,7 @@ void main() {
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
-        .equals(topic3.name.displayName);
+        .equals(topic3.name.displayName!);
       check(find.text('Topic one'  )).findsNothing();
       check(find.text('Topic two'  )).findsNothing();
       check(find.text('Topic three')).findsOne(); // shown in `_TopicInput` once
@@ -412,7 +412,7 @@ void main() {
       await tester.pumpAndSettle();
 
       check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     testWidgets('match general chat in autocomplete', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
@@ -424,7 +424,7 @@ void main() {
       await tester.pumpAndSettle();
 
       check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     testWidgets('autocomplete to general chat sets topic to empty string', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
@@ -439,6 +439,6 @@ void main() {
       await tester.tap(find.text(eg.defaultRealmEmptyTopicDisplayName));
       await tester.pump(Duration.zero);
       check(controller.value).text.equals('');
-    }, skip: true); // null topic names soon to be enabled
+    });
   });
 }
