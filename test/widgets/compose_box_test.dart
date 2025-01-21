@@ -44,7 +44,6 @@ void main() {
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
-    int? realmWaitingPeriodThreshold,
     List<User> users = const [],
     List<ZulipStream> streams = const [],
   }) async {
@@ -55,8 +54,7 @@ void main() {
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
     final selfAccount = eg.account(user: selfUser);
-    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
-      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot());
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
