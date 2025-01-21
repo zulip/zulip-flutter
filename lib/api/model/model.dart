@@ -690,7 +690,7 @@ extension type const TopicName(String _value) {
   /// so that UI code can identify when it needs to represent the topic
   /// specially in the way prescribed for "general chat".
   // TODO(#1250) carry out that plan
-  String get displayName => _value;
+  String? get displayName => _value.isEmpty ? null : _value;
 
   /// The key to use for "same topic as" comparisons.
   String canonicalize() => apiName.toLowerCase();

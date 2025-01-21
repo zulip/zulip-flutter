@@ -200,7 +200,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -642,7 +641,6 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
       ? '#$streamName'
-      // ignore: dead_null_aware_expression // null topic names soon to be enabled
       : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
     return _ContentInput(
@@ -713,7 +711,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          // ignore: dead_null_aware_expression // null topic names soon to be enabled
           '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
