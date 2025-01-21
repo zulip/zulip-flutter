@@ -185,7 +185,6 @@ void main() {
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        // ignore: dead_null_aware_expression // null topic names soon to be enabled
         matching: find.text(topicName.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
@@ -206,7 +205,7 @@ void main() {
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
-        matching: find.text(effectiveMessage.topic.displayName)));
+        matching: find.text(effectiveMessage.topic.displayName!)));
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
     }
@@ -270,7 +269,7 @@ void main() {
           messages: [message]);
         check(findButtonForLabel('Mark as resolved')).findsNothing();
         check(findButtonForLabel('Mark as unresolved')).findsNothing();
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('show from recipient header', (tester) async {
         await prepare();
