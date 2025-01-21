@@ -157,7 +157,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
@@ -165,7 +170,21 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  bool get isTopicVacuous {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
+
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
+  }
 
   /// The send destination as a string.
   ///
@@ -181,6 +200,14 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     if (mandatory && isTopicVacuous) {
       return '#$streamName';
     }
+
+    // TODO(server-10): simplify
+    if (textNormalized.isEmpty) {
+      // [textNormalized] cannot be empty prior to empty topics.
+      assert(store.connection.zulipFeatureLevel! >= 334);
+      return '#$streamName > ${store.realmEmptyTopicDisplayName}';
+    }
+
     return '#$streamName > $textNormalized';
   }
 
