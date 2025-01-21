@@ -673,6 +673,7 @@ void main() {
     Future<void> setupAndTapSend(WidgetTester tester, {
       required String topicInputText,
       bool? mandatoryTopics,
+      int? zulipFeatureLevel,
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
@@ -681,7 +682,8 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
       await prepareComposeBox(tester,
         narrow: narrow, streams: [channel],
-        mandatoryTopics: mandatoryTopics);
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
       await tester.enterText(contentInputFinder, 'test content');
@@ -696,8 +698,24 @@ void main() {
         expectedMessage: 'Topics are required in this organization.');
     }
 
-    testWidgets('empty topic -> (no topic)', (tester) async {
+    testWidgets('empty topic -> general chat', (tester) async {
       await setupAndTapSend(tester, topicInputText: '');
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': channel.streamId.toString(),
+          'topic': '',
+          'content': 'test content',
+          'read_by_sender': 'true',
+        });
+    }, skip: true); // null topic names soon to be enabled
+
+    testWidgets('legacy: empty topic -> (no topic)', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        zulipFeatureLevel: 333);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -717,10 +735,25 @@ void main() {
       checkMessageNotSent(tester);
     });
 
+    testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: eg.defaultRealmEmptyTopicDisplayName,
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    }, skip: true); // null topic names soon to be enabled
+
     testWidgets('if topics are mandatory, reject (no topic)', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '(no topic)',
         mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('legacy: if topics are mandatory, reject (no topic)', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true,
+        zulipFeatureLevel: 333);
       checkMessageNotSent(tester);
     });
   });
