@@ -201,7 +201,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -636,7 +635,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 
   /// The topic name to show in the hint text, or null to show no topic.
-  String? _hintTopicStr() {
+  TopicName? _hintTopic() {
     if (widget.controller.topic.isTopicVacuous) {
       if (widget.controller.topic.mandatory) {
         // The chosen topic can't be sent to, so don't show it.
@@ -651,7 +650,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       }
     }
 
-    return widget.controller.topic.textNormalized;
+    return TopicName(widget.controller.topic.textNormalized);
   }
 
   @override
@@ -661,15 +660,14 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final hintTopicStr = _hintTopicStr();
-    final hintDestination = hintTopicStr == null
+    final hintTopic = _hintTopic();
+    final hintDestination = hintTopic == null
       // No i18n of this use of "#" and ">" string; those are part of how
       // Zulip expresses channels and topics, not any normal English punctuation,
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
       ? '#$streamName'
-      : '#$streamName > '
-        '${hintTopicStr.isEmpty ? store.realmEmptyTopicDisplayName : hintTopicStr}';
+      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
     return _TypingNotifier(
       destination: TopicNarrow(widget.narrow.streamId,
@@ -842,7 +840,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          // ignore: dead_null_aware_expression // null topic names soon to be enabled
           '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.

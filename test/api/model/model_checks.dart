@@ -26,7 +26,7 @@ extension ZulipStreamChecks on Subject<ZulipStream> {
 
 extension TopicNameChecks on Subject<TopicName> {
   Subject<String> get apiName => has((x) => x.apiName, 'apiName');
-  Subject<String> get displayName => has((x) => x.displayName, 'displayName');
+  Subject<String?> get displayName => has((x) => x.displayName, 'displayName');
 }
 
 extension StreamConversationChecks on Subject<StreamConversation> {

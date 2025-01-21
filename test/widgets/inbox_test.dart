@@ -314,7 +314,7 @@ void main() {
         subscriptions: [(eg.subscription(channel))],
         unreadMessages: [eg.streamMessage(stream: channel, topic: '')]);
       check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     group('topic visibility', () {
       final channel = eg.stream();

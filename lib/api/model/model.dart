@@ -581,11 +581,7 @@ extension type const TopicName(String _value) {
   /// The string this topic is displayed as to the user in our UI.
   ///
   /// At the moment this always equals [apiName].
-  /// In the future this will become null for the "general chat" topic (#1250),
-  /// so that UI code can identify when it needs to represent the topic
-  /// specially in the way prescribed for "general chat".
-  // TODO(#1250) carry out that plan
-  String get displayName => _value;
+  String? get displayName => _value.isEmpty ? null : _value;
 
   /// The key to use for "same topic as" comparisons.
   String canonicalize() => apiName.toLowerCase();
