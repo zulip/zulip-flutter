@@ -593,7 +593,8 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     if (store.realmMandatoryTopics && widget.controller.topic.isTopicVacuous) {
       topicDisplayName = null;
     } else {
-      topicDisplayName = topic.displayName;
+      // ignore: dead_null_aware_expression // null topic names soon to be enabled
+      topicDisplayName = topic.displayName ?? store.realmEmptyTopicDisplayName;
     }
 
     return _ContentInput(
@@ -662,7 +663,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelTopicContentHint(
-          '#$streamName > ${topic.displayName}');
+          // ignore: dead_null_aware_expression // null topic names soon to be enabled
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
