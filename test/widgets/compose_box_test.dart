@@ -46,6 +46,7 @@ void main() {
     User? selfUser,
     List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
+    bool? mandatoryTopics,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -54,7 +55,9 @@ void main() {
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
     final selfAccount = eg.account(user: selfUser);
-    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      realmMandatoryTopics: mandatoryTopics,
+    ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
@@ -555,6 +558,60 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+    });
+  });
+
+  group('sending to empty topic', () {
+    late ZulipStream channel;
+
+    Future<void> setupAndTapSend(WidgetTester tester, {
+      required String topicInputText,
+      required bool mandatoryTopics,
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow, streams: [channel],
+        mandatoryTopics: mandatoryTopics);
+
+      await enterTopic(tester, narrow: narrow, topic: topicInputText);
+      await tester.enterText(contentInputFinder, 'test content');
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+    }
+
+    void checkMessageNotSent(WidgetTester tester) {
+      check(connection.takeRequests()).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Message not sent',
+        expectedMessage: 'Topics are required in this organization.');
+    }
+
+    testWidgets('empty topic -> "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: false);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['topic'].equals('(no topic)');
+    });
+
+    testWidgets('if topics are mandatory, reject empty topic', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('if topics are mandatory, reject "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
     });
   });
 

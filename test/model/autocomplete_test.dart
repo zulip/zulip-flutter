@@ -835,7 +835,8 @@ void main() {
 
       final description = 'topic-input with text: $markedText produces: ${expectedQuery?.raw ?? 'No Query!'}';
       test(description, () {
-        final controller = ComposeTopicController();
+        final store = eg.store();
+        final controller = ComposeTopicController(store: store);
         controller.value = parsed.value;
         if (expectedQuery == null) {
           check(controller).autocompleteIntent.isNull();

@@ -89,13 +89,14 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController() {
+  ComposeTopicController({required this.store}) {
     _update();
   }
 
-  // TODO: subscribe to this value:
-  //   https://zulip.com/help/require-topics
-  final mandatory = true;
+  PerAccountStore store;
+
+  // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
+  bool get mandatory => store.realmMandatoryTopics;
 
   // TODO(#307) use `max_topic_length` instead of hardcoded limit
   @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
@@ -1227,7 +1228,10 @@ sealed class ComposeBoxController {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  final topic = ComposeTopicController();
+  StreamComposeBoxController({required PerAccountStore store})
+    : topic = ComposeTopicController(store: store);
+
+  final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
 
   @override
@@ -1308,16 +1312,20 @@ abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
 }
 
-class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
-  @override ComposeBoxController get controller => _controller;
-  late final ComposeBoxController _controller;
+class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
+  @override ComposeBoxController get controller => _controller!;
+  ComposeBoxController? _controller;
 
   @override
-  void initState() {
-    super.initState();
+  void onNewStore() {
     switch (widget.narrow) {
       case ChannelNarrow():
-        _controller = StreamComposeBoxController();
+        final store = PerAccountStoreWidget.of(context);
+        if (_controller == null) {
+          _controller = StreamComposeBoxController(store: store);
+        } else {
+          (controller as StreamComposeBoxController).topic.store = store;
+        }
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController();
@@ -1330,7 +1338,7 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -1370,15 +1378,16 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
       return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
     }
 
+    final controller = this.controller;
     final narrow = widget.narrow;
-    switch (_controller) {
+    switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _StreamComposeBoxBody(controller: controller, narrow: narrow);
       }
       case FixedDestinationComposeBoxController(): {
         narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
     }
 
