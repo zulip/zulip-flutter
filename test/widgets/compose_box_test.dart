@@ -385,9 +385,19 @@ void main() {
     }
 
     group('to ChannelNarrow, topics not mandatory', () {
-      testWidgets('with empty topic', (tester) async {
+      testWidgets('with empty topic, content input has focus', (tester) async {
+        await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+          mandatoryTopics: false);
+        await enterContent(tester, '');
+        checkComposeBoxHintTexts(tester,
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+          contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+      }, skip: true); // null topic names soon to be enabled
+
+      testWidgets('with empty topic, topic input has focus', (tester) async {
         final narrow = ChannelNarrow(channel.streamId);
         await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
@@ -408,9 +418,10 @@ void main() {
         await prepare(tester, narrow: narrow,
           mandatoryTopics: false);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
+        await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > new topic');
       });
     });

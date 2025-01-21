@@ -157,7 +157,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
@@ -165,7 +170,21 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  bool get isTopicVacuous {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
+
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
+  }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
@@ -560,11 +579,18 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _focusChanged() {
+    setState(() {
+      // The actual state lives in `widget.controller.contentFocusNode`.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _topicTextNormalized = widget.controller.topic.textNormalized;
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_focusChanged);
   }
 
   @override
@@ -574,11 +600,16 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      widget.controller.contentFocusNode.removeListener(_focusChanged);
+      widget.controller.contentFocusNode.addListener(_focusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_focusChanged);
     super.dispose();
   }
 
@@ -589,12 +620,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final topic = TopicName(_topicTextNormalized);
+
     final String? topicDisplayName;
-    if (store.realmMandatoryTopics && widget.controller.topic.isTopicVacuous) {
-      topicDisplayName = null;
+    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
+    if (topic.displayName != null) {
+      topicDisplayName = topic.displayName;
+    } else if (widget.controller.contentFocusNode.hasFocus) {
+      // The empty topic display name can only be shown when the user is
+      // actively sending a message, i.e., when the content input is focused.
+      topicDisplayName = store.realmEmptyTopicDisplayName;
     } else {
-      // ignore: dead_null_aware_expression // null topic names soon to be enabled
-      topicDisplayName = topic.displayName ?? store.realmEmptyTopicDisplayName;
+      topicDisplayName = null;
     }
 
     return _ContentInput(
@@ -623,6 +659,7 @@ class _TopicInputState extends State<_TopicInput> {
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -632,17 +669,28 @@ class _TopicInputState extends State<_TopicInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
   }
 
   void _topicChanged() {
     setState(() {
       // The actual state lives in `widget.controller.topic`.
+    });
+  }
+
+  void _contentFocusChanged() {
+    setState(() {
+      // The actual state lives in `widget.controller.contentFocusNode`.
     });
   }
 
@@ -659,6 +707,15 @@ class _TopicInputState extends State<_TopicInput> {
 
     final allowEmptyTopics =
       store.connection.zulipFeatureLevel! >= 334 && !store.realmMandatoryTopics;
+    final decoration =
+      allowEmptyTopics && widget.controller.contentFocusNode.hasFocus
+        ? InputDecoration(
+            hintText: store.realmEmptyTopicDisplayName,
+            hintStyle: topicTextStyle.copyWith(fontStyle: FontStyle.italic))
+        : InputDecoration(
+            hintText: zulipLocalizations.composeBoxTopicHintText,
+            hintStyle: topicTextStyle.copyWith(
+              color: designVariables.textInput.withFadedAlpha(0.5)));
 
     return TopicAutocomplete(
       streamId: widget.streamId,
@@ -682,10 +739,7 @@ class _TopicInputState extends State<_TopicInput> {
               ? FontStyle.italic
               : null,
           ),
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          decoration: decoration)));
   }
 }
 
