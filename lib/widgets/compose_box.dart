@@ -157,7 +157,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
@@ -165,7 +170,20 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  ///
+  /// See also: https://zulip.com/api/send-message#parameter-topic
+  bool get isTopicVacuous {
+    if (textNormalized.isEmpty) return true;
+
+    if (textNormalized == kNoTopicTopic) return true;
+
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel >= 334) {
+      return textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return false;
+  }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
@@ -558,10 +576,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _contentFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.contentFocusNode itself.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -571,11 +596,16 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
   }
 
@@ -584,6 +614,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     if (widget.controller.topic.isTopicVacuous) {
       if (widget.controller.topic.mandatory) {
         // The chosen topic can't be sent to, so don't show it.
+        return null;
+      }
+      if (!widget.controller.contentFocusNode.hasFocus) {
+        // Do not fall back to a vacuous topic unless the user explicitly chooses
+        // to do so (by skipping topic input and moving focus to content input),
+        // so that the user is not encouraged to use vacuous topic when they
+        // have not interacted with the inputs at all.
         return null;
       }
     }
@@ -604,7 +641,9 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // Zulip expresses channels and topics, not any normal English punctuation,
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-      ? '#$streamName' : '#$streamName > ${hintTopic.displayName}';
+      ? '#$streamName'
+      // ignore: dead_null_aware_expression // null topic names soon to be enabled
+      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
     return _ContentInput(
       narrow: widget.narrow,
