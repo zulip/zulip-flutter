@@ -204,7 +204,7 @@ void main() {
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
-        matching: find.text(effectiveMessage.topic.displayName)));
+        matching: find.text(effectiveMessage.topic.displayName!)));
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
     }

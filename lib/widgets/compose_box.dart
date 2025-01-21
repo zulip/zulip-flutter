@@ -182,7 +182,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
