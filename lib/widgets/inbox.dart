@@ -537,7 +537,6 @@ class _TopicItem extends StatelessWidget {
               child: Text(
                 style: TextStyle(
                   fontSize: 17,
-                  // ignore: unnecessary_null_comparison // null topic names soon to be enabled
                   fontStyle: topic.displayName == null ? FontStyle.italic : null,
                   height: (20 / 17),
                   // TODO(design) check if this is the right variable
@@ -545,7 +544,6 @@ class _TopicItem extends StatelessWidget {
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                // ignore: dead_null_aware_expression // null topic names soon to be enabled
                 topic.displayName ?? store.realmEmptyTopicDisplayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
