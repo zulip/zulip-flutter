@@ -392,8 +392,8 @@ void main() {
   });
 
   group('TopicAutocomplete', () {
-    void checkTopicShown(GetStreamTopicsEntry topic, PerAccountStore store, {required bool expected}) {
-      check(find.text(topic.name.displayName).evaluate().length).equals(expected ? 1 : 0);
+    void checkTopicShown(String topic, PerAccountStore store, {required bool expected}) {
+      check(find.text(topic).evaluate().length).equals(expected ? 1 : 0);
     }
 
     testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
@@ -410,24 +410,24 @@ void main() {
       await tester.pumpAndSettle();
 
       // "topic three" and "topic two" appear, but not "topic one"
-      checkTopicShown(topic1, store, expected: false);
-      checkTopicShown(topic2, store, expected: true);
-      checkTopicShown(topic3, store, expected: true);
+      checkTopicShown('Topic one',   store, expected: false);
+      checkTopicShown('Topic two',   store, expected: true);
+      checkTopicShown('Topic three', store, expected: true);
 
       // Finishing autocomplete updates topic box; causes options to disappear
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
         .equals(topic3.name.displayName);
-      checkTopicShown(topic1, store, expected: false);
-      checkTopicShown(topic2, store, expected: false);
-      checkTopicShown(topic3, store, expected: true); // shown in `_TopicInput` once
+      checkTopicShown('Topic one',   store, expected: false);
+      checkTopicShown('Topic two',   store, expected: false);
+      checkTopicShown('Topic three', store, expected: true); // shown in `_TopicInput` once
 
       // Then a new autocomplete intent brings up options again
       await tester.enterText(topicInputFinder, 'Topic');
       await tester.enterText(topicInputFinder, 'Topic T');
       await tester.pumpAndSettle();
-      checkTopicShown(topic2, store, expected: true);
+      checkTopicShown('Topic two', store, expected: true);
     });
 
     testWidgets('text selection is reset on choosing an option', (tester) async {
