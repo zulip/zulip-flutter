@@ -30,12 +30,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme.light() :
     this._(
       dateSeparator: Colors.black,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+      labelTime: const HSLColor.fromAHSL(0.49, 0, 0, 0).toColor(),
       dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
-      senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
       streamMessageBgDefault: Colors.white,
       streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
@@ -55,14 +52,11 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme.dark() :
     this._(
-      dateSeparator: Colors.white,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
+      dateSeparator: Colors.white.withValues(alpha: 51),
+      labelTime: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
+      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 0, 0, 0.14).toColor(),
       senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-      senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
-      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.11).toColor(),
       streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
       // 0.75 opacity from here:
@@ -80,12 +74,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme._({
     required this.dateSeparator,
-    required this.dateSeparatorText,
+    required this.labelTime,
     required this.dmRecipientHeaderBg,
-    required this.messageTimestamp,
-    required this.recipientHeaderText,
     required this.senderBotIcon,
-    required this.senderName,
     required this.streamMessageBgDefault,
     required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
@@ -104,12 +95,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }
 
   final Color dateSeparator;
-  final Color dateSeparatorText;
+  final Color labelTime;
   final Color dmRecipientHeaderBg;
-  final Color messageTimestamp;
-  final Color recipientHeaderText;
   final Color senderBotIcon;
-  final Color senderName;
   final Color streamMessageBgDefault;
   final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
@@ -119,12 +107,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   @override
   MessageListTheme copyWith({
     Color? dateSeparator,
-    Color? dateSeparatorText,
+    Color? labelTime,
     Color? dmRecipientHeaderBg,
-    Color? messageTimestamp,
-    Color? recipientHeaderText,
     Color? senderBotIcon,
-    Color? senderName,
     Color? streamMessageBgDefault,
     Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
@@ -133,12 +118,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }) {
     return MessageListTheme._(
       dateSeparator: dateSeparator ?? this.dateSeparator,
-      dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
+      labelTime: labelTime ?? this.labelTime,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
-      messageTimestamp: messageTimestamp ?? this.messageTimestamp,
-      recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
-      senderName: senderName ?? this.senderName,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
@@ -154,12 +136,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     }
     return MessageListTheme._(
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
-      dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
+      labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
-      messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
-      recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
-      senderName: Color.lerp(senderName, other.senderName, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
@@ -352,7 +331,7 @@ class MessageListAppBarTitle extends StatelessWidget {
             padding: const EdgeInsetsDirectional.only(start: 4),
             child: Icon(icon,
               // TODO(design) copies the recipient header in web; is there a better color?
-              color: designVariables.colorMessageHeaderIconInteractive, size: 14)),
+              color: designVariables.title, size: 14)),
       ]);
   }
 
@@ -1041,7 +1020,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = messageListTheme.unsubscribedStreamRecipientHeaderBg;
-      iconColor = messageListTheme.recipientHeaderText;
+      iconColor = designVariables.title;
     }
 
     final Widget streamWidget;
@@ -1098,7 +1077,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               style: recipientHeaderTextStyle(context))),
           const SizedBox(width: 4),
           // TODO(design) copies the recipient header in web; is there a better color?
-          Icon(size: 14, color: designVariables.colorMessageHeaderIconInteractive,
+          Icon(size: 14, color: designVariables.title,
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
               store.topicVisibilityPolicy(message.streamId, topic))),
@@ -1147,6 +1126,7 @@ class DmRecipientHeader extends StatelessWidget {
     }
 
     final messageListTheme = MessageListTheme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     return GestureDetector(
       onTap: () => Navigator.push(context,
@@ -1162,7 +1142,7 @@ class DmRecipientHeader extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Icon(
-                  color: messageListTheme.recipientHeaderText,
+                  color: designVariables.title,
                   size: 16,
                   ZulipIcons.user)),
               Expanded(
@@ -1176,7 +1156,7 @@ class DmRecipientHeader extends StatelessWidget {
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
-    color: MessageListTheme.of(context).recipientHeaderText,
+    color: DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
@@ -1220,7 +1200,7 @@ class DateText extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Text(
       style: TextStyle(
-        color: messageListTheme.dateSeparatorText,
+        color: messageListTheme.labelTime,
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:
@@ -1312,7 +1292,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
-                        color: messageListTheme.senderName,
+                        color: designVariables.title,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
@@ -1327,7 +1307,7 @@ class MessageWithPossibleSender extends StatelessWidget {
           const SizedBox(width: 4),
           Text(time,
             style: TextStyle(
-              color: messageListTheme.messageTimestamp,
+              color: messageListTheme.labelTime,
               fontSize: 16,
               height: (18 / 16),
               fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
