@@ -135,6 +135,18 @@ abstract class ZulipLocalizations {
   /// **'Choose account'**
   String get chooseAccountPageTitle;
 
+  /// Title for the settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsPageTitle;
+
+  /// Whether to open links with external browser or not
+  ///
+  /// In en, this message translates to:
+  /// **'Use external browser'**
+  String get settingsUseExternal;
+
   /// Label for main-menu button leading to the choose-account page.
   ///
   /// In en, this message translates to:
@@ -968,6 +980,30 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'MOVED'**
   String get messageIsMovedLabel;
+
+  /// Label for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'THEME'**
+  String get themeSettingLabel;
+
+  /// Label for dark theme setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeSettingDarkLabel;
+
+  /// Label for light theme setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeSettingLightLabel;
+
+  /// Label for following system theme setting.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSettingSystemLabel;
 
   /// Text to display for a poll when the question is missing
   ///

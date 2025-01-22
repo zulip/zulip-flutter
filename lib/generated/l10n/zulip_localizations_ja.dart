@@ -24,6 +24,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'アカウントを選択';
 
   @override
+  String get settingsPageTitle => 'Settings';
+
+  @override
+  String get settingsUseExternal => 'Use external browser';
+
+  @override
   String get switchAccountButton => 'Switch account';
 
   @override
@@ -513,6 +519,18 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get messageIsMovedLabel => 'MOVED';
+
+  @override
+  String get themeSettingLabel => 'THEME';
+
+  @override
+  String get themeSettingDarkLabel => 'Dark';
+
+  @override
+  String get themeSettingLightLabel => 'Light';
+
+  @override
+  String get themeSettingSystemLabel => 'System';
 
   @override
   String get pollWidgetQuestionMissing => 'No question.';

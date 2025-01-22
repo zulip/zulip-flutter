@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:drift/remote.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart';
+
+import 'schema_versions.g.dart';
+import 'settings.dart';
 
 part 'database.g.dart';
 
@@ -46,35 +44,59 @@ class Accounts extends Table {
   ];
 }
 
+/// The table of the user's chosen settings independent of account, on this
+/// client.
+///
+/// These apply across all the user's accounts on this client (i.e. on this
+/// install of the app on this device).
+@DataClassName('GlobalSettingsData')
+class GlobalSettings extends Table {
+  Column<String> get themeSetting => textEnum<ThemeSetting>()
+    .withDefault(const Variable('unset'))();
+
+  Column<String> get browserPreference => textEnum<BrowserPreference>()
+    .nullable()();
+}
+
 class UriConverter extends TypeConverter<Uri, String> {
   const UriConverter();
   @override String toSql(Uri value) => value.toString();
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    // TODO decide if this path is the right one to use
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(path.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}
-
-@DriftDatabase(tables: [Accounts])
+@DriftDatabase(tables: [Accounts, GlobalSettings])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
-  AppDatabase.live() : this(_openConnection());
-
   // When updating the schema:
   //  * Make the change in the table classes, and bump schemaVersion.
-  //  * Export the new schema and generate test migrations:
+  //  * Export the new schema and generate test migrations with drift:
   //    $ tools/check --fix drift
+  //    and generate database code with build_runner.
   //  * Write a migration in `onUpgrade` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 2; // See note.
+  int get schemaVersion => 4; // See note.
+
+  Future<void> _resetDatabase(Migrator m) async {
+    // This should only ever happen in dev.  As a dev convenience,
+    // drop everything from the database and start over.
+    await m.database.transaction(() async {
+      final query = m.database.customSelect(
+        "SELECT name FROM sqlite_master WHERE type='table'");
+      for (final row in await query.get()) {
+        final data = row.data;
+        final tableName = data['name'] as String;
+        // Skip sqlite-internal tables, https://www.sqlite.org/fileformat2.html#intschema
+        // https://github.com/simolus3/drift/blob/0901c984a987e54ba0b67e227adbfdcf3c08eeb4/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
+        if (tableName.startsWith('sqlite_')) continue;
+        // SQL injection could be a concern, but the database would've been
+        // compromised if the table name is corrupted.
+        await m.database.customStatement('DROP TABLE $tableName');
+      }
+      await m.createAll();
+    });
+  }
 
   @override
   MigrationStrategy get migration {
@@ -85,24 +107,25 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from > to) {
           // TODO(log): log schema downgrade as an error
-          // This should only ever happen in dev.  As a dev convenience,
-          // drop everything from the database and start over.
-          for (final entity in allSchemaEntities) {
-            // This will miss any entire tables (or indexes, etc.) that
-            // don't exist at this version.  For a dev-only feature, that's OK.
-            await m.drop(entity);
-          }
-          await m.createAll();
+          await _resetDatabase(m);
           return;
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
 
-        if (from < 2 && 2 <= to) {
-          await m.addColumn(accounts, accounts.ackedPushToken);
-        }
-        // New migrations go here.
-      }
-    );
+        await m.runMigrationSteps(from: from, to: to,
+          steps: migrationSteps(
+            from1To2: (m, schema) async {
+              await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+            },
+            from2To3: (m, schema) async {
+              await m.createTable(schema.globalSettings);
+            },
+            from3To4: (m, schema) async {
+              await m.addColumn(
+                schema.globalSettings, schema.globalSettings.browserPreference);
+            },
+          ));
+      });
   }
 
   Future<int> createAccount(AccountsCompanion values) async {
@@ -119,6 +142,17 @@ class AppDatabase extends _$AppDatabase {
       }
       rethrow;
     }
+  }
+
+  Future<GlobalSettingsData> ensureGlobalSettings() async {
+    final settings = await select(globalSettings).getSingleOrNull();
+    // TODO(db): Enforce the singleton constraint more robustly.
+    if (settings != null) {
+      return settings;
+    }
+
+    await into(globalSettings).insert(GlobalSettingsCompanion.insert());
+    return select(globalSettings).getSingle();
   }
 }
 
