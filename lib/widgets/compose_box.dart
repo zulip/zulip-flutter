@@ -577,13 +577,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
+    final topic = TopicName(widget.controller.topic.textNormalized);
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId,
-        TopicName(widget.controller.topic.textNormalized)),
+      destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName,
-        widget.controller.topic.textNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(
+        streamName, topic.displayName));
   }
 }
 
