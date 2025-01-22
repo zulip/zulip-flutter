@@ -78,14 +78,17 @@ void main() {
     controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
 
+  /// A [Finder] for the topic input.
+  ///
+  /// To enter some text, use [enterTopic].
+  final topicInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeTopicController);
+
   /// Set the topic input's text to [topic], using [WidgetTester.enterText].
   Future<void> enterTopic(WidgetTester tester, {
     required ChannelNarrow narrow,
     required String topic,
   }) async {
-    final topicInputFinder = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.controller is ComposeTopicController);
-
     connection.prepare(body:
       jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
@@ -315,6 +318,85 @@ void main() {
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
       });
+    });
+  });
+
+  group('ComposeBox hintText', () {
+    final channel = eg.stream();
+
+    Future<void> prepare(WidgetTester tester, {
+      required Narrow narrow,
+    }) async {
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        otherUsers: [eg.otherUser, eg.thirdUser],
+        streams: [channel]);
+    }
+
+    /// This checks the input's configured hint text without regard to whether
+    /// it's currently visible, as it won't be if the user has entered some text.
+    ///
+    /// If `topicHintText` is `null`, check that the topic input is not present.
+    void checkComposeBoxHintTexts(WidgetTester tester, {
+      String? topicHintText,
+      required String contentHintText,
+    }) {
+      if (topicHintText != null) {
+        check(tester.widget<TextField>(topicInputFinder))
+          .decoration.isNotNull().hintText.equals(topicHintText);
+      } else {
+        check(topicInputFinder).findsNothing();
+      }
+      check(tester.widget<TextField>(contentInputFinder))
+        .decoration.isNotNull().hintText.equals(contentHintText);
+    }
+
+    group('to ChannelNarrow', () {
+      testWidgets('with empty topic', (tester) async {
+        await prepare(tester, narrow: ChannelNarrow(channel.streamId));
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > (no topic)');
+      });
+
+      testWidgets('with non-empty topic', (tester) async {
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepare(tester, narrow: narrow);
+        await enterTopic(tester, narrow: narrow, topic: 'new topic');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > new topic');
+      });
+    });
+
+    testWidgets('to TopicNarrow', (tester) async {
+      await prepare(tester,
+        narrow: TopicNarrow(channel.streamId, TopicName('topic')));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message #${channel.name} > topic');
+    });
+
+    testWidgets('to DmNarrow with self', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.selfUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Jot down something');
+    });
+
+    testWidgets('to 1:1 DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message @${eg.otherUser.fullName}');
+    });
+
+    testWidgets('to group DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withOtherUsers(
+        [eg.otherUser.userId, eg.thirdUser.userId],
+        selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message group');
     });
   });
 
