@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -182,12 +182,12 @@ abstract class MessageListPageState {
 }
 
 class MessageListPage extends StatefulWidget {
-  const MessageListPage({super.key, required this.initNarrow});
-
+  const MessageListPage({super.key, required this.initNarrow, this.anchorMessageId});
+  final int? anchorMessageId;
   static Route<void> buildRoute({int? accountId, BuildContext? context,
-      required Narrow narrow}) {
+      required Narrow narrow, int? anchorMessageId}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: MessageListPage(initNarrow: narrow));
+      page: MessageListPage(initNarrow: narrow, anchorMessageId: anchorMessageId));
   }
 
   /// The [MessageListPageState] above this context in the tree.
@@ -302,7 +302,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               removeBottom: ComposeBox.hasComposeBox(narrow),
 
               child: Expanded(
-                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
+                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged, anchorMessageId: widget.anchorMessageId))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
@@ -443,11 +443,11 @@ const _kShortMessageHeight = 80;
 const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
 
 class MessageList extends StatefulWidget {
-  const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
+  const MessageList({super.key, required this.narrow, required this.onNarrowChanged, this.anchorMessageId});
 
   final Narrow narrow;
   final void Function(Narrow newNarrow) onNarrowChanged;
-
+  final int? anchorMessageId;
   @override
   State<StatefulWidget> createState() => _MessageListState();
 }
@@ -456,6 +456,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   MessageListView? model;
   final ScrollController scrollController = ScrollController();
   final ValueNotifier<bool> _scrollToBottomVisibleValue = ValueNotifier<bool>(false);
+  List<MessageListItem> newItems = [];
+  List<MessageListItem> oldItems = [];
 
   @override
   void initState() {
@@ -476,10 +478,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     super.dispose();
   }
 
-  void _initModel(PerAccountStore store) {
-    model = MessageListView.init(store: store, narrow: widget.narrow);
+  void _initModel(PerAccountStore store) async{
+    model = MessageListView.init(store: store, narrow: widget.narrow, anchorMessageId: widget.anchorMessageId);
     model!.addListener(_modelChanged);
-    model!.fetchInitial();
+    await model!.fetchInitial();
+    setState(() {
+      oldItems = model!.items.sublist(0, model!.anchorIndex+1);
+      newItems = model!.items.sublist(model!.anchorIndex+1, model!.items.length);
+    });
   }
 
   void _modelChanged() {
@@ -488,14 +494,72 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // [PropagateMode.changeAll] or [PropagateMode.changeLater].
       widget.onNarrowChanged(model!.narrow);
     }
+
+    final previousLength = oldItems.length + newItems.length;
+
     setState(() {
+      oldItems = model!.items.sublist(0, model!.anchorIndex+1);
+      newItems = model!.items.sublist(model!.anchorIndex+1, model!.items.length);
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
     });
+
+
+    // Auto-scroll when new messages arrive if we're already near the bottom
+    if (model!.items.length > previousLength && // New messages were added
+        scrollController.hasClients) {
+      // Use post-frame callback to ensure scroll metrics are up to date
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // This is to prevent auto-scrolling when fetching newer messages
+        if(model!.fetchingNewer || model!.fetchingOlder || model!.fetchNewerCoolingDown || model!.fetchOlderCoolingDown || !model!.haveNewest ){
+          return;
+        }
+
+        // Might be used in the future
+        // ignore: unused_local_variable
+        final viewportDimension = scrollController.position.viewportDimension;
+        final currentScroll = scrollController.position.pixels;
+
+        // If we're one viewportDimension from the bottomList, scroll to it
+        if (currentScroll + 300  > 0) {
+
+        // Calculate initial scroll parameters
+        final distanceToCenter = scrollController.position.pixels;
+        final durationMsAtSpeedLimit = (1000 * distanceToCenter / 8000).ceil();
+        final durationMs = math.max(300, durationMsAtSpeedLimit);
+
+        // If we're not at the bottomSliver,scroll to it
+        if(distanceToCenter<36){
+          await scrollController.animateTo(
+          36,                     //Scroll 36 px inside bottomSliver.The sizedBox is 36px high. so theres no chance of overscrolling
+          duration: Duration(milliseconds: durationMs),
+          curve: Curves.easeIn);
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+
+        // Wait for the layout to settle so scrollController.position.pixels is updated properly
+
+        var distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+        final durationMsToBottom =  math.min(200, (1000 * distanceToBottom / 8000).ceil());
+        // If we go too fast, we'll overscroll.as
+
+        // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
+        while (distanceToBottom > 36) {
+          await scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration:  Duration(milliseconds: durationMsToBottom),
+            curve: Curves.ease);
+          distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+
+        }
+      });
+    }
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
-    if (scrollMetrics.extentAfter == 0) {
+    if (scrollMetrics.extentAfter < 40) {
       _scrollToBottomVisibleValue.value = false;
     } else {
       _scrollToBottomVisibleValue.value = true;
@@ -509,6 +573,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   The cause seems to be that this gets called again with maxScrollExtent
       //   still not yet updated to account for the newly-added messages.
       model?.fetchOlder();
+    }
+
+    // Check for fetching newer messages when near the bottom
+    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      model?.fetchNewer();
     }
   }
 
@@ -562,7 +631,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildListView(BuildContext context) {
-    final length = model!.items.length;
+    final length = oldItems.length;
+    final newLength = newItems.length;
     const centerSliverKey = ValueKey('center sliver');
 
     Widget sliver = SliverStickyHeaderList(
@@ -587,20 +657,30 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           final valueKey = key as ValueKey<int>;
           final index = model!.findItemWithMessageId(valueKey.value);
           if (index == -1) return null;
-          return length - 1 - (index - 3);
+          return length - 1 - index;
         },
-        childCount: length + 3,
+        childCount: length,
         (context, i) {
-          // To reinforce that the end of the feed has been reached:
-          //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-          if (i == 0) return const SizedBox(height: 36);
-
-          if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
-
-          if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
-
-          final data = model!.items[length - 1 - (i - 3)];
+          final data = oldItems[length - 1 - i];
           return _buildItem(data, i);
+        }));
+
+    Widget newMessagesSliver = SliverStickyHeaderList(
+      headerPlacement: HeaderPlacement.scrollingStart,
+      delegate: SliverChildBuilderDelegate(
+        findChildIndexCallback: (Key key) {
+          final valueKey = key as ValueKey<int>;
+          final index = model!.findItemWithMessageId(valueKey.value);
+          if (index == -1) return null;
+          return index-3;
+        },
+        childCount: newLength+3,
+        (context, i) {
+          if (i == newLength) return TypingStatusWidget(narrow: widget.narrow);
+          if (i == newLength+1) return MarkAsReadWidget(narrow: widget.narrow);
+          if (i == newLength+2) return const SizedBox(height: 36);
+          final data = newItems[i];
+          return _buildItem(data, i-newLength);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
@@ -609,10 +689,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       sliver = SliverSafeArea(sliver: sliver);
     }
 
+
+
     return CustomScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
+
       keyboardDismissBehavior: switch (Theme.of(context).platform) {
         // This seems to offer the only built-in way to close the keyboard
         // on iOS. It's not ideal; see TODO above.
@@ -623,16 +706,16 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
       controller: scrollController,
       semanticChildCount: length + 2,
-      anchor: 1.0,
+      anchor: 0.85,
       center: centerSliverKey,
 
       slivers: [
-        sliver,
-
-        // This is a trivial placeholder that occupies no space.  Its purpose is
-        // to have the key that's passed to [ScrollView.center], and so to cause
-        // the above [SliverStickyHeaderList] to run from bottom to top.
+        sliver,  // Main message list (grows upward)
+        // Center point - everything before this grows up, everything after grows down
         const SliverToBoxAdapter(key: centerSliverKey),
+        // Static widgets and new messages (will grow downward)
+        newMessagesSliver,  // New messages list (will grow downward)
+
       ]);
   }
 
@@ -668,20 +751,68 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 }
 
+
+class NoOverScrollPhysics extends ScrollPhysics {
+  const NoOverScrollPhysics({super.parent});
+
+  @override
+  NoOverScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return NoOverScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    // Prevent overscroll at the top
+    if (value < position.minScrollExtent) {
+      return position.minScrollExtent;
+    }
+    // Prevent overscroll at the bottom
+    if (value > position.maxScrollExtent) {
+      return position.maxScrollExtent;
+    }
+    return 0.0; // Allow normal scrolling within bounds
+  }
+}
+
+
 class ScrollToBottomButton extends StatelessWidget {
   const ScrollToBottomButton({super.key, required this.scrollController, required this.visibleValue});
 
   final ValueNotifier<bool> visibleValue;
   final ScrollController scrollController;
 
-  Future<void> _navigateToBottom() {
-    final distance = scrollController.position.pixels;
-    final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
-    final durationMs = max(300, durationMsAtSpeedLimit);
-    return scrollController.animateTo(
-      0,
+  Future<void> _navigateToBottom() async {
+    // Calculate initial scroll parameters
+    final distanceToCenter = scrollController.position.pixels;
+    final durationMsAtSpeedLimit = (1000 * distanceToCenter / 8000).ceil();
+    final durationMs = math.max(300, durationMsAtSpeedLimit);
+    // If we're not at the bottomSliver,scroll to it
+    if(distanceToCenter<36){
+      await scrollController.animateTo(
+      36,                     //Scroll 36 px inside bottomSliver.The sizedBox is 36px high. so theres no chance of overscrolling
       duration: Duration(milliseconds: durationMs),
-      curve: Curves.ease);
+      curve: Curves.easeIn);
+    }
+
+
+    // Wait for the layout to settle so scrollController.position.pixels is updated properly
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    var distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+    final durationMsToBottom = math.min(1000, (1200 * distanceToBottom / 8000).ceil());
+    // If we go too fast, we'll overscroll.
+    // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
+    var count = 0;
+    while (distanceToBottom > 36) {
+      await scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: durationMsToBottom),
+        curve: Curves.easeOut);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
+      count++;
+    }
+    print("count: $count");
   }
 
   @override
@@ -728,6 +859,7 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
   }
 
   void _modelChanged() {
+
     setState(() {
       // The actual state lives in [model].
       // This method was called because that just changed.
@@ -1140,7 +1272,8 @@ class DmRecipientHeader extends StatelessWidget {
         .where((id) => id != store.selfUserId)
         .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
         .sorted()
-        .join(", "));
+        .join(", ")
+        );
     } else {
       // TODO pick string; web has glitchy "You and $yourname"
       title = zulipLocalizations.messageListGroupYouWithYourself;
@@ -1348,6 +1481,21 @@ class MessageWithPossibleSender extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
+      onDoubleTap: () {
+        if (context.findAncestorWidgetOfExactType<MessageListPage>()?.initNarrow is MentionsNarrow) {
+          final store = PerAccountStoreWidget.of(context);
+          final narrow = switch (message) {
+            StreamMessage(:var streamId, :var topic) => TopicNarrow(streamId, topic),
+            DmMessage(:var allRecipientIds) => DmNarrow(
+              allRecipientIds: allRecipientIds.toList(),
+              selfUserId: store.selfUserId),
+          };
+          Navigator.push(context,
+            MessageListPage.buildRoute(context: context, narrow: narrow, anchorMessageId: message.id));
+
+
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
