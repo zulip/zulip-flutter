@@ -78,14 +78,17 @@ void main() {
     controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
 
+  /// A [Finder] for the topic input.
+  ///
+  /// To enter some text, use [enterTopic].
+  final topicInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeTopicController);
+
   /// Set the topic input's text to [topic], using [WidgetTester.enterText].
   Future<void> enterTopic(WidgetTester tester, {
     required ChannelNarrow narrow,
     required String topic,
   }) async {
-    final topicInputFinder = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.controller is ComposeTopicController);
-
     connection.prepare(body:
       jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
@@ -315,6 +318,79 @@ void main() {
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
       });
+    });
+  });
+
+  group('ComposeBox hintText', () {
+    final channel = eg.stream();
+
+    Future<void> prepare(WidgetTester tester, {
+      required Narrow narrow,
+    }) async {
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        otherUsers: [eg.otherUser, eg.thirdUser],
+        streams: [channel]);
+    }
+
+    void checkComposeBoxHintTexts(WidgetTester tester, {
+      String? topicHintText,
+      required String contentHintText,
+    }) {
+      if (topicHintText != null) {
+        check(find.descendant(
+          of: topicInputFinder, matching: find.text(topicHintText))).findsOne();
+      } else {
+        check(topicInputFinder).findsNothing();
+      }
+      check(find.descendant(
+        of: contentInputFinder, matching: find.text(contentHintText))).findsOne();
+    }
+
+    testWidgets('to ChannelNarrow without topic', (tester) async {
+      await prepare(tester, narrow: ChannelNarrow(channel.streamId));
+      checkComposeBoxHintTexts(tester,
+        topicHintText: 'Topic',
+        contentHintText: 'Message #${channel.name} > (no topic)');
+    });
+
+    testWidgets('to ChannelNarrow with topic', (tester) async {
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepare(tester, narrow: narrow);
+      await enterTopic(tester, narrow: narrow, topic: 'new topic');
+      await tester.pump();
+      checkComposeBoxHintTexts(tester,
+        topicHintText: 'Topic',
+        contentHintText: 'Message #${channel.name} > new topic');
+    });
+
+    testWidgets('to TopicNarrow', (tester) async {
+      await prepare(tester,
+        narrow: TopicNarrow(channel.streamId, TopicName('topic')));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message #${channel.name} > topic');
+    });
+
+    testWidgets('to DmNarrow with self', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.selfUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Jot down something');
+    });
+
+    testWidgets('to 1:1 DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message @${eg.otherUser.fullName}');
+    });
+
+    testWidgets('to group DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withOtherUsers(
+        [eg.otherUser.userId, eg.thirdUser.userId],
+        selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message group');
     });
   });
 
