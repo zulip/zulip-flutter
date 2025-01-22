@@ -221,13 +221,13 @@ private class AndroidNotificationHost(val context: Context)
                 val style = NotificationCompat.MessagingStyle(toAndroidPerson(messagingStyle.user))
                     .setConversationTitle(messagingStyle.conversationTitle)
                     .setGroupConversation(messagingStyle.isGroupConversation)
-                messagingStyle.messages.forEach { it.let {
+                messagingStyle.messages.forEach {
                     style.addMessage(NotificationCompat.MessagingStyle.Message(
                         it.text,
                         it.timestampMs,
                         toAndroidPerson(it.person),
                     ))
-                } }
+                }
                 setStyle(style)
             }
             number?.let { setNumber(it.toInt()) }
