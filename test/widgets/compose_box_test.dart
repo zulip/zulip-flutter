@@ -41,9 +41,6 @@ void main() {
   late FakeApiConnection connection;
   late ComposeBoxController? controller;
 
-  final contentInputFinder = find.byWidgetPredicate(
-    (widget) => widget is TextField && widget.controller is ComposeContentController);
-
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
@@ -94,6 +91,17 @@ void main() {
     check(connection.takeRequests()).single
       ..method.equals('GET')
       ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
+  }
+
+  /// A [Finder] for the content input.
+  ///
+  /// To enter some text, use [enterContent].
+  final contentInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+  /// Set the content input's text to [content], using [WidgetTester.enterText].
+  Future<void> enterContent(WidgetTester tester, String content) async {
+    await tester.enterText(contentInputFinder, content);
   }
 
   group('ComposeContentController', () {
@@ -245,7 +253,7 @@ void main() {
 
     Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
       connection.prepare(json: {});
-      await tester.enterText(contentInputFinder, 'hello world');
+      await enterContent(tester, 'hello world');
       checkTypingRequest(TypingOp.start, narrow);
     }
 
@@ -290,7 +298,7 @@ void main() {
       await checkStartTyping(tester, narrow);
 
       connection.prepare(json: {});
-      await tester.enterText(contentInputFinder, '');
+      await enterContent(tester, '');
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
@@ -406,7 +414,7 @@ void main() {
       await prepareComposeBox(tester, narrow: eg.topicNarrow(123, 'some topic'),
         streams: [eg.stream(streamId: 123)]);
 
-      await tester.enterText(contentInputFinder, 'hello world');
+      await enterContent(tester, 'hello world');
 
       prepareResponse(456);
       await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
@@ -817,7 +825,7 @@ void main() {
       double? height;
       for (numLines = 2; numLines <= 1000; numLines++) {
         final content = List.generate(numLines, (_) => 'foo').join('\n');
-        await tester.enterText(contentInputFinder, content);
+        await enterContent(tester, content);
         await tester.pump();
         final newHeight = tester.getRect(contentInputFinder).height;
         if (newHeight == height) {
