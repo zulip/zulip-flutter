@@ -110,11 +110,10 @@ void main() {
   group('topic action sheet', () {
     final someChannel = eg.stream();
     const someTopic = 'my topic';
+    final someMessage = eg.streamMessage(
+      stream: someChannel, topic: someTopic, sender: eg.otherUser);
 
     group('showTopicActionSheet', () {
-      final message = eg.streamMessage(
-        stream: someChannel, topic: someTopic, sender: eg.otherUser);
-
       Future<void> prepare({
         ZulipStream? channel,
         String topic = someTopic,
@@ -151,7 +150,7 @@ void main() {
           channels: [eg.unreadChannelMsgs(
             streamId: someChannel.streamId,
             topic: someTopic,
-            unreadMessageIds: [message.id],
+            unreadMessageIds: [someMessage.id],
           )]));
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: const HomePage()));
@@ -167,7 +166,7 @@ void main() {
       testWidgets('show from app bar', (tester) async {
         await prepare();
         connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [message]).toJson());
+          foundOldest: true, messages: [someMessage]).toJson());
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: MessageListPage(
             initNarrow: eg.topicNarrow(someChannel.streamId, someTopic))));
@@ -186,7 +185,7 @@ void main() {
       testWidgets('show from recipient header', (tester) async {
         await prepare();
         connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [message]).toJson());
+          foundOldest: true, messages: [someMessage]).toJson());
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
         // global store, per-account store, and message list get loaded
