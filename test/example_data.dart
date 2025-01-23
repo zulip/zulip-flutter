@@ -241,7 +241,8 @@ const _stream = stream;
 
 GetStreamTopicsEntry getStreamTopicsEntry({int? maxId, String? name}) {
   maxId ??= 123;
-  return GetStreamTopicsEntry(maxId: maxId, name: name ?? 'Test Topic #$maxId');
+  return GetStreamTopicsEntry(maxId: maxId,
+    name: TopicName(name ?? 'Test Topic #$maxId'));
 }
 
 /// Construct an example subscription from a stream.
@@ -283,11 +284,20 @@ Subscription subscription(
   );
 }
 
+/// The [TopicName] constructor, but shorter.
+///
+/// Useful in test code that mentions a lot of topics in a compact format.
+TopicName t(String apiName) => TopicName(apiName);
+
+TopicNarrow topicNarrow(int channelId, String topicName) {
+  return TopicNarrow(channelId, TopicName(topicName));
+}
+
 UserTopicItem userTopicItem(
     ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
   return UserTopicItem(
     streamId: stream.streamId,
-    topicName: topic,
+    topicName: TopicName(topic),
     lastUpdated: 1234567890,
     visibilityPolicy: policy,
   );
@@ -519,6 +529,18 @@ Submessage submessage({
 // Aggregate data structures.
 //
 
+UnreadChannelSnapshot unreadChannelMsgs({
+  required String topic,
+  required int streamId,
+  required List<int> unreadMessageIds,
+}) {
+  return UnreadChannelSnapshot(
+    topic: TopicName(topic),
+    streamId: streamId,
+    unreadMessageIds: unreadMessageIds,
+  );
+}
+
 UnreadMessagesSnapshot unreadMsgs({
   int? count,
   List<UnreadDmSnapshot>? dms,
@@ -547,7 +569,7 @@ UserTopicEvent userTopicEvent(
   return UserTopicEvent(
     id: 1,
     streamId: streamId,
-    topicName: topic,
+    topicName: TopicName(topic),
     lastUpdated: 1234567890,
     visibilityPolicy: visibilityPolicy,
   );
@@ -605,8 +627,8 @@ UpdateMessageEvent _updateMessageMoveEvent(
   List<int> messageIds, {
   required int origStreamId,
   int? newStreamId,
-  required String origTopic,
-  String? newTopic,
+  required TopicName origTopic,
+  TopicName? newTopic,
   String? origContent,
   String? newContent,
   required List<MessageFlag> flags,
@@ -642,12 +664,15 @@ UpdateMessageEvent _updateMessageMoveEvent(
 UpdateMessageEvent updateMessageEventMoveFrom({
   required List<StreamMessage> origMessages,
   int? newStreamId,
-  String? newTopic,
+  TopicName? newTopic,
+  String? newTopicStr,
   String? newContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   _checkPositive(newStreamId, 'stream ID');
   assert(origMessages.isNotEmpty);
+  assert(newTopic == null || newTopicStr == null);
+  newTopic ??= newTopicStr == null ? null : TopicName(newTopicStr);
   final origMessage = origMessages.first;
   // Only present on content change.
   final origContent = (newContent != null) ? origMessage.content : null;
@@ -667,12 +692,15 @@ UpdateMessageEvent updateMessageEventMoveFrom({
 UpdateMessageEvent updateMessageEventMoveTo({
   required List<StreamMessage> newMessages,
   int? origStreamId,
-  String? origTopic,
+  TopicName? origTopic,
+  String? origTopicStr,
   String? origContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   assert(newMessages.isNotEmpty);
+  assert(origTopic == null || origTopicStr == null);
+  origTopic ??= origTopicStr == null ? null : TopicName(origTopicStr);
   final newMessage = newMessages.first;
   // Only present on topic move.
   final newTopic = (origTopic != null) ? newMessage.topic : null;

@@ -254,6 +254,17 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('app bar shows sender avatar', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage(sender: eg.otherUser);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final avatar = tester.widget<Avatar>(find.byType(Avatar));
+      check(avatar.userId).equals(message.senderId);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('header and footer hidden and shown by tapping image', (tester) async {
       prepareBoringImageHttpClient();
       final message = eg.streamMessage(sender: eg.otherUser);

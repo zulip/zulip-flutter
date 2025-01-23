@@ -481,10 +481,11 @@ void main() {
       }
 
       int compareAB({required String? topic}) {
+        final realTopic = topic == null ? null : TopicName(topic);
         final resultAB = MentionAutocompleteView.compareByRecency(userA, userB,
-          streamId: stream.streamId, topic: topic, store: store);
+          streamId: stream.streamId, topic: realTopic, store: store);
         final resultBA = MentionAutocompleteView.compareByRecency(userB, userA,
-          streamId: stream.streamId, topic: topic, store: store);
+          streamId: stream.streamId, topic: realTopic, store: store);
         switch (resultAB) {
           case <0: check(resultBA).isGreaterThan(0);
           case >0: check(resultBA).isLessThan(0);
@@ -659,7 +660,7 @@ void main() {
           eg.user(fullName: 'b', isBot: true),
         ];
         final stream = eg.stream();
-        final narrow = TopicNarrow(stream.streamId, 'this');
+        final narrow = eg.topicNarrow(stream.streamId, 'this');
         await prepare(users: users, messages: [
           eg.streamMessage(sender: users[1], stream: stream, topic: 'this'),
           eg.streamMessage(sender: users[0], stream: stream, topic: 'this'),
@@ -790,7 +791,7 @@ void main() {
 
       final stream = eg.stream();
       const topic = 'topic';
-      final topicNarrow = TopicNarrow(stream.streamId, topic);
+      final topicNarrow = eg.topicNarrow(stream.streamId, topic);
 
       final users = [
         eg.user(userId: 1, fullName: 'User One'),
@@ -900,7 +901,7 @@ void main() {
 
   group('TopicAutocompleteQuery.testTopic', () {
     void doCheck(String rawQuery, String topic, bool expected) {
-      final result = TopicAutocompleteQuery(rawQuery).testTopic(topic);
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic));
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 

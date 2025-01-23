@@ -38,7 +38,6 @@ extension MessageChecks on Subject<Message> {
   Subject<String> get senderFullName => has((e) => e.senderFullName, 'senderFullName');
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<String> get senderRealmStr => has((e) => e.senderRealmStr, 'senderRealmStr');
-  Subject<String> get topic => has((e) => e.topic, 'topic');
   Subject<Poll?> get poll => has((e) => e.poll, 'poll');
   Subject<int> get timestamp => has((e) => e.timestamp, 'timestamp');
   Subject<String> get type => has((e) => e.type, 'type');
@@ -47,8 +46,14 @@ extension MessageChecks on Subject<Message> {
   Subject<String?> get matchTopic => has((e) => e.matchTopic, 'matchTopic');
 }
 
+extension TopicNameChecks on Subject<TopicName> {
+  Subject<String> get apiName => has((x) => x.apiName, 'apiName');
+  Subject<String> get displayName => has((x) => x.displayName, 'displayName');
+}
+
 extension StreamMessageChecks on Subject<StreamMessage> {
   Subject<String?> get displayRecipient => has((e) => e.displayRecipient, 'displayRecipient');
+  Subject<TopicName> get topic => has((e) => e.topic, 'topic');
 }
 
 extension ReactionsChecks on Subject<Reactions> {

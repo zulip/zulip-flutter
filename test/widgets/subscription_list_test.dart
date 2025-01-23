@@ -150,12 +150,35 @@ void main() {
       ]);
       check(listedStreamIds(tester)).deepEquals([2, 1, 3, 4, 6, 5]);
     });
+
+    testWidgets('channels with names starting with an emoji are above channel names that do not start with an emoji', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'Happy 😊 Stream')),
+        eg.subscription(eg.stream(streamId: 2, name: 'Alpha Stream')),
+        eg.subscription(eg.stream(streamId: 3, name: '🚀 Rocket Stream')),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([3, 2, 1]);
+    });
+
+    testWidgets('channels with names starting with an emoji, pinned, unpinned, muted, and unmuted are sorted correctly', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: '😊 Happy Stream'), pinToTop: true, isMuted: false),
+        eg.subscription(eg.stream(streamId: 2, name: '🚀 Rocket Stream'), pinToTop: true, isMuted: true),
+        eg.subscription(eg.stream(streamId: 3, name: 'Alpha Stream'), pinToTop: true, isMuted: false),
+        eg.subscription(eg.stream(streamId: 4, name: 'Beta Stream'), pinToTop: true, isMuted: true),
+        eg.subscription(eg.stream(streamId: 5, name: '🌟 Star Stream'), pinToTop: false, isMuted: false),
+        eg.subscription(eg.stream(streamId: 6, name: '🔥 Fire Stream'), pinToTop: false, isMuted: true),
+        eg.subscription(eg.stream(streamId: 7, name: 'Gamma Stream'), pinToTop: false, isMuted: false),
+        eg.subscription(eg.stream(streamId: 8, name: 'Delta Stream'), pinToTop: false, isMuted: true),
+      ]);
+      check(listedStreamIds(tester)).deepEquals([1, 3, 2, 4, 5, 7, 6, 8]);
+    });
   });
 
   testWidgets('unread badge shows with unreads', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
     ]);
     await setupStreamListPage(tester, subscriptions: [
       eg.subscription(stream),
@@ -167,14 +190,14 @@ void main() {
   testWidgets('unread badge counts unmuted only', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: true)],
         userTopics: [UserTopicItem(
           streamId: stream.streamId,
-          topicName: 'b',
+          topicName: eg.t('b'),
           lastUpdated: 1234567890,
           visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
         )],
@@ -198,7 +221,7 @@ void main() {
   testWidgets('muted unread badge shows when unreads are visible in channel but not inbox', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: true)],
@@ -211,7 +234,7 @@ void main() {
   testWidgets('muted unread badge does not show when unreads are visible in both channel & inbox', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: false)],
@@ -224,7 +247,7 @@ void main() {
   testWidgets('muted unread badge does not show when unreads are not visible in channel nor inbox', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'b', unreadMessageIds: [3]),
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: true)],
@@ -237,7 +260,7 @@ void main() {
   testWidgets('color propagates to icon and badge', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
-      UnreadChannelSnapshot(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+      eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
     ]);
     final subscription = eg.subscription(stream, color: Colors.red.argbInt);
     final swatch = ChannelColorSwatch.light(subscription.color);
@@ -275,8 +298,8 @@ void main() {
         eg.userTopicItem(stream2, 'b', UserTopicVisibilityPolicy.unmuted),
       ],
       unreadMsgs: eg.unreadMsgs(channels: [
-        UnreadChannelSnapshot(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
-        UnreadChannelSnapshot(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [3]),
+        eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
+        eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [3]),
       ]),
     );
 
@@ -310,10 +333,10 @@ void main() {
         eg.userTopicItem(mutedStreamWithNoUnmutedUnreads,   'd', UserTopicVisibilityPolicy.muted),
       ],
       unreadMsgs: eg.unreadMsgs(channels: [
-        UnreadChannelSnapshot(streamId: unmutedStreamWithUnmutedUnreads.streamId,   topic: 'a', unreadMessageIds: [1]),
-        UnreadChannelSnapshot(streamId: unmutedStreamWithNoUnmutedUnreads.streamId, topic: 'b', unreadMessageIds: [2]),
-        UnreadChannelSnapshot(streamId: mutedStreamWithUnmutedUnreads.streamId,     topic: 'c', unreadMessageIds: [3]),
-        UnreadChannelSnapshot(streamId: mutedStreamWithNoUnmutedUnreads.streamId,   topic: 'd', unreadMessageIds: [4]),
+        eg.unreadChannelMsgs(streamId: unmutedStreamWithUnmutedUnreads.streamId,   topic: 'a', unreadMessageIds: [1]),
+        eg.unreadChannelMsgs(streamId: unmutedStreamWithNoUnmutedUnreads.streamId, topic: 'b', unreadMessageIds: [2]),
+        eg.unreadChannelMsgs(streamId: mutedStreamWithUnmutedUnreads.streamId,     topic: 'c', unreadMessageIds: [3]),
+        eg.unreadChannelMsgs(streamId: mutedStreamWithNoUnmutedUnreads.streamId,   topic: 'd', unreadMessageIds: [4]),
       ]),
     );
 

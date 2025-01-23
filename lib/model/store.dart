@@ -466,10 +466,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   @override
   Map<int, Subscription> get subscriptions => _channels.subscriptions;
   @override
-  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     _channels.topicVisibilityPolicy(streamId, topic);
   @override
-  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
+  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
     _channels.debugTopicVisibility;
 
   final ChannelStoreImpl _channels;
@@ -1128,8 +1128,7 @@ class UpdateMachine {
       case Server5xxException():
         shouldReportToUser = true;
 
-      case ServerException(httpStatus: 429):
-      case ZulipApiException(httpStatus: 429):
+      case HttpException(httpStatus: 429):
       case ZulipApiException(code: 'RATE_LIMIT_HIT'):
         // TODO(#946) handle rate-limit errors more generally, in ApiConnection
         shouldReportToUser = true;

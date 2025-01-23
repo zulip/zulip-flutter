@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'model.dart';
+
 part 'narrow.g.dart';
 
 typedef ApiNarrow = List<ApiNarrowElement>;
@@ -26,7 +28,37 @@ ApiNarrow resolveDmElements(ApiNarrow narrow, int zulipFeatureLevel) {
 /// please add more as needed.
 sealed class ApiNarrowElement {
   String get operator;
-  Object get operand;
+
+  /// The operand of this narrow filter.
+  ///
+  /// The base-class getter [ApiNarrowElement.operand] returns `dynamic`,
+  /// and its value should only be used for encoding as JSON, for use in a
+  /// request to the Zulip server.
+  ///
+  /// For any operations that depend more specifically on the operand's type,
+  /// do not use run-time type checks on the value of [operand]; instead, make
+  /// a run-time type check (e.g. with `switch`) on the [ApiNarrowElement]
+  /// itself, and use the [operand] getter of the specific subtype.
+  ///
+  /// That makes a difference because [ApiNarrowTopic.operand] has type
+  /// [TopicName]; at runtime a [TopicName] is indistinguishable from [String],
+  /// but an [ApiNarrowTopic] can still be distinguished from other subclasses.
+  //
+  // We can't just write [Object] here; if we do, the compiler rejects the
+  // override in ApiNarrowTopic because TopicName can't be assigned to Object.
+  // The reason that could be bad is that a caller of [ApiNarrowElement.operand]
+  // could take the result and call Object members on it, like toString, even
+  // though TopicName doesn't declare those members.
+  //
+  // In this case that's fine because the only plausible thing to do with
+  // a generic [ApiNarrowElement.operand] is to encode it as JSON anyway,
+  // which behaves just fine on TopicName.
+  //
+  // ... Even if it weren't fine, in the case of Object this protection is
+  // thoroughly undermined already: code that has a TopicName can call Object
+  // members on it directly.  See comments at [TopicName].
+  dynamic get operand; // see justification for `dynamic` above
+
   final bool negated;
 
   ApiNarrowElement({this.negated = false});
@@ -54,12 +86,12 @@ class ApiNarrowStream extends ApiNarrowElement {
 class ApiNarrowTopic extends ApiNarrowElement {
   @override String get operator => 'topic';
 
-  @override final String operand;
+  @override final TopicName operand;
 
   ApiNarrowTopic(this.operand, {super.negated});
 
   factory ApiNarrowTopic.fromJson(Map<String, dynamic> json) => ApiNarrowTopic(
-    json['operand'] as String,
+    TopicName.fromJson(json['operand'] as String),
     negated: json['negated'] as bool? ?? false,
   );
 }

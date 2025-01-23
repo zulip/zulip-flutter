@@ -24,15 +24,15 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Wybierz konto';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'Przełącz konto';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'Twoje konto na $url wymaga jeszcze chwili na załadowanie.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'Sprawdź inne konto';
 
   @override
   String get chooseAccountPageLogOutButton => 'Wyloguj';
@@ -65,16 +65,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'Wycisz wątek';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'Wznów wątek';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'Śledź wątek';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'Nie śledź wątku';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Skopiuj tekst wiadomości';
@@ -189,16 +189,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get errorMuteTopicFailed => 'Failed to mute topic';
+  String get errorMuteTopicFailed => 'Wyciszenie bez powodzenia';
 
   @override
-  String get errorUnmuteTopicFailed => 'Failed to unmute topic';
+  String get errorUnmuteTopicFailed => 'Wznowienie bez powodzenia';
 
   @override
-  String get errorFollowTopicFailed => 'Failed to follow topic';
+  String get errorFollowTopicFailed => 'Śledzenie bez powodzenia';
 
   @override
-  String get errorUnfollowTopicFailed => 'Failed to unfollow topic';
+  String get errorUnfollowTopicFailed => 'Nie śledź bez powodzenia';
 
   @override
   String get errorSharingFailed => 'Udostępnianie bez powodzenia';
@@ -296,7 +296,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get dialogContinue => 'Kontynuuj';
 
   @override
-  String get dialogClose => 'Close';
+  String get dialogClose => 'Zamknij';
 
   @override
   String get errorDialogContinue => 'OK';
@@ -458,7 +458,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get userRoleUnknown => 'Nieznany';
 
   @override
-  String get inboxPageTitle => 'Inbox';
+  String get inboxPageTitle => 'Odebrane';
 
   @override
   String get recentDmConversationsPageTitle => 'Wiadomości bezpośrednie';
@@ -473,10 +473,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Wiadomości z gwiazdką';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Kanały';
 
   @override
-  String get mainMenuMyProfile => 'My profile';
+  String get mainMenuMyProfile => 'Mój profil';
 
   @override
   String get channelFeedButtonTooltip => 'Strumień kanału';
@@ -527,14 +527,14 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get errorNotificationOpenAccountMissing => 'Konto związane z tym powiadomieniem już nie istnieje.';
 
   @override
-  String get errorReactionAddingFailedTitle => 'Adding reaction failed';
+  String get errorReactionAddingFailedTitle => 'Dodanie reakcji bez powodzenia';
 
   @override
-  String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
+  String get errorReactionRemovingFailedTitle => 'Usuwanie reakcji bez powodzenia';
 
   @override
-  String get emojiReactionsMore => 'more';
+  String get emojiReactionsMore => 'więcej';
 
   @override
-  String get emojiPickerSearchEmoji => 'Search emoji';
+  String get emojiPickerSearchEmoji => 'Szukaj emoji';
 }

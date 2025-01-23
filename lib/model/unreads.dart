@@ -40,7 +40,7 @@ class Unreads extends ChangeNotifier {
     required int selfUserId,
     required ChannelStore channelStore,
   }) {
-    final streams = <int, Map<String, QueueList<int>>>{};
+    final streams = <int, Map<TopicName, QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
@@ -86,7 +86,7 @@ class Unreads extends ChangeNotifier {
   // int count;
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
-  final Map<int, Map<String, QueueList<int>>> streams;
+  final Map<int, Map<TopicName, QueueList<int>>> streams;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -185,7 +185,7 @@ class Unreads extends ChangeNotifier {
     return c;
   }
 
-  int countInTopicNarrow(int streamId, String topic) {
+  int countInTopicNarrow(int streamId, TopicName topic) {
     final topics = streams[streamId];
     return topics?[topic]?.length ?? 0;
   }
@@ -212,6 +212,18 @@ class Unreads extends ChangeNotifier {
       case StarredMessagesNarrow():
         return countInStarredMessagesNarrow();
     }
+  }
+
+  /// The unread state for [messageId], or null if unknown.
+  ///
+  /// May be unknown only if [oldUnreadsMissing].
+  ///
+  /// This is inefficient; it iterates through [dms] and [channels].
+  // TODO implement efficiently
+  bool? isUnread(int messageId) {
+    final isPresent = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
+    if (oldUnreadsMissing && !isPresent) return null;
+    return isPresent;
   }
 
   void handleMessageEvent(MessageEvent event) {
@@ -253,14 +265,18 @@ class Unreads extends ChangeNotifier {
     //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/1639957
     final bool isRead = event.flags.contains(MessageFlag.read);
     assert(() {
-      if (!oldUnreadsMissing && !event.messageIds.every((messageId) {
-        final isUnreadLocally = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
-        return isUnreadLocally == !isRead;
-      })) {
+      final isUnreadLocally = isUnread(messageId);
+      final isUnreadInEvent = !isRead;
+
+      // Unread state unknown because of [oldUnreadsMissing].
+      // We were going to check something but can't; shrug.
+      if (isUnreadLocally == null) return true;
+
+      if (isUnreadLocally != isUnreadInEvent) {
         // If this happens, then either:
-        // - the server and client have been out of sync about a message's
+        // - the server and client have been out of sync about the message's
         //   unread state since before this event, or
-        // - this event was unexpectedly used to announce a change in a
+        // - this event was unexpectedly used to announce a change in the
         //   message's 'read' flag.
         debugLog('Unreads warning: got surprising UpdateMessageEvent');
       }
@@ -328,10 +344,7 @@ class Unreads extends ChangeNotifier {
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             mentions.addAll(
-              event.messages.where(
-                (messageId) => _slowIsPresentInStreams(messageId) || _slowIsPresentInDms(messageId),
-              ),
-            );
+              event.messages.where((messageId) => isUnread(messageId) == true));
 
           case UpdateMessageFlagsRemoveEvent():
             mentions.removeAll(event.messages);
@@ -352,7 +365,7 @@ class Unreads extends ChangeNotifier {
               _slowRemoveAllInDms(messageIdsSet);
             }
           case UpdateMessageFlagsRemoveEvent():
-            final newlyUnreadInStreams = <int, Map<String, QueueList<int>>>{};
+            final newlyUnreadInStreams = <int, Map<TopicName, QueueList<int>>>{};
             final newlyUnreadInDms = <DmNarrow, QueueList<int>>{};
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
@@ -436,12 +449,12 @@ class Unreads extends ChangeNotifier {
     );
   }
 
-  void _addLastInStreamTopic(int messageId, int streamId, String topic) {
+  void _addLastInStreamTopic(int messageId, int streamId, TopicName topic) {
     ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
-  void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, String topic) {
+  void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, TopicName topic) {
     final topics = streams[streamId] ??= {};
     topics.update(topic,
       ifAbsent: () => messageIds,
@@ -456,7 +469,7 @@ class Unreads extends ChangeNotifier {
   void _slowRemoveAllInStreams(Set<int> idsToRemove) {
     final newlyEmptyStreams = <int>[];
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
-      final newlyEmptyTopics = <String>[];
+      final newlyEmptyTopics = <TopicName>[];
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         messageIds.removeWhere((id) => idsToRemove.contains(id));
         if (messageIds.isEmpty) {
@@ -475,7 +488,7 @@ class Unreads extends ChangeNotifier {
     }
   }
 
-  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, String topic) {
+  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
     final topics = streams[streamId];
     if (topics == null) return;
     final messageIds = topics[topic];

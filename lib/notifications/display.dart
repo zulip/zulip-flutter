@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
 
+import '../api/model/model.dart';
 import '../api/notifications.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
@@ -107,7 +108,7 @@ class NotificationChannelManager {
     // and check against our list of sounds we have.
     final soundsToAdd = NotificationSound.values.toList();
 
-    final List<StoredNotificationSound?> storedSounds;
+    final List<StoredNotificationSound> storedSounds;
     try {
       storedSounds = await _androidHost.listStoredSoundsInNotificationsDirectory();
     } catch (e, st) {
@@ -115,11 +116,9 @@ class NotificationChannelManager {
       return defaultSoundUrl;
     }
     for (final storedSound in storedSounds) {
-      assert(storedSound != null); // TODO(#942)
-
       // If the file is one we put there, and has the name we give to our
       // default sound, then use it as the default sound.
-      if (storedSound!.fileName == kDefaultNotificationSound.fileDisplayName
+      if (storedSound.fileName == kDefaultNotificationSound.fileDisplayName
           && storedSound.isOwned) {
         defaultSoundUrl = storedSound.contentUrl;
       }
@@ -187,8 +186,7 @@ class NotificationChannelManager {
     var found = false;
     final channels = await _androidHost.getNotificationChannels();
     for (final channel in channels) {
-      assert(channel != null); // TODO(#942)
-      if (channel!.id == kChannelId) {
+      if (channel.id == kChannelId) {
         found = true;
       } else {
         await _androidHost.deleteNotificationChannel(channel.id);
@@ -263,9 +261,9 @@ class NotificationDisplayManager {
     // the first.
     messagingStyle.conversationTitle = switch (data.recipient) {
       FcmMessageChannelRecipient(:var streamName?, :var topic) =>
-        '#$streamName > $topic',
+        '#$streamName > ${topic.displayName}',
       FcmMessageChannelRecipient(:var topic) =>
-        '#(unknown channel) > $topic', // TODO get stream name from data
+        '#(unknown channel) > ${topic.displayName}', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
@@ -377,8 +375,6 @@ class NotificationDisplayManager {
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredExtras: [kExtraLastZulipMessageId]);
     for (final statusBarNotification in activeNotifications) {
-      if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
-
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
       // [AndroidNotificationHostApi.notify] (and so to `NotificationManager#notify`
@@ -442,7 +438,7 @@ class NotificationDisplayManager {
 
   static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var streamId, :var topic) => 'stream:$streamId:$topic',
+      FcmMessageChannelRecipient(:var streamId, :var topic) => 'stream:$streamId:${topic.canonicalize()}',
       FcmMessageDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
     };
     return '$groupKey|$conversation';
@@ -538,8 +534,8 @@ class NotificationOpenPayload {
         case 'topic':
           final channelIdStr = url.queryParameters['channel_id']!;
           final channelId = int.parse(channelIdStr, radix: 10);
-          final topic = url.queryParameters['topic']!;
-          narrow = TopicNarrow(channelId, topic);
+          final topicStr = url.queryParameters['topic']!;
+          narrow = TopicNarrow(channelId, TopicName(topicStr));
         case 'dm':
           final allRecipientIdsStr = url.queryParameters['all_recipient_ids']!;
           final allRecipientIds = allRecipientIdsStr.split(',')
@@ -572,7 +568,7 @@ class NotificationOpenPayload {
           TopicNarrow(streamId: var channelId, :var topic) => {
             'narrow_type': 'topic',
             'channel_id': channelId.toString(),
-            'topic': topic,
+            'topic': topic.apiName,
           },
           DmNarrow(:var allRecipientIds) => {
             'narrow_type': 'dm',

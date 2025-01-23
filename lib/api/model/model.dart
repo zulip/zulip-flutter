@@ -556,11 +556,11 @@ sealed class Message {
   final String senderFullName;
   final int senderId;
   final String senderRealmStr;
-  @JsonKey(name: 'subject')
-  String topic;
+
   /// Poll data if "submessages" describe a poll, `null` otherwise.
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
+
   final int timestamp;
   String get type;
 
@@ -613,7 +613,6 @@ sealed class Message {
     required this.senderFullName,
     required this.senderId,
     required this.senderRealmStr,
-    required this.topic,
     required this.timestamp,
     required this.flags,
     required this.matchContent,
@@ -656,6 +655,59 @@ enum MessageFlag {
   String toJson() => _$MessageFlagEnumMap[this]!;
 }
 
+/// The name of a Zulip topic.
+// TODO(dart): Can we forbid calling Object members on this extension type?
+//   (The lack of "implements Object" ought to do that, but doesn't.)
+//   In particular an interpolation "foo > $topic" is a bug we'd like to catch.
+// TODO(dart): Can we forbid using this extension type as a key in a Map?
+//   (The lack of "implements Object" arguably should do that, but doesn't.)
+//   Using as a Map key is almost certainly a bug because it won't case-fold;
+//   see for example #739, #980, #1205.
+extension type const TopicName(String _value) {
+  /// The canonical form of the resolved-topic prefix.
+  // This is RESOLVED_TOPIC_PREFIX in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+  static const resolvedTopicPrefix = '✔ ';
+
+  /// Pattern for an arbitrary resolved-topic prefix.
+  ///
+  /// These always begin with [resolvedTopicPrefix]
+  /// but can be weird and go on longer, like "✔ ✔✔ ".
+  // This is RESOLVED_TOPIC_PREFIX_RE in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts#L4-L12
+  static final resolvedTopicPrefixRegexp = RegExp(r'^✔ [ ✔]*');
+
+  /// The string this topic is identified by in the Zulip API.
+  ///
+  /// This should be used in constructing HTTP requests to the server,
+  /// but rarely for other purposes.  See [displayName] and [canonicalize].
+  String get apiName => _value;
+
+  /// The string this topic is displayed as to the user in our UI.
+  ///
+  /// At the moment this always equals [apiName].
+  /// In the future this will become null for the "general chat" topic (#1250),
+  /// so that UI code can identify when it needs to represent the topic
+  /// specially in the way prescribed for "general chat".
+  // TODO(#1250) carry out that plan
+  String get displayName => _value;
+
+  /// The key to use for "same topic as" comparisons.
+  String canonicalize() => apiName.toLowerCase();
+
+  /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
+  TopicName unresolve() =>
+    TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
+
+  /// Whether [this] and [other] have the same canonical form,
+  /// using [canonicalize].
+  bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
+
+  TopicName.fromJson(this._value);
+
+  String toJson() => apiName;
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake)
 class StreamMessage extends Message {
   @override
@@ -667,7 +719,15 @@ class StreamMessage extends Message {
   // invalidated.
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
+
   int streamId;
+
+  // The topic/subject is documented to be present on DMs too, just empty.
+  // We ignore it on DMs; if a future server introduces distinct topics in DMs,
+  // that will need new UI that we'll design then as part of that feature,
+  // and ignoring the topics seems as good a fallback behavior as any.
+  @JsonKey(name: 'subject')
+  TopicName topic;
 
   StreamMessage({
     required super.client,
@@ -683,13 +743,13 @@ class StreamMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
     required this.displayRecipient,
     required this.streamId,
+    required this.topic,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -786,7 +846,6 @@ class DmMessage extends Message {
     required super.senderFullName,
     required super.senderId,
     required super.senderRealmStr,
-    required super.topic,
     required super.timestamp,
     required super.flags,
     required super.matchContent,
@@ -806,25 +865,28 @@ enum MessageEditState {
   edited,
   moved;
 
-  // Adapted from the shared code:
-  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
-  // The canonical resolved-topic prefix.
-  static const String _resolvedTopicPrefix = '✔ ';
-
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.
   ///
   /// The Zulip "resolved topics" feature is implemented by renaming the topic;
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
-  static bool topicMoveWasResolveOrUnresolve(String topic, String prevTopic) {
-    if (topic.startsWith(_resolvedTopicPrefix)
-        && topic.substring(_resolvedTopicPrefix.length) == prevTopic) {
+  static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
+    // Implemented to match web; see analyze_edit_history in zulip/zulip's
+    // web/src/message_list_view.ts.
+    //
+    // Also, this is a hot codepath (decoding messages, a high-volume type of
+    // data we get from the server), so we avoid calling [canonicalize] and
+    // using [TopicName.resolvedTopicPrefixRegexp], to be performance-sensitive.
+    // Discussion:
+    //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
+    if (topic.apiName.startsWith(TopicName.resolvedTopicPrefix)
+        && topic.apiName.substring(TopicName.resolvedTopicPrefix.length) == prevTopic.apiName) {
       return true;
     }
 
-    if (prevTopic.startsWith(_resolvedTopicPrefix)
-        && prevTopic.substring(_resolvedTopicPrefix.length) == topic) {
+    if (prevTopic.apiName.startsWith(TopicName.resolvedTopicPrefix)
+        && prevTopic.apiName.substring(TopicName.resolvedTopicPrefix.length) == topic.apiName) {
       return true;
     }
 
@@ -857,8 +919,10 @@ enum MessageEditState {
       }
 
       // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
-      final prevTopic = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
-      final topic = entry['topic'] as String?;
+      final prevTopicStr = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
+      final prevTopic = prevTopicStr == null ? null : TopicName.fromJson(prevTopicStr);
+      final topicStr = entry['topic'] as String?;
+      final topic = topicStr == null ? null : TopicName.fromJson(topicStr);
       if (prevTopic != null) {
         // TODO(server-5) pre-5.0 servers do not have the 'topic' field
         if (topic == null) {
@@ -874,4 +938,14 @@ enum MessageEditState {
     // This can happen when a topic is resolved but nothing else has been edited
     return MessageEditState.none;
   }
+}
+
+/// As in [updateMessage] or [UpdateMessageEvent.propagateMode].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum PropagateMode {
+  changeOne,
+  changeLater,
+  changeAll;
+
+  String toJson() => _$PropagateModeEnumMap[this]!;
 }

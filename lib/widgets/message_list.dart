@@ -27,56 +27,54 @@ import 'theme.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
-  MessageListTheme.light() :
-    this._(
-      dateSeparator: Colors.black,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
-      senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
-      streamMessageBgDefault: Colors.white,
-      streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
+  static final light = MessageListTheme._(
+    dateSeparator: Colors.black,
+    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+    dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
+    recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
+    senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
+    streamMessageBgDefault: Colors.white,
+    streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
-      // From the Figma mockup at:
-      //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
-      // See discussion about design at:
-      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
-      // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
-      // in both light and dark theme.)
-      unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+    // From the Figma mockup at:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
+    // See discussion about design at:
+    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+    // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
+    // in both light and dark theme.)
+    unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
+    unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
 
-      // TODO(design) this seems ad-hoc; is there a better color?
-      unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
-    );
+    // TODO(design) this seems ad-hoc; is there a better color?
+    unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
+  );
 
-  MessageListTheme.dark() :
-    this._(
-      dateSeparator: Colors.white,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
-      senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-      senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
-      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
+  static final dark = MessageListTheme._(
+    dateSeparator: Colors.white,
+    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+    dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
+    recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
+    senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
+    senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
+    streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
-      // 0.75 opacity from here:
-      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
-      // Discussion, some weeks after the discussion linked on the light variant:
-      //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
-      // where Vlad includes screenshots that look like they're from there.
-      unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
+    // 0.75 opacity from here:
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
+    // Discussion, some weeks after the discussion linked on the light variant:
+    //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+    // where Vlad includes screenshots that look like they're from there.
+    unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.transparent,
+    unreadMarkerGap: Colors.transparent,
 
-      // TODO(design) this is ad-hoc and untested; is there a better color?
-      unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
-    );
+    // TODO(design) this is ad-hoc and untested; is there a better color?
+    unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
+  );
 
   MessageListTheme._({
     required this.dateSeparator,
@@ -177,8 +175,14 @@ abstract class MessageListPageState {
   Narrow get narrow;
 
   /// The controller for this [MessageListPage]'s compose box,
-  /// if this [MessageListPage] offers a compose box.
+  /// if this [MessageListPage] offers a compose box and it has mounted,
+  /// else null.
   ComposeBoxController? get composeBoxController;
+
+  /// The active [MessageListView].
+  ///
+  /// This is null if [MessageList] has not mounted yet.
+  MessageListView? get model;
 }
 
 class MessageListPage extends StatefulWidget {
@@ -214,8 +218,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
   @override
   ComposeBoxController? get composeBoxController => _composeBoxKey.currentState?.controller;
-
   final GlobalKey<ComposeBoxState> _composeBoxKey = GlobalKey();
+
+  @override
+  MessageListView? get model => _messageListKey.currentState?.model;
+  final GlobalKey<_MessageListState> _messageListKey = GlobalKey();
 
   @override
   void initState() {
@@ -302,7 +309,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               removeBottom: ComposeBox.hasComposeBox(narrow),
 
               child: Expanded(
-                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
+                child: MessageList(
+                  key: _messageListKey,
+                  narrow: narrow,
+                  onNarrowChanged: _narrowChanged,
+                ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
@@ -334,7 +345,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 
   Widget _buildTopicRow(BuildContext context, {
     required ZulipStream? stream,
-    required String topic,
+    required TopicName topic,
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
@@ -344,7 +355,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic, style: const TextStyle(
+        Flexible(child: Text(topic.displayName, style: const TextStyle(
           fontSize: 13,
         ).merge(weightVariableTextStyle(context)))),
         if (icon != null)
@@ -1091,7 +1102,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       child: Row(
         children: [
           Flexible(
-            child: Text(topic,
+            child: Text(topic.displayName,
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,

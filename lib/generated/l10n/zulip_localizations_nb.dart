@@ -4,9 +4,9 @@ import 'zulip_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for French (`fr`).
-class ZulipLocalizationsFr extends ZulipLocalizations {
-  ZulipLocalizationsFr([String locale = 'fr']) : super(locale);
+/// The translations for Norwegian Bokmål (`nb`).
+class ZulipLocalizationsNb extends ZulipLocalizations {
+  ZulipLocalizationsNb([String locale = 'nb']) : super(locale);
 
   @override
   String get aboutPageTitle => 'About Zulip';

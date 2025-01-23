@@ -28,18 +28,45 @@ sealed class ApiRequestException implements Exception {
   String toString() => message;
 }
 
-/// An error returned through the Zulip server API.
+/// A network-level error that prevented even getting an HTTP response
+/// to some Zulip API network request.
 ///
-/// See API docs: https://zulip.com/api/rest-error-handling
-class ZulipApiException extends ApiRequestException {
+/// This is the antonym of [HttpException].
+class NetworkException extends ApiRequestException {
+  /// The exception describing the underlying error.
+  ///
+  /// This can be any exception value that [http.Client.send] throws.
+  /// Ideally that would always be an [http.ClientException],
+  /// but empirically it can be [TlsException] and possibly others.
+  final Object cause;
 
-  /// The Zulip API error code returned by the server.
-  final String code;
+  NetworkException({required super.routeName, required super.message, required this.cause});
 
+  @override
+  String toString() {
+    return 'NetworkException: $message ($cause)';
+  }
+}
+
+/// Some kind of [ApiRequestException] that came as an HTTP response.
+///
+/// This is the antonym of [NetworkException].
+sealed class HttpException extends ApiRequestException {
   /// The HTTP status code returned by the server.
   ///
-  /// This is always in the range 400..499.
+  /// On [ZulipApiException], this is always in the range 400..499.
   final int httpStatus;
+
+  HttpException({required super.routeName, required this.httpStatus, required super.message});
+}
+
+/// An error returned through the Zulip server API,
+/// and with a 4xx HTTP status code.
+///
+/// See API docs: https://zulip.com/api/rest-error-handling
+class ZulipApiException extends HttpException {
+  /// The Zulip API error code returned by the server.
+  final String code;
 
   /// The error's JSON data, if any, beyond the properties common to all errors.
   ///
@@ -50,8 +77,8 @@ class ZulipApiException extends ApiRequestException {
 
   ZulipApiException({
     required super.routeName,
+    required super.httpStatus,
     required this.code,
-    required this.httpStatus,
     required this.data,
     required super.message,
   }) : assert(400 <= httpStatus && httpStatus <= 499);
@@ -69,31 +96,12 @@ class ZulipApiException extends ApiRequestException {
   }
 }
 
-/// A network-level error that prevented even getting an HTTP response.
-class NetworkException extends ApiRequestException {
-  /// The exception describing the underlying error.
-  ///
-  /// This can be any exception value that [http.Client.send] throws.
-  /// Ideally that would always be an [http.ClientException],
-  /// but empirically it can be [TlsException] and possibly others.
-  final Object cause;
-
-  NetworkException({required super.routeName, required super.message, required this.cause});
-
-  @override
-  String toString() {
-    return 'NetworkException: $message ($cause)';
-  }
-}
-
 /// Some kind of server-side error in handling the request.
 ///
 /// This should always represent either some kind of operational issue
 /// on the server, or a bug in the server where its responses don't
 /// agree with the documented API.
-sealed class ServerException extends ApiRequestException {
-  final int httpStatus;
-
+sealed class ServerException extends HttpException {
   /// The response body, decoded as a JSON object.
   ///
   /// This is null if the body could not be read, or was not a valid JSON object.
@@ -101,7 +109,7 @@ sealed class ServerException extends ApiRequestException {
 
   ServerException({
     required super.routeName,
-    required this.httpStatus,
+    required super.httpStatus,
     required this.data,
     required super.message,
   });

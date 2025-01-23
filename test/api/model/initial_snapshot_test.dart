@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/api/model/model.dart';
 
 import '../../stdlib_checks.dart';
 
@@ -20,7 +21,7 @@ void main() {
 
     check(snapshot.channels).single.jsonEquals(
       UnreadChannelSnapshot(
-        topic: 'topic name', streamId: 1,
+        topic: const TopicName('topic name'), streamId: 1,
         unreadMessageIds: [1, 2]));
   });
 

@@ -50,6 +50,13 @@ Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
       'id': instance.id,
     };
 
+UpdateMessageResult _$UpdateMessageResultFromJson(Map<String, dynamic> json) =>
+    UpdateMessageResult();
+
+Map<String, dynamic> _$UpdateMessageResultToJson(
+        UpdateMessageResult instance) =>
+    <String, dynamic>{};
+
 UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
     UploadFileResult(
       uri: json['uri'] as String,

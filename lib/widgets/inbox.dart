@@ -132,7 +132,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <(String, int, bool, int)>[];
+      final topicItems = <_StreamSectionTopicData>[];
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
@@ -140,15 +140,20 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
         if (hasMention) streamHasMention = true;
-        topicItems.add((topic, countInTopic, hasMention, messageIds.last));
+        topicItems.add(_StreamSectionTopicData(
+          topic: topic,
+          count: countInTopic,
+          hasMention: hasMention,
+          lastUnreadId: messageIds.last,
+        ));
         countInStream += countInTopic;
       }
       if (countInStream == 0) {
         continue;
       }
       topicItems.sort((a, b) {
-        final (_, _, _, aLastUnreadId) = a;
-        final (_, _, _, bLastUnreadId) = b;
+        final aLastUnreadId = a.lastUnreadId;
+        final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
@@ -192,9 +197,23 @@ class _StreamSectionData extends _InboxSectionData {
   final int streamId;
   final int count;
   final bool hasMention;
-  final List<(String, int, bool, int)> items;
+  final List<_StreamSectionTopicData> items;
 
   const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
+}
+
+class _StreamSectionTopicData {
+  final TopicName topic;
+  final int count;
+  final bool hasMention;
+  final int lastUnreadId;
+
+  const _StreamSectionTopicData({
+    required this.topic,
+    required this.count,
+    required this.hasMention,
+    required this.lastUnreadId,
+  });
 }
 
 abstract class _HeaderItem extends StatelessWidget {
@@ -466,33 +485,22 @@ class _StreamSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          final (topic, count, hasMention, _) = item;
-          return _TopicItem(
-            streamId: data.streamId,
-            topic: topic,
-            count: count,
-            hasMention: hasMention,
-          );
+          return _TopicItem(streamId: data.streamId, data: item);
         }),
       ]));
   }
 }
 
 class _TopicItem extends StatelessWidget {
-  const _TopicItem({
-    required this.streamId,
-    required this.topic,
-    required this.count,
-    required this.hasMention,
-  });
+  const _TopicItem({required this.streamId, required this.data});
 
   final int streamId;
-  final String topic;
-  final int count;
-  final bool hasMention;
+  final _StreamSectionTopicData data;
 
   @override
   Widget build(BuildContext context) {
+    final _StreamSectionTopicData(:topic, :count, :hasMention) = data;
+
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[streamId]!;
 
@@ -524,7 +532,7 @@ class _TopicItem extends StatelessWidget {
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                topic))),
+                topic.displayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             // TODO(design) copies the "@" marker color; is there a better color?

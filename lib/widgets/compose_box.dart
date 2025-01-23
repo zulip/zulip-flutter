@@ -28,9 +28,30 @@ const double _composeButtonSize = 44;
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
+  int get maxLengthUnicodeCodePoints;
+
   String get textNormalized => _textNormalized;
   late String _textNormalized;
   String _computeTextNormalized();
+
+  /// Length of [textNormalized] in Unicode code points
+  /// if it might exceed [maxLengthUnicodeCodePoints], else null.
+  ///
+  /// Use this instead of [String.length]
+  /// to enforce a max length expressed in code points.
+  /// [String.length] is conservative and may cut the user off too short.
+  ///
+  /// Counting code points ([String.runes])
+  /// is more expensive than getting the number of UTF-16 code units
+  /// ([String.length]), so we avoid it when the result definitely won't exceed
+  /// [maxLengthUnicodeCodePoints].
+  late int? _lengthUnicodeCodePointsIfLong;
+  @visibleForTesting
+  int? get debugLengthUnicodeCodePointsIfLong => _lengthUnicodeCodePointsIfLong;
+  int? _computeLengthUnicodeCodePointsIfLong() =>
+    _textNormalized.length > maxLengthUnicodeCodePoints
+      ? _textNormalized.runes.length
+      : null;
 
   List<ErrorT> get validationErrors => _validationErrors;
   late List<ErrorT> _validationErrors;
@@ -40,6 +61,8 @@ abstract class ComposeController<ErrorT> extends TextEditingController {
 
   void _update() {
     _textNormalized = _computeTextNormalized();
+    // uses _textNormalized, so comes after _computeTextNormalized()
+    _lengthUnicodeCodePointsIfLong = _computeLengthUnicodeCodePointsIfLong();
     _validationErrors = _computeValidationErrors();
     hasValidationErrors.value = _validationErrors.isNotEmpty;
   }
@@ -89,6 +112,9 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
       characterCount.value = text.length.clamp(0, kMaxTopicLength);
     }
 
+  // TODO(#307) use `max_topic_length` instead of hardcoded limit
+  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
+
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
@@ -100,9 +126,17 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     return [
       if (mandatory && textNormalized == kNoTopicTopic)
         TopicValidationError.mandatoryButEmpty,
-      if (textNormalized.length > kMaxTopicLength)
+
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
         TopicValidationError.tooLong,
     ];
+  }
+
+  void setTopic(TopicName newTopic) {
+    value = TextEditingValue(text: newTopic.displayName);
   }
 }
 
@@ -130,6 +164,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ComposeContentController() {
     _update();
   }
+
+  // TODO(#1237) use `max_message_length` instead of hardcoded limit
+  @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
 
   int _nextQuoteAndReplyTag = 0;
   int _nextUploadTag = 0;
@@ -272,10 +309,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       if (textNormalized.isEmpty)
         ContentValidationError.empty,
 
-      // normalized.length is the number of UTF-16 code units, while the server
-      // API expresses the max in Unicode code points. So this comparison will
-      // be conservative and may cut the user off shorter than necessary.
-      if (textNormalized.length > kMaxMessageLengthCodePoints)
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
         ContentValidationError.tooLong,
 
       if (_quoteAndReplies.isNotEmpty)
@@ -501,7 +538,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.composeBoxUnknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
+      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
   }
@@ -588,7 +625,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.composeBoxUnknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(streamName, topic);
+        return zulipLocalizations.composeBoxChannelContentHint(
+          streamName, topic.displayName);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
@@ -1193,7 +1231,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
-      narrow.streamId, controller.topic.textNormalized),
+      narrow.streamId, TopicName(controller.topic.textNormalized)),
   );
 }
 

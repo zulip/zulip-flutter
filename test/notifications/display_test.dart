@@ -540,21 +540,47 @@ void main() {
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
-        expectedTagComponent: 'stream:${stream.streamId}:$topicA');
+        expectedTagComponent: 'stream:${stream.streamId}:${topicA.toLowerCase()}');
 
       receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicB',
-        expectedTagComponent: 'stream:${stream.streamId}:$topicB');
+        expectedTagComponent: 'stream:${stream.streamId}:${topicB.toLowerCase()}');
 
       receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data3],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
-        expectedTagComponent: 'stream:${stream.streamId}:$topicA');
+        expectedTagComponent: 'stream:${stream.streamId}:${topicA.toLowerCase()}');
+    })));
+
+    test('stream message: topic changes only case', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topic1 = 'A ToPic';
+      const topic2 = 'a TOpic';
+      final message1 = eg.streamMessage(topic: topic1, stream: stream);
+      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(topic: topic2, stream: stream);
+      final data2 = messageFcmMessage(message2, streamName: stream.name);
+
+      receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topic1',
+        expectedTagComponent: 'stream:${stream.streamId}:a topic');
+
+      receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        messageStyleMessages: [data1, data2],
+        expectedIsGroupConversation: true,
+        // Title updates with latest casing of topic.
+        expectedTitle: '#${stream.name} > $topic2',
+        expectedTagComponent: 'stream:${stream.streamId}:a topic');
     })));
 
     test('stream message: conversation stays same when stream is renamed', () => runWithHttpClient(() => awaitFakeAsync((async) async {
@@ -781,6 +807,7 @@ void main() {
       final data2 = messageFcmMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(stream: stream, topic: topicA);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
+      final conversationKey = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
       final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
@@ -789,14 +816,14 @@ void main() {
       receiveFcmMessage(async, data2);
       receiveFcmMessage(async, data3);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data3, 'stream:${stream.streamId}:$topicA'),
+        conditionActiveNotif(data3, conversationKey),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
       // A RemoveFcmMessage for the first two messages; the notification stays.
       receiveFcmMessage(async, removeFcmMessage([message1, message2]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data3, 'stream:${stream.streamId}:$topicA'),
+        conditionActiveNotif(data3, conversationKey),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
@@ -808,13 +835,17 @@ void main() {
     test('remove: clears summary notification only if all conversation notifications are cleared', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
+
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final conversationKey1 = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
+
       const topicB = 'Topic B';
       final message2 = eg.streamMessage(stream: stream, topic: topicB);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
-      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
+      final conversationKey2 = 'stream:${stream.streamId}:${topicB.toLowerCase()}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -822,16 +853,16 @@ void main() {
       receiveFcmMessage(async, data1);
       receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data1, 'stream:${stream.streamId}:$topicA'),
+        conditionActiveNotif(data1, conversationKey1),
         conditionSummaryActiveNotif(expectedGroupKey),
-        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topicB'),
+        conditionActiveNotif(data2, conversationKey2),
       ]);
 
       // A RemoveFcmMessage for first conversation; only clears the first conversation notif.
       receiveFcmMessage(async, removeFcmMessage([message1]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionSummaryActiveNotif(expectedGroupKey),
-        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topicB'),
+        conditionActiveNotif(data2, conversationKey2),
       ]);
 
       // Then a RemoveFcmMessage for the only remaining conversation;
@@ -844,6 +875,7 @@ void main() {
       await init();
       final stream = eg.stream();
       const topic = 'Some Topic';
+      final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(
         realmUrl: Uri.parse('https://1.chat.example'),
@@ -868,15 +900,15 @@ void main() {
       receiveFcmMessage(async, data1);
       receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data1, 'stream:${stream.streamId}:$topic'),
+        conditionActiveNotif(data1, conversationKey),
         conditionSummaryActiveNotif(groupKey1),
-        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
       receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
@@ -889,6 +921,7 @@ void main() {
       final realmUrl = eg.realmUrl;
       final stream = eg.stream();
       const topic = 'Some Topic';
+      final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
@@ -907,15 +940,15 @@ void main() {
       receiveFcmMessage(async, data1);
       receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data1, 'stream:${stream.streamId}:$topic'),
+        conditionActiveNotif(data1, conversationKey),
         conditionSummaryActiveNotif(groupKey1),
-        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
       receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data2, 'stream:${stream.streamId}:$topic'),
+        conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
@@ -1116,7 +1149,7 @@ void main() {
       payload = NotificationOpenPayload(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
-        narrow: const TopicNarrow(1, 'topic A'),
+        narrow: eg.topicNarrow(1, 'topic A'),
       );
       url = payload.buildUrl();
       check(NotificationOpenPayload.parseUrl(url))
@@ -1146,7 +1179,7 @@ void main() {
       final url = NotificationOpenPayload(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
-        narrow: const TopicNarrow(1, 'topic A'),
+        narrow: eg.topicNarrow(1, 'topic A'),
       ).buildUrl();
       check(url)
         ..scheme.equals('zulip')
@@ -1194,7 +1227,7 @@ void main() {
         ..userId.equals(1001)
         ..narrow.which((it) => it.isA<TopicNarrow>()
           ..streamId.equals(1)
-          ..topic.equals('topic A'));
+          ..topic.equals(eg.t('topic A')));
     });
 
     test('parse: fails when missing any expected query parameters', () {

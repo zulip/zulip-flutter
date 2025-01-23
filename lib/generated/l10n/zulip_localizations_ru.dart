@@ -24,15 +24,15 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Выберите учетную запись';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'Сменить учетную запись';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'Ваша учетная запись на $url загружается медленно.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'Попробовать другую учетную запись';
 
   @override
   String get chooseAccountPageLogOutButton => 'Выход из системы';
@@ -65,16 +65,16 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'Отключить тему';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'Включить тему';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'Отслеживать тему';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'Не отслеживать тему';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Скопировать текст сообщения';
@@ -127,10 +127,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num files are',
-      one: 'File is',
+      other: '$num файлов',
+      one: 'файла',
     );
-    return '$_temp0 larger than the server\'s limit of $maxFileUploadSizeMib MiB and will not be uploaded:\n\n$listMessage';
+    return 'Размер $_temp0 превышает предел для сервера $maxFileUploadSizeMib МиБ, загрузка невозможна:\n\n$listMessage';
   }
 
   @override
@@ -138,70 +138,70 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: 'Files',
-      one: 'File',
+      other: 'файлов',
+      one: 'файла',
     );
-    return '$_temp0 too large';
+    return 'Слишком большой размер $_temp0';
   }
 
   @override
-  String get errorLoginInvalidInputTitle => 'Invalid input';
+  String get errorLoginInvalidInputTitle => 'Неверный ввод';
 
   @override
-  String get errorLoginFailedTitle => 'Login failed';
+  String get errorLoginFailedTitle => 'Не удалось войти в систему';
 
   @override
-  String get errorMessageNotSent => 'Message not sent';
+  String get errorMessageNotSent => 'Сообщение не отправлено';
 
   @override
   String errorLoginCouldNotConnect(String url) {
-    return 'Failed to connect to server:\n$url';
+    return 'Не удалось подключиться к серверу:\n$url';
   }
 
   @override
-  String get errorLoginCouldNotConnectTitle => 'Could not connect';
+  String get errorLoginCouldNotConnectTitle => 'Не удалось подключиться';
 
   @override
-  String get errorMessageDoesNotSeemToExist => 'That message does not seem to exist.';
+  String get errorMessageDoesNotSeemToExist => 'Это сообщение, похоже, отсутствует.';
 
   @override
-  String get errorQuotationFailed => 'Quotation failed';
+  String get errorQuotationFailed => 'Цитирование не удалось';
 
   @override
   String errorServerMessage(String message) {
-    return 'The server said:\n\n$message';
+    return 'Ответ сервера:\n\n$message';
   }
 
   @override
-  String get errorConnectingToServerShort => 'Error connecting to Zulip. Retrying…';
+  String get errorConnectingToServerShort => 'Ошибка подключения к Zulip. Повторяем попытку…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to Zulip at $serverUrl. Will retry:\n\n$error';
+    return 'Ошибка подключения к Zulip на $serverUrl. Повторим попытку:\n\n$error';
   }
 
   @override
-  String get errorHandlingEventTitle => 'Error handling a Zulip event. Retrying connection…';
+  String get errorHandlingEventTitle => 'Ошибка обработки события Zulip. Повторная попытка соединения…';
 
   @override
   String errorHandlingEventDetails(String serverUrl, String error, String event) {
-    return 'Error handling a Zulip event from $serverUrl; will retry.\n\nError: $error\n\nEvent: $event';
+    return 'Ошибка обработки события Zulip от $serverUrl; повторим попытку.\n\nОшибка: $error\n\nСобытие: $event';
   }
 
   @override
-  String get errorMuteTopicFailed => 'Failed to mute topic';
+  String get errorMuteTopicFailed => 'Не удалось отключить тему';
 
   @override
-  String get errorUnmuteTopicFailed => 'Failed to unmute topic';
+  String get errorUnmuteTopicFailed => 'Не удалось включить тему';
 
   @override
-  String get errorFollowTopicFailed => 'Failed to follow topic';
+  String get errorFollowTopicFailed => 'Не удалось начать отслеживать тему';
 
   @override
-  String get errorUnfollowTopicFailed => 'Failed to unfollow topic';
+  String get errorUnfollowTopicFailed => 'Не удалось прекратить отслеживать тему';
 
   @override
-  String get errorSharingFailed => 'Sharing failed';
+  String get errorSharingFailed => 'Не удалось поделиться';
 
   @override
   String get errorStarMessageFailedTitle => 'Не удалось отметить сообщение';
@@ -210,331 +210,331 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorUnstarMessageFailedTitle => 'Не удалось снять отметку с сообщения';
 
   @override
-  String get successLinkCopied => 'Link copied';
+  String get successLinkCopied => 'Ссылка скопирована';
 
   @override
-  String get successMessageTextCopied => 'Message text copied';
+  String get successMessageTextCopied => 'Текст сообщения скопирован';
 
   @override
-  String get successMessageLinkCopied => 'Message link copied';
+  String get successMessageLinkCopied => 'Ссылка на сообщение скопирована';
 
   @override
-  String get errorBannerDeactivatedDmLabel => 'You cannot send messages to deactivated users.';
+  String get errorBannerDeactivatedDmLabel => 'Нельзя отправить сообщение отключенным пользователям.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel => 'You do not have permission to post in this channel.';
+  String get errorBannerCannotPostInChannelLabel => 'У вас нет права писать в этом канале.';
 
   @override
-  String get composeBoxAttachFilesTooltip => 'Attach files';
+  String get composeBoxAttachFilesTooltip => 'Прикрепить файлы';
 
   @override
-  String get composeBoxAttachMediaTooltip => 'Attach images or videos';
+  String get composeBoxAttachMediaTooltip => 'Прикрепить изображения или видео';
 
   @override
-  String get composeBoxAttachFromCameraTooltip => 'Take a photo';
+  String get composeBoxAttachFromCameraTooltip => 'Сделать снимок';
 
   @override
-  String get composeBoxGenericContentHint => 'Type a message';
+  String get composeBoxGenericContentHint => 'Ввести сообщение';
 
   @override
   String composeBoxDmContentHint(String user) {
-    return 'Message @$user';
+    return 'Сообщение для @$user';
   }
 
   @override
-  String get composeBoxGroupDmContentHint => 'Message group';
+  String get composeBoxGroupDmContentHint => 'Сообщение для группы';
 
   @override
-  String get composeBoxSelfDmContentHint => 'Jot down something';
+  String get composeBoxSelfDmContentHint => 'Сделать заметку';
 
   @override
   String composeBoxChannelContentHint(String channel, String topic) {
-    return 'Message #$channel > $topic';
+    return 'Сообщение для #$channel > $topic';
   }
 
   @override
-  String get composeBoxSendTooltip => 'Send';
+  String get composeBoxSendTooltip => 'Отправить';
 
   @override
-  String get composeBoxUnknownChannelName => '(unknown channel)';
+  String get composeBoxUnknownChannelName => '(неизвестный канал)';
 
   @override
-  String get composeBoxTopicHintText => 'Topic';
+  String get composeBoxTopicHintText => 'Тема';
 
   @override
   String composeBoxUploadingFilename(String filename) {
-    return 'Uploading $filename…';
+    return 'Загрузка $filename…';
   }
 
   @override
-  String get unknownUserName => '(unknown user)';
+  String get unknownUserName => '(неизвестный пользователь)';
 
   @override
   String messageListGroupYouAndOthers(String others) {
-    return 'You and $others';
+    return 'Вы и $others';
   }
 
   @override
-  String get messageListGroupYouWithYourself => 'You with yourself';
+  String get messageListGroupYouWithYourself => 'Вы с собой';
 
   @override
-  String get contentValidationErrorTooLong => 'Message length shouldn\'t be greater than 10000 characters.';
+  String get contentValidationErrorTooLong => 'Длина сообщения не должна превышать 10000 символов.';
 
   @override
-  String get contentValidationErrorEmpty => 'You have nothing to send!';
+  String get contentValidationErrorEmpty => 'Нечего отправлять!';
 
   @override
-  String get contentValidationErrorQuoteAndReplyInProgress => 'Please wait for the quotation to complete.';
+  String get contentValidationErrorQuoteAndReplyInProgress => 'Пожалуйста, дождитесь завершения цитирования.';
 
   @override
-  String get contentValidationErrorUploadInProgress => 'Please wait for the upload to complete.';
+  String get contentValidationErrorUploadInProgress => 'Пожалуйста, дождитесь завершения загрузки.';
 
   @override
-  String get dialogCancel => 'Cancel';
+  String get dialogCancel => 'Отмена';
 
   @override
-  String get dialogContinue => 'Continue';
+  String get dialogContinue => 'Продолжить';
 
   @override
-  String get dialogClose => 'Close';
+  String get dialogClose => 'Закрыть';
 
   @override
   String get errorDialogContinue => 'OK';
 
   @override
-  String get errorDialogTitle => 'Error';
+  String get errorDialogTitle => 'Ошибка';
 
   @override
-  String get snackBarDetails => 'Details';
+  String get snackBarDetails => 'Подробности';
 
   @override
-  String get lightboxCopyLinkTooltip => 'Copy link';
+  String get lightboxCopyLinkTooltip => 'Скопировать ссылку';
 
   @override
-  String get loginPageTitle => 'Log in';
+  String get loginPageTitle => 'Вход в систему';
 
   @override
-  String get loginFormSubmitLabel => 'Log in';
+  String get loginFormSubmitLabel => 'Войти';
 
   @override
-  String get loginMethodDivider => 'OR';
+  String get loginMethodDivider => 'ИЛИ';
 
   @override
   String signInWithFoo(String method) {
-    return 'Sign in with $method';
+    return 'Войти с помощью $method';
   }
 
   @override
-  String get loginAddAnAccountPageTitle => 'Add an account';
+  String get loginAddAnAccountPageTitle => 'Добавление учетной записи';
 
   @override
-  String get loginServerUrlInputLabel => 'Your Zulip server URL';
+  String get loginServerUrlInputLabel => 'URL вашего сервера Zulip';
 
   @override
-  String get loginHidePassword => 'Hide password';
+  String get loginHidePassword => 'Скрыть пароль';
 
   @override
-  String get loginEmailLabel => 'Email address';
+  String get loginEmailLabel => 'Адрес почты';
 
   @override
-  String get loginErrorMissingEmail => 'Please enter your email.';
+  String get loginErrorMissingEmail => 'Пожалуйста, введите ваш адрес электронной почты.';
 
   @override
-  String get loginPasswordLabel => 'Password';
+  String get loginPasswordLabel => 'Пароль';
 
   @override
-  String get loginErrorMissingPassword => 'Please enter your password.';
+  String get loginErrorMissingPassword => 'Пожалуйста, введите пароль.';
 
   @override
-  String get loginUsernameLabel => 'Username';
+  String get loginUsernameLabel => 'Имя пользователя';
 
   @override
-  String get loginErrorMissingUsername => 'Please enter your username.';
+  String get loginErrorMissingUsername => 'Пожалуйста, введите ваше имя пользователя.';
 
   @override
-  String get topicValidationErrorTooLong => 'Topic length shouldn\'t be greater than 60 characters.';
+  String get topicValidationErrorTooLong => 'Длина темы не должна превышать 60 символов.';
 
   @override
-  String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
+  String get topicValidationErrorMandatoryButEmpty => 'Темы обязательны в этой организации.';
 
   @override
-  String get errorInvalidResponse => 'The server sent an invalid response';
+  String get errorInvalidResponse => 'Получен недопустимый ответ сервера';
 
   @override
-  String get errorNetworkRequestFailed => 'Network request failed';
+  String get errorNetworkRequestFailed => 'Сбой сетевого запроса';
 
   @override
   String errorMalformedResponse(int httpStatus) {
-    return 'Server gave malformed response; HTTP status $httpStatus';
+    return 'Сервер вернул некорректный ответ; HTTP-статус $httpStatus';
   }
 
   @override
   String errorMalformedResponseWithCause(int httpStatus, String details) {
-    return 'Server gave malformed response; HTTP status $httpStatus; $details';
+    return 'Сервер вернул некорректный ответ; HTTP-статус $httpStatus; $details';
   }
 
   @override
   String errorRequestFailed(int httpStatus) {
-    return 'Network request failed: HTTP status $httpStatus';
+    return 'Сбой сетевого запроса: HTTP-статус $httpStatus';
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Unable to play the video';
+  String get errorVideoPlayerFailed => 'Не удается воспроизвести видео';
 
   @override
-  String get serverUrlValidationErrorEmpty => 'Please enter a URL.';
+  String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';
 
   @override
-  String get serverUrlValidationErrorInvalidUrl => 'Please enter a valid URL.';
+  String get serverUrlValidationErrorInvalidUrl => 'Пожалуйста, введите корректный URL-адрес.';
 
   @override
-  String get serverUrlValidationErrorNoUseEmail => 'Please enter the server URL, not your email.';
+  String get serverUrlValidationErrorNoUseEmail => 'Пожалуйста, введите URL-адрес сервера, а не свой email.';
 
   @override
-  String get serverUrlValidationErrorUnsupportedScheme => 'URL сервера должен начинаться с http:// или https://.';
+  String get serverUrlValidationErrorUnsupportedScheme => 'URL-адрес сервера должен начинаться с http:// или https://.';
 
   @override
-  String get spoilerDefaultHeaderText => 'Spoiler';
+  String get spoilerDefaultHeaderText => 'Спойлер';
 
   @override
-  String get markAllAsReadLabel => 'Mark all messages as read';
+  String get markAllAsReadLabel => 'Отметить все сообщения как прочитанные';
 
   @override
   String markAsReadComplete(int num) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num шт. сообщений',
+      one: '1 сообщения',
     );
-    return 'Marked $_temp0 as read.';
+    return 'Отметка прочтения установлена для $_temp0.';
   }
 
   @override
-  String get markAsReadInProgress => 'Marking messages as read…';
+  String get markAsReadInProgress => 'Помечаем сообщения как прочитанные…';
 
   @override
-  String get errorMarkAsReadFailedTitle => 'Mark as read failed';
+  String get errorMarkAsReadFailedTitle => 'Не удалось установить отметку прочтения';
 
   @override
   String markAsUnreadComplete(int num) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num шт. сообщений',
+      one: '1 сообщения',
     );
-    return 'Marked $_temp0 as unread.';
+    return 'Отметка прочтения снята для $_temp0.';
   }
 
   @override
-  String get markAsUnreadInProgress => 'Marking messages as unread…';
+  String get markAsUnreadInProgress => 'Помечаем сообщения как непрочитанные…';
 
   @override
-  String get errorMarkAsUnreadFailedTitle => 'Mark as unread failed';
+  String get errorMarkAsUnreadFailedTitle => 'Не удалось снять отметку прочтения';
 
   @override
-  String get today => 'Today';
+  String get today => 'Сегодня';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'Вчера';
 
   @override
-  String get userRoleOwner => 'Owner';
+  String get userRoleOwner => 'Владелец';
 
   @override
-  String get userRoleAdministrator => 'Administrator';
+  String get userRoleAdministrator => 'Администратор';
 
   @override
-  String get userRoleModerator => 'Moderator';
+  String get userRoleModerator => 'Модератор';
 
   @override
-  String get userRoleMember => 'Member';
+  String get userRoleMember => 'Участник';
 
   @override
-  String get userRoleGuest => 'Guest';
+  String get userRoleGuest => 'Гость';
 
   @override
-  String get userRoleUnknown => 'Unknown';
+  String get userRoleUnknown => 'Неизвестно';
 
   @override
-  String get inboxPageTitle => 'Inbox';
+  String get inboxPageTitle => 'Входящие';
 
   @override
-  String get recentDmConversationsPageTitle => 'Direct messages';
+  String get recentDmConversationsPageTitle => 'Личные сообщения';
 
   @override
-  String get combinedFeedPageTitle => 'Combined feed';
+  String get combinedFeedPageTitle => 'Объединенная лента';
 
   @override
-  String get mentionsPageTitle => 'Mentions';
+  String get mentionsPageTitle => 'Упоминания';
 
   @override
   String get starredMessagesPageTitle => 'Отмеченные сообщения';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Каналы';
 
   @override
-  String get mainMenuMyProfile => 'My profile';
+  String get mainMenuMyProfile => 'Мой профиль';
 
   @override
-  String get channelFeedButtonTooltip => 'Channel feed';
+  String get channelFeedButtonTooltip => 'Лента канала';
 
   @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
       locale: localeName,
-      other: '$numOthers others',
-      one: '1 other',
+      other: '$numOthers чел.',
+      one: '1 чел.',
     );
-    return '$senderFullName to you and $_temp0';
+    return '$senderFullName вам и еще $_temp0';
   }
 
   @override
-  String get notifSelfUser => 'You';
+  String get notifSelfUser => 'Вы';
 
   @override
   String onePersonTyping(String typist) {
-    return '$typist is typing…';
+    return '$typist набирает сообщение…';
   }
 
   @override
   String twoPeopleTyping(String typist, String otherTypist) {
-    return '$typist and $otherTypist are typing…';
+    return '$typist и $otherTypist набирают сообщения…';
   }
 
   @override
-  String get manyPeopleTyping => 'Several people are typing…';
+  String get manyPeopleTyping => 'Несколько человек набирают сообщения…';
 
   @override
-  String get messageIsEditedLabel => 'EDITED';
+  String get messageIsEditedLabel => 'ИЗМЕНЕНО';
 
   @override
-  String get messageIsMovedLabel => 'MOVED';
+  String get messageIsMovedLabel => 'ПЕРЕМЕЩЕНО';
 
   @override
-  String get pollWidgetQuestionMissing => 'No question.';
+  String get pollWidgetQuestionMissing => 'Нет вопроса.';
 
   @override
-  String get pollWidgetOptionsMissing => 'This poll has no options yet.';
+  String get pollWidgetOptionsMissing => 'В опросе пока нет вариантов ответа.';
 
   @override
-  String get errorNotificationOpenTitle => 'Failed to open notification';
+  String get errorNotificationOpenTitle => 'Не удалось открыть оповещения';
 
   @override
-  String get errorNotificationOpenAccountMissing => 'The account associated with this notification no longer exists.';
+  String get errorNotificationOpenAccountMissing => 'Учетной записи, связанной с этим оповещением, больше нет.';
 
   @override
-  String get errorReactionAddingFailedTitle => 'Adding reaction failed';
+  String get errorReactionAddingFailedTitle => 'Не удалось добавить реакцию';
 
   @override
-  String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
+  String get errorReactionRemovingFailedTitle => 'Не удалось удалить реакцию';
 
   @override
-  String get emojiReactionsMore => 'more';
+  String get emojiReactionsMore => 'еще';
 
   @override
-  String get emojiPickerSearchEmoji => 'Search emoji';
+  String get emojiPickerSearchEmoji => 'Поиск эмодзи';
 }

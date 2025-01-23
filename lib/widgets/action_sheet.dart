@@ -64,6 +64,20 @@ void _showActionSheet(
     });
 }
 
+/// A button in an action sheet.
+///
+/// When built from server data, the action sheet ignores changes in that data;
+/// we intentionally don't live-update the buttons on events.
+/// If a button's label, action, or position changes suddenly,
+/// it can be confusing and make the on-tap behavior unexpected.
+/// Better to let the user decide to tap
+/// based on information that's comfortably in their working memory,
+/// even if we sometimes have to explain (where we handle the tap)
+/// that that information has changed and they need to decide again.
+///
+/// (Even if we did live-update the buttons, it's possible anyway that a user's
+/// action can race with a change that's already been applied on the server,
+/// because it takes some time for the server to report changes to us.)
 abstract class ActionSheetMenuItemButton extends StatelessWidget {
   const ActionSheetMenuItemButton({super.key, required this.pageContext});
 
@@ -151,81 +165,65 @@ class ActionSheetCancelButton extends StatelessWidget {
 /// Show a sheet of actions you can take on a topic.
 void showTopicActionSheet(BuildContext context, {
   required int channelId,
-  required String topic,
+  required TopicName topic,
 }) {
-  final narrow = TopicNarrow(channelId, topic);
-  UserTopicUpdateButton button({
-    UserTopicVisibilityPolicy? from,
-    required UserTopicVisibilityPolicy to,
-  }) {
-    return UserTopicUpdateButton(
-      currentVisibilityPolicy: from,
-      newVisibilityPolicy: to,
-      narrow: narrow,
-      pageContext: context);
-  }
-
-  final mute =                 button(to:   UserTopicVisibilityPolicy.muted);
-  final unmute =               button(from: UserTopicVisibilityPolicy.muted,
-                                      to:   UserTopicVisibilityPolicy.none);
-  final unmuteInMutedChannel = button(to:   UserTopicVisibilityPolicy.unmuted);
-  final follow =               button(to:   UserTopicVisibilityPolicy.followed);
-  final unfollow =             button(from: UserTopicVisibilityPolicy.followed,
-                                      to:   UserTopicVisibilityPolicy.none);
-
   final store = PerAccountStoreWidget.of(context);
-  final channelMuted = store.subscriptions[channelId]?.isMuted;
-  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
+  final subscription = store.subscriptions[channelId];
+
+  final optionButtons = <ActionSheetMenuItemButton>[];
 
   // TODO(server-7): simplify this condition away
   final supportsUnmutingTopics = store.connection.zulipFeatureLevel! >= 170;
   // TODO(server-8): simplify this condition away
   final supportsFollowingTopics = store.connection.zulipFeatureLevel! >= 219;
 
-  final optionButtons = <ActionSheetMenuItemButton>[];
-  if (channelMuted != null && !channelMuted) {
+  final visibilityOptions = <UserTopicVisibilityPolicy>[];
+  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
+  if (subscription == null) {
+    // Not subscribed to the channel; there is no user topic change to be made.
+  } else if (!subscription.isMuted) {
     // Channel is subscribed and not muted.
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
-        optionButtons.add(unmute);
+        visibilityOptions.add(UserTopicVisibilityPolicy.none);
         if (supportsFollowingTopics) {
-          optionButtons.add(follow);
+          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
         }
       case UserTopicVisibilityPolicy.none:
       case UserTopicVisibilityPolicy.unmuted:
-        optionButtons.add(mute);
+        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
         if (supportsFollowingTopics) {
-          optionButtons.add(follow);
+          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
         }
       case UserTopicVisibilityPolicy.followed:
-        optionButtons.add(mute);
+        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
         if (supportsFollowingTopics) {
-          optionButtons.add(unfollow);
+          visibilityOptions.add(UserTopicVisibilityPolicy.none);
         }
       case UserTopicVisibilityPolicy.unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
         assert(false);
     }
-  } else if (channelMuted != null && channelMuted) {
+  } else {
     // Channel is muted.
     if (supportsUnmutingTopics) {
       switch (visibilityPolicy) {
         case UserTopicVisibilityPolicy.none:
         case UserTopicVisibilityPolicy.muted:
-          optionButtons.add(unmuteInMutedChannel);
+          visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
           if (supportsFollowingTopics) {
-            optionButtons.add(follow);
+            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
           }
         case UserTopicVisibilityPolicy.unmuted:
-          optionButtons.add(mute);
+          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
           if (supportsFollowingTopics) {
-            optionButtons.add(follow);
+            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
           }
         case UserTopicVisibilityPolicy.followed:
-          optionButtons.add(mute);
+          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
           if (supportsFollowingTopics) {
-            optionButtons.add(unfollow);
+            visibilityOptions.add(UserTopicVisibilityPolicy.none);
           }
         case UserTopicVisibilityPolicy.unknown:
           // TODO(#1074): This should be unreachable as we keep `unknown` out of
@@ -233,9 +231,14 @@ void showTopicActionSheet(BuildContext context, {
           assert(false);
       }
     }
-  } else {
-    // Not subscribed to the channel; there is no user topic change to be made.
   }
+  optionButtons.addAll(visibilityOptions.map((to) {
+    return UserTopicUpdateButton(
+      currentVisibilityPolicy: visibilityPolicy,
+      newVisibilityPolicy: to,
+      narrow: TopicNarrow(channelId, topic),
+      pageContext: context);
+  }));
 
   if (optionButtons.isEmpty) {
     // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
@@ -253,13 +256,13 @@ void showTopicActionSheet(BuildContext context, {
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
   const UserTopicUpdateButton({
     super.key,
-    this.currentVisibilityPolicy,
+    required this.currentVisibilityPolicy,
     required this.newVisibilityPolicy,
     required this.narrow,
     required super.pageContext,
   });
 
-  final UserTopicVisibilityPolicy? currentVisibilityPolicy;
+  final UserTopicVisibilityPolicy currentVisibilityPolicy;
   final UserTopicVisibilityPolicy newVisibilityPolicy;
   final TopicNarrow narrow;
 
@@ -644,6 +647,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    final message = this.message;
 
     var composeBoxController = findMessageListPage().composeBoxController;
     // The compose box doesn't null out its controller; it's either always null
@@ -655,7 +659,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
       && composeBoxController.topic.textNormalized == kNoTopicTopic
       && message is StreamMessage
     ) {
-      composeBoxController.topic.value = TextEditingValue(text: message.topic);
+      composeBoxController.topic.setTopic(message.topic);
     }
 
     // This inserts a "[Quoting…]" placeholder into the content input,
