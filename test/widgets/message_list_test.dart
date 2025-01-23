@@ -133,6 +133,8 @@ void main() {
   });
 
   group('app bar', () {
+    // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
     testWidgets('has channel-feed action for topic narrows', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
@@ -748,6 +750,8 @@ void main() {
 
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
+      // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
       final stream = eg.stream(name: 'stream name');
       const topic = 'topic name';
       final message = eg.streamMessage(stream: stream, topic: topic);
