@@ -7,6 +7,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -113,17 +114,18 @@ void main() {
       final message = eg.streamMessage(
         stream: channel, topic: topic, sender: eg.otherUser);
 
-      Future<void> prepare() async {
+      Future<void> prepare({
+        UnreadMessagesSnapshot? unreadMsgs,
+      }) async {
         addTearDown(testBinding.reset);
 
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
           realmUsers: [eg.selfUser, eg.otherUser],
           streams: [channel],
-          subscriptions: [eg.subscription(channel)]));
+          subscriptions: [eg.subscription(channel)],
+          unreadMsgs: unreadMsgs));
         store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         connection = store.connection as FakeApiConnection;
-
-        await store.addMessage(message);
       }
 
       void checkButtons() {
@@ -140,7 +142,12 @@ void main() {
       }
 
       testWidgets('show from inbox', (tester) async {
-        await prepare();
+        await prepare(unreadMsgs: eg.unreadMsgs(count: 1,
+          channels: [eg.unreadChannelMsgs(
+            streamId: channel.streamId,
+            topic: topic,
+            unreadMessageIds: [message.id],
+          )]));
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: const HomePage()));
         await tester.pump();
