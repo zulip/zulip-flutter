@@ -214,15 +214,16 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
 
+    final actionSheetFinder = find.byType(BottomSheet);
+    Finder findButtonForLabel(String label) =>
+      find.descendant(of: actionSheetFinder, matching: find.text(label));
+
     group('showTopicActionSheet', () {
       void checkButtons() {
-        final actionSheetFinder = find.byType(BottomSheet);
         check(actionSheetFinder).findsOne();
 
         void checkButton(String label) {
-          check(
-            find.descendant(of: actionSheetFinder, matching: find.text(label))
-          ).findsOne();
+          check(findButtonForLabel(label)).findsOne();
         }
 
         checkButton('Follow topic');
@@ -255,10 +256,10 @@ void main() {
     group('UserTopicUpdateButton', () {
       late String topic;
 
-      final mute =     find.text('Mute topic');
-      final unmute =   find.text('Unmute topic');
-      final follow =   find.text('Follow topic');
-      final unfollow = find.text('Unfollow topic');
+      final mute =     findButtonForLabel('Mute topic');
+      final unmute =   findButtonForLabel('Unmute topic');
+      final follow =   findButtonForLabel('Follow topic');
+      final unfollow = findButtonForLabel('Unfollow topic');
 
       /// Prepare store and bring up a topic action sheet.
       ///
@@ -288,10 +289,10 @@ void main() {
 
       void checkButtons(List<Finder> expectedButtonFinders) {
         if (expectedButtonFinders.isEmpty) {
-          check(find.byType(BottomSheet)).findsNothing();
+          check(actionSheetFinder).findsNothing();
           return;
         }
-        check(find.byType(BottomSheet)).findsOne();
+        check(actionSheetFinder).findsOne();
 
         for (final buttonFinder in expectedButtonFinders) {
           check(buttonFinder).findsOne();
