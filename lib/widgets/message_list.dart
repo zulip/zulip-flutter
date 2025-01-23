@@ -489,20 +489,22 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _modelChanged() {
-    if (model!.narrow != widget.narrow) {
-      // A message move event occurred, where propagate mode is
-      // [PropagateMode.changeAll] or [PropagateMode.changeLater].
-      widget.onNarrowChanged(model!.narrow);
-    }
-
     final previousLength = oldItems.length + newItems.length;
-
     setState(() {
+      // Update both slivers with the new message positions
       oldItems = model!.items.sublist(0, model!.anchorIndex+1);
       newItems = model!.items.sublist(model!.anchorIndex+1, model!.items.length);
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
     });
+
+    if (model!.narrow != widget.narrow) {
+      // A message move event occurred, where propagate mode is
+      // [PropagateMode.changeAll] or [PropagateMode.changeLater].
+      widget.onNarrowChanged(model!.narrow);
+      return; // Let the parent widget handle the rebuild with new narrow
+    }
+
 
 
     // Auto-scroll when new messages arrive if we're already near the bottom
@@ -534,7 +536,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           36,                     //Scroll 36 px inside bottomSliver.The sizedBox is 36px high. so theres no chance of overscrolling
           duration: Duration(milliseconds: durationMs),
           curve: Curves.easeIn);
-          await Future<void>.delayed(const Duration(milliseconds: 50));
         }
 
         // Wait for the layout to settle so scrollController.position.pixels is updated properly
@@ -544,13 +545,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // If we go too fast, we'll overscroll.as
 
         // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
-        while (distanceToBottom > 36) {
+        while (distanceToBottom > 36 && context.mounted) {
           await scrollController.animateTo(
             scrollController.position.maxScrollExtent,
             duration:  Duration(milliseconds: durationMsToBottom),
             curve: Curves.ease);
           distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
-          await Future<void>.delayed(const Duration(milliseconds: 50));
         }
 
         }
@@ -781,7 +781,7 @@ class ScrollToBottomButton extends StatelessWidget {
   final ValueNotifier<bool> visibleValue;
   final ScrollController scrollController;
 
-  Future<void> _navigateToBottom() async {
+  Future<void> _navigateToBottom(BuildContext context) async {
     // Calculate initial scroll parameters
     final distanceToCenter = scrollController.position.pixels;
     final durationMsAtSpeedLimit = (1000 * distanceToCenter / 8000).ceil();
@@ -796,23 +796,18 @@ class ScrollToBottomButton extends StatelessWidget {
 
 
     // Wait for the layout to settle so scrollController.position.pixels is updated properly
-    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     var distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
     final durationMsToBottom = math.min(1000, (1200 * distanceToBottom / 8000).ceil());
     // If we go too fast, we'll overscroll.
     // After scroling to the bottom sliver, scroll to the bottom of the bottomSliver if we're not already there
-    var count = 0;
-    while (distanceToBottom > 36) {
+    while (distanceToBottom > 36 && context.mounted) {
       await scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: Duration(milliseconds: durationMsToBottom),
         curve: Curves.easeOut);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
       distanceToBottom = scrollController.position.maxScrollExtent - scrollController.position.pixels;
-      count++;
     }
-    print("count: $count");
   }
 
   @override
@@ -829,7 +824,7 @@ class ScrollToBottomButton extends StatelessWidget {
         iconSize: 40,
         // Web has the same color in light and dark mode.
         color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
-        onPressed: _navigateToBottom));
+        onPressed: () => _navigateToBottom(context)));
   }
 }
 
