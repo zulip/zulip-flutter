@@ -212,7 +212,6 @@ void main() {
     });
 
     group('UserTopicUpdateButton', () {
-      late ZulipStream channel;
       late String topic;
 
       final mute =     find.text('Mute topic');
@@ -231,10 +230,9 @@ void main() {
       }) async {
         addTearDown(testBinding.reset);
 
-        channel = eg.stream();
         topic = 'isChannelMuted: $isChannelMuted, policy: $visibilityPolicy';
         await prepare(
-          channel: channel,
+          channel: someChannel,
           topic: topic,
           isChannelSubscribed: isChannelMuted != null, // shorthand; see dartdoc
           isChannelMuted: isChannelMuted,
@@ -243,12 +241,12 @@ void main() {
         );
 
         final message = eg.streamMessage(
-          stream: channel, topic: topic, sender: eg.otherUser);
+          stream: someChannel, topic: topic, sender: eg.otherUser);
         connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: [message]).toJson());
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: MessageListPage(
-            initNarrow: eg.topicNarrow(channel.streamId, topic))));
+            initNarrow: eg.topicNarrow(someChannel.streamId, topic))));
         await tester.pumpAndSettle();
 
         await tester.longPress(find.descendant(
@@ -275,7 +273,7 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..url.path.equals('/api/v1/user_topics')
           ..bodyFields.deepEquals({
-            'stream_id': '${channel.streamId}',
+            'stream_id': '${someChannel.streamId}',
             'topic': topic,
             'visibility_policy': jsonEncode(expectedPolicy),
           });
