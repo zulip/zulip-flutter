@@ -108,21 +108,26 @@ void main() {
   }
 
   group('topic action sheet', () {
+    final someChannel = eg.stream();
+    const someTopic = 'my topic';
+
     group('showTopicActionSheet', () {
-      final channel = eg.stream();
-      const topic = 'my topic';
       final message = eg.streamMessage(
-        stream: channel, topic: topic, sender: eg.otherUser);
+        stream: someChannel, topic: someTopic, sender: eg.otherUser);
 
       Future<void> prepare({
+        ZulipStream? channel,
+        String topic = someTopic,
         UnreadMessagesSnapshot? unreadMsgs,
       }) async {
+        final effectiveChannel = channel ?? someChannel;
+
         addTearDown(testBinding.reset);
 
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
           realmUsers: [eg.selfUser, eg.otherUser],
-          streams: [channel],
-          subscriptions: [eg.subscription(channel)],
+          streams: [effectiveChannel],
+          subscriptions: [eg.subscription(effectiveChannel)],
           unreadMsgs: unreadMsgs));
         store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
         connection = store.connection as FakeApiConnection;
@@ -144,8 +149,8 @@ void main() {
       testWidgets('show from inbox', (tester) async {
         await prepare(unreadMsgs: eg.unreadMsgs(count: 1,
           channels: [eg.unreadChannelMsgs(
-            streamId: channel.streamId,
-            topic: topic,
+            streamId: someChannel.streamId,
+            topic: someTopic,
             unreadMessageIds: [message.id],
           )]));
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
@@ -153,7 +158,7 @@ void main() {
         await tester.pump();
         check(find.byType(InboxPageBody)).findsOne();
 
-        await tester.longPress(find.text(topic));
+        await tester.longPress(find.text(someTopic));
         // sheet appears onscreen; default duration of bottom-sheet enter animation
         await tester.pump(const Duration(milliseconds: 250));
         checkButtons();
@@ -165,11 +170,13 @@ void main() {
           foundOldest: true, messages: [message]).toJson());
         await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
           child: MessageListPage(
-            initNarrow: eg.topicNarrow(channel.streamId, topic))));
+            initNarrow: eg.topicNarrow(someChannel.streamId, someTopic))));
         // global store, per-account store, and message list get loaded
         await tester.pumpAndSettle();
 
-        final topicRow = find.descendant(of: find.byType(ZulipAppBar), matching: find.text(topic));
+        final topicRow = find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.text(someTopic));
         await tester.longPress(topicRow);
         // sheet appears onscreen; default duration of bottom-sheet enter animation
         await tester.pump(const Duration(milliseconds: 250));
@@ -186,7 +193,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.longPress(find.descendant(
-          of: find.byType(RecipientHeader), matching: find.text(topic)));
+          of: find.byType(RecipientHeader), matching: find.text(someTopic)));
         // sheet appears onscreen; default duration of bottom-sheet enter animation
         await tester.pump(const Duration(milliseconds: 250));
         checkButtons();
