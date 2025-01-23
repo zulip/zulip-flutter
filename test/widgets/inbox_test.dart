@@ -206,6 +206,8 @@ void main() {
     // TODO test that tapping a conversation row opens the message list
     //   for the conversation
 
+    // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
     group('muting', () { // aka topic visibility
       testWidgets('baseline', (tester) async {
         final stream = eg.stream();
