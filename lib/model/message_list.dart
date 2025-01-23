@@ -413,11 +413,21 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 class MessageListView with ChangeNotifier, _MessageSequence {
-  MessageListView._({required this.store, required this.narrow});
+  MessageListView._({required this.store, required this.narrow, this.anchorMessageId});
+  int? anchorMessageId;
+  // Anchor message ID is used to fetch messages from a specific point in the list.
+  // It is set when the user navigates to a message list page with a specific anchor message.
+  // When no anchor message is provided, we set it to the latest message in the initial fetch.
+
+
+  int get anchorIndex => anchorMessageId != null ? findItemWithMessageId(anchorMessageId!) : 0;
+  // A getter for the anchor index. This is used to split the sliverList into two parts:
+  // 1. The part before the anchor message.
+  // 2. The part after the anchor message.
 
   factory MessageListView.init(
-      {required PerAccountStore store, required Narrow narrow}) {
-    final view = MessageListView._(store: store, narrow: narrow);
+      {required PerAccountStore store, required Narrow narrow, int? anchorMessageId}) {
+    final view = MessageListView._(store: store, narrow: narrow, anchorMessageId: anchorMessageId);
     store.registerMessageList(view);
     return view;
   }
@@ -498,18 +508,28 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
-    // TODO(#80): fetch from anchor firstUnread, instead of newest
-    // TODO(#82): fetch from a given message ID as anchor
+
     assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown);
     assert(messages.isEmpty && contents.isEmpty);
     // TODO schedule all this in another isolate
     final generation = this.generation;
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
-      anchor: AnchorCode.newest,
+      // If no anchor message is provided, newest message is used as anchor
+      anchor: anchorMessageId != null
+        ? NumericAnchor(anchorMessageId!)
+        : AnchorCode.newest,
       numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
+      numAfter: anchorMessageId != null
+        ? kMessageListFetchBatchSize ~/2 // Fetch messages after anchor if it is provided
+        : 0,
     );
+    // If the message list is not empty and anchorMessageId is not provided,
+    // we set the anchor message ID to the last message in the list
+    if(result.messages.isNotEmpty){
+      anchorMessageId ??= result.messages.last.id;
+    }
+
     if (this.generation > generation) return;
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
