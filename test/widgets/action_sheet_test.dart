@@ -176,14 +176,14 @@ void main() {
     Future<void> showFromAppBar(WidgetTester tester, {
       ZulipStream? channel,
       String topic = someTopic,
-      StreamMessage? message,
+      Iterable<StreamMessage>? messages,
     }) async {
       final effectiveChannel = channel ?? someChannel;
-      final effectiveMessage = message ?? someMessage;
-      assert(effectiveMessage.topic.apiName == topic);
+      final effectiveMessages = messages ?? [someMessage];
+      assert(effectiveMessages.every((m) => m.topic.apiName == topic));
 
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [effectiveMessage]).toJson());
+        foundOldest: true, messages: effectiveMessages.toList()).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(
           initNarrow: eg.topicNarrow(effectiveChannel.streamId, topic))));
@@ -288,7 +288,8 @@ void main() {
 
         final message = eg.streamMessage(
           stream: someChannel, topic: topic, sender: eg.otherUser);
-        await showFromAppBar(tester, channel: someChannel, topic: topic, message: message);
+        await showFromAppBar(tester,
+          channel: someChannel, topic: topic, messages: [message]);
       }
 
       void checkButtons(List<Finder> expectedButtonFinders) {
