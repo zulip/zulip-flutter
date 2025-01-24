@@ -152,6 +152,7 @@ class ExampleVerticalDouble extends StatelessWidget {
               (context, i) {
                 final ii = i + numBottomSections;
                 return StickyHeaderItem(
+                  allowOverflow: true,
                   header: WideHeader(i: ii),
                   child: Column(
                     children: List.generate(numPerSection + 1, (j) {
@@ -167,6 +168,7 @@ class ExampleVerticalDouble extends StatelessWidget {
               (context, i) {
                 final ii = numBottomSections - 1 - i;
                 return StickyHeaderItem(
+                  allowOverflow: true,
                   header: WideHeader(i: ii),
                   child: Column(
                     children: List.generate(numPerSection + 1, (j) {
