@@ -119,6 +119,65 @@ class ExampleHorizontal extends StatelessWidget {
   }
 }
 
+/// An experimental example approximating the Zulip message list.
+class ExampleVerticalDouble extends StatelessWidget {
+  const ExampleVerticalDouble({
+    super.key,
+    required this.title,
+    // this.reverse = false,
+    // this.headerDirection = AxisDirection.down,
+  }); // : assert(axisDirectionToAxis(headerDirection) == Axis.vertical);
+
+  final String title;
+  // final bool reverse;
+  // final AxisDirection headerDirection;
+
+  @override
+  Widget build(BuildContext context) {
+    const centerSliverKey = ValueKey('center sliver');
+    const numSections = 100;
+    const numBottomSections = 2;
+    const numPerSection = 10;
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: CustomScrollView(
+        semanticChildCount: numSections,
+        anchor: 0.5,
+        center: centerSliverKey,
+        slivers: [
+          SliverStickyHeaderList(
+            headerPlacement: HeaderPlacement.scrollingStart,
+            delegate: SliverChildBuilderDelegate(
+              childCount: numSections - numBottomSections,
+              (context, i) {
+                final ii = i + numBottomSections;
+                return StickyHeaderItem(
+                  header: WideHeader(i: ii),
+                  child: Column(
+                    children: List.generate(numPerSection + 1, (j) {
+                      if (j == 0) return WideHeader(i: ii);
+                      return WideItem(i: ii, j: j-1);
+                    })));
+              })),
+          SliverStickyHeaderList(
+            key: centerSliverKey,
+            headerPlacement: HeaderPlacement.scrollingStart,
+            delegate: SliverChildBuilderDelegate(
+              childCount: numBottomSections,
+              (context, i) {
+                final ii = numBottomSections - 1 - i;
+                return StickyHeaderItem(
+                  header: WideHeader(i: ii),
+                  child: Column(
+                    children: List.generate(numPerSection + 1, (j) {
+                        if (j == 0) return WideHeader(i: ii);
+                        return WideItem(i: ii, j: j-1);
+                      })));
+              })),
+        ]));
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //
 // That's it!
@@ -257,6 +316,11 @@ class MainPage extends StatelessWidget {
         reverse: true,
         headerDirection: AxisDirection.left),
     ];
+    final otherItems = [
+      _buildButton(context,
+        title: 'Double slivers',
+        page: ExampleVerticalDouble(title: 'Double slivers')),
+    ];
     return Scaffold(
         appBar: AppBar(title: const Text('Sticky Headers example')),
         body: CustomScrollView(slivers: [
@@ -284,6 +348,18 @@ class MainPage extends StatelessWidget {
               childAspectRatio: 2,
               crossAxisCount: 2,
               children: horizontalItems)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: Center(
+                child: Text("Other examples",
+                  style: Theme.of(context).textTheme.headlineMedium)))),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            sliver: SliverGrid.count(
+              childAspectRatio: 2,
+              crossAxisCount: 2,
+              children: otherItems)),
         ]));
   }
 
@@ -304,7 +380,14 @@ class MainPage extends StatelessWidget {
           title: title, reverse: reverse, headerDirection: headerDirection);
         break;
     }
+    return _buildButton(context, title: title, page: page);
+  }
 
+  Widget _buildButton(BuildContext context, {
+    bool primary = false,
+    required String title,
+    required Widget page,
+  }) {
     var label = Text(title,
       textAlign: TextAlign.center,
       style: TextStyle(
