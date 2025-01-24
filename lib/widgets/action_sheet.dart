@@ -392,6 +392,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final optionButtons = [
     ReactionButtons(message: message, pageContext: context),
+    if((message.reactions?.total ?? 0) > 0)
+      ViewReactionsButton(message: message, pageContext: context),
     StarButton(message: message, pageContext: context),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: context),
@@ -689,6 +691,25 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
     }
+  }
+}
+
+class ViewReactionsButton extends MessageActionSheetMenuItemButton {
+  ViewReactionsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.reactions;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewReactions;
+  }
+
+  @override void onPressed() async {
+    showReactionListSheet(
+      pageContext,
+      messageId: message.id,
+      messageListView: MessageListPage.ancestorOf(pageContext).model,
+    );
   }
 }
 

@@ -23,6 +23,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji.dart';
+import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -459,6 +460,92 @@ void main() {
     }
   });
 
+  group('ViewReaction', () {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+    Future<void> tapButton(WidgetTester tester) async {
+      await tester.ensureVisible(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byIcon(ZulipIcons.reactions, skipOffstage: false)));
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byIcon(ZulipIcons.reactions)));
+      await tester.pump();
+    }
+
+    testWidgets('reaction option is absent when reactions list is empty', (tester) async {
+      final message = eg.streamMessage(reactions: []);
+
+      await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+      connection.prepare(json: {});
+
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byIcon(ZulipIcons.reactions),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('reaction sheet displays reactions correctly', (tester) async {
+
+      final message = eg.streamMessage(
+        reactions:[ eg.unicodeEmojiReaction , eg.realmEmojiReaction]
+      );
+
+      await setupToMessageActionSheet(tester, message:message, narrow: TopicNarrow.ofMessage(message));
+      connection.prepare(json: {});
+
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byIcon(ZulipIcons.reactions),
+        ),
+        findsOneWidget,
+      );
+
+      await tapButton(tester);
+      await tester.pumpAndSettle();
+
+      // Verify tabs and reaction content
+      expect(find.byType(ReactionListContent), findsOneWidget);
+      expect(find.byType(Tab), findsNWidgets(2));
+      expect(
+        find.widgetWithText(ReactionListContent, '👍'),
+        findsOneWidget,
+      );
+
+      final reactionListFinder = find.byType(ReactionListContent);
+      await tester.drag(reactionListFinder, const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ListTile, 'You'), findsOneWidget);
+    });
+
+    testWidgets('close button dismisses reaction list sheet', (tester) async {
+      final message = eg.streamMessage(
+        reactions:[ eg.unicodeEmojiReaction , eg.realmEmojiReaction]
+      );
+      await setupToMessageActionSheet(tester, message:message, narrow: TopicNarrow.ofMessage(message));
+      connection.prepare(json: {});
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byIcon(ZulipIcons.reactions),
+        ),
+        findsOneWidget,
+      );
+      // opening the reaction sheet
+      await tapButton(tester);
+      await tester.pumpAndSettle();
+
+      final findCloseButton = find.text(zulipLocalizations.dialogClose);
+      await tester.tap(findCloseButton);
+      await tester.pumpAndSettle();
+      expect(find.byType(ReactionListContent), findsNothing);
+    });
+
+  });
   group('StarButton', () {
     Future<void> tapButton(WidgetTester tester, {bool starred = false}) async {
       // Starred messages include the same icon so we need to

@@ -89,6 +89,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Share';
 
   @override
+  String get actionSheetOptionViewReactions => 'See who reacted';
+
+  @override
   String get actionSheetOptionQuoteAndReply => 'Quote and reply';
 
   @override
@@ -96,6 +99,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnstarMessage => 'Unstar message';
+
+  @override
+  String get reactionSheetEmptyReactions => 'No reactions yet';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
