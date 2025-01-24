@@ -179,3 +179,37 @@ For the original reports and debugging of this issue, see
 chat threads
 [here](https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.20json_annotation.20unexpected.20behavior/near/1824410)
 and [here](https://chat.zulip.org/#narrow/stream/516-mobile-dev-help/topic/generated.20plugin.20files.20changed/near/1944826).
+
+
+<div id="libdrm" />
+
+### Lack of libdrm on Linux target
+
+This item applies only when building the app to run as a Linux desktop
+app.  (This is an unsupported configuration which is sometimes
+convenient in development.)  It does not affect using Linux for a
+development environment when building or running Zulip as an Android
+app.
+
+When building or running as a Linux desktop app, you may see an error
+about `/usr/include/libdrm`, like this:
+```
+$ flutter run -d linux
+Launching lib/main.dart on Linux in debug mode...
+CMake Error in CMakeLists.txt:
+  Imported target "PkgConfig::GTK" includes non-existent path
+
+    "/usr/include/libdrm"
+
+  in its INTERFACE_INCLUDE_DIRECTORIES.  Possible reasons include:
+…
+```
+
+This means you need to install the header files for "DRM", part of the
+Linux graphics infrastructure.
+
+To resolve the issue, install the appropriate package from your OS
+distribution.  For example, on Debian or Ubuntu:
+```
+$ sudo apt install libdrm-dev
+```
