@@ -92,6 +92,22 @@ RemoveFcmMessage removeFcmMessage(List<Message> zulipMessages, {Account? account
   }) as RemoveFcmMessage;
 }
 
+Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+  final data = messageFcmMessage(message, account: account);
+  final intentDataUrl = NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        FcmMessageChannelRecipient(:var streamId, :var topic) =>
+            TopicNarrow(streamId, topic),
+        FcmMessageDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildUrl();
+  unawaited(
+      WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
+  await tester.idle(); // let navigateForNotification find navigator
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
@@ -991,21 +1007,6 @@ void main() {
       check(pushedRoutes).isEmpty();
     }
 
-    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
-      final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var streamId, :var topic) =>
-          TopicNarrow(streamId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
-      unawaited(
-        WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
-      await tester.idle(); // let navigateForNotification find navigator
-    }
 
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
       route.isA<MaterialAccountWidgetRoute>()
