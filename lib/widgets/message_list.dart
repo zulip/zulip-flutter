@@ -16,6 +16,7 @@ import 'actions.dart';
 import 'app_bar.dart';
 import 'compose_box.dart';
 import 'content.dart';
+import 'dialog.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
@@ -1278,10 +1279,33 @@ String formatHeaderDate(
 // Design referenced from:
 //   - https://github.com/zulip/zulip-mobile/issues/5511
 //   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
-class MessageWithPossibleSender extends StatelessWidget {
+class MessageWithPossibleSender extends StatefulWidget {
   const MessageWithPossibleSender({super.key, required this.item});
 
   final MessageListMessageItem item;
+
+  @override
+  State<MessageWithPossibleSender> createState() => _MessageWithPossibleSenderState();
+}
+
+class _MessageWithPossibleSenderState extends State<MessageWithPossibleSender> {
+  final WidgetStatesController statesController = WidgetStatesController();
+
+  @override
+  void initState() {
+    super.initState();
+    statesController.addListener(() {
+      setState(() {
+        // Force a rebuild to resolve background color
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    statesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1289,11 +1313,11 @@ class MessageWithPossibleSender extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final message = item.message;
+    final message = widget.item.message;
     final sender = store.users[message.senderId];
 
     Widget? senderRow;
-    if (item.showSender) {
+    if (widget.item.showSender) {
       final time = _kMessageTimestampFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
       senderRow = Row(
@@ -1351,40 +1375,57 @@ class MessageWithPossibleSender extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onLongPress: () => showMessageActionSheet(context: context, message: message),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(children: [
-          if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-              child: senderRow),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: localizedTextBaseline(context),
-            children: [
-              const SizedBox(width: 16),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  MessageContent(message: message, content: item.content),
-                  if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                  if (editStateText != null)
-                    Text(editStateText,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: designVariables.labelEdited,
-                        fontSize: 12,
-                        height: (12 / 12),
-                        letterSpacing: proportionalLetterSpacing(
-                          context, 0.05, baseFontSize: 12))),
-                ])),
-              SizedBox(width: 16,
-                child: message.flags.contains(MessageFlag.starred)
-                  ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
-                  : null),
-            ]),
-        ])));
+      onLongPress: () async {
+        statesController.update(WidgetState.selected, true);
+        ModalStatus status = showMessageActionSheet(context: context,
+          message: message);
+        await status.closed;
+        statesController.update(WidgetState.selected, false);
+      },
+      onLongPressDown: (_) => statesController.update(WidgetState.pressed, true),
+      onLongPressCancel: () => statesController.update(WidgetState.pressed, false),
+      onLongPressUp: () => statesController.update(WidgetState.pressed, false),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: WidgetStateColor.fromMap({
+            WidgetState.pressed: designVariables.pressedTint,
+            WidgetState.selected: designVariables.pressedTint,
+            WidgetState.any: Colors.transparent,
+          }).resolve(statesController.value)
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(children: [
+            if (senderRow != null)
+              Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+                child: senderRow),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: localizedTextBaseline(context),
+              children: [
+                const SizedBox(width: 16),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    MessageContent(message: message, content: widget.item.content),
+                    if ((message.reactions?.total ?? 0) > 0)
+                      ReactionChipsList(messageId: message.id, reactions: message.reactions!),
+                    if (editStateText != null)
+                      Text(editStateText,
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          color: designVariables.labelEdited,
+                          fontSize: 12,
+                          height: (12 / 12),
+                          letterSpacing: proportionalLetterSpacing(
+                            context, 0.05, baseFontSize: 12))),
+                  ])),
+                SizedBox(width: 16,
+                  child: message.flags.contains(MessageFlag.starred)
+                    ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
+                    : null),
+              ]),
+          ]))));
   }
 }
 
