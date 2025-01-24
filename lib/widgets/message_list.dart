@@ -884,27 +884,12 @@ class RecipientHeader extends StatelessWidget {
   final Message message;
   final Narrow narrow;
 
-  static bool _containsDifferentChannels(Narrow narrow) {
-    switch (narrow) {
-      case CombinedFeedNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
-        return true;
-
-      case ChannelNarrow():
-      case TopicNarrow():
-      case DmNarrow():
-        return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: _containsDifferentChannels(narrow)),
-      DmMessage() => DmRecipientHeader(message: message),
+      StreamMessage() => StreamMessageRecipientHeader(message: message, narrow: narrow),
+      DmMessage() => DmRecipientHeader(message: message, narrow: narrow),
     };
   }
 }
@@ -1018,11 +1003,25 @@ class StreamMessageRecipientHeader extends StatelessWidget {
   const StreamMessageRecipientHeader({
     super.key,
     required this.message,
-    required this.showStream,
+    required this.narrow,
   });
 
   final StreamMessage message;
-  final bool showStream;
+  final Narrow narrow;
+
+  static bool _containsDifferentChannels(Narrow narrow) {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        return true;
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1049,7 +1048,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     }
 
     final Widget streamWidget;
-    if (!showStream) {
+    if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
       final stream = store.streams[message.streamId];
@@ -1130,9 +1129,14 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 }
 
 class DmRecipientHeader extends StatelessWidget {
-  const DmRecipientHeader({super.key, required this.message});
+  const DmRecipientHeader({
+    super.key,
+    required this.message,
+    required this.narrow,
+  });
 
   final DmMessage message;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
