@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_checks/flutter_checks.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -557,6 +558,131 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+    });
+  });
+
+  group('ComposeTopicController', () {
+    const kMaxTopicLength = 60; // Example max length
+    const longTopic = "This is a sample string that is exactly sixty characters long. This is a very long topic that exceeds the maximum allowed length. ";
+    const trimmedLongTopic = "This is a sample string that is exactly sixty characters lon"; // Truncated
+
+    late ComposeTopicController controller;
+
+    setUp(() {
+      controller = ComposeTopicController();
+    });
+
+    tearDown(() {
+      controller.dispose();
+    });
+
+    test('enforces character limit when text exceeds kMaxTopicLength', () {
+      controller.text = longTopic;
+
+      // Verify truncation logic
+      expect(controller.text, trimmedLongTopic);
+      expect(ComposeTopicController.characterCount.value, kMaxTopicLength);
+    });
+
+    test('updates character count correctly', () {
+      controller.text = trimmedLongTopic;
+
+      // Verify character count matches the topic length
+      expect(
+          ComposeTopicController.characterCount.value, trimmedLongTopic.length);
+    });
+
+    test('detects mandatory topic violation', () {
+      controller.text = ""; // Empty text
+      final errors = controller.validationErrors;
+
+      expect(errors, contains(TopicValidationError.mandatoryButEmpty));
+    });
+
+  });
+
+  group('ComposeTopic UI', () {
+    testWidgets('displays correct character count while typing', (
+        WidgetTester tester) async {
+      const kMaxTopicLength = 60;
+      final controller = ComposeTopicController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: ComposeTopicController.characterCount,
+                  builder: (context, count, child) {
+                    return Text('$count / $kMaxTopicLength');
+                  },
+                ),
+                TextField(
+                  controller: controller,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(kMaxTopicLength),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final textFieldFinder = find.byType(TextField);
+      final characterCountFinder = find.text('60 / $kMaxTopicLength');
+
+      // Initial state
+      expect(characterCountFinder, findsOneWidget);
+
+      // Enter valid text
+      await tester.enterText(textFieldFinder, 'Test topic');
+      await tester.pump();
+
+      // Updated state
+      expect(find.text('10 / $kMaxTopicLength'), findsOneWidget);
+    });
+
+    testWidgets(
+        'displays truncated text and updated count when exceeding max length',
+            (WidgetTester tester) async {
+          const kMaxTopicLength = 60;
+          final controller = ComposeTopicController();
+          const longTopic = "This is a sample string that is exactly sixty characters long. This is a very long topic that exceeds the maximum allowed length. ";
+          const trimmedLongTopic = "This is a sample string that is exactly sixty characters lon"; //Truncated
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    ValueListenableBuilder<int>(
+                      valueListenable: ComposeTopicController.characterCount,
+                      builder: (context, count, child) {
+                        return Text('$count / $kMaxTopicLength');
+                      },
+                    ),
+                    TextField(
+                      controller: controller,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(kMaxTopicLength),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+          final textFieldFinder = find.byType(TextField);
+
+          // Enter long text
+          await tester.enterText(textFieldFinder, longTopic);
+          await tester.pump();
+
+          expect(controller.text, trimmedLongTopic);
+          expect(
+              find.text('$kMaxTopicLength / $kMaxTopicLength'), findsOneWidget);
     });
   });
 
