@@ -49,6 +49,23 @@ void main () {
     await tester.pump();
   }
 
+  void checkOnLoadingPage() {
+    check(find.byType(CircularProgressIndicator).hitTestable()).findsOne();
+    check(find.byType(ChooseAccountPage)).findsNothing();
+    check(find.byType(HomePage)).findsNothing();
+  }
+
+  ModalRoute<void>? getRouteOf(WidgetTester tester, Finder finder) =>
+    ModalRoute.of(tester.element(finder));
+
+  void checkOnHomePage(WidgetTester tester, {required Account expectedAccount}) {
+    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(ChooseAccountPage)).findsNothing();
+    check(find.byType(HomePage).hitTestable()).findsOne();
+    check(getRouteOf(tester, find.byType(HomePage)))
+      .isA<MaterialAccountWidgetRoute>().accountId.equals(expectedAccount.id);
+  }
+
   group('bottom nav navigation', () {
     testWidgets('preserve states when switching between views', (tester) async {
       await prepare(tester);
@@ -255,28 +272,11 @@ void main () {
     const loadPerAccountDuration = Duration(seconds: 30);
     assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
 
-    void checkOnLoadingPage() {
-      check(find.byType(CircularProgressIndicator).hitTestable()).findsOne();
-      check(find.byType(ChooseAccountPage)).findsNothing();
-      check(find.byType(HomePage)).findsNothing();
-    }
-
     void checkOnChooseAccountPage() {
       // Ignore the possible loading page in the background.
       check(find.byType(CircularProgressIndicator).hitTestable()).findsNothing();
       check(find.byType(ChooseAccountPage)).findsOne();
       check(find.byType(HomePage)).findsNothing();
-    }
-
-    ModalRoute<void>? getRouteOf(WidgetTester tester, Finder finder) =>
-      ModalRoute.of(tester.element(finder));
-
-    void checkOnHomePage(WidgetTester tester, {required Account expectedAccount}) {
-      check(find.byType(CircularProgressIndicator)).findsNothing();
-      check(find.byType(ChooseAccountPage)).findsNothing();
-      check(find.byType(HomePage).hitTestable()).findsOne();
-      check(getRouteOf(tester, find.byType(HomePage)))
-        .isA<MaterialAccountWidgetRoute>().accountId.equals(expectedAccount.id);
     }
 
     Future<void> prepare(WidgetTester tester) async {
