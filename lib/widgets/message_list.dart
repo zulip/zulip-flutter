@@ -183,6 +183,8 @@ abstract class MessageListPageState {
   ///
   /// This is null if [MessageList] has not mounted yet.
   MessageListView? get model;
+
+  BuildContext get context;
 }
 
 class MessageListPage extends StatefulWidget {
@@ -400,8 +402,20 @@ class MessageListAppBarTitle extends StatelessWidget {
           width: double.infinity,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onLongPress: () => showTopicActionSheet(context,
-              channelId: streamId, topic: topic),
+            onLongPress: () {
+              final someMessage = MessageListPage.ancestorOf(context)
+                .model?.messages.firstOrNull;
+              // If someMessage is null, the topic action sheet won't have a
+              // resolve/unresolve button. That seems OK; in that case we're
+              // either still fetching messages (and the user can reopen the
+              // sheet after that finishes) or there aren't any messages to
+              // act on anyway.
+              assert(someMessage == null || narrow.containsMessage(someMessage));
+              showTopicActionSheet(MessageListPage.ancestorOf(context).context,
+                channelId: streamId,
+                topic: topic,
+                someMessageIdInTopic: someMessage?.id);
+            },
             child: Column(
               crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
                                                   : CrossAxisAlignment.start,
@@ -1112,8 +1126,11 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: TopicNarrow.ofMessage(message))),
-      onLongPress: () => showTopicActionSheet(context,
-        channelId: message.streamId, topic: topic),
+      onLongPress: () => showTopicActionSheet(
+        MessageListPage.ancestorOf(context).context,
+        channelId: message.streamId,
+        topic: topic,
+        someMessageIdInTopic: message.id),
       child: ColoredBox(
         color: backgroundColor,
         child: Row(

@@ -163,11 +163,20 @@ class ActionSheetCancelButton extends StatelessWidget {
 }
 
 /// Show a sheet of actions you can take on a topic.
-void showTopicActionSheet(BuildContext context, {
+///
+/// [pageContext] should be the context of the whole page in the nav,
+/// not of the specific element that was long-pressed.
+/// The long-pressed element live-updates on server events,
+/// so it might unmount before the action-sheet buttons have finished using it.
+///
+/// The API request for resolving/unresolving a topic needs a message ID.
+/// If [someMessageIdInTopic] is null, the button for that will be absent.
+void showTopicActionSheet(BuildContext pageContext, {
   required int channelId,
   required TopicName topic,
+  required int? someMessageIdInTopic,
 }) {
-  final store = PerAccountStoreWidget.of(context);
+  final store = PerAccountStoreWidget.of(pageContext);
   final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
@@ -237,8 +246,14 @@ void showTopicActionSheet(BuildContext context, {
       currentVisibilityPolicy: visibilityPolicy,
       newVisibilityPolicy: to,
       narrow: TopicNarrow(channelId, topic),
-      pageContext: context);
+      pageContext: pageContext);
   }));
+
+  if (someMessageIdInTopic != null) {
+    optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
+      topic: topic,
+      someMessageIdInTopic: someMessageIdInTopic));
+  }
 
   if (optionButtons.isEmpty) {
     // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
@@ -250,7 +265,7 @@ void showTopicActionSheet(BuildContext context, {
     return;
   }
 
-  _showActionSheet(context, optionButtons: optionButtons);
+  _showActionSheet(pageContext, optionButtons: optionButtons);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
@@ -372,6 +387,106 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
   }
 }
 
+class ResolveUnresolveButton extends ActionSheetMenuItemButton {
+  ResolveUnresolveButton({
+    super.key,
+    required this.topic,
+    required this.someMessageIdInTopic,
+    required super.pageContext,
+  }) : _actionIsResolve = !topic.isResolved;
+
+  final bool _actionIsResolve;
+
+  /// The topic that the action sheet was opened for.
+  ///
+  /// There might not currently be any messages with this topic;
+  /// see dartdoc of [ActionSheetMenuItemButton].
+  final TopicName topic;
+
+  /// The message ID that was passed when opening the action sheet.
+  ///
+  /// The message with this ID might currently not exist,
+  /// or might exist with a different topic;
+  /// see dartdoc of [ActionSheetMenuItemButton].
+  final int someMessageIdInTopic;
+
+  @override
+  IconData get icon => _actionIsResolve ? ZulipIcons.check : ZulipIcons.check_remove;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return _actionIsResolve
+      ? zulipLocalizations.actionSheetOptionResolveTopic
+      : zulipLocalizations.actionSheetOptionUnresolveTopic;
+  }
+
+  @override void onPressed() async {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    final store = PerAccountStoreWidget.of(pageContext);
+    final message = store.messages[someMessageIdInTopic] as StreamMessage?;
+
+    if (message != null && !message.topic.isSameAs(topic)) {
+      // TODO also interrupt on a channel move, with a specific message?
+
+      // The message's topic doesn't match what it was when we opened the
+      // action sheet. So either the resolve/unresolve action was already done
+      // or the topic was renamed; either way, tell the user and don't make a
+      // request.
+      final title = _actionIsResolve
+        ? zulipLocalizations.resolveTopicInterruptedTitle
+        : zulipLocalizations.unresolveTopicInterruptedTitle;
+      final errorMessage = message.topic.unresolve().isSameAs(topic.unresolve())
+        ? _actionIsResolve
+          ? zulipLocalizations.topicAlreadyResolvedMessage
+          : zulipLocalizations.topicAlreadyUnresolvedMessage
+        : zulipLocalizations.topicRenamedMessage;
+      showErrorDialog(context: pageContext, title: title, message: errorMessage);
+      return;
+    }
+
+    if (message == null) {
+      // Proceed.
+      //
+      // This happens when [someMessageIdInTopic] came from [Unreads]
+      // and we just haven't fetched the message's details yet
+      // because we haven't opened a message list containing the message.
+      //
+      // Less commonly, this happens if the message was deleted
+      // after the action sheet was opened;
+      // see dartdoc of [ActionSheetMenuItemButton].
+      //
+      // Anyway, we have a message ID, which the server asks for; use it.
+    }
+
+    try {
+      await updateMessage(store.connection,
+        messageId: someMessageIdInTopic,
+        topic: _actionIsResolve ? topic.resolve() : topic.unresolve(),
+        propagateMode: PropagateMode.changeAll,
+        sendNotificationToOldThread: false,
+        sendNotificationToNewThread: true,
+      );
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = _actionIsResolve
+        ? zulipLocalizations.errorResolveTopicFailedTitle
+        : zulipLocalizations.errorUnresolveTopicFailedTitle;
+      showErrorDialog(context: pageContext, title: title, message: errorMessage);
+    }
+  }
+}
+
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
@@ -389,6 +504,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
+
+  // TODO like in showTopicActionSheet, don't pass buttons a BuildContext
+  //   for live-updating UI that could unmount before it's finished being used.
 
   final optionButtons = [
     ReactionButtons(message: message, pageContext: context),

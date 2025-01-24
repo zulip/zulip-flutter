@@ -237,6 +237,60 @@ abstract class ZulipLocalizations {
   /// **'Unfollow topic'**
   String get actionSheetOptionUnfollowTopic;
 
+  /// Label for the 'Mark as resolved' button on the topic action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as resolved'**
+  String get actionSheetOptionResolveTopic;
+
+  /// Label for the 'Mark as unresolved' button on the topic action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as unresolved'**
+  String get actionSheetOptionUnresolveTopic;
+
+  /// Error title when trying to 'Mark as resolved' and the app decides not to continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem marking topic as resolved'**
+  String get resolveTopicInterruptedTitle;
+
+  /// Error title when trying to 'Mark as unresolved' and the app decides not to continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem marking topic as unresolved'**
+  String get unresolveTopicInterruptedTitle;
+
+  /// Error message when trying to 'Mark as resolved' a topic that was already marked by someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'This topic is already marked as resolved.'**
+  String get topicAlreadyResolvedMessage;
+
+  /// Error message when trying to 'Mark as unresolved' a topic that was already marked by someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'This topic is already marked as unresolved.'**
+  String get topicAlreadyUnresolvedMessage;
+
+  /// Error title when trying to 'Mark as resolved' or 'Mark as unresolved' a topic that was renamed by someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'This topic has been renamed.'**
+  String get topicRenamedMessage;
+
+  /// Error title when marking a topic as resolved failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark topic as resolved'**
+  String get errorResolveTopicFailedTitle;
+
+  /// Error title when marking a topic as unresolved failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark topic as unresolved'**
+  String get errorUnresolveTopicFailedTitle;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:
