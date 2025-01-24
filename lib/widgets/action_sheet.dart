@@ -163,11 +163,16 @@ class ActionSheetCancelButton extends StatelessWidget {
 }
 
 /// Show a sheet of actions you can take on a topic.
-void showTopicActionSheet(BuildContext context, {
+///
+/// [pageContext] should be the context of the whole page in the nav,
+/// not of the specific element that was long-pressed.
+/// The long-pressed element live-updates on server events,
+/// so it might unmount before the action-sheet buttons have finished using it.
+void showTopicActionSheet(BuildContext pageContext, {
   required int channelId,
   required TopicName topic,
 }) {
-  final store = PerAccountStoreWidget.of(context);
+  final store = PerAccountStoreWidget.of(pageContext);
   final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
@@ -237,7 +242,7 @@ void showTopicActionSheet(BuildContext context, {
       currentVisibilityPolicy: visibilityPolicy,
       newVisibilityPolicy: to,
       narrow: TopicNarrow(channelId, topic),
-      pageContext: context);
+      pageContext: pageContext);
   }));
 
   if (optionButtons.isEmpty) {
@@ -250,7 +255,7 @@ void showTopicActionSheet(BuildContext context, {
     return;
   }
 
-  _showActionSheet(context, optionButtons: optionButtons);
+  _showActionSheet(pageContext, optionButtons: optionButtons);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
@@ -389,6 +394,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
+
+  // TODO like in showTopicActionSheet, don't pass buttons a BuildContext
+  //   for live-updating UI that could unmount before it's finished being used.
 
   final optionButtons = [
     ReactionButtons(message: message, pageContext: context),

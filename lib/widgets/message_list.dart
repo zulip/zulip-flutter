@@ -183,6 +183,8 @@ abstract class MessageListPageState {
   ///
   /// This is null if [MessageList] has not mounted yet.
   MessageListView? get model;
+
+  BuildContext get context;
 }
 
 class MessageListPage extends StatefulWidget {
@@ -400,7 +402,8 @@ class MessageListAppBarTitle extends StatelessWidget {
           width: double.infinity,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onLongPress: () => showTopicActionSheet(context,
+            onLongPress: () => showTopicActionSheet(
+              MessageListPage.ancestorOf(context).context,
               channelId: streamId, topic: topic),
             child: Column(
               crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
@@ -1112,7 +1115,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       onTap: () => Navigator.push(context,
         MessageListPage.buildRoute(context: context,
           narrow: TopicNarrow.ofMessage(message))),
-      onLongPress: () => showTopicActionSheet(context,
+      onLongPress: () => showTopicActionSheet(
+        MessageListPage.ancestorOf(context).context,
         channelId: message.streamId, topic: topic),
       child: ColoredBox(
         color: backgroundColor,

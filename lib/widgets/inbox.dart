@@ -13,14 +13,34 @@ import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
+
+/// The interface for the state of an [InboxPageBody].
+///
+/// To obtain one of these, see [InboxPageBody.ancestorOf].
+abstract class InboxPageState {
+  BuildContext get context;
+}
+
 class InboxPageBody extends StatefulWidget {
   const InboxPageBody({super.key});
+
+  /// The [InboxPageState] above this context in the tree.
+  ///
+  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
+  /// don't call this in a build method.
+  // If we do find ourselves wanting this in a build method, it won't be hard
+  // to enable that: we'd just need to add an [InheritedWidget] here.
+  static InboxPageState ancestorOf(BuildContext context) {
+    final state = context.findAncestorStateOfType<_InboxPageState>();
+    assert(state != null, 'No InboxPageBody ancestor');
+    return state!;
+  }
 
   @override
   State<InboxPageBody> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
+class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> implements InboxPageState {
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
@@ -516,7 +536,8 @@ class _TopicItem extends StatelessWidget {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
-        onLongPress: () => showTopicActionSheet(context,
+        onLongPress: () => showTopicActionSheet(
+          InboxPageBody.ancestorOf(context).context,
           channelId: streamId, topic: topic),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
