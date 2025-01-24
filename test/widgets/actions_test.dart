@@ -42,6 +42,7 @@ void main() {
   Future<void> prepare(WidgetTester tester, {
     UnreadMessagesSnapshot? unreadMsgs,
     String? ackedPushToken = '123',
+    bool skipAssertAccountExists = false,
   }) async {
     addTearDown(testBinding.reset);
     final selfAccount = eg.selfAccount.copyWith(ackedPushToken: Value(ackedPushToken));
@@ -50,7 +51,9 @@ void main() {
     store = await testBinding.globalStore.perAccount(selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
-    await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(
+      accountId: selfAccount.id,
+      skipAssertAccountExists: skipAssertAccountExists,
       child: const Scaffold(body: Placeholder())));
     await tester.pump();
     context = tester.element(find.byType(Placeholder));
@@ -99,7 +102,7 @@ void main() {
 
   group('logOutAccount', () {
     testWidgets('smoke', (tester) async {
-      await prepare(tester);
+      await prepare(tester, skipAssertAccountExists: true);
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
@@ -124,7 +127,7 @@ void main() {
     });
 
     testWidgets('unregister request has an error', (tester) async {
-      await prepare(tester);
+      await prepare(tester, skipAssertAccountExists: true);
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);

@@ -269,8 +269,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     List<Widget>? actions;
     if (narrow case TopicNarrow(:final streamId)) {
-      // The helper [_getEffectiveCenterTitle] relies on the fact that we
-      // have at most one action here.
       (actions ??= []).add(IconButton(
         icon: const Icon(ZulipIcons.message_feed),
         tooltip: zulipLocalizations.channelFeedButtonTooltip,
@@ -281,7 +279,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     return Scaffold(
       appBar: ZulipAppBar(
-        title: MessageListAppBarTitle(narrow: narrow),
+        buildTitle: (willCenterTitle) =>
+          MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
         actions: actions,
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
@@ -295,8 +294,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //   we matched to the Figma in 21dbae120. See another frame, which uses that:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
-        builder: (BuildContext context) => Center(
-          child: Column(children: [
+        builder: (BuildContext context) => Column(
+          // Children are expected to take the full horizontal space
+          // and handle the horizontal device insets.
+          // The bottom inset should be handled by the last child only.
+          children: [
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
               // BuildContext, which is under `body`, through
@@ -316,14 +318,19 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]))));
+          ])));
   }
 }
 
 class MessageListAppBarTitle extends StatelessWidget {
-  const MessageListAppBarTitle({super.key, required this.narrow});
+  const MessageListAppBarTitle({
+    super.key,
+    required this.narrow,
+    required this.willCenterTitle,
+  });
 
   final Narrow narrow;
+  final bool willCenterTitle;
 
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
@@ -367,29 +374,6 @@ class MessageListAppBarTitle extends StatelessWidget {
       ]);
   }
 
-  // TODO(upstream): provide an API for this
-  // Adapted from [AppBar._getEffectiveCenterTitle].
-  bool _getEffectiveCenterTitle(ThemeData theme) {
-    bool platformCenter() {
-      switch (theme.platform) {
-        case TargetPlatform.android:
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.linux:
-        case TargetPlatform.windows:
-          return false;
-        case TargetPlatform.iOS:
-        case TargetPlatform.macOS:
-        // We rely on the fact that there is at most one action
-        // on the message list app bar, so that the expression returned
-        // in the original helper, `actions == null || actions!.length < 2`,
-        // always evaluates to `true`:
-          return true;
-      }
-    }
-
-    return theme.appBarTheme.centerTitle ?? platformCenter();
-  }
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -410,10 +394,8 @@ class MessageListAppBarTitle extends StatelessWidget {
         return _buildStreamRow(context, stream: stream);
 
       case TopicNarrow(:var streamId, :var topic):
-        final theme = Theme.of(context);
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final centerTitle = _getEffectiveCenterTitle(theme);
         return SizedBox(
           width: double.infinity,
           child: GestureDetector(
@@ -421,8 +403,8 @@ class MessageListAppBarTitle extends StatelessWidget {
             onLongPress: () => showTopicActionSheet(context,
               channelId: streamId, topic: topic),
             child: Column(
-              crossAxisAlignment: centerTitle ? CrossAxisAlignment.center
-                                              : CrossAxisAlignment.start,
+              crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
+                                                  : CrossAxisAlignment.start,
               children: [
                 _buildStreamRow(context, stream: stream),
                 _buildTopicRow(context, stream: stream, topic: topic),
@@ -453,6 +435,12 @@ const _kShortMessageHeight = 80;
 // previous batch.
 const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
 
+/// The message list.
+///
+/// Takes the full screen width, keeping its contents
+/// out of the horizontal insets with transparent [SafeArea] padding.
+/// When there is no [ComposeBox], also takes responsibility
+/// for dealing with the bottom inset.
 class MessageList extends StatefulWidget {
   const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
 
@@ -546,12 +534,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // Pad the left and right insets, for small devices in landscape.
     return SafeArea(
       // Don't let this be the place we pad the bottom inset. When there's
-      // no compose box, we want to let the message-list content pad it.
+      // no compose box, we want to let the message-list content
+      // and the scroll-to-bottom button avoid it.
       // TODO(#311) Remove as unnecessary if we do a bottom nav.
       //   The nav will pad the bottom inset, and an ancestor of this widget
       //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
       bottom: false,
 
+      // Horizontally, on wide screens, this Center grows the SafeArea
+      // to position its padding over the device insets and centers content.
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
@@ -564,7 +555,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   bottom: 0,
                   right: 0,
                   // TODO(#311) SafeArea shouldn't be needed if we have a
-                  //   bottom nav. That will pad the bottom inset.
+                  //   bottom nav; that will pad the bottom inset. Remove it,
+                  //   and the mention of bottom-inset handling in
+                  //   MessageList's dartdoc.
                   child: SafeArea(
                     child: ScrollToBottomButton(
                       scrollController: scrollController,
@@ -615,8 +608,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
-      // TODO(#311) If we have a bottom nav, it will pad the bottom
-      //   inset, and this shouldn't be necessary
+      // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
+      //   and this can be removed; also remove mention in MessageList dartdoc
       sliver = SliverSafeArea(sliver: sliver);
     }
 
