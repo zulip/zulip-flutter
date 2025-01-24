@@ -444,6 +444,7 @@ class VideoLightboxPage extends StatefulWidget {
 
 class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountStoreAwareStateMixin<VideoLightboxPage> {
   VideoPlayerController? _controller;
+  final TransformationController _transformationController = TransformationController();
 
   @override
   void onNewStore() {
@@ -494,6 +495,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     _controller?.removeListener(_handleVideoControllerUpdate);
     _controller?.dispose();
     _controller = null;
+    _transformationController.dispose();
     // The VideoController doesn't emit a pause event
     // while disposing, so disable the wakelock here
     // explicitly.
@@ -546,21 +548,22 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
-      buildAppBarBottom: (context) => null,
+      buildAppBarBottom: null,
       buildBottomAppBar: _buildBottomAppBar,
-      child: SafeArea(
-        child: Center(
-          child: Stack(alignment: Alignment.center, children: [
-            if (_controller != null && _controller!.value.isInitialized)
-              AspectRatio(
+      child: _controller == null
+        ? const Center(child: CircularProgressIndicator())
+        : Center(
+            child: InteractiveViewer(
+              transformationController: _transformationController,
+              minScale: 1.0,
+              maxScale: 5.0,
+              child: AspectRatio(
                 aspectRatio: _controller!.value.aspectRatio,
-                child: VideoPlayer(_controller!)),
-            if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
-              const SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(color: Colors.white)),
-            ]))));
+                child: VideoPlayer(_controller!),
+              ),
+            ),
+          ),
+    );
   }
 }
 
