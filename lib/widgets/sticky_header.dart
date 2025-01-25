@@ -564,6 +564,19 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     child!.layout(constraints, parentUsesSize: true);
     SliverGeometry geometry = child!.geometry!;
 
+    // TODO(#1309) handle the scrollOffsetCorrection case, passing it through
+
+    // We assume [child]'s geometry is free of certain complications.
+    // Probably most or all of these *could* be handled if necessary, just at
+    // the cost of further complicating this code.  Fortunately they aren't,
+    // because [RenderSliverList.performLayout] never has these complications.
+    assert(geometry.paintOrigin == 0);
+    assert(geometry.layoutExtent == geometry.paintExtent);
+    assert(geometry.hitTestExtent == geometry.paintExtent);
+    assert(geometry.visible == (geometry.paintExtent > 0));
+    assert(geometry.maxScrollObstructionExtent == 0);
+    assert(geometry.crossAxisExtent == null);
+
     if (header != null) {
       header!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
       final headerExtent = header!.size.onAxis(constraints.axis);
