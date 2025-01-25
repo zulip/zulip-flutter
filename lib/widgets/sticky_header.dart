@@ -597,7 +597,6 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
           layoutExtent: geometry.layoutExtent,
           paintExtent: math.max(geometry.paintExtent, paintedHeaderSize),
           maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
-          hitTestExtent: math.max(geometry.hitTestExtent, paintedHeaderSize),
           hasVisualOverflow: geometry.hasVisualOverflow
             || headerExtent > constraints.remainingPaintExtent,
 
