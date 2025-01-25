@@ -566,8 +566,8 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
     if (header != null) {
       header!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
-
       final headerExtent = header!.size.onAxis(constraints.axis);
+
       final double headerOffset;
       if (_headerEndBound == null) {
         // The header's item has [StickyHeaderItem.allowOverflow] true.
@@ -577,8 +577,6 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
         final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
         final cacheExtent = calculateCacheOffset(constraints, from: 0, to: headerExtent);
-
-        assert(0 <= paintedHeaderSize && paintedHeaderSize.isFinite);
 
         geometry = SliverGeometry( // TODO review interaction with other slivers
           scrollExtent: geometry.scrollExtent,
