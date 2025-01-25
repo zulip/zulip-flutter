@@ -570,6 +570,11 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
       final headerExtent = header!.size.onAxis(constraints.axis);
       final double headerOffset;
       if (_headerEndBound == null) {
+        // The header's item has [StickyHeaderItem.allowOverflow] true.
+        // Show the header in full, with one edge at the edge of the viewport,
+        // even if the (visible part of the) item is smaller than the header,
+        // and even if the whole child sliver is smaller than the header.
+
         final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
         final cacheExtent = calculateCacheOffset(constraints, from: 0, to: headerExtent);
 
@@ -590,6 +595,10 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
           ? geometry.layoutExtent - headerExtent
           : 0.0;
       } else {
+        // The header's item has [StickyHeaderItem.allowOverflow] false.
+        // Keep the header within the item, pushing the header partly out of
+        // the viewport if the item's visible part is smaller than the header.
+
         // The limiting edge of the header's item,
         // in the outer, non-scrolling coordinates.
         final endBoundAbsolute = axisDirectionIsReversed(constraints.growthAxisDirection)
