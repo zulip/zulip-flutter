@@ -579,6 +579,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     assert(geometry.visible == (geometry.paintExtent > 0));
     assert(geometry.maxScrollObstructionExtent == 0);
     assert(geometry.crossAxisExtent == null);
+    final childExtent = geometry.layoutExtent;
 
     if (header != null) {
       header!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
@@ -594,8 +595,8 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
         final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
         geometry = SliverGeometry( // TODO review interaction with other slivers
           scrollExtent: geometry.scrollExtent,
-          layoutExtent: geometry.layoutExtent,
-          paintExtent: math.max(geometry.paintExtent, paintedHeaderSize),
+          layoutExtent: childExtent,
+          paintExtent: math.max(childExtent, paintedHeaderSize),
           maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
           hasVisualOverflow: geometry.hasVisualOverflow
             || headerExtent > constraints.remainingPaintExtent,
@@ -609,7 +610,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
         );
 
         headerOffset = _headerAtCoordinateEnd()
-          ? geometry.layoutExtent - headerExtent
+          ? childExtent - headerExtent
           : 0.0;
       } else {
         // The header's item has [StickyHeaderItem.allowOverflow] false.
@@ -619,11 +620,11 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
         // The limiting edge of the header's item,
         // in the outer, non-scrolling coordinates.
         final endBoundAbsolute = axisDirectionIsReversed(constraints.growthAxisDirection)
-          ? geometry.layoutExtent - (_headerEndBound! - constraints.scrollOffset)
+          ? childExtent - (_headerEndBound! - constraints.scrollOffset)
           : _headerEndBound! - constraints.scrollOffset;
 
         headerOffset = _headerAtCoordinateEnd()
-          ? math.max(geometry.layoutExtent - headerExtent, endBoundAbsolute)
+          ? math.max(childExtent - headerExtent, endBoundAbsolute)
           : math.min(0.0, endBoundAbsolute - headerExtent);
       }
 
