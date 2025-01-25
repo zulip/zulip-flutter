@@ -30,6 +30,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   static final light = MessageListTheme._(
     dateSeparator: Colors.black,
     dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+    dmMessageBgDefault: const HSLColor.fromAHSL(1, 45, 0.20, 0.96).toColor(),
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
     messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
     recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -55,6 +56,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   static final dark = MessageListTheme._(
     dateSeparator: Colors.white,
     dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+    dmMessageBgDefault: const HSLColor.fromAHSL(1, 46, 0.07, 0.16).toColor(),
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
     recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
@@ -79,6 +81,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme._({
     required this.dateSeparator,
     required this.dateSeparatorText,
+    required this.dmMessageBgDefault,
     required this.dmRecipientHeaderBg,
     required this.messageTimestamp,
     required this.recipientHeaderText,
@@ -103,6 +106,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   final Color dateSeparator;
   final Color dateSeparatorText;
+  final Color dmMessageBgDefault;
   final Color dmRecipientHeaderBg;
   final Color messageTimestamp;
   final Color recipientHeaderText;
@@ -118,6 +122,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   MessageListTheme copyWith({
     Color? dateSeparator,
     Color? dateSeparatorText,
+    Color? dmMessageBgDefault,
     Color? dmRecipientHeaderBg,
     Color? messageTimestamp,
     Color? recipientHeaderText,
@@ -132,6 +137,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return MessageListTheme._(
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
+      dmMessageBgDefault: dmMessageBgDefault ?? this.dmMessageBgDefault,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       messageTimestamp: messageTimestamp ?? this.messageTimestamp,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
@@ -153,6 +159,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return MessageListTheme._(
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
+      dmMessageBgDefault: Color.lerp(dmMessageBgDefault, other.dmMessageBgDefault, t)!,
       dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
       messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
@@ -164,6 +171,13 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
       unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
     );
+  }
+
+  Color getMessageBackgroundColor(Message message) {
+    return switch (message) {
+      StreamMessage() => streamMessageBgDefault,
+      DmMessage() => dmMessageBgDefault,
+    };
   }
 }
 
@@ -933,8 +947,9 @@ class DateSeparator extends StatelessWidget {
 
     final line = BorderSide(width: 0, color: messageListTheme.dateSeparator);
 
-    // TODO(#681) use different color for DM messages
-    return ColoredBox(color: messageListTheme.streamMessageBgDefault,
+    final backgroundColor = messageListTheme.getMessageBackgroundColor(message);
+
+    return ColoredBox(color: backgroundColor,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
@@ -975,13 +990,15 @@ class MessageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = item.message;
     final messageListTheme = MessageListTheme.of(context);
+    final backgroundColor = messageListTheme.getMessageBackgroundColor(message);
+
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
       child: _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
         child: ColoredBox(
-          color: messageListTheme.streamMessageBgDefault,
+          color: backgroundColor,
           child: Column(children: [
             MessageWithPossibleSender(item: item),
             if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
