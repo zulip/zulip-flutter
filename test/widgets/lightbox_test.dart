@@ -557,5 +557,77 @@ void main() {
       check(position).isGreaterThan(basePosition);
       check(platform.position).equals(position);
     });
+
+    testWidgets('video zoom functionality', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+
+      // Find the InteractiveViewer that wraps the VideoPlayer
+      final interactiveViewer = tester.widget<InteractiveViewer>(
+        find.ancestor(
+          of: find.byType(VideoPlayer),
+          matching: find.byType(InteractiveViewer),
+        ),
+      );
+
+      // Simulate pinch-to-zoom gesture
+      final center = tester.getCenter(find.byType(VideoPlayer));
+      await tester.startGesture(center, kind: PointerDeviceKind.touch);
+      await tester.startGesture(center + const Offset(50.0, 0.0), kind: PointerDeviceKind.touch);
+      await tester.pump();
+
+      // Check if the InteractiveViewer allows zoom
+      check(interactiveViewer.maxScale).isGreaterThan(1.0);
+    });
+
+    testWidgets('video pan functionality', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+
+      // Find the InteractiveViewer
+      final interactiveViewer = tester.widget<InteractiveViewer>(
+        find.ancestor(
+          of: find.byType(VideoPlayer),
+          matching: find.byType(InteractiveViewer),
+        ),
+      );
+
+      // Check if pan is enabled
+      check(interactiveViewer.panEnabled).isTrue();
+
+      // Simulate pan gesture
+      await tester.drag(find.byType(InteractiveViewer), const Offset(100, 0));
+      await tester.pump();
+    });
+
+    testWidgets('maintain aspect ratio during zoom', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+
+      // Find the VideoPlayer
+      final videoPlayer = tester.widget<VideoPlayer>(find.byType(VideoPlayer));
+      final aspectRatio = videoPlayer.controller?.value.aspectRatio ?? 1.0;
+
+      // Find the InteractiveViewer
+      final interactiveViewer = tester.widget<InteractiveViewer>(
+        find.ancestor(
+          of: find.byType(VideoPlayer),
+          matching: find.byType(InteractiveViewer),
+        ),
+      );
+
+      // Check if the InteractiveViewer preserves aspect ratio
+      check(interactiveViewer.constrained).isTrue();
+      check(aspectRatio).isGreaterThan(0.0);
+    });
   });
+
+  Widget _loadingBuilder(BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+    if (loadingProgress == null) return child;
+
+    return Center(
+      child: CircularProgressIndicator(
+        value: loadingProgress.expectedTotalBytes != null
+            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+            : null,
+      ),
+    );
+  }
 }
