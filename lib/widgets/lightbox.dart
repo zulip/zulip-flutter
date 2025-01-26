@@ -311,7 +311,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
-      buildAppBarBottom: (BuildContext context) => null,
+      buildAppBarBottom: _buildAppBarBottom,
       buildBottomAppBar: _buildBottomAppBar,
       child: SizedBox.expand(
         child: InteractiveViewer(

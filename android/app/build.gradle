@@ -21,7 +21,6 @@ try {
 
 android {
     namespace "com.zulip.flutter"
-
     compileSdkVersion flutter.compileSdkVersion
 
     compileOptions {
