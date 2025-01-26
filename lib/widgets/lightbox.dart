@@ -311,7 +311,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
-      buildAppBarBottom: _buildAppBarBottom,
+      buildAppBarBottom: (BuildContext context) => null,
       buildBottomAppBar: _buildBottomAppBar,
       child: SizedBox.expand(
         child: InteractiveViewer(
@@ -548,7 +548,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
       message: widget.message,
-      buildAppBarBottom: null,
+      buildAppBarBottom: (BuildContext context) => null,
       buildBottomAppBar: _buildBottomAppBar,
       child: _controller == null
         ? const Center(child: CircularProgressIndicator())
