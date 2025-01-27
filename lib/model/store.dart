@@ -19,6 +19,7 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
 import '../notifications/receive.dart';
+import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'emoji.dart';
@@ -149,13 +150,31 @@ abstract class GlobalStore extends ChangeNotifier {
   /// and/or [perAccountSync].
   Future<PerAccountStore> loadPerAccount(int accountId) async {
     assert(_accounts.containsKey(accountId));
-    final store = await doLoadPerAccount(accountId);
+    PerAccountStore? store;
+    try {
+      store = await doLoadPerAccount(accountId);
+    } catch (e) {
+      switch (e) {
+        case ZulipApiException(code: 'INVALID_API_KEY'):
+          // The API key is invalid and the store can never be loaded
+          // unless the user retries manually.
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          final account = getAccount(accountId)!;
+          reportErrorToUserModally(
+            zulipLocalizations.errorCouldNotConnectTitle,
+            details: zulipLocalizations.errorInvalidApiKeyMessage(
+              account.realmUrl.toString()));
+          await logOutAccount(this, accountId);
+        default:
+          rethrow;
+      }
+    }
     if (!_accounts.containsKey(accountId)) {
-      // [removeAccount] was called during [doLoadPerAccount].
-      store.dispose();
+      // [removeAccount] was called during or after [doLoadPerAccount].
+      store?.dispose();
       throw AccountNotFoundException();
     }
-    return store;
+    return store!;
   }
 
   /// Load per-account data for the given account, unconditionally.
@@ -912,7 +931,13 @@ class UpdateMachine {
         // at 1 kiB (at least on Android), and stack can be longer than that.
         assert(debugLog('Stack:\n$s'));
         assert(debugLog('Backing off, then will retry…'));
-        // TODO tell user if initial-fetch errors persist, or look non-transient
+        // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
+        switch (e) {
+          case ZulipApiException(code: 'INVALID_API_KEY'):
+            // We cannot recover from this error through retrying.
+            // Leave it to [GlobalStore.loadPerAccount].
+            rethrow;
+        }
         await (backoffMachine ??= BackoffMachine()).wait();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
       }
@@ -1044,7 +1069,13 @@ class UpdateMachine {
       }
     } catch (e) {
       if (_disposed) return;
-      await _handlePollError(e);
+      try {
+        await _handlePollError(e);
+      } on AccountNotFoundException {
+        // Cannot recover by replacing the store because the account
+        // was logged out.
+        return;
+      }
       assert(_disposed);
       return;
     }

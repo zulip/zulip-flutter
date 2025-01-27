@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
@@ -500,6 +501,20 @@ void main() {
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));
 
+    test('GlobalStore.perAccount on INVALID_API_KEY', () => awaitFakeAsync((async) async {
+      addTearDown(testBinding.reset);
+
+      await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      testBinding.globalStore.loadPerAccountException = ZulipApiException(
+        routeName: '/register', code: 'INVALID_API_KEY', httpStatus: 400,
+        data: {}, message: '');
+      await check(testBinding.globalStore.perAccount(eg.selfAccount.id))
+        .throws<AccountNotFoundException>();
+
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+    }));
+
     // TODO test UpdateMachine.load starts polling loop
     // TODO test UpdateMachine.load calls registerNotificationToken
   });
@@ -843,6 +858,25 @@ void main() {
       check(store.debugMessageListViews).isEmpty();
     }));
 
+    test('log out if fail to reload on unexpected errors', () => awaitFakeAsync((async) async {
+      await preparePoll();
+
+      prepareUnexpectedLoopError();
+      updateMachine.debugAdvanceLoop();
+      async.elapse(Duration.zero);
+      check(store).isLoading.isTrue();
+
+      globalStore.loadPerAccountException = ZulipApiException(
+        routeName: '/register', code: 'INVALID_API_KEY', httpStatus: 400,
+        data: {}, message: '');
+      // The reload doesn't happen immediately; there's a timer.
+      check(async.pendingTimers).length.equals(1);
+      async.flushTimers();
+
+      check(globalStore.takeDoRemoveAccountCalls().single)
+        .equals(eg.selfAccount.id);
+    }));
+
     group('report error', () {
       String? lastReportedError;
       String? takeLastReportedError() {
@@ -858,7 +892,7 @@ void main() {
 
       Future<void> prepare() async {
         reportErrorToUserBriefly = logReportedError;
-        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+        addTearDown(() => reportErrorToUserBriefly = reportErrorToConsole);
         await preparePoll(lastEventId: 1);
       }
 

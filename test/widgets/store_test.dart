@@ -1,13 +1,21 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
 import '../model/store_checks.dart';
+import '../model/test_store.dart';
+import '../test_navigation.dart';
+import 'dialog_checks.dart';
+import 'page_checks.dart';
 
 /// A widget whose state uses [PerAccountStoreAwareStateMixin].
 class MyWidgetWithMixin extends StatefulWidget {
@@ -111,6 +119,87 @@ void main() {
     check(tester.takeException())
       .has((x) => x.toString(), 'toString') // TODO(checks): what's a good convention for this?
       .contains('consider MaterialAccountWidgetRoute');
+  });
+
+  testWidgets('PerAccountStoreWidget when log out, do not push route to non-empty navigator stack', (tester) async {
+    addTearDown(testBinding.reset);
+
+    final testNavObserver = TestNavigatorObserver();
+    final pushedRoutes = <Route<void>>[];
+    testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+    const loadPerAccountDuration = Duration(seconds: 30);
+    assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
+    testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+    testBinding.globalStore.loadPerAccountException = ZulipApiException(
+      routeName: '/register', code: 'INVALID_API_KEY', httpStatus: 400,
+      data: {}, message: '');
+    await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+    await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+    await tester.pump(); // start to load account
+    check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+    pushedRoutes.clear();
+
+    final removedRoutes = <Route<void>>[];
+    testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
+    await tester.pump(kTryAnotherAccountWaitPeriod);
+    await tester.tap(find.text('Try another account'));
+    await tester.pump(); // tap the button
+    check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+    pushedRoutes.clear();
+
+    await tester.pump(loadPerAccountDuration); // got the error
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    check(pushedRoutes).single.isA<DialogRoute<void>>();
+    pushedRoutes.clear();
+    check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+    check(testBinding.globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    await tester.tap(find.byWidget(checkErrorDialog(tester,
+      expectedTitle: 'Could not connect',
+      expectedMessage:
+        'Your account at https://chat.example/ could not be authenticated.'
+        ' Please try logging in again or use another account.')));
+    // No more routes are pushed after dismissing the error dialog.
+    check(pushedRoutes).isEmpty();
+  });
+
+  testWidgets('PerAccountStoreWidget when log out, push route when popping root level route', (tester) async {
+    addTearDown(testBinding.reset);
+
+    final testNavObserver = TestNavigatorObserver();
+    final pushedRoutes = <Route<void>>[];
+    testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+    testBinding.globalStore.loadPerAccountDuration = Duration.zero;
+    testBinding.globalStore.loadPerAccountException = ZulipApiException(
+      routeName: '/register', code: 'INVALID_API_KEY', httpStatus: 400,
+      data: {}, message: '');
+    await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+    await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+    await tester.pump(); // start to load account
+    check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+    pushedRoutes.clear();
+
+    final removedRoutes = <Route<void>>[];
+    testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
+    await tester.pump(); // got the error
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    check(pushedRoutes).single.isA<DialogRoute<void>>();
+    pushedRoutes.clear();
+    check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+    check(testBinding.globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    await tester.tap(find.byWidget(checkErrorDialog(tester,
+      expectedTitle: 'Could not connect',
+      expectedMessage:
+        'Your account at https://chat.example/ could not be authenticated.'
+        ' Please try logging in again or use another account.')));
+    // The navigator stack became empty after dismissing the error dialog,
+    // so a choose-account page route was pushed.
+    check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
   });
 
   testWidgets('PerAccountStoreWidget immediate data after first loaded', (tester) async {
