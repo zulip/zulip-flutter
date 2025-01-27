@@ -127,7 +127,7 @@ void main() {
         ..origStreamId.equals(1)
         ..newStreamId.equals(2)
         ..origTopic.equals(TopicName('foo'))
-        ..newTopic.isNull();
+        ..newTopic.equals(TopicName('foo'));
     });
 
     test('orig_subject -> origTopic, subject -> newTopic, new_stream_id = stream_id', () {
@@ -139,7 +139,7 @@ void main() {
         'propagate_mode': 'change_all',
       })).isA<UpdateMessageEvent>().moveData.isNotNull()
         ..origStreamId.equals(1)
-        ..newStreamId.isNull()
+        ..newStreamId.equals(1)
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
     });
@@ -151,11 +151,47 @@ void main() {
         'orig_rendered_content': 'foo',
         'content': 'bar',
         'rendered_content': 'bar',
-      })).isA<UpdateMessageEvent>().moveData.isNotNull()
-        ..origStreamId.equals(1)
-        ..newStreamId.isNull()
-        ..origTopic.isNull()
-        ..newTopic.isNull();
+      })).isA<UpdateMessageEvent>().moveData.isNull();
+    });
+
+    test('stream move but no orig_subject', () {
+      check(() => Event.fromJson({...baseJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': null,
+        'subject': null,
+        'propagate_mode': 'change_all',
+      })).throws<FormatException>();
+    });
+
+    test('move but no subject or new_stream_id', () {
+      check(() => Event.fromJson({...baseJson,
+        'stream_id': 1,
+        'new_stream_id': null,
+        'orig_subject': 'foo',
+        'subject': null,
+        'propagate_mode': 'change_all',
+      })).throws<FormatException>();
+    });
+
+    test('move but no orig_stream_id', () {
+      check(() => Event.fromJson({...baseJson,
+        'stream_id': null,
+        'new_stream_id': 2,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': 'change_all',
+      })).throws<FormatException>();
+    });
+
+    test('move but no propagate_mode', () {
+      check(() => Event.fromJson({...baseJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': null,
+      })).throws<FormatException>();
     });
   });
 
