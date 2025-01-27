@@ -44,7 +44,7 @@ void main() {
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
-    List<User> users = const [],
+    List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
@@ -58,7 +58,7 @@ void main() {
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-    await store.addUsers([selfUser, ...users]);
+    await store.addUsers([selfUser, ...otherUsers]);
     await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
@@ -746,7 +746,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
         });
 
@@ -754,7 +754,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUser = eg.user(isActive: true);
           await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
-            users: [activeUser]);
+            otherUsers: [activeUser]);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUser, isActive: false);
@@ -765,7 +765,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUser, isActive: true);
@@ -777,7 +777,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
         });
 
@@ -785,7 +785,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
-            users: activeUsers);
+            otherUsers: activeUsers);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUsers[0], isActive: false);
@@ -796,7 +796,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);
