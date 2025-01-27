@@ -44,9 +44,9 @@ void main() {
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
-    int? realmWaitingPeriodThreshold,
-    List<User> users = const [],
+    List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
+    bool? mandatoryTopics,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -56,11 +56,12 @@ void main() {
     selfUser ??= eg.selfUser;
     final selfAccount = eg.account(user: selfUser);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
-      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+      realmMandatoryTopics: mandatoryTopics,
+    ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-    await store.addUsers([selfUser, ...users]);
+    await store.addUsers([selfUser, ...otherUsers]);
     await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
@@ -560,6 +561,64 @@ void main() {
     });
   });
 
+  group('sending to empty topic', () {
+    late ZulipStream channel;
+
+    Future<void> setupAndTapSend(WidgetTester tester, {
+      required String topicInputText,
+      bool? mandatoryTopics,
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow, streams: [channel],
+        mandatoryTopics: mandatoryTopics);
+
+      await enterTopic(tester, narrow: narrow, topic: topicInputText);
+      await tester.enterText(contentInputFinder, 'test content');
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+    }
+
+    void checkMessageNotSent(WidgetTester tester) {
+      check(connection.takeRequests()).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Message not sent',
+        expectedMessage: 'Topics are required in this organization.');
+    }
+
+    testWidgets('empty topic -> (no topic)', (tester) async {
+      await setupAndTapSend(tester, topicInputText: '');
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': channel.streamId.toString(),
+          'topic': '(no topic)',
+          'content': 'test content',
+          'read_by_sender': 'true',
+        });
+    });
+
+    testWidgets('if topics are mandatory, reject empty topic', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('if topics are mandatory, reject (no topic)', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+  });
+
   group('uploads', () {
     void checkAppearsLoading(WidgetTester tester, bool expected) {
       final sendButtonElement = tester.element(find.ancestor(
@@ -748,7 +807,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
         });
 
@@ -756,7 +815,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUser = eg.user(isActive: true);
           await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
-            users: [activeUser]);
+            otherUsers: [activeUser]);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUser, isActive: false);
@@ -767,7 +826,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUser, isActive: true);
@@ -779,7 +838,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
         });
 
@@ -787,7 +846,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
-            users: activeUsers);
+            otherUsers: activeUsers);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUsers[0], isActive: false);
@@ -798,7 +857,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);
