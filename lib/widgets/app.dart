@@ -178,8 +178,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     return GlobalStoreWidget(
       child: Builder(builder: (context) {
         final globalStore = GlobalStoreWidget.of(context);
-        // TODO(#524) choose initial account as last one used
-        final initialAccountId = globalStore.accounts.firstOrNull?.id;
         return MaterialApp(
           onGenerateTitle: (BuildContext context) {
             return ZulipLocalizations.of(context).zulipAppTitle;
@@ -209,6 +207,8 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           onGenerateRoute: (_) => null,
 
           onGenerateInitialRoutes: (_) {
+            // TODO(#524) choose initial account as last one used
+            final initialAccountId = globalStore.accounts.firstOrNull?.id;
             return [
               if (initialAccountId == null)
                 MaterialWidgetRoute(page: const ChooseAccountPage())
