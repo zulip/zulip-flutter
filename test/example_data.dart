@@ -610,13 +610,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
     editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
-    moveData: UpdateMessageMoveData(
-      origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
-      newStreamId: null,
-      propagateMode: null,
-      origTopic: null,
-      newTopic: null,
-    ),
+    moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
     content: 'some probably-mismatched new Markdown',
@@ -651,10 +645,10 @@ UpdateMessageEvent _updateMessageMoveEvent(
     editTimestamp: 1234567890, // TODO generate timestamp
     moveData: UpdateMessageMoveData(
       origStreamId: origStreamId,
-      newStreamId: newStreamId,
+      newStreamId: newStreamId ?? origStreamId,
       propagateMode: propagateMode,
       origTopic: origTopic,
-      newTopic: newTopic,
+      newTopic: newTopic ?? origTopic,
     ),
     origContent: origContent,
     origRenderedContent: origContent,

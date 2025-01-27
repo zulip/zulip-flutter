@@ -99,25 +99,59 @@ void main() {
       'message_ids': [message.id],
       'flags': <String>[],
       'edit_timestamp': 1718741351,
-      'stream_id': eg.stream().streamId,
     };
 
-    test('stream_id -> origStreamId', () {
+    test('smoke moveData', () {
       check(Event.fromJson({ ...baseJson,
         'stream_id': 1,
         'new_stream_id': 2,
-      }) as UpdateMessageEvent).moveData.isNotNull()
-        ..origStreamId.equals(1)
-        ..newStreamId.equals(2);
-    });
-
-    test('orig_subject -> origTopic, subject -> newTopic', () {
-      check(Event.fromJson({ ...baseJson,
         'orig_subject': 'foo',
         'subject': 'bar',
-      }) as UpdateMessageEvent).moveData.isNotNull()
+        'propagate_mode': 'change_all',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(2)
+        ..origTopic.equals(TopicName('foo'))
+        ..newTopic.equals(TopicName('bar'))
+        ..propagateMode.equals(PropagateMode.changeAll);
+    });
+
+    test('stream_id -> origStreamId, subject = orig_subject', () {
+      check(Event.fromJson({ ...baseJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': 'foo',
+        'subject': null,
+        'propagate_mode': 'change_all',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(2)
+        ..origTopic.equals(TopicName('foo'))
+        ..newTopic.equals(TopicName('foo'));
+    });
+
+    test('orig_subject -> origTopic, subject -> newTopic, new_stream_id = stream_id', () {
+      check(Event.fromJson({ ...baseJson,
+        'stream_id': 1,
+        'new_stream_id': null,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': 'change_all',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(1)
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
+    });
+
+    test('no message move -> moveData = null', () {
+      check(Event.fromJson({...baseJson,
+        'stream_id': 1,
+        'orig_content': 'foo',
+        'orig_rendered_content': 'foo',
+        'content': 'bar',
+        'rendered_content': 'bar',
+      })).isA<UpdateMessageEvent>().moveData.isNull();
     });
   });
 
