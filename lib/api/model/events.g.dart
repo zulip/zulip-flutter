@@ -426,7 +426,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
           .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
           .toList(),
       editTimestamp: (json['edit_timestamp'] as num?)?.toInt(),
-      moveData: UpdateMessageMoveData.fromJson(
+      moveData: UpdateMessageMoveData.tryParseFromJson(
           UpdateMessageEvent._readMoveData(json, 'move_data')),
       origContent: json['orig_content'] as String?,
       origRenderedContent: json['orig_rendered_content'] as String?,

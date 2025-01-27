@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../log.dart';
 import '../../model/algorithms.dart';
 import 'json.dart';
 import 'model.dart';
@@ -703,13 +704,13 @@ class MessageEvent extends Event {
 
 /// Data structure representing a message move.
 class UpdateMessageMoveData {
-  final int? origStreamId;
-  final int? newStreamId;
+  final int origStreamId;
+  final int newStreamId;
 
-  final PropagateMode? propagateMode;
+  final PropagateMode propagateMode;
 
-  final TopicName? origTopic;
-  final TopicName? newTopic;
+  final TopicName origTopic;
+  final TopicName newTopic;
 
   UpdateMessageMoveData({
     required this.origStreamId,
@@ -719,11 +720,16 @@ class UpdateMessageMoveData {
     required this.newTopic,
   });
 
-  /// Extract [UpdateMessageMoveData] from the JSON object for an
+  /// Try to extract [UpdateMessageMoveData] from the JSON object for an
   /// [UpdateMessageEvent].
   ///
+  /// Returns `null` if there was no message move.
+  ///
   /// Throws an error if the data is malformed.
-  factory UpdateMessageMoveData.fromJson(Object? json) {
+  // When parsing this, 'stream_id', which is also present when there was only
+  // a content edit, cannot be recovered if this ends up returning `null`.
+  // This may matter if we ever need 'stream_id' when no message move occurred.
+  static UpdateMessageMoveData? tryParseFromJson(Object? json) {
     json as Map<String, Object?>;
     final origStreamId = (json['stream_id'] as num?)?.toInt();
     final newStreamId = (json['new_stream_id'] as num?)?.toInt();
@@ -735,12 +741,43 @@ class UpdateMessageMoveData {
     final newTopic = json['subject'] == null ? null
       : TopicName.fromJson(json['subject'] as String);
 
+    if (origTopic == null) {
+      // There was no move.
+      assert(() {
+        if (newStreamId != null && origStreamId != null
+            && newStreamId != origStreamId) {
+          // This should be impossible; `orig_subject` (aka origTopic) is
+          // documented to be present when either the stream or topic changed.
+          debugLog('Malformed UpdateMessageEvent: stream move but no origTopic'); // TODO(log)
+        }
+        return true;
+      }());
+      return null;
+    }
+
+    if (newStreamId == null && newTopic == null) {
+      // If neither the channel nor topic name changed, nothing moved.
+      // In that case `orig_subject` (aka origTopic) should have been null.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
+      throw FormatException();
+    }
+    if (origStreamId == null) {
+      // The `stream_id` field (aka origStreamId) is documented to be present on moves.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
+      throw FormatException();
+    }
+    if (propagateMode == null) {
+      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
+      throw FormatException();
+    }
+
     return UpdateMessageMoveData(
       origStreamId: origStreamId,
-      newStreamId: newStreamId,
+      newStreamId: newStreamId ?? origStreamId,
       propagateMode: propagateMode,
       origTopic: origTopic,
-      newTopic: newTopic,
+      newTopic: newTopic ?? origTopic,
     );
   }
 
@@ -764,8 +801,8 @@ class UpdateMessageEvent extends Event {
 
   // final String? streamName; // ignore
 
-  @JsonKey(readValue: _readMoveData)
-  final UpdateMessageMoveData moveData;
+  @JsonKey(readValue: _readMoveData, fromJson: UpdateMessageMoveData.tryParseFromJson)
+  final UpdateMessageMoveData? moveData;
 
   // final List<TopicLink> topicLinks; // TODO handle
 

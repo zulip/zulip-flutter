@@ -127,7 +127,7 @@ void main() {
         ..origStreamId.equals(1)
         ..newStreamId.equals(2)
         ..origTopic.equals(TopicName('foo'))
-        ..newTopic.isNull();
+        ..newTopic.equals(TopicName('foo'));
     });
 
     test('orig_subject -> origTopic, subject -> newTopic, new_stream_id = stream_id', () {
@@ -139,7 +139,7 @@ void main() {
         'propagate_mode': 'change_all',
       })).isA<UpdateMessageEvent>().moveData.isNotNull()
         ..origStreamId.equals(1)
-        ..newStreamId.isNull()
+        ..newStreamId.equals(1)
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
     });
@@ -151,11 +151,7 @@ void main() {
         'orig_rendered_content': 'foo',
         'content': 'bar',
         'rendered_content': 'bar',
-      })).isA<UpdateMessageEvent>().moveData.isNotNull()
-        ..origStreamId.equals(1)
-        ..newStreamId.isNull()
-        ..origTopic.isNull()
-        ..newTopic.isNull();
+      })).isA<UpdateMessageEvent>().moveData.isNull();
     });
   });
 
