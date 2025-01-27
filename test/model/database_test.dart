@@ -98,37 +98,62 @@ void main() {
       verifier = SchemaVerifier(GeneratedHelper());
     });
 
-    test('upgrade to v2, empty', () async {
-      final connection = await verifier.startAt(1);
+    test('downgrading', () async {
+      final connection = await verifier.startAt(2);
       final db = AppDatabase(connection);
-      await verifier.migrateAndValidate(db, 2);
+      await verifier.migrateAndValidate(db, 1);
       await db.close();
+    }, skip: true); // TODO(#1172): unskip this
+
+    group('migrate without data', () {
+      // These simple tests verify all possible schema updates with a simple (no
+      // data) migration. This is a quick way to ensure that written database
+      // migrations properly alter the schema.
+      const versions = GeneratedHelper.versions;
+      for (final (i, fromVersion) in versions.indexed) {
+        group('from $fromVersion', () {
+          for (final toVersion in versions.skip(i + 1)) {
+            test('to $toVersion', () async {
+              final schema = await verifier.schemaAt(fromVersion);
+              final db = AppDatabase(schema.newConnection());
+              await verifier.migrateAndValidate(db, toVersion);
+              await db.close();
+            });
+          }
+        });
+      }
     });
 
-    test('upgrade to v2, with data', () async {
-      final schema = await verifier.schemaAt(1);
-      final before = v1.DatabaseAtV1(schema.newConnection());
-      await before.into(before.accounts).insert(v1.AccountsCompanion.insert(
-        realmUrl: 'https://chat.example/',
-        userId: 1,
-        email: 'asdf@example.org',
-        apiKey: '1234',
-        zulipVersion: '6.0',
-        zulipMergeBase: const Value('6.0'),
-        zulipFeatureLevel: 42,
-      ));
-      final accountV1 = await before.select(before.accounts).watchSingle().first;
-      await before.close();
-
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 2);
-      await db.close();
-
-      final after = v2.DatabaseAtV2(schema.newConnection());
-      final account = await after.select(after.accounts).getSingle();
-      check(account.toJson()).deepEquals({
-        ...accountV1.toJson(),
-        'ackedPushToken': null,
+    // Testing this can be useful for migrations that change existing columns
+    // (e.g. by alterating their type or constraints). Migrations that only add
+    // tables or columns typically don't need these advanced tests. For more
+    // information, see https://drift.simonbinder.eu/migrations/tests/#verifying-data-integrity
+    group('migrate with data', () {
+      test('upgrade to v2', () async {
+        late final v1.AccountsData oldAccountData;
+        await verifier.testWithDataIntegrity(
+          oldVersion: 1, createOld: v1.DatabaseAtV1.new,
+          newVersion: 2, createNew: v2.DatabaseAtV2.new,
+          openTestedDatabase: AppDatabase.new,
+          createItems: (batch, oldDb) async {
+            await oldDb.into(oldDb.accounts).insert(v1.AccountsCompanion.insert(
+              realmUrl: 'https://chat.example/',
+              userId: 1,
+              email: 'asdf@example.org',
+              apiKey: '1234',
+              zulipVersion: '6.0',
+              zulipMergeBase: const Value('6.0'),
+              zulipFeatureLevel: 42,
+            ));
+            oldAccountData = await oldDb.select(oldDb.accounts).watchSingle().first;
+          },
+          validateItems: (newDb) async {
+            final account = await newDb.select(newDb.accounts).getSingle();
+            check(account.toJson()).deepEquals({
+              ...oldAccountData.toJson(),
+              'ackedPushToken': null,
+            });
+          });
       });
     });
   });
