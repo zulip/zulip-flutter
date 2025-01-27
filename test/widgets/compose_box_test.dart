@@ -44,9 +44,10 @@ void main() {
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
-    int? realmWaitingPeriodThreshold,
-    List<User> users = const [],
+    List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
+    bool? mandatoryTopics,
+    int? zulipFeatureLevel,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -54,13 +55,16 @@ void main() {
     }
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
-    final selfAccount = eg.account(user: selfUser);
+    zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
+    final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
-      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+      zulipFeatureLevel: zulipFeatureLevel,
+      realmMandatoryTopics: mandatoryTopics,
+    ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-    await store.addUsers([selfUser, ...users]);
+    await store.addUsers([selfUser, ...otherUsers]);
     await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
@@ -77,14 +81,17 @@ void main() {
     controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
 
+  /// A [Finder] for the topic input.
+  ///
+  /// To enter some text, use [enterTopic].
+  final topicInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeTopicController);
+
   /// Set the topic input's text to [topic], using [WidgetTester.enterText].
   Future<void> enterTopic(WidgetTester tester, {
     required ChannelNarrow narrow,
     required String topic,
   }) async {
-    final topicInputFinder = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.controller is ComposeTopicController);
-
     connection.prepare(body:
       jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
@@ -305,6 +312,106 @@ void main() {
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
       });
+    });
+  });
+
+  group('ComposeBox hintText', () {
+    final channel = eg.stream();
+
+    Future<void> prepare(WidgetTester tester, {
+      required Narrow narrow,
+      bool? mandatoryTopics,
+      int? zulipFeatureLevel,
+    }) async {
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        otherUsers: [eg.otherUser, eg.thirdUser],
+        streams: [channel],
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
+    }
+
+    void checkComposeBoxHintTexts(WidgetTester tester, {
+      String? topicHintText,
+      required String contentHintText,
+    }) {
+      if (topicHintText != null) {
+        check(tester.widget<TextField>(topicInputFinder))
+          .decoration.isNotNull().hintText.equals(topicHintText);
+      } else {
+        check(topicInputFinder).findsNothing();
+      }
+      check(tester.widget<TextField>(contentInputFinder))
+        .decoration.isNotNull().hintText.equals(contentHintText);
+    }
+
+    testWidgets('to ChannelNarrow without topic', (tester) async {
+      await prepare(tester, narrow: ChannelNarrow(channel.streamId));
+      checkComposeBoxHintTexts(tester,
+        topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+        contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+    });
+
+    testWidgets('to ChannelNarrow without topic; mandatory topics', (tester) async {
+      await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+        mandatoryTopics: true);
+      checkComposeBoxHintTexts(tester,
+        topicHintText: 'Topic',
+        contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+    });
+
+    testWidgets('legacy: to ChannelNarrow without topic', (tester) async {
+      await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+        zulipFeatureLevel: 333);
+      checkComposeBoxHintTexts(tester,
+        topicHintText: 'Topic',
+        contentHintText: 'Message #${channel.name} > (no topic)');
+    });
+
+    testWidgets('to ChannelNarrow with topic', (tester) async {
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepare(tester, narrow: narrow);
+      await enterTopic(tester, narrow: narrow, topic: 'new topic');
+      await tester.pump();
+      checkComposeBoxHintTexts(tester,
+        topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+        contentHintText: 'Message #${channel.name} > new topic');
+    });
+
+    testWidgets('to TopicNarrow', (tester) async {
+      await prepare(tester,
+        narrow: TopicNarrow(channel.streamId, TopicName('topic')));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message #${channel.name} > topic');
+    });
+
+    testWidgets('to TopicNarrow with empty topic', (tester) async {
+      await prepare(tester,
+        narrow: TopicNarrow(channel.streamId, TopicName('')));
+      checkComposeBoxHintTexts(tester, contentHintText:
+        'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+    });
+
+    testWidgets('to DmNarrow with self', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.selfUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Jot down something');
+    });
+
+    testWidgets('to 1:1 DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message @${eg.otherUser.fullName}');
+    });
+
+    testWidgets('to group DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withOtherUsers(
+        [eg.otherUser.userId, eg.thirdUser.userId],
+        selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message group');
     });
   });
 
@@ -560,6 +667,97 @@ void main() {
     });
   });
 
+  group('sending to empty topic', () {
+    late ZulipStream channel;
+
+    Future<void> setupAndTapSend(WidgetTester tester, {
+      required String topicInputText,
+      bool? mandatoryTopics,
+      int? zulipFeatureLevel,
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow, streams: [channel],
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
+
+      await enterTopic(tester, narrow: narrow, topic: topicInputText);
+      await tester.enterText(contentInputFinder, 'test content');
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+    }
+
+    void checkMessageNotSent(WidgetTester tester) {
+      check(connection.takeRequests()).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Message not sent',
+        expectedMessage: 'Topics are required in this organization.');
+    }
+
+    testWidgets('empty topic -> general chat', (tester) async {
+      await setupAndTapSend(tester, topicInputText: '');
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': channel.streamId.toString(),
+          'topic': '',
+          'content': 'test content',
+          'read_by_sender': 'true',
+        });
+    });
+
+    testWidgets('legacy: empty topic -> (no topic)', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        zulipFeatureLevel: 333);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': channel.streamId.toString(),
+          'topic': '(no topic)',
+          'content': 'test content',
+          'read_by_sender': 'true',
+        });
+    });
+
+    testWidgets('if topics are mandatory, reject empty topic', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: eg.defaultRealmEmptyTopicDisplayName,
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('if topics are mandatory, reject (no topic)', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('legacy: if topics are mandatory, reject (no topic)', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true,
+        zulipFeatureLevel: 333);
+      checkMessageNotSent(tester);
+    });
+  });
+
   group('uploads', () {
     void checkAppearsLoading(WidgetTester tester, bool expected) {
       final sendButtonElement = tester.element(find.ancestor(
@@ -748,7 +946,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
         });
 
@@ -756,7 +954,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUser = eg.user(isActive: true);
           await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
-            users: [activeUser]);
+            otherUsers: [activeUser]);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUser, isActive: false);
@@ -767,7 +965,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUser, isActive: true);
@@ -779,7 +977,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
         });
 
@@ -787,7 +985,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
-            users: activeUsers);
+            otherUsers: activeUsers);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUsers[0], isActive: false);
@@ -798,7 +996,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);

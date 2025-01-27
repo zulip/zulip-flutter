@@ -837,6 +837,8 @@ TestGlobalStore globalStore({List<Account> accounts = const []}) {
   return TestGlobalStore(accounts: accounts);
 }
 
+const String defaultRealmEmptyTopicDisplayName = 'test general chat';
+
 InitialSnapshot initialSnapshot({
   String? queueId,
   int? lastEventId,
@@ -856,10 +858,12 @@ InitialSnapshot initialSnapshot({
   List<ZulipStream>? streams,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  bool? realmMandatoryTopics,
   int? realmWaitingPeriodThreshold,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   Uri? serverEmojiDataUrl,
+  String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
@@ -890,11 +894,13 @@ InitialSnapshot initialSnapshot({
       emojiset: Emojiset.google,
     ),
     userTopics: userTopics,
+    realmMandatoryTopics: realmMandatoryTopics ?? false,
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],

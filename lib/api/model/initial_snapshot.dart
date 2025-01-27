@@ -64,6 +64,8 @@ class InitialSnapshot {
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
 
+  final bool realmMandatoryTopics;
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -77,6 +79,8 @@ class InitialSnapshot {
   final int maxFileUploadSizeMib;
 
   final Uri? serverEmojiDataUrl; // TODO(server-6)
+
+  final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> realmUsers;
@@ -125,10 +129,12 @@ class InitialSnapshot {
     required this.streams,
     required this.userSettings,
     required this.userTopics,
+    required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
+    required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
     required this.realmNonActiveUsers,
     required this.crossRealmBots,

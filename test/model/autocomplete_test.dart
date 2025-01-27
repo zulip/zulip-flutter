@@ -835,7 +835,8 @@ void main() {
 
       final description = 'topic-input with text: $markedText produces: ${expectedQuery?.raw ?? 'No Query!'}';
       test(description, () {
-        final controller = ComposeTopicController();
+        final store = eg.store();
+        final controller = ComposeTopicController(store: store);
         controller.value = parsed.value;
         if (expectedQuery == null) {
           check(controller).autocompleteIntent.isNull();
@@ -900,8 +901,9 @@ void main() {
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
+    final store = eg.store();
     void doCheck(String rawQuery, String topic, bool expected) {
-      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic));
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(store, eg.t(topic));
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 

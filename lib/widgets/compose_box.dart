@@ -89,13 +89,14 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController() {
+  ComposeTopicController({required this.store}) {
     _update();
   }
 
-  // TODO: subscribe to this value:
-  //   https://zulip.com/help/require-topics
-  final mandatory = true;
+  PerAccountStore store;
+
+  // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
+  bool get mandatory => store.realmMandatoryTopics;
 
   // TODO(#307) use `max_topic_length` instead of hardcoded limit
   @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
@@ -103,13 +104,20 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && (textNormalized.isEmpty
+                        || textNormalized == kNoTopicTopic
+                        || textNormalized == store.realmEmptyTopicDisplayName))
         TopicValidationError.mandatoryButEmpty,
 
       if (
@@ -121,7 +129,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -427,6 +435,16 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    TextStyle hintStyle = TextStyle(
+      color: designVariables.textInput.withFadedAlpha(0.5));
+
+    if (widget.destination.destination
+        case StreamDestination(topic: TopicName(displayName: null))) {
+      // TODO: This applies to the entire hint text; ideally we'd only want to
+      //   italize the "general chat" text, but [TextField] doesn't seem to have
+      //   an API for this.
+      hintStyle = hintStyle.copyWith(fontStyle: FontStyle.italic);
+    }
 
     return ComposeAutocomplete(
       narrow: widget.narrow,
@@ -468,8 +486,7 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
                 // this and offering two lines of touchable area.
                 contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
                 hintText: widget.hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+                hintStyle: hintStyle))))));
   }
 }
 
@@ -521,11 +538,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.composeBoxUnknownChannelName;
+    final topic = TopicName(_topicTextNormalized);
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
+      destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(
+        streamName, topic.displayName ?? store.realmEmptyTopicDisplayName));
   }
 }
 
@@ -544,6 +563,9 @@ class _TopicInput extends StatelessWidget {
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
+    final store = PerAccountStoreWidget.of(context);
+    final allowsEmptyTopics =
+      store.connection.zulipFeatureLevel! >= 334 && !store.realmMandatoryTopics;
 
     return TopicAutocomplete(
       streamId: streamId,
@@ -561,8 +583,11 @@ class _TopicInput extends StatelessWidget {
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
           decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
+            hintText: (allowsEmptyTopics)
+              ? store.realmEmptyTopicDisplayName
+              : zulipLocalizations.composeBoxTopicHintText,
             hintStyle: topicTextStyle.copyWith(
+              fontStyle: (allowsEmptyTopics) ? FontStyle.italic : null,
               color: designVariables.textInput.withFadedAlpha(0.5))))));
   }
 }
@@ -584,7 +609,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.composeBoxUnknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
-          streamName, topic.displayName);
+          streamName, topic.displayName ?? store.realmEmptyTopicDisplayName);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
@@ -1227,7 +1252,10 @@ sealed class ComposeBoxController {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  final topic = ComposeTopicController();
+  StreamComposeBoxController({required PerAccountStore store})
+    : topic = ComposeTopicController(store: store);
+
+  final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
 
   @override
@@ -1308,16 +1336,17 @@ abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
 }
 
-class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
-  @override ComposeBoxController get controller => _controller;
-  late final ComposeBoxController _controller;
+class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
+  @override ComposeBoxController get controller => _controller!;
+  ComposeBoxController? _controller;
 
   @override
-  void initState() {
-    super.initState();
+  void onNewStore() {
     switch (widget.narrow) {
       case ChannelNarrow():
-        _controller = StreamComposeBoxController();
+        final store = PerAccountStoreWidget.of(context);
+        _controller ??= StreamComposeBoxController(store: store);
+        (controller as StreamComposeBoxController).topic.store = store;
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController();
@@ -1330,7 +1359,7 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller!.dispose();
     super.dispose();
   }
 
@@ -1370,15 +1399,16 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
       return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
     }
 
+    final controller = _controller!;
     final narrow = widget.narrow;
-    switch (_controller) {
+    switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _StreamComposeBoxBody(controller: controller, narrow: narrow);
       }
       case FixedDestinationComposeBoxController(): {
         narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
     }
 

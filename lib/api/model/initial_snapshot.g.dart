@@ -58,6 +58,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       userTopics: (json['user_topics'] as List<dynamic>?)
           ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
       realmWaitingPeriodThreshold:
           (json['realm_waiting_period_threshold'] as num).toInt(),
       realmDefaultExternalAccounts:
@@ -69,6 +70,8 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       serverEmojiDataUrl: json['server_emoji_data_url'] == null
           ? null
           : Uri.parse(json['server_emoji_data_url'] as String),
+      realmEmptyTopicDisplayName:
+          json['realm_empty_topic_display_name'] as String?,
       realmUsers:
           (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
                   as List<dynamic>)
@@ -108,10 +111,12 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'streams': instance.streams,
       'user_settings': instance.userSettings,
       'user_topics': instance.userTopics,
+      'realm_mandatory_topics': instance.realmMandatoryTopics,
       'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
+      'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
       'realm_users': instance.realmUsers,
       'realm_non_active_users': instance.realmNonActiveUsers,
       'cross_realm_bots': instance.crossRealmBots,
