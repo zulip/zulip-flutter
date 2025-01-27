@@ -106,11 +106,26 @@ void main() {
       'propagate_mode': 'change_all',
     };
 
+    test('smoke moveData', () {
+      check(Event.fromJson({ ...baseMoveJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': 'change_all',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(2)
+        ..origTopic.equals(const TopicName('foo'))
+        ..newTopic.equals(const TopicName('bar'))
+        ..propagateMode.equals(PropagateMode.changeAll);
+    });
+
     test('stream_id -> origStreamId', () {
       check(Event.fromJson({ ...baseMoveJson,
         'stream_id': 1,
         'new_stream_id': 2,
-      })).isA<UpdateMessageEvent>()
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
         ..origStreamId.equals(1)
         ..newStreamId.equals(2);
     });
@@ -119,9 +134,72 @@ void main() {
       check(Event.fromJson({ ...baseMoveJson,
         'orig_subject': 'foo',
         'subject': 'bar',
-      })).isA<UpdateMessageEvent>()
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
+    });
+
+    test('new channel, same topic: fill in newTopic', () {
+      // The server omits 'subject' in this situation.
+      check(Event.fromJson({ ...baseMoveJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': 'foo',
+        'subject': null,
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origTopic.equals(const TopicName('foo'))
+        ..newTopic.equals(const TopicName('foo'));
+    });
+
+    test('same channel, new topic; fill in newStreamId', () {
+      // The server omits 'new_stream_id' in this situation.
+      check(Event.fromJson({ ...baseMoveJson,
+        'stream_id': 1,
+        'new_stream_id': null,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(1);
+    });
+
+    test('no message move', () {
+      check(Event.fromJson({ ...baseJson,
+        'orig_content': 'foo',
+        'orig_rendered_content': 'foo',
+        'content': 'bar',
+        'rendered_content': 'bar',
+      })).isA<UpdateMessageEvent>().moveData.isNull();
+    });
+
+    test('stream move but no orig_subject', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': null,
+      })).throws<void>();
+    });
+
+    test('move but no subject or new_stream_id', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'new_stream_id': null,
+        'subject': null,
+      })).throws<void>();
+    });
+
+    test('move but no orig_stream_id', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'stream_id': null,
+        'new_stream_id': 2,
+      })).throws<void>();
+    });
+
+    test('move but no propagate_mode', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': null,
+      })).throws<void>();
     });
   });
 

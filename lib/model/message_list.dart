@@ -720,13 +720,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void messagesMoved({
-    required int origStreamId,
-    required int newStreamId,
-    required TopicName origTopic,
-    required TopicName newTopic,
+    required UpdateMessageMoveData messageMove,
     required List<int> messageIds,
-    required PropagateMode propagateMode,
   }) {
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic, :propagateMode,
+    ) = messageMove;
     switch (narrow) {
       case DmNarrow():
         // DMs can't be moved (nor created by moves),
