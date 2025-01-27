@@ -121,17 +121,18 @@ class _ProfileErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(title: const Text('Error')),
-      body: const SingleChildScrollView(
+      appBar: ZulipAppBar(title: Text(zulipLocalizations.errorDialogTitle)),
+      body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error),
-              SizedBox(width: 4),
-              Text('Could not show user profile.'),
+              const Icon(Icons.error),
+              const SizedBox(width: 4),
+              Text(zulipLocalizations.errorShowUserProfile),
             ]))));
   }
 }
@@ -290,8 +291,9 @@ class _UserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final user = store.users[userId];
-    final fullName = user?.fullName ?? '(unknown user)';
+    final fullName = user?.fullName ?? zulipLocalizations.unknownUserName;
     return InkWell(
       onTap: () => Navigator.push(context,
         ProfilePage.buildRoute(context: context,

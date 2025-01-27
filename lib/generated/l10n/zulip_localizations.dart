@@ -189,6 +189,12 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Message that appears on the user profile page when the profile cannot be shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not show user profile.'**
+  String get errorShowUserProfile;
+
   /// Title for dialog asking the user to grant additional permissions.
   ///
   /// In en, this message translates to:
@@ -405,6 +411,18 @@ abstract class ZulipLocalizations {
   /// **'Error handling a Zulip event from {serverUrl}; will retry.\n\nError: {error}\n\nEvent: {event}'**
   String errorHandlingEventDetails(String serverUrl, String error, String event);
 
+  /// Title for an error dialog when opening a link failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open link'**
+  String get errorOpenLinkDialogTitle;
+
+  /// Message for an error dialog when opening a link failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Link could not be opened: {url}'**
+  String errorOpenLinkDialogMessage(String url);
+
   /// Error message when muting a topic failed.
   ///
   /// In en, this message translates to:
@@ -535,7 +553,7 @@ abstract class ZulipLocalizations {
   ///
   /// In en, this message translates to:
   /// **'(unknown channel)'**
-  String get composeBoxUnknownChannelName;
+  String get unknownChannelName;
 
   /// Hint text for topic input widget in compose box.
   ///
@@ -549,17 +567,35 @@ abstract class ZulipLocalizations {
   /// **'Uploading {filename}…'**
   String composeBoxUploadingFilename(String filename);
 
+  /// Placeholder in compose box showing the quoted message is currently loading.
+  ///
+  /// In en, this message translates to:
+  /// **'(loading message {messageId})'**
+  String composeBoxLoadingMessage(int messageId);
+
   /// Name placeholder to use for a user when we don't know their name.
   ///
   /// In en, this message translates to:
   /// **'(unknown user)'**
   String get unknownUserName;
 
+  /// Message list page title for a DM group that only includes yourself.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with yourself'**
+  String get messageListYouWithYourselfTitle;
+
   /// Message list recipient header for a DM group with others.
   ///
   /// In en, this message translates to:
   /// **'You and {others}'**
   String messageListGroupYouAndOthers(String others);
+
+  /// Message list page title for a DM group with others.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with {others}'**
+  String messageListDMsWithOthers(String others);
 
   /// Message list recipient header for a DM group that only includes yourself.
   ///
@@ -632,6 +668,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Copy link'**
   String get lightboxCopyLinkTooltip;
+
+  /// The current playback position of the video playing in the lightbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Current position'**
+  String get lightboxVideoCurrentPositionLabel;
+
+  /// The total duration of the video playing in the lightbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Video duration'**
+  String get lightboxVideoDurationLabel;
 
   /// Title for login page.
   ///
@@ -927,17 +975,47 @@ abstract class ZulipLocalizations {
   /// **'Channel feed'**
   String get channelFeedButtonTooltip;
 
+  /// Label for a channel conversation notification.
+  ///
+  /// In en, this message translates to:
+  /// **'#{channel} > {topic}'**
+  String notifChannelConversationLabel(String channel, String topic);
+
   /// Label for a group DM conversation notification.
   ///
   /// In en, this message translates to:
   /// **'{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}'**
   String notifGroupDmConversationLabel(String senderFullName, int numOthers);
 
+  /// Label for the list of pinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get pinnedSubscriptionsLabel;
+
+  /// Label for the list of unpinned subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned'**
+  String get unpinnedSubscriptionsLabel;
+
+  /// Text to display when there are no subscribed channels.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels found'**
+  String get noSubscriptions;
+
   /// Display name for the user themself, to show after replying in an Android notification
   ///
   /// In en, this message translates to:
   /// **'You'**
   String get notifSelfUser;
+
+  /// Display name for the user themself, to show on an emoji reaction added by the user.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get reactedEmojiSelfUser;
 
   /// Text to display when there is one user typing.
   ///
@@ -968,6 +1046,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'MOVED'**
   String get messageIsMovedLabel;
+
+  /// The list of people voted for a poll option, wrapped in parentheses.
+  ///
+  /// In en, this message translates to:
+  /// **'({voterNames})'**
+  String pollVoterNames(String voterNames);
 
   /// Text to display for a poll when the question is missing
   ///
@@ -1016,6 +1100,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Text to show at the start of a message list if there are no earlier messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier messages'**
+  String get noEarlierMessages;
+
+  /// Tooltip for button to scroll to bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to bottom'**
+  String get scrollToBottomTooltip;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

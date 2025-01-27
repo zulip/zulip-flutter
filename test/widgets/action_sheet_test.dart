@@ -574,7 +574,9 @@ void main() {
     }) {
       check(contentController).value.equals((ComposeContentController()
         ..value = valueBefore
-        ..insertPadded(quoteAndReplyPlaceholder(store, message: message))
+        ..insertPadded(
+          quoteAndReplyPlaceholder(
+            GlobalLocalizations.zulipLocalizations, store, message: message))
       ).value);
       check(contentController).validationErrors.contains(ContentValidationError.quoteAndReplyInProgress);
     }

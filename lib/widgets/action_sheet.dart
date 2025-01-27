@@ -665,7 +665,9 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // This inserts a "[Quoting…]" placeholder into the content input,
     // giving the user a form of progress feedback.
     final tag = composeBoxController.content
-      .registerQuoteAndReplyStart(PerAccountStoreWidget.of(pageContext),
+      .registerQuoteAndReplyStart(
+        zulipLocalizations,
+        PerAccountStoreWidget.of(pageContext),
         message: message,
       );
 

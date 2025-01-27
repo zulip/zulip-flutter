@@ -126,8 +126,8 @@ class _PollWidgetState extends State<PollWidget> {
                 children: [
                   Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
                   if (option.voters.isNotEmpty)
-                    // TODO(i18n): Localize parenthesis characters.
-                    Text('($voterNames)', style: textStyleVoterNames),
+                    Text(zulipLocalizations.pollVoterNames(voterNames),
+                      style: textStyleVoterNames),
                 ]))),
         ]);
     }

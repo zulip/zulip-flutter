@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'internal_link.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -136,7 +137,9 @@ String inlineLink(String visibleText, Uri? destination) {
 }
 
 /// What we show while fetching the target message's raw Markdown.
-String quoteAndReplyPlaceholder(PerAccountStore store, {
+String quoteAndReplyPlaceholder(
+  ZulipLocalizations zulipLocalizations,
+  PerAccountStore store, {
   required Message message,
 }) {
   final sender = store.users[message.senderId];
@@ -145,8 +148,8 @@ String quoteAndReplyPlaceholder(PerAccountStore store, {
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
   // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
-  return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
-    '*(loading message ${message.id})*\n'; // TODO(i18n) ?
+  return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(#1285)
+    '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
 /// Quote-and-reply syntax.
@@ -169,6 +172,6 @@ String quoteAndReply(PerAccountStore store, {
     // Could ask `mention` to omit the |<id> part unless the mention is ambiguous…
     // but that would mean a linear scan through all users, and the extra noise
     // won't much matter with the already probably-long message link in there too.
-    return '${mention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(i18n) ?
+    return '${mention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(#1285)
       '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }
