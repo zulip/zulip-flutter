@@ -115,14 +115,24 @@ class ZulipApp extends StatefulWidget {
     final newSnackBar = scaffoldMessenger!.showSnackBar(
       snackBarAnimationStyle: AnimationStyle(
         duration: const Duration(milliseconds: 200),
-        reverseDuration: const Duration(milliseconds: 50)),
+        reverseDuration: const Duration(milliseconds: 50),
+      ),
       SnackBar(
         content: Text(message),
-        action: (details == null) ? null : SnackBarAction(
-          label: localizations.snackBarDetails,
-          onPressed: () => showErrorDialog(context: navigatorKey.currentContext!,
-            title: localizations.errorDialogTitle,
-            message: details))));
+        action:
+            (details == null)
+                ? null
+                : SnackBarAction(
+                  label: localizations.snackBarDetails,
+                  onPressed:
+                      () => showErrorDialog(
+                        context: navigatorKey.currentContext!,
+                        title: localizations.errorDialogTitle,
+                        message: details,
+                      ),
+                ),
+      ),
+    );
 
     _snackBarCount++;
     newSnackBar.closed.whenComplete(() => _snackBarCount--);
@@ -153,7 +163,9 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   }
 
   Future<void> _handleInitialRoute() async {
-    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
+    final initialRouteUrl = Uri.parse(
+      WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+    );
     if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
       await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
     }
@@ -176,62 +188,202 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
-      child: Builder(builder: (context) {
-        final globalStore = GlobalStoreWidget.of(context);
-        // TODO(#524) choose initial account as last one used
-        final initialAccountId = globalStore.accounts.firstOrNull?.id;
-        return MaterialApp(
-          title: 'Zulip',
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          theme: themeData,
+      child: Builder(
+        builder: (context) {
+          final globalStore = GlobalStoreWidget.of(context);
+          // TODO(#524) choose initial account as last one used
+          final initialAccountId = globalStore.accounts.firstOrNull?.id;
+          return MaterialApp(
+            title: 'Zulip',
+            localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+            supportedLocales: ZulipLocalizations.supportedLocales,
+            theme: themeData,
 
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: widget.navigatorObservers ?? const [],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
-          },
+            navigatorKey: ZulipApp.navigatorKey,
+            navigatorObservers: widget.navigatorObservers ?? const [],
+            builder: (BuildContext context, Widget? child) {
+              if (!ZulipApp.ready.value) {
+                SchedulerBinding.instance.addPostFrameCallback(
+                  (_) => widget._declareReady(),
+                );
+              }
+              GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
+                context,
+              );
+              return child!;
+            },
 
-          // We use onGenerateInitialRoutes for the real work of specifying the
-          // initial nav state.  To do that we need [MaterialApp] to decide to
-          // build a [Navigator]... which means specifying either `home`, `routes`,
-          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-          // It never actually gets called, though: `onGenerateInitialRoutes`
-          // handles startup, and then we always push whole routes with methods
-          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-          onGenerateRoute: (_) => null,
+            // We use onGenerateInitialRoutes for the real work of specifying the
+            // initial nav state.  To do that we need [MaterialApp] to decide to
+            // build a [Navigator]... which means specifying either `home`, `routes`,
+            // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+            // It never actually gets called, though: `onGenerateInitialRoutes`
+            // handles startup, and then we always push whole routes with methods
+            // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+            onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: (_) {
-            return [
-              if (initialAccountId == null)
-                MaterialWidgetRoute(page: const ChooseAccountPage())
-              else
-                HomePage.buildRoute(accountId: initialAccountId),
-            ];
-          });
-        }));
+            onGenerateInitialRoutes: (_) {
+              return [
+                if (initialAccountId == null)
+                  MaterialWidgetRoute(page: const ChooseAccountPage())
+                else
+                  HomePage.buildRoute(accountId: initialAccountId),
+              ];
+            },
+          );
+        },
+      ),
+    );
   }
 }
 
-class ChooseAccountPage extends StatelessWidget {
+// class ChooseAccountPage extends StatelessWidget {
+//   const ChooseAccountPage({super.key});
+
+//   Widget _buildAccountItem(
+//     BuildContext context, {
+//     required int accountId,
+//     required Widget title,
+//     Widget? subtitle,
+//   }) {
+//     final colorScheme = ColorScheme.of(context);
+//     final designVariables = DesignVariables.of(context);
+//     final zulipLocalizations = ZulipLocalizations.of(context);
+//     final materialLocalizations = MaterialLocalizations.of(context);
+//     return Card(
+//       clipBehavior: Clip.hardEdge,
+//       child: ListTile(
+//         title: title,
+//         subtitle: subtitle,
+//         tileColor: colorScheme.secondaryContainer,
+//         textColor: colorScheme.onSecondaryContainer,
+//         trailing: MenuAnchor(
+//           menuChildren: [
+//             MenuItemButton(
+//               onPressed: () {
+//                 showSuggestedActionDialog(context: context,
+//                   title: zulipLocalizations.logOutConfirmationDialogTitle,
+//                   message: zulipLocalizations.logOutConfirmationDialogMessage,
+//                   // TODO(#1032) "destructive" style for action button
+//                   actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
+//                   onActionButtonPress: () {
+//                     // TODO error handling if db write fails?
+//                     logOutAccount(context, accountId);
+//                   });
+//               },
+//               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+//           ],
+//           builder: (BuildContext context, MenuController controller, Widget? child) {
+//             return IconButton(
+//               tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+//               onPressed: () {
+//                 if (controller.isOpen) {
+//                   controller.close();
+//                 } else {
+//                   controller.open();
+//                 }
+//               },
+//               icon: Icon(Icons.adaptive.more, color: designVariables.icon));
+//           }),
+//         // The default trailing padding with M3 is 24px. Decrease by 12 because
+//         // IconButton (the "…" button) comes with 12px padding on all sides.
+//         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
+//         onTap: () => HomePage.navigate(context, accountId: accountId)));
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final colorScheme = ColorScheme.of(context);
+//     final zulipLocalizations = ZulipLocalizations.of(context);
+//     assert(!PerAccountStoreWidget.debugExistsOf(context));
+//     final globalStore = GlobalStoreWidget.of(context);
+
+//     // Borrowed from [AppBar.build].
+//     // See documentation on [ModalRoute.impliesAppBarDismissal]:
+//     // > Whether an [AppBar] in the route should automatically add a back button or
+//     // > close button.
+//     final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
+
+//     return MenuButtonTheme(
+//       data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
+//         backgroundColor: colorScheme.secondaryContainer,
+//         foregroundColor: colorScheme.onSecondaryContainer)),
+//       child: Scaffold(
+//         appBar: AppBar(
+//           titleSpacing: hasBackButton ? null : 16,
+//           title: Text(zulipLocalizations.chooseAccountPageTitle),
+//           actions: const [ChooseAccountPageOverflowButton()]),
+//         body: SafeArea(
+//           minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+//           child: Center(
+//             child: ConstrainedBox(
+//               constraints: const BoxConstraints(maxWidth: 400),
+//               child: Column(mainAxisSize: MainAxisSize.min, children: [
+//                 Flexible(child: SingleChildScrollView(
+//                   padding: const EdgeInsets.only(top: 8),
+//                   child: Column(mainAxisSize: MainAxisSize.min, children: [
+//                     for (final (:accountId, :account) in globalStore.accountEntries)
+//                       _buildAccountItem(context,
+//                         accountId: accountId,
+//                         title: Text(account.realmUrl.toString()),
+//                         subtitle: Text(account.email)),
+//                   ]))),
+//                 const SizedBox(height: 12),
+//                 ElevatedButton(
+//                   onPressed: () => Navigator.push(context,
+//                     AddAccountPage.buildRoute()),
+//                   child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
+//               ]))))));
+//   }
+// }
+
+class ChooseAccountPage extends StatefulWidget {
   const ChooseAccountPage({super.key});
+
+  @override
+  State<ChooseAccountPage> createState() => _ChooseAccountPageState();
+}
+
+class _ChooseAccountPageState extends State<ChooseAccountPage> {
+  late List<Map<String, dynamic>> accounts;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Initialize the accounts list using the GlobalStoreWidget
+    final globalStore = GlobalStoreWidget.of(context);
+    accounts =
+        globalStore.accountEntries.map((entry) {
+          return {
+            'accountId': entry.accountId,
+            'title': entry.account.realmUrl,
+            'subtitle': entry.account.email,
+          };
+        }).toList();
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex -= 1;
+      final account = accounts.removeAt(oldIndex);
+      accounts.insert(newIndex, account);
+    });
+  }
 
   Widget _buildAccountItem(
     BuildContext context, {
     required int accountId,
     required Widget title,
     Widget? subtitle,
+    required Key key,
   }) {
     final colorScheme = ColorScheme.of(context);
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final materialLocalizations = MaterialLocalizations.of(context);
     return Card(
+      key: key,
       clipBehavior: Clip.hardEdge,
       child: ListTile(
         title: title,
@@ -242,19 +394,27 @@ class ChooseAccountPage extends StatelessWidget {
           menuChildren: [
             MenuItemButton(
               onPressed: () {
-                showSuggestedActionDialog(context: context,
+                showSuggestedActionDialog(
+                  context: context,
                   title: zulipLocalizations.logOutConfirmationDialogTitle,
                   message: zulipLocalizations.logOutConfirmationDialogMessage,
                   // TODO(#1032) "destructive" style for action button
-                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
+                  actionButtonText:
+                      zulipLocalizations.logOutConfirmationDialogConfirmButton,
                   onActionButtonPress: () {
                     // TODO error handling if db write fails?
                     logOutAccount(context, accountId);
-                  });
+                  },
+                );
               },
-              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+              child: Text(zulipLocalizations.chooseAccountPageLogOutButton),
+            ),
           ],
-          builder: (BuildContext context, MenuController controller, Widget? child) {
+          builder: (
+            BuildContext context,
+            MenuController controller,
+            Widget? child,
+          ) {
             return IconButton(
               tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
               onPressed: () {
@@ -264,12 +424,16 @@ class ChooseAccountPage extends StatelessWidget {
                   controller.open();
                 }
               },
-              icon: Icon(Icons.adaptive.more, color: designVariables.icon));
-          }),
+              icon: Icon(Icons.adaptive.more, color: designVariables.icon),
+            );
+          },
+        ),
         // The default trailing padding with M3 is 24px. Decrease by 12 because
         // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-        onTap: () => HomePage.navigate(context, accountId: accountId)));
+        onTap: () => HomePage.navigate(context, accountId: accountId),
+      ),
+    );
   }
 
   @override
@@ -277,44 +441,73 @@ class ChooseAccountPage extends StatelessWidget {
     final colorScheme = ColorScheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
-    final globalStore = GlobalStoreWidget.of(context);
+    // final globalStore = GlobalStoreWidget.of(context);
 
     // Borrowed from [AppBar.build].
     // See documentation on [ModalRoute.impliesAppBarDismissal]:
     // > Whether an [AppBar] in the route should automatically add a back button or
     // > close button.
-    final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
+    final hasBackButton =
+        ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
 
     return MenuButtonTheme(
-      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
-        backgroundColor: colorScheme.secondaryContainer,
-        foregroundColor: colorScheme.onSecondaryContainer)),
+      data: MenuButtonThemeData(
+        style: MenuItemButton.styleFrom(
+          backgroundColor: colorScheme.secondaryContainer,
+          foregroundColor: colorScheme.onSecondaryContainer,
+        ),
+      ),
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: hasBackButton ? null : 16,
           title: Text(zulipLocalizations.chooseAccountPageTitle),
-          actions: const [ChooseAccountPageOverflowButton()]),
+          actions: const [ChooseAccountPageOverflowButton()],
+        ),
         body: SafeArea(
           minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Flexible(child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    for (final (:accountId, :account) in globalStore.accountEntries)
-                      _buildAccountItem(context,
-                        accountId: accountId,
-                        title: Text(account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
-                  ]))),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(context,
-                    AddAccountPage.buildRoute()),
-                  child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
-              ]))))));
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: ReorderableListView(
+                      onReorder: _onReorder,
+                      children: [
+                        for (final account in accounts)
+                          _buildAccountItem(
+                            context,
+                            accountId: int.parse(
+                              account['accountId'].toString(),
+                            ),
+                            title: Text(account['title'].toString()),
+                            subtitle: Text(account['subtitle'].toString()),
+                            key: ValueKey(
+                              account['accountId'],
+                            ), // Ensure a unique key
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed:
+                        () => Navigator.push(
+                          context,
+                          AddAccountPage.buildRoute(),
+                        ),
+                    child: Text(
+                      zulipLocalizations.chooseAccountButtonAddAnAccount,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -330,9 +523,14 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
           onPressed: () {
             Navigator.push(context, AboutZulipPage.buildRoute(context));
           },
-          child: const Text('About Zulip')), // TODO(i18n)
+          child: const Text('About Zulip'),
+        ), // TODO(i18n)
       ],
-      builder: (BuildContext context, MenuController controller, Widget? child) {
+      builder: (
+        BuildContext context,
+        MenuController controller,
+        Widget? child,
+      ) {
         return IconButton(
           tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
           onPressed: () {
@@ -342,7 +540,9 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
               controller.open();
             }
           },
-          icon: Icon(Icons.adaptive.more));
-      });
+          icon: Icon(Icons.adaptive.more),
+        );
+      },
+    );
   }
 }
