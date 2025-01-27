@@ -169,27 +169,17 @@ class MessageStoreImpl with MessageStore {
   }
 
   void _handleUpdateMessageEventMove(UpdateMessageEvent event) {
-    // The interaction between the fields of these events are a bit tricky.
-    // For reference, see: https://zulip.com/api/get-events#update_message
-
-    final origStreamId = event.origStreamId;
-    final newStreamId = event.newStreamId ?? origStreamId;
-    final origTopic = event.origTopic;
-    final newTopic = event.newTopic ?? origTopic;
-    final propagateMode = event.propagateMode;
-
-    if (origTopic == newTopic && origStreamId == newStreamId) {
-      if (propagateMode != null) {
-        throw FormatException(
-          'UpdateMessageEvent: incoherent message-move fields; '
-          'propagate_mode present but no new channel or topic');
-      }
+    final messageMove = event.moveData;
+    if (messageMove == null) {
       // There was no move.
       return;
     }
 
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = messageMove;
+
     final wasResolveOrUnresolve = origStreamId == newStreamId
-      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic!, newTopic!);
+      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic);
 
     for (final messageId in event.messageIds) {
       final message = messages[messageId];
@@ -201,7 +191,7 @@ class MessageStoreImpl with MessageStore {
       }
 
       if (origStreamId != newStreamId) {
-        message.streamId = newStreamId!;
+        message.streamId = newStreamId;
         // See [StreamMessage.displayRecipient] on why the invalidation is
         // needed.
         message.displayRecipient = null;
@@ -218,14 +208,7 @@ class MessageStoreImpl with MessageStore {
     }
 
     for (final view in _messageListViews) {
-      view.messagesMoved(
-        origStreamId: origStreamId!,
-        newStreamId: newStreamId!,
-        origTopic: origTopic!,
-        newTopic: newTopic!,
-        messageIds: event.messageIds,
-        propagateMode: propagateMode!,
-      );
+      view.messagesMoved(messageMove: messageMove, messageIds: event.messageIds);
     }
   }
 
