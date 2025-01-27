@@ -701,6 +701,51 @@ class MessageEvent extends Event {
   }
 }
 
+/// Data structure representing a message move.
+class UpdateMessageMoveData {
+  final int? origStreamId;
+  final int? newStreamId;
+
+  final PropagateMode? propagateMode;
+
+  final TopicName? origTopic;
+  final TopicName? newTopic;
+
+  UpdateMessageMoveData({
+    required this.origStreamId,
+    required this.newStreamId,
+    required this.propagateMode,
+    required this.origTopic,
+    required this.newTopic,
+  });
+
+  /// Extract [UpdateMessageMoveData] from the JSON object for a [UpdateMessageEvent].
+  ///
+  /// Throws if the data is malformed in other unexpected ways.
+  factory UpdateMessageMoveData.fromJson(Object? json) {
+    json as Map<String, Object?>;
+    final origStreamId = (json['stream_id'] as num?)?.toInt();
+    final newStreamId = (json['new_stream_id'] as num?)?.toInt();
+    final propagateModeString = json['propagate_mode'] as String?;
+    final propagateMode = propagateModeString == null ? null
+      : PropagateMode.fromRawString(propagateModeString);
+    final origTopic = json['orig_subject'] == null ? null
+      : TopicName.fromJson(json['orig_subject'] as String);
+    final newTopic = json['subject'] == null ? null
+      : TopicName.fromJson(json['subject'] as String);
+
+    return UpdateMessageMoveData(
+      origStreamId: origStreamId,
+      newStreamId: newStreamId,
+      propagateMode: propagateMode,
+      origTopic: origTopic,
+      newTopic: newTopic,
+    );
+  }
+
+  Object? toJson() => null;
+}
+
 /// A Zulip event of type `update_message`: https://zulip.com/api/get-events#update_message
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageEvent extends Event {
@@ -718,16 +763,8 @@ class UpdateMessageEvent extends Event {
 
   // final String? streamName; // ignore
 
-  @JsonKey(name: 'stream_id')
-  final int? origStreamId;
-  final int? newStreamId;
-
-  final PropagateMode? propagateMode;
-
-  @JsonKey(name: 'orig_subject')
-  final TopicName? origTopic;
-  @JsonKey(name: 'subject')
-  final TopicName? newTopic;
+  @JsonKey(readValue: _readMoveData)
+  final UpdateMessageMoveData moveData;
 
   // final List<TopicLink> topicLinks; // TODO handle
 
@@ -747,17 +784,18 @@ class UpdateMessageEvent extends Event {
     required this.messageIds,
     required this.flags,
     required this.editTimestamp,
-    required this.origStreamId,
-    required this.newStreamId,
-    required this.propagateMode,
-    required this.origTopic,
-    required this.newTopic,
+    required this.moveData,
     required this.origContent,
     required this.origRenderedContent,
     required this.content,
     required this.renderedContent,
     required this.isMeMessage,
   });
+
+  static Object? _readMoveData(Map<Object?, Object?> json, String key) {
+    // Parsing [UpdateMessageMoveData] requires `json`, not the default `json[key]`.
+    return json as Object?;
+  }
 
   factory UpdateMessageEvent.fromJson(Map<String, dynamic> json) =>
     _$UpdateMessageEventFromJson(json);

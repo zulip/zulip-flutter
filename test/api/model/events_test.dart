@@ -106,7 +106,7 @@ void main() {
       check(Event.fromJson({ ...baseJson,
         'stream_id': 1,
         'new_stream_id': 2,
-      }) as UpdateMessageEvent)
+      }) as UpdateMessageEvent).moveData.isNotNull()
         ..origStreamId.equals(1)
         ..newStreamId.equals(2);
     });
@@ -115,7 +115,7 @@ void main() {
       check(Event.fromJson({ ...baseJson,
         'orig_subject': 'foo',
         'subject': 'bar',
-      }) as UpdateMessageEvent)
+      }) as UpdateMessageEvent).moveData.isNotNull()
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
     });

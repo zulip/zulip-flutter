@@ -164,11 +164,12 @@ class MessageStoreImpl with MessageStore {
     // The interaction between the fields of these events are a bit tricky.
     // For reference, see: https://zulip.com/api/get-events#update_message
 
-    final origStreamId = event.origStreamId;
-    final newStreamId = event.newStreamId; // null if topic-only move
-    final origTopic = event.origTopic;
-    final newTopic = event.newTopic;
-    final propagateMode = event.propagateMode;
+    final moveData = event.moveData;
+    final origStreamId = moveData.origStreamId;
+    final newStreamId = moveData.newStreamId; // null if topic-only move
+    final origTopic = moveData.origTopic;
+    final newTopic = moveData.newTopic;
+    final propagateMode = moveData.propagateMode;
 
     if (origTopic == null) {
       // There was no move.
