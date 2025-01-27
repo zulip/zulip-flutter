@@ -101,6 +101,21 @@ void main() {
       'edit_timestamp': 1718741351,
     };
 
+    test('smoke moveData', () {
+      check(Event.fromJson({ ...baseJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': 'change_all',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.equals(2)
+        ..origTopic.equals(TopicName('foo'))
+        ..newTopic.equals(TopicName('bar'))
+        ..propagateMode.equals(PropagateMode.changeAll);
+    });
+
     test('stream_id -> origStreamId, subject = orig_subject', () {
       check(Event.fromJson({ ...baseJson,
         'stream_id': 1,
@@ -108,7 +123,7 @@ void main() {
         'orig_subject': 'foo',
         'subject': null,
         'propagate_mode': 'change_all',
-      })).isA<UpdateMessageEvent>()
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
         ..origStreamId.equals(1)
         ..newStreamId.equals(2)
         ..origTopic.equals(TopicName('foo'))
@@ -122,11 +137,25 @@ void main() {
         'orig_subject': 'foo',
         'subject': 'bar',
         'propagate_mode': 'change_all',
-      })).isA<UpdateMessageEvent>()
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
         ..origStreamId.equals(1)
         ..newStreamId.isNull()
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
+    });
+
+    test('no message move', () {
+      check(Event.fromJson({...baseJson,
+        'stream_id': 1,
+        'orig_content': 'foo',
+        'orig_rendered_content': 'foo',
+        'content': 'bar',
+        'rendered_content': 'bar',
+      })).isA<UpdateMessageEvent>().moveData.isNotNull()
+        ..origStreamId.equals(1)
+        ..newStreamId.isNull()
+        ..origTopic.isNull()
+        ..newTopic.isNull();
     });
   });
 
