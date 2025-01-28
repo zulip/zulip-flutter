@@ -304,6 +304,7 @@ class MessageStoreImpl with MessageStore {
 }
 
 /// Data structure representing a message move.
+// TODO: cache it on [UpdateMessageEvent] if needed
 class UpdateMessageMoveData {
   final bool wasChannelMoved;
   final int origStreamId;
