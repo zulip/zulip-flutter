@@ -103,6 +103,56 @@ void main() {
       }
     }
   }
+
+  testWidgets('sticky headers: propagate scrollOffsetCorrection properly', (tester) async {
+    Widget page(Widget Function(BuildContext, int) itemBuilder) {
+      return Directionality(textDirection: TextDirection.ltr,
+        child: StickyHeaderListView.builder(
+          cacheExtent: 0,
+          itemCount: 10, itemBuilder: itemBuilder));
+    }
+
+    await tester.pumpWidget(page((context, i) =>
+      StickyHeaderItem(
+        allowOverflow: true,
+        header: _Header(i, height: 40),
+        child: _Item(i, height: 200))));
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 400));
+
+    // Scroll down (dragging up) to get item 0 off screen.
+    await tester.drag(find.text("Item 2"), Offset(0, -300));
+    await tester.pump();
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 100));
+
+    // Make the off-screen item 0 taller, so scrolling back up will underflow.
+    await tester.pumpWidget(page((context, i) =>
+      StickyHeaderItem(
+        allowOverflow: true,
+        header: _Header(i, height: 40),
+        child: _Item(i, height: i == 0 ? 400 : 200))));
+    // Confirm the change in item 0's height hasn't already been applied,
+    // as it would if the item were within the viewport or its cache area.
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 100));
+
+    // Scroll back up (dragging down).  This will cause a correction as the list
+    // discovers that moving 300px up doesn't reach the start anymore.
+    await tester.drag(find.text("Item 2"), Offset(0, 300));
+
+    // As a bonus, mark one of the already-visible items as needing layout.
+    // (In a real app, this would typically happen because some state changed.)
+    tester.firstElement(find.widgetWithText(SizedBox, "Item 2"))
+      .renderObject!.markNeedsLayout();
+
+    // If scrollOffsetCorrection doesn't get propagated to the viewport, this
+    // pump will record an exception (causing the test to fail at the end)
+    // because the marked item won't get laid out.
+    await tester.pump();
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 400));
+
+    // Moreover if scrollOffsetCorrection doesn't get propagated, this item
+    // will get placed at zero rather than properly extend up off screen.
+    check(tester.getTopLeft(find.text("Item 0"))).equals(Offset(0, -200));
+  });
 }
 
 Future<void> _checkSequence(
