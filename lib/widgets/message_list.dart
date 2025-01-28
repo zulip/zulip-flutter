@@ -884,27 +884,12 @@ class RecipientHeader extends StatelessWidget {
   final Message message;
   final Narrow narrow;
 
-  static bool _containsDifferentChannels(Narrow narrow) {
-    switch (narrow) {
-      case CombinedFeedNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
-        return true;
-
-      case ChannelNarrow():
-      case TopicNarrow():
-      case DmNarrow():
-        return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: _containsDifferentChannels(narrow)),
-      DmMessage() => DmRecipientHeader(message: message),
+      StreamMessage() => StreamMessageRecipientHeader(message: message, narrow: narrow),
+      DmMessage() => DmRecipientHeader(message: message, narrow: narrow),
     };
   }
 }
@@ -1018,11 +1003,25 @@ class StreamMessageRecipientHeader extends StatelessWidget {
   const StreamMessageRecipientHeader({
     super.key,
     required this.message,
-    required this.showStream,
+    required this.narrow,
   });
 
   final StreamMessage message;
-  final bool showStream;
+  final Narrow narrow;
+
+  static bool _containsDifferentChannels(Narrow narrow) {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        return true;
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1049,7 +1048,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     }
 
     final Widget streamWidget;
-    if (!showStream) {
+    if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
       final stream = store.streams[message.streamId];
@@ -1109,9 +1108,14 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         ]));
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: TopicNarrow.ofMessage(message))),
+      // When already in a topic narrow, disable tap interaction that would just
+      // push a MessageListPage for the same topic narrow.
+      // TODO(#1039) simplify by removing topic-narrow condition if we remove
+      //   recipient headers in topic narrows
+      onTap: narrow is TopicNarrow ? null
+        : () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: TopicNarrow.ofMessage(message))),
       onLongPress: () => showTopicActionSheet(context,
         channelId: message.streamId, topic: topic),
       child: ColoredBox(
@@ -1130,9 +1134,14 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 }
 
 class DmRecipientHeader extends StatelessWidget {
-  const DmRecipientHeader({super.key, required this.message});
+  const DmRecipientHeader({
+    super.key,
+    required this.message,
+    required this.narrow,
+  });
 
   final DmMessage message;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -1153,9 +1162,14 @@ class DmRecipientHeader extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+      // When already in a DM narrow, disable tap interaction that would just
+      // push a MessageListPage for the same DM narrow.
+      // TODO(#1244) simplify by removing DM-narrow condition if we remove
+      //   recipient headers in DM narrows
+      onTap: narrow is DmNarrow ? null
+        : () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
