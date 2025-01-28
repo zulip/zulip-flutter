@@ -1037,6 +1037,21 @@ void main() {
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
     });
 
+    testWidgets('account queried by realmUrl origin component', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(
+        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
+        eg.initialSnapshot());
+      await prepare(tester);
+
+      await checkOpenNotification(tester,
+        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example/')),
+        eg.streamMessage());
+      await checkOpenNotification(tester,
+        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
+        eg.streamMessage());
+    });
+
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
       await openNotification(tester, eg.selfAccount, eg.streamMessage());
