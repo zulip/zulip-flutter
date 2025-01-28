@@ -467,8 +467,9 @@ class NotificationDisplayManager {
     assert(url.scheme == 'zulip' && url.host == 'notification');
     final payload = NotificationOpenPayload.parseUrl(url);
 
-    final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == payload.realmUrl && account.userId == payload.userId);
+    final account = globalStore.accounts.firstWhereOrNull(
+      (account) => account.realmUrl.origin == payload.realmUrl.origin
+                && account.userId == payload.userId);
     if (account == null) return null;
 
     final route = MessageListPage.buildRoute(
