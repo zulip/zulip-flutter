@@ -469,6 +469,128 @@ void main() {
         }
       }
     });
+
+    group('moves', () {
+      final origChannel = eg.stream();
+      const origTopic = 'origTopic';
+      const newTopic = 'newTopic';
+
+      group('move read messages', () {
+        final readMessages = List<StreamMessage>.generate(10,
+          (_) => eg.streamMessage(
+            stream: origChannel, topic: origTopic, flags: [MessageFlag.read]));
+
+        test('to new topic', () {
+          prepare();
+          fillWithMessages(readMessages);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: readMessages,
+            newTopicStr: newTopic));
+          checkNotNotified();
+          checkMatchesMessages([]);
+        });
+
+        test('from topic with unreads', () {
+          prepare();
+          final unreadMessage = eg.streamMessage(
+            stream: origChannel, topic: origTopic);
+          fillWithMessages([...readMessages, unreadMessage]);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: readMessages,
+            newTopicStr: newTopic));
+          checkNotNotified();
+          checkMatchesMessages([unreadMessage]);
+        });
+
+        test('to topic with unreads', () {
+          prepare();
+          final unreadMessage = eg.streamMessage(
+            stream: origChannel, topic: newTopic);
+          fillWithMessages([...readMessages, unreadMessage]);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: readMessages,
+            newTopicStr: newTopic,
+          ));
+          checkNotNotified();
+          checkMatchesMessages([unreadMessage]);
+        });
+      });
+
+      group('move unread messages', () {
+        final unreadMessages = List<StreamMessage>.generate(10,
+          (_) => eg.streamMessage(stream: origChannel, topic: origTopic));
+
+        test('to new topic', () {
+          prepare();
+          fillWithMessages(unreadMessages);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: unreadMessages,
+            newTopicStr: newTopic));
+          checkNotifiedOnce();
+          checkMatchesMessages([
+            for (final message in unreadMessages)
+              Message.fromJson(message.toJson()..['subject'] = newTopic),
+          ]);
+        });
+
+        test('from topic with unreads', () {
+          prepare();
+          final unreadMessage = eg.streamMessage(
+            stream: origChannel, topic: origTopic);
+          fillWithMessages([...unreadMessages, unreadMessage]);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: unreadMessages,
+            newTopicStr: newTopic));
+          checkNotifiedOnce();
+          checkMatchesMessages([
+            for (final message in unreadMessages)
+              Message.fromJson(message.toJson()..['subject'] = newTopic),
+            unreadMessage,
+          ]);
+        });
+
+        test('to topic with unreads', () {
+          prepare();
+          final unreadMessage = eg.streamMessage(
+            stream: origChannel, topic: newTopic);
+          fillWithMessages([...unreadMessages, unreadMessage]);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: unreadMessages,
+            newTopicStr: newTopic));
+          checkNotifiedOnce();
+          checkMatchesMessages([
+            for (final message in unreadMessages)
+              Message.fromJson(message.toJson()..['subject'] = newTopic),
+            unreadMessage,
+          ]);
+        });
+
+        test('to new channel', () {
+          final message = eg.streamMessage(
+            id: 1, stream: origChannel, topic: origTopic);
+          final newChannel = eg.stream();
+          prepare();
+          fillWithMessages([message]);
+
+          model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+            origMessages: [message],
+            newStreamId: newChannel.streamId,
+            newTopicStr: newTopic));
+          checkNotifiedOnce();
+          checkMatchesMessages([
+            Message.fromJson(message.toJson()
+              ..['stream_id'] = newChannel.streamId
+              ..['subject'] = newTopic),
+          ]);
+        });
+      });
+    });
   });
 
 

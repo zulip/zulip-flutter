@@ -296,11 +296,36 @@ class Unreads extends ChangeNotifier {
         madeAnyUpdate |= mentions.add(messageId);
     }
 
-    // TODO(#901) handle moved messages
+    madeAnyUpdate |= _handleMessageMove(event);
 
     if (madeAnyUpdate) {
       notifyListeners();
     }
+  }
+
+  bool _handleMessageMove(UpdateMessageEvent event) {
+    final messageMove = event.moveData;
+    if (messageMove == null) {
+      // No moved messages or malformed event.
+      return false;
+    }
+
+    final topics = streams[messageMove.origStreamId];
+    if (topics == null || topics[messageMove.origTopic] == null) {
+      // No known unreads affected by move; nothing to do.
+      return false;
+    }
+
+    final messageToMoveIds = _removeAllInStreamTopic(
+      event.messageIds.toSet(),
+      messageMove.origStreamId, messageMove.origTopic);
+    if (messageToMoveIds.isEmpty) {
+      return false;
+    }
+    _addAllInStreamTopic(
+      messageToMoveIds..sort(),
+      messageMove.newStreamId, messageMove.newTopic);
+    return true;
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
