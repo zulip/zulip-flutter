@@ -469,6 +469,175 @@ void main() {
         }
       }
     });
+
+    group('moves', () {
+      final origChannel = eg.stream();
+      const origTopic = 'origTopic';
+      const newTopic = 'newTopic';
+
+      late List<StreamMessage> readMessages;
+      late List<StreamMessage> unreadMessages;
+
+      Future<void> prepareStore() async {
+        prepare();
+        await channelStore.addStream(origChannel);
+        await channelStore.addSubscription(eg.subscription(origChannel));
+        readMessages  = List<StreamMessage>.generate(10,
+          (_) => eg.streamMessage(stream: origChannel, topic: origTopic,
+                   flags: [MessageFlag.read]));
+        unreadMessages = List<StreamMessage>.generate(10,
+          (_) => eg.streamMessage(stream: origChannel, topic: origTopic));
+      }
+
+      List<StreamMessage> copyMessagesWith(Iterable<StreamMessage> messages, {
+        ZulipStream? newChannel,
+        String? newTopic,
+      }) {
+        assert(newChannel != null || newTopic != null);
+        return messages.map((message) => StreamMessage.fromJson(
+          message.toJson()
+            ..['stream_id'] = newChannel?.streamId ?? message.streamId
+            ..['subject'] = newTopic ?? message.topic
+        )).toList();
+      }
+
+      test('moved messages = unread messages', () async {
+        await prepareStore();
+        final newChannel = eg.stream();
+        await channelStore.addStream(newChannel);
+        await channelStore.addSubscription(eg.subscription(newChannel));
+        fillWithMessages(unreadMessages);
+        final originalMessageIds =
+          model.streams[origChannel.streamId]![TopicName(origTopic)]!;
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: unreadMessages,
+          newStreamId: newChannel.streamId,
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages(copyMessagesWith(unreadMessages,
+          newChannel: newChannel, newTopic: newTopic));
+        final newMessageIds =
+          model.streams[newChannel.streamId]![TopicName(newTopic)]!;
+        // Check we successfully avoided making a copy of the list.
+        check(originalMessageIds).identicalTo(newMessageIds);
+      });
+
+      test('moved messages ⊂ read messages', () async {
+        await prepareStore();
+        final messagesToMove = readMessages.take(2).toList();
+        fillWithMessages(unreadMessages + readMessages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: messagesToMove,
+          newTopicStr: newTopic));
+        checkNotNotified();
+        checkMatchesMessages(unreadMessages);
+      });
+
+      test('moved messages ⊂ unread messages', () async {
+        await prepareStore();
+        final messagesToMove = unreadMessages.take(2).toList();
+        fillWithMessages(unreadMessages + readMessages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: messagesToMove,
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          ...copyMessagesWith(messagesToMove, newTopic: newTopic),
+          ...unreadMessages.skip(2),
+        ]);
+      });
+
+      test('moved messages ∩ unread messages ≠ Ø, moved messages ∩ read messages ≠ Ø, moved messages ⊅ unread messages', () async {
+        await prepareStore();
+        final messagesToMove = [unreadMessages.first, readMessages.first];
+        fillWithMessages(unreadMessages + readMessages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: messagesToMove,
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          ...copyMessagesWith(unreadMessages.take(1), newTopic: newTopic),
+          ...unreadMessages.skip(1),
+        ]);
+      });
+
+      test('moved messages ⊃ unread messages', () async {
+        await prepareStore();
+        final messagesToMove = unreadMessages + readMessages.take(2).toList();
+        fillWithMessages(unreadMessages + readMessages);
+        final originalMessageIds =
+          model.streams[origChannel.streamId]![TopicName(origTopic)]!;
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: messagesToMove,
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages(copyMessagesWith(unreadMessages, newTopic: newTopic));
+        final newMessageIds =
+          model.streams[origChannel.streamId]![TopicName(newTopic)]!;
+        // Check we successfully avoided making a copy of the list.
+        check(originalMessageIds).identicalTo(newMessageIds);
+      });
+
+      test('moving to unsubscribed channels drops the unreads', () async {
+        await prepareStore();
+        final unsubscribedChannel = eg.stream();
+        await channelStore.addStream(unsubscribedChannel);
+        assert(!channelStore.subscriptions.containsKey(
+          unsubscribedChannel.streamId));
+        fillWithMessages(unreadMessages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: unreadMessages,
+          newStreamId: unsubscribedChannel.streamId));
+        checkNotifiedOnce();
+        checkMatchesMessages([]);
+      });
+
+      test('tolerates unsorted messages', () async {
+        await prepareStore();
+        final unreadMessages = List.generate(10, (i) =>
+          eg.streamMessage(
+            id: 1000 - i, stream: origChannel, topic: origTopic));
+        fillWithMessages(unreadMessages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: unreadMessages,
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages(copyMessagesWith(unreadMessages, newTopic: newTopic));
+      });
+
+      test('tolerates unreads unknown to the model', () async {
+        await prepareStore();
+        fillWithMessages(unreadMessages);
+
+        final unknownChannel = eg.stream();
+        assert(!channelStore.streams.containsKey(unknownChannel.streamId));
+        final unknownUnreadMessage = eg.streamMessage(
+          stream: unknownChannel, topic: origTopic);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [unknownUnreadMessage],
+          newTopicStr: newTopic));
+        checkNotNotified();
+        checkMatchesMessages(unreadMessages);
+      });
+
+      test('message edit but no move', () async {
+        await prepareStore();
+        fillWithMessages(unreadMessages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEditEvent(
+          unreadMessages.first));
+        checkNotNotified();
+        checkMatchesMessages(unreadMessages);
+      });
+    });
   });
 
 

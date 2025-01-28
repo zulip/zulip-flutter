@@ -259,10 +259,8 @@ class Unreads extends ChangeNotifier {
       (f) => f == MessageFlag.mentioned || f == MessageFlag.wildcardMentioned,
     );
 
-    // We assume this event can't signal a change in a message's 'read' flag.
-    // TODO can it actually though, when it's about messages being moved into an
-    //   unsubscribed stream?
-    //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/1639957
+    // We expect the event's 'read' flag to be boring,
+    // matching the message's local unread state.
     final bool isRead = event.flags.contains(MessageFlag.read);
     assert(() {
       final isUnreadLocally = isUnread(messageId);
@@ -271,6 +269,17 @@ class Unreads extends ChangeNotifier {
       // Unread state unknown because of [oldUnreadsMissing].
       // We were going to check something but can't; shrug.
       if (isUnreadLocally == null) return true;
+
+      final newChannelId = event.moveData?.newStreamId;
+      if (newChannelId != null && !channelStore.subscriptions.containsKey(newChannelId)) {
+        // When unread messages are moved to an unsubscribed channel, the server
+        // marks them as read without sending a mark-as-read event. Clients are
+        // asked to special-case this by marking them as read, which we do in
+        // _handleMessageMove. That contract is clear enough and doesn't involve
+        // this event's 'read' flag, so don't bother logging about the flag;
+        // its behavior seems like an implementation detail that could change.
+        return true;
+      }
 
       if (isUnreadLocally != isUnreadInEvent) {
         // If this happens, then either:
@@ -296,11 +305,37 @@ class Unreads extends ChangeNotifier {
         madeAnyUpdate |= mentions.add(messageId);
     }
 
-    // TODO(#901) handle moved messages
+    madeAnyUpdate |= _handleMessageMove(event);
 
     if (madeAnyUpdate) {
       notifyListeners();
     }
+  }
+
+  bool _handleMessageMove(UpdateMessageEvent event) {
+    if (event.moveData == null) {
+      // No moved messages.
+      return false;
+    }
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = event.moveData!;
+
+    final messageToMoveIds = _popAllInStreamTopic(
+      event.messageIds.toSet(), origStreamId, origTopic)?..sort();
+
+    if (messageToMoveIds == null || messageToMoveIds.isEmpty) return false;
+    assert(event.messageIds.toSet().containsAll(messageToMoveIds));
+
+    if (!channelStore.subscriptions.containsKey(newStreamId)) {
+      // Unreads moved to an unsubscribed channel; just drop them.
+      // See also:
+      //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/2101926
+      return true;
+    }
+
+    _addAllInStreamTopic(messageToMoveIds, newStreamId, newTopic);
+
+    return true;
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
@@ -504,6 +539,49 @@ class Unreads extends ChangeNotifier {
         streams.remove(streamId);
       }
     }
+  }
+
+  /// Remove unread stream messages contained in `incomingMessageIds`, with
+  /// the matching `streamId` and `topic`.
+  ///
+  /// Returns the removed message IDs, or `null` if no messages are affected.
+  ///
+  /// Use [_removeAllInStreamTopic] if the removed message IDs are not needed.
+  // Part of this is adapted from [ListBase.removeWhere].
+  QueueList<int>? _popAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
+    final topics = streams[streamId];
+    if (topics == null) return null;
+    final messageIds = topics[topic];
+    if (messageIds == null) return null;
+
+    final retainedMessageIds = messageIds.whereNot(
+      (id) => incomingMessageIds.contains(id)).toList();
+
+    if (retainedMessageIds.isEmpty) {
+      // This is an optimization for the case when all messages in the
+      // conversation are removed, which avoids making a copy of `messageIds`
+      // unnecessarily.
+      topics.remove(topic);
+      if (topics.isEmpty) {
+        streams.remove(streamId);
+      }
+      return messageIds;
+    }
+
+    QueueList<int>? poppedMessageIds;
+    if (retainedMessageIds.length != messageIds.length) {
+      poppedMessageIds = QueueList.from(
+        messageIds.where((id) => incomingMessageIds.contains(id)));
+      messageIds.setRange(0, retainedMessageIds.length, retainedMessageIds);
+      messageIds.length = retainedMessageIds.length;
+    }
+    if (messageIds.isEmpty) {
+      topics.remove(topic);
+      if (topics.isEmpty) {
+        streams.remove(streamId);
+      }
+    }
+    return poppedMessageIds;
   }
 
   // TODO use efficient model lookups
