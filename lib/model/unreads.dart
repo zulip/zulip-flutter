@@ -488,20 +488,28 @@ class Unreads extends ChangeNotifier {
     }
   }
 
-  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
+  QueueList<int> _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
     final topics = streams[streamId];
-    if (topics == null) return;
+    if (topics == null) return QueueList();
     final messageIds = topics[topic];
-    if (messageIds == null) return;
+    if (messageIds == null) return QueueList();
 
     // ([QueueList] doesn't have a `removeAll`)
-    messageIds.removeWhere((id) => incomingMessageIds.contains(id));
+    final removedMessageIds = QueueList<int>();
+    messageIds.removeWhere((id) {
+      if (incomingMessageIds.contains(id)) {
+        removedMessageIds.add(id);
+        return true;
+      }
+      return false;
+    });
     if (messageIds.isEmpty) {
       topics.remove(topic);
       if (topics.isEmpty) {
         streams.remove(streamId);
       }
     }
+    return removedMessageIds;
   }
 
   // TODO use efficient model lookups
