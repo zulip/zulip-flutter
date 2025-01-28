@@ -259,10 +259,8 @@ class Unreads extends ChangeNotifier {
       (f) => f == MessageFlag.mentioned || f == MessageFlag.wildcardMentioned,
     );
 
-    // We assume this event can't signal a change in a message's 'read' flag.
-    // TODO can it actually though, when it's about messages being moved into an
-    //   unsubscribed stream?
-    //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/1639957
+    // We expect the event's 'read' flag to be boring,
+    // matching the message's local unread state.
     final bool isRead = event.flags.contains(MessageFlag.read);
     assert(() {
       final isUnreadLocally = isUnread(messageId);
@@ -271,6 +269,17 @@ class Unreads extends ChangeNotifier {
       // Unread state unknown because of [oldUnreadsMissing].
       // We were going to check something but can't; shrug.
       if (isUnreadLocally == null) return true;
+
+      final newChannelId = event.moveData?.newStreamId;
+      if (newChannelId != null && !channelStore.subscriptions.containsKey(newChannelId)) {
+        // When unread messages are moved to an unsubscribed channel, the server
+        // marks them as read without sending a mark-as-read event. Clients are
+        // asked to special-case this by marking them as read, which we do in
+        // _handleMessageMove. That contract is clear enough and doesn't involve
+        // this event's 'read' flag, so don't bother logging about the flag;
+        // its behavior seems like an implementation detail that could change.
+        return true;
+      }
 
       if (isUnreadLocally != isUnreadInEvent) {
         // If this happens, then either:
@@ -296,11 +305,37 @@ class Unreads extends ChangeNotifier {
         madeAnyUpdate |= mentions.add(messageId);
     }
 
-    // TODO(#901) handle moved messages
+    madeAnyUpdate |= _handleMessageMove(event);
 
     if (madeAnyUpdate) {
       notifyListeners();
     }
+  }
+
+  bool _handleMessageMove(UpdateMessageEvent event) {
+    if (event.moveData == null) {
+      // No moved messages.
+      return false;
+    }
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = event.moveData!;
+
+    final messageToMoveIds = _removeAllInStreamTopic(
+      event.messageIds.toSet(), origStreamId, origTopic);
+    if (messageToMoveIds == null || messageToMoveIds.isEmpty) {
+      // No known unreads affected by move; nothing to do.
+      return false;
+    }
+
+    if (!channelStore.subscriptions.containsKey(newStreamId)) {
+      // Unreads moved to an unsubscribed channel; just drop them.
+      // See also:
+      //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/2101926
+      return true;
+    }
+
+    _addAllInStreamTopic(messageToMoveIds..sort(), newStreamId, newTopic);
+    return true;
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
