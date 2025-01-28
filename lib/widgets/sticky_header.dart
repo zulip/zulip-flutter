@@ -564,7 +564,10 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     child!.layout(constraints, parentUsesSize: true);
     SliverGeometry geometry = child!.geometry!;
 
-    // TODO(#1309) handle the scrollOffsetCorrection case, passing it through
+    if (geometry.scrollOffsetCorrection != null) {
+      this.geometry = geometry;
+      return;
+    }
 
     // We assume [child]'s geometry is free of certain complications.
     // Probably most or all of these *could* be handled if necessary, just at
