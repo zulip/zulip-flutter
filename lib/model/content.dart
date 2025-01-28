@@ -581,6 +581,57 @@ class TableCellNode extends BlockInlineContainerNode {
   }
 }
 
+// Ref:
+//  https://ogp.me/
+//  https://oembed.com/
+class LinkPreviewNode extends BlockContentNode {
+  const LinkPreviewNode({
+    super.debugHtmlNode,
+    required this.hrefUrl,
+    required this.imageSrcUrl,
+    required this.title,
+    required this.description,
+  });
+
+  /// The URL from which this preview data was retrieved.
+  final String hrefUrl;
+
+  /// The image URL representing the webpage, content value
+  /// of `og:image` HTML meta property.
+  final String imageSrcUrl;
+
+  /// Represents the webpage title, derived from either
+  /// the content of the `og:title` HTML meta property or
+  /// the <title> HTML element.
+  final String? title;
+
+  /// Description about the webpage, content value of
+  /// `og:description` HTML meta property.
+  final String? description;
+
+  @override
+  bool operator ==(Object other) {
+    return other is LinkPreviewNode
+      && other.hrefUrl == hrefUrl
+      && other.imageSrcUrl == imageSrcUrl
+      && other.title == title
+      && other.description == description;
+  }
+
+  @override
+  int get hashCode =>
+    Object.hash('LinkPreviewNode', hrefUrl, imageSrcUrl, title, description);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('hrefUrl', hrefUrl));
+    properties.add(StringProperty('imageSrcUrl', imageSrcUrl));
+    properties.add(StringProperty('title', title));
+    properties.add(StringProperty('description', description));
+  }
+}
+
 /// A content node that expects an inline layout context from its parent.
 ///
 /// When rendered into a Flutter widget tree, an inline content node
@@ -1453,6 +1504,101 @@ class _ZulipContentParser {
     return tableNode ?? UnimplementedBlockContentNode(htmlNode: tableElement);
   }
 
+  static final _linkPreviewImageSrcRegexp = RegExp(r'background-image: url\("(.+)"\)');
+
+  BlockContentNode parseLinkPreviewNode(dom.Element divElement) {
+    assert(divElement.localName == 'div'
+      && divElement.className == 'message_embed');
+
+    final result = () {
+      if (divElement.nodes case [
+        dom.Element(
+          localName: 'a',
+          className: 'message_embed_image',
+          attributes: {
+            'href': final String imageHref,
+            'style': final String imageStyleAttr,
+          },
+          nodes: []),
+        dom.Element(
+          localName: 'div',
+          className: 'data-container',
+          nodes: [...]) && final dataContainer,
+      ]) {
+        final match = _linkPreviewImageSrcRegexp.firstMatch(imageStyleAttr);
+        if (match == null) return null;
+        final imageSrcUrl = match.group(1);
+        if (imageSrcUrl == null) return null;
+
+        String? parseTitle(dom.Element element) {
+          assert(element.localName == 'div' &&
+            element.className == 'message_embed_title');
+          if (element.nodes case [
+            dom.Element(localName: 'a', className: '') && final child,
+          ]) {
+            final titleHref = child.attributes['href'];
+            // Make sure both image hyperlink and title hyperlink are same.
+            if (imageHref != titleHref) return null;
+
+            if (child.nodes case [dom.Text(text: final title)]) {
+              return title;
+            }
+          }
+          return null;
+        }
+
+        String? parseDescription(dom.Element element) {
+          assert(element.localName == 'div' &&
+            element.className == 'message_embed_description');
+          if (element.nodes case [dom.Text(text: final description)]) {
+            return description;
+          }
+          return null;
+        }
+
+        String? title, description;
+        switch (dataContainer.nodes) {
+          case [
+            dom.Element(
+              localName: 'div',
+              className: 'message_embed_title') && final first,
+            dom.Element(
+              localName: 'div',
+              className: 'message_embed_description') && final second,
+          ]:
+            title = parseTitle(first);
+            if (title == null) return null;
+            description = parseDescription(second);
+            if (description == null) return null;
+
+          case [dom.Element(localName: 'div') && final single]:
+            switch (single.className) {
+              case 'message_embed_title':
+                title = parseTitle(single);
+                if (title == null) return null;
+              case 'message_embed_description':
+                description = parseDescription(single);
+                if (description == null) return null;
+            }
+
+          default:
+            return null;
+        }
+
+        return LinkPreviewNode(
+          hrefUrl: imageHref,
+          imageSrcUrl: imageSrcUrl,
+          title: title,
+          description: description,
+        );
+      } else {
+        return null;
+      }
+    }();
+
+    return result ?? UnimplementedBlockContentNode(htmlNode: divElement);
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     final debugHtmlNode = kDebugMode ? node : null;
     if (node is! dom.Element) {
@@ -1545,6 +1691,10 @@ class _ZulipContentParser {
             return parseEmbedVideoNode(element);
         }
       }
+    }
+
+    if (localName == 'div' && className == 'message_embed') {
+      return parseLinkPreviewNode(element);
     }
 
     // TODO more types of node

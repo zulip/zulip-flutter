@@ -18,6 +18,7 @@ import '../model/internal_link.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -51,6 +52,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.80).toColor(),
       colorTableHeaderBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
@@ -84,6 +86,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.33).toColor(),
       colorTableHeaderBackground: const HSLColor.fromAHSL(0.5, 0, 0, 0).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
@@ -116,6 +119,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorTableCellBorder,
     required this.colorTableHeaderBackground,
     required this.colorThematicBreak,
+    required this.colorLink,
     required this.textStylePlainParagraph,
     required this.textStyleEmoji,
     required this.codeBlockTextStyles,
@@ -148,6 +152,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorTableCellBorder;
   final Color colorTableHeaderBackground;
   final Color colorThematicBreak;
+  final Color colorLink;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
   ///
@@ -208,6 +213,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorTableCellBorder,
     Color? colorTableHeaderBackground,
     Color? colorThematicBreak,
+    Color? colorLink,
     TextStyle? textStylePlainParagraph,
     TextStyle? textStyleEmoji,
     CodeBlockTextStyles? codeBlockTextStyles,
@@ -230,6 +236,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: colorTableCellBorder ?? this.colorTableCellBorder,
       colorTableHeaderBackground: colorTableHeaderBackground ?? this.colorTableHeaderBackground,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
+      colorLink: colorLink ?? this.colorLink,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       textStyleEmoji: textStyleEmoji ?? this.textStyleEmoji,
       codeBlockTextStyles: codeBlockTextStyles ?? this.codeBlockTextStyles,
@@ -259,6 +266,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorTableCellBorder: Color.lerp(colorTableCellBorder, other.colorTableCellBorder, t)!,
       colorTableHeaderBackground: Color.lerp(colorTableHeaderBackground, other.colorTableHeaderBackground, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
+      colorLink: Color.lerp(colorLink, other.colorLink, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       textStyleEmoji: TextStyle.lerp(textStyleEmoji, other.textStyleEmoji, t)!,
       codeBlockTextStyles: CodeBlockTextStyles.lerp(codeBlockTextStyles, other.codeBlockTextStyles, t),
@@ -364,10 +372,10 @@ class BlockContentList extends StatelessWidget {
             );
             return const SizedBox.shrink();
           }(),
+          LinkPreviewNode() => LinkPreview(node: node),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
-
       }),
     ]);
   }
@@ -839,6 +847,94 @@ class MathBlock extends StatelessWidget {
   }
 }
 
+class LinkPreview extends StatelessWidget {
+  const LinkPreview({super.key, required this.node});
+
+  final LinkPreviewNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedImageSrcUrl = store.tryResolveUrl(node.imageSrcUrl);
+    final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+
+    // On Web on larger width viewports, the title and description container's
+    // width is constrained using `max-width: calc(100% - 115px)`, we do not
+    // follow the same here for potential benefits listed here:
+    //   https://github.com/zulip/zulip-flutter/pull/1049#discussion_r1915740997
+    final titleAndDescription = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (node.title != null)
+          GestureDetector(
+            onTap: () => _launchUrl(context, node.hrefUrl),
+            child: Text(node.title!,
+              style: TextStyle(
+                fontSize: 1.2 * kBaseFontSize,
+                height: kTextHeightNone,
+                color: ContentTheme.of(context).colorLink))),
+        if (node.description != null)
+          Container(
+            padding: const EdgeInsets.only(top: 3),
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Text(node.description!)),
+      ]);
+
+    final clippedTitleAndDescription = Container(
+      constraints: const BoxConstraints(maxHeight: 80),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: InsetShadowBox(
+        bottom: 8,
+        // TODO(#488) use different color for non-message contexts
+        // TODO(#647) use different color for highlighted messages
+        // TODO(#681) use different color for DM messages
+        color: MessageListTheme.of(context).streamMessageBgDefault,
+        child: UnconstrainedBox(
+          alignment: AlignmentDirectional.topStart,
+          constrainedAxis: Axis.horizontal,
+          clipBehavior: Clip.hardEdge,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: titleAndDescription))));
+
+    final result = isSmallWidth
+      ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 15,
+          children: [
+            if (resolvedImageSrcUrl != null)
+              GestureDetector(
+                onTap: () => _launchUrl(context, node.hrefUrl),
+                child: RealmContentNetworkImage(
+                  resolvedImageSrcUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 100)),
+            clippedTitleAndDescription,
+          ])
+      : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (resolvedImageSrcUrl != null)
+            GestureDetector(
+              onTap: () => _launchUrl(context, node.hrefUrl),
+              child: RealmContentNetworkImage(
+                resolvedImageSrcUrl,
+                fit: BoxFit.cover,
+                width: 80,
+                height: 80)),
+          Flexible(child: clippedTitleAndDescription),
+        ]);
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: BorderDirectional(start: BorderSide(
+          // Web has the same color in light and dark mode.
+          color: Color(0xffededed), width: 3))),
+      padding: const EdgeInsets.all(5),
+      child: result);
+  }
+}
+
 //
 // Inline layout.
 //
@@ -1030,7 +1126,7 @@ class _InlineContentBuilder {
         _pushRecognizer(recognizer);
         final result = _buildNodes(node.nodes,
           // Web has the same color in light and dark mode.
-          style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+          style: TextStyle(color: ContentTheme.of(_context!).colorLink));
         _popRecognizer();
         return result;
 
