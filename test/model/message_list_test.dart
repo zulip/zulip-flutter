@@ -23,8 +23,9 @@ import 'content_checks.dart';
 import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
 
-const newestResult = eg.newestGetMessagesResult;
+const nearUnreadResult = eg.nearUnreadGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
+const newerResult = eg.newerGetMessagesResult;
 
 void main() {
   // These variables are the common state operated on by each test.
@@ -68,10 +69,14 @@ void main() {
   /// The test case must have already called [prepare] to initialize the state.
   Future<void> prepareMessages({
     required bool foundOldest,
+    required bool foundNewest,
     required List<Message> messages,
   }) async {
     connection.prepare(json:
-      newestResult(foundOldest: foundOldest, messages: messages).toJson());
+      nearUnreadResult(
+        foundOldest: foundOldest,
+        foundNewest: foundNewest,
+        messages: messages).toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
   }
@@ -96,11 +101,13 @@ void main() {
   }
 
   test('fetchInitial', () async {
+    // TODO replace with prepareWithInitialMessages
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
-    connection.prepare(json: newestResult(
+    connection.prepare(json: nearUnreadResult(
       foundOldest: false,
-      messages: List.generate(kMessageListFetchBatchSize,
+      foundNewest: false,
+      messages: List.generate(kMessageListFetchBatchSize * 2,
         (i) => eg.streamMessage()),
     ).toJson());
     final fetchFuture = model.fetchInitial();
@@ -110,20 +117,21 @@ void main() {
     await fetchFuture;
     checkNotifiedOnce();
     check(model)
-      ..messages.length.equals(kMessageListFetchBatchSize)
+      ..messages.length.equals(kMessageListFetchBatchSize * 2)
       ..haveOldest.isFalse();
     checkLastRequest(
       narrow: narrow.apiEncode(),
-      anchor: 'newest',
+      anchor: 'first_unread',
       numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
+      numAfter: kMessageListFetchBatchSize - 1,
     );
   });
 
   test('fetchInitial, short history', () async {
     await prepare();
-    connection.prepare(json: newestResult(
+    connection.prepare(json: nearUnreadResult(
       foundOldest: true,
+      foundNewest: true,
       messages: List.generate(30, (i) => eg.streamMessage()),
     ).toJson());
     await model.fetchInitial();
@@ -135,8 +143,9 @@ void main() {
 
   test('fetchInitial, no messages found', () async {
     await prepare();
-    connection.prepare(json: newestResult(
+    connection.prepare(json: nearUnreadResult(
       foundOldest: true,
+      foundNewest: true,
       messages: [],
     ).toJson());
     await model.fetchInitial();
@@ -156,8 +165,9 @@ void main() {
       // Not subscribed to the stream with id 10.
       eg.streamMessage(stream: eg.stream(streamId: 10)),
     ];
-    connection.prepare(json: newestResult(
+    connection.prepare(json: nearUnreadResult(
       foundOldest: false,
+      foundNewest: false,
       messages: messages,
     ).toJson());
     await model.fetchInitial();
@@ -169,7 +179,7 @@ void main() {
   test('fetchOlder', () async {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
-    await prepareMessages(foundOldest: false,
+    await prepareMessages(foundOldest: false, foundNewest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
     connection.prepare(json: olderResult(
@@ -197,7 +207,7 @@ void main() {
   test('fetchOlder nop when already fetching', () async {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
-    await prepareMessages(foundOldest: false,
+    await prepareMessages(foundOldest: false, foundNewest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
     connection.prepare(json: olderResult(
@@ -225,8 +235,8 @@ void main() {
 
   test('fetchOlder nop when already haveOldest true', () async {
     await prepare(narrow: const CombinedFeedNarrow());
-    await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage()));
+    await prepareMessages(foundOldest: true, foundNewest: false,
+      messages: List.generate(30, (i) => eg.streamMessage()));
     check(model)
       ..haveOldest.isTrue()
       ..messages.length.equals(30);
@@ -244,7 +254,7 @@ void main() {
     final olderMessages = List.generate(5, (i) => eg.streamMessage());
     final initialMessages = List.generate(5, (i) => eg.streamMessage());
     await prepare(narrow: const CombinedFeedNarrow());
-    await prepareMessages(foundOldest: false, messages: initialMessages);
+    await prepareMessages(foundOldest: false, foundNewest: false, messages: initialMessages);
     check(connection.takeRequests()).single;
 
     connection.prepare(httpStatus: 400, json: {
@@ -277,7 +287,7 @@ void main() {
   test('fetchOlder handles servers not understanding includeAnchor', () async {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
-    await prepareMessages(foundOldest: false,
+    await prepareMessages(foundOldest: false, foundNewest: false,
       messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
     // The old behavior is to include the anchor message regardless of includeAnchor.
@@ -297,7 +307,7 @@ void main() {
     const narrow = CombinedFeedNarrow();
     await prepare(narrow: narrow);
     final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
-    await prepareMessages(foundOldest: false, messages: initialMessages);
+    await prepareMessages(foundOldest: false, foundNewest: false, messages: initialMessages);
 
     final oldMessages = List.generate(10, (i) => eg.streamMessage(id: 89 + i))
       // Not subscribed to the stream with id 10.
@@ -313,11 +323,163 @@ void main() {
       [...initialMessages, ...oldMessages]);
   });
 
+  test('fetchNewer', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final initialMessages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i));
+    await prepareMessages(foundOldest: false, foundNewest: false, messages: initialMessages);
+
+    connection.prepare(json: newerResult(
+      anchor: 1099,
+      foundNewest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1100 + i))).toJson());
+    final fetchFuture = model.fetchNewer();
+    checkNotifiedOnce();
+    check(model).fetchingNewer.isTrue();
+
+    await fetchFuture;
+    checkNotifiedOnce();
+    check(model)
+      ..fetchingNewer.isFalse()
+      ..messages.length.equals(200);
+    checkLastRequest(
+      narrow: narrow.apiEncode(),
+      anchor: '1099',
+      includeAnchor: false,
+      numBefore: 0,
+      numAfter: kMessageListFetchBatchSize,
+    );
+  });
+
+  test('fetchNewer nop when already fetching', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final initialMessages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i));
+    await prepareMessages(foundOldest: false, foundNewest: false, messages: initialMessages);
+    check(model).messages.length.equals(100);
+
+    connection.prepare(json: newerResult(
+      anchor: 1099,
+      foundNewest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1100 + i))).toJson());
+    final fetchFuture = model.fetchNewer();
+    checkNotifiedOnce();
+    check(model).fetchingNewer.isTrue();
+
+    // Don't prepare another response.
+    final fetchFuture2 = model.fetchNewer();
+    checkNotNotified();
+    check(model).fetchingNewer.isTrue();
+
+    await fetchFuture;
+    await fetchFuture2;
+    // We must not have made another request, because we didn't
+    // prepare another response and didn't get an exception.
+    checkNotifiedOnce();
+    check(model)
+      ..fetchingNewer.isFalse()
+      ..messages.length.equals(200);
+  });
+
+  test('fetchNewer nop when already haveNewest true', () async {
+    await prepare(narrow: const CombinedFeedNarrow());
+    await prepareMessages(
+      foundOldest: false,
+      foundNewest: true,
+      messages: List.generate(30, (i) => eg.streamMessage()));
+    check(model)
+      ..haveNewest.isTrue()
+      ..messages.length.equals(30);
+
+    await model.fetchNewer();
+    // We must not have made a request, because we didn't
+    // prepare a response and didn't get an exception.
+    checkNotNotified();
+    check(model)
+      ..haveNewest.isTrue()
+      ..messages.length.equals(30);
+  });
+
+  test('fetchNewer nop during backoff', () => awaitFakeAsync((async) async {
+    final initialMessages = List.generate(5, (i) => eg.streamMessage());
+    final newerMessages = List.generate(5, (i) => eg.streamMessage());
+    await prepare(narrow: const CombinedFeedNarrow());
+    await prepareMessages(foundOldest: false, foundNewest: false, messages: initialMessages);
+    check(connection.takeRequests()).single;
+
+    connection.prepare(httpStatus: 400, json: {
+      'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+    await check(model.fetchNewer()).throws<ZulipApiException>();
+    async.elapse(Duration.zero);
+    checkNotified(count: 2);
+    check(model).fetchNewerCoolingDown.isTrue();
+    check(connection.takeRequests()).single;
+
+    await model.fetchNewer();
+    checkNotNotified();
+    check(model).fetchNewerCoolingDown.isTrue();
+    check(model).fetchingNewer.isFalse();
+    check(connection.lastRequest).isNull();
+
+    // Wait long enough that a first backoff is sure to finish.
+    async.elapse(const Duration(seconds: 1));
+    check(model).fetchNewerCoolingDown.isFalse();
+    checkNotifiedOnce();
+    check(connection.lastRequest).isNull();
+
+    connection.prepare(json: newerResult(
+      anchor: 1000, foundNewest: false, messages: newerMessages).toJson());
+    await model.fetchNewer();
+    checkNotified(count: 2);
+    check(connection.takeRequests()).single;
+  }));
+
+  test('fetchNewer handles servers not understanding includeAnchor', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    await prepareMessages(foundOldest: false, foundNewest: false,
+      messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
+
+    // The old behavior is to include the anchor message regardless of includeAnchor.
+    connection.prepare(json: newerResult(
+      anchor: 1099, foundNewest: false, foundAnchor: true,
+      messages: List.generate(101, (i) => eg.streamMessage(id: 1099 + i)),
+    ).toJson());
+    await model.fetchNewer();
+    checkNotified(count: 2);
+    check(model)
+      ..fetchingNewer.isFalse()
+      ..messages.length.equals(200);
+  });
+
+  // TODO(#824): move this test
+  test('fetchNewer, recent senders track all the messages', () async {
+    const narrow = CombinedFeedNarrow();
+    await prepare(narrow: narrow);
+    final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
+    await prepareMessages(foundOldest: false, foundNewest: false, messages: initialMessages);
+
+    final newMessages = [
+      // Not subscribed to the stream with id 10.
+      eg.streamMessage(id: 110, stream: eg.stream(streamId: 10)),
+      ...List.generate(10, (i) => eg.streamMessage(id: 111 + i)),
+    ];
+    connection.prepare(json: newerResult(
+      anchor: 109, foundNewest: false,
+      messages: newMessages,
+    ).toJson());
+    await model.fetchNewer();
+
+    check(model).messages.length.equals(20);
+    recent_senders_test.checkMatchesMessages(store.recentSenders,
+      [...initialMessages, ...newMessages]);
+  });
+
   test('MessageEvent', () async {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
-    await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+    await prepareMessages(foundOldest: true, foundNewest: false,
+     messages: List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
     await store.handleEvent(MessageEvent(id: 0,
@@ -329,8 +491,8 @@ void main() {
   test('MessageEvent, not in narrow', () async {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
-    await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+    await prepareMessages(foundOldest: true, foundNewest: false,
+      messages: List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
     final otherStream = eg.stream();
@@ -380,7 +542,7 @@ void main() {
       final otherStream = eg.stream();
       await store.addStream(otherStream);
       await store.addSubscription(eg.subscription(otherStream));
-      await prepareMessages(foundOldest: true, messages: [
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
         eg.streamMessage(id: 2, stream: stream, topic: topic),
         eg.streamMessage(id: 3, stream: otherStream, topic: 'elsewhere'),
@@ -398,7 +560,7 @@ void main() {
       await prepare(narrow: const CombinedFeedNarrow());
       // Mute the stream, so that combined-feed vs. stream visibility differ.
       await prepareMutes(true, UserTopicVisibilityPolicy.followed);
-      await prepareMessages(foundOldest: true, messages: [
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
       ]);
       checkHasMessageIds([1]);
@@ -421,7 +583,7 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       // Mute the stream, so that combined-feed vs. stream visibility differ.
       await prepareMutes(true, UserTopicVisibilityPolicy.followed);
-      await prepareMessages(foundOldest: true, messages: [
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
       ]);
       checkHasMessageIds([1]);
@@ -442,7 +604,7 @@ void main() {
     test('in TopicNarrow, stay visible', () async {
       await prepare(narrow: eg.topicNarrow(stream.streamId, topic));
       await prepareMutes();
-      await prepareMessages(foundOldest: true, messages: [
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
       ]);
       checkHasMessageIds([1]);
@@ -456,7 +618,7 @@ void main() {
       await prepare(narrow:
         DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
       await prepareMutes();
-      await prepareMessages(foundOldest: true, messages: [
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: [
         eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
       ]);
       checkHasMessageIds([1]);
@@ -469,7 +631,7 @@ void main() {
     test('no affected messages -> no notification', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMutes();
-      await prepareMessages(foundOldest: true, messages: [
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
       ]);
       checkHasMessageIds([1]);
@@ -486,11 +648,11 @@ void main() {
         eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
         eg.streamMessage(id: 2, stream: stream, topic: topic),
       ];
-      await prepareMessages(foundOldest: true, messages: messages);
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: messages);
       checkHasMessageIds([1]);
 
       connection.prepare(
-        json: newestResult(foundOldest: true, messages: messages).toJson());
+        json: nearUnreadResult(foundOldest: true, foundNewest: false, messages: messages).toJson());
       await setVisibility(UserTopicVisibilityPolicy.unmuted);
       checkNotifiedOnce();
       check(model).fetched.isFalse();
@@ -509,7 +671,7 @@ void main() {
       ];
 
       connection.prepare(
-        json: newestResult(foundOldest: true, messages: messages).toJson());
+        json: nearUnreadResult(foundOldest: true, foundNewest: false, messages: messages).toJson());
       final fetchFuture = model.fetchInitial();
 
       await setVisibility(UserTopicVisibilityPolicy.unmuted);
@@ -528,7 +690,7 @@ void main() {
 
     test('in narrow', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: messages);
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: messages);
 
       check(model).messages.length.equals(30);
       await store.handleEvent(eg.deleteMessageEvent(messages.sublist(0, 10)));
@@ -538,7 +700,7 @@ void main() {
 
     test('not all in narrow', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: messages.sublist(5));
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: messages.sublist(5));
 
       check(model).messages.length.equals(25);
       await store.handleEvent(eg.deleteMessageEvent(messages.sublist(0, 10)));
@@ -548,7 +710,7 @@ void main() {
 
     test('not in narrow', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: messages.sublist(5));
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: messages.sublist(5));
 
       check(model).messages.length.equals(25);
       await store.handleEvent(eg.deleteMessageEvent(messages.sublist(0, 5)));
@@ -558,7 +720,7 @@ void main() {
 
     test('complete message deletion', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: messages.sublist(0, 25));
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: messages.sublist(0, 25));
 
       check(model).messages.length.equals(25);
       await store.handleEvent(eg.deleteMessageEvent(messages));
@@ -568,7 +730,7 @@ void main() {
 
     test('non-consecutive message deletion', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: messages);
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: messages);
       final messagesToDelete = messages.sublist(2, 5) + messages.sublist(10, 15);
 
       check(model).messages.length.equals(30);
@@ -585,7 +747,7 @@ void main() {
   group('notifyListenersIfMessagePresent', () {
     test('message present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false,
+      await prepareMessages(foundOldest: false, foundNewest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
       model.notifyListenersIfMessagePresent(150);
       checkNotifiedOnce();
@@ -593,7 +755,7 @@ void main() {
 
     test('message absent', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false,
+      await prepareMessages(foundOldest: false, foundNewest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i))
           .where((m) => m.id != 150).toList());
       model.notifyListenersIfMessagePresent(150);
@@ -602,7 +764,7 @@ void main() {
 
     test('message absent (older than window)', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false,
+      await prepareMessages(foundOldest: false, foundNewest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
       model.notifyListenersIfMessagePresent(50);
       checkNotNotified();
@@ -610,7 +772,7 @@ void main() {
 
     test('message absent (newer than window)', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false,
+      await prepareMessages(foundOldest: false, foundNewest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 100 + i)));
       model.notifyListenersIfMessagePresent(250);
       checkNotNotified();
@@ -622,14 +784,14 @@ void main() {
 
     test('all messages present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false, messages: messages);
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: messages);
       model.notifyListenersIfAnyMessagePresent([150, 151, 152]);
       checkNotifiedOnce();
     });
 
     test('some messages present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false,
+      await prepareMessages(foundOldest: false, foundNewest: false,
         messages: messages.where((m) => m.id != 151).toList());
       model.notifyListenersIfAnyMessagePresent([150, 151, 152]);
       checkNotifiedOnce();
@@ -637,8 +799,8 @@ void main() {
 
     test('no messages present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false, messages:
-        messages.where((m) => ![150, 151, 152].contains(m.id)).toList());
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: messages.where((m) => ![150, 151, 152].contains(m.id)).toList());
       model.notifyListenersIfAnyMessagePresent([150, 151, 152]);
       checkNotNotified();
     });
@@ -647,7 +809,7 @@ void main() {
   group('messageContentChanged', () {
     test('message present', () async {
       await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false,
+      await prepareMessages(foundOldest: false, foundNewest: false,
         messages: List.generate(10, (i) => eg.streamMessage(id: 10 + i)));
 
       final message = model.messages[5];
@@ -668,7 +830,7 @@ void main() {
       final messageNotInNarrow = eg.dmMessage(id: 100, from: eg.otherUser, to: [eg.selfUser]);
       check(narrow.containsMessage(messageNotInNarrow)).isFalse();
 
-      await prepareMessages(foundOldest: false, messages: messagesInNarrow);
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: messagesInNarrow);
       await store.addMessage(messageNotInNarrow);
 
       await store.handleEvent(eg.updateMessageEditEvent(messageNotInNarrow,
@@ -693,7 +855,7 @@ void main() {
         await store.addSubscription(subscription);
       }
       if (messages != null) {
-        await prepareMessages(foundOldest: false, messages: messages);
+        await prepareMessages(foundOldest: false, foundNewest: false, messages: messages);
       }
       checkHasMessages(messages ?? []);
     }
@@ -747,8 +909,9 @@ void main() {
       test('old channel -> channel: refetch', () => awaitFakeAsync((async) async {
         await prepareNarrow(narrow, initialMessages);
 
-        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 2), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -801,8 +964,9 @@ void main() {
 
       void testMessageMove(PropagateMode propagateMode) => awaitFakeAsync((async) async {
         await prepareNarrow(narrow, initialMessages + movedMessages);
-        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 1), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
@@ -849,8 +1013,9 @@ void main() {
           test(description, () => awaitFakeAsync((async) async {
             await prepareNarrow(narrow, initialMessages);
 
-            connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+            connection.prepare(delay: const Duration(seconds: 2), json: nearUnreadResult(
               foundOldest: false,
+              foundNewest: false,
               messages: initialMessages + movedMessages,
             ).toJson());
             await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -919,8 +1084,9 @@ void main() {
 
       void handleMoveEvent(PropagateMode propagateMode) => awaitFakeAsync((async) async {
         await prepareNarrow(narrow, initialMessages + movedMessages);
-        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 1), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
@@ -961,8 +1127,9 @@ void main() {
         await store.addSubscription(subscription);
         final followedMessage = eg.streamMessage(stream: stream, topic: 'new');
 
-        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 2), json: nearUnreadResult(
           foundOldest: true,
+          foundNewest: false,
           messages: [followedMessage],
         ).toJson());
 
@@ -999,8 +1166,9 @@ void main() {
         checkHasMessages(initialMessages);
         checkNotifiedOnce();
 
-        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 2), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1034,8 +1202,9 @@ void main() {
         check(model).fetchingOlder.isTrue();
         checkNotifiedOnce();
 
-        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 1), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1071,8 +1240,9 @@ void main() {
         checkHasMessages(initialMessages);
         checkNotified(count: 2);
 
-        connection.prepare(json: newestResult(
+        connection.prepare(json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1123,16 +1293,18 @@ void main() {
       test('fetchInitial, _reset, initial fetch finishes, move fetch finishes', () => awaitFakeAsync((async) async {
         await prepareNarrow(narrow, null);
 
-        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 1), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages,
         ).toJson());
         final fetchFuture = model.fetchInitial();
         checkHasMessages([]);
         check(model).fetched.isFalse();
 
-        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 2), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1157,16 +1329,18 @@ void main() {
       test('fetchInitial, _reset, move fetch finishes, initial fetch finishes', () => awaitFakeAsync((async) async {
         await prepareNarrow(narrow, null);
 
-        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 2), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages,
         ).toJson());
         final fetchFuture = model.fetchInitial();
         checkHasMessages([]);
         check(model).fetched.isFalse();
 
-        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 1), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1199,8 +1373,9 @@ void main() {
         check(model).fetchingOlder.isTrue();
         checkNotifiedOnce();
 
-        connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
+        connection.prepare(delay: const Duration(seconds: 1), json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: initialMessages + movedMessages,
         ).toJson());
         await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1259,8 +1434,9 @@ void main() {
         ..addListener(() => notifiedCount2++);
 
       for (final m in [model1, model2]) {
-        connection.prepare(json: newestResult(
+        connection.prepare(json: nearUnreadResult(
           foundOldest: false,
+          foundNewest: false,
           messages: [eg.streamMessage(stream: stream, topic: 'hello')]).toJson());
         await m.fetchInitial();
       }
@@ -1299,7 +1475,7 @@ void main() {
       checkInvariants(model);
 
       connection.prepare(json:
-        newestResult(foundOldest: false, messages: [message]).toJson());
+        nearUnreadResult(foundOldest: false, foundNewest: false, messages: [message]).toJson());
       await model.fetchInitial();
       checkInvariants(model);
       doCheckMessageAfterFetch(
@@ -1346,7 +1522,7 @@ void main() {
   test('reassemble', () async {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
-    await prepareMessages(foundOldest: true, messages:
+    await prepareMessages(foundOldest: true, foundNewest: false, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
     await store.handleEvent(MessageEvent(id: 0,
       message: eg.streamMessage(stream: stream)));
@@ -1380,7 +1556,7 @@ void main() {
       await store.addUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
 
       // Check filtering on fetchInitial…
-      await prepareMessages(foundOldest: false, messages: [
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: [
         eg.streamMessage(id: 201, stream: stream1, topic: 'A'),
         eg.streamMessage(id: 202, stream: stream1, topic: 'B'),
         eg.streamMessage(id: 203, stream: stream2, topic: 'C'),
@@ -1441,7 +1617,7 @@ void main() {
       await store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
-      await prepareMessages(foundOldest: false, messages: [
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: [
         eg.streamMessage(id: 201, stream: stream, topic: 'A'),
         eg.streamMessage(id: 202, stream: stream, topic: 'B'),
         eg.streamMessage(id: 203, stream: stream, topic: 'C'),
@@ -1487,7 +1663,7 @@ void main() {
       await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
-      await prepareMessages(foundOldest: false, messages: [
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: [
         eg.streamMessage(id: 201, stream: stream, topic: 'A'),
       ]);
       final expected = <int>[];
@@ -1529,7 +1705,7 @@ void main() {
       ];
 
       // Check filtering on fetchInitial…
-      await prepareMessages(foundOldest: false, messages: getMessages(201));
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: getMessages(201));
       final expected = <int>[];
       check(model.messages.map((m) => m.id))
         .deepEquals(expected..addAll([201, 202, 203]));
@@ -1567,7 +1743,7 @@ void main() {
       ];
 
       // Check filtering on fetchInitial…
-      await prepareMessages(foundOldest: false, messages: getMessages(201));
+      await prepareMessages(foundOldest: false, foundNewest: false, messages: getMessages(201));
       final expected = <int>[];
       check(model.messages.map((m) => m.id))
         .deepEquals(expected..addAll([201, 202]));
@@ -1594,7 +1770,7 @@ void main() {
     test('ZulipContent', () async {
       final stream = eg.stream();
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: []);
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: []);
 
       await store.handleEvent(MessageEvent(id: 0,
         message: eg.streamMessage(stream: stream)));
@@ -1609,7 +1785,7 @@ void main() {
     test('PollContent', () async {
       final stream = eg.stream();
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await prepareMessages(foundOldest: true, messages: []);
+      await prepareMessages(foundOldest: true, foundNewest: false, messages: []);
 
       await store.handleEvent(MessageEvent(id: 0, message: eg.streamMessage(
         stream: stream,
@@ -1649,8 +1825,9 @@ void main() {
 
     // First, test fetchInitial, where some headers are needed and others not.
     await prepare();
-    connection.prepare(json: newestResult(
+    connection.prepare(json: nearUnreadResult(
       foundOldest: false,
+      foundNewest: false,
       messages: [streamMessage(10), streamMessage(11), dmMessage(12)],
     ).toJson());
     await model.fetchInitial();
@@ -1731,7 +1908,7 @@ void main() {
         to: [sender.userId == eg.selfUser.userId ? eg.otherUser : eg.selfUser]);
 
     await prepare();
-    await prepareMessages(foundOldest: true, messages: [
+    await prepareMessages(foundOldest: true, foundNewest: false, messages: [
       streamMessage(1, t1, eg.selfUser),  // first message, so show sender
       streamMessage(2, t1, eg.selfUser),  // hide sender
       streamMessage(3, t1, eg.otherUser), // no recipient header, but new sender
@@ -1871,7 +2048,10 @@ void checkInvariants(MessageListView model) {
       ..messages.isEmpty()
       ..haveOldest.isFalse()
       ..fetchingOlder.isFalse()
-      ..fetchOlderCoolingDown.isFalse();
+      ..fetchOlderCoolingDown.isFalse()
+      ..haveNewest.isFalse()
+      ..fetchingNewer.isFalse()
+      ..fetchNewerCoolingDown.isFalse();
   }
   if (model.haveOldest) {
     check(model).fetchingOlder.isFalse();
@@ -1879,6 +2059,13 @@ void checkInvariants(MessageListView model) {
   }
   if (model.fetchingOlder) {
     check(model).fetchOlderCoolingDown.isFalse();
+  }
+  if (model.haveNewest) {
+    check(model).fetchingNewer.isFalse();
+    check(model).fetchNewerCoolingDown.isFalse();
+  }
+  if (model.fetchingNewer) {
+    check(model).fetchNewerCoolingDown.isFalse();
   }
 
   for (final message in model.messages) {
@@ -1947,6 +2134,9 @@ void checkInvariants(MessageListView model) {
           || MessageListLoadingItem()       => true,
         });
   }
+  if (model.fetchingNewer || model.fetchNewerCoolingDown) {
+    check(model.items[i++]).isA<MessageListLoadingItem>();
+  }
   check(model.items).length.equals(i);
 }
 
@@ -1975,4 +2165,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
   Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
   Subject<bool> get fetchOlderCoolingDown => has((x) => x.fetchOlderCoolingDown, 'fetchOlderCoolingDown');
+  Subject<bool> get haveNewest => has((x) => x.haveNewest, 'haveNewest');
+  Subject<bool> get fetchingNewer => has((x) => x.fetchingNewer, 'fetchingNewer');
+  Subject<bool> get fetchNewerCoolingDown => has((x) => x.fetchNewerCoolingDown, 'fetchNewerCoolingDown');
 }

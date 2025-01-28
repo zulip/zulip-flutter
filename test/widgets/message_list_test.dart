@@ -74,7 +74,10 @@ void main() {
       return eg.streamMessage(sender: eg.selfUser);
     });
     connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
+      eg.nearUnreadGetMessagesResult(
+        foundOldest: foundOldest,
+        foundNewest: true,
+        messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       navigatorObservers: navObservers,
@@ -664,8 +667,8 @@ void main() {
     final narrow = eg.topicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: false, messages: messages).toJson());
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: false, foundNewest: false, messages: messages).toJson());
     }
 
     void handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) {

@@ -67,8 +67,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   }
   connection = store.connection as FakeApiConnection;
 
-  connection.prepare(json: eg.newestGetMessagesResult(
-    foundOldest: true, messages: [message]).toJson());
+  connection.prepare(json: eg.nearUnreadGetMessagesResult(
+    foundOldest: true, foundNewest: true, messages: [message]).toJson());
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
     child: MessageListPage(initNarrow: narrow)));
 
@@ -141,8 +141,8 @@ void main() {
 
     testWidgets('show from app bar', (tester) async {
       await prepare();
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [message]).toJson());
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: true, foundNewest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(
           initNarrow: eg.topicNarrow(channel.streamId, topic))));
@@ -158,8 +158,8 @@ void main() {
 
     testWidgets('show from recipient header', (tester) async {
       await prepare();
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [message]).toJson());
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: false, foundNewest: false, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
       // global store, per-account store, and message list get loaded
@@ -209,8 +209,8 @@ void main() {
       store = await testBinding.globalStore.perAccount(account.id);
       connection = store.connection as FakeApiConnection;
 
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: true, foundNewest: true, messages: [
           eg.streamMessage(stream: channel, topic: topic)]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: account.id,
         child: MessageListPage(
@@ -806,8 +806,8 @@ void main() {
         // it doesn't matter anyway: [MessageStoreImpl.reconcileMessages] will
         // keep the version updated by the event.  If that somehow changes in
         // some future refactor, it'll cause this test to fail.
-        connection.prepare(json: eg.newestGetMessagesResult(
-          foundOldest: true, messages: [message]).toJson());
+        connection.prepare(json: eg.nearUnreadGetMessagesResult(
+          foundOldest: true, foundNewest: true, messages: [message]).toJson());
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           newStreamId: newStream.streamId, newTopicStr: newTopic,
           propagateMode: PropagateMode.changeAll,

@@ -125,8 +125,8 @@ void main () {
       await prepare(tester, navigatorObserver: testNavObserver);
       pushedRoutes.clear();
 
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: []).toJson());
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: true, foundNewest: true, messages: []).toJson());
       await tester.tap(find.byIcon(ZulipIcons.message_feed));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
@@ -236,8 +236,8 @@ void main () {
 
       await tapOpenMenu(tester);
 
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [eg.streamMessage()]).toJson());
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: true, foundNewest: true, messages: [eg.streamMessage()]).toJson());
       await tester.tap(combinedFeedMenuIconFinder);
       await tester.pump(Duration.zero); // tap the button
       await tester.pump(const Duration(milliseconds: 250)); // wait for animation

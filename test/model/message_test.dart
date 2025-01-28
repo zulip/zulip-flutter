@@ -62,10 +62,14 @@ void main() {
   Future<void> prepareMessages(
     List<Message> messages, {
     bool foundOldest = false,
+    bool foundNewest = false,
   }) async {
     assert(messages.every((message) => message.poll == null));
     connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
+      eg.nearUnreadGetMessagesResult(
+        foundOldest: foundOldest,
+        foundNewest: foundNewest,
+        messages: messages).toJson());
     await messageList.fetchInitial();
     checkNotifiedOnce();
   }
@@ -645,7 +649,7 @@ void main() {
         // Perform a single-message initial message fetch for [messageList] with
         // submessages.
         connection.prepare(json:
-          eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson()
+          eg.nearUnreadGetMessagesResult(foundOldest: true, foundNewest: true, messages: []).toJson()
             ..['messages'] = [{
               ...message.toJson(),
               "submessages": submessages.map(deepToJson).toList(),

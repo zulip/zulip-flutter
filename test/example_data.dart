@@ -468,20 +468,31 @@ DmMessage dmMessage({
   }) as Map<String, dynamic>);
 }
 
-/// A GetMessagesResult the server might return on an `anchor=newest` request.
-GetMessagesResult newestGetMessagesResult({
+/// A GetMessagesResult the server might return on an `anchor=first_unread` request.
+///
+/// The expected [messages] list must be non-empty.
+GetMessagesResult nearUnreadGetMessagesResult({
+  required bool foundNewest,
   required bool foundOldest,
+  bool foundAnchor = true,
   bool historyLimited = false,
   required List<Message> messages,
 }) {
+  if (messages.isEmpty) {
+    return GetMessagesResult(
+      anchor: 10000000000000000,
+      foundNewest: true,
+      foundOldest: true,
+      foundAnchor: false,
+      historyLimited: historyLimited,
+      messages: const [],
+    );
+  }
   return GetMessagesResult(
-    // These anchor, foundAnchor, and foundNewest values are what the server
-    // appears to always return when the request had `anchor=newest`.
-    anchor: 10000000000000000, // that's 16 zeros
-    foundAnchor: false,
-    foundNewest: true,
-
+    anchor: messages[messages.length ~/ 2].id,
+    foundNewest: foundNewest,
     foundOldest: foundOldest,
+    foundAnchor: foundAnchor,
     historyLimited: historyLimited,
     messages: messages,
   );
@@ -500,6 +511,24 @@ GetMessagesResult olderGetMessagesResult({
     foundAnchor: foundAnchor,
     foundNewest: false, // empirically always this, even when anchor happens to be latest
     foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
+/// A GetMessagesResult the server might return when we request newer messages.
+GetMessagesResult newerGetMessagesResult({
+  required int anchor,
+  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  required bool foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundNewest: foundNewest,
+    foundOldest: false, // empirically always this, even when anchor happens to be oldest
     historyLimited: historyLimited,
     messages: messages,
   );

@@ -28,7 +28,8 @@ void main() {
     final messages = List.generate(messageCount,
       (i) => eg.streamMessage(flags: [MessageFlag.read]));
     connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
+      eg.nearUnreadGetMessagesResult(foundOldest: true, foundNewest: true,
+        messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: const MessageListPage(initNarrow: CombinedFeedNarrow())));

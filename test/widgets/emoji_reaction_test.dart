@@ -324,8 +324,8 @@ void main() {
       await store.addSubscription(eg.subscription(stream));
 
       connection = store.connection as FakeApiConnection;
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [message]).toJson());
+      connection.prepare(json: eg.nearUnreadGetMessagesResult(
+        foundOldest: true, foundNewest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(initNarrow: narrow)));
 
