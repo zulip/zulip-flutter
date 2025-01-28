@@ -37,6 +37,13 @@ import 'test_app.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  testWidgets('lerp light to dark, no crash', (test) async {
+    final a = ComposeBoxTheme.light;
+    final b = ComposeBoxTheme.dark;
+
+    check(() => a.lerp(b, 0.5)).returnsNormally();
+  });
+
   late PerAccountStore store;
   late FakeApiConnection connection;
   late ComposeBoxController? controller;
