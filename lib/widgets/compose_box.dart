@@ -23,6 +23,7 @@ import 'text.dart';
 import 'theme.dart';
 
 const double _composeButtonSize = 44;
+const int kMaxTopicLength = 60;
 
 /// A [TextEditingController] for use in the compose box.
 ///
@@ -90,12 +91,27 @@ enum TopicValidationError {
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
   ComposeTopicController() {
+    addListener(_enforceCharacterLimit);
     _update();
   }
-
+  static final characterCount = ValueNotifier<int>(0);
   // TODO: subscribe to this value:
   //   https://zulip.com/help/require-topics
   final mandatory = true;
+  void _enforceCharacterLimit() {
+    if (text.length > kMaxTopicLength) {
+      // Truncate text to `kMaxTopicLength`
+      final newText = text.substring(0, kMaxTopicLength);
+
+      // Update controller value and selection (sync with TextField)
+      value = value.copyWith(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newText.length),
+      );
+    }
+    // Update the character count
+    characterCount.value = text.length.clamp(0, kMaxTopicLength);
+  }
 
   // TODO(#307) use `max_topic_length` instead of hardcoded limit
   @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
@@ -555,15 +571,42 @@ class _TopicInput extends StatelessWidget {
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
-          textInputAction: TextInputAction.next,
-          style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Aligns text elements to the start
+          children: [
+            ValueListenableBuilder<int>(
+              valueListenable: ComposeTopicController.characterCount,
+              builder: (context, count, child) {
+                return Text(
+                  '$count / $kMaxTopicLength',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: count >= kMaxTopicLength
+                        ? designVariables.btnLabelAttMediumIntDanger
+                        : designVariables.foreground.withFadedAlpha(0.5),
+                  ),
+                );
+              },
+            ),
+            TextField(
+              controller: controller.topic,
+              focusNode: controller.topicFocusNode,
+              textInputAction: TextInputAction.next,
+              style: topicTextStyle,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.zero, // Removes any padding
+                hintText: zulipLocalizations.composeBoxTopicHintText,
+                hintStyle: topicTextStyle.copyWith(
+                  color: designVariables.textInput.withFadedAlpha(0.5),
+                ),
+              ),
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(kMaxTopicLength),
+              ],
+            ),
+
+          ],
+        )));
   }
 }
 
