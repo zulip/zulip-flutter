@@ -948,4 +948,15 @@ enum PropagateMode {
   changeAll;
 
   String toJson() => _$PropagateModeEnumMap[this]!;
+
+  /// Get a [PropagateMode] from a raw string. Throws if the string is
+  /// unrecognized.
+  ///
+  /// Example:
+  ///   'change_one' -> PropagateMode.changeOne
+  static PropagateMode fromRawString(String raw) => _byRawString[raw]!;
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
+  static final _byRawString = _$PropagateModeEnumMap
+    .map((key, value) => MapEntry(value, key));
 }
