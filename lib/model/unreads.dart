@@ -455,6 +455,8 @@ class Unreads extends ChangeNotifier {
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, TopicName topic) {
+    assert(messageIds.isNotEmpty);
+    assert(isSortedWithoutDuplicates(messageIds));
     final topics = streams[streamId] ??= {};
     topics.update(topic,
       ifAbsent: () => messageIds,
