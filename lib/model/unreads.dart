@@ -8,6 +8,7 @@ import '../api/model/model.dart';
 import '../api/model/events.dart';
 import '../log.dart';
 import 'algorithms.dart';
+import 'message.dart';
 import 'narrow.dart';
 import 'channel.dart';
 
@@ -296,11 +297,35 @@ class Unreads extends ChangeNotifier {
         madeAnyUpdate |= mentions.add(messageId);
     }
 
-    // TODO(#901) handle moved messages
+    madeAnyUpdate |= _handleMessageMove(event);
 
     if (madeAnyUpdate) {
       notifyListeners();
     }
+  }
+
+  bool _handleMessageMove(UpdateMessageEvent event) {
+    // TODO(#901) handle moved messages
+    final messageMove = UpdateMessageMoveData.tryParseFromEvent(event);
+    if (messageMove == null) {
+      // No moved messages or malformed event.
+      return false;
+    }
+
+    final topics = streams[messageMove.origStreamId];
+    if (topics == null || topics[messageMove.origTopic] == null) {
+      // No known unreads affected by move; nothing to do.
+      return false;
+    }
+
+    final messageIdsToMove = _removeAllInStreamTopic(
+      event.messageIds.toSet(),
+      messageMove.origStreamId, messageMove.origTopic);
+    assert(isSortedWithoutDuplicates(messageIdsToMove));
+    _addAllInStreamTopic(
+      messageIdsToMove..sort(),
+      messageMove.newStreamId, messageMove.newTopic);
+    return true;
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
@@ -488,20 +513,28 @@ class Unreads extends ChangeNotifier {
     }
   }
 
-  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
+  QueueList<int> _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
     final topics = streams[streamId];
-    if (topics == null) return;
+    if (topics == null) return QueueList();
     final messageIds = topics[topic];
-    if (messageIds == null) return;
+    if (messageIds == null) return QueueList();
 
     // ([QueueList] doesn't have a `removeAll`)
-    messageIds.removeWhere((id) => incomingMessageIds.contains(id));
+    final removedMessageIds = QueueList<int>();
+    messageIds.removeWhere((id) {
+      if (incomingMessageIds.contains(id)) {
+        removedMessageIds.add(id);
+        return true;
+      }
+      return false;
+    });
     if (messageIds.isEmpty) {
       topics.remove(topic);
       if (topics.isEmpty) {
         streams.remove(streamId);
       }
     }
+    return removedMessageIds;
   }
 
   // TODO use efficient model lookups

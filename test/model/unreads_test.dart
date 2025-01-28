@@ -469,6 +469,32 @@ void main() {
         }
       }
     });
+
+    group('moves', () {
+      test('unknown message move', () {
+
+      });
+
+      test('tolerates unsorted event.messageIds', () {
+
+      });
+
+      test('move read message from known topic to unknown topic', () {
+
+      });
+
+      test('move unread message from known topic to known topic', () {
+
+      });
+
+      test('move unread from unknown to unknown', () {
+
+      });
+
+      test('move unread from unknown to known', () {
+
+      });
+    });
   });
 
 
