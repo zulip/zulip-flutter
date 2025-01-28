@@ -30,9 +30,8 @@ import 'theme.dart';
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
   static final light = MessageListTheme._(
     dateSeparator: Colors.black,
-    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
+    labelTime: const HSLColor.fromAHSL(0.49, 0, 0, 0).toColor(),
     recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
     senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
@@ -55,9 +54,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   static final dark = MessageListTheme._(
     dateSeparator: Colors.white,
-    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
+    labelTime: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
     recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
     senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
@@ -79,9 +77,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme._({
     required this.dateSeparator,
-    required this.dateSeparatorText,
     required this.dmRecipientHeaderBg,
-    required this.messageTimestamp,
+    required this.labelTime,
     required this.recipientHeaderText,
     required this.senderBotIcon,
     required this.senderName,
@@ -103,9 +100,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }
 
   final Color dateSeparator;
-  final Color dateSeparatorText;
   final Color dmRecipientHeaderBg;
-  final Color messageTimestamp;
+  final Color labelTime;
   final Color recipientHeaderText;
   final Color senderBotIcon;
   final Color senderName;
@@ -118,9 +114,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   @override
   MessageListTheme copyWith({
     Color? dateSeparator,
-    Color? dateSeparatorText,
     Color? dmRecipientHeaderBg,
-    Color? messageTimestamp,
+    Color? labelTime,
     Color? recipientHeaderText,
     Color? senderBotIcon,
     Color? senderName,
@@ -132,9 +127,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }) {
     return MessageListTheme._(
       dateSeparator: dateSeparator ?? this.dateSeparator,
-      dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
-      messageTimestamp: messageTimestamp ?? this.messageTimestamp,
+      labelTime: labelTime ?? this.labelTime,
       recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
       senderName: senderName ?? this.senderName,
@@ -153,9 +147,8 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     }
     return MessageListTheme._(
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
-      dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
       dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
-      messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
+      labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
       senderName: Color.lerp(senderName, other.senderName, t)!,
@@ -1263,7 +1256,7 @@ class DateText extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Text(
       style: TextStyle(
-        color: messageListTheme.dateSeparatorText,
+        color: messageListTheme.labelTime,
         fontSize: fontSize,
         height: height,
         // This is equivalent to css `all-small-caps`, see:
@@ -1370,7 +1363,7 @@ class MessageWithPossibleSender extends StatelessWidget {
           const SizedBox(width: 4),
           Text(time,
             style: TextStyle(
-              color: messageListTheme.messageTimestamp,
+              color: messageListTheme.labelTime,
               fontSize: 16,
               height: (18 / 16),
               fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
