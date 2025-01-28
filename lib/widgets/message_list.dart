@@ -1381,7 +1381,9 @@ class MessageWithPossibleSender extends StatelessWidget {
                 ])),
               SizedBox(width: 16,
                 child: message.flags.contains(MessageFlag.starred)
-                  ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
+                  ? Transform.translate(
+                    offset: const Offset(-2,0),
+                    child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star))
                   : null),
             ]),
         ])));
