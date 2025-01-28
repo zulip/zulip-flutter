@@ -1,10 +1,11 @@
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 extension ComposeContentControllerChecks on Subject<ComposeContentController> {
-  Subject<AutocompleteIntent<ComposeAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
+  Subject<AutocompleteIntent<ComposeAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(GlobalLocalizations.zulipLocalizations), 'autocompleteIntent');
 }
 
 extension ComposeTopicControllerChecks on Subject<ComposeTopicController> {
