@@ -487,6 +487,26 @@ GetMessagesResult newestGetMessagesResult({
   );
 }
 
+/// A GetMessagesResult the server might return on an `anchor=first_unread` request.
+///
+/// The expected [messages] list must be non-empty.
+GetMessagesResult nearUnreadGetMessagesResult({
+  required bool foundNewest,
+  required bool foundOldest,
+  bool foundAnchor = true,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: messages.isEmpty ? 0 : messages[messages.length ~/ 2].id,
+    foundNewest: foundNewest,
+    foundOldest: foundOldest,
+    foundAnchor: foundAnchor,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
 /// A GetMessagesResult the server might return when we request older messages.
 GetMessagesResult olderGetMessagesResult({
   required int anchor,
@@ -500,6 +520,24 @@ GetMessagesResult olderGetMessagesResult({
     foundAnchor: foundAnchor,
     foundNewest: false, // empirically always this, even when anchor happens to be latest
     foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
+/// A GetMessagesResult the server might return when we request newer messages.
+GetMessagesResult newerGetMessagesResult({
+  required int anchor,
+  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  required bool foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundNewest: foundNewest,
+    foundOldest: false, // empirically always this, even when anchor happens to be oldest
     historyLimited: historyLimited,
     messages: messages,
   );

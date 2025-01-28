@@ -14,7 +14,7 @@ import 'narrow.dart';
 import 'store.dart';
 
 /// The number of messages to fetch in each request.
-const kMessageListFetchBatchSize = 100; // TODO tune
+const kMessageListFetchBatchSize = 5; // TODO tune
 
 /// A message, or one of its siblings shown in the message list.
 ///
@@ -58,7 +58,7 @@ class MessageListLoadingItem extends MessageListItem {
   const MessageListLoadingItem(this.direction);
 }
 
-enum MessageListDirection { older }
+enum MessageListDirection { older, newer }
 
 /// Indicates we've reached the oldest message in the narrow.
 class MessageListHistoryStartItem extends MessageListItem {
@@ -85,9 +85,6 @@ mixin _MessageSequence {
   bool _fetched = false;
 
   /// Whether we know we have the oldest messages for this narrow.
-  ///
-  /// (Currently we always have the newest messages for the narrow,
-  /// once [fetched] is true, because we start from the newest.)
   bool get haveOldest => _haveOldest;
   bool _haveOldest = false;
 
@@ -117,6 +114,40 @@ mixin _MessageSequence {
   bool _fetchOlderCoolingDown = false;
 
   BackoffMachine? _fetchOlderCooldownBackoffMachine;
+
+  /// Whether we know we have the newest messages for this narrow.
+  bool get haveNewest => _haveNewest;
+  bool _haveNewest = false;
+
+  /// Whether we are currently fetching the next batch of newer messages.
+  ///
+  /// When this is true, [fetchNewer] is a no-op.
+  /// That method is called frequently by Flutter's scrolling logic,
+  /// and this field helps us avoid spamming the same request just to get
+  /// the same response each time.
+  ///
+  /// See also [fetchNewerCoolingDown].
+  bool get fetchingNewer => _fetchingNewer;
+  bool _fetchingNewer = false;
+
+  /// Whether [fetchNewer] had a request error recently.
+  ///
+  /// When this is true, [fetchNewer] is a no-op.
+  /// That method is called frequently by Flutter's scrolling logic,
+  /// and this field mitigates spamming the same request and getting
+  /// the same error each time.
+  ///
+  /// "Recently" is decided by a [BackoffMachine] that resets
+  /// when a [fetchNewer] request succeeds.
+  ///
+  /// See also [fetchingNewer].
+  bool get fetchNewerCoolingDown => _fetchNewerCoolingDown;
+  bool _fetchNewerCoolingDown = false;
+
+  BackoffMachine? _fetchNewerCooldownBackoffMachine;
+
+  int? get firstUnreadMessageId => _firstUnreadMessageId;
+  int? _firstUnreadMessageId;
 
   /// The parsed message contents, as a list parallel to [messages].
   ///
@@ -151,6 +182,7 @@ mixin _MessageSequence {
       case MessageListHistoryStartItem():        return -1;
       case MessageListLoadingItem():
         switch (item.direction) {
+          case MessageListDirection.newer:       return 1;
           case MessageListDirection.older:       return -1;
         }
       case MessageListRecipientHeaderItem(:var message):
@@ -269,6 +301,11 @@ mixin _MessageSequence {
     _fetchingOlder = false;
     _fetchOlderCoolingDown = false;
     _fetchOlderCooldownBackoffMachine = null;
+    _haveNewest = false;
+    _fetchingNewer = false;
+    _fetchNewerCoolingDown = false;
+    _fetchNewerCooldownBackoffMachine = null;
+    _firstUnreadMessageId = null;
     contents.clear();
     items.clear();
   }
@@ -317,7 +354,8 @@ mixin _MessageSequence {
   /// Update [items] to include markers at start and end as appropriate.
   void _updateEndMarkers() {
     assert(fetched);
-    assert(!(fetchingOlder && fetchOlderCoolingDown));
+    assert(!(fetchingOlder && fetchOlderCoolingDown)
+        || !(fetchingNewer && fetchNewerCoolingDown));
     final effectiveFetchingOlder = fetchingOlder || fetchOlderCoolingDown;
     assert(!(effectiveFetchingOlder && haveOldest));
     final startMarker = switch ((effectiveFetchingOlder, haveOldest)) {
@@ -335,6 +373,21 @@ mixin _MessageSequence {
       case (true, _   ): items.addFirst(startMarker!);
       case (_,    true): items.removeFirst();
       case (_,    _   ): break;
+    }
+
+    final effectiveFetchingNewer = fetchingNewer || fetchNewerCoolingDown;
+    final endMarker = switch (effectiveFetchingNewer) {
+      true => const MessageListLoadingItem(MessageListDirection.newer),
+      false => null,
+    };
+    final hasEndMarker = switch (items.lastOrNull) {
+      MessageListLoadingItem() => true,
+      _                        => false,
+    };
+    switch ((endMarker != null, hasEndMarker)) {
+      case (true,  false): items.add(endMarker!);
+      case (false, true ): items.removeLast();
+      case (_,     _    ): break;
     }
   }
 
@@ -500,15 +553,17 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchInitial() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
-    assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown);
+    assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown
+                    && !haveNewest && !fetchingNewer && !fetchNewerCoolingDown);
     assert(messages.isEmpty && contents.isEmpty);
     // TODO schedule all this in another isolate
     final generation = this.generation;
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
-      anchor: AnchorCode.newest,
+      anchor: AnchorCode.firstUnread,
       numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
+      // Results will include the anchor message, so fetch one less.
+      numAfter: kMessageListFetchBatchSize - 1,
     );
     if (this.generation > generation) return;
     store.reconcileMessages(result.messages);
@@ -520,6 +575,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
     _fetched = true;
     _haveOldest = result.foundOldest;
+    _haveNewest = result.foundNewest;
+    _firstUnreadMessageId = result.anchor;
     _updateEndMarkers();
     notifyListeners();
   }
@@ -541,7 +598,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       try {
         result = await getMessages(store.connection,
           narrow: narrow.apiEncode(),
-          anchor: NumericAnchor(messages[0].id),
+          anchor: NumericAnchor(messages.first.id),
           includeAnchor: false,
           numBefore: kMessageListFetchBatchSize,
           numAfter: 0,
@@ -553,7 +610,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       if (this.generation > generation) return;
 
       if (result.messages.isNotEmpty
-          && result.messages.last.id == messages[0].id) {
+          && result.messages.last.id == messages.first.id) {
         // TODO(server-6): includeAnchor should make this impossible
         result.messages.removeLast();
       }
@@ -582,6 +639,71 @@ class MessageListView with ChangeNotifier, _MessageSequence {
             }));
         } else {
           _fetchOlderCooldownBackoffMachine = null;
+        }
+        _updateEndMarkers();
+        notifyListeners();
+      }
+    }
+  }
+
+  /// Fetch the next batch of newer messages, if applicable.
+  Future<void> fetchNewer() async {
+    if (haveNewest) return;
+    if (fetchingNewer) return;
+    if (fetchNewerCoolingDown) return;
+    assert(fetched);
+    assert(messages.isNotEmpty);
+    _fetchingNewer = true;
+    _updateEndMarkers();
+    notifyListeners();
+    final generation = this.generation;
+    bool hasFetchError = false;
+    try {
+      final GetMessagesResult result;
+      try {
+        result = await getMessages(store.connection,
+          narrow: narrow.apiEncode(),
+          anchor: NumericAnchor(messages.last.id),
+          includeAnchor: false,
+          numBefore: 0,
+          numAfter: kMessageListFetchBatchSize,
+        );
+      } catch (e) {
+        hasFetchError = true;
+        rethrow;
+      }
+      if (this.generation > generation) return;
+
+      if (result.messages.isNotEmpty
+          && result.messages.first.id == messages.last.id) {
+        // TODO(server-6): includeAnchor should make this impossible
+        result.messages.removeAt(0);
+      }
+
+      store.reconcileMessages(result.messages);
+      store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+      final fetchedMessages = _allMessagesVisible
+        ? result.messages // Avoid unnecessarily copying the list.
+        : result.messages.where(_messageVisible);
+
+      _insertAllMessages(messages.length, fetchedMessages);
+      _haveNewest = result.foundNewest;
+    } finally {
+      if (this.generation == generation) {
+        _fetchingNewer = false;
+        if (hasFetchError) {
+          assert(!fetchNewerCoolingDown);
+          _fetchNewerCoolingDown = true;
+          unawaited((_fetchNewerCooldownBackoffMachine ??= BackoffMachine())
+            .wait().then((_) {
+              if (this.generation != generation) return;
+              _fetchNewerCoolingDown = false;
+              _updateEndMarkers();
+              notifyListeners();
+            }));
+        } else {
+          _fetchNewerCooldownBackoffMachine = null;
         }
         _updateEndMarkers();
         notifyListeners();
