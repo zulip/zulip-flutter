@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:zulip/generated/l10n/zulip_localizations.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/theme.dart';
 
@@ -77,9 +78,9 @@ class TestZulipApp extends StatelessWidget {
         navigatorObservers: navigatorObservers ?? const [],
 
         home: accountId != null
-          ? PerAccountStoreWidget(accountId: accountId!, child: child)
-          : child,
-      );
+          ? PerAccountStoreWidget(accountId: accountId!,
+              child: PageRoot(child: child))
+          : PageRoot(child: child));
     }));
   }
 }

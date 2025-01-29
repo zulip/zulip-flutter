@@ -24,6 +24,7 @@ import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -163,11 +164,15 @@ class ActionSheetCancelButton extends StatelessWidget {
 }
 
 /// Show a sheet of actions you can take on a topic.
+///
+/// Needs a [PageRoot] ancestor.
 void showTopicActionSheet(BuildContext context, {
   required int channelId,
   required TopicName topic,
 }) {
-  final store = PerAccountStoreWidget.of(context);
+  final pageContext = PageRoot.contextOf(context);
+
+  final store = PerAccountStoreWidget.of(pageContext);
   final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
@@ -237,7 +242,7 @@ void showTopicActionSheet(BuildContext context, {
       currentVisibilityPolicy: visibilityPolicy,
       newVisibilityPolicy: to,
       narrow: TopicNarrow(channelId, topic),
-      pageContext: context);
+      pageContext: pageContext);
   }));
 
   if (optionButtons.isEmpty) {
@@ -250,7 +255,7 @@ void showTopicActionSheet(BuildContext context, {
     return;
   }
 
-  _showActionSheet(context, optionButtons: optionButtons);
+  _showActionSheet(pageContext, optionButtons: optionButtons);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
@@ -376,14 +381,15 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 ///
 /// Must have a [MessageListPage] ancestor.
 void showMessageActionSheet({required BuildContext context, required Message message}) {
-  final store = PerAccountStoreWidget.of(context);
+  final pageContext = PageRoot.contextOf(context);
+  final store = PerAccountStoreWidget.of(pageContext);
 
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc).
   // So we rely on the fact that isComposeBoxOffered for any given message list
   // will be constant through the page's life.
-  final messageListPage = MessageListPage.ancestorOf(context);
+  final messageListPage = MessageListPage.ancestorOf(pageContext);
   final isComposeBoxOffered = messageListPage.composeBoxController != null;
 
   final isMessageRead = message.flags.contains(MessageFlag.read);
@@ -391,18 +397,18 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
   final optionButtons = [
-    ReactionButtons(message: message, pageContext: context),
-    StarButton(message: message, pageContext: context),
+    ReactionButtons(message: message, pageContext: pageContext),
+    StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
-      QuoteAndReplyButton(message: message, pageContext: context),
+      QuoteAndReplyButton(message: message, pageContext: pageContext),
     if (showMarkAsUnreadButton)
-      MarkAsUnreadButton(message: message, pageContext: context),
-    CopyMessageTextButton(message: message, pageContext: context),
-    CopyMessageLinkButton(message: message, pageContext: context),
-    ShareButton(message: message, pageContext: context),
+      MarkAsUnreadButton(message: message, pageContext: pageContext),
+    CopyMessageTextButton(message: message, pageContext: pageContext),
+    CopyMessageLinkButton(message: message, pageContext: pageContext),
+    ShareButton(message: message, pageContext: pageContext),
   ];
 
-  _showActionSheet(context, optionButtons: optionButtons);
+  _showActionSheet(pageContext, optionButtons: optionButtons);
 }
 
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
