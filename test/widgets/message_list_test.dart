@@ -927,6 +927,54 @@ void main() {
         await tester.pump();
         tester.widget(find.text('new stream name'));
       });
+
+      testWidgets('navigates to TopicNarrow on tapping topic in ChannelNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          streams: [channel],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name')));
+        await tester.pump();
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+          .initNarrow.equals(TopicNarrow.ofMessage(message));
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('does not navigate on tapping topic in TopicNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          streams: [channel],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name')));
+        await tester.pump();
+        check(pushedRoutes).isEmpty();
+      });
     });
 
     group('DmRecipientHeader', () {
@@ -991,6 +1039,46 @@ void main() {
       // For this test, just accept outputs corresponding to any possible timezone.
       tester.widget(find.textContaining(RegExp("Dec 1[89], 2022")));
       tester.widget(find.textContaining(RegExp("Aug 2[23], 2022")));
+    });
+
+    testWidgets('navigates to DmNarrow on tapping recipient header in CombinedFeedNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [dmMessage],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [dmMessage]).toJson());
+      await tester.tap(find.byType(DmRecipientHeader));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      await tester.pumpAndSettle();
+    });
+    
+    testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId),
+        messages: [dmMessage],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      await tester.tap(find.byType(DmRecipientHeader));
+      await tester.pump();
+      check(pushedRoutes).isEmpty();
     });
   });
 
