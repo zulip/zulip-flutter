@@ -32,9 +32,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     dateSeparator: Colors.black,
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
     labelTime: const HSLColor.fromAHSL(0.49, 0, 0, 0).toColor(),
-    recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
-    senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
     streamMessageBgDefault: Colors.white,
     streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
@@ -56,9 +54,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     dateSeparator: Colors.white,
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     labelTime: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
-    recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-    senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
     streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
     streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
@@ -79,9 +75,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.dateSeparator,
     required this.dmRecipientHeaderBg,
     required this.labelTime,
-    required this.recipientHeaderText,
     required this.senderBotIcon,
-    required this.senderName,
     required this.streamMessageBgDefault,
     required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
@@ -102,9 +96,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color dateSeparator;
   final Color dmRecipientHeaderBg;
   final Color labelTime;
-  final Color recipientHeaderText;
   final Color senderBotIcon;
-  final Color senderName;
   final Color streamMessageBgDefault;
   final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
@@ -116,9 +108,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? dateSeparator,
     Color? dmRecipientHeaderBg,
     Color? labelTime,
-    Color? recipientHeaderText,
     Color? senderBotIcon,
-    Color? senderName,
     Color? streamMessageBgDefault,
     Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
@@ -129,9 +119,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       labelTime: labelTime ?? this.labelTime,
-      recipientHeaderText: recipientHeaderText ?? this.recipientHeaderText,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
-      senderName: senderName ?? this.senderName,
       streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
@@ -149,9 +137,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
-      recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
-      senderName: Color.lerp(senderName, other.senderName, t)!,
       streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
@@ -1062,7 +1048,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       iconColor = swatch.iconOnBarBackground;
     } else {
       backgroundColor = messageListTheme.unsubscribedStreamRecipientHeaderBg;
-      iconColor = messageListTheme.recipientHeaderText;
+      iconColor = designVariables.title;
     }
 
     final Widget streamWidget;
@@ -1178,6 +1164,7 @@ class DmRecipientHeader extends StatelessWidget {
     }
 
     final messageListTheme = MessageListTheme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     return GestureDetector(
       // When already in a DM narrow, disable tap interaction that would just
@@ -1198,7 +1185,7 @@ class DmRecipientHeader extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Icon(
-                  color: messageListTheme.recipientHeaderText,
+                  color: designVariables.title,
                   size: 16,
                   ZulipIcons.user)),
               Expanded(
@@ -1212,7 +1199,7 @@ class DmRecipientHeader extends StatelessWidget {
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
-    color: MessageListTheme.of(context).recipientHeaderText,
+    color: DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
@@ -1348,7 +1335,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
-                        color: messageListTheme.senderName,
+                        color: designVariables.title,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[

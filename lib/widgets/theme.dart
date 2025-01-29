@@ -194,7 +194,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     mainBackground: const Color(0xff1d1d1d),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
-    title: const Color(0xffffffff),
+    title: const Color(0xffffffff).withValues(alpha: 0.9),
     bgSearchInput: const Color(0xff313131),
     textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
     channelColorSwatches: ChannelColorSwatches.dark,
