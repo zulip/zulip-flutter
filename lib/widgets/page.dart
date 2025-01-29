@@ -3,6 +3,30 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
+/// An [InheritedWidget] for near the root of a page's widget subtree,
+/// providing its [BuildContext].
+///
+/// Useful when needing a context that persists through the page's lifespan,
+/// e.g. for a show-action-sheet function
+/// whose buttons use a context to close the sheet
+/// or show an error dialog / snackbar asynchronously.
+///
+/// (In this scenario, it would be buggy to use the context of the element
+/// that was long-pressed,
+/// if the element can unmount as part of handling a Zulip event.)
+class PageRoot extends InheritedWidget {
+  const PageRoot({super.key, required super.child});
+
+  @override
+  bool updateShouldNotify(covariant PageRoot oldWidget) => false;
+
+  static BuildContext contextOf(BuildContext context) {
+    final element = context.getElementForInheritedWidgetOfExactType<PageRoot>();
+    assert(element != null, 'No PageRoot ancestor');
+    return element!;
+  }
+}
+
 /// A page route that always builds the same widget.
 ///
 /// This is useful for making the route more transparent for a test to inspect.
@@ -42,7 +66,10 @@ mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
       accountId: accountId,
       placeholder: loadingPlaceholderPage ?? const LoadingPlaceholderPage(),
       routeToRemoveOnLogout: this,
-      child: super.buildPage(context, animation, secondaryAnimation));
+      // PageRoot goes under PerAccountStoreWidget, so the provided context
+      // can be used for PerAccountStoreWidget.of.
+      child: PageRoot(
+        child: super.buildPage(context, animation, secondaryAnimation)));
   }
 }
 

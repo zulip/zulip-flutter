@@ -277,7 +277,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             narrow: ChannelNarrow(streamId)))));
     }
 
-    return Scaffold(
+    // Insert a PageRoot here, to provide a context that can be used for
+    // MessageListPage.ancestorOf.
+    return PageRoot(child: Scaffold(
       appBar: ZulipAppBar(
         buildTitle: (willCenterTitle) =>
           MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
@@ -318,7 +320,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ])));
+          ]))));
   }
 }
 
