@@ -361,6 +361,10 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
   }
 
   @override void onPressed() async {
+    // Could implement client-side check on whether the action was done between
+    // opening the action sheet and pressing the button.
+    // Like in ResolveUnresolveButton;
+    // see also dartdoc of [ActionSheetMenuItemButton].
     try {
       await updateUserTopicCompat(
         PerAccountStoreWidget.of(pageContext).connection,
