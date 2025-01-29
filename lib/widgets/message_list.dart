@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter/widgets.dart' as flutter;
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/message_list.dart';
@@ -1395,8 +1395,15 @@ class MessageWithPossibleSender extends StatelessWidget {
                 ])),
               SizedBox(width: 16,
                 child: message.flags.contains(MessageFlag.starred)
-                  ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
-                  : null),
+                    ? Transform.translate(
+                        offset: Offset(
+                          Directionality.of(context) == flutter.TextDirection.rtl ? 2 : -2,
+                          0,
+                        ),
+                        child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
+                      )
+                    : null,
+              ),
             ]),
         ])));
   }
