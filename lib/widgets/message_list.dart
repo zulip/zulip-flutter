@@ -1108,9 +1108,14 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         ]));
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: TopicNarrow.ofMessage(message))),
+      // When already in a topic narrow, disable tap interaction that would just
+      // push a MessageListPage for the same topic narrow.
+      // TODO(#1039) simplify by removing topic-narrow condition if we remove
+      //   recipient headers in topic narrows
+      onTap: narrow is TopicNarrow ? null
+        : () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: TopicNarrow.ofMessage(message))),
       onLongPress: () => showTopicActionSheet(context,
         channelId: message.streamId, topic: topic),
       child: ColoredBox(
@@ -1157,9 +1162,14 @@ class DmRecipientHeader extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+      // When already in a DM narrow, disable tap interaction that would just
+      // push a MessageListPage for the same DM narrow.
+      // TODO(#1244) simplify by removing DM-narrow condition if we remove
+      //   recipient headers in DM narrows
+      onTap: narrow is DmNarrow ? null
+        : () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
