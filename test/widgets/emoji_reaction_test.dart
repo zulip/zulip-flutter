@@ -469,6 +469,87 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    group('handle view paddings', () {
+      const screenHeight = 400.0;
+
+      late double scrollViewTop;
+      late double scrollViewBottom;
+      final scrollViewFinder = findInPicker(find.bySubtype<ScrollView>());
+
+      late Widget firstOption;
+      late Widget lastOption;
+      double getScrollChildrenTop(WidgetTester tester) =>
+        tester.getTopLeft(find.byWidget(firstOption)).dy;
+      double getScrollChildrenBottom(WidgetTester tester) =>
+        tester.getBottomLeft(find.byWidget(lastOption)).dy;
+
+      Future<void> prepare(WidgetTester tester, {
+        required FakeViewPadding viewPadding,
+      }) async {
+        addTearDown(tester.view.reset);
+        tester.view.physicalSize = Size(640, screenHeight);
+        // This makes it easier to convert between device pixels used for
+        // [FakeViewPadding] and logical pixels used in tests.
+        tester.view.devicePixelRatio = 1.0;
+
+        tester.view.viewPadding = viewPadding;
+        tester.view.padding = viewPadding;
+
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        scrollViewTop = tester.getTopLeft(scrollViewFinder).dy;
+        scrollViewBottom = tester.getBottomLeft(scrollViewFinder).dy;
+        // The scroll view should expand all the way to the bottom of the
+        // screen, even if there is device bottom padding.
+        check(scrollViewBottom).equals(screenHeight);
+
+        final options = tester.widgetList(find.byType(EmojiPickerListEntry));
+        firstOption = options.first;
+        lastOption = options.last;
+      }
+
+      testWidgets('no view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding.zero);
+
+        // The top of the list of children is padded by 8px;
+        // the bottom is out of view.
+        check(scrollViewTop).equals(getScrollChildrenTop(tester) - 8);
+        check(scrollViewBottom).isLessThan(getScrollChildrenBottom(tester));
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top of the list of children is out of view;
+        // the bottom is padded by 8px, the minimum padding.
+        check(scrollViewTop).isGreaterThan(getScrollChildrenTop(tester));
+        check(scrollViewBottom).equals(getScrollChildrenBottom(tester) + 8);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('with bottom view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding(bottom: 10));
+
+        // The top of the list of children is padded by 8px;
+        // the bottom is out of view.
+        check(scrollViewTop).equals(getScrollChildrenTop(tester) - 8);
+        check(scrollViewBottom).isLessThan(getScrollChildrenBottom(tester));
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top of the list of children is out of view;
+        // the bottom is padded by `max(8, 10)` px, where the view bottom
+        // padding is larger.
+        check(scrollViewTop).isGreaterThan(getScrollChildrenTop(tester));
+        check(scrollViewBottom).equals(getScrollChildrenBottom(tester) + 10);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
   });
 }
 
