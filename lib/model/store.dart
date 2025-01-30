@@ -263,6 +263,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
     final realmUrl = account.realmUrl;
+    final realmName = initialSnapshot.realmName;
+    final realmIcon = initialSnapshot.realmIconUrl;
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
@@ -270,6 +272,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       realmUrl: realmUrl,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
+      realmName: realmName,
+      realmIcon: realmIcon,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
@@ -315,6 +319,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.realmUrl,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
+    required this.realmName,
+    required this.realmIcon,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
@@ -372,6 +378,9 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
   final Uri realmUrl;
+
+  final String realmName;
+  final String realmIcon;
 
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
