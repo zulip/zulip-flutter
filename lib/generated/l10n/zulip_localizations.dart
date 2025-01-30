@@ -141,6 +141,12 @@ abstract class ZulipLocalizations {
   /// **'Switch account'**
   String get switchAccountButton;
 
+  /// Button text to view and switch between different organizations.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizations'**
+  String get organizationsButtonLabel;
+
   /// Message that appears on the loading screen after waiting for some time.
   ///
   /// In en, this message translates to:
