@@ -1344,4 +1344,142 @@ void main() {
         ..status.equals(AnimationStatus.dismissed);
     });
   });
+
+  group('double-tap gesture', () {
+    Future<void> setupMessageWithReactions(WidgetTester tester, {
+      required StreamMessage message,
+      required Narrow narrow,
+      List<Reaction>? reactions,
+    }) async {
+      addTearDown(testBinding.reset); // reset the test binding
+      assert(narrow.containsMessage(message)); // check that the narrow contains the message
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot()); // add the self account
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id); // get the per account store
+      await store.addUsers([
+        eg.selfUser,
+        eg.user(userId: message.senderId),
+      ]); // add the self user and the message sender
+      final stream = eg.stream(streamId: message.streamId); // create the stream
+      await store.addStream(stream); // add the stream
+      await store.addSubscription(eg.subscription(stream)); // add the subscription
+
+      connection = store.connection as FakeApiConnection; // get the fake api connection
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson()); // prepare the response for the message
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: MessageListPage(initNarrow: narrow)),
+        ); // pump the widget
+
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('add thumbs up reaction on double-tap', (tester) async {
+      final message = eg.streamMessage(); // create a message without any reactions
+      await setupMessageWithReactions(tester,
+        message: message,
+        narrow: TopicNarrow.ofMessage(message)); // setup the message and narrow
+
+      connection.prepare(json: {}); // prepare the response for the reaction
+      await tester.pump(); // pump the widget to make the reaction visible
+
+      final messageContent = find.byType(MessageContent); // find the message content
+      await tester.tap(messageContent); // first tap
+      await tester.pump(const Duration(milliseconds: 50)); // wait for some time so that the double-tap is detected
+      await tester.tap(messageContent); // second tap
+      await tester.pumpAndSettle(); // wait for the reaction to be added
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': 'unicode_emoji',
+            'emoji_code': '1f44d',  // thumbs up emoji code
+            'emoji_name': '+1',
+          }); // check the last request
+    });
+
+    testWidgets('remove thumbs up reaction on double-tap when already reacted', (tester) async {
+      final message = eg.streamMessage(reactions: [
+        Reaction(
+          emojiName: '+1',
+          emojiCode: '1f44d',
+          reactionType: ReactionType.unicodeEmoji,
+          userId: eg.selfAccount.userId)
+      ]); // create a message with a thumbs up reaction
+      await setupMessageWithReactions(tester,
+        message: message,
+        narrow: TopicNarrow.ofMessage(message)); // setup the message and narrow
+
+      connection.prepare(json: {}); // prepare the response for the reaction
+      await tester.pump(); // pump the widget to make the reaction visible
+
+      final messageContent = find.byType(MessageContent); // find the message content
+      await tester.tap(messageContent); // first tap
+      await tester.pump(const Duration(milliseconds: 50)); // wait for some time so that the double-tap is detected
+      await tester.tap(messageContent); // second tap
+      await tester.pumpAndSettle(); // wait for the reaction to be removed
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': 'unicode_emoji',
+            'emoji_code': '1f44d',
+            'emoji_name': '+1',
+          }); // check the last request
+    });
+
+    testWidgets('shows error dialog when adding reaction fails', (tester) async {
+      final message = eg.streamMessage();
+      await setupMessageWithReactions(tester,
+        message: message,
+        narrow: TopicNarrow.ofMessage(message)); // setup the message and narrow
+
+      connection.prepare(httpStatus: 400, json: {
+        'code': 'BAD_REQUEST',
+        'msg': 'Invalid message(s)',
+        'result': 'error',
+      });
+
+      final messageContent = find.byType(MessageContent);
+      await tester.tap(messageContent); // first tap
+      await tester.pump(const Duration(milliseconds: 50));  // wait for some time so that the double-tap is detected
+      await tester.tap(messageContent); // second tap
+      await tester.pumpAndSettle(); // wait for the error dialog to show
+
+      checkErrorDialog(tester,
+        expectedTitle: 'Adding reaction failed',
+        expectedMessage: 'Invalid message(s)'); // check the error dialog
+    });
+
+    testWidgets('shows error dialog when removing reaction fails', (tester) async {
+      final message = eg.streamMessage(reactions: [
+        Reaction(
+          emojiName: '+1',
+          emojiCode: '1f44d',
+          reactionType: ReactionType.unicodeEmoji,
+          userId: eg.selfAccount.userId)
+      ]); // create a message with a thumbs up reaction
+      await setupMessageWithReactions(tester,
+        message: message,
+        narrow: TopicNarrow.ofMessage(message)); // setup the message and narrow
+
+      connection.prepare(httpStatus: 400, json: {
+        'code': 'BAD_REQUEST',
+        'msg': 'Invalid message(s)',
+        'result': 'error',
+      }); // prepare the response for the reaction
+
+      final messageContent = find.byType(MessageContent); // find the message content
+      await tester.tap(messageContent); // first tap
+      await tester.pump(const Duration(milliseconds: 50));  // wait for some time so that the double-tap is detected
+      await tester.tap(messageContent); // second tap
+      await tester.pumpAndSettle(); // wait for the error dialog to show
+
+      checkErrorDialog(tester,
+        expectedTitle: 'Removing reaction failed',
+        expectedMessage: 'Invalid message(s)'); // check the error dialog
+    });
+  });
 }

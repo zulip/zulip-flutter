@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/emoji.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1365,6 +1366,29 @@ class MessageWithPossibleSender extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
+      onDoubleTap: () {
+        final store = PerAccountStoreWidget.of(context);
+        // First emoji in popular Candidates is thumbs up
+        final thumbsUpEmoji = EmojiStore.popularEmojiCandidates.toList()[0];
+
+        // Check if the user has already reacted with thumbs up
+        final isSelfVoted = message.reactions?.aggregated.any((reactionWithVotes) =>
+          reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+          && reactionWithVotes.emojiCode == thumbsUpEmoji.emojiCode
+          && reactionWithVotes.userIds.contains(store.selfUserId)) ?? false;
+
+        final zulipLocalizations = ZulipLocalizations.of(context);
+
+        // Add or remove reaction based on whether the user has already reacted with thumbs up
+        doAddOrRemoveReaction(
+          context: context,
+          doRemoveReaction: isSelfVoted,
+          messageId: message.id,
+          emoji: thumbsUpEmoji,
+          errorDialogTitle: isSelfVoted
+            ? zulipLocalizations.errorReactionRemovingFailedTitle
+            : zulipLocalizations.errorReactionAddingFailedTitle);
+      },
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
