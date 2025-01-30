@@ -464,6 +464,87 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    group('handle view paddings', () {
+      const screenHeight = 400.0;
+
+      late double scrollViewTopEdgeOffset;
+      late double scrollViewBottomEdgeOffset;
+      final scrollViewFinder = findInPicker(find.bySubtype<ScrollView>());
+
+      final listEntryFinder = find.byType(EmojiPickerListEntry);
+      double getListEntriesTopEdgeOffset(WidgetTester tester) =>
+        tester.getTopLeft(listEntryFinder.first).dy;
+      double getListEntriesBottomEdgeOffset(WidgetTester tester) =>
+        tester.getBottomLeft(listEntryFinder.last).dy;
+
+      Future<void> prepare(WidgetTester tester, {
+        required FakeViewPadding viewPadding,
+      }) async {
+        addTearDown(tester.view.reset);
+        tester.view.physicalSize = Size(640, screenHeight);
+        // This makes it easier to convert between device pixels used for
+        // [FakeViewPadding] and logical pixels used in tests.
+        tester.view.devicePixelRatio = 1.0;
+
+        tester.view.viewPadding = viewPadding;
+        tester.view.padding = viewPadding;
+
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        scrollViewTopEdgeOffset = tester.getTopLeft(scrollViewFinder).dy;
+        scrollViewBottomEdgeOffset = tester.getBottomLeft(scrollViewFinder).dy;
+        final scrollViewHeight = tester.getSize(scrollViewFinder).height;
+        // The scroll view should expand all the way to the bottom of the
+        // screen, even if there is device bottom padding.
+        check(scrollViewBottomEdgeOffset).equals(screenHeight);
+        // There should always be enough entries to overflow the scroll view.
+        check(getListEntriesBottomEdgeOffset(tester) - getListEntriesTopEdgeOffset(tester))
+          .isGreaterThan(scrollViewHeight);
+      }
+
+      testWidgets('no view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding.zero);
+
+        // The top edge of the list entries is padded by 8px from the top edge
+        // of the scroll view; the bottom edge is out of view.
+        check(scrollViewTopEdgeOffset).equals(getListEntriesTopEdgeOffset(tester) - 8);
+        check(scrollViewBottomEdgeOffset).isLessThan(getListEntriesBottomEdgeOffset(tester));
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top edge of the list entries is out of view;
+        // the bottom is padded by 8px, the minimum padding, from the bottom
+        // edge of the scroll view.
+        check(scrollViewTopEdgeOffset).isGreaterThan(getListEntriesTopEdgeOffset(tester));
+        check(scrollViewBottomEdgeOffset).equals(getListEntriesBottomEdgeOffset(tester) + 8);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('with bottom view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding(bottom: 10));
+
+        // The top edge of the list entries is padded by 8px from the top edge
+        // of the scroll view; the bottom edge is out of view.
+        check(scrollViewTopEdgeOffset).equals(getListEntriesTopEdgeOffset(tester) - 8);
+        check(scrollViewBottomEdgeOffset).isLessThan(getListEntriesBottomEdgeOffset(tester));
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top edge of the list entries is out of view;
+        // the bottom edge is padded by 10px from the bottom edge of the scroll
+        // view, because the view bottom padding is larger than the minimum 8px.
+        check(scrollViewTopEdgeOffset).isGreaterThan(getListEntriesTopEdgeOffset(tester));
+        check(scrollViewBottomEdgeOffset).equals(getListEntriesBottomEdgeOffset(tester) + 10);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
   });
 }
 
