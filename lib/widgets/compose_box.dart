@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_settings/app_settings.dart';
@@ -18,6 +19,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'saved_snippet.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -1020,6 +1022,22 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+class _ShowSavedSnippetsButton extends _ComposeButton {
+  const _ShowSavedSnippetsButton({required super.controller});
+
+  @override
+  void handlePress(BuildContext context) {
+    showSavedSnippetPickerSheet(context: context, controller: controller);
+  }
+
+  @override
+  IconData get icon => ZulipIcons.message_square_text;
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations)
+    => zulipLocalizations.composeBoxShowSavedSnippetsTooltip;
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1164,10 +1182,13 @@ class _ComposeButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final composeButtons = [
       _AttachFileButton(controller: controller),
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
+      if (store.zulipFeatureLevel >= 297) // TODO(server-10) remove
+        _ShowSavedSnippetsButton(controller: controller),
     ];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

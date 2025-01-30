@@ -262,6 +262,12 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Take a photo';
 
   @override
+  String get composeBoxShowSavedSnippetsTooltip => 'Show saved snippets';
+
+  @override
+  String get noSavedSnippets => 'No saved snippets';
+
+  @override
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override

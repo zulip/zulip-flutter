@@ -843,6 +843,24 @@ void main() {
     skip: Platform.isWindows);
   });
 
+  group('saved snippet', () {
+    final channel = eg.stream();
+    final narrow = eg.topicNarrow(channel.streamId, 'topic');
+
+    testWidgets('smoke saved snippets compose button', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+      await tester.tap(find.byIcon(ZulipIcons.message_square_text));
+    });
+
+    testWidgets('legacy: hide saved snippets compose button when FL<297', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel],
+        zulipFeatureLevel: 296);
+      check(find.byIcon(ZulipIcons.message_square_text)).findsNothing();
+    });
+
+    // Saved snippet is tested more thoroughly in test/widgets/saved_snippet_test.dart
+  });
+
   group('error banner', () {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 

@@ -543,6 +543,18 @@ abstract class ZulipLocalizations {
   /// **'Take a photo'**
   String get composeBoxAttachFromCameraTooltip;
 
+  /// Tooltip for compose box icon to show a list of saved snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Show saved snippets'**
+  String get composeBoxShowSavedSnippetsTooltip;
+
+  /// Text to show on the saved snippets bottom sheet when there are no saved snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved snippets'**
+  String get noSavedSnippets;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:
