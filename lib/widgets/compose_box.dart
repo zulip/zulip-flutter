@@ -8,6 +8,7 @@ import 'package:mime/mime.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../api/route/saved_snippets.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
@@ -18,6 +19,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'saved_snippet.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -373,6 +375,68 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
       if (_uploads.isNotEmpty)
         ContentValidationError.uploadInProgress,
+    ];
+  }
+}
+
+enum SavedSnippetTitleValidationError {
+  empty;
+
+  String message(ZulipLocalizations zulipLocalizations) {
+    return switch (this) {
+      SavedSnippetTitleValidationError.empty => zulipLocalizations.savedSnippetTitleValidationErrorEmpty,
+    };
+  }
+}
+
+class SavedSnippetTitleComposeController extends ComposeController<SavedSnippetTitleValidationError> {
+  SavedSnippetTitleComposeController() {
+    _update();
+  }
+
+  @override final maxLengthUnicodeCodePoints = null;
+
+  @override
+  String _computeTextNormalized() {
+    return text.trim();
+  }
+
+  @override
+  List<SavedSnippetTitleValidationError> _computeValidationErrors() {
+    return [
+      if (textNormalized.isEmpty)
+        SavedSnippetTitleValidationError.empty,
+    ];
+  }
+}
+
+enum SavedSnippetContentValidationError {
+  empty;
+
+  String message(ZulipLocalizations zulipLocalizations) {
+    return switch (this) {
+      SavedSnippetContentValidationError.empty => zulipLocalizations.savedSnippetContentValidationErrorEmpty,
+    };
+  }
+}
+
+class SavedSnippetContentComposeController extends ComposeController<SavedSnippetContentValidationError> {
+  SavedSnippetContentComposeController() {
+    _update();
+  }
+
+  @override final maxLengthUnicodeCodePoints = null;
+
+  @override
+  String _computeTextNormalized() {
+    return text.trim();
+  }
+
+  @override
+  List<SavedSnippetContentValidationError> _computeValidationErrors() {
+    return [
+      if (textNormalized.isEmpty)
+        SavedSnippetContentValidationError.empty,
     ];
   }
 }
@@ -1035,10 +1099,13 @@ class _ComposeButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final composeButtons = [
       _AttachFileButton(controller: controller),
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
+      if (store.zulipFeatureLevel >= 297) // TODO(server-10) remove
+        _ShowSavedSnippetsButton(controller: controller),
     ];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1047,6 +1114,22 @@ class _ComposeButtonRow extends StatelessWidget {
         sendButton,
       ]);
   }
+}
+
+class _ShowSavedSnippetsButton extends _ComposeButton {
+  const _ShowSavedSnippetsButton({required super.controller});
+
+  @override
+  void handlePress(BuildContext context) {
+    showSavedSnippetPickerSheet(context: context, controller: controller);
+  }
+
+  @override
+  IconData get icon => ZulipIcons.message_square_text;
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations)
+    => zulipLocalizations.composeBoxShowSavedSnippetsTooltip;
 }
 
 class _SendButton extends StatefulWidget {
@@ -1182,6 +1265,98 @@ class _SendButtonState extends State<_SendButton> {
           // the highlight state to match the Figma design.
           color: iconColor),
         onPressed: _send));
+  }
+}
+
+class _SavedSnipppetSaveButton extends StatefulWidget {
+  const _SavedSnipppetSaveButton({required this.controller});
+
+  final SavedSnippetComposeBoxController controller;
+
+  @override
+  State<_SavedSnipppetSaveButton> createState() => _SavedSnipppetSaveButtonState();
+}
+
+class _SavedSnipppetSaveButtonState extends State<_SavedSnipppetSaveButton> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.title.hasValidationErrors.addListener(_hasErrorsChanged);
+    widget.controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SavedSnipppetSaveButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final controller = widget.controller;
+    final oldController = oldWidget.controller;
+    if (controller == oldController) return;
+
+    oldController.title.hasValidationErrors.removeListener(_hasErrorsChanged);
+    controller.title.hasValidationErrors.addListener(_hasErrorsChanged);
+    oldController.content.hasValidationErrors.removeListener(_hasErrorsChanged);
+    controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.title.hasValidationErrors.removeListener(_hasErrorsChanged);
+    widget.controller.content.hasValidationErrors.removeListener(_hasErrorsChanged);
+    super.dispose();
+  }
+
+  void _hasErrorsChanged() {
+   setState(() {
+     // The actual state lives in widget.controller.
+   });
+  }
+
+  void _save() async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    if (widget.controller.title.hasValidationErrors.value
+        || widget.controller.content.hasValidationErrors.value) {
+      final validationErrorMessages = [
+        for (final error in widget.controller.title.validationErrors)
+          error.message(zulipLocalizations),
+        for (final error in widget.controller.content.validationErrors)
+          error.message(zulipLocalizations),
+      ];
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorFailedToCreateSavedSnippet,
+        message: validationErrorMessages.join('\n\n'));
+      return;
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    try {
+      await createSavedSnippet(store.connection,
+        title: widget.controller.title.textNormalized,
+        content: widget.controller.content.textNormalized);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } on ApiRequestException catch (e) {
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorFailedToCreateSavedSnippet,
+        message: message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return IconButton(onPressed: _save,
+      icon: Icon(ZulipIcons.check, color:
+        widget.controller.title.hasValidationErrors.value
+       || widget.controller.content.hasValidationErrors.value
+         ? designVariables.icon.withFadedAlpha(0.5) : designVariables.icon));
   }
 }
 
@@ -1345,6 +1520,32 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
       getDestination: () => narrow.destination));
 }
 
+class _SavedSnippetComposeBoxBody extends _ComposeBoxBody {
+  _SavedSnippetComposeBoxBody({required this.controller});
+
+  final SavedSnippetComposeBoxController controller;
+
+  @override Widget buildTopicInput(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _TitleTextField(
+      controller: controller.title,
+      focusNode: controller.titleFocusNode,
+      hintText: zulipLocalizations.newSavedSnippetTitleHint);
+  }
+
+  @override Widget buildContentInput(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _ContentTextField(
+      controller: controller.content,
+      focusNode: controller.contentFocusNode,
+      hintText: zulipLocalizations.newSavedSnippetContentHint);
+  }
+
+  @override Widget buildComposeButtonRow(_) => Align(
+    alignment: Alignment.centerRight,
+    child: _SavedSnipppetSaveButton(controller: controller));
+}
+
 sealed class ComposeBoxController {
   final content = ComposeContentController();
   final contentFocusNode = FocusNode();
@@ -1372,6 +1573,22 @@ class StreamComposeBoxController extends ComposeBoxController {
 }
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
+
+final class SavedSnippetComposeBoxController {
+  SavedSnippetComposeBoxController();
+
+  final title = SavedSnippetTitleComposeController();
+  final titleFocusNode = FocusNode();
+  final content = SavedSnippetContentComposeController();
+  final contentFocusNode = FocusNode();
+
+  void dispose() {
+    title.dispose();
+    titleFocusNode.dispose();
+    content.dispose();
+    contentFocusNode.dispose();
+  }
+}
 
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.label});
@@ -1527,5 +1744,35 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
     return _ComposeBoxContainer(body: body, errorBanner: null);
+  }
+}
+
+class SavedSnippetComposeBox extends StatefulWidget {
+  const SavedSnippetComposeBox({super.key});
+
+  @override
+  State<SavedSnippetComposeBox> createState() => _SavedSnippetComposeBoxState();
+}
+
+class _SavedSnippetComposeBoxState extends State<SavedSnippetComposeBox> {
+  // TODO: preserve the controller independent from this widget
+  late SavedSnippetComposeBoxController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SavedSnippetComposeBoxController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ComposeBoxContainer(
+      body: _SavedSnippetComposeBoxBody(controller: _controller));
   }
 }

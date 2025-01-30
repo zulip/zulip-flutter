@@ -31,6 +31,7 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
+import '../test_navigation.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 
@@ -841,6 +842,110 @@ void main() {
     // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
+  });
+
+  // Tests for _ShowSavedSnippetsButton are intest/widgets/saved_snippet_test.dart.
+
+  group('SavedSnippetComposeBox', () {
+    final newSavedSnippetInputFinder = find.descendant(
+      of: find.byType(SavedSnippetComposeBox), matching: find.byType(TextField));
+
+    late List<Route<void>> poppedRoutes;
+
+    Future<void> prepareSavedSnippetComposeBox(WidgetTester tester, {
+      required String title,
+      required String content,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+
+      poppedRoutes = [];
+      final navigatorObserver = TestNavigatorObserver()
+        ..onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [navigatorObserver],
+        child: const SavedSnippetComposeBox()));
+      await tester.pump();
+      await tester.enterText(newSavedSnippetInputFinder.first, title);
+      await tester.enterText(newSavedSnippetInputFinder.last, content);
+    }
+
+    testWidgets('add new saved snippet', (tester) async {
+      await prepareSavedSnippetComposeBox(tester,
+        title: 'title foo', content: 'content bar');
+
+      connection.prepare(json: {});
+      await tester.tap(find.byIcon(ZulipIcons.check));
+      await tester.pump(Duration.zero);
+      check(poppedRoutes).single;
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..bodyFields['title'].equals('title foo')
+        ..bodyFields['content'].equals('content bar');
+      checkNoErrorDialog(tester);
+
+      await store.handleEvent(SavedSnippetsAddEvent(id: 100,
+        savedSnippet: eg.savedSnippet(title: 'title foo', content: 'content bar')));
+      await tester.pump();
+      check(find.text('title foo')).findsOne();
+      check(find.text('content bar')).findsOne();
+    });
+
+    testWidgets('handle unexpected API exception', (tester) async {
+      await prepareSavedSnippetComposeBox(tester,
+        title: 'title foo', content: 'content bar');
+
+      connection.prepare(apiException: eg.apiExceptionUnauthorized());
+      await tester.tap(find.byIcon(ZulipIcons.check));
+      await tester.pump(Duration.zero);
+      check(poppedRoutes).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Failed to create saved snippet',
+        expectedMessage: 'The server said:\n\nInvalid API key');
+    });
+
+    group('client validation errors', () {
+      testWidgets('empty title', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: '', content: 'content bar');
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: 'Title cannot be empty.');
+      });
+
+      testWidgets('empty content', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: 'title foo', content: '');
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: 'Content cannot be empty.');
+      });
+
+      testWidgets('disable send button if there are validation errors', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: '', content: 'content bar');
+        final iconElement = tester.element(find.byIcon(ZulipIcons.check));
+        final designVariables = DesignVariables.of(iconElement);
+        check(iconElement.widget).isA<Icon>().color.isNotNull()
+          .isSameColorAs(designVariables.icon.withFadedAlpha(0.5));
+
+        await tester.enterText(newSavedSnippetInputFinder.first, 'title foo');
+        await tester.pump();
+        check(iconElement.widget).isA<Icon>().color.isNotNull()
+          .isSameColorAs(designVariables.icon);
+      });
+    });
   });
 
   group('error banner', () {
