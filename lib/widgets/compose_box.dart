@@ -990,14 +990,32 @@ Future<void> _uploadFiles({
   }
 }
 
-abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.controller, required this.enabled});
+abstract class _ComposeButton extends StatelessWidget {
+  const _ComposeButton({required this.controller, required this.enabled});
 
   final ComposeBoxController controller;
   final bool enabled;
 
   IconData get icon;
   String tooltip(ZulipLocalizations zulipLocalizations);
+
+  void handlePress(BuildContext context);
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: tooltip(zulipLocalizations),
+        onPressed: enabled ? () => handlePress(context) : null));
+  }
+}
+
+abstract class _AttachUploadsButton extends _ComposeButton {
+  const _AttachUploadsButton({required super.controller, required super.enabled});
 
   /// Request files from the user, in the way specific to this upload type.
   ///
@@ -1008,7 +1026,8 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   /// return an empty [Iterable] after showing user feedback as appropriate.
   Future<Iterable<_File>> getFiles(BuildContext context);
 
-  void _handlePress(BuildContext context) async {
+  @override
+  void handlePress(BuildContext context) async {
     final files = await getFiles(context);
     if (files.isEmpty) {
       return; // Nothing to do (getFiles handles user feedback)
@@ -1025,18 +1044,6 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       contentController: controller.content,
       contentFocusNode: controller.contentFocusNode,
       files: files);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return SizedBox(
-      width: _composeButtonSize,
-      child: IconButton(
-        icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
-        tooltip: tooltip(zulipLocalizations),
-        onPressed: enabled ? () => _handlePress(context) : null));
   }
 }
 
