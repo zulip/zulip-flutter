@@ -537,4 +537,13 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Hľadať emotikon';
+
+  @override
+  String get actionSheetOptionEditMessage => 'Edit';
+
+  @override
+  String get errorEditingFailed => 'Failed to edit message';
+
+  @override
+  String get editMessageSaveTooltip => 'Save changes';
 }

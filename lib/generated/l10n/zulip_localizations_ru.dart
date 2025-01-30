@@ -537,4 +537,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Поиск эмодзи';
+
+  @override
+  String get actionSheetOptionEditMessage => 'Edit';
+
+  @override
+  String get errorEditingFailed => 'Failed to edit message';
+
+  @override
+  String get editMessageSaveTooltip => 'Save changes';
 }

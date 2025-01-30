@@ -1016,6 +1016,24 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Label for action sheet button to edit a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get actionSheetOptionEditMessage;
+
+  /// Error title when editing a message fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to edit message'**
+  String get errorEditingFailed;
+
+  /// Tooltip for the save button when editing a message
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editMessageSaveTooltip;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

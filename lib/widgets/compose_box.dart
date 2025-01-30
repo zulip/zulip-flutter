@@ -971,48 +971,71 @@ class _SendButtonState extends State<_SendButton> {
   void _send() async {
     final controller = widget.controller;
 
-    if (_hasValidationErrors) {
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      List<String> validationErrorMessages = [
-        for (final error in (controller is StreamComposeBoxController
-                              ? controller.topic.validationErrors
-                              : const <TopicValidationError>[]))
-          error.message(zulipLocalizations),
-        for (final error in controller.content.validationErrors)
-          error.message(zulipLocalizations),
-      ];
-      showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorMessageNotSent,
-        message: validationErrorMessages.join('\n\n'));
-      return;
-    }
+    if (controller.isEditing && controller.messageBeingEdited != null) {
+      // Handle edit mode
+      try {
+        final store = PerAccountStoreWidget.of(context);
+        final content = controller.content.textNormalized;
 
-    final store = PerAccountStoreWidget.of(context);
-    final content = controller.content.textNormalized;
+        await store.editMessage(
+          messageId: controller.messageBeingEdited!.id,
+          content: content,
+        );
 
-    controller.content.clear();
-    // The following `stoppedComposing` call is currently redundant,
-    // because clearing input sends a "typing stopped" notice.
-    // It will be necessary once we resolve #720.
-    store.typingNotifier.stoppedComposing();
+        controller.cancelEditing();
+      } on ApiRequestException catch (e) {
+        if (!mounted) return;
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        showErrorDialog(
+          context: context,
+          title: zulipLocalizations.errorEditingFailed,
+          message: e.message);
+        return;
+      }
+    } else {
+      if (_hasValidationErrors) {
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        List<String> validationErrorMessages = [
+          for (final error in (controller is StreamComposeBoxController
+                                ? controller.topic.validationErrors
+                                : const <TopicValidationError>[]))
+            error.message(zulipLocalizations),
+          for (final error in controller.content.validationErrors)
+            error.message(zulipLocalizations),
+        ];
+        showErrorDialog(
+          context: context,
+          title: zulipLocalizations.errorMessageNotSent,
+          message: validationErrorMessages.join('\n\n'));
+        return;
+      }
 
-    try {
-      // TODO(#720) clear content input only on success response;
-      //   while waiting, put input(s) and send button into a disabled
-      //   "working on it" state (letting input text be selected for copying).
-      await store.sendMessage(destination: widget.getDestination(), content: content);
-    } on ApiRequestException catch (e) {
-      if (!mounted) return;
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      final message = switch (e) {
-        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
-        _ => e.message,
-      };
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorMessageNotSent,
-        message: message);
-      return;
+      final store = PerAccountStoreWidget.of(context);
+      final content = controller.content.textNormalized;
+
+      controller.content.clear();
+      // The following `stoppedComposing` call is currently redundant,
+      // because clearing input sends a "typing stopped" notice.
+      // It will be necessary once we resolve #720.
+      store.typingNotifier.stoppedComposing();
+
+      try {
+        // TODO(#720) clear content input only on success response;
+        //   while waiting, put input(s) and send button into a disabled
+        //   "working on it" state (letting input text be selected for copying).
+        await store.sendMessage(destination: widget.getDestination(), content: content);
+      } on ApiRequestException catch (e) {
+        if (!mounted) return;
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        final message = switch (e) {
+          ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+          _ => e.message,
+        };
+        showErrorDialog(context: context,
+          title: zulipLocalizations.errorMessageNotSent,
+          message: message);
+        return;
+      }
     }
   }
 
@@ -1146,7 +1169,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         child: Theme(
           data: inputThemeData,
           child: Column(children: [
-            if (topicInput != null) topicInput,
+            if (!controller.isEditing && topicInput != null) topicInput,
             buildContentInput(),
           ]))),
       SizedBox(
@@ -1218,6 +1241,21 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
 sealed class ComposeBoxController {
   final content = ComposeContentController();
   final contentFocusNode = FocusNode();
+
+  bool get isEditing => _messageBeingEdited != null;
+  Message? _messageBeingEdited;
+  Message? get messageBeingEdited => _messageBeingEdited;
+
+  void startEditing(Message message) {
+    _messageBeingEdited = message;
+    content.text = message.content;
+    contentFocusNode.requestFocus();
+  }
+
+  void cancelEditing() {
+    _messageBeingEdited = null;
+    content.clear();
+  }
 
   @mustCallSuper
   void dispose() {
