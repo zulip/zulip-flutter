@@ -77,6 +77,33 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
 
   @override
+  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+
+  @override
+  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+
+  @override
+  String get resolveTopicInterruptedTitle => 'Problem marking topic as resolved';
+
+  @override
+  String get unresolveTopicInterruptedTitle => 'Problem marking topic as unresolved';
+
+  @override
+  String get topicAlreadyResolvedMessage => 'This topic is already marked as resolved.';
+
+  @override
+  String get topicAlreadyUnresolvedMessage => 'This topic is already marked as unresolved.';
+
+  @override
+  String get topicRenamedMessage => 'This topic has been renamed.';
+
+  @override
+  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+
+  @override
+  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Copy message text';
 
   @override

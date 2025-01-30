@@ -277,7 +277,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             narrow: ChannelNarrow(streamId)))));
     }
 
-    return Scaffold(
+    // Insert a PageRoot here, to provide a context that can be used for
+    // MessageListPage.ancestorOf.
+    return PageRoot(child: Scaffold(
       appBar: ZulipAppBar(
         buildTitle: (willCenterTitle) =>
           MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
@@ -318,7 +320,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ])));
+          ]))));
   }
 }
 
@@ -400,8 +402,20 @@ class MessageListAppBarTitle extends StatelessWidget {
           width: double.infinity,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onLongPress: () => showTopicActionSheet(context,
-              channelId: streamId, topic: topic),
+            onLongPress: () {
+              final someMessage = MessageListPage.ancestorOf(context)
+                .model?.messages.firstOrNull;
+              // If someMessage is null, the topic action sheet won't have a
+              // resolve/unresolve button. That seems OK; in that case we're
+              // either still fetching messages (and the user can reopen the
+              // sheet after that finishes) or there aren't any messages to
+              // act on anyway.
+              assert(someMessage == null || narrow.containsMessage(someMessage));
+              showTopicActionSheet(context,
+                channelId: streamId,
+                topic: topic,
+                someMessageIdInTopic: someMessage?.id);
+            },
             child: Column(
               crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
                                                   : CrossAxisAlignment.start,
@@ -1117,7 +1131,9 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             MessageListPage.buildRoute(context: context,
               narrow: TopicNarrow.ofMessage(message))),
       onLongPress: () => showTopicActionSheet(context,
-        channelId: message.streamId, topic: topic),
+        channelId: message.streamId,
+        topic: topic,
+        someMessageIdInTopic: message.id),
       child: ColoredBox(
         color: backgroundColor,
         child: Row(
