@@ -362,8 +362,9 @@ class MessageListAppBarTitle extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic.displayName, style: const TextStyle(
+        Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
           fontSize: 13,
+          fontStyle: (topic.displayName == null) ? FontStyle.italic : null,
         ).merge(weightVariableTextStyle(context)))),
         if (icon != null)
           Padding(
@@ -1094,11 +1095,13 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       child: Row(
         children: [
           Flexible(
-            child: Text(topic.displayName,
+            child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
-              style: recipientHeaderTextStyle(context))),
+              style: recipientHeaderTextStyle(context).copyWith(
+                fontStyle: (topic.displayName == null) ? FontStyle.italic : null,
+              ))),
           const SizedBox(width: 4),
           // TODO(design) copies the recipient header in web; is there a better color?
           Icon(size: 14, color: designVariables.colorMessageHeaderIconInteractive,

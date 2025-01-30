@@ -844,7 +844,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   }
 
   TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, TopicName topic) {
-    if (query.testTopic(topic)) {
+    if (query.testTopic(store, topic)) {
       return TopicAutocompleteResult(topic: topic);
     }
     return null;
@@ -862,10 +862,15 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
 class TopicAutocompleteQuery extends AutocompleteQuery {
   TopicAutocompleteQuery(super.raw);
 
-  bool testTopic(TopicName topic) {
+  bool testTopic(PerAccountStore store, TopicName topic) {
     // TODO(#881): Sort by match relevance, like web does.
+
+    if (topic.displayName == null) {
+      return store.realmEmptyTopicDisplayName.toLowerCase()
+        .contains(raw.toLowerCase());
+    }
     return topic.displayName != raw
-      && topic.displayName.toLowerCase().contains(raw.toLowerCase());
+      && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
   }
 
   @override
