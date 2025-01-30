@@ -188,7 +188,7 @@ abstract class MessageListPageState {
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.initNarrow});
 
-  static Route<void> buildRoute({int? accountId, BuildContext? context,
+  static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
       required Narrow narrow}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
       page: MessageListPage(initNarrow: narrow));

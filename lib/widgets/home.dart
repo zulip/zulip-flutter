@@ -31,7 +31,7 @@ enum _HomePageTab {
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  static Route<void> buildRoute({required int accountId}) {
+  static AccountRoute<void> buildRoute({required int accountId}) {
     return MaterialAccountWidgetRoute(accountId: accountId,
       loadingPlaceholderPage: _LoadingPlaceholderPage(accountId: accountId),
       page: const HomePage());
