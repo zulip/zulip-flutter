@@ -655,6 +655,78 @@ abstract class ZulipLocalizations {
   /// **'Take a photo'**
   String get composeBoxAttachFromCameraTooltip;
 
+  /// Tooltip for compose box icon to show a list of saved snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Show saved snippets'**
+  String get composeBoxShowSavedSnippetsTooltip;
+
+  /// Text to show on the saved snippets bottom sheet when there are no saved snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved snippets'**
+  String get noSavedSnippets;
+
+  /// Title for the bottom sheet to display saved snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved snippets'**
+  String get savedSnippetsTitle;
+
+  /// Label for adding a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newSavedSnippetButton;
+
+  /// Title for the bottom sheet to add a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'New snippet'**
+  String get newSavedSnippetTitle;
+
+  /// Hint text for the title input when adding a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get newSavedSnippetTitleHint;
+
+  /// Hint text for the content input when adding a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get newSavedSnippetContentHint;
+
+  /// Error title when the saved snippet failed to be created.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create saved snippet'**
+  String get errorFailedToCreateSavedSnippetTitle;
+
+  /// Validation error message when the title of the saved snippet is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Title cannot be empty.'**
+  String get savedSnippetTitleValidationErrorEmpty;
+
+  /// Validation error message when the title of the saved snippet is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Title length shouldn\'t be greater than 60 characters.'**
+  String get savedSnippetTitleValidationErrorTooLong;
+
+  /// Validation error message when the content of the saved snippet is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Content cannot be empty.'**
+  String get savedSnippetContentValidationErrorEmpty;
+
+  /// Validation error message when the content of the saved snippet is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Content length shouldn\'t be greater than 10000 characters.'**
+  String get savedSnippetContentValidationErrorTooLong;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:
