@@ -62,6 +62,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
           _$RealmWildcardMentionPolicyEnumMap,
           json['realm_wildcard_mention_policy']),
       realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
+      realmName: json['realm_name'] as String,
       realmWaitingPeriodThreshold:
           (json['realm_waiting_period_threshold'] as num).toInt(),
       realmDefaultExternalAccounts:
@@ -69,6 +70,7 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
         (k, e) => MapEntry(
             k, RealmDefaultExternalAccount.fromJson(e as Map<String, dynamic>)),
       ),
+      realmIconUrl: json['realm_icon_url'] as String,
       maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
       serverEmojiDataUrl: json['server_emoji_data_url'] == null
           ? null
@@ -114,8 +116,10 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'user_topics': instance.userTopics,
       'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
       'realm_mandatory_topics': instance.realmMandatoryTopics,
+      'realm_name': instance.realmName,
       'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
+      'realm_icon_url': instance.realmIconUrl,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
       'realm_users': instance.realmUsers,
