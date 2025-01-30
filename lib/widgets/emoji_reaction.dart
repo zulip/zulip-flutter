@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../api/exception.dart';
@@ -416,20 +418,21 @@ void showEmojiPickerSheet({
     // on my iPhone 13 Pro but is marked as "much slower":
     //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
+    // This does remove the bottom inset.
+    // Leave it to the descendent [ListView].
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext context) {
-      return SafeArea(
-        child: Padding(
-          // By default, when software keyboard is opened, the ListView
-          // expands behind the software keyboard — resulting in some
-          // list entries being covered by the keyboard. Add explicit
-          // bottom padding the size of the keyboard, which fixes this.
-          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-          // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
-          child: PerAccountStoreWidget(
-            accountId: store.accountId,
-            child: EmojiPicker(pageContext: pageContext, message: message))));
+      return Padding(
+        // By default, when software keyboard is opened, the ListView
+        // expands behind the software keyboard — resulting in some
+        // list entries being covered by the keyboard. Add explicit
+        // bottom padding the size of the keyboard, which fixes this.
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
+        child: PerAccountStoreWidget(
+          accountId: store.accountId,
+          child: EmojiPicker(pageContext: pageContext, message: message)));
     });
 }
 
@@ -494,6 +497,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+    final mediaQuery = MediaQuery.of(context);
 
     return Column(children: [
       Padding(padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
@@ -530,13 +534,22 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
       Expanded(child: InsetShadowBox(
         top: 8, bottom: 8,
         color: designVariables.bgContextMenu,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _resultsToDisplay.length,
-          itemBuilder: (context, i) => EmojiPickerListEntry(
-            pageContext: widget.pageContext,
-            emoji: _resultsToDisplay[i].candidate,
-            message: widget.message)))),
+        child: MediaQuery.removePadding(
+          context: context,
+          // The bottom is padded below with `padding` within the [ListView].
+          removeBottom: true,
+          child: ListView.builder(
+            padding: EdgeInsets.only(
+              top: 8,
+              // This mimics the behavior of [SafeArea.minimum], but with
+              // the underlying [SliverPadding] added by [ListView], so that we
+              // can always scroll past the shadow and the device bottom padding.
+              bottom: max(8, mediaQuery.padding.bottom)),
+            itemCount: _resultsToDisplay.length,
+            itemBuilder: (context, i) => EmojiPickerListEntry(
+              pageContext: widget.pageContext,
+              emoji: _resultsToDisplay[i].candidate,
+              message: widget.message))))),
     ]);
   }
 }
