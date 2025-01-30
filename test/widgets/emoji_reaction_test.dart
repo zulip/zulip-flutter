@@ -466,6 +466,92 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    group('handle view paddings', () {
+      const screenHeight = 400.0;
+
+      late Rect scrollViewRect;
+      final scrollViewFinder = findInPicker(find.bySubtype<ScrollView>());
+
+      Rect getListEntriesRect(WidgetTester tester) =>
+        tester.getRect(find.byType(EmojiPickerListEntry).first)
+          .expandToInclude(tester.getRect(find.byType(EmojiPickerListEntry).last));
+
+      Future<void> prepare(WidgetTester tester, {
+        required FakeViewPadding viewPadding,
+      }) async {
+        addTearDown(tester.view.reset);
+        tester.view.physicalSize = Size(640, screenHeight);
+        // This makes it easier to convert between device pixels used for
+        // [FakeViewPadding] and logical pixels used in tests.
+        // If needed, there is a clearer way to implement this generally.
+        // See comment: https://github.com/zulip/zulip-flutter/pull/1315/files#r1962703436
+        tester.view.devicePixelRatio = 1.0;
+
+        tester.view.viewPadding = viewPadding;
+        tester.view.padding = viewPadding;
+
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        scrollViewRect = tester.getRect(scrollViewFinder);
+        // The scroll view should expand all the way to the bottom of the
+        // screen, even if there is device bottom padding.
+        check(scrollViewRect)
+          ..bottom.equals(screenHeight)
+          // There should always be enough entries to overflow the scroll view.
+          ..height.isLessThan(getListEntriesRect(tester).height);
+      }
+
+      testWidgets('no view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding.zero);
+
+        // The top edge of the list entries is padded by 8px from the top edge
+        // of the scroll view; the bottom edge is out of view.
+        Rect listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.equals(listEntriesRect.top - 8)
+          ..bottom.isLessThan(listEntriesRect.bottom);
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top edge of the list entries is out of view;
+        // the bottom is padded by 8px, the minimum padding, from the bottom
+        // edge of the scroll view.
+        listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.isGreaterThan(listEntriesRect.top)
+          ..bottom.equals(listEntriesRect.bottom + 8);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('with bottom view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding(bottom: 10));
+
+        // The top edge of the list entries is padded by 8px from the top edge
+        // of the scroll view; the bottom edge is out of view.
+        Rect listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.equals(listEntriesRect.top - 8)
+          ..bottom.isLessThan(listEntriesRect.bottom);
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top edge of the list entries is out of view;
+        // the bottom edge is padded by 10px from the bottom edge of the scroll
+        // view, because the view bottom padding is larger than the minimum 8px.
+        listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.isGreaterThan(listEntriesRect.top)
+          ..bottom.equals(listEntriesRect.bottom + 10);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
   });
 }
 

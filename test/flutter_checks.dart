@@ -11,6 +11,11 @@ extension PaintChecks on Subject<Paint> {
   Subject<Shader?> get shader => has((x) => x.shader, 'shader');
 }
 
+extension OffsetChecks on Subject<Offset> {
+  Subject<double> get dx => has((x) => x.dx, 'dx');
+  Subject<double> get dy => has((x) => x.dy, 'dy');
+}
+
 extension RectChecks on Subject<Rect> {
   Subject<double> get left => has((d) => d.left, 'left');
   Subject<double> get top => has((d) => d.top, 'top');

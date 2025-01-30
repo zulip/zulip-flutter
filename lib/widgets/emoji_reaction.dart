@@ -417,20 +417,21 @@ void showEmojiPickerSheet({
     // on my iPhone 13 Pro but is marked as "much slower":
     //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
+    // The bottom inset is left for [builder] to handle;
+    // see [EmojiPicker] and its [CustomScrollView] for how we do that.
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext context) {
-      return SafeArea(
-        child: Padding(
-          // By default, when software keyboard is opened, the ListView
-          // expands behind the software keyboard — resulting in some
-          // list entries being covered by the keyboard. Add explicit
-          // bottom padding the size of the keyboard, which fixes this.
-          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-          // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
-          child: PerAccountStoreWidget(
-            accountId: store.accountId,
-            child: EmojiPicker(pageContext: pageContext, message: message))));
+      return Padding(
+        // By default, when software keyboard is opened, the ListView
+        // expands behind the software keyboard — resulting in some
+        // list entries being covered by the keyboard. Add explicit
+        // bottom padding the size of the keyboard, which fixes this.
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
+        child: PerAccountStoreWidget(
+          accountId: store.accountId,
+          child: EmojiPicker(pageContext: pageContext, message: message)));
     });
 }
 
@@ -531,13 +532,19 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
       Expanded(child: InsetShadowBox(
         top: 8, bottom: 8,
         color: designVariables.bgContextMenu,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _resultsToDisplay.length,
-          itemBuilder: (context, i) => EmojiPickerListEntry(
-            pageContext: widget.pageContext,
-            emoji: _resultsToDisplay[i].candidate,
-            message: widget.message)))),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.only(top: 8),
+              sliver: SliverSafeArea(
+                minimum: EdgeInsets.only(bottom: 8),
+                sliver: SliverList.builder(
+                  itemCount: _resultsToDisplay.length,
+                  itemBuilder: (context, i) => EmojiPickerListEntry(
+                    pageContext: widget.pageContext,
+                    emoji: _resultsToDisplay[i].candidate,
+                    message: widget.message)))),
+          ]))),
     ]);
   }
 }
