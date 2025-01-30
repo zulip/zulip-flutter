@@ -1061,6 +1061,163 @@ void main() {
       });
     });
 
+    group('MarkTopicAsReadButton', () {
+      Future<void> setupToTopicActionSheetWithUnreadMessages(WidgetTester tester, {
+        int? zulipFeatureLevel,
+        ZulipStream? channel,
+      }) async {
+        addTearDown(testBinding.reset);
+
+        final effectiveChannel = channel ?? eg.stream();
+        const topicName = TopicName('test topic');
+        final message = eg.streamMessage(stream: effectiveChannel, topic: 'test topic');
+        final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+        await testBinding.globalStore.add(account, eg.initialSnapshot(
+          realmUsers: [eg.selfUser],
+          streams: [effectiveChannel],
+          subscriptions: [eg.subscription(effectiveChannel)],
+          zulipFeatureLevel: zulipFeatureLevel));
+        store = await testBinding.globalStore.perAccount(account.id);
+        connection = store.connection as FakeApiConnection;
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+
+        await store.addMessage(message);
+        store.unreads.streams[effectiveChannel.streamId] ??= {};
+        store.unreads.streams[effectiveChannel.streamId]![topicName] ??= QueueList<int>();
+        store.unreads.streams[effectiveChannel.streamId]![topicName]!.add(message.id);
+
+        await tester.pumpWidget(TestZulipApp(accountId: account.id,
+          child: MessageListPage(initNarrow: TopicNarrow(effectiveChannel.streamId, topicName))));
+        await tester.pumpAndSettle();
+
+        await tester.longPress(find.byType(ZulipAppBar));
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+
+      Future<void> setupToTopicActionSheetWithNoUnreadMessages(WidgetTester tester) async {
+        addTearDown(testBinding.reset);
+
+        final channel = eg.stream();
+        const topicName = TopicName('test topic');
+        final message = eg.streamMessage(stream: channel, topic: 'test topic', flags: [MessageFlag.read]);
+
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+          realmUsers: [eg.selfUser],
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)]));
+        store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+        connection = store.connection as FakeApiConnection;
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+
+        await store.addMessage(message);
+
+        await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+          child: MessageListPage(initNarrow: TopicNarrow(channel.streamId, topicName))));
+        await tester.pumpAndSettle();
+
+        await tester.longPress(find.byType(ZulipAppBar));
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+
+      Future<void> tapMarkTopicAsReadButton(WidgetTester tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        await tester.tap(find.text(zulipLocalizations.actionSheetOptionMarkTopicAsRead));
+        await tester.pump();
+      }
+
+      group('visibility', () {
+        testWidgets('shows button when topic has unread messages', (tester) async {
+          await setupToTopicActionSheetWithUnreadMessages(tester);
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          check(find.text(zulipLocalizations.actionSheetOptionMarkTopicAsRead)).findsOne();
+        });
+
+        testWidgets('hides button when topic has no unread messages', (tester) async {
+          await setupToTopicActionSheetWithNoUnreadMessages(tester);
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          check(find.text(zulipLocalizations.actionSheetOptionMarkTopicAsRead)).findsNothing();
+        });
+      });
+
+      group('API requests', () {
+        testWidgets('sends mark_topic_as_read request for server feature level < 155', (tester) async {
+          final channel = eg.stream();
+          await setupToTopicActionSheetWithUnreadMessages(tester,
+            zulipFeatureLevel: 154,
+            channel: channel);
+
+          connection.prepare(json: {'result': 'success'});
+          await tapMarkTopicAsReadButton(tester);
+          await tester.pumpAndSettle();
+
+          check(connection.lastRequest).isA<http.Request>()
+            ..method.equals('POST')
+            ..url.path.equals('/api/v1/mark_topic_as_read')
+            ..bodyFields.deepEquals({
+              'stream_id': '${channel.streamId}',
+              'topic_name': 'test topic',
+            });
+          // await tester.pumpAndSettle();
+        });
+
+        testWidgets('sends messages/flags/narrow request for server feature level >= 155', (tester) async {
+          final channel = eg.stream();
+          await setupToTopicActionSheetWithUnreadMessages(tester,
+            zulipFeatureLevel: 155,
+            channel: channel);
+
+          connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+            processedCount: 11,
+            updatedCount: 3,
+            firstProcessedId: 1,
+            lastProcessedId: 1980,
+            foundOldest: true,
+            foundNewest: true).toJson());
+
+          await tapMarkTopicAsReadButton(tester);
+          await tester.pumpAndSettle();
+
+          check(connection.lastRequest).isA<http.Request>()
+            ..method.equals('POST')
+            ..url.path.equals('/api/v1/messages/flags/narrow')
+            ..bodyFields.deepEquals({
+              'anchor': 'oldest',
+              'num_before': '0',
+              'num_after': '1000',
+              'narrow': jsonEncode([
+                {'operator': 'stream', 'operand': channel.streamId},
+                {'operator': 'topic', 'operand': 'test topic'},
+                {'operator': 'is', 'operand': 'unread'},
+              ]),
+              'op': 'add',
+              'flag': 'read',
+            });
+        });
+
+        testWidgets('shows error dialog when mark-as-read request fails', (tester) async {
+          final channel = eg.stream();
+          await setupToTopicActionSheetWithUnreadMessages(tester,
+            zulipFeatureLevel: 154,
+            channel: channel);
+
+          prepareRawContentResponseError();
+          await tapMarkTopicAsReadButton(tester);
+          await tester.pumpAndSettle();
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          checkErrorDialog(tester,
+            expectedTitle: zulipLocalizations.errorMarkTopicAsReadFailed,
+            expectedMessage: 'Invalid message(s)');
+        });
+      });
+    });
+
     group('MessageActionSheetCancelButton', () {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 

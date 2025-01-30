@@ -537,4 +537,10 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get actionSheetOptionMarkTopicAsRead => 'Mark Topic As Read';
+
+  @override
+  String get errorMarkTopicAsReadFailed => 'Failed to mark the topic as read. Please try again.';
 }
