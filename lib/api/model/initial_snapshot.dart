@@ -48,6 +48,8 @@ class InitialSnapshot {
 
   final List<RecentDmConversation> recentPrivateConversations;
 
+  final List<SavedSnippet>? savedSnippets; // TODO(server-10)
+
   final List<Subscription> subscriptions;
 
   final UnreadMessagesSnapshot unreadMsgs;
@@ -127,6 +129,7 @@ class InitialSnapshot {
     required this.serverTypingStartedWaitPeriodMilliseconds,
     required this.realmEmoji,
     required this.recentPrivateConversations,
+    required this.savedSnippets,
     required this.subscriptions,
     required this.unreadMsgs,
     required this.streams,
