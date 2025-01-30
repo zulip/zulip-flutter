@@ -15,43 +15,8 @@ import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
-import '../model/store.dart';
-import '../notifications/receive.dart';
 import 'dialog.dart';
 import 'store.dart';
-
-Future<void> logOutAccount(BuildContext context, int accountId) async {
-  final globalStore = GlobalStoreWidget.of(context);
-
-  final account = globalStore.getAccount(accountId);
-  if (account == null) return; // TODO(log)
-
-  // Unawaited, to not block removing the account on this request.
-  unawaited(unregisterToken(globalStore, accountId));
-
-  await globalStore.removeAccount(accountId);
-}
-
-Future<void> unregisterToken(GlobalStore globalStore, int accountId) async {
-  final account = globalStore.getAccount(accountId);
-  if (account == null) return; // TODO(log)
-
-  // TODO(#322) use actual acked push token; until #322, this is just null.
-  final token = account.ackedPushToken
-    // Try the current token as a fallback; maybe the server has registered
-    // it and we just haven't recorded that fact in the client.
-    ?? NotificationService.instance.token.value;
-  if (token == null) return;
-
-  final connection = globalStore.apiConnectionFromAccount(account);
-  try {
-    await NotificationService.unregisterToken(connection, token: token);
-  } catch (e) {
-    // TODO retry? handle failures?
-  } finally {
-    connection.close();
-  }
-}
 
 Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
   final store = PerAccountStoreWidget.of(context);
