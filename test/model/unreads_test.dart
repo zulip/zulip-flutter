@@ -469,6 +469,107 @@ void main() {
         }
       }
     });
+
+    group('moves', () {
+      final origChannel = eg.stream();
+      const origTopic = 'origTopic';
+      const newTopic = 'newTopic';
+
+      test('move read messages to new topic', () {
+        final message = eg.streamMessage(
+          stream: origChannel, topic: origTopic, flags: [MessageFlag.read]);
+        prepare();
+        fillWithMessages([message]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message],
+          newTopicStr: newTopic));
+        checkNotNotified();
+        checkMatchesMessages([]);
+      });
+
+      test('move read messages from topic with unreads', () {
+        final message1 = eg.streamMessage(
+          stream: origChannel, topic: origTopic, flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(
+          stream: origChannel, topic: origTopic);
+        prepare();
+        fillWithMessages([message1, message2]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message1],
+          newTopicStr: newTopic));
+        checkNotNotified();
+        checkMatchesMessages([message2]);
+      });
+
+      test('move read messages to topic with unreads', () {
+        final message1 = eg.streamMessage(
+          stream: origChannel, topic: origTopic, flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(
+          stream: origChannel, topic: newTopic);
+        prepare();
+        fillWithMessages([message1, message2]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message1],
+          newTopicStr: newTopic,
+        ));
+        checkNotNotified();
+        checkMatchesMessages([message2]);
+      });
+
+      test('move unread messages to topic with unreads', () {
+        final message1 = eg.streamMessage(
+          id: 1, stream: origChannel, topic: origTopic);
+        final message2 = eg.streamMessage(
+          id: 2, stream: origChannel, topic: newTopic);
+        prepare();
+        fillWithMessages([message1, message2]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message1],
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          Message.fromJson(message1.toJson()..['subject'] = newTopic),
+          message2,
+        ]);
+      });
+
+      test('move unread messages to new topic', () {
+        final message = eg.streamMessage(id: 1, stream: origChannel);
+        prepare();
+        fillWithMessages([message]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message],
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          Message.fromJson(message.toJson()..['subject'] = newTopic),
+        ]);
+      });
+
+      test('move unread messages to new channel', () {
+        final message = eg.streamMessage(
+          id: 1, stream: origChannel, topic: origTopic);
+        final newChannel = eg.stream();
+        prepare();
+        fillWithMessages([message]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message],
+          newStreamId: newChannel.streamId,
+          newTopicStr: newTopic));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          Message.fromJson(message.toJson()
+            ..['stream_id'] = newChannel.streamId
+            ..['subject'] = newTopic),
+        ]);
+      });
+    });
   });
 
 
