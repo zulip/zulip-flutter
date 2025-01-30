@@ -959,6 +959,7 @@ InitialSnapshot initialSnapshot({
   int? serverTypingStartedWaitPeriodMilliseconds,
   Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
+  List<SavedSnippet>? savedSnippets,
   List<Subscription>? subscriptions,
   UnreadMessagesSnapshot? unreadMsgs,
   List<ZulipStream>? streams,
@@ -994,6 +995,7 @@ InitialSnapshot initialSnapshot({
       serverTypingStartedWaitPeriodMilliseconds ?? 10000,
     realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
+    savedSnippets: savedSnippets ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default

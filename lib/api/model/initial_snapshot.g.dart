@@ -45,6 +45,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (json['recent_private_conversations'] as List<dynamic>)
           .map((e) => RecentDmConversation.fromJson(e as Map<String, dynamic>))
           .toList(),
+  savedSnippets:
+      (json['saved_snippets'] as List<dynamic>?)
+          ?.map((e) => SavedSnippet.fromJson(e as Map<String, dynamic>))
+          .toList(),
   subscriptions:
       (json['subscriptions'] as List<dynamic>)
           .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
@@ -128,6 +132,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
           instance.serverTypingStartedWaitPeriodMilliseconds,
       'realm_emoji': instance.realmEmoji,
       'recent_private_conversations': instance.recentPrivateConversations,
+      'saved_snippets': instance.savedSnippets,
       'subscriptions': instance.subscriptions,
       'unread_msgs': instance.unreadMsgs,
       'streams': instance.streams,
