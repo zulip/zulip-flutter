@@ -35,6 +35,12 @@ abstract class WidgetRoute<T extends Object?> extends PageRoute<T> {
   Widget get page;
 }
 
+/// A page route that specifies a particular Zulip account to use, by ID.
+abstract class AccountRoute<T extends Object?> extends PageRoute<T> {
+  /// The [Account.id] of the account to use for this page.
+  int get accountId;
+}
+
 /// A [MaterialPageRoute] that always builds the same widget.
 ///
 /// This is useful for making the route more transparent for a test to inspect.
@@ -56,8 +62,10 @@ class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> implem
 }
 
 /// A mixin for providing a given account's per-account store on a page route.
-mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
+mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> implements AccountRoute<T> {
+  @override
   int get accountId;
+
   Widget? get loadingPlaceholderPage;
 
   @override
