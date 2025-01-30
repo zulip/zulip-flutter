@@ -71,6 +71,7 @@ class InitialSnapshot {
 
   final bool realmMandatoryTopics;
 
+  final String realmName;
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -80,6 +81,8 @@ class InitialSnapshot {
   final int realmWaitingPeriodThreshold;
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+
+  final String realmIconUrl;
 
   final int maxFileUploadSizeMib;
 
@@ -134,8 +137,10 @@ class InitialSnapshot {
     required this.userTopics,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
+    required this.realmName,
     required this.realmWaitingPeriodThreshold,
     required this.realmDefaultExternalAccounts,
+    required this.realmIconUrl,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
     required this.realmUsers,
