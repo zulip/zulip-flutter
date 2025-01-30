@@ -350,6 +350,8 @@ void main() {
     }
 
     final searchFieldFinder = find.widgetWithText(TextField, 'Search emoji');
+    Finder findInPicker(Finder finder) =>
+      find.descendant(of: find.byType(EmojiPicker), matching: finder);
 
     Condition<Object?> conditionEmojiListEntry({
       required ReactionType emojiType,
@@ -429,9 +431,7 @@ void main() {
       await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
       connection.prepare(json: {});
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
@@ -458,9 +458,7 @@ void main() {
           'result': 'error',
         });
 
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(); // register tap
       await tester.pump(const Duration(seconds: 1)); // emoji picker animates away
       await tester.pump(const Duration(seconds: 1)); // error arrives; error dialog shows
