@@ -308,6 +308,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
       emoji: EmojiStoreImpl(
         realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
+      savedSnippets: initialSnapshot.savedSnippets,
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         connection: connection,
@@ -349,6 +350,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
     required this.accountId,
+    required this.savedSnippets,
     required this.userSettings,
     required this.typingNotifier,
     required UserStoreImpl users,
@@ -455,6 +457,9 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   ///
   /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
+
+  // TODO data model handling the events
+  final List<SavedSnippet>? savedSnippets; // TODO(server-10)
 
   final UserSettings? userSettings; // TODO(server-5)
 
