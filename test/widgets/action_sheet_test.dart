@@ -177,19 +177,21 @@ void main() {
     }) async {
       final effectiveChannel = channel ?? someChannel;
       final effectiveMessages = messages ?? [someMessage];
-      assert(effectiveMessages.every((m) => m.topic.apiName == topic));
+      final topicName = TopicName(topic);
+      assert(effectiveMessages.every((m) => m.topic.apiName == topicName.apiName));
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: effectiveMessages).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(
-          initNarrow: eg.topicNarrow(effectiveChannel.streamId, topic))));
+          initNarrow: eg.topicNarrow(effectiveChannel.streamId, topicName.apiName))));
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(topic));
+        // ignore: dead_null_aware_expression // null topic names soon to be enabled
+        matching: find.text(topicName.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
@@ -264,6 +266,16 @@ void main() {
         check(findButtonForLabel('Mark as resolved')).findsNothing();
         check(findButtonForLabel('Mark as unresolved')).findsNothing();
       });
+
+      testWidgets('show from app bar: resolve/unresolve not offered when topic is empty', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: '');
+        await showFromAppBar(tester,
+          topic: '',
+          messages: [message]);
+        check(findButtonForLabel('Mark as resolved')).findsNothing();
+        check(findButtonForLabel('Mark as unresolved')).findsNothing();
+      }, skip: true); // null topic names soon to be enabled
 
       testWidgets('show from recipient header', (tester) async {
         await prepare();
