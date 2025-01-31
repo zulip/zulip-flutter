@@ -300,7 +300,11 @@ void showTopicActionSheet(BuildContext context, {
       pageContext: pageContext);
   }));
 
-  if (someMessageIdInTopic != null) {
+  // TODO: check for other cases that may disallow this action (e.g.: time
+  //   limit for editing topics).
+  if (someMessageIdInTopic != null
+      // ignore: unnecessary_null_comparison // null topic names soon to be enabled
+      && topic.displayName != null) {
     optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
       topic: topic,
       someMessageIdInTopic: someMessageIdInTopic));

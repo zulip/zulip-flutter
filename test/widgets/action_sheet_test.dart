@@ -353,24 +353,27 @@ void main() {
 
     Future<void> showFromAppBar(WidgetTester tester, {
       ZulipStream? channel,
-      String topic = someTopic,
+      TopicName? topic,
       List<StreamMessage>? messages,
     }) async {
       final effectiveChannel = channel ?? someChannel;
+      final effectiveTopic = topic ?? TopicName(someTopic);
       final effectiveMessages = messages ?? [someMessage];
-      assert(effectiveMessages.every((m) => m.topic.apiName == topic));
+      assert(effectiveMessages.every((m) => m.topic.apiName == effectiveTopic.apiName));
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: effectiveMessages).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(
-          initNarrow: eg.topicNarrow(effectiveChannel.streamId, topic))));
+          initNarrow: TopicNarrow(effectiveChannel.streamId, effectiveTopic))));
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(topic));
+        matching: find.text(
+          // ignore: dead_null_aware_expression // null topic names soon to be enabled
+          effectiveTopic.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
@@ -446,6 +449,16 @@ void main() {
         check(findButtonForLabel('Mark as unresolved')).findsNothing();
       });
 
+      testWidgets('show from app bar: resolve/unresolve not offered when topic is empty', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: '');
+        await showFromAppBar(tester,
+          topic: TopicName(''),
+          messages: [message]);
+        check(findButtonForLabel('Mark as resolved')).findsNothing();
+        check(findButtonForLabel('Mark as unresolved')).findsNothing();
+      }, skip: true); // null topic names soon to be enabled
+
       testWidgets('show from recipient header', (tester) async {
         await prepare();
         await showFromRecipientHeader(tester);
@@ -485,7 +498,7 @@ void main() {
         final message = eg.streamMessage(
           stream: someChannel, topic: topic, sender: eg.otherUser);
         await showFromAppBar(tester,
-          channel: someChannel, topic: topic, messages: [message]);
+          channel: someChannel, topic: TopicName(topic), messages: [message]);
       }
 
       void checkButtons(List<Finder> expectedButtonFinders) {
@@ -697,7 +710,8 @@ void main() {
       testWidgets('unresolve: happy path', (tester) async {
         final message = eg.streamMessage(stream: someChannel, topic: '✔ zulip');
         await prepare(topic: '✔ zulip');
-        await showFromAppBar(tester, topic: '✔ zulip', messages: [message]);
+        await showFromAppBar(tester,
+          topic: TopicName('✔ zulip'), messages: [message]);
         connection.takeRequests();
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(findButtonForLabel('Mark as unresolved'));
@@ -710,7 +724,8 @@ void main() {
       testWidgets('unresolve: weird prefix', (tester) async {
         final message = eg.streamMessage(stream: someChannel, topic: '✔ ✔ zulip');
         await prepare(topic: '✔ ✔ zulip');
-        await showFromAppBar(tester, topic: '✔ ✔ zulip', messages: [message]);
+        await showFromAppBar(tester,
+          topic: TopicName('✔ ✔ zulip'), messages: [message]);
         connection.takeRequests();
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(findButtonForLabel('Mark as unresolved'));
