@@ -30,7 +30,6 @@ import 'theme.dart';
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
   static final light = MessageListTheme._(
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
-    dateSeparator: Colors.black,
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
     labelTime: const HSLColor.fromAHSL(0.49, 0, 0, 0).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
@@ -52,7 +51,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   static final dark = MessageListTheme._(
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 0.11).toColor(),
-    dateSeparator: Colors.white,
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     labelTime: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
@@ -73,7 +71,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   MessageListTheme._({
     required this.bgMessageRegular,
-    required this.dateSeparator,
     required this.dmRecipientHeaderBg,
     required this.labelTime,
     required this.senderBotIcon,
@@ -94,7 +91,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }
 
   final Color bgMessageRegular;
-  final Color dateSeparator;
   final Color dmRecipientHeaderBg;
   final Color labelTime;
   final Color senderBotIcon;
@@ -106,7 +102,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   @override
   MessageListTheme copyWith({
     Color? bgMessageRegular,
-    Color? dateSeparator,
     Color? dmRecipientHeaderBg,
     Color? labelTime,
     Color? senderBotIcon,
@@ -117,7 +112,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   }) {
     return MessageListTheme._(
       bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
-      dateSeparator: dateSeparator ?? this.dateSeparator,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       labelTime: labelTime ?? this.labelTime,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
@@ -135,7 +129,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     }
     return MessageListTheme._(
       bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
-      dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
@@ -909,8 +902,9 @@ class DateSeparator extends StatelessWidget {
     const textBottomPadding = 2.0;
 
     final messageListTheme = MessageListTheme.of(context);
+    final designVariables = DesignVariables.of(context);
 
-    final line = BorderSide(width: 0, color: messageListTheme.dateSeparator);
+    final line = BorderSide(width: 0, color: designVariables.foreground);
 
     // TODO(#681) use different color for DM messages
     return ColoredBox(color: messageListTheme.bgMessageRegular,
