@@ -312,6 +312,27 @@ enum _HeaderGrowthPlacement {
 ///
 /// This widget takes most of its behavior from [SliverList],
 /// but adds sticky headers as described at [StickyHeaderListView].
+///
+/// ## Overflow across slivers
+///
+/// When the list item that controls the sticky header has
+/// [StickyHeaderItem.allowOverflow] true, the header will be permitted
+/// to overflow not only the item but this whole sliver.
+///
+/// The caller is responsible for arranging the paint order between slivers
+/// so that this works correctly: a sliver that might overflow must be painted
+/// after any sliver it might overflow onto.
+/// For example if [headerPlacement] puts headers at the left of the viewport
+/// (and any items with [StickyHeaderItem.allowOverflow] true are present),
+/// then this [SliverStickyHeaderList] must paint after any slivers that appear
+/// to the right of this sliver.
+///
+/// At present there's no off-the-shelf way to fully control the paint order
+/// between slivers.
+/// See the implementation of [RenderViewport.childrenInPaintOrder] for the
+/// paint order provided by [CustomScrollView]; it meets the above needs
+/// for some arrangements of slivers and values of [headerPlacement],
+/// but not others.
 class SliverStickyHeaderList extends RenderObjectWidget {
   SliverStickyHeaderList({
     super.key,
