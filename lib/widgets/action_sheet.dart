@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
+import '../api/model/narrow.dart';
 import '../api/route/channels.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -240,6 +241,14 @@ void showTopicActionSheet(BuildContext context, {
       pageContext: context);
   }));
 
+  final unreadCount = store.unreads.countInTopicNarrow(channelId, topic);
+  if (unreadCount > 0) {
+    optionButtons.add(MarkTopicAsReadButton(
+      channelId: channelId,
+      topic: topic,
+      pageContext: context));
+  }
+
   if (optionButtons.isEmpty) {
     // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
     //   we're presenting some UI (to people who use screen-reader software) as
@@ -368,6 +377,61 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
       final zulipLocalizations = ZulipLocalizations.of(pageContext);
       showErrorDialog(context: pageContext,
         title: _errorTitle(zulipLocalizations), message: errorMessage);
+    }
+  }
+}
+
+class MarkTopicAsReadButton extends ActionSheetMenuItemButton {
+  const MarkTopicAsReadButton({
+    super.key,
+    required this.channelId,
+    required this.topic,
+    required super.pageContext,
+  });
+
+  final int channelId;
+  final TopicName topic;
+
+  @override IconData get icon => Icons.mark_chat_read_outlined;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionMarkTopicAsRead;
+  }
+
+  @override void onPressed() async {
+    final store = PerAccountStoreWidget.of(pageContext);
+    final connection = store.connection;
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+    try {
+      if (connection.zulipFeatureLevel! >= 155) {
+        await updateMessageFlagsForNarrow(connection,
+          anchor: AnchorCode.oldest,
+          numBefore: 0,
+          numAfter: 1000,
+          narrow: TopicNarrow(channelId, topic).apiEncode()
+            ..add(ApiNarrowIs(IsOperand.unread)),
+          op: UpdateMessageFlagsOp.add,
+          flag: MessageFlag.read);
+      } else {
+        await markTopicAsRead(connection,
+          streamId: channelId,
+          topicName: topic);
+      }
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+        default:
+      }
+
+      showErrorDialog(context: pageContext,
+        title: zulipLocalizations.errorMarkTopicAsReadFailed,
+        message: errorMessage);
     }
   }
 }

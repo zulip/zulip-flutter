@@ -830,7 +830,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
-              icon: const Icon(Icons.playlist_add_check),
+              icon: const Icon(Icons.mark_chat_read_outlined),
               label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }

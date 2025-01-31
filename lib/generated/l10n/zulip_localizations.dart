@@ -1070,6 +1070,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Option to mark a specific topic as read in the action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Topic As Read'**
+  String get actionSheetOptionMarkTopicAsRead;
+
+  /// Error message displayed when marking a topic as read fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark the topic as read. Please try again.'**
+  String get errorMarkTopicAsReadFailed;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {
