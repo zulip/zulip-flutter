@@ -249,7 +249,13 @@ void showTopicActionSheet(BuildContext context, {
       pageContext: pageContext);
   }));
 
-  if (someMessageIdInTopic != null) {
+  final message = store.messages[someMessageIdInTopic] as StreamMessage?;
+  // TODO: check for other cases that may disallow this action (e.g.: time
+  //   limit for editing topics).
+  final allowResolveUnresolve =
+    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
+    message == null || message.topic.displayName != null;
+  if (someMessageIdInTopic != null && allowResolveUnresolve) {
     optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
       topic: topic,
       someMessageIdInTopic: someMessageIdInTopic));
