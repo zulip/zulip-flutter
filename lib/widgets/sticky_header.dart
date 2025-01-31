@@ -489,6 +489,11 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
     if (_header != null) adoptChild(_header!);
   }
 
+  /// This sliver's child sliver, a modified [RenderSliverList].
+  ///
+  /// The child manages the items in the list (deferring to [RenderSliverList]);
+  /// and identifies which list item, if any, should be consulted
+  /// for a sticky header.
   _RenderSliverStickyHeaderListInner? get child => _child;
   _RenderSliverStickyHeaderListInner? _child;
   set child(_RenderSliverStickyHeaderListInner? value) {
@@ -552,6 +557,9 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
   @override
   void performLayout() {
+    // First, lay out the child sliver.  This does all the normal work of
+    // [RenderSliverList], then calls [_rebuildHeader] on this sliver
+    // so that [header] and [_headerEndBound] are up to date.
     assert(child != null);
     child!.layout(constraints, parentUsesSize: true);
     SliverGeometry geometry = child!.geometry!;
