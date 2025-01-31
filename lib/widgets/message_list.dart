@@ -29,11 +29,11 @@ import 'theme.dart';
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
   static final light = MessageListTheme._(
+    bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
     dateSeparator: Colors.black,
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
     labelTime: const HSLColor.fromAHSL(0.49, 0, 0, 0).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
-    streamMessageBgDefault: Colors.white,
     streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
     // From the Figma mockup at:
@@ -51,11 +51,11 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   );
 
   static final dark = MessageListTheme._(
+    bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 0.11).toColor(),
     dateSeparator: Colors.white,
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     labelTime: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-    streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
     streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
     // 0.75 opacity from here:
@@ -72,11 +72,11 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   );
 
   MessageListTheme._({
+    required this.bgMessageRegular,
     required this.dateSeparator,
     required this.dmRecipientHeaderBg,
     required this.labelTime,
     required this.senderBotIcon,
-    required this.streamMessageBgDefault,
     required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
     required this.unreadMarkerGap,
@@ -93,11 +93,11 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return extension!;
   }
 
+  final Color bgMessageRegular;
   final Color dateSeparator;
   final Color dmRecipientHeaderBg;
   final Color labelTime;
   final Color senderBotIcon;
-  final Color streamMessageBgDefault;
   final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
   final Color unreadMarkerGap;
@@ -105,22 +105,22 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   @override
   MessageListTheme copyWith({
+    Color? bgMessageRegular,
     Color? dateSeparator,
     Color? dmRecipientHeaderBg,
     Color? labelTime,
     Color? senderBotIcon,
-    Color? streamMessageBgDefault,
     Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
     Color? unreadMarkerGap,
     Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
+      bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
       dateSeparator: dateSeparator ?? this.dateSeparator,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       labelTime: labelTime ?? this.labelTime,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
-      streamMessageBgDefault: streamMessageBgDefault ?? this.streamMessageBgDefault,
       streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
       unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
@@ -134,11 +134,11 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       return this;
     }
     return MessageListTheme._(
+      bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
-      streamMessageBgDefault: Color.lerp(streamMessageBgDefault, other.streamMessageBgDefault, t)!,
       streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
@@ -913,7 +913,7 @@ class DateSeparator extends StatelessWidget {
     final line = BorderSide(width: 0, color: messageListTheme.dateSeparator);
 
     // TODO(#681) use different color for DM messages
-    return ColoredBox(color: messageListTheme.streamMessageBgDefault,
+    return ColoredBox(color: messageListTheme.bgMessageRegular,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
@@ -960,7 +960,7 @@ class MessageItem extends StatelessWidget {
       child: _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
         child: ColoredBox(
-          color: messageListTheme.streamMessageBgDefault,
+          color: messageListTheme.bgMessageRegular,
           child: Column(children: [
             MessageWithPossibleSender(item: item),
             if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
